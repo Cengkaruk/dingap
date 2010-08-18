@@ -1,0 +1,2 @@
+# Custom firewall rules managed through webconfig
+# This file is executed by the firewall on stop/start/restart.
