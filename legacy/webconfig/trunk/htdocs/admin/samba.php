@@ -95,7 +95,7 @@ try {
 			$_REQUEST['DisplayPassword'] = "yes";
 			WebDialogWarning($errors[0]);
 		} else {
-			$user->SetPassword($password);
+			$user->ResetPassword($password, $verify, $_SESSION['user_login']);
 			// TODO: temporary workaround
 			$samba->_CleanSecretsFile($password);
 			
@@ -153,6 +153,7 @@ try {
 		$winssupport = (isset($_POST['winssupport'])) ? (bool)$_POST['winssupport'] : false;
 		$netbiosname = (isset($_POST['netbiosname'])) ? $_POST['netbiosname'] : "";
 		$serverstring = (isset($_POST['serverstring'])) ? $_POST['serverstring'] : "";
+		$homes = (isset($_POST['homes'])) ? (bool)$_POST['homes'] : false;
 
 		if ($winssupport)
 			$winsserver = "";
@@ -160,6 +161,7 @@ try {
 		$samba->SetNetbiosName($netbiosname);
 		$samba->SetWinsServerAndSupport($winsserver, $winssupport);
 		$samba->SetServerString($serverstring);
+		$samba->SetShareAvailability("homes", $homes);
 
 		if (isset($_POST['printingmode']))
 			$samba->SetPrintingMode($_POST['printingmode']);
@@ -559,6 +561,16 @@ function DisplayConfig($netbiosname, $serverstring, $winssupport, $winsserver)
 		return;
 	}
 
+	try {
+		$homeshare = $samba->GetShareInfo("homes");
+		$homes = (isset($homeshare['available']) && !$homeshare['available']) ? false : true;
+	} catch (SambaShareNotFoundException $e) {
+		$homes = false;
+	} catch (Exception $e) {
+		WebDialogWarning($e->GetMessage());
+		return;
+	}
+
 	if (file_exists("../../api/Cups.class.php")) {
 		$printingmodes[Samba::PRINTING_DISABLED] = LOCALE_LANG_DISABLED;
 		$printingmodes[Samba::PRINTING_RAW] = SAMBA_LANG_RAW_PRINTING;
@@ -596,6 +608,10 @@ function DisplayConfig($netbiosname, $serverstring, $winssupport, $winsserver)
 			<td><input type='text' style='width: 220px' name='serverstring' value='$serverstring' /></td>
 		</tr>
 		$printing_html
+		<tr>
+			<td nowrap class='mytablesubheader'>" . SAMBA_LANG_HOMES . "</td>
+			<td>" .  WebDropDownEnabledDisabled("homes", $homes) . "</td>
+		</tr>
 		<tr>
 			<td nowrap class='mytablesubheader'>" . SAMBA_LANG_WINSSUPPORT . "</td>
 			<td>" .

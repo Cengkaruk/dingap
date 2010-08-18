@@ -110,11 +110,6 @@ class Ldap extends Daemon
 	const COMMAND_LDAPSYNC = '/usr/sbin/ldapsync';
 	const CONSTANT_LOCALHOST = 'localhost';
 	const CONSTANT_LAN = 'lan';
-	const CONSTANT_COMPUTERS_OU = 'ou=Computers,ou=Accounts';
-	const CONSTANT_GROUPS_OU = 'ou=Groups,ou=Accounts';
-	const CONSTANT_SERVERS_OU = 'ou=Servers';
-	const CONSTANT_USERS_OU = 'ou=Users,ou=Accounts';
-	const CONSTANT_MASTER_CN = 'cn=Master';
 	const FILE_KOLAB_CONFIG = '/etc/kolab/kolab.conf';
 	const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
 	const FILE_SLAPD_SYSCONFIG = '/etc/sysconfig/ldap';
@@ -375,24 +370,6 @@ class Ldap extends Daemon
 	}
 
 	/** 
-	 * Returns the OU for computers.
-	 *
-	 * @return string OU for computers.
-	 * @throws EngineException
-	 */
-
-	function GetComputersOu()
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
-
-		return Ldap::CONSTANT_COMPUTERS_OU . ',' . $this->config['base_dn'];
-	}
-
-	/** 
 	 * Returns configured default home server.
 	 *
 	 * @return string default home server
@@ -515,24 +492,6 @@ class Ldap extends Daemon
 	}
 
 	/** 
-	 * Returns the OU for groups.
-	 *
-	 * @return string OU for groups.
-	 * @throws EngineException
-	 */
-
-	function GetGroupsOu()
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
-
-		return Ldap::CONSTANT_GROUPS_OU . ',' . $this->config['base_dn'];
-	}
-
-	/** 
 	 * Returns configured LDAP URI.
 	 *
 	 * @return string LDAP URI
@@ -550,60 +509,6 @@ class Ldap extends Daemon
 		return $this->config['ldap_uri'];
 	}
 
-	/** 
-	 * Returns the DN for master LDAP server.
-	 *
-	 * @return string DN for master LDAP server.
-	 * @throws EngineException
-	 */
-
-	function GetMasterDn()
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
-
-		return Ldap::CONSTANT_MASTER_CN . ',' . Ldap::CONSTANT_SERVERS_OU . ',' . $this->config['base_dn'];
-	}
-
-	/** 
-	 * Returns the OU for servers.
-	 *
-	 * @return string OU for servers.
-	 * @throws EngineException
-	 */
-
-	function GetServersOu()
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
-
-		return Ldap::CONSTANT_SERVERS_OU . ',' . $this->config['base_dn'];
-	}
-
-	/** 
-	 * Returns the OU for users.
-	 *
-	 * @return string OU for users.
-	 * @throws EngineException
-	 */
-
-	function GetUsersOu()
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
-
-		return Ldap::CONSTANT_USERS_OU . ',' . $this->config['base_dn'];
-	}
-
 	/**
 	 * Modifies LDAP entry.
 	 *
@@ -617,6 +522,9 @@ class Ldap extends Daemon
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (! $this->bound)
+			$this->Bind();
 
 		$ok = ldap_modify($this->connection, $dn, $entry);
 

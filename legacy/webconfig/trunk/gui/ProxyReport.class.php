@@ -3066,7 +3066,7 @@ class ProxyReportDataObject extends Engine
 			if (strpos($type,"bar") !== false) {
 				$height = 20*count($chartdata[0]);
 			} else {
-				$height = 100;
+				$height = 250;
 			}
 		}
 

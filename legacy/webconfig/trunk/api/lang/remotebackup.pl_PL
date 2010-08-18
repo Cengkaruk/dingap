@@ -9,6 +9,7 @@ define("REMOTEBACKUP_LANG_ERR_EXPORT_FAILED", "Nie uda&#322;o si&#281; wyeksport
 define("REMOTEBACKUP_LANG_ERR_EXPORT_MISSING", "Brak pliku archiwum");
 define("REMOTEBACKUP_LANG_ERR_EXPORT_TIMEOUT", "Up&#322;yn&#261;&#322; limit czasu eksportu danych");
 define("REMOTEBACKUP_LANG_ERR_HELLO_BUSY", "Zaj&#281;ty");
+define("REMOTEBACKUP_LANG_ERR_HELLO_MAINT", "Trwa konserwacja");
 define("REMOTEBACKUP_LANG_ERR_INSTANCE_RUNNING", "Operacja tworzenia/przywracania lub przegl&#261;dania kopii zapasowej jest obecnie w toku.");
 define("REMOTEBACKUP_LANG_ERR_INVALID_ARCHIVE", "Okre&#347;lono nieprawid&#322;owe archiwum");
 define("REMOTEBACKUP_LANG_ERR_KEY_INVALID", "Dostarczony klucz systemu plików jest pusty lub zbyt krótki.");

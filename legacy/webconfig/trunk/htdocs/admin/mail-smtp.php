@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2003-2007 Point Clark Networks.
+// Copyright 2003-2010 Point Clark Networks.
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -24,6 +24,7 @@
 
 require_once("../../gui/Webconfig.inc.php");
 require_once("../../api/Daemon.class.php");
+require_once("../../api/ClearDirectory.class.php");
 require_once("../../api/FirewallIncoming.class.php");
 require_once("../../api/Postfix.class.php");
 require_once("../../api/UserManager.class.php");
@@ -193,21 +194,14 @@ try {
 
 SanityCheck();
 
-if (isset($_POST['EditVirtual'])) {
-	DisplayEditVirtual(key($_POST['EditVirtual']));
-} else if (isset($_POST['AddVirtual']) && empty($errors)) {
-	DisplayEditVirtual($_POST['virtual_domain']);
-} else {
-	WebDialogDaemon("postfix");
-	DisplayConfig($trusted_network, $relay_host);
+WebDialogDaemon("postfix");
+DisplayConfig($trusted_network, $relay_host);
 
-	if ($mode == Postfix::CONSTANT_MODE_SERVER) {
-		DisplayDestinationDomains($destination_domain);
-//		DisplayVirtual($virtual_domain);
-		DisplayForwarding($forward_domain, $forward_server, $forward_port);
-	} else {
-		DisplayForwarding($forward_domain, $forward_server, $forward_port);
-	}
+if ($mode == Postfix::CONSTANT_MODE_SERVER) {
+	DisplayDestinationDomains($destination_domain);
+	DisplayForwarding($forward_domain, $forward_server, $forward_port);
+} else {
+	DisplayForwarding($forward_domain, $forward_server, $forward_port);
 }
 
 WebFooter();
@@ -237,7 +231,7 @@ function DisplayConfig($trusted_network, $relay_host)
 		$relayhosts = $postfix->GetRelayHosts();
 		$trusted = $postfix->GetTrustedNetworks();
 		$catchall = $mailfilter->GetCatchAllMailbox();
-		$userlist = $usermanager->GetAllUsers(UserManager::TYPE_EMAIL);
+		$userlist = $usermanager->GetAllUsers(ClearDirectory::SERVICE_TYPE_EMAIL);
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 		return;
@@ -523,127 +517,6 @@ function DisplayDestinationDomains($destination_domain)
 	  </tr>
 	";
 	WebTableClose();
-	WebFormClose();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// DisplayVirtual()
-//
-///////////////////////////////////////////////////////////////////////////////
-
-function DisplayVirtual($virtual_domain)
-{
-	global $postfix;
-
-	try {
-		$v_domains = $postfix->GetVirtualDomains();
-	} catch (Exception $e) {
-		WebDialogWarning($e->GetMessage());
-	}
-
-	// Virtual Domains
-	//----------------
-
-	$virtual_list = "";
-
-	foreach ($v_domains as $vd) {
-		$virtual_list .= "
-		  <tr>
-			<td align='right'>$vd</td>
-			<td nowrap>" .  WebButtonEdit("EditVirtual[$vd]") . WebButtonDelete("DeleteVirtual[$vd]") . "</td>
-		  </tr>
-		";
-	}
-
-	WebFormOpen();
-	WebTableOpen(POSTFIX_LANG_VIRTUAL_DOMAINS);
-	echo "
-	  <tr>
-		<td width='250' align='right'><input class='textbox' type='text' size='20' name='virtual_domain' value='$virtual_domain'></td>
-		<td nowrap>" . WebButtonAdd("AddVirtual") . "</td>
-	  </tr>
-	  $virtual_list
-	";
-	WebTableClose();
-	WebFormClose();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// DisplayEditVirtual()
-//
-///////////////////////////////////////////////////////////////////////////////
-
-function DisplayEditVirtual($virtualdomain)
-{
-	global $postfix;
-
-	try {
-		$users = new UserManager();
-		$userlist = $users->GetAllUsers(UserManager::TYPE_EMAIL);
-		$catchall = $postfix->GetCatchallVirtual($virtualdomain);
-		$virtuallist = $postfix->GetVirtualUserList($virtualdomain);
-	} catch (Exception $e) {
-		WebDialogWarning($e->GetMessage());
-		return;
-	}
-
-	// Grab current catchall user (if applicable)
-	//-------------------------------------------
-
-	$catchall_exists = false;
-	$user_dropdown = "";
-	$user_access = "";
-
-	foreach ($userlist as $user) {
-		if (preg_match("/^$user$/", $catchall)) {
-			$user_dropdown .= "<option value='$user' selected>$user</option>\n";
-			$catchall_exists = true;
-		} else {
-			$user_dropdown .= "<option value='$user'>$user</option>\n";
-		}
-
-		try {
-			$is_allowed = $postfix->GetUserVirtual($user, $virtualdomain);
-		} catch (Exception $e) {
-			WebDialogWarning($e->GetMessage());
-		}
-
-		if ($is_allowed)
-			$user_access .= "<input type='checkbox' name='usernames[]' value='$user' checked>$user<br>\n";
-		else
-			$user_access .= "<input type='checkbox' name='usernames[]' value='$user'>$user<br>\n";
-	}
-
-	$catchall_selected = ($catchall_exists) ? '' : 'selected';
-	$user_dropdown .= "<option value='" . Postfix::CONSTANT_BOUNCE . "' $catchall_selected>" . WEB_LANG_RETURN_TO_SENDER . "</option>";
-
-	WebFormOpen();
-	WebTableOpen(WEB_LANG_VIRTUAL_EDIT_TITLE, "400");
-	echo "
-	  <tr>
-		<td class='mytablesubheader' nowrap width='25%'>" . POSTFIX_LANG_DOMAIN . "</td>
-		<td>$virtualdomain</td>
-	  </tr>
-	  <tr>
-		<td class='mytablesubheader' nowrap>" . POSTFIX_LANG_CATCHALL . "</td>
-		<td><select name='catchall'>$user_dropdown</select></td>
-	  </tr>
-	  <tr>
-		<td valign='top' class='mytablesubheader' nowrap>" . POSTFIX_LANG_USER . "</td>
-		<td valign='top'>$user_access</td>
-	  </tr>
-	  <tr>
-		<td class='mytablesubheader' nowrap>&nbsp; </td>
-		<td>
-		  <input type='hidden' name='virtualdomain' value='$virtualdomain'>" .
-		  WebButtonUpdate("UpdateVirtual") . " " .
-		  WebButtonCancel("Cancel") . "
-		</td>
-	  </tr>
-	";
-	WebTableClose("400");
 	WebFormClose();
 }
 

@@ -44,8 +44,8 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+require_once("ClearDirectory.class.php");
 require_once("Country.class.php");
-require_once("Group.class.php");
 require_once("Ldap.class.php");
 require_once("Organization.class.php");
 require_once("ShellExec.class.php");
@@ -164,26 +164,17 @@ class User extends Engine
 	protected $attributemap;
 	protected $reserved = array('root', 'manager');
 
-	const DEFAULT_GID_NUMBER = 400;
+	const LOG_TAG = 'user';
 	const DEFAULT_HOMEDIR_PATH = '/home';
 	const DEFAULT_HOMEDIR_PERMS = '0755';
 	const DEFAULT_LOGIN = '/sbin/nologin';
 	const DEFAULT_USER_GROUP = 'allusers';
-	const COMMAND_OPENSSL = '/usr/bin/openssl';
+	const DEFAULT_USER_GROUP_ID = '63000';
+	const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
 	const COMMAND_SYNCMAILBOX = '/usr/sbin/syncmailboxes';
 	const COMMAND_SYNCUSERS = '/usr/sbin/syncusers';
-	const SERVICE_SHELL = 'openssh-server';
-	const SERVICE_SAMBA = 'samba';
-	const SERVICE_EMAIL = 'cyrus-imapd';
-	const SERVICE_OPENVPN =  'openvpn';
-	const SERVICE_PPTP =  'pptpd';
-	const SERVICE_PROXY = 'squid';
-	const SERVICE_FTP = 'proftpd';
-	const SERVICE_WEB = 'httpd';
-	const SERVICE_WEBCONFIG = 'webconfig';
-	const SERVICE_PBX = 'iplex';
-	const SERVICE_PRESENCE = 'presence';
 	const CONSTANT_TYPE_SHA = 'sha';
+	const CONSTANT_TYPE_SHA1 = 'sha1';
 	const CONSTANT_TYPE_LANMAN = 'lanman';
 	const CONSTANT_TYPE_NT = 'nt';
 	const STATUS_LOCKED = 'locked';
@@ -254,10 +245,13 @@ class User extends Engine
 			'uidNumber'		=> array( 'type' => 'integer', 'required' => false, 'validator' => 'IsValidUidNumber', 'objectclass' => 'core', 'attribute' => 'uidNumber' ),
 			'unit'			=> array( 'type' => 'string',  'required' => false, 'validator' => 'IsValidOrganizationUnit', 'objectclass' => 'core', 'attribute' => 'ou' ),
 			'mailquota'		=> array( 'type' => 'string',  'required' => false, 'validator' => 'IsValidMailQuota', 'objectclass' => 'kolabInetOrgPerson', 'attribute' => 'cyrus-userquota' ),
+			'aliases'		=> array( 'type' => 'stringarray',  'required' => false, 'validator' => 'IsValidAlias', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
+			'forwarders'	=> array( 'type' => 'stringarray',  'required' => false, 'validator' => 'IsValidForwarder', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
 			'deleteMailbox'	=> array( 'type' => 'string',  'required' => false, 'objectclass' => 'kolabInetOrgPerson', 'attribute' => 'kolabDeleteflag' ),
 			'pbxState'		=> array( 'type' => 'integer', 'required' => false, 'validator' => 'IsValidRoomNumber', 'objectclass' => 'pcnPbxAccount', 'attribute' => 'pcnPbxState' ),
 			'ftpFlag'		=> array( 'type' => 'boolean', 'required' => false, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
 			'mailFlag'		=> array( 'type' => 'boolean', 'required' => false, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+			'googleAppsFlag'	=> array( 'type' => 'boolean', 'required' => false, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA1 ),
 			'openvpnFlag'	=> array( 'type' => 'boolean', 'required' => false, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnOpenVPNAccount', 'attribute' => 'pcnOpenVPNFlag' , 'passwordfield' => 'pcnOpenVPNPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
 			'pptpFlag'		=> array( 'type' => 'boolean', 'required' => false, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnPPTPAccount', 'attribute' => 'pcnPPTPFlag' , 'passwordfield' => 'pcnPPTPPassword', 'passwordtype' => self::CONSTANT_TYPE_NT ),
 			'proxyFlag'		=> array( 'type' => 'boolean', 'required' => false, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnProxyAccount', 'attribute' => 'pcnProxyFlag' , 'passwordfield' => 'pcnProxyPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
@@ -300,16 +294,12 @@ class User extends Engine
 		if (! $this->_ValidateUserinfo($userinfo, false))
 			$isvalid = false;
 
-		try {
-			$group = new Group($this->username);
-			$groupexists = $group->Exists();
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_WARNING);
-		}
+		$cleardirectory = new ClearDirectory();
+		$isunique = $cleardirectory->IsUniqueId($this->username);
 
-		if ($groupexists) {
+		if ($isunique != ClearDirectory::STATUS_UNIQUE) {
+			$this->AddValidationError($cleardirectory->statuscodes[$isunique], __METHOD__, __LINE__);
 			$isvalid = false;
-			$this->AddValidationError(USER_LANG_ERRMSG_GROUP_WITH_THIS_NAME_EXISTS, __METHOD__, __LINE__);
 		}
 
 		try {
@@ -338,7 +328,7 @@ class User extends Engine
 		// Check for existing user ID and existing DN
 		//-------------------------------------------
 
-		$dn = 'cn=' . Ldap::DnEscape($ldap_object['cn']) . ',' .$this->ldaph->GetUsersOu();
+		$dn = 'cn=' . Ldap::DnEscape($ldap_object['cn']) . ',' .ClearDirectory::GetUsersOu();
 		$uidfordn = $this->ldaph->UidForDn($dn);
 
 		if ($uidfordn)
@@ -371,18 +361,59 @@ class User extends Engine
 			// Add to LDAP
 			$this->ldaph->Add($dn, $ldap_object);
 
-			// Add to "allusers" group
-			$group = new Group(Group::CONSTANT_ALL_USERS_GROUP);
-			$group->AddMember($this->username);
-
-			// Add to "Domain Users" Windows group
-			$group = new Group(Group::CONSTANT_ALL_WINDOWS_USERS_GROUP);
-			$group->AddMember($this->username);
+			// Initialize default group memberships
+			$groupmanager = new GroupManager();
+			$groupmanager->InitalizeGroupMemberships($this->username);
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), COMMON_WARNING);
 		}
 
 		$this->_Synchronize(true);
+	}
+
+	/**
+	 * Adds mail alias.
+	 *
+	 * @param string $alias mail alias
+	 * @return void
+	 * @throws ValidationException, EngineException
+	 */
+
+	function AddAlias($alias)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (!$this->IsValidAlias($alias))
+			throw new EngineException(LOCALE_LANG_INVALID . " - " . USER_LANG_MAIL_ALIAS, COMMON_INFO);
+
+		$cleardirectory = new ClearDirectory();
+		$isunique = $cleardirectory->IsUniqueId($alias);
+
+		if ($isunique != ClearDirectory::STATUS_UNIQUE)
+			throw new EngineException($cleardirectory->statuscodes[$isunique], COMMON_INFO);
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		$oldattributes = $this->_GetUserInfo();
+
+		// Add brand new alias
+		if (! isset($oldattributes['pcnMailAliases'])) {
+			$ldap_object['pcnMailAliases'] = array();
+		// Append to already existing aliases
+		} else if (! in_array($alias, $oldattributes['pcnMailAliases'])) {
+			array_shift($oldattributes['pcnMailAliases']);
+			$ldap_object['pcnMailAliases'] = $oldattributes['pcnMailAliases'];
+		// Already exists
+		} else if (in_array($alias, $oldattributes['pcnMailAliases'])) {
+			throw new EngineException(USER_LANG_MAIL_ALIAS . " - " . LOCALE_LANG_ALREADY_EXISTS, COMMON_INFO);
+			return;
+		}
+
+		array_push($ldap_object['pcnMailAliases'], $alias);
+			
+		$this->ldaph->Modify($oldattributes['dn'], $ldap_object);
 	}
 
 	/**
@@ -449,11 +480,11 @@ class User extends Engine
 			$dn = $this->ldaph->GetDnForUid($this->username);
 
 			$ldap_object = array();
-			// FIXME: only set this if mailbox exists
+			// TODO: only set this if mailbox exists
 			$ldap_object['kolabDeleteflag'] = $this->ldaph->GetDefaultHomeServer();
 
 			// Write random garbage into passwd field to lock the user out
-			// FIXME: disable all flags
+			// TODO: disable all flags
 			$ldap_object['userPassword'] = '{sha}' . base64_encode(pack('H*', sha1(mt_rand())));
 
 			$this->ldaph->Modify($dn, $ldap_object);
@@ -462,6 +493,39 @@ class User extends Engine
 		}
 
 		$this->_Synchronize(false);
+	}
+
+	/**
+	 * Deletes mail alias.
+	 *
+	 * @param string $alias mail alias
+	 * @return void
+	 * @throws ValidationException, EngineException
+	 */
+
+	function DeleteAlias($alias)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (!$this->IsValidAlias($alias))
+			throw new EngineException(LOCALE_LANG_INVALID . " - " . USER_LANG_MAIL_ALIAS, COMMON_INFO);
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		$oldattributes = $this->_GetUserInfo();
+
+		array_shift($oldattributes['pcnMailAliases']);
+		
+		$ldap_object['pcnMailAliases'] = array();
+
+		foreach ($oldattributes['pcnMailAliases'] as $oldalias) {
+			if ($oldalias != $alias)
+				array_push($ldap_object['pcnMailAliases'], $oldalias);
+		}
+
+		$this->ldaph->Modify($oldattributes['dn'], $ldap_object);
 	}
 
 	/**
@@ -544,11 +608,11 @@ class User extends Engine
 		// Handle LDAP
 		//------------
 
-		$new_dn = "cn=" . Ldap::DnEscape($ldap_object['cn']) . "," . $this->ldaph->GetUsersOu();
+		$new_dn = "cn=" . Ldap::DnEscape($ldap_object['cn']) . "," . ClearDirectory::GetUsersOu();
 
 		if ($new_dn != $attrs['dn']) {
 		    $rdn = "cn=" . Ldap::DnEscape($ldap_object['cn']);
-		    $this->ldaph->Rename($attrs['dn'], $rdn, $this->ldaph->GetUsersOu());
+		    $this->ldaph->Rename($attrs['dn'], $rdn, ClearDirectory::GetUsersOu());
 		}
 
 		$this->ldaph->Modify($new_dn, $ldap_object);
@@ -595,66 +659,139 @@ class User extends Engine
 
 		return $this->_ConvertLdapToArray($attrs);
 	}
-												  
+
 	/**
-	 * Sets all passwords for the user.
+	 * Reset the passwords for the user.
+	 *
+	 * Similar to SetPassword, but it uses administrative privileges.  This is
+	 * typically used for resetting a password while bypassing password
+	 * policies.  For example, an administrator may need to set a password
+	 * even when the password policy dictates that the password is not allowed
+	 * to change (minimum password age).
 	 *
 	 * @param string $password password
+	 * @param string $verify password verify
+	 * @param string $requested_by username requesting the password change
 	 * @return void
-	 * @throws EngineException
+	 * @throws EngineException, ValidationException
 	 */
 
-	function SetPassword($password, $includesamba = true)
+	function ResetPassword($password, $verify, $requested_by)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
+		// Validate
+		//---------
+
+		if (! $this->IsValidUsername($requested_by, true))
+			throw new ValidationException(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . LOCALE_LANG_USERNAME);
+
+		if (! $this->IsValidPasswordAndVerify($password, $verify)) {
+			$errors = $this->GetValidationErrors();
+			throw new ValidationException($errors[0]);
+		}
+
+		// Set passwords in LDAP
+		//----------------------
+
+		$this->_SetPassword($password);
+
+		Logger::Syslog(self::LOG_TAG, "password reset for user - " . $this->username . " / by - " . $requested_by);
+	}
+
+	/**
+	 * Sets the password for the user.
+	 *
+	 * Ignore the includesamba flag,  It is a workaround required for password
+	 * changes using the change password tool from Windows desktops.
+	 *
+	 * @param string $oldpassword old password
+	 * @param string $password password
+	 * @param string $verify password verify
+	 * @param string $requested_by username requesting the password change
+	 * @param boolean $includesamba workaround for Samba password changes
+	 * @return void
+	 * @throws EngineException, ValidationException
+	 */
+
+	function SetPassword($oldpassword, $password, $verify, $requested_by, $includesamba = true)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		// TODO: something odd is going on when password histories are enabled.
+		// The following block of code will fail if the sleep(1) is omitted.
+		//
+		//	$password = "password';
+		//	$user = new User("test1");
+		//	$userinfo['telephone'] = '867-5309';
+		//	$user->Update($userinfo);
+		//	$user->SetPassword($password, $password, "testscript");
+
+		// Validate
+		//---------
+
+		if (! $this->IsValidUsername($requested_by, true))
+			throw new ValidationException(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . LOCALE_LANG_USERNAME);
+
+		if (! $this->IsValidPasswordAndVerify($password, $verify)) {
+			$errors = $this->GetValidationErrors();
+			throw new ValidationException($errors[0]);
+		}
+
+		// Sanity check the password using the ldappasswd command
+		//-------------------------------------------------------
+
 		if ($this->ldaph == null)
 			$this->_GetLdapHandle();
 
-		// TODO: merge this with section in _ConvertArrayToLdap
-		$ldap_object['userPassword'] = '{sha}' . $this->_CalculateShaPassword($password);
-		$ldap_object['pcnSHAPassword'] = $ldap_object['userPassword'] ;
-		$ldap_object['pcnMicrosoftNTPassword'] = $this->_CalculateNtPassword($password);
-		$ldap_object['pcnMicrosoftLanmanPassword'] = $this->_CalculateLanmanPassword($password);
+		try {
+			$dn = $this->ldaph->GetDnForUid($this->username);
 
-		$oldattributes = $this->_GetUserInfo();
+			sleep(2); // see comment above
 
-		// If necessary, add pcnAccount object class for the above passwords
-		if (! in_array('pcnAccount', $oldattributes['objectClass'])) {
-			$classes = $oldattributes['objectClass'];
-			array_shift($classes);
-			$classes[] = 'pcnAccount';
-			$ldap_object['objectClass']= $classes;
+			$shell = new ShellExec();
+			$intval = $shell->Execute(User::COMMAND_LDAPPASSWD, 
+				'-x ' .
+				'-D "' . $dn . '" ' .
+				'-w "' . $oldpassword . '" ' .
+				'-s "' . $password . '" ' .
+				'"' . $dn . '"', 
+				false);
+		
+			if ($intval != 0)
+				$output = $shell->GetOutput();
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
 		}
 
-		foreach ($this->infomap as $key => $value) {
-			if (isset($this->infomap[$key]['passwordtype'])) {
-				if (isset($oldattributes[$this->infomap[$key]['passwordfield']])) {
-					if ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA)
-						$ldap_object[$this->infomap[$key]['passwordfield']] = $ldap_object['pcnSHAPassword'];
-					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_LANMAN)
-						$ldap_object[$this->infomap[$key]['passwordfield']] = $ldap_object['pcnMicrosoftLanmanPassword'];
-					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_NT)
-						$ldap_object[$this->infomap[$key]['passwordfield']] = $ldap_object['pcnMicrosoftNTPassword'];
-				}
+		if (! empty($output)) {
+			// Dirty.  Try to catch common error strings so that we can translate.
+			$errormessage = isset($output[1]) ? $output[1] : $output[0]; // Default if our matching fails
+
+			foreach ($output as $line) {
+				if (preg_match("/Invalid credentials/", $line))
+					$errormessage = USER_LANG_OLD_PASSWORD_INVALID;
+				else if (preg_match("/Password is in history of old passwords/", $line))
+					$errormessage = USER_LANG_PASSWORD_IN_HISTORY;
+				else if (preg_match("/Password is not being changed from existing value/", $line))
+					$errormessage = USER_LANG_PASSWORD_NOT_CHANGED;
+				else if (preg_match("/Password fails quality checking policy/", $line))
+					$errormessage = USER_LANG_PASSWORD_VIOLATES_QUALITY_CHECK;
+				else if (preg_match("/Password is too young to change/", $line))
+					$errormessage = USER_LANG_PASSWORD_TOO_YOUNG;
 			}
+
+			throw new ValidationException($errormessage);
 		}
 
-		// FIXME / Samba hook
-		if ($includesamba) {
-			if (isset($oldattributes['sambaLMPassword'])) {
-				$ldap_object['sambaLMPassword'] = $ldap_object['pcnMicrosoftLanmanPassword'] ;
-				$ldap_object['sambaPwdLastSet'] = time();
-			}
+		// Set passwords in LDAP
+		//----------------------
 
-			if (isset($oldattributes['sambaNTPassword'])) {
-				$ldap_object['sambaNTPassword'] = $ldap_object['pcnMicrosoftNTPassword'];
-				$ldap_object['sambaPwdLastSet'] = time();
-			}
-		}
+		$this->_SetPassword($password, $includesamba);
 
-		$this->ldaph->Modify($oldattributes['dn'], $ldap_object);
+		Logger::Syslog(self::LOG_TAG, "password updated for user - " . $this->username . " / by - " . $requested_by);
 	}
 
 	/**
@@ -681,6 +818,28 @@ class User extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 	// V A L I D A T I O N   M E T H O D S
 	///////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Validation routine for mail aliases.
+	 *
+	 * @param string $alias alias
+	 * @return boolean true if alias is valid
+	 */
+
+	function IsValidAlias($alias)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (empty($alias) || preg_match("/^([a-z0-9_\-\.\$]+)$/", $alias)) {
+			return true;
+		} else {
+			$this->AddValidationError(
+				LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_MAIL_ALIAS, __METHOD__, __LINE__
+			);
+			return false;
+		}
+	}
 
 	/**
 	 * Validation routine for city.
@@ -840,6 +999,28 @@ class User extends Engine
 	}
 
 	/**
+	 * Validation routine for mail forwarders
+	 *
+	 * @param string $forwarder forwarder
+	 * @return boolean true if forwarder is valid
+	 */
+
+	function IsValidForwarder($forwarder)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (preg_match("/^([a-z0-9_\-\.\$]+)@/", $forwarder)) {
+			return true;
+		} else {
+			$this->AddValidationError(
+				LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_MAIL_FORWARDER, __METHOD__, __LINE__
+			);
+			return false;
+		}
+	}
+
+	/**
 	 * Validation routine for full name.
 	 *
 	 * @param string $name full name
@@ -968,7 +1149,7 @@ class User extends Engine
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		// FIXME: new regex
+		// TODO: new regex
 		if (preg_match("/^([a-z0-9_\-\.\$]+)@/", $address)) {
 			return true;
 		} else {
@@ -1057,7 +1238,7 @@ class User extends Engine
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		if (preg_match("/[\|;]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password)) {
+		if (preg_match("/[\|;\*]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password)) {
 			$this->AddValidationError(LOCALE_LANG_ERRMSG_PASSWORD_INVALID, __METHOD__, __LINE__);
 			return false;
 		} else {
@@ -1304,16 +1485,17 @@ class User extends Engine
 	 * Validation routine for username.
 	 *
 	 * @param string $username username
+	 * @param boolean $allowreserved do not invalidate reserved usernames
 	 * @return boolean true if username is valid
 	 */
 
-	function IsValidUsername($username)
+	function IsValidUsername($username, $allowreserved = false)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
 		if (preg_match("/^([a-z0-9_\-\.\$]+)$/", $username)) {
-			if (in_array($username, $this->reserved)) {
+			if (!$allowreserved && in_array($username, $this->reserved)) {
 				$this->AddValidationError(USER_LANG_ERRMSG_RESERVED_SYSTEM_USER, __METHOD__, __LINE__);
 				return false;
 			} else {
@@ -1384,6 +1566,26 @@ class User extends Engine
 	}
 
 	/**
+	 * Converts SHA password to SHA1.
+	 *
+	 * @access private
+	 * @return string SHA1 password
+	 */
+
+	function _ConvertShaToSha1($shapassword)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		// Strip out prefix if it exists
+		$shapassword = preg_replace("/^{sha}/", "", $shapassword);
+
+		$sha1 = unpack("H*", base64_decode($shapassword));
+
+		return $sha1[1];
+	}
+
+	/**
 	 * Converts LDAP attributes into a userinfo array.
 	 *
 	 * @access private
@@ -1407,10 +1609,14 @@ class User extends Engine
 					$userinfo[$infoname] = null;
 			} else {
 				if ($infoname != 'password') {
-					if ($detail['type'] == 'boolean')
+					if ($detail['type'] == 'boolean') {
 						$userinfo[$infoname] = ($attributes[$detail['attribute']][0] == 'TRUE') ? true : false;
-					else
+					} elseif ($detail['type'] == 'stringarray') {
+						array_shift($attributes[$detail['attribute']]);
+						$userinfo[$infoname] = $attributes[$detail['attribute']];
+					} else {
 						$userinfo[$infoname] = $attributes[$detail['attribute']][0];
+					}
 				}
 			}
 		}
@@ -1533,13 +1739,17 @@ class User extends Engine
 
 		if (! $ismodify) {
 			// UID and GID numbers
+			if (isset($userinfo['gidNumber']))
+				$gidinfo['id'] = $userinfo['gidNumber'];
+			else
+				$gidinfo = $this->_GetDirectoryDefaultGroup();
+
 			$ldap_object['uidNumber'] = isset($userinfo['uidNumber']) ? $userinfo['uidNumber'] : $this->_GetNextUidNumber();
-			$ldap_object['gidNumber'] = isset($userinfo['gidNumber']) ? $userinfo['gidNumber'] : User::DEFAULT_GID_NUMBER;
+			$ldap_object['gidNumber'] = isset($userinfo['gidNumber']) ? $userinfo['gidNumber'] : $gidinfo['id'];
+
+			// Login shell
 			$ldap_object['loginShell'] = User::DEFAULT_LOGIN;
 		}
-
-		if (! isset($oldattributes['mail'][0]))
-			$ldap_object['mail'] = $this->username . "@" . $this->ldaph->GetDefaultDomain();
 
 		if (! isset($oldattributes['kolabHomeServer'][0]))
 			$ldap_object['kolabHomeServer'] = $this->ldaph->GetDefaultHomeServer();
@@ -1550,6 +1760,36 @@ class User extends Engine
 		if (! isset($oldattributes['homeDirectory'][0]))
 			$ldap_object['homeDirectory'] = "/home/" . $this->username;
 
+		// E-mail address handling - mail address needs to exist if mail services are enabled:
+		// - Local ClearOS mail
+		// - Google Apps mail
+		// - Zarafa mail
+		//
+		// TODO: handle this in a generic way
+
+		$mailservices = array('pcnMailFlag', 'pcnGoogleAppsFlag', 'pcnZarafaFlag');
+		$setmail = false;
+
+		foreach ($mailservices as $service) {
+			// if mail flag is set on this update, use it
+			if (isset($ldap_object[$service])) {
+				if ($ldap_object[$service] == 'TRUE') {
+					$setmail = true;
+					break;
+				}
+			// otherwise, check the existing flag in LDAP
+			} else if (isset($oldattributes[$service][0]) && ($oldattributes[$service][0] == 'TRUE')) {
+				$setmail = true;
+				break;
+			}
+		}
+
+		if ($setmail) {
+			$ldap_object['mail'] = $this->username . "@" . $this->ldaph->GetDefaultDomain();
+		} else if ($ismodify) {
+			$ldap_object['mail'] = array();
+		}
+
 		/**
 		 * Step 4 - manage all the passwords
 		 *
@@ -1559,9 +1799,11 @@ class User extends Engine
 		 * that way.
 		 */
 
+		// TODO: move this to SetPassword?
+		// if (! $ismodify) {
 		if (! empty($userinfo['password'])) {
 			$ldap_object['userPassword'] = '{sha}' . $this->_CalculateShaPassword($userinfo['password']);
-			$ldap_object['pcnSHAPassword'] = $ldap_object['userPassword'] ;
+			$ldap_object['pcnSHAPassword'] = $ldap_object['userPassword'];
 			$ldap_object['pcnMicrosoftNTPassword'] = $this->_CalculateNtPassword($userinfo['password']);
 			$ldap_object['pcnMicrosoftLanmanPassword'] = $this->_CalculateLanmanPassword($userinfo['password']);
 
@@ -1589,6 +1831,8 @@ class User extends Engine
 
 					if ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA)
 						$ldap_object[$this->infomap[$key]['passwordfield']] = $pw_sha;
+					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA1)
+						$ldap_object[$this->infomap[$key]['passwordfield']] = $this->_ConvertShaToSha1($pw_sha);
 					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_LANMAN)
 						$ldap_object[$this->infomap[$key]['passwordfield']] = $pw_lanman;
 					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_NT)
@@ -1636,8 +1880,15 @@ class User extends Engine
 		 * Step 6 - handle external userinfo fields.
 		 *
 		 * Samba and other user extensions.
-		 * TODO: create a plugin architecture.
+		 * TODO: create a plugin architecture in 6.0, lots of temporary hardcoding and hacks in here!
 		 */
+
+		if (file_exists(COMMON_CORE_DIR . "/api/PasswordPolicy.class.php")) {
+			require_once("PasswordPolicy.class.php");
+			$policy = new PasswordPolicy();
+			$policy->Initialize();
+			$ldap_object['pwdPolicySubentry'] = "cn=" . LdapPasswordPolicy::DEFAULT_DIRECTORY_OBJECT . "," . ClearDirectory::GetPasswordPoliciesOu();
+		}
 
 		if (file_exists(COMMON_CORE_DIR . "/api/Samba.class.php")) {
 			if (isset($userinfo['sambaFlag'])) {
@@ -1655,13 +1906,22 @@ class User extends Engine
 
 				// Only change Samba attributes if enabled, or they already exist
 				if ($samba_enabled || in_array("sambaSamAccount", $oldclasses)) {
+					// TODO: cleanup this logic
 					$samba_uid = isset($ldap_object['uidNumber']) ? $ldap_object['uidNumber'] : "";
 
 					if (empty($samba_uid))
 						$samba_uid = isset($oldattributes['uidNumber'][0]) ? $oldattributes['uidNumber'][0] : "";
 
 					$samba_ntpassword = isset($ldap_object['pcnMicrosoftNTPassword']) ? $ldap_object['pcnMicrosoftNTPassword'] : "";
+
+					if (empty($samba_ntpassword))
+						$samba_ntpassword = isset($oldattributes['pcnMicrosoftNTPassword'][0]) ? $oldattributes['pcnMicrosoftNTPassword'][0] : "";
+
+
 					$samba_lmpassword = isset($ldap_object['pcnMicrosoftLanmanPassword']) ? $ldap_object['pcnMicrosoftLanmanPassword'] : "";
+					if (empty($samba_lmpassword))
+						$samba_lmpassword = isset($oldattributes['pcnMicrosoftLanmanPassword'][0]) ? $oldattributes['pcnMicrosoftLanmanPassword'][0] : "";
+
 					try {
 						$samba = new Samba();
 						$samba_object = $samba->AddLdapUserAttributes(
@@ -1678,7 +1938,7 @@ class User extends Engine
 						throw new EngineException($e->GetMessage(), COMMON_WARNING);
 					}
 				}
-			// FIXME: when updating non-Samba info, this is necessary.  This whole
+			// TODO: when updating non-Samba info, this is necessary.  This whole
 			// block of code and the Samba hooks need to be redone!
 			} else {
 				if (isset($oldattributes['sambaAcctFlags']))
@@ -1686,12 +1946,12 @@ class User extends Engine
 			}
 		}
 
-		// FIXME: last minute 5.0 addition. Remove old pcnSambaPassword:
+		// tODO: last minute 5.0 addition. Remove old pcnSambaPassword:
 		if (isset($oldattributes['pcnSambaPassword']))
 			$ldap_object['pcnSambaPassword'] = array();
 
 		// TODO: PBX plugin
-        if (file_exists(COMMON_CORE_DIR . "/iplex/Users.class.php")) {
+		if (file_exists(COMMON_CORE_DIR . "/iplex/Users.class.php")) {
 			if (! in_array("pcnPbxAccount", $ldap_object['objectClass']))
 				$ldap_object['objectClass'][] = "pcnPbxAccount";
 
@@ -1775,6 +2035,50 @@ class User extends Engine
 	}
 
 	/**
+	 * Returns the default group information details for new users.
+	 *
+	 * @throws EngineException
+	 * @return void
+	 */
+
+	function _GetDirectoryDefaultGroup()
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		// TODO: remove the added complexity?
+		// If needed, this could be expanded to allow an adminstrator to
+		// specify the default group in a configuration file.
+
+		$default['name'] = User::DEFAULT_USER_GROUP;
+		$default['id'] = User::DEFAULT_USER_GROUP_ID;
+
+		// See if the GID has been changed for the given group name
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		try {
+			$result = $this->ldaph->Search(
+				"(&(cn=" . $default['name'] . ")(objectclass=posixGroup))",
+				ClearDirectory::GetGroupsOu(),
+				array('gidNumber')
+			);
+
+			$entry = $this->ldaph->GetFirstEntry($result);
+
+			if ($entry) {
+				$attributes = $this->ldaph->GetAttributes($entry);
+				$default['id'] = $attributes['gidNumber'][0];
+			}
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		return $default;
+	}
+
+	/**
 	 * Creates an LDAP handle.
 	 *
 	 * @access private
@@ -1811,7 +2115,7 @@ class User extends Engine
 			$this->_GetLdapHandle();
 
 		try {
-			$dn = $this->ldaph->GetMasterDn();
+			$dn = ClearDirectory::GetMasterDn();
 			$attributes = $this->ldaph->Read($dn);
 
 			// TODO: should have some kind of semaphore to prevent duplicate IDs
@@ -1852,6 +2156,68 @@ class User extends Engine
 			throw new EngineException(USER_LANG_ERRMSG_USER_NOT_FOUND, COMMON_WARNING);
 
 		return $attributes;
+	}
+
+	/**
+	 * Sets the password using ClearDirectory conventions.
+	 *
+	 * @access private
+	 * @param string $password password
+	 * @param boolean $includesamba workaround for Samba password changes
+	 * @return void
+	 * @throws EngineException, ValidationException
+	 */
+
+	protected function _SetPassword($password, $includesamba = true)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		// Already validated by SetPassword and ResetPassword
+
+		// TODO: merge this with section in _ConvertArrayToLdap
+		$ldap_object['userPassword'] = '{sha}' . $this->_CalculateShaPassword($password);
+		$ldap_object['pcnSHAPassword'] = $ldap_object['userPassword'];
+		$ldap_object['pcnMicrosoftNTPassword'] = $this->_CalculateNtPassword($password);
+		$ldap_object['pcnMicrosoftLanmanPassword'] = $this->_CalculateLanmanPassword($password);
+
+		$oldattributes = $this->_GetUserInfo();
+
+		// If necessary, add pcnAccount object class for the above passwords
+		if (! in_array('pcnAccount', $oldattributes['objectClass'])) {
+			$classes = $oldattributes['objectClass'];
+			array_shift($classes);
+			$classes[] = 'pcnAccount';
+			$ldap_object['objectClass']= $classes;
+		}
+
+		foreach ($this->infomap as $key => $value) {
+			if (isset($this->infomap[$key]['passwordtype'])) {
+				if (isset($oldattributes[$this->infomap[$key]['passwordfield']])) {
+					if ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA)
+						$ldap_object[$this->infomap[$key]['passwordfield']] = $ldap_object['pcnSHAPassword'];
+					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA1)
+						$ldap_object[$this->infomap[$key]['passwordfield']] = $this->_ConvertShaToSha1($ldap_object['pcnSHAPassword']);
+					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_LANMAN)
+						$ldap_object[$this->infomap[$key]['passwordfield']] = $ldap_object['pcnMicrosoftLanmanPassword'];
+					elseif ($this->infomap[$key]['passwordtype'] == self::CONSTANT_TYPE_NT)
+						$ldap_object[$this->infomap[$key]['passwordfield']] = $ldap_object['pcnMicrosoftNTPassword'];
+				}
+			}
+		}
+
+		// TODO / Samba hook should be removed if possible
+		if ($includesamba) {
+			if (isset($oldattributes['sambaSID'])) {
+				$ldap_object['sambaLMPassword'] = $ldap_object['pcnMicrosoftLanmanPassword'] ;
+				$ldap_object['sambaNTPassword'] = $ldap_object['pcnMicrosoftNTPassword'];
+				$ldap_object['sambaPwdLastSet'] = time();
+			}
+		}
+
+		sleep(2); // see comment in SetPassword
+
+		$this->ldaph->Modify($oldattributes['dn'], $ldap_object);
 	}
 
 	/**

@@ -66,7 +66,15 @@ function RenderPage()
 	}
 
 	if (empty($dbpass) || empty($domain)) {
-		WebDialogWarning(WEB_LANG_ANTISPAM_ANTIVIRUS_MUST_BE_RUNNING);
+		$links = '';
+
+		if (file_exists('mail-antimalware.php'))
+			$links .= "<br>- <a href='mail-antimalware.php'>" . MAILZU_LANG_ANTIMALWARE . "</a>";
+
+		if (file_exists('mail-antispam.php'))
+			$links .= "<br>- <a href='mail-antispam.php'>" . MAILZU_LANG_ANTISPAM . "</a>";
+
+		WebDialogWarning(WEB_LANG_ANTISPAM_ANTIVIRUS_MUST_BE_RUNNING . $links);
 		return;
 	}
 

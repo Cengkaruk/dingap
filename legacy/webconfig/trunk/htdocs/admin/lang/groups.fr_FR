@@ -9,5 +9,6 @@ define("WEB_LANG_NO_GROUPS_DEFINED", "Aucun groupe indiqué.");
 define("WEB_LANG_PAGE_INTRO", "Ajout et édition des groupes du système.");
 define("WEB_LANG_PAGE_TITLE", "Gestion des groupes");
 define("WEB_LANG_USER_DEFINED_GROUPS", "Groupes définis par les utilisateurs");
+define("WEB_LANG_WARNING_ABOUT_EDITING_BUILTIN_GROUPS", "Les groupes internes sont réservés à un usage particulier du système. Veuillez vous référer à la documentation avant d'effectuer un quelconque changement.");
 // vi: syntax=php ts=4
 ?>

@@ -23,6 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('../../gui/Webconfig.inc.php');
+require_once('../../api/ClearDirectory.class.php');
 require_once('../../api/Squid.class.php');
 require_once('../../api/UserManager.class.php');
 require_once(GlobalGetLanguageTemplate(__FILE__));
@@ -44,6 +45,7 @@ WebDialogIntro(WEB_LANG_PAGE_TITLE, '/images/icon-proxy-policy.png', WEB_LANG_PA
 ///////////////////////////////////////////////////////////////////////////////
 
 $squid = new Squid();
+
 $activetab = 'tab_list_acl';
 # Jump to configure time
 if (isset($_REQUEST['addtime']))
@@ -264,7 +266,6 @@ function GetDisplayAclList()
 	";
 
 	return $contents;
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -283,8 +284,7 @@ function GetDisplayAddEditAcl()
 	$contents = '';
 
 	try {
-		$userlist = $usermanager->GetAllUsers(UserManager::TYPE_PROXY);
-   		$servicelist = $usermanager->GetInstalledServices();
+		$userlist = $usermanager->GetAllUsers(ClearDirectory::SERVICE_TYPE_PROXY);
 	} catch (Exception $e) {
 		WebDialogWarning($e->getMessage());
 		return;

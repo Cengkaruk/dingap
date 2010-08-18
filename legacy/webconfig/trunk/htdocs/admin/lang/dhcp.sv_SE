@@ -8,13 +8,9 @@ define("WEB_LANG_NO_ACTIVE_LEASES", "Inga aktiva lån funna.");
 define("WEB_LANG_NO_STATIC_LEASES", "Inga statiska lån funna.");
 define("WEB_LANG_NO_SUBNETS_DEFINED", "Inga DHCP-nät angivna.");
 define("WEB_LANG_PAGE_INTRO", "DHCP servern tillåter system på ditt lokala nät att få nätverksinställningar automatiskt.");
-define("WEB_LANG_PAGE_INTRO", "DHCP-servern ger systemen på ditt nätverk att upptäcka sina nätverksinställningar.");
-define("WEB_LANG_PAGE_TITLE", "DHCP-server");
 define("WEB_LANG_PAGE_TITLE", "DHCP-server");
 define("WEB_LANG_TITLE_ADD_DNS", "Lägg till DNS-server");
-define("WEB_LANG_TITLE_GLOBAL", "Konfigurera globla DHCP-inställningarna");
 define("WEB_LANG_TITLE_GLOBAL", "Konfigurera globala DHCP-inställningar");
 define("WEB_LANG_TITLE_SUBNET", "Ändra subnet");
-define("WEB_LANG_TITLE_SUBNET", "Konfigurera subnät");
 // vi: syntax=php ts=4
 ?>

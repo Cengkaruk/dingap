@@ -136,7 +136,7 @@ class PptpdReport extends Gui implements Report
 				<td>" . $eth['address'] . "</td>
 				<td>" . $sent_out . "</td>
 				<td>" . $received_out . "</td>
-				<td><a href='mrtg.php?stat=net_" . $eth['name'] . "'>" . LOCALE_LANG_GO . "</a></td>
+				<td><a href='network-report.php?stat=net_" . $eth['name'] . "'>" . LOCALE_LANG_GO . "</a></td>
 			  </tr>
 			";
 		}

@@ -35,6 +35,7 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+require_once('ClearDirectory.class.php');
 require_once('File.class.php');
 require_once('Software.class.php');
 require_once('UserManager.class.php');
@@ -116,7 +117,7 @@ class MailFilter extends Software
 		if (! empty($mailbox)) {
 			try {
 				$usermanager = new UserManager();
-				$userlist = $usermanager->GetAllUsers(UserManager::TYPE_EMAIL);
+				$userlist = $usermanager->GetAllUsers(ClearDirectory::SERVICE_TYPE_EMAIL);
 			} catch (Exception $e) {
 				throw new EngineException($e->GetMessage(), COMMON_WARNING);
 			}

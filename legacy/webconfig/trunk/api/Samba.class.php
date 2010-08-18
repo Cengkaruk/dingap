@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2003-2009 Point Clark Networks.
+// Copyright 2003-2010 Point Clark Networks.
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -29,7 +29,7 @@
  * @subpackage Daemon
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2003-2009, Point Clark Networks
+ * @copyright Copyright 2003-2010, Point Clark Networks
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ class SambaDirectoryUnavailableException extends EngineException
  * @subpackage Exception
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2009, Point Clark Networks
+ * @copyright Copyright 2010, Point Clark Networks
  */
 
 class SambaShareNotFoundException extends EngineException
@@ -132,7 +132,7 @@ class SambaShareNotFoundException extends EngineException
  * @subpackage Daemon
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2003-2009, Point Clark Networks
+ * @copyright Copyright 2003-2010, Point Clark Networks
  */
 
 class Samba extends Daemon
@@ -174,16 +174,19 @@ class Samba extends Daemon
 	const CONSTANT_ENABLED = 'Yes';
 	const CONSTANT_DISABLED = 'No';
 	const CONSTANT_DEFAULT = 'default';
-	
 	const CONSTANT_DOMAIN_USERS_RID = '513';
 	const CONSTANT_WINADMIN_CN = 'Windows Administrator';
 	const CONSTANT_WINADMIN_USERNAME = 'winadmin';
 	const CONSTANT_GUEST_CN = 'Guest Account';
+	// UID/GID/RID ranges -- see http://www.clearfoundation.com/docs/developer/features/cleardirectory/uids_gids_and_rids
+	const CONSTANT_SPECIAL_RID_MAX = '1000'; // RIDs below this number are reserved
+	const CONSTANT_SPECIAL_RID_OFFSET = '1000000'; // Offset used to map <1000 RIDs to UIDs
+	const CONSTANT_GID_DOMAIN_COMPUTERS = '1000515';
 	const DEFAULT_PASSWORD_CHAT = '*password:* %n\n *password:* %n\n *successfully.*';
 	const DEFAULT_PASSWORD_PROGRAM = '/usr/sbin/userpasswd %u';
 	const DEFAULT_ADD_MACHINE_SCRIPT = '/usr/sbin/samba-add-machine "%u"';
 	const DEFAULT_OS_LEVEL = '20';
-	const DEFAULT_ADMIN_PRIVS = 'SeMachineAccountPrivilege SePrintOperatorPrivilege SeAddUsersPrivilege SeDiskOperatorPrivilege SeMachineAccountPrivilege SeTakeOwnership';
+	const DEFAULT_ADMIN_PRIVS = 'SeMachineAccountPrivilege SePrintOperatorPrivilege SeAddUsersPrivilege SeDiskOperatorPrivilege SeMachineAccountPrivilege SeTakeOwnershipPrivilege';
 
 	///////////////////////////////////////////////////////////////////////////////
 	// M E T H O D S
@@ -254,8 +257,10 @@ class Samba extends Daemon
 		if (! empty($logonpath))
 			$ldap_object['sambaProfilePath'] = '\\\\' . $pdc . '\\profiles\\' . $username;
 
-		if (! empty($uidnumber))
+		if (! empty($uidnumber)) {
+			$rid = ($uidnumber < Samba::CONSTANT_SPECIAL_RID_MAX) ? Samba::CONSTANT_SPECIAL_RID_OFFSET + $uidnumber : $uidnumber;
 			$ldap_object['sambaSID'] = "$sid-" . $uidnumber; 
+		}
 
 		if ($enabled)
 			$ldap_object['sambaAcctFlags'] = '[U		  ]';
@@ -297,6 +302,10 @@ class Samba extends Daemon
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
+		// TODO: the "AddMachine" method does not add the Samba attributes since
+		// this is done automagically by Samba.  If this automagic is missed for
+		// some reason, then a Computer object may not have the sambaSamAccount object.
+
 		if (! $this->IsValidMachineName($name))
 			throw new ValidationException(SAMBA_LANG_COMPUTER . " - " . LOCALE_LANG_INVALID);
 
@@ -318,11 +327,11 @@ class Samba extends Daemon
 		$ldap_object['uid'] = $name;
 		$ldap_object['description'] = SAMBA_LANG_COMPUTER . " " . preg_replace("/\$$/", "", $name);
 		$ldap_object['uidNumber'] = $user->_GetNextUidNumber();
-		$ldap_object['gidNumber'] = $group->_GetNextGidNumber();
+		$ldap_object['gidNumber'] = Samba::CONSTANT_GID_DOMAIN_COMPUTERS;
 		$ldap_object['homeDirectory'] = '/dev/null';
 		$ldap_object['loginShell'] = '/sbin/nologin';
 
-		$dn = "cn=" . Ldap::DnEscape($name) . "," . $this->ldaph->GetComputersOu();
+		$dn = "cn=" . Ldap::DnEscape($name) . "," . ClearDirectory::GetComputersOu();
 
 		try {
 			if (! $this->ldaph->Exists($dn))
@@ -357,6 +366,30 @@ class Samba extends Daemon
 		$this->shares[$name]['line'] = self::CONSTANT_NULL_LINE;
 
 		$this->_Save();
+	}
+
+	/**
+	 * Deletes a computer from the domain.
+	 *
+	 * @param  string  $computer computer name
+	 * @return void
+	 * @throws ValidationException, EngineException
+	 */
+
+	function DeleteComputer($computer)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		if (! $this->IsDirectoryInitialized())
+			throw new SambaNotInitializedException();
+
+		$dn = "cn=" . Ldap::DnEscape($computer) . "," . ClearDirectory::GetComputersOu();
+
+		$this->ldaph->Delete($dn);
 	}
 
 	/**
@@ -428,6 +461,56 @@ class Samba extends Daemon
 			return "";
 		else
 			return $this->shares['global']['add machine script']['value'];
+	}
+
+	/**
+	 * Gets a detailed list of computers for the domain.
+	 *
+	 * @return  array  detailed list of computers
+	 * @throws EngineException
+	 */
+
+	function GetComputers()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		if (! $this->IsDirectoryInitialized())
+			throw new SambaNotInitializedException();
+
+		$computers = array();
+
+		// TODO: the "AddMachine" method does not add the Samba attributes since
+		// this is done automagically by Samba.  If this automagic is missed for
+		// some reason, then a Computer object may not have the sambaSamAccount object.
+		// To be safe, use the posixAccount object so that we can cleanup.
+
+		try {
+			$result = $this->ldaph->Search(
+				"(objectclass=posixAccount)",
+				ClearDirectory::GetComputersOu(),
+				array("cn", "sambaSID", "uidNumber")
+			);
+
+			$entry = $this->ldaph->GetFirstEntry($result);
+
+			while ($entry) {
+				$attributes = $this->ldaph->GetAttributes($entry);
+
+				$computer = $attributes['cn']['0'];
+				$computers[$computer]['SID'] = isset($attributes['sambaSID'][0]) ? $attributes['sambaSID'][0] : "";
+				$computers[$computer]['uidNumber'] = $attributes['uidNumber'][0];
+
+				$entry = $this->ldaph->NextEntry($entry);
+			}
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+
+		return $computers;
 	}
 
 	/**
@@ -1029,6 +1112,9 @@ class Samba extends Daemon
 		$shareinfo['read only'] = 'No';
 		$shareinfo['available'] = 'Yes';
 		$shareinfo['path'] = "/var/samba/profiles";
+		$shareinfo['force group'] = "domain_users"; // TODO: should be constant
+		$shareinfo['force directory mode'] = "02775";
+		$shareinfo['force directory security mode'] = "02775";
 		$shareinfo['comment'] = SAMBA_LANG_PROFILES;
 		$sharelist[] = $shareinfo;
 
@@ -1208,7 +1294,7 @@ class Samba extends Daemon
 
 		// Set the winadmin password
 		$user = new User(Samba::CONSTANT_WINADMIN_USERNAME);
-		$user->SetPassword($password);
+		$user->ResetPassword($password, $password, "directory_initialize");
 
 		// Set the netbios name and workgroup
 		$this->SetNetbiosName($netbiosname);
@@ -1250,8 +1336,8 @@ class Samba extends Daemon
 				$this->SetRunningState(false);
 			if (! $nmbd_wasrunning)
 				$nmbd->SetRunningState(false);
-			// FIXME: too delicate
-			// throw new EngineException($e->GetMessage(), COMMON_ERROR);
+			// TODO: too delicate?
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
 		}
 
 		// Stop samba if it was not running
@@ -1546,7 +1632,7 @@ class Samba extends Daemon
 		try {
 			$result = $this->ldaph->Search(
 				"(objectclass=sambaSamAccount)",
-				$this->ldaph->GetUsersOu(),
+				ClearDirectory::GetUsersOu(),
 				array("cn", "dn")
 			);
 
@@ -1555,7 +1641,7 @@ class Samba extends Daemon
 
 			while ($entry) {
 				$attributes = $this->ldaph->GetAttributes($entry);
-				$this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . $this->ldaph->GetUsersOu(), $ldapdrive);
+				$this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . ClearDirectory::GetUsersOu(), $ldapdrive);
 				$entry = $this->ldaph->NextEntry($entry);
 			}
 		} catch (Exception $e) {
@@ -1603,7 +1689,7 @@ class Samba extends Daemon
 		try {
 			$result = $this->ldaph->Search(
 				"(objectclass=sambaSamAccount)",
-				$this->ldaph->GetUsersOu(),
+				ClearDirectory::GetUsersOu(),
 				array("cn", "uid")
 			);
 
@@ -1614,7 +1700,7 @@ class Samba extends Daemon
 			while ($entry) {
 				$attributes = $this->ldaph->GetAttributes($entry);
 				$ldaphome['sambaHomePath'] = '\\\\' . $pdc . '\\' . $attributes['uid'][0];
-				$this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . $this->ldaph->GetUsersOu() , $ldaphome);
+				$this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . ClearDirectory::GetUsersOu() , $ldaphome);
 				$entry = $this->ldaph->NextEntry($entry);
 			}
 		} catch (Exception $e) {
@@ -1667,14 +1753,14 @@ class Samba extends Daemon
 		try {
 			$result = $this->ldaph->Search(
 				"(objectClass=sambaSamAccount)",
-				$this->ldaph->GetUsersOu(),
+				ClearDirectory::GetUsersOu(),
 				array("cn", "uid")
 			);
 
 			// TODO: this should be the PDC name, not the local server
 			$pdc = $this->GetNetbiosName();
 			$entry = $this->ldaph->GetFirstEntry($result);
-			$usersou = $this->ldaph->GetUsersOu();
+			$usersou = ClearDirectory::GetUsersOu();
 
 			while ($entry) {
 				$attributes = $this->ldaph->GetAttributes($entry);
@@ -2156,12 +2242,12 @@ class Samba extends Daemon
 		try {
 			$result = $this->ldaph->Search(
 				"(sambaDomainName=*)",
-				$this->ldaph->GetUsersOu(),
+				ClearDirectory::GetUsersOu(),
 				array("cn")
 			);
 
 			$entry = $this->ldaph->GetFirstEntry($result);
-			$usersou = $this->ldaph->GetUsersOu();
+			$usersou = ClearDirectory::GetUsersOu();
 			$newattrs['sambaDomainName'] = $workgroup;
 
 			while ($entry) {
@@ -2221,7 +2307,7 @@ class Samba extends Daemon
 		if (empty($domainsid))
 			$domainsid = $this->GetDomainSid();
 
-		$group_ou = $this->ldaph->GetGroupsOu();
+		$group_ou = ClearDirectory::GetGroupsOu();
 
 		try {
 			$groupmanager = new GroupManager();
@@ -2966,9 +3052,9 @@ class Samba extends Daemon
 		$dn = 'sambaDomainName=' . $domain . ',' . $basedn;
 		$domainobj['sambaDomainName'] = $domain;
 		$domainobj['sambaSID'] = $domainsid;
-		$domainobj['sambaNextGroupRid'] = 4200000000;
-		$domainobj['sambaNextUserRid'] = 4200000000;
-		$domainobj['sambaNextRid'] = 4200000000;
+		$domainobj['sambaNextGroupRid'] = 20000000;
+		$domainobj['sambaNextUserRid'] = 20000000;
+		$domainobj['sambaNextRid'] = 20000000;
 		$domainobj['sambaAlgorithmicRidBase'] = 1000;
 		$domainobj['sambaMinPwdLength'] = 5;
 		$domainobj['sambaPwdHistoryLength'] = 5;
@@ -3008,7 +3094,7 @@ class Samba extends Daemon
 		// Users
 		//--------------------------------------------------------
 
-		$users_ou = $this->ldaph->GetUsersOu();
+		$users_ou = ClearDirectory::GetUsersOu();
 
 		$winadmin_dn = 'cn=' . Samba::CONSTANT_WINADMIN_CN . ',' . $users_ou;
 
@@ -3107,8 +3193,8 @@ class Samba extends Daemon
 		if (empty($domainsid))
 			$domainsid = $this->GetDomainSid();
 
-		$group_ou = $this->ldaph->GetGroupsOu();
-		$users_ou = $this->ldaph->GetUsersOu();
+		$group_ou = ClearDirectory::GetGroupsOu();
+		$users_ou = ClearDirectory::GetUsersOu();
 
 		$guest_dn = 'cn=' . Samba::CONSTANT_GUEST_CN . ',' . $users_ou;
 		$winadmin_dn = 'cn=' . Samba::CONSTANT_WINADMIN_CN . ',' . $users_ou;
@@ -3151,7 +3237,7 @@ class Samba extends Daemon
 		$dn = 'cn=domain_computers,' . $group_ou;
 		$groups[$dn]['displayName'] = 'Domain Computers';
 		$groups[$dn]['description'] = 'Domain Computers';
-		$groups[$dn]['gidNumber'] = '1000515';
+		$groups[$dn]['gidNumber'] = Samba::CONSTANT_GID_DOMAIN_COMPUTERS;
 		$groups[$dn]['sambaSID'] = $domainsid . '-515';
 		$groups[$dn]['sambaGroupType'] = 2;
 
@@ -3448,9 +3534,6 @@ class Samba extends Daemon
 		$this->SetDomainSid();
 		$this->SetLocalSid();
 
-		if (! empty($winpassword))
-			$this->_NetRpcJoin($winpassword);
-
 		if ($nmbd_wasrunning)
 			$nmbd->SetRunningState(true);
 
@@ -3459,6 +3542,11 @@ class Samba extends Daemon
 
 		if ($winbind_wasrunning)
 			$winbind->SetRunningState(true);
+
+		sleep(3); // TODO: Wait for samba ... replace this with a loop
+
+		if (! empty($winpassword))
+			$this->_NetRpcJoin($winpassword);
 	}
 
 	/**
@@ -3634,7 +3722,7 @@ class Samba extends Daemon
 	 * @throws SambaShareNotFoundException, ValidationException, EngineException
 	 */
 
-	protected function _SetShareInfo($share, $key, $value)
+	function _SetShareInfo($share, $key, $value)
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);

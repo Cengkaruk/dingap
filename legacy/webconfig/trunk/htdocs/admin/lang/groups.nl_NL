@@ -9,5 +9,6 @@ define("WEB_LANG_NO_GROUPS_DEFINED", "Geen groepen gedefinieerd.");
 define("WEB_LANG_PAGE_INTRO", "Toevoegen en veranderen van groepen op het bestandssysteem.");
 define("WEB_LANG_PAGE_TITLE", "Groepsbeheer");
 define("WEB_LANG_USER_DEFINED_GROUPS", "Gebruiker gedefinieerde groepen");
+define("WEB_LANG_WARNING_ABOUT_EDITING_BUILTIN_GROUPS", "The built-in groups are used for specific purposes by the system.  Please read the documentation before making any changes!");
 // vi: syntax=php ts=4
 ?>

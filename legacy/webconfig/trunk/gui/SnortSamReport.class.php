@@ -168,7 +168,7 @@ class SnortSamReport extends Gui implements Report
 				$list .= "</tr>";
 				$count++;
 				if ($count == $maxrecords) {
-					$list .= "<tr><td align='center' colspan='7'>" . WebUrlJump("/admin/snortsam.php", LOCALE_LANG_CONTINUE) . "</td></tr>";
+					$list .= "<tr><td align='center' colspan='7'>" . WebUrlJump("/admin/intrusion-prevention.php", LOCALE_LANG_CONTINUE) . "</td></tr>";
 					break;
 				}
 			}

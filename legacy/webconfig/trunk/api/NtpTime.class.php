@@ -58,7 +58,7 @@ class NtpTime extends Time
 {
 	const FILE_CROND = "app-ntp";
 	const FILE_CONFIG = "/etc/system/ntpdate";
-	const DEFAULT_SERVER = "time.pointclark.com";
+	const DEFAULT_SERVER = "time.clearsdn.com";
 	const DEFAULT_CRONTAB_TIME = "2 2 * * *";
 	const CMD_NTPDATE = "/usr/sbin/ntpdate";
 	const CRON_COMMAND = "/usr/sbin/timesync";

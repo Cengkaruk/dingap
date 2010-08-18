@@ -135,6 +135,9 @@ class Daemon extends Software
 		global $DAEMONS;
 		require_once("Daemon.inc.php");
 
+		if (file_exists("Daemon.custom.php"))
+			require_once("Daemon.custom.php");
+
 		if (isset($DAEMONS[$initscript][0])) {
 			$this->initscript = $initscript;
 			$this->package = $DAEMONS[$initscript][0];

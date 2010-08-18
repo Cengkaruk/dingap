@@ -144,7 +144,7 @@ if (isset($_POST['GoToPreviousStep'])) {
 
 	try {
 		$user = new PosixUser("root");
-		$user->SetPassword($password, $verify);
+		$user->SetPassword($password, $verify, $_SESSION['user_login']);
 		$password = null;
 		$verify = null;
 	} catch (ValidationException $e) {
@@ -425,10 +425,10 @@ if (isset($_POST['GoToPreviousStep'])) {
 		}
 
 		try {
-			if (file_exists("../../api/UserManager.class.php")) {
-				require_once("../../api/UserManager.class.php");
-				$usermanager = new UserManager();
-				$usermanager->RunInitialize();
+			if (file_exists("../../api/ClearDirectory.class.php")) {
+				require_once("../../api/ClearDirectory.class.php");
+				$cleardirectory = new ClearDirectory();
+				$cleardirectory->RunInitialize(ClearDirectory::MODE_STANDALONE, $domain);
 			}
 		} catch (Exception $e) {
 			$errormessage = $e->GetMessage();

@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2006-2009 Point Clark Networks.
+// Copyright 2006-2010 Point Clark Networks.
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -27,7 +27,6 @@ require_once("../../api/ClearDirectory.class.php");
 require_once("../../api/Daemon.class.php");
 require_once("../../api/Ldap.class.php");
 require_once("../../api/Organization.class.php");
-require_once("../../api/Samba.class.php");
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,12 +68,7 @@ try {
 		if (empty($errors)) {
 
 			if (!$isinitialized) {
-				$directory->Initialize(ClearDirectory::CONSTANT_ROLE_MASTER, $domain);
-
-				// TODO: should remove the Samba initialization at some point
-				$samba = new Samba();
-				if (! $samba->IsDirectoryInitialized())
-					$samba->InitializeDirectory(ClearDirectory::CONSTANT_ROLE_MASTER, "Workgroup");
+				$directory->RunInitialize(ClearDirectory::MODE_STANDALONE, $domain);
 			// Only update domain if it changes.
 			} else if ($olddomain != $domain) {
 				$directory->SetDomain($domain, true);
@@ -124,6 +118,8 @@ function DisplayLdapSettings($domain)
 			$bindpassword = $ldap->GetBindPassword();
 			$policy = $ldap->GetBindPolicy();
 			$domain = $organization->GetDomain();
+			$mode = $directory->GetMode();
+			$modetext = $directory->modes[$mode];
 		} else {
 			$policy = Ldap::CONSTANT_LOCALHOST;
 			if (empty($domain)) {
@@ -141,6 +137,17 @@ function DisplayLdapSettings($domain)
 	$policy_options[Ldap::CONSTANT_LAN] = LOCALE_LANG_ENABLED;
 	$policy_options[Ldap::CONSTANT_LOCALHOST] = LOCALE_LANG_DISABLED;
 
+	if ($mode) {
+		$moderow = "
+			<tr>
+				<td class='mytablesubheader' nowrap>" . CLEARDIRECTORY_LANG_MODE . "</td>
+				<td>$modetext</td>
+			</tr>
+		";
+	} else {
+		$moderow = '';
+	}
+
 	WebFormOpen();
 	WebTableOpen(WEB_LANG_LDAP_SETTINGS);
 	echo "
@@ -152,6 +159,7 @@ function DisplayLdapSettings($domain)
 			<td class='mytablesubheader' nowrap>" . WEB_LANG_LDAP_PUBLISH_POLICY . "</td>
 			<td>" . WebDropDownHash("policy", $policy, $policy_options) . "</td>
 		</tr>
+		$moderow
 		<tr>
 			<td class='mytablesubheader'>&#160; </td>
 			<td>" . WebButtonUpdate("Update") . "</td>
@@ -174,7 +182,7 @@ function DisplayLdapSettings($domain)
 		echo "
 			<tr>
 				<td class='mytablesubheader' nowrap width='200'>" . LDAP_LANG_BASE_DN . "</td>
-				<td width='380'><span id='basedn'>$basedn</span></td>
+				<td width='500'><span id='basedn'>$basedn</span></td>
 			</tr>
 			<tr>
 				<td class='mytablesubheader' nowrap>" . LDAP_LANG_BIND_DN . "</td>

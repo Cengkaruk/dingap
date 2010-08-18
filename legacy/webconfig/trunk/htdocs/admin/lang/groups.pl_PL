@@ -9,5 +9,6 @@ define("WEB_LANG_NO_GROUPS_DEFINED", "Brak zdefiniowanych grup.");
 define("WEB_LANG_PAGE_INTRO", "Dodaj i edytuj grupy w systemie.");
 define("WEB_LANG_PAGE_TITLE", "Menad&#380;er Grup");
 define("WEB_LANG_USER_DEFINED_GROUPS", "Grupy Zdefiniowane przez U&#380;ytkownika");
+define("WEB_LANG_WARNING_ABOUT_EDITING_BUILTIN_GROUPS", "Grupy wbudowane u&#380;ywane s&#261; przez system do okre&#347;lonych celów. Prosz&#281; zapozna&#263; si&#281; z dokumentacj&#261; przed dokonaniem jakichkolwiek zmian!");
 // vi: syntax=php ts=4
 ?>

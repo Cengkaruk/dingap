@@ -3,7 +3,7 @@
 define("WEB_LANG_LOAD", "Charge");
 define("WEB_LANG_LOAD_NOTE", "Affiche la moyenne de la charge système. Surveillez toute charge se maintenant au-dessus de 200.");
 define("WEB_LANG_NO_STATS", "Pas encore de statistiques...");
-define("WEB_LANG_PAGE_INTRO", "Les rapports de ressource système fournissent des informations sur la charge, l'utilisation de la mémoire et les processus actifs.");
+define("WEB_LANG_PAGE_INTRO", "Les rapports de ressources système fournissent des informations concernant la charge, l'utilisation de la mémoire et les processus actifs.");
 define("WEB_LANG_PAGE_TITLE", "Rapport de ressources système");
 define("WEB_LANG_PROCESSES", "Processus");
 define("WEB_LANG_PROCESS_NOTE", "Affiche le nombre de processus actifs sur votre système.");

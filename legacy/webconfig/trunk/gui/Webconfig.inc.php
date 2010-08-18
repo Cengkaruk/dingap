@@ -49,6 +49,10 @@ require_once(COMMON_CORE_DIR . '/api/Webconfig.class.php');
 // TODO: extra XSS protection
 function WebCheckFormVariables($item, $key)
 {
+	// TODO: bad hack to allow <> in passwords.  Will be going away in 6.0.
+	if (($key == "reserved_password") || ($_SERVER['PHP_SELF'] === '/admin/user.php') || ($_SERVER['PHP_SELF'] === '/admin/users.php'))
+		return;
+
 	if ($item && preg_match("/[<>]/", $item))
 		die("Invalid form variable");
 }
@@ -134,7 +138,9 @@ define('WEBCONFIG_ICON_UP', WebSetIcon("icon-plus.png"));
 define('WEBCONFIG_ICON_DOWN', WebSetIcon("icon-minus.png"));
 
 // Common applications
+// TODO: these need to be pluginable
 define('WEBCONFIG_ICON_EMAIL', WebSetIcon("icon-email.png"));
+define('WEBCONFIG_ICON_GOOGLE_APPS', WebSetIcon("icon-google-apps.gif"));
 define('WEBCONFIG_ICON_FTP', WebSetIcon("icon-ftp.png"));
 define('WEBCONFIG_ICON_OPENVPN', WebSetIcon("icon-openvpn.png"));
 define('WEBCONFIG_ICON_PPTP', WebSetIcon("icon-pptpd.png"));
@@ -988,7 +994,10 @@ function WebAuthenticate()
 	// Forward to wizard when required
 	//--------------------------------
 
-	if (file_exists(Webconfig::FILE_SETUP_FLAG) && !preg_match("/\/admin\/setup\..*/", $_SERVER['PHP_SELF'])) {
+	if (file_exists(Webconfig::FILE_SETUP_FLAG) && 
+		!preg_match("/\/admin\/setup\..*/", $_SERVER['PHP_SELF']) &&
+		!(WEBCONFIG_CONSOLE)
+		) {
 		// TODO: not very clean... the wizard needs to pull in Ajax helper pages
 		if (!(preg_match("/\.js\./", $_SERVER['PHP_SELF']) || preg_match("/\.xml\./", $_SERVER['PHP_SELF']))) {
 			WebForwardPage("/admin/setup.php");
@@ -1185,7 +1194,7 @@ function WebAuthenticateCheckAcl($username, $page)
 	global $webconfig;
 
 	// Allow helper pages (for example, data.xml.php and date.js.php)
-	$authpage = preg_replace("/\.(js|xml)\.php$/", ".php", $page);
+	$authpage = preg_replace("/\.(inc|js|xml)\.php$/", ".php", $page);
 
 	try {
 		if (isset($_SESSION['system_valid_pages_regular'])) {
@@ -1314,11 +1323,12 @@ function WebSetSession()
 
 	setlocale(LC_ALL, $code);
 
-	// Product
-	//--------
+	// Product Info
+	//-------------
 
 	$osname = "Linux";
 	$osversion = "2.6";
+	$redirect = "";
 
 	if (file_exists(COMMON_CORE_DIR . "/api/Product.class.php")) {
 		require_once(COMMON_CORE_DIR . "/api/Product.class.php");
@@ -1327,6 +1337,7 @@ function WebSetSession()
 			$product = new Product();
 			$osname = $product->GetName();
 			$osversion = $product->GetVersion();
+			$redirect = $product->GetRedirectUrl() . "/" . preg_replace("/ /", "_", $osname) . "/" . $osversion;
 		} catch (Exception $e) {
 			// Use default
 		}
@@ -1358,10 +1369,9 @@ function WebSetSession()
 		}
 	}
 
-	// Template and Redirect URL
-	//--------------------------
+	// Template
+	//---------
 
-	$redirect = "http://www.clearfoundation.com/redirect";
 	$template = "standard-5.1";
 
 	if (file_exists(COMMON_CORE_DIR . "/api/Webconfig.class.php")) {
@@ -1369,7 +1379,6 @@ function WebSetSession()
 
 		try {
 			$template = $webconfig->GetTemplate();
-			$redirect = $webconfig->GetRedirectUrl() . "/" . preg_replace("/ /", "_", $osname) . "/" . $osversion;
 		} catch (Exception $e) {
 			// Use default
 		}

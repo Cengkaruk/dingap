@@ -10,13 +10,9 @@ define("WEB_LANG_NO_ACTIVE_LEASES", "No active leases found.");
 define("WEB_LANG_NO_STATIC_LEASES", "No static leases found.");
 define("WEB_LANG_NO_SUBNETS_DEFINED", "DHCP verkkoja ei ole määritetty.");
 define("WEB_LANG_PAGE_INTRO", "DHCP palvelin antaa tietokoneille omassa lähiverkossasi automaattisesti heidän verkko asetukset.");
-define("WEB_LANG_PAGE_INTRO", "The DHCP server allows systems on your local network to automatically discover their network settings.");
-define("WEB_LANG_PAGE_TITLE", "DHCP Server");
 define("WEB_LANG_PAGE_TITLE", "DHCP Palvelin");
 define("WEB_LANG_TITLE_ADD_DNS", "Lisää DNS Palvelin");
-define("WEB_LANG_TITLE_GLOBAL", "Configure Global DHCP Settings");
 define("WEB_LANG_TITLE_GLOBAL", "Konfiguroi Globaaliset Asetukset");
 define("WEB_LANG_TITLE_SUBNET", "Muokkaa Aliverkkoa");
-define("WEB_LANG_TITLE_SUBNET", "Configure Subnet");
 // vi: syntax=php ts=4
 ?>

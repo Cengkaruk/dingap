@@ -297,7 +297,7 @@ class Network extends Engine
 			return false;
 		}
 
-		if (substr_count($hostname, ".") == 0) {
+		if (substr_count($hostname, ".") == 0 && !preg_match("/^localhost$/i", $hostname)) {  
 			$errmsg = NETWORK_LANG_ERRMSG_HOSTNAME_MUST_HAVE_A_PERIOD;
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;

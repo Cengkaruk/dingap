@@ -30,7 +30,7 @@ require_once(GlobalGetLanguageTemplate(__FILE__));
 // In the future, we might implement a more flexible system for managing
 // which fields are user-editable.
 
-$acl = array('password', 'verify', 'telephone', 'fax');
+$acl = array('password', 'verify');
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -74,7 +74,7 @@ function DisplayAdminPassword($password, $verify)
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-function DisplayUser($username, $userinfo, $password, $verify)
+function DisplayUser($username, $userinfo, $oldpassword, $password, $verify)
 {
 	global $acl;
 
@@ -120,6 +120,10 @@ function DisplayUser($username, $userinfo, $password, $verify)
 		</tr>
 		<tr>
 			<td colspan='2' class='mytableheader'>" . LOCALE_LANG_PASSWORD . "</td>
+		</tr>
+		<tr>
+			<td class='mytablesubheader' nowrap>" . LOCALE_LANG_OLD_PASSWORD . "</td>
+			<td><input size='30' type='password' name='oldpassword' value='$oldpassword' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . LOCALE_LANG_PASSWORD . "</td>

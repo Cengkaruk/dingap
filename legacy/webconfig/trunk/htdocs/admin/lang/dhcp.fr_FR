@@ -8,13 +8,9 @@ define("WEB_LANG_NO_ACTIVE_LEASES", "Aucun bail actif découvert.");
 define("WEB_LANG_NO_STATIC_LEASES", "Aucun bail statique découvert.");
 define("WEB_LANG_NO_SUBNETS_DEFINED", "Aucun réseau DHCP n'est défini.");
 define("WEB_LANG_PAGE_INTRO", "Le serveur DHCP permet aux machines de votre réseau local d'obtenir automatiquement leur configuration réseau.");
-define("WEB_LANG_PAGE_INTRO", "Le serveur DHCP permet aux machines de votre réseau local de découvrir automatiquement leurs paramètres réseau.");
-define("WEB_LANG_PAGE_TITLE", "Serveur DHCP");
 define("WEB_LANG_PAGE_TITLE", "Serveur DHCP");
 define("WEB_LANG_TITLE_ADD_DNS", "Ajout d'un serveur DNS");
-define("WEB_LANG_TITLE_GLOBAL", "Paramètres généraux du DHCP");
 define("WEB_LANG_TITLE_GLOBAL", "Paramètres globaux");
 define("WEB_LANG_TITLE_SUBNET", "Editer un sous-réseau");
-define("WEB_LANG_TITLE_SUBNET", "Configurer un sous-réseau");
 // vi: syntax=php ts=4
 ?>

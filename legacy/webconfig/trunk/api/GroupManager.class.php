@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2005-2008 Point Clark Networks.
+// Copyright 2005-2010 Point Clark Networks.
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -28,7 +28,7 @@
  * @package Api
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2005-2008, Point Clark Networks
+ * @copyright Copyright 2005-2010, Point Clark Networks
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,6 +36,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('Engine.class.php');
+require_once('ClearDirectory.class.php');
 require_once('File.class.php');
 require_once('Group.class.php');
 require_once('Ldap.class.php');
@@ -62,20 +63,6 @@ class GroupManager extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	protected $ldaph = null;
-	protected $groupdata = null;
-	protected $hiddenlist = array();
-	protected $builtinlist = array();
-	private $loaded = false;
-
-	const FILE_CONFIG = '/etc/group';
-	const GID_MIN = 60001;
-	const GID_MAX = 62000;
-	const TYPE_DEFAULT = 12;
-	const TYPE_IGNORE_SYSTEM = 14;
-	const TYPE_SYSTEM = 1;
-	const TYPE_HIDDEN = 2;
-	const TYPE_BUILTIN = 4;
-	const TYPE_USER_DEFINED = 8;
 	
 	///////////////////////////////////////////////////////////////////////////////
 	// M E T H O D S
@@ -91,22 +78,6 @@ class GroupManager extends Engine
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		parent::__construct();
-
-		$this->builtinlist = array('allusers', 'domain_admins');
-		$this->hiddenlist = array(
-			'account_operators',
-			'administrators',
-			'backup_operators',
-			'domain_computers',
-			'domain_controllers',
-			'domain_guests',
-			'domain_users',
-			'guests',
-			'power_users',
-			'print_operators',
-			'server_operators',
-			'users'
-		);
 
 		require_once(GlobalGetLanguageTemplate(preg_replace("/Manager/", "", __FILE__)));
 	}
@@ -135,55 +106,52 @@ class GroupManager extends Engine
 	/**
 	 * Return a list of groups.
 	 *
-	 * @param integer $types types of groups
+	 * @param integer $filter filter for specific groups
 	 * @return array a list of groups
 	 * @throws EngineException
 	 */
 
-	function GetAllGroups($types = self::TYPE_DEFAULT)
+	function GetAllGroups($filter = Group::FILTER_DEFAULT)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		return $this->_LoadGroupsByFilter('(cn=*)', $types);
+		$groupsinfo = $this->_LoadGroups('(cn=*)', $filter);
+
+		$grouplist = array();
+
+		foreach ($groupsinfo as $name => $info)
+			$grouplist[] = $info['group'];
+
+		return $grouplist;
 	}
 
 	/**
 	 * Return a list of all groups definitions.
 	 *
-	 * @param integer $types types of groups
+	 * @param integer $filter filter for specific groups
 	 * @return array an array containing group data
 	 * @throws EngineException
 	 */
 
-	function GetGroupList($types = self::TYPE_DEFAULT)
+	function GetGroupList($filter = Group::FILTER_DEFAULT)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		$ldapdata = array();
-		$posixdata = array();
-
-		if (($types & self::TYPE_USER_DEFINED) || ($types & self::TYPE_HIDDEN) || ($types & self::TYPE_BUILTIN))
-			$ldapdata = $this->_LoadGroupListFromLdap($types);
-
-		if ($types & self::TYPE_SYSTEM)
-			$posixdata = $this->_LoadGroupListFromPosix();
-
-		$data = array_merge($ldapdata, $posixdata);
-
-		return $data;
+		return $this->_LoadGroups("(cn=*)", $filter);
 	}
 
 	/**
 	 * Returns the list of groups for given username.
 	 *
 	 * @param string $username username
+	 * @param integer $filter filter for specific groups
 	 * @return array a list of groups
 	 * @throws EngineException
 	 */
 
-	function GetGroupMemberships($username)
+	function GetGroupMemberships($username, $filter = Group::FILTER_DEFAULT)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
@@ -193,11 +161,59 @@ class GroupManager extends Engine
 
 		$dn = $this->ldaph->GetDnForUid($username);
 
-		return $this->_LoadGroupsByFilter("(member=$dn)", GroupManager::TYPE_DEFAULT);
+		$groupsinfo = $this->_LoadGroups("(member=$dn)", $filter);
+
+		$grouplist = array();
+
+		foreach ($groupsinfo as $name => $info)
+			$grouplist[] = $info['group'];
+
+		return $grouplist;
+	}
+
+	/**
+	 * Initializes default group memberships.
+	 *
+	 * Both Linux and Windows (and perhaps other operating systems) require
+	 * a default group to be assigned.  This method handles this assignment
+	 * and also provides some extra group handling for built-in groups:
+	 *
+	 *  - allusers (a group that tracks all users)
+	 *  - domain_users (a group that tracks all Windows domain users)
+	 *
+	 * @param string $username username
+	 * @return void
+	 */
+
+	function InitalizeGroupMemberships($username)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+
+		// See if Samba is up and running
+		try {	
+			$group = new Group(Group::CONSTANT_ALL_WINDOWS_USERS_GROUP); 
+			$samba_active = $group->Exists();
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		// Add to "allusers" group
+		$group = new Group(Group::CONSTANT_ALL_USERS_GROUP);
+		$group->AddMember($username);
+
+		// Add domain_users group if Samba is up and running
+		if ($samba_active) {
+			$group = new Group(Group::CONSTANT_ALL_WINDOWS_USERS_GROUP);
+			$group->AddMember($username);
+		}
 	}
 
 	/**
 	 * Updates group membership for given user.
+	 *
+	 * This method does not change the settings in built-in groups.  If this
+	 * functionality is required, we can add a flag to this method.
 	 *
 	 * @param string $username username
 	 * @param array $groups list of active groups
@@ -210,14 +226,7 @@ class GroupManager extends Engine
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		$current = $this->GetGroupMemberships($username);
-		$all = $this->GetAllGroups(GroupManager::TYPE_IGNORE_SYSTEM);
-
-		// Add required groups
-		if (! in_array(Group::CONSTANT_ALL_USERS_GROUP, $groups))
-			$groups[] = Group::CONSTANT_ALL_USERS_GROUP;
-
-		if (! in_array(Group::CONSTANT_ALL_WINDOWS_USERS_GROUP, $groups))
-			$groups[] = Group::CONSTANT_ALL_WINDOWS_USERS_GROUP;
+		$all = $this->GetAllGroups(Group::FILTER_NORMAL);
 
 		foreach ($all as $groupname) {
 			if (in_array($groupname, $groups) && !in_array($groupname, $current)) {
@@ -228,30 +237,6 @@ class GroupManager extends Engine
 				$group->DeleteMember($username);
 			}
 		}
-	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	// V A L I D A T I O N   M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Validation routine for group ID.
-	 *
-	 * @param  gid  a GID
-	 * @return  boolean true if gid is valid
-	 */
-
-	function IsValidGid($gid)
-	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
-
-		if (! is_int($gid) || $gid < self::GID_MIN || $gid > self::GID_MAX) {
-			$this->AddValidationError(GROUP_LANG_ERRMSG_GID_INVALID, __METHOD__, __LINE__);
-			return false;
-		}
-
-		return true;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -279,62 +264,44 @@ class GroupManager extends Engine
 	}
 
 	/**
-	 * Loads a simple group list from LDAP given filter.
+	 * Loads a full list of groups with detailed information.
 	 *
-	 * @param string $filter LDAP filter
-	 * @param integer $types types of groups
-	 * @access private
+	 * @param string $ldapfilter LDAP filter
+	 * @param integer $filter filter for specific groups
+	 * @return array an array containing group data
 	 * @throws EngineException
 	 */
 
-	protected function _LoadGroupsByFilter($filter, $types)
+	protected function _LoadGroups($ldapfilter, $filter)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		if ($this->ldaph == null)
-			$this->_GetLdapHandle();
+		$ldapdata = array();
+		$posixdata = array();
 
-		$grouplist = array();
+		// Load LDAP groups (not required if only looking for the system/Posix groups)
+		if (!($filter === Group::FILTER_SYSTEM))
+			$ldapdata = $this->_LoadGroupsFromLdap($ldapfilter, $filter);
 
-		$result = $this->ldaph->Search(
-			"(&$filter(objectclass=posixGroup))", 
-			$this->ldaph->GetGroupsOu(),
-			array('cn')
-		);
+		if ($filter & Group::FILTER_SYSTEM)
+			$posixdata = $this->_LoadGroupsFromPosix();
 
-		$this->ldaph->Sort($result, 'cn');
-		$entry = $this->ldaph->GetFirstEntry($result);
+		$data = array_merge($ldapdata, $posixdata);
 
-		while ($entry) {
-			$attributes = $this->ldaph->GetAttributes($entry);
-
-			// TODO: temporarily hide printadmins
-			if ($attributes['cn'][0] == "printadmins") {
-				$entry = $this->ldaph->NextEntry($entry);
-				continue;
-			}
-
-			if (($types & self::TYPE_HIDDEN) && in_array($attributes['cn'][0], $this->hiddenlist) ||
-				($types & self::TYPE_BUILTIN) && in_array($attributes['cn'][0], $this->builtinlist) ||
-				(($types & self::TYPE_USER_DEFINED) && !in_array($attributes['cn'][0], $this->hiddenlist) && !in_array($attributes['cn'][0], $this->builtinlist)))
-				$grouplist[] = $attributes['cn'][0];
-
-			$entry = $this->ldaph->NextEntry($entry);
-		}
-
-		return $grouplist;
+		return $data;
 	}
 
 	/**
 	 * Loads groups from LDAP.
 	 *
 	 * @access private
-	 * @param integer $types types of groups
+	 * @param string $ldapfilter LDAP filter
+	 * @param integer $filter filter for specific groups
 	 * @throws EngineException
 	 */
 
-	protected function _LoadGroupListFromLdap($types)
+	protected function _LoadGroupsFromLdap($ldapfilter, $filter)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
@@ -342,27 +309,29 @@ class GroupManager extends Engine
 		if ($this->ldaph == null)
 			$this->_GetLdapHandle();
 
+		// TODO: static
+		$group = new Group("notused");
+
 		$grouplist = array();
+
 		$result = $this->ldaph->Search(
-			"(&(cn=*)(objectclass=posixGroup))",
-			$this->ldaph->GetGroupsOu()
+			"(&$ldapfilter(objectclass=posixGroup))", 
+			ClearDirectory::GetGroupsOu()
 		);
+
 		$this->ldaph->Sort($result, 'cn');
 		$entry = $this->ldaph->GetFirstEntry($result);
 
 		while ($entry) {
 			$attributes = $this->ldaph->GetAttributes($entry);
 
-			// TODO: temporarily hide printadmins
-			if ($attributes['cn'][0] == "printadmins") {
-				$entry = $this->ldaph->NextEntry($entry);
-				continue;
-			}
-
-			if (($types & self::TYPE_HIDDEN) && in_array($attributes['cn'][0], $this->hiddenlist) ||
-				($types & self::TYPE_BUILTIN) && in_array($attributes['cn'][0], $this->builtinlist) ||
-				(($types & self::TYPE_USER_DEFINED) && !in_array($attributes['cn'][0], $this->hiddenlist) && !in_array($attributes['cn'][0], $this->builtinlist))) {
-				$group = new Group("notused");
+			if  (
+				(($filter & Group::FILTER_HIDDEN) && in_array($attributes['cn'][0], $group->hiddenlist)) ||
+				(($filter & Group::FILTER_BUILTIN) && in_array($attributes['cn'][0], $group->builtinlist)) ||
+				(($filter & Group::FILTER_WINDOWS) && in_array($attributes['cn'][0], $group->windowslist)) ||
+				(($filter & Group::FILTER_NORMAL) && ($attributes['gidNumber'][0] >= Group::GID_RANGE_NORMAL_MIN) &&
+ 						($attributes['gidNumber'][0] <= Group::GID_RANGE_NORMAL_MAX))
+				) {
 				$groupinfo = $group->_ConvertLdapAttributesToArray($attributes);
 				$grouplist[$attributes['gidNumber'][0]] = $groupinfo;
 			}
@@ -380,13 +349,13 @@ class GroupManager extends Engine
 	 * @throws  EngineException
 	 */
 
-	protected function _LoadGroupListFromPosix()
+	protected function _LoadGroupsFromPosix()
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		try {
-			$file = new File(self::FILE_CONFIG);
+			$file = new File(Group::FILE_CONFIG);
 			$contents = $file->GetContentsAsArray();
 		} catch (Exception $e) {
 			throw new EngineException(LOCALE_LANG_ERRMSG_PARSE_ERROR, COMMON_ERROR);

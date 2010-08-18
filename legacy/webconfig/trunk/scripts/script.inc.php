@@ -242,7 +242,7 @@ class WebconfigScript
 			if (pclose($ph) == 0) $tz_abrv = $buffer;
 		}
 		if (!class_exists('DateTimeZone')) {
-			if (!date_default_timezone_set($tz_abrv)) {
+			if (!@date_default_timezone_set($tz_abrv)) {
 				if (!date_default_timezone_set('UTC'))
 					throw new ScriptException(ScriptException::CODE_INVALID_TIMEZONE);
 			}

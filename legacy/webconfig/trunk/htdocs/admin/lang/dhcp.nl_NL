@@ -8,13 +8,9 @@ define("WEB_LANG_NO_ACTIVE_LEASES", "Geen actieve lease gevonden.");
 define("WEB_LANG_NO_STATIC_LEASES", "Geen statische lease gevonden.");
 define("WEB_LANG_NO_SUBNETS_DEFINED", "Geen DHCP netwerken gedefinieerd.");
 define("WEB_LANG_PAGE_INTRO", "De DHCP server zorgt ervoor dat alle systemen op het lokale netwerk automatisch de juiste netwerkinstellingen krijgen.");
-define("WEB_LANG_PAGE_INTRO", "De DHCP server laat systemen op uw lokale netwerk automatische toe om hun netwerkinstellingen op te vragen.");
-define("WEB_LANG_PAGE_TITLE", "DHCP Server");
 define("WEB_LANG_PAGE_TITLE", "DHCP server");
 define("WEB_LANG_TITLE_ADD_DNS", "Voeg DNS server toe");
-define("WEB_LANG_TITLE_GLOBAL", "Configureer algemene DHCP instellingen");
 define("WEB_LANG_TITLE_GLOBAL", "Configureer globale instellingen");
 define("WEB_LANG_TITLE_SUBNET", "Bewerk subnet");
-define("WEB_LANG_TITLE_SUBNET", "Wijzig subnet");
 // vi: syntax=php ts=4
 ?>

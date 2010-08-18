@@ -137,6 +137,24 @@ class Product extends Engine
 		return $this->config['portal_url'];
 	}
 
+    /**
+     * Returns redirect URL
+     *
+     * @return string redirect URL
+     * @throws EngineException
+     */
+
+    function GetRedirectUrl()
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (!$this->is_loaded)
+			$this->_LoadConfig();
+
+		return $this->config['redirect_url'];
+	}
+
 	/**
 	 * Returns the product version.
 	 *
@@ -157,10 +175,6 @@ class Product extends Engine
 
 	// TODO: move WebServices.GetVendorCode and Register.GetVendorCode to here.
 	// - GetVendorCode()
-	//
-	// TODO: the following will be migrated/added
-	// - GetUserGuideUrl()
-	// - GetSupportUrl()
 
 	/**
 	 * Loads configuration file.

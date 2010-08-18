@@ -1,7 +1,7 @@
 <?php
 
 if (empty($blurb))
-	$blurb = " Copyright &copy; 2009 ClearFoundation. All Rights Reserved.";
+	$blurb = " Web Interface - Copyright &copy; 2010 ClearFoundation. All Rights Reserved.";
 
 echo "
 	</div>

@@ -9,5 +9,6 @@ define("WEB_LANG_NO_GROUPS_DEFINED", "No hay grupos definidos.");
 define("WEB_LANG_PAGE_INTRO", "Añadir o editar grupos en el sistema de ficheros.");
 define("WEB_LANG_PAGE_TITLE", "Group Manager");
 define("WEB_LANG_USER_DEFINED_GROUPS", "User Defined Groups");
+define("WEB_LANG_WARNING_ABOUT_EDITING_BUILTIN_GROUPS", "The built-in groups are used for specific purposes by the system.  Please read the documentation before making any changes!");
 // vi: syntax=php ts=4
 ?>

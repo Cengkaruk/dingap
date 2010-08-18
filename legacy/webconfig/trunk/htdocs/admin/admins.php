@@ -23,6 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('../../gui/Webconfig.inc.php');
+require_once('../../api/ClearDirectory.class.php');
 require_once('../../api/Webconfig.class.php');
 require_once('../../api/UserManager.class.php');
 require_once(GlobalGetLanguageTemplate(__FILE__));
@@ -104,7 +105,7 @@ function DisplayAdmins()
 
 	try {
 		$admins = $webconfig->GetAdminList();
-		$userlist = $usermanager->GetAllUsers(UserManager::TYPE_WEBCONFIG);
+		$userlist = $usermanager->GetAllUsers(ClearDirectory::SERVICE_TYPE_WEBCONFIG);
 		$allowsubadmins  = $webconfig->GetAdminAccessState() ? " checked" : "";
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());

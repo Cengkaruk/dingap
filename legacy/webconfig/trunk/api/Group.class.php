@@ -56,11 +56,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('Engine.class.php');
+require_once('ClearDirectory.class.php');
 require_once('File.class.php');
 require_once('GroupManager.class.php');
 require_once('Ldap.class.php');
 require_once('ShellExec.class.php');
-require_once('User.class.php');
 require_once('UserManager.class.php');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,11 +103,6 @@ class GroupNotFoundException extends EngineException
  * Only the Group->Exists() method uses both LDAP and Posix groups.  All
  * other public methods refer to LDAP groups only.
  *
- * Groups have been segregated into three distinct ID rangs:
- * - System groups: 0-499
- * - User groups: 500-60000
- * - Normal groups: 60001-62000
- *
  * @package Api
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
@@ -126,28 +121,58 @@ class Group extends Engine
 	protected $loaded = false;
 	protected $usermap_dn = null;
 	protected $usermap_username = null;
+	public $hiddenlist = array();
+	public $builtinlist = array();
+	public $windowslist = array();
 
 	const LOG_TAG = 'group';
 	const FILE_CONFIG = '/etc/group';
-	const TYPE_SYSTEM = 'system';
-	const TYPE_USER = 'user';
-	const TYPE_GROUP = 'group';
-	const TYPE_WINDOWS_GROUP = 'wingroup';
-	const TYPE_INVALID = 'invalid';
 	const CONSTANT_NO_MEMBERS_USERNAME = 'nomembers';
 	const CONSTANT_NO_MEMBERS_DN = 'No Members';
 	const CONSTANT_ALL_WINDOWS_USERS_GROUP = 'domain_users';
 	const CONSTANT_ALL_USERS_GROUP = 'allusers';
-	const CONSTANT_ALL_USERS_GROUP_ID = '400';
+	const CONSTANT_ALL_USERS_GROUP_ID = '63000';
+	const GID_RANGE_MIN = '0';
+	const GID_RANGE_MAX = '1999999';
 	const GID_RANGE_SYSTEM_MIN = '0';
 	const GID_RANGE_SYSTEM_MAX = '499';
 	const GID_RANGE_USER_MIN = '500';
-	const GID_RANGE_USER_MAX = '60000';
-	const GID_RANGE_GROUP_MIN = '60001';
-	const GID_RANGE_GROUP_MAX = '62000';
-	const GID_RANGE_GROUP_WINDOWS_MIN = '1000000';
-	const GID_RANGE_GROUP_WINDOWS_MAX = '20000000';
+	const GID_RANGE_USER_MAX = '59999';
+	const GID_RANGE_NORMAL_MIN = '60000';
+	const GID_RANGE_NORMAL_MAX = '62999';
+	const GID_RANGE_RESERVED_MIN = '63000';
+	const GID_RANGE_RESERVED_MAX = '63999';
+	const GID_RANGE_WINDOWS_MIN = '1000000';
+	const GID_RANGE_WINDOWS_MAX = '1999999';
  
+	// Group Types
+	// -----------
+	// Groups and gidnumbers are split up into specific ranges in ClearOS.  The
+	// underlying Linux operating system and interoperability with Windows
+	// networks requires reserve these ranges, and these semantics need to be followed.
+	// For details, see:
+	// http://www.clearfoundation.com/docs/developer/features/cleardirectory/uids_gids_and_rids
+
+	const TYPE_SYSTEM = "system";	 // System groups
+	const TYPE_NORMAL = "normal";	 // User-defined groups
+	const TYPE_RESERVED = "reserved"; // Reserved groups
+	const TYPE_WINDOWS = "windows";   // Windows reserved groups
+	const TYPE_UNSUPPORTED = "unsupported"; // The rest are not really supported
+
+	// Group filters
+	// -------------
+	// When using some API calls, it is handy to filter for only certain types of 
+	// groups.  The following filter flags can be used where applicable.
+
+	const FILTER_SYSTEM = 1;		// System groups
+	const FILTER_NORMAL = 2;  // User-defined groups
+	const FILTER_WINDOWS = 4;	   // Windows reserved groups
+	const FILTER_HIDDEN = 8;		// Hidden groups
+	const FILTER_BUILTIN = 16;	  // Builtin groups
+	const FILTER_DEFAULT = 18;	  // Builtin and user defined groups
+
+	// Group ranges: system, user defined, reserved, windows reserved
+
 	///////////////////////////////////////////////////////////////////////////////
 	// M E T H O D S
 	///////////////////////////////////////////////////////////////////////////////
@@ -165,6 +190,42 @@ class Group extends Engine
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		$this->groupname = $groupname;
+
+		$this->builtinlist = array(
+			'allusers',
+			'domain_admins',
+			'domain_users'
+		);
+
+		$this->hiddenlist = array(
+			'account_operators',
+			'administrators',
+			'backup_operators',
+			'domain_computers',
+			'domain_controllers',
+			'domain_guests',
+			'guests',
+			'power_users',
+			'print_operators',
+			'server_operators',
+			'users'
+		);
+
+		$this->windowslist = array(
+			'account_operators',
+			'administrators',
+			'backup_operators',
+			'domain_admins',
+			'domain_computers',
+			'domain_controllers',
+			'domain_guests',
+			'domain_users',
+			'guests',
+			'power_users',
+			'print_operators',
+			'server_operators',
+			'users'
+		);
 
 		parent::__construct();
 
@@ -191,28 +252,27 @@ class Group extends Engine
 			throw new ValidationException(GROUP_LANG_ERRMSG_NAME_INVALID);
 
 		if ($this->Exists()) {
-			if ($this->info['type'] == Group::TYPE_WINDOWS_GROUP)
+			if ($this->info['type'] == Group::TYPE_WINDOWS)
 				$warning = GROUP_LANG_ERRMSG_GROUP_NAME_IS_RESERVED_FOR_WINDOWS;
-			else if ($this->info['type'] == Group::TYPE_GROUP)
-				$warning = GROUP_LANG_ERRMSG_EXISTS;
-			else
+			else if ($this->info['type'] == Group::TYPE_RESERVED)
 				$warning = GROUP_LANG_ERRMSG_GROUP_NAME_IS_RESERVED;
+			else if ($this->info['type'] == Group::TYPE_SYSTEM)
+				$warning = GROUP_LANG_ERRMSG_GROUP_NAME_IS_RESERVED;
+			else
+				$warning = GROUP_LANG_ERRMSG_EXISTS;
 
 			throw new ValidationException($warning);
 		}
 
-		try {
-			$user = new User($this->groupname);
-			$userexists = $user->Exists();
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
+		$cleardirectory = new ClearDirectory();
+		$isunique = $cleardirectory->IsUniqueId($this->groupname);
 
-		if ($userexists)
-			throw new ValidationException(GROUP_LANG_ERRMSG_USER_WITH_THIS_NAME_EXISTS);
+		if ($isunique != ClearDirectory::STATUS_UNIQUE)
+			throw new ValidationException($cleardirectory->statuscodes[$isunique]);
 
 		try {
 			// TODO: this will fail in master/replica mode
+			// TODO: move to ClearDirectory->IsUniqueId
 			if (file_exists(COMMON_CORE_DIR . "/api/Flexshare.class.php")) {
 				require_once(COMMON_CORE_DIR . "/api/Flexshare.class.php");
 				$flexshare = new Flexshare();
@@ -236,7 +296,7 @@ class Group extends Engine
 			$this->_GetLdapHandle();
 
 		try {
-			$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . $this->ldaph->GetGroupsOu();
+			$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . ClearDirectory::GetGroupsOu();
 			$this->ldaph->Add($dn, $ldap_object);
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), COMMON_ERROR);
@@ -291,7 +351,7 @@ class Group extends Engine
 		if ($this->ldaph == null)
 			$this->_GetLdapHandle();
 
-		$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . $this->ldaph->GetGroupsOu();
+		$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . ClearDirectory::GetGroupsOu();
 
 		$this->ldaph->Delete($dn);
 
@@ -453,7 +513,7 @@ class Group extends Engine
 		if ($this->ldaph == null)
 			$this->_GetLdapHandle();
 
-		$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . $this->ldaph->GetGroupsOu();
+		$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . ClearDirectory::GetGroupsOu();
 
 		$this->ldaph->Modify($dn, $attributes);
 
@@ -497,7 +557,7 @@ class Group extends Engine
 		if ($this->ldaph == null)
 			$this->_GetLdapHandle();
 
-		$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . $this->ldaph->GetGroupsOu();
+		$dn = "cn=" . Ldap::DnEscape($this->groupname) . "," . ClearDirectory::GetGroupsOu();
 
 		if ($this->usermap_username == null)
 			$this->_LoadUsermapFromLdap();
@@ -619,7 +679,7 @@ class Group extends Engine
 
 		$ldap = new Ldap();
 		foreach ($groupinfo['members'] as $member)
-			$attributes['member'][] = 'cn=' . $member . ',' . Ldap::CONSTANT_USERS_OU  . ',' . $ldap->GetBaseDn();
+			$attributes['member'][] = 'cn=' . $member . ',' . ClearDirectory::GetUsersOu();
 
 		return $attributes;
 	}
@@ -708,7 +768,7 @@ class Group extends Engine
 			$this->_GetLdapHandle();
 
 		try {
-			$dn = $this->ldaph->GetMasterDn();
+			$dn = ClearDirectory::GetMasterDn();
 			$attributes = $this->ldaph->Read($dn);
 			// TODO: should add semaphore to prevent duplicate IDs
 			$next['gidNumber'] = $attributes['gidNumber'][0] + 1;
@@ -738,7 +798,7 @@ class Group extends Engine
 
 		$result = $this->ldaph->Search(
 			"(&(cn=" . $this->groupname . ")(objectclass=posixGroup))",
-			$this->ldaph->GetGroupsOu()
+			ClearDirectory::GetGroupsOu()
 		);
 
 		$entry = $this->ldaph->GetFirstEntry($result);
@@ -758,10 +818,16 @@ class Group extends Engine
 		if (! empty($groupinfo['sambaSID']))
 			$this->info['sambaSID'] = $groupinfo['sambaSID'];
 
-		if (($groupinfo['gid'] >= Group::GID_RANGE_GROUP_WINDOWS_MIN) && ($groupinfo['gid'] < Group::GID_RANGE_GROUP_WINDOWS_MAX))
-			$this->info['type'] = Group::TYPE_WINDOWS_GROUP;
+		if (($groupinfo['gid'] >= Group::GID_RANGE_NORMAL_MIN) && ($groupinfo['gid'] < Group::GID_RANGE_NORMAL_MAX))
+			$this->info['type'] = Group::TYPE_NORMAL;
+		else if (($groupinfo['gid'] >= Group::GID_RANGE_RESERVED_MIN) && ($groupinfo['gid'] < Group::GID_RANGE_RESERVED_MAX))
+			$this->info['type'] = Group::TYPE_RESERVED;
+		else if (($groupinfo['gid'] >= Group::GID_RANGE_WINDOWS_MIN) && ($groupinfo['gid'] < Group::GID_RANGE_WINDOWS_MAX))
+			$this->info['type'] = Group::TYPE_WINDOWS;
+		else if (($groupinfo['gid'] >= Group::GID_RANGE_SYSTEM_MIN) && ($groupinfo['gid'] < Group::GID_RANGE_SYSTEM_MAX))
+			$this->info['type'] = Group::TYPE_SYSTEM;
 		else
-			$this->info['type'] = Group::TYPE_GROUP;
+			$this->info['type'] = Group::TYPE_UNSUPPORTED;
 
 		$this->loaded = true;
 	}
@@ -791,7 +857,7 @@ class Group extends Engine
 
 		$result = $this->ldaph->Search(
 			"(&(cn=*)(objectclass=posixAccount))", 
-			$this->ldaph->GetUsersOu(), 
+			ClearDirectory::GetUsersOu(), 
 			array('dn', 'uid')
 		);
 
@@ -873,13 +939,12 @@ class Group extends Engine
 		if (($gid >= Group::GID_RANGE_SYSTEM_MIN) && ($gid <= Group::GID_RANGE_SYSTEM_MAX)) {
 			$this->info['type'] = Group::TYPE_SYSTEM;
 		} else if (($gid >= Group::GID_RANGE_USER_MIN) && ($gid <= Group::GID_RANGE_USER_MAX)) {
-			$this->info['type'] = Group::TYPE_USER;
-			// TODO: should either be in LDAP or non-existent?
-		} else if (($gid >= Group::GID_RANGE_GROUP_MIN) && ($gid <= Group::GID_RANGE_GROUP_MAX)) {
-			$this->info['type'] = Group::TYPE_INVALID;
+			$this->info['type'] = Group::TYPE_NORMAL;
+		} else if (($gid >= Group::GID_RANGE_NORMAL_MIN) && ($gid <= Group::GID_RANGE_NORMAL_MAX)) {
+			$this->info['type'] = Group::TYPE_UNSUPPORTED;
 			Logger::Syslog(self::LOG_TAG, "Posix group ID in LDAP group range: " . $gid);
 		} else {
-			$this->info['type'] = Group::TYPE_INVALID;
+			$this->info['type'] = Group::TYPE_UNSUPPORTED;
 			Logger::Syslog(self::LOG_TAG, "Posix group ID out of range: " . $gid);
 		}
 

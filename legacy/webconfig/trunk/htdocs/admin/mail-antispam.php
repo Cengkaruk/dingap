@@ -25,7 +25,6 @@
 require_once("../../gui/Webconfig.inc.php");
 require_once("../../api/Amavis.class.php");
 require_once("../../api/Postfix.class.php");
-require_once("../../api/Postgrey.class.php");
 require_once("../../api/SpamAssassin.class.php");
 require_once("../../api/AntispamUpdates.class.php");
 require_once("mailfilter.php");
@@ -60,7 +59,6 @@ WebServiceStatus(AntispamUpdates::CONSTANT_NAME, "ClearSDN Antispam Updates");
 
 $amavis = new Amavis();
 $postfix = new Postfix();
-$postgrey = new Postgrey();
 $spam = new Spamassassin();
 
 try {

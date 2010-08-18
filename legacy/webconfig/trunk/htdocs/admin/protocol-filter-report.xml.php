@@ -46,8 +46,8 @@ foreach ($patterns as $pattern) {
 
 	echo "\t<protocol>\n";
 	printf("\t\t<mark>%d</mark>\n", $pattern['mark']);
-	printf("\t\t<packets>%d</packets>\n", $pattern['packets']);
-	printf("\t\t<bytes>%d</bytes>\n", $pattern['bytes']);
+	printf("\t\t<packets>%s</packets>\n", (isset($pattern['packets'])) ? $pattern['packets'] : '-');
+	printf("\t\t<bytes>%s</bytes>\n", (isset($pattern['bytes'])) ? $pattern['bytes'] : '-');
 	echo "\t</protocol>\n";
 }
 

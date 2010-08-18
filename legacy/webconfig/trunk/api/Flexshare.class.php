@@ -42,6 +42,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once("Engine.class.php");
+require_once("ClearDirectory.class.php");
 require_once("ConfigurationFile.class.php");
 require_once("File.class.php");
 require_once("Firewall.class.php");
@@ -1014,7 +1015,7 @@ class Flexshare extends Software
 					if (! $ssl_found) {
 						$ssl->SetRsaKeySize(Ssl::DEFAULT_KEY_SIZE);
 						$ssl->SetTerm(Ssl::TERM_1YEAR);
-						$ssl->SetPurpose(Ssl::PURPOSE_SERVER);
+						$ssl->SetPurpose(Ssl::PURPOSE_SERVER_CUSTOM);
 						$csr_filename = $ssl->CreateCertificateRequest(trim($share['WebServerName']));
 						// Self-sign be default
 						$cert_filename = $ssl->SignCertificateRequest($csr_filename);
@@ -1086,7 +1087,7 @@ class Flexshare extends Software
 
 			if ($share['WebReqAuth']) {
 				$ldap = new Ldap();
-				$ldap_conf = "ldap://127.0.0.1:389/" . $ldap->GetUsersOu() . "?uid?one?(pcnWebFlag=TRUE)";
+				$ldap_conf = "ldap://127.0.0.1:389/" . ClearDirectory::GetUsersOu() . "?uid?one?(pcnWebFlag=TRUE)";
 				$newlines[] = "\tAuthType Basic";
 				$newlines[] = "\tAuthBasicProvider ldap";
 				$newlines[] = "\tAuthzLDAPAuthoritative Off";
@@ -1097,7 +1098,7 @@ class Flexshare extends Software
 				$group = new Group($share['ShareGroup']);
 
 				if ($group->Exists()) {
-					$newlines[] = "\tRequire ldap-group cn=" . $share['ShareGroup'] . "," . $ldap->GetGroupsOu();
+					$newlines[] = "\tRequire ldap-group cn=" . $share['ShareGroup'] . "," . ClearDirectory::GetGroupsOu();
 				} else {
 					// TODO: API should be something like User->GetDn() instead of Ldap->GetDnForUid ?
 					$user = new User($share['ShareGroup']);
@@ -1154,6 +1155,12 @@ class Flexshare extends Software
 				$newlines[] = "\tRewriteCond %{HTTPS} off";
 				$newlines[] = "\tRewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}";
 			}
+
+			// DAV (unsupported)
+			$davcheck = self::SHARE_PATH . "/$name/.DAV";
+			$davfile = new File($davcheck);
+			if ($davfile->Exists())
+				$newlines[] = "\tDav on";
 
 			$newlines[] = "</Directory>\n\n\n";
 
@@ -1404,7 +1411,7 @@ class Flexshare extends Software
 				// $newlines[] = "\tCapabilitiesEngine on";
 				// $newlines[] = "\tCapabilitiesSet +CAP_CHOWN";
 				$newlines[] = "";
-				$newlines[] = "\t<Limit LOGIN CDUP PWD XPWD LIST$pasv>";
+				$newlines[] = "\t<Limit LOGIN CDUP PWD XPWD LIST PROT$pasv>";
 				$newlines[] = "\t\tAllowAll";
 				$newlines[] = "\t</Limit>";
 				$newlines[] = "\t<Limit ALL>";
@@ -1435,7 +1442,7 @@ class Flexshare extends Software
 						if (! $ssl_found) {
 							$ssl->SetRsaKeySize(Ssl::DEFAULT_KEY_SIZE);
 							$ssl->SetTerm(Ssl::TERM_1YEAR);
-							$ssl->SetPurpose(Ssl::PURPOSE_SERVER);
+							$ssl->SetPurpose(Ssl::PURPOSE_SERVER_CUSTOM);
 							$csr_filename = $ssl->CreateCertificateRequest(trim($share['FtpServerUrl']));
 							// Self-sign be default
 							$cert_filename = $ssl->SignCertificateRequest($csr_filename);
@@ -1683,7 +1690,11 @@ class Flexshare extends Software
 			$linestoadd .= "[" . $name . "]\n";
 			$linestoadd .= "\tpath = " . $share["ShareDir"] . "\n";
 			$linestoadd .= "\tcomment = " . $share["FileComment"] . "\n";
-			$linestoadd .= "\tbrowseable = Yes\n";
+
+			if ($share["FileBrowseable"])
+				$linestoadd .= "\tbrowseable = Yes\n";
+			else
+				$linestoadd .= "\tbrowseable = No\n";
 
 			if ((int)$share["FilePermission"] == self::PERMISSION_READ_WRITE)
 				$linestoadd .= "\tread only = No\n";
@@ -2872,6 +2883,23 @@ class Flexshare extends Software
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		$this->SetParameter($name, 'FileAuditLog', $state);
+	}
+
+	/**
+	 * Sets the audit log state.
+	 *
+	 * @param string $name flexshare name
+	 * @param bool $state state of audit logging
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	function SetFileBrowseable($name, $state)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+
+		$this->SetParameter($name, 'FileBrowseable', $state);
 	}
 
 	/**

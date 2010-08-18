@@ -35,13 +35,13 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+require_once('ClearDirectory.class.php');
 require_once('Daemon.class.php');
 require_once('Engine.class.php');
 require_once('File.class.php');
 require_once('Firewall.class.php');
 require_once('FirewallRule.class.php');
 require_once('Ldap.class.php');
-require_once('Os.class.php');
 require_once('Network.class.php');
 require_once('UserManager.class.php');
 require_once('IfaceManager.class.php');
@@ -512,23 +512,20 @@ class Squid extends Daemon
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
 		try {
-			// FIXME: quick workaround for 5.1.  Fix in 5.2.
 			if (file_exists(COMMON_CORE_DIR . "/api/Product.class.php")) {
 				require_once(COMMON_CORE_DIR . "/api/Product.class.php");
+
 				$product = new Product();
 				$name = $product->GetName();
-				if (! empty($name)) {
-					$realm = $name . " - " . SQUID_LANG_WEB_PROXY;
-				} else {
-					$os = new Os();
-					$realm = $os->GetName() . " - " . SQUID_LANG_WEB_PROXY;
-				}
+				$realm = $name . " - " . SQUID_LANG_WEB_PROXY;
+			} else {
+				$realm = SQUID_LANG_WEB_PROXY;
 			}
 
 			$ldap = new Ldap();
-			$basedn = $ldap->GetUsersOu();
 			$binddn = $ldap->GetBindDn();
 			$bindpw = $ldap->GetBindPassword();
+			$basedn = ClearDirectory::GetUsersOu();
 
 			$file = new File(self::FILE_LDAP);
 			if ($file->Exists())

@@ -67,6 +67,8 @@ define("WEB_LANG_QP_BACKUP", "Selecteer bestanden en mappen om te back-uppen.");
 define("WEB_LANG_QP_RESTORE", "Selecteer bestanden en mappen om te herstellen.");
 define("WEB_LANG_RESET_FSKEY_TITLE", "Reset beveiligingssleutel");
 define("WEB_LANG_RESET_FSKEY_WARNING", "WAARSCHUWING! Wanneer u de beveiligingssleutel veranderd worden alle voorgaande back-ups VERWIJDERD!");
+define("WEB_LANG_RESET_HISTORY_TITLE", "Reset Session History");
+define("WEB_LANG_RESET_HISTORY_WARNING", "Would you like to delete the session history log?  No remote data will be lost from this operation.");
 define("WEB_LANG_RESET_TITLE", "Reset remote volume");
 define("WEB_LANG_RESET_WARNING", "WAARSCHUWING! Een reset zal ALLE voorgaande back-ups VERWIJDEREN!");
 define("WEB_LANG_RESTORE_NOW", "Herstel nu");

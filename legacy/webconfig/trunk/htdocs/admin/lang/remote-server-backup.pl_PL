@@ -67,6 +67,8 @@ define("WEB_LANG_QP_BACKUP", "Wybierz pliki i foldery do kopii zapasowej");
 define("WEB_LANG_QP_RESTORE", "Wybierz pliki i foldery do przywrócenia");
 define("WEB_LANG_RESET_FSKEY_TITLE", "Zresetuj Klucz Zabezpieczaj&#261;cy");
 define("WEB_LANG_RESET_FSKEY_WARNING", "OSTRZE&#379;ENIE! Zmiana klucza zabezpieczaj&#261;cego spowoduje, &#380;e WSZYSTKIE poprzednie kopie zapasowe zostan&#261; USUNI&#280;TE!");
+define("WEB_LANG_RESET_HISTORY_TITLE", "Wyczy&#347;&#263; Histori&#281; Sesji");
+define("WEB_LANG_RESET_HISTORY_WARNING", "Czy chcesz usun&#261;&#263; dziennik z histori&#261; sesji? &#379;adne zdalne informacje nie zostan&#261; utracone w wyniku tej operacji.");
 define("WEB_LANG_RESET_TITLE", "Zresetuj Zdalny Wolumin");
 define("WEB_LANG_RESET_WARNING", "OSTRZE&#379;ENIE! Reset spowoduje USUNI&#280;CIE WSZYSTKICH poprzednich kopii zapasowych!");
 define("WEB_LANG_RESTORE_NOW", "Przywró&#263; Teraz");

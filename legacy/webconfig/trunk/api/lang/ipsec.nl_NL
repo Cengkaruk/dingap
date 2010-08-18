@@ -4,7 +4,7 @@ define("IPSEC_LANG_CONNECTION_NAME", "Connectie naam");
 define("IPSEC_LANG_DYNAMIC_VPN_SERVICE", "Dynamische VPN");
 define("IPSEC_LANG_ERRMSG_CONNECTION_NAME_INVALID", "De naam van deze verbinding mag alleen alfanumerieke tekens bevatten!");
 define("IPSEC_LANG_ERRMSG_CONNECTION_NAME_MISSING", "Een naam voor deze verbinding is verplicht!");
-define("IPSEC_LANG_ERRMSG_FIELD_MISSING", "Alle velden moeten ingevuld worden!");
+define("IPSEC_LANG_ERRMSG_FIELD_MISSING", "Alle velden moeten ingevuld zijn!");
 define("IPSEC_LANG_ERRMSG_GATEWAY_INVALID", "Ongeldig gateway adres.");
 define("IPSEC_LANG_ERRMSG_HQ_HOP_INVALID", "De kantoor hop is ongeldig -");
 define("IPSEC_LANG_ERRMSG_HQ_IP_INVALID", "Het IP-adres van kantoor is ongeldig -");

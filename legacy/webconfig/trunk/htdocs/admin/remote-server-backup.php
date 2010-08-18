@@ -353,6 +353,9 @@ try {
 	else if (array_key_exists('rbs_reset', $_POST)) {
 		$rbs->ResetVolume();
 	}
+	else if (array_key_exists('rbs_reset_history', $_POST)) {
+		$rbs->ResetHistory();
+	}
 
 } catch (Exception $e) {
 	WebDialogWarning($e->getMessage());
@@ -410,6 +413,9 @@ try {
 	} else if (array_key_exists('rbs_confirm_reset', $_POST)) {
 		// Display reset confirmation dialog
 		DisplayConfirmReset(key($_POST['rbs_confirm_reset']));
+	} else if (array_key_exists('rbs_confirm_reset_history', $_POST)) {
+		// Display reset history confirmation dialog
+		DisplayConfirmResetHistory(key($_POST['rbs_confirm_reset_history']));
 	} else {
 		// Display service configuration
 		DisplayTabView();
@@ -505,8 +511,10 @@ function DisplayTabView()
 
 	if ($key == null)
 		$rbs_active_tab = 'config';
-	else
-		$rbs_active_tab = isset($_REQUEST['rbs_active_tab']) ? $_REQUEST['rbs_active_tab'] : 'config';
+	else {
+		$rbs_active_tab = isset($_REQUEST['rbs_active_tab']) ?
+			$_REQUEST['rbs_active_tab'] : 'config';
+	}
 
 	$tabinfo['config']['title'] = WEB_LANG_CONFIG_TITLE;
 	$tabinfo['config']['contents'] = GetConfigurationTab();
@@ -630,9 +638,10 @@ function GetHistoryTab()
 	WebFormOpen();
 
 	echo "<table cellspacing='0' cellpadding='5' width='100%' border='0' class='tablebody'>\n";
-	printf("<tr><td colspan='4'>%s %s</td></tr>\n",
+	printf("<tr><td colspan='4'>%s %s %s</td></tr>\n",
 		WebDropDownHash('rbs_backup_sort', $sort_mode, $sort_modes),
-		WebButtonRefresh('rbs_do_refresh'));
+		WebButtonRefresh('rbs_do_refresh'),
+		WebButtonReset('rbs_confirm_reset_history'));
 	echo "<input type='hidden' name='rbs_active_tab' value='history'>";
 	WebTableHeader('|' .  LOCALE_LANG_DATE . '|' . WEB_LANG_STATUS_TITLE . '|' .  WEB_LANG_SIZE);
 
@@ -1241,6 +1250,32 @@ function DisplayConfirmReset()
 	// Delete or Cancel...
 	printf("<tr><td align='center'>%s %s</tr>\n",
 		WebButtonDelete('rbs_reset'),
+		WebButtonCancel('rbs_cancel'));
+
+	WebTableClose('30%');
+	WebFormClose();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// DisplayConfirmResetHistory
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function DisplayConfirmResetHistory()
+{
+	global $rbs;
+
+	WebFormOpen();
+	echo "<input type='hidden' name='rbs_active_tab' value='history'>";
+	WebTableOpen(WEB_LANG_RESET_HISTORY_TITLE, '30%');
+
+	// Warning
+	printf("<tr><td>%s</td></tr>\n", WEB_LANG_RESET_HISTORY_WARNING);
+
+	// Delete or Cancel...
+	printf("<tr><td align='center'>%s %s</tr>\n",
+		WebButtonDelete('rbs_reset_history'),
 		WebButtonCancel('rbs_cancel'));
 
 	WebTableClose('30%');

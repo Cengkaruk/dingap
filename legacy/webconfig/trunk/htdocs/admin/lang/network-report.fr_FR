@@ -7,7 +7,7 @@ define("WEB_LANG_NO_STATS", "Aucunes statistiques actuellement...");
 define("WEB_LANG_OPEN_CONNECTIONS", "Connexions ouvertes");
 define("WEB_LANG_OPEN_TCP", "Connexions TCP ouvertes");
 define("WEB_LANG_OPEN_TCP_NOTE", "Affiche le nombre de connexions réseau ouvertes.  Une attaque par déni de service, un site web mal configuré, et divers dysfonctionnements peuvent être à l'origine d'une augmentation dramatique de cette courbe.");
-define("WEB_LANG_PAGE_INTRO", "Cliquez sur un des liens du formulaire ci-dessous pour visualiser les statistiques du trafic réseau, de la charge système, des processus actifs, de l'usage du swap mémoire et plus encore !");
+define("WEB_LANG_PAGE_INTRO", "Choisissez la carte réseau ci-dessous pour visualiser les statistiques du trafic réseau.");
 define("WEB_LANG_PAGE_TITLE", "Statistiques du système");
 // vi: syntax=php ts=4
 ?>

@@ -98,12 +98,30 @@ class Suva extends Daemon
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
+		$try_version =  false;
+
 		try {
 			$file = new File(self::FILE_CONFIG, true);
 			$hostkey = $file->LookupValue("/^\s*device-hostkey\s*=\s*/");
 			$hostkey = preg_replace('/[";]/', '', $hostkey);
+		} catch (FileNoMatchException $e) {
+			// Try xml format below
+			$try_version = true;
 		} catch (Exception $e) {
 			throw new EngineException($e->getMessage(), COMMON_WARNING);
+		}
+
+		// TODO: verify with Darryl S.
+		if ($try_version) {
+			try {
+				$file = new File(self::FILE_CONFIG, true);
+				$hostkey = $file->LookupValue("/^\s*<hostkey>/");
+				$hostkey = preg_replace('/<\/hostkey>/', '', $hostkey);
+			} catch (FileNoMatchException $e) {
+				// Try xml format below
+			} catch (Exception $e) {
+				throw new EngineException($e->getMessage(), COMMON_WARNING);
+			}	
 		}
 
 		if (empty($hostkey))
@@ -195,7 +213,7 @@ class Suva extends Daemon
 
 		try {
 			$file = new File(Suva::FILE_CONFIG);
-			$file->ReplaceLines("/\s*device-name\s*=\s*/", "device-name = $name;\n");
+			$file->ReplaceLines("/<device>.*<\/device>/", "\t<device>$name</device>\n");
 			$this->Restart();
 		} catch (Exception $e) {
 			throw new EngineException($e->getMessage(), COMMON_WARNING);

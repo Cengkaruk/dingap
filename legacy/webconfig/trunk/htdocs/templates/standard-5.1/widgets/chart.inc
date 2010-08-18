@@ -43,7 +43,9 @@ if (empty($id))
 echo "<script type='text/javascript' src='/templates/standard-5.1/widgets/charts/FusionCharts/FusionCharts.js'></script>";
 
 // Include FusionCharts PHP Class
+ob_start();
 require_once('charts/Class/FusionCharts_Gen.php');
+ob_end_clean();
 
 // Set the chart type, width and height
 if ($type == "bar")

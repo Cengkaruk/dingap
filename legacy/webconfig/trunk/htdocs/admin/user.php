@@ -44,34 +44,20 @@ WebDialogIntro(WEB_LANG_PAGE_TITLE, "/images/icon-users.png", WEB_LANG_PAGE_INTR
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-$userinfo = isset($_POST['userinfo']) ? $_POST['userinfo'] : null;
+$oldpassword = isset($_POST['oldpassword']) ? $_POST['oldpassword'] : null;
 $password = isset($_POST['password']) ? $_POST['password'] : null;
 $verify = isset($_POST['verify']) ? $_POST['verify'] : null;
 
 if (isset($_POST['UpdateUser'])) {
-
 	try {
 		$user = new User($_SESSION['user_login']);
-		if (($password || $verify) && !$user->IsValidPasswordAndVerify($password, $verify)) {
-            $errors = $user->GetValidationErrors(true);
-			WebDialogWarning($errors[0]);
-        } else {
-			// Convert empty strings to null
-			// TODO: see ConvertFlags comment in users.php
-			foreach ($userinfo as $key => $value) {
-				if (empty($value))
-					$userinfo[$key] = NULL;
-			}
+		$user->SetPassword($oldpassword, $password, $verify, $_SESSION['user_login']);
 
-			$user->Update($userinfo, $acl);
-			$user->SetPassword($password);
-			WebDialogInfo(LOCALE_LANG_SYSTEM_UPDATED);
-			$userinfo = null;
-			$password = null;
-			$verify = null;
-		}
-	} catch (ValidationException $e) {
-		WebDialogWarning(WebCheckErrors($user->GetValidationErrors(true)));
+		WebDialogInfo(LOCALE_LANG_SYSTEM_UPDATED);
+
+		$oldpassword = null;
+		$password = null;
+		$verify = null;
 	} catch (Exception $e) {
 		WebDialogWarning($e->getMessage());
 	}
@@ -103,7 +89,7 @@ if (isset($_POST['UpdateUser'])) {
 if (isset($_SESSION['system_login']))
 	DisplayAdminPassword($password, $verify);
 else
-	DisplayUser($_SESSION['user_login'], $userinfo, $password, $verify);
+	DisplayUser($_SESSION['user_login'], $userinfo, $oldpassword, $password, $verify);
 
 WebFooter();
 

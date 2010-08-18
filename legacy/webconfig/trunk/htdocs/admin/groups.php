@@ -53,6 +53,7 @@ $group_description = '';
 
 // Flag to show main screen summary
 $displayedit = false;
+$displayeditwarning = false;
 
 if (isset($_POST['AddGroup'])) {
 	try {
@@ -74,6 +75,14 @@ if (isset($_POST['AddGroup'])) {
 	try {
 		$group_name = key($_POST['EditGroup']);
 		$displayedit = true;
+	} catch (Exception $e) {
+		WebDialogWarning($e->GetMessage());
+	}
+} else if (isset($_POST['EditSpecialGroup'])) {
+	try {
+		$group_name = key($_POST['EditSpecialGroup']);
+		$displayedit = true;
+		$displayeditwarning = true;
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 	}
@@ -132,6 +141,8 @@ if (isset($_POST['AddGroup'])) {
 if (isset($_POST['DeleteGroup'])) {
 	DisplayDeleteGroup(key($_POST['DeleteGroup']));
 } else if ($displayedit) {
+	if ($displayeditwarning)
+		WebDialogWarning(WEB_LANG_WARNING_ABOUT_EDITING_BUILTIN_GROUPS);
 	DisplayEdit($group_name, $group_description);
 } else {
 	DisplayGroups($group_name, $description);
@@ -155,7 +166,7 @@ function DisplaySpecialGroups()
 	global $groupmanager;
 
 	try {
-		$groups = $groupmanager->GetGroupList(GroupManager::TYPE_BUILTIN);
+		$groups = $groupmanager->GetGroupList(Group::FILTER_BUILTIN);
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 	}
@@ -171,7 +182,7 @@ function DisplaySpecialGroups()
 			<tr class='" . $rowclass . "'>
 				<td width='20%'>" . $group["group"] . "</td>
 				<td width='40%'>" . $group["description"] . "</td>
-				<td width='40%' nowrap>" . WebButtonEdit("EditGroup[" . $group["group"] . "]") . "</td>
+				<td width='40%' nowrap>" . WebButtonEdit("EditSpecialGroup[" . $group["group"] . "]") . "</td>
 			</tr>\n
 		";
 
@@ -200,7 +211,7 @@ function DisplayGroups($groupname, $description)
 	global $groupmanager;
 
 	try {
-		$groups = $groupmanager->GetGroupList(GroupManager::TYPE_USER_DEFINED);
+		$groups = $groupmanager->GetGroupList(Group::FILTER_NORMAL);
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 	}

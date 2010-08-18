@@ -169,22 +169,10 @@ if (isset($_POST['EditManagedConnection'])) {
 
 	$showadvanced = isset($_REQUEST['showadvanced']) ? true : false;
 
-
-	try {
-		$subscription = $dynamicvpn->GetSubscriptionStatus(false);
-		$subscribed = (isset($subscription["state"]) && $subscription["state"]) ? true : false;
-	} catch (Exception $e) {
-		$subscribed = false;
-	}
-
 	WebServiceStatus(DynamicVpn::CONSTANT_NAME, "ClearSDN Dynamic VPN");
 
-	if ($subscribed) {
-		DisplayManagedSummary();
-		DisplayManualSummary($showadvanced);
-	} else {
-		DisplayManualSummary($showadvanced);
-	}
+	DisplayManagedSummary();
+	DisplayManualSummary($showadvanced);
 }
 
 WebFooter();
@@ -377,8 +365,15 @@ function DisplayManagedEdit($remoteid, $secret)
 
 	try {
 		$homeinfo = $dynamicvpn->GetInfo();
+		$subscription = $dynamicvpn->GetSubscriptionStatus();
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
+		return;
+	}
+
+	if (!$subscription['subscribed']) {
+		WebDialogWarning("Dynamic VPN requires a subscription!&nbsp; Follow the link to configure an unmanaged VPN connection - " .  WebUrlJump("ipsec.php?showadvanced", LOCALE_LANG_CONFIGURE)
+		);
 		return;
 	}
 
@@ -494,6 +489,9 @@ function DisplayManagedEdit($remoteid, $secret)
 function DisplayManualEdit($nickname, $ipsec_hq, $ipsec_hq_hop, $ipsec_hq_subnet, $ipsec_sat, $ipsec_sat_hop, $ipsec_sat_subnet, $ipsec_secret)
 {
 	global $ipsec;
+
+	WebDialogWarning("Unmanaged VPN connections should be considered <b class='alert'>experimental</b>.&nbsp; For mission
+	critical environments, we recommend Dynamic VPN.&nbsp; Please see the User Guide for more information.");
 
 	if ($nickname) {
 		try {

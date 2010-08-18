@@ -24,6 +24,7 @@
 
 require_once("../../gui/Webconfig.inc.php");
 require_once("../../api/Archive.class.php");
+require_once("../../api/ClearDirectory.class.php");
 require_once("../../api/UserManager.class.php");
 require_once("../../api/Postfix.class.php");
 require_once("../../api/Cyrus.class.php");
@@ -680,7 +681,7 @@ function DisplayFilter()
 
 	try {
 		$usermanager = new UserManager();
-		$users = $usermanager->GetAllUsers(UserManager::TYPE_EMAIL);
+		$users = $usermanager->GetAllUsers(ClearDirectory::SERVICE_TYPE_EMAIL);
 
 		$postfix = new Postfix();
         $useraccess = $postfix->GetVirtualUserList();

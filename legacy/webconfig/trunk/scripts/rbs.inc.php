@@ -219,12 +219,11 @@ class Retention
 			for ($i = 0; $i < $purge; $i++) {
 				$path = sprintf('%s/%s/%s', $snapshots['path'],
 					$dir, array_shift($snapshots[$dir]));
-				$ph = popen("rm -vrf $path", 'r');
+				$ph = popen("rm -rf $path", 'r');
 				if (!is_resource($ph)) return false;;
-				$result = stream_get_contents($ph);
-				//echo $result;
-				unset($result);
+				while (!feof($ph)) $buffer = fgets($ph, 8192);
 				if (pclose($ph) == 0) $purged++;
+				unset($buffer);
 			}
 		}
 		return $purged;
@@ -670,6 +669,9 @@ class RemoteBackupService extends WebconfigScript
 
 	// iSCSI device discovery time-out in seconds
 	const TIMEOUT_ISCSI_DEVICE = 120;
+
+	// Socket re-connect timeout
+	const TIMEOUT_SOCKET_RETRY = 10;
 
 	// Control protocol version
 	const PROTOCOL_VERSION = '2.1';
@@ -1964,7 +1966,7 @@ class RemoteBackupService extends WebconfigScript
 		$this->session_state |= self::STATE_ISCSI;
 
 		// Retrieve iSCSI block device name
-		for ($i = 0; $i < 10 && $this->iscsi_device == null; $i++) {
+		for ($i = 0; $i < self::TIMEOUT_ISCSI_DEVICE && $this->iscsi_device == null; $i++) {
 			sleep(1);
 			$ph = popen(self::FORMAT_ISCSI_SESSIONS . ' --print 3', 'r');
 			if (!is_resource($ph)) {
@@ -2093,7 +2095,7 @@ class RemoteBackupService extends WebconfigScript
 
 				socket_close($this->socket_control);
 				$this->socket_control = null;
-				sleep(5);
+				sleep(self::TIMEOUT_SOCKET_RETRY);
 
 				$sd = socket_create(AF_UNIX, SOCK_STREAM, 0);
 				if (!is_resource($sd))
@@ -2153,7 +2155,7 @@ class RemoteBackupService extends WebconfigScript
 
 				socket_close($this->socket_control);
 				$this->socket_control = null;
-				sleep(5);
+				sleep(self::TIMEOUT_SOCKET_RETRY);
 
 				$sd = socket_create(AF_UNIX, SOCK_STREAM, 0);
 				if (!is_resource($sd))
@@ -2523,7 +2525,7 @@ class RemoteBackupService extends WebconfigScript
 			$retention = new Retention($this->session_timestamp);
 			if (!$retention->MakeDirectories($this->vol_mount))
 				throw new ServiceException(ServiceException::CODE_MKDIR_SNAPSHOT);
-			return $retention->PreparePlan($snapshots, $policy, $this->vol_mount);
+			$plan = $retention->PreparePlan($snapshots, $policy, $this->vol_mount);
 		} else {
 			$this->ControlSocketWrite(self::CTRL_CMD_RETENTION_PREPARE,
 				base64_encode(serialize($policy)));

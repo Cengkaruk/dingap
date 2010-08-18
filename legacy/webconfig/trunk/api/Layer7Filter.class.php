@@ -304,7 +304,7 @@ class Layer7Filter extends Daemon
 
 		foreach ($contents as $mark) {
 			// 0	 0 DROP	   all  --  *	  *	   0.0.0.0/0			0.0.0.0/0		   MARK match 0x1c
-			if (!preg_match('/^[[:space:]]*([[:digit:]]+)[[:space:]]+([[:digit:]]+)[[:space:]]+DROP.*match[[:space:]]+0x([[:xdigit:]]+)$/', chop($mark), $matches)) continue;
+			if (!preg_match('/^[[:space:]]*([[:digit:]KMG]+)[[:space:]]+([[:digit:]KMG]+)[[:space:]]+DROP.*match[[:space:]]+0x([[:xdigit:]]+)$/', chop($mark), $matches)) continue;
 			foreach ($patterns as $key => $pattern) {
 				if ($pattern['mark'] != hexdec($matches[3])) continue;
 				$patterns[$key]['packets'] = $matches[1];

@@ -21,7 +21,7 @@ define("WEB_LANG_EMAIL_ATTACH_DIR", "Pad opslaan bijlagen");
 define("WEB_LANG_EMAIL_NOTIFY", "Geef een sein wanner er een bericht is ontvangen (e-mail)");
 define("WEB_LANG_EMAIL_POLICY", "Schrijf machtiging");
 define("WEB_LANG_EMAIL_SAVE", "Opslaan bijlagen");
-define("WEB_LANG_ENABLE_DELAY", "Start/Stoppen van een share kost een moment...wees geduldig alstublieft.");
+define("WEB_LANG_ENABLE_DELAY", "In/uitschakelen van een gedeelde map kost een moment... een momentje dus.");
 define("WEB_LANG_ERRMSG_DIR_NO_LONGER_EXISTS", "Map bestaat niet langer - update alstublieft uw flexshare map instellingen.");
 define("WEB_LANG_ERRMSG_HTTPD_NOT_RUNNING", "De webserver is niet actief maar u heeft wel een of meer Flexshares met webtoegang.");
 define("WEB_LANG_ERRMSG_IMAPD_NOT_RUNNING", "De IMAP mail server is niet actief en u heeft een of meerdere flexshares die geconfigureerd met email upload.");

@@ -35,6 +35,7 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+require_once('ClearDirectory.class.php');
 require_once('File.class.php');
 require_once('Postfix.class.php');
 require_once('ShellExec.class.php');
@@ -552,7 +553,7 @@ class Aliases extends Engine
 		# Get user list
 		try {
 			$usermanager = new UserManager();
-			$users = $usermanager->GetAllUsers(UserManager::TYPE_EMAIL);
+			$users = $usermanager->GetAllUsers(ClearDirectory::SERVICE_TYPE_EMAIL);
 		} catch (Exception $e) {
 			throw new EngineException ($e->GetMessage(), COMMON_ERROR);
 		}

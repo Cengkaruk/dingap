@@ -24,6 +24,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('../../gui/Webconfig.inc.php');
+require_once('../../api/ClearDirectory.class.php');
 require_once('../../api/ClamAv.class.php');
 require_once('../../api/DansGuardianAv.class.php');
 require_once('../../api/ContentFilterUpdates.class.php');
@@ -926,7 +927,7 @@ function DisplayEditFilterGroup()
 					$all_members = array_merge($all_members, $dansguardian->GetFilterGroupUsers($i));
 				}
 			} catch (Exception $e) { }
-			$users = array_diff($um->GetAllUsers(UserManager::TYPE_PROXY), array_merge($all_members, $members));
+			$users = array_diff($um->GetAllUsers(ClearDirectory::SERVICE_TYPE_PROXY), array_merge($all_members, $members));
 			$users = array_merge($users, $members);
 			sort($users);
 		} catch (Exception $e) {

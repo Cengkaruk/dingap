@@ -59,7 +59,7 @@ class Os extends Engine
 	private $previous_os = null;
 	private $previous_version = null;
 
-	const FILE_CORE_RELEASE = '/etc/system/release';
+	const FILE_CORE_RELEASE = '/etc/clearos-release';
 	const FILE_RELEASE = '/etc/release';
 
 	///////////////////////////////////////////////////////////////////////////////

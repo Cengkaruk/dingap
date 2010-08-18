@@ -12,7 +12,7 @@ if (isset($_SESSION['system_registered']) && $_SESSION['system_registered'])  {
 	";
 	$supportwidth = "250";
 } else {
-	$alert = ($_SERVER['PHP_SELF'] !== "/admin/register.php") ? "<a href='register.php'>Register with ClearSDN</a>" : "";
+	$alert = ($_SERVER['PHP_SELF'] !== "/admin/register.php") ? "<a href='register.php'>Register with ClearCenter</a>" : "";
 	$support = "";
 	$supportwidth = "150";
 }

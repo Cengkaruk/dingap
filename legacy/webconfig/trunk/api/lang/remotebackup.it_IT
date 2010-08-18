@@ -9,6 +9,7 @@ define("REMOTEBACKUP_LANG_ERR_EXPORT_FAILED", "Data export failure");
 define("REMOTEBACKUP_LANG_ERR_EXPORT_MISSING", "Archive file missing");
 define("REMOTEBACKUP_LANG_ERR_EXPORT_TIMEOUT", "Data export time-out");
 define("REMOTEBACKUP_LANG_ERR_HELLO_BUSY", "Busy");
+define("REMOTEBACKUP_LANG_ERR_HELLO_MAINT", "Maintenance in progress");
 define("REMOTEBACKUP_LANG_ERR_INSTANCE_RUNNING", "A backup/restore or browse operation is currently in progress.");
 define("REMOTEBACKUP_LANG_ERR_INVALID_ARCHIVE", "Invalid archive specified");
 define("REMOTEBACKUP_LANG_ERR_KEY_INVALID", "The supplied filesystem key is either empty or too short.");

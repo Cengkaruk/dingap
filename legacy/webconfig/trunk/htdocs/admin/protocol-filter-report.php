@@ -96,7 +96,7 @@ function DisplayStatus()
 
 		$class = ($index % 2) ? 'mytablealt' : '';
 
-		$data .= sprintf("<tr class='%s'><td>%s</td><td id='l7_packets_%d'>%d</td><td id='l7_bytes_%d'>%d</td></tr>\n",
+		$data .= sprintf("<tr class='%s'><td>%s</td><td id='l7_packets_%d'>%s</td><td id='l7_bytes_%d'>%s</td></tr>\n",
 			$class, $pattern['desc'],
 			$pattern['mark'], $pattern['packets'],
 			$pattern['mark'], $pattern['bytes']);

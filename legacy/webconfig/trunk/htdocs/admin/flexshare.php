@@ -187,6 +187,7 @@ if (isset($_POST['AddShare'])) {
 } else if (isset($_POST['UpdateEditFile'])) {
 	try {
 		$flexshare->SetFileComment($name, $_POST['file_comment']);
+		$flexshare->SetFileBrowseable($name, $_POST['file_browseable']);
 		$flexshare->SetFileAuditLog($name, $_POST['file_audit_log']);
 		$flexshare->SetFileRecycleBin($name, $_POST['file_recycle_bin']);
 		$flexshare->SetFilePublicAccess($name, $_POST['file_public_access']);
@@ -1247,6 +1248,13 @@ function GetFileEdit($name)
 	else
 		$file_public_access = false;
 
+	if (isset($_POST['file_browseable']))
+		$file_browseable = $_POST['file_browseable'];
+	else if (isset($share['FileBrowseable']))
+		$file_browseable = $share['FileBrowseable'];
+	else
+		$file_browseable = true;
+
 	if (isset($_POST['file_recycle_bin']))
 		$file_recycle_bin = $_POST['file_recycle_bin'];
 	else if (isset($share['FileRecycleBin']))
@@ -1305,6 +1313,10 @@ function GetFileEdit($name)
 		  <td>" . WebDropDownHash("file_permission", $file_permission, $file_permissions) . "</td>
 		</tr>
 		<tr>
+		  <td class='mytablesubheader' nowrap>" . SAMBA_LANG_BROWSEABLE . "</td>
+		  <td>" . WebDropDownEnabledDisabled("file_browseable", $file_browseable) . "</td>
+		</tr>
+		<tr>
 		  <td class='mytablesubheader' nowrap>" . SAMBA_LANG_RECYCLE_BIN . "</td>
 		  <td>" . WebDropDownEnabledDisabled("file_recycle_bin", $file_recycle_bin) . "</td>
 		</tr>
@@ -1312,17 +1324,6 @@ function GetFileEdit($name)
 		  <td class='mytablesubheader' nowrap>" . SAMBA_LANG_AUDIT_LOG . "</td>
 		  <td>" . WebDropDownEnabledDisabled("file_audit_log", $file_audit_log) . "</td>
 		</tr>
-";
-// TODO -- re-implement
-/*
-		<tr>
-		  <td class='mytablesubheader' nowrap>" . WEB_LANG_FILE_PUBLIC . "</td>
-		  <td>" . WebDropDownEnabledDisabled("file_public_access", $file_public_access, 0, 
-				"togglefilepublicaccess()", "file_public_access") . "
-		  </td>
-		</tr>
-*/
-	$contents .= "
 		<tr>
 		  <td class='mytablesubheader' nowrap>&#160;</td>
 		  <td nowrap>" . 

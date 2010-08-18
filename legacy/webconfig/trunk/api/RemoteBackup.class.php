@@ -72,6 +72,7 @@ class RemoteBackup extends Engine
 	const FILE_CUSTOM_BACKUP_SELECTION = '/tmp/rbs-custom-backup.dat';
 	const FILE_CUSTOM_RESTORE_SELECTION = '/tmp/rbs-custom-restore.dat';
 	const FILE_CUSTOM = '%s/rbs_custom-%s-%s.ini';
+	const FILE_HISTORY = '/var/lib/rbs/session-history.data';
 
 	///////////////////////////////////////////////////////////////////////////////
 	// F I E L D S
@@ -219,6 +220,13 @@ class RemoteBackup extends Engine
 			COMMON_CORE_DIR, self::CLIENT_NAME),
 			'-R ' .
 			($traditional ? ' -T' : ''), true, $options);
+	}
+
+	final public function ResetHistory()
+	{
+		$file = new File(self::FILE_HISTORY, true);
+		$file->Delete();
+		$file->Create('root', 'root', '0644');
 	}
 
 	final public function DeleteSnapshot($snapshot)

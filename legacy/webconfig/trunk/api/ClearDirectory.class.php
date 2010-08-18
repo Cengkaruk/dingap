@@ -44,7 +44,6 @@ require_once('Ldap.class.php');
 require_once('Network.class.php');
 require_once('NtpTime.class.php');
 require_once('ShellExec.class.php');
-require_once('Samba.class.php');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -65,15 +64,19 @@ class ClearDirectory extends Engine
 	// M E M B E R S
 	///////////////////////////////////////////////////////////////////////////////
 
-	const COMMAND_OPENSSL = "/usr/bin/openssl";
-	const COMMAND_SLAPADD = "/usr/sbin/slapadd";
-	const COMMAND_AUTHCONFIG = "/usr/sbin/authconfig";
-	const CONSTANT_ROLE_SLAVE = 'slave';
-	const CONSTANT_ROLE_MASTER = 'master';
 	const CONSTANT_BASE_DB_NUM = 3;
 	const LOG_TAG = "directory";
+
+	// Commands
+	const COMMAND_OPENSSL = "/usr/bin/openssl";
+	const COMMAND_SLAPADD = "/usr/sbin/slapadd";
+	const COMMAND_LDAPSETUP = "/usr/sbin/ldapsetup";
+	const COMMAND_AUTHCONFIG = "/usr/sbin/authconfig";
+
+	// Files and paths
 	const PATH_KOLAB = "/etc/kolab";
 	const PATH_LDAP = "/var/lib/ldap";
+	const FILE_CONFIG = "/etc/cleardirectory/config";
 	const FILE_ACCESSLOG_DATA = "/etc/openldap/provision/provision.accesslog.ldif";
 	const FILE_LDIF_NEW_DOMAIN = "/etc/openldap/provision/newdomain.ldif";
 	const FILE_LDIF_OLD_DOMAIN = "/etc/openldap/provision/olddomain.ldif";
@@ -81,20 +84,52 @@ class ClearDirectory extends Engine
 	const FILE_DBCONFIG_PROVISION = "/etc/openldap/provision/DB_CONFIG.template";
 	const FILE_DBCONFIG_ACCESSLOG = "/var/lib/ldap/accesslog/DB_CONFIG";
 	const FILE_DBCONFIG_ACCESSLOG_PROVISION = "/etc/openldap/provision/DB_CONFIG.accesslog.template";
-	const FILE_CONFIG = "/etc/openldap/ldap.conf";
-	const FILE_CONFIG_PROVISION = "/etc/openldap/provision/ldap.conf.template";
+	const FILE_LDAP_CONFIG = "/etc/openldap/ldap.conf";
+	const FILE_LDAP_CONFIG_PROVISION = "/etc/openldap/provision/ldap.conf.template";
 	const FILE_SLAPD = "/etc/openldap/slapd.conf";
 	const FILE_SLAPD_PROVISION = "/etc/openldap/provision/slapd.conf.template";
+	const FILE_SLAPD_REPLICATE_PROVISION = "/etc/openldap/provision/slapd-replicate.conf.template";
 	const FILE_DATA = "/etc/openldap/provision/provision.ldif";
 	const FILE_DATA_PROVISION = "/etc/openldap/provision/provision.ldif.template";
+	const FILE_KOLAB_CONFIG = "/etc/kolab/kolab.conf";
 	const FILE_KOLAB_SETUP = "/etc/kolab/.kolab2_configured";
 	const FILE_LDAP_SETUP = "/etc/system/initialized/directory";
-	const FILE_KOLAB_CONFIG = "/etc/kolab/kolab.conf";
 	const FILE_LDAP_EXISTS = "/var/lib/ldap/cn.bdb";
 	const FILE_SSL_KEY = "/etc/openldap/cacerts/key.pem";
 	const FILE_SSL_CERT = "/etc/openldap/cacerts/cert.pem";
 
-	protected $ldaproles = array(self::CONSTANT_ROLE_SLAVE, self::CONSTANT_ROLE_MASTER);
+	// Containers
+	const SUFFIX_COMPUTERS = 'ou=Computers,ou=Accounts';
+	const SUFFIX_GROUPS = 'ou=Groups,ou=Accounts';
+	const SUFFIX_SERVERS = 'ou=Servers';
+	const SUFFIX_USERS = 'ou=Users,ou=Accounts';
+	const SUFFIX_PASSWORD_POLICIES = 'ou=PasswordPolicies,ou=Accounts';
+	const OU_PASSWORD_POLICIES = 'PasswordPolicies';
+	const CN_MASTER = 'cn=Master';
+
+	// Status codes for username/group/alias uniqueness
+	const STATUS_ALIAS_EXISTS = 'alias';
+	const STATUS_GROUP_EXISTS = 'group';
+	const STATUS_USERNAME_EXISTS = 'user';
+	const STATUS_UNIQUE = 'unique';
+
+	// ClearDiretory modes
+	const MODE_MASTER = 'master';
+	const MODE_REPLICATE = 'replicate';
+	const MODE_STANDALONE = 'standalone';
+
+	// Services available in ClearDirectory
+	const SERVICE_TYPE_FTP = 'ftp';
+	const SERVICE_TYPE_EMAIL = 'email';
+	const SERVICE_TYPE_GOOGLE_APPS = 'googleapps';
+	const SERVICE_TYPE_OPENVPN = 'openvpn';
+	const SERVICE_TYPE_PPTP = 'pptp';
+	const SERVICE_TYPE_PROXY = 'proxy';
+	const SERVICE_TYPE_SAMBA = 'samba';
+	const SERVICE_TYPE_WEBCONFIG = 'webonfig';
+	const SERVICE_TYPE_WEB = 'web';
+	const SERVICE_TYPE_PBX = 'pbx';
+
 	protected $ldaph = null;
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -102,7 +137,7 @@ class ClearDirectory extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * LDAP tools constructor.
+	 * ClearDirectory constructor.
 	 */
 
 	function __construct()
@@ -110,7 +145,150 @@ class ClearDirectory extends Engine
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
+		require_once(GlobalGetLanguageTemplate(__FILE__));
+
 		parent::__construct();
+
+		$this->statuscodes = array(
+			ClearDirectory::STATUS_ALIAS_EXISTS => CLEARDIRECTORY_LANG_ALIAS_ALREADY_EXISTS,
+			ClearDirectory::STATUS_GROUP_EXISTS => CLEARDIRECTORY_LANG_GROUP_ALREADY_EXISTS,
+			ClearDirectory::STATUS_USERNAME_EXISTS => CLEARDIRECTORY_LANG_USERNAME_ALREADY_EXISTS
+		);
+
+		$this->modes = array(
+			ClearDirectory::MODE_MASTER => CLEARDIRECTORY_LANG_MASTER,
+			ClearDirectory::MODE_REPLICATE => CLEARDIRECTORY_LANG_REPLICATE,
+			ClearDirectory::MODE_STANDALONE => CLEARDIRECTORY_LANG_STANDALONE
+		);
+	}
+
+	/**
+	 * Returns list of installed services.
+	 *
+	 * @return array list of installed services
+	 * @throws EngineException
+	 */
+
+	function GetInstalledServices()
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		$services = array();
+
+		// TODO: detect these in a more consistent way
+		if (file_exists("/etc/system/initialized/sambalocal"))
+			$services[] = ClearDirectory::SERVICE_TYPE_SAMBA;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/Cyrus.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_EMAIL;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/GoogleApps.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_GOOGLE_APPS;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/Pptpd.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_PPTP;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/OpenVpn.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_OPENVPN;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/Squid.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_PROXY;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/Proftpd.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_FTP;
+
+		if (file_exists(COMMON_CORE_DIR . "/api/Httpd.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_WEB;
+
+		if (file_exists(COMMON_CORE_DIR . "/iplex/Users.class.php"))
+			$services[] = ClearDirectory::SERVICE_TYPE_PBX;
+
+		return $services;
+	}
+
+	/**
+	 * Returns the mode of ClearDirectory.
+	 *
+	 * The return values are:
+	 * - ClearDirectory::MODE_STANDALONE
+	 * - ClearDirectory::MODE_MASTER
+	 * - ClearDirectory::MODE_REPLICATE
+	 *
+	 * @return int mode of the directory
+	 * @throws EngineException
+	 */
+
+	function GetMode()
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		try {
+			$configfile = new ConfigurationFile(self::FILE_CONFIG);
+			$configdata = $configfile->Load();
+		} catch (FileNotFoundException $e) {
+			// Not fatal
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+		
+		if (isset($configdata['mode'])) {
+			if ($configdata['mode'] === ClearDirectory::MODE_MASTER)
+				$mode = ClearDirectory::MODE_MASTER;
+			else if ($configdata['mode'] === ClearDirectory::MODE_REPLICATE)
+				$mode = ClearDirectory::MODE_REPLICATE;
+			else if ($configdata['mode'] === ClearDirectory::MODE_STANDALONE)
+				$mode = ClearDirectory::MODE_STANDALONE;
+			else 
+				$mode = ClearDirectory::MODE_STANDALONE;
+		} else {
+			$mode = ClearDirectory::MODE_STANDALONE;
+		}
+
+		return $mode;
+	}
+
+	/**
+	 * Returns list of services managed in ClearDirectory.
+	 *
+	 * @return array list of services
+	 * @throws EngineException
+	 */
+
+	function GetServices()
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		// Standalone and replicates only need to show installed services
+		//---------------------------------------------------------------
+
+		$mode = $this->GetMode();
+
+		if (($mode === ClearDirectory::MODE_STANDALONE) || ($mode === ClearDirectory::MODE_REPLICATE))
+			return $this->GetInstalledServices();
+
+		// Master nodes should show all services
+		//--------------------------------------
+
+		$services = array();
+
+		// TODO: Allow user to fine tune which services should appear
+		// TODO: For now, Samba has to be initialized first...
+
+		if (file_exists("/etc/system/initialized/sambalocal"))
+			$services[] = ClearDirectory::SERVICE_TYPE_SAMBA;
+
+		$services[] = ClearDirectory::SERVICE_TYPE_EMAIL;
+		$services[] = ClearDirectory::SERVICE_TYPE_GOOGLE_APPS;
+		$services[] = ClearDirectory::SERVICE_TYPE_PPTP;
+		$services[] = ClearDirectory::SERVICE_TYPE_OPENVPN;
+		$services[] = ClearDirectory::SERVICE_TYPE_PROXY;
+		$services[] = ClearDirectory::SERVICE_TYPE_FTP;
+		$services[] = ClearDirectory::SERVICE_TYPE_WEB;
+
+		return $services;
 	}
 
 	/**
@@ -200,7 +378,7 @@ class ClearDirectory extends Engine
 	/**
 	 * Initializes the master LDAP database.
 	 *
-	 * @param string $role LDAP server role
+	 * @param string $mode LDAP server mode
 	 * @param string $domain domain name
 	 * @param string $password bind DN password
 	 * @param boolean $background runs import in background if true
@@ -210,13 +388,14 @@ class ClearDirectory extends Engine
 	 * @throws EngineException, ValidationException
 	 */
 
-	function Initialize($role, $domain, $password = null, $background = false, $start = true, $force = false)
+	function Initialize($mode, $domain, $password = null, $background = false, $start = true, $force = false, $master_hostname = null)
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
 		// TODO: validate
-		// TODO: role
+		// TODO: mode
+		// TODO: fix the function call -- too many parameters
 
 		// Bail if LDAP is already initialized (and not a re-initialize)
 		//--------------------------------------------------------------
@@ -247,8 +426,14 @@ class ClearDirectory extends Engine
 		// Run our initialization subroutines
 		//-----------------------------------
 
-		$this->_InitializeConfiguration($domain, $password, $hostname);
-		$this->_ImportLdif(ClearDirectory::FILE_DATA, $background);
+		if ($mode == ClearDirectory::MODE_REPLICATE) {
+			$this->_InitializeReplicateConfiguration($domain, $password, $hostname, $master_hostname);
+		} else {
+			$this->_InitializeConfiguration($domain, $password, $hostname);
+			$this->_ImportLdif(ClearDirectory::FILE_DATA, $background);
+		}
+
+		$this->_SetMode($mode);
 		$this->_InitializeAuthconfig();
 		$this->_RemoveOverlaps();
 
@@ -331,6 +516,36 @@ class ClearDirectory extends Engine
 				return true;
 			else
 				return false;
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+	}
+
+	/**
+	 * Initialized LDAP system.
+	 *
+	 *  @param string $mode LDAP server mode
+	 * @param string $domain domain name
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	function RunInitialize($mode, $domain)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if ($this->IsInitialized())
+			return;
+
+		try {
+			$options['stdin'] = true;
+			$options['background'] = true;
+
+			$password = $this->GeneratePassword();
+
+			$shell = new ShellExec();
+			$shell->Execute(ClearDirectory::COMMAND_LDAPSETUP, "-r $mode -d $domain -p $password", true, $options);
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), COMMON_WARNING);
 		}
@@ -535,8 +750,11 @@ class ClearDirectory extends Engine
 
 		try {
 			// TODO: Should not need to explicitly call _CleanSecretsFile
-			$samba = new Samba();
-            $samba->_CleanSecretsFile("");
+			if (file_exists(COMMON_CORE_DIR . "/api/Samba.class.php")) {
+				require_once('Samba.class.php');
+				$samba = new Samba();
+				$samba->_CleanSecretsFile("");
+			}
 
 			// Tell other LDAP dependent apps to grab latest configuration
 			// TODO: move this to a daemon
@@ -553,20 +771,94 @@ class ClearDirectory extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * Validates LDAP role.
+	 * Check for overlapping usernames, groups and aliases in the directory.
 	 *
-	 * Supported roles: master, slave
-	 *
-	 * @param string $role LDAP role
-	 * @return boolean true if role is valid
+	 * @param string $id username, group or alias
+	 * @access private
+	 * @return integer ClearDirectory::STATUS_UNIQUE if unique
 	 */
 
-	function IsValidRole($role)
+	function IsUniqueId($id)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		// Check for duplicate user
+		//-------------------------
+
+		try {
+			$result = $this->ldaph->Search(
+				"(&(objectclass=inetOrgPerson)(uid=$id))",
+				ClearDirectory::GetUsersOu(),
+				array('dn')
+			);
+
+			$entry = $this->ldaph->GetFirstEntry($result);
+
+			if ($entry)
+				return ClearDirectory::STATUS_USERNAME_EXISTS;
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		// Check for duplicate alias
+		//--------------------------
+
+		try {
+			$result = $this->ldaph->Search(
+				"(&(objectclass=inetOrgPerson)(pcnMailAliases=$id))",
+				ClearDirectory::GetUsersOu(),
+				array('dn')
+			);
+
+			$entry = $this->ldaph->GetFirstEntry($result);
+
+			if ($entry)
+				return ClearDirectory::STATUS_ALIAS_EXISTS;
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		// Check for duplicate group
+		//--------------------------
+	
+		// The "displayName" is used in Samba group mapping.  In other words,
+		// the "displayName" is what is used by Windows networking (not the cn).
+
+		try {
+			$result = $this->ldaph->Search(
+				"(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
+				ClearDirectory::GetGroupsOu(),
+				array('dn')
+			);
+
+			$entry = $this->ldaph->GetFirstEntry($result);
+
+			if ($entry)
+				return ClearDirectory::STATUS_GROUP_EXISTS;
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		return ClearDirectory::STATUS_UNIQUE;
+	}
+
+	/**
+	 * Validates LDAP mode.
+	 *
+	 * @param string $mode LDAP mode
+	 * @return boolean true if mode is valid
+	 */
+
+	function IsValidMode($mode)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		if (isset($role) && in_array($role, $this->ldaproles))
+		if (isset($mode) && array_key_exists($mode, $this->modes))
 			return true;
 		else
 			return false;
@@ -588,6 +880,124 @@ class ClearDirectory extends Engine
 			return true;
 		else
 			return false;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	// S T A T I C  M E T H O D S
+	///////////////////////////////////////////////////////////////////////////////
+
+	// TODO: these methods should be changed to a fast caching method
+	// TODO: remove duplicate code (need them to be static)
+
+	/** 
+	 * Quick static method for loading the base DN.
+	 *
+	 * @throws EngineException
+	 */
+
+	static function GetBaseDn()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		try {
+			$configfile = new ConfigurationFile(ClearDirectory::FILE_KOLAB_CONFIG, 'split', ':', 2);
+			$config = $configfile->Load();
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+
+		return $config['base_dn'];
+	}
+
+	/** 
+	 * Returns the master server DN (deprecated)
+	 *
+	 * @return string DN for master server
+	 * @throws EngineException
+	 */
+
+	static function GetMasterDn()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		return ClearDirectory::CN_MASTER . ',' . ClearDirectory::SUFFIX_SERVERS . ',' . ClearDirectory::GetBaseDn();
+	}
+
+	/** 
+	 * Returns the OU for computers.
+	 *
+	 * @return string OU for computers.
+	 * @throws EngineException
+	 */
+
+	static function GetComputersOu()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		return ClearDirectory::SUFFIX_COMPUTERS . ',' . ClearDirectory::GetBaseDn();
+	}
+
+	/** 
+	 * Returns the OU for groups.
+	 *
+	 * @return string OU for groups
+	 * @throws EngineException
+	 */
+
+	static function GetGroupsOu()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		return ClearDirectory::SUFFIX_GROUPS . ',' . ClearDirectory::GetBaseDn();
+	}
+
+	/** 
+	 * Returns the OU for password policies.
+	 *
+	 * @return string OU for password policies
+	 * @throws EngineException
+	 */
+
+	static function GetPasswordPoliciesOu()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		return ClearDirectory::SUFFIX_PASSWORD_POLICIES . ',' . ClearDirectory::GetBaseDn();
+	}
+
+	/** 
+	 * Returns the OU for servers.
+	 *
+	 * @return string OU for servers.
+	 * @throws EngineException
+	 */
+
+	static function GetServersOu()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		return ClearDirectory::SUFFIX_SERVERS . ',' . ClearDirectory::GetBaseDn();
+	}
+
+	/** 
+	 * Returns the OU for users.
+	 *
+	 * @return string OU for users.
+	 * @throws EngineException
+	 */
+
+	static function GetUsersOu()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		return ClearDirectory::SUFFIX_USERS . ',' . ClearDirectory::GetBaseDn();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -736,12 +1146,12 @@ class ClearDirectory extends Engine
 		//-----------------------------
 
 		try {
-			$file = new File(self::FILE_CONFIG_PROVISION);
+			$file = new File(self::FILE_LDAP_CONFIG_PROVISION);
 			$contents = $file->GetContents();
 			$contents = preg_replace("/\@\@\@base_dn\@\@\@/", $base_dn, $contents);
 			$contents = preg_replace("/\@\@\@bind_dn\@\@\@/", $bind_dn, $contents);
 
-			$newfile = new File(self::FILE_CONFIG);
+			$newfile = new File(self::FILE_LDAP_CONFIG);
 
 			if ($newfile->Exists())
 				$newfile->Delete();
@@ -811,6 +1221,135 @@ class ClearDirectory extends Engine
 				$newfile->Delete();
 
 			$newfile->Create("root", "ldap", "0640");
+			$newfile->AddLines("$contents\n");
+
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+	}
+
+	/**
+	 * Initializes LDAP replicate configuration.
+	 *
+	 * @param password $password LDAP master password
+	 * @param hostname $hostname hostname and IP of LDAP master
+	 * @param string $domain domain name
+	 * @throws EngineException, ValidationException
+	 */
+
+	protected function _InitializeReplicateConfiguration($domain, $password, $hostname, $master_hostname)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		// TODO: validate
+		// TODO: merge with _InitializeConfiguration
+
+		$base_dn = preg_replace("/\./", ",dc=", $domain);
+		$base_dn = "dc=$base_dn";
+
+		$base_dn_rdn = preg_replace("/,.*/", "", $base_dn);
+		$base_dn_rdn = preg_replace("/dc=/", "", $base_dn_rdn);
+
+		$bind_pw = $password;
+
+		// Load up the required kolab.conf values
+		//---------------------------------------
+
+		try {
+			$shell = new ShellExec();
+
+			$shell->Execute(self::COMMAND_OPENSSL, "rand -base64 30");
+			$php_pw = $shell->GetFirstOutputLine();
+			$shell->Execute(Ldap::COMMAND_SLAPPASSWD, "-s $php_pw");
+			$php_pw_hash = $shell->GetFirstOutputLine();
+
+			$shell->Execute(self::COMMAND_OPENSSL, "rand -base64 30");
+			$calendar_pw = $shell->GetFirstOutputLine();
+			$shell->Execute(Ldap::COMMAND_SLAPPASSWD, "-s $calendar_pw");
+			$calendar_pw_hash = $shell->GetFirstOutputLine();
+
+			$shell->Execute(Ldap::COMMAND_SLAPPASSWD, "-s $bind_pw");
+			$bind_pw_hash = $shell->GetFirstOutputLine();
+
+			$bind_dn = "cn=manager,cn=internal,$base_dn";
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		$config = "fqdnhostname : $hostname\n";
+		$config .= "is_master : false\n";
+		$config .= "base_dn : $base_dn\n";
+		$config .= "bind_dn : $bind_dn\n";
+		$config .= "bind_pw : $bind_pw\n";
+		$config .= "bind_pw_hash : $bind_pw_hash\n";
+		$config .= "ldap_uri : ldap://127.0.0.1:389\n";
+		$config .= "ldap_master_uri : ldap://127.0.0.1:389\n";
+		$config .= "php_dn : cn=nobody,cn=internal,$base_dn\n";
+		$config .= "php_pw : $php_pw\n";
+		$config .= "calendar_dn : cn=calendar,cn=internal,$base_dn\n";
+		$config .= "calendar_pw : $calendar_pw\n";
+
+		// Kolab configuration file
+		//--------------------------
+
+		try {
+			$folder = new Folder(self::PATH_KOLAB);
+
+			if (! $folder->Exists())
+				$folder->Create("root", "root", "0755");
+
+			$file = new File(self::FILE_KOLAB_CONFIG);
+
+			if ($file->Exists())
+				$file->Delete();
+
+			$file->Create("root", "root", "0600");
+			$file->AddLines($config);
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		// slapd.conf configuration
+		//-----------------------------
+
+		try {
+			$file = new File(self::FILE_SLAPD_REPLICATE_PROVISION);
+			$contents = $file->GetContents();
+			$contents = preg_replace("/\@\@\@base_dn\@\@\@/", $base_dn, $contents);
+			$contents = preg_replace("/\@\@\@bind_dn\@\@\@/", $bind_dn, $contents);
+			$contents = preg_replace("/\@\@\@bind_pw\@\@\@/", $bind_pw, $contents);
+			$contents = preg_replace("/\@\@\@bind_pw_hash\@\@\@/", $bind_pw_hash, $contents);
+			$contents = preg_replace("/\@\@\@domain\@\@\@/", $domain, $contents);
+			$contents = preg_replace("/\@\@\@master_hostname\@\@\@/", $master_hostname, $contents);
+
+			$newfile = new File(self::FILE_SLAPD);
+
+			if ($newfile->Exists())
+				$newfile->Delete();
+
+			$newfile->Create("root", "ldap", "0640");
+			$newfile->AddLines("$contents\n");
+
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		// ldap.conf configuration
+		//-----------------------------
+
+		try {
+			$file = new File(self::FILE_LDAP_CONFIG_PROVISION);
+			$contents = $file->GetContents();
+			$contents = preg_replace("/\@\@\@base_dn\@\@\@/", $base_dn, $contents);
+			$contents = preg_replace("/\@\@\@bind_dn\@\@\@/", $bind_dn, $contents);
+
+			$newfile = new File(self::FILE_LDAP_CONFIG);
+
+			if ($newfile->Exists())
+				$newfile->Delete();
+
+			$newfile->Create("root", "root", "0644");
 			$newfile->AddLines("$contents\n");
 
 		} catch (Exception $e) {
@@ -915,6 +1454,37 @@ class ClearDirectory extends Engine
 			$file = new File("/etc/group");
 			$file->ReplaceLines("/^users:/", "");
 			$file->ReplaceLines("/^domain_users:/", "");
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+	}
+
+	/**
+	 * Sets the mode for the ClearDirectory
+	 *
+	 * @param int $mode mode of the directory
+	 * @throws EngineException
+	 */
+
+	function _SetMode($mode)
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		$file = new File(self::FILE_CONFIG);
+
+		try {
+			if (! $file->Exists())
+				$file->Create("root", "root", "0644");
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
+
+		try {
+			if ($file->LookupValue("/^mode\s*=\s*/"))
+				$file->ReplaceLines("/^mode\s*=/", "mode = $mode\n");
+		} catch (FileNoMatchException $e) {
+			$file->AddLines("mode = $mode\n");
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), COMMON_WARNING);
 		}

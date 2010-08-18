@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2007-2009 Point Clark Networks.
+// Copyright 2007-2010 Point Clark Networks.
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -77,6 +77,8 @@ $quota_options[''] = LOCALE_LANG_UNLIMITED;
 
 $username = isset($_POST['username']) ? strtolower($_POST['username']) : "";
 $userinfo = isset($_POST['userinfo']) ? $_POST['userinfo'] : null;
+$password = isset($_POST['password']) ? $_POST['password'] : "";
+$verify = isset($_POST['verify']) ? $_POST['verify'] : "";
 
 try {
 	if (isset($_POST['EnableBoot'])) {
@@ -94,36 +96,46 @@ try {
 
 if (isset($_POST['AddUser'])) {
 	try {
-		// Add the user
-		// TODO: ConvertFlags should be handled in the API?
-		ConvertFlags($userinfo);
 		$user = new User($username);
-		$user->Add($userinfo);
 
-		// Set group membership
-		$grouplist = array();
-		$groupinfo = isset($_POST['groupinfo']) ? $_POST['groupinfo'] : array();
+		// Don't create user if password/verify is bad
+        if (!$user->IsValidPasswordAndVerify($password, $verify)) {
+            $errors = $user->GetValidationErrors(true);
+            WebDialogWarning($errors[0]);
+		} else {
+			// Add the user
+			// TODO: ConvertFlags should be handled in the API?
+			ConvertFlags($userinfo);
+			$user->Add($userinfo);
+			$user->ResetPassword($password, $verify, $_SESSION['user_login']);
 
-		foreach ($groupinfo as $group => $state)
-			$grouplist[] = $group;
+			// Set group membership
+			$grouplist = array();
+			$groupinfo = isset($_POST['groupinfo']) ? $_POST['groupinfo'] : array();
 
-		$groupmanager->UpdateGroupMemberships($username, $grouplist);
+			foreach ($groupinfo as $group => $state)
+				$grouplist[] = $group;
 
-		// Create SSL Certificate (TODO -- move to User class)
-		$ssl = new Ssl();
+			$groupmanager->UpdateGroupMemberships($username, $grouplist);
 
-		if ($ssl->ExistsDefaultClientCertificate($username))
-			$ssl->DeleteDefaultClientCertificate($username);
+			// Create SSL Certificate (TODO -- move to User class)
+			$ssl = new Ssl();
 
-		$ssl->CreateDefaultClientCertificate($username, $userinfo['password'], $userinfo['password']);
+			if ($ssl->ExistsDefaultClientCertificate($username))
+				$ssl->DeleteDefaultClientCertificate($username);
 
-		WebFormOpen();
-		WebDialogInfo(WEB_LANG_USER_WAS_ADDED_HELP . "<br><br>" . WebButtonBack("Cancel"));
-		WebFormClose();
+			$ssl->CreateDefaultClientCertificate($username, $password, $password);
 
-		// Reset form variables
-		$username = '';
-		$userinfo = NULL;
+			WebFormOpen();
+			WebDialogInfo(WEB_LANG_USER_WAS_ADDED_HELP . "<br><br>" . WebButtonBack("Cancel"));
+			WebFormClose();
+
+			// Reset form variables
+			$username = '';
+			$password = '';
+			$verify = '';
+			$userinfo = NULL;
+		}
 	} catch (ValidationException $e) {
 		WebDialogWarning(WebCheckErrors($user->GetValidationErrors()));
 	} catch (Exception $e) {
@@ -154,6 +166,10 @@ if (isset($_POST['AddUser'])) {
 
 		ConvertFlags($userinfo);
 		$user->Update($userinfo);
+
+		// Update password if set
+		if (!empty($password) || !empty($verify))
+			$user->ResetPassword($password, $verify, $_SESSION['user_login']);
 
 		// Set group membership
 		$grouplist = array();
@@ -198,23 +214,20 @@ if (isset($_POST['AddUser'])) {
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-if (isset($_POST['ConfirmHideConversionStatus'])) {
-	DisplayHideUpgradeConfirmation();
-} else if (isset($_POST['DeleteUser'])) {
+if (isset($_POST['DeleteUser'])) {
 	DisplayDelete(key($_POST['DeleteUser']));
 } else if (isset($_POST['EditUser'])) {
-	DisplayAddEdit('edit', key($_POST['EditUser']));
+	DisplayAddEdit('edit', key($_POST['EditUser']), $password, $verify);
 } else if (isset($_POST['UpdateUser'])) {
-	DisplayAddEdit('edit', key($_POST['UpdateUser']), $userinfo);
+	DisplayAddEdit('edit', key($_POST['UpdateUser']), $password, $verify, $userinfo);
 } else if (isset($_POST['AddUser'])) {
-	DisplayAddEdit('add', $username, $userinfo);
+	DisplayAddEdit('add', $username, $password, $verify, $userinfo);
 } else if (isset($_POST['Cancel'])) {
 	DisplayAddInfobox();
 	DisplayUsers();
 } else if (isset($_POST['DisplayAdd'])) {
-	DisplayAddEdit('add', $username, $userinfo);
+	DisplayAddEdit('add', $username, $password, $verify, $userinfo);
 } else {
-	DisplayConvert();
 	DisplayAddInfobox();
 	DisplayUsers();
 }
@@ -240,86 +253,13 @@ function DisplayAddInfobox()
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// DisplayHideUpgradeConfirmation()
-//
-///////////////////////////////////////////////////////////////////////////////
-
-function DisplayHideUpgradeConfirmation()
-{
-	WebFormOpen();
-	WebDialogInfo(WEB_LANG_HIDE_CONVERSION_STATUS_CONFIRM  . " &#160; " . WebButtonConfirm("HideConversionStatus"));
-	WebFormClose();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//
-// DisplayConvert()
-//
-///////////////////////////////////////////////////////////////////////////////
-
-function DisplayConvert()
-{
-	global $usermanager;
-
-	try {
-		$statusinfo = $usermanager->ConvertUsers();
-	} catch (Exception $e) {
-		WebDialogWarning(WEB_LANG_CONVERSION_STATUS . "<br><br>" . $e->GetMessage());
-		return;
-	}
-
-	if (empty($statusinfo))
-		return;
-
-	$tablerows = "";
-
-	foreach ($statusinfo as $user => $info) {
-		if ($info['status'] == UserManager::CONSTANT_ERROR) {
-			$statusicon = WEBCONFIG_ICON_XMARK;
-			$statustext = $info['statustext'];
-		} else {
-			$statusicon = WEBCONFIG_ICON_CHECKMARK;
-			$statustext = "";
-		}
-
-		$passwordreset = isset($info['passwordreset']) && $info['passwordreset'] ? USER_LANG_PASSWORD_WAS_RESET : "";
-		$namechange = isset($info['namechange']) && $info['namechange'] ? USER_LANG_CHECK_FIRST_LAST_NAME : "";
-
-		$tablerows .= "
-			<tr>
-				<td nowrap width='130'>$user</td>
-				<td nowrap width='70'> &#160; $statusicon</td>
-				<td nowrap>$passwordreset $namechange $statustext</td>
-			</tr>
-		";
-	}
-
-	if (empty($tablerows))
-		return;
-
-	WebFormOpen();
-	WebTableOpen(WEB_LANG_CONVERSION_STATUS, "100%");
-	WebTableHeader(LOCALE_LANG_USERNAME . "|" . LOCALE_LANG_STATUS . "|" . LOCALE_LANG_DESCRIPTION);
-	echo $tablerows;
-	echo "
-		<tr>
-			<td colspan='3' align='center' class='mytableheader'>" . 
-				WEB_LANG_HIDE_CONVERSION_STATUS . " " . WebButtonContinue("ConfirmHideConversionStatus") . "
-			</td>
-		</tr>
-	";
-	WebTableClose("100%");
-	WebFormClose();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//
 // DisplayUsers()
 //
 ///////////////////////////////////////////////////////////////////////////////
 
 function DisplayUsers()
 {
+	global $directory;
 	global $usermanager;
 	global $quota_options;
 
@@ -327,7 +267,7 @@ function DisplayUsers()
 		$webconfig = new Webconfig();
 		$shellaccess = $webconfig->GetShellAccessState();
 		$userlist = $usermanager->GetAllUserInfo();
-   		$servicelist = $usermanager->GetInstalledServices();
+   		$servicelist = $directory->GetServices();
 	} catch (Exception $e) {
 		WebDialogWarning($e->getMessage());
 		return;
@@ -338,34 +278,31 @@ function DisplayUsers()
 
 	$legend = "";
 
-	if (in_array(User::SERVICE_EMAIL, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_EMAIL, $servicelist))
 		$legend .= WEBCONFIG_ICON_EMAIL . " " . USER_LANG_EMAIL . " &#160; &#160; ";
-		$quotatitle = WEB_LANG_MAILBOX_QUOTA . "|";
-		$show_quota = true;
-	} else {
-		$quotatitle = "";
-		$show_quota = false;
-	}
 
-	if (in_array(User::SERVICE_FTP, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_GOOGLE_APPS, $servicelist))
+		$legend .= WEBCONFIG_ICON_GOOGLE_APPS . " " . USER_LANG_GOOGLE_APPS . " &#160; &#160; ";
+
+	if (in_array(ClearDirectory::SERVICE_TYPE_FTP, $servicelist))
 		$legend .= WEBCONFIG_ICON_FTP . " " . USER_LANG_FTP . " &#160; &#160; ";
 
-	if (in_array(User::SERVICE_OPENVPN, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_OPENVPN, $servicelist))
 		$legend .= WEBCONFIG_ICON_OPENVPN . " " . USER_LANG_OPENVPN . " &#160; &#160; ";
 
-	if (in_array(User::SERVICE_PPTP, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_PPTP, $servicelist))
 		$legend .= WEBCONFIG_ICON_PPTP . " " . USER_LANG_PPTP . " &#160; &#160; ";
 
-	if (in_array(User::SERVICE_PROXY, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_PROXY, $servicelist))
 		$legend .= WEBCONFIG_ICON_PROXY . " " . USER_LANG_PROXY . " &#160; &#160; ";
 
-	if (in_array(User::SERVICE_SAMBA, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_SAMBA, $servicelist))
 		$legend .= WEBCONFIG_ICON_SAMBA . " " . USER_LANG_SAMBA . " &#160; &#160; ";
 
-	if (in_array(User::SERVICE_WEB, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_WEB, $servicelist))
 		$legend .= WEBCONFIG_ICON_WEB . " " . USER_LANG_WEB . " &#160; &#160; ";
 
-	if (in_array(User::SERVICE_PBX, $servicelist))
+	if (in_array(ClearDirectory::SERVICE_TYPE_PBX, $servicelist))
 		$legend .= WEBCONFIG_ICON_PBX . " " . USER_LANG_PBX . " &#160; &#160; ";
 
 	if ($shellaccess)
@@ -389,6 +326,9 @@ function DisplayUsers()
 
 		if (! empty($info['mailFlag']))
 			$options .= WEBCONFIG_ICON_EMAIL . " ";
+
+		if (! empty($info['googleAppsFlag']))
+			$options .= WEBCONFIG_ICON_GOOGLE_APPS . " ";
 
 		if (! empty($info['openvpnFlag']))
 			$options .= WEBCONFIG_ICON_OPENVPN . " ";
@@ -421,25 +361,11 @@ function DisplayUsers()
 			}
 		}
 
-		if ($show_quota) {
-			if (isset($info['mailquota'])) {
-				if (isset($quota_options[$info['mailquota']]))
-					$quota_value = $quota_options[$info['mailquota']];
-				else
-					$quota_value = $info['mailquota'] . " " . LOCALE_LANG_MEGABYTES;
-			} else {
-				$quota_value = LOCALE_LANG_UNLIMITED;
-			}
-
-			$quotarow = "<td>$quota_value</td>";
-		}
-
 		$usertable .= "
 			<tr class='$rowclass'>
 				<td>" . $username . "</td>
 				<td>" . $info['firstName'] . " " . $info['lastName'] . "</td>
 				<td>" . $options . "</td>
-				$quotarow
 				<td>" . $button . "</td>
 			</tr>
 		";
@@ -454,7 +380,7 @@ function DisplayUsers()
 
 	WebFormOpen();
 	WebTableOpen(WEB_LANG_USER_INFO_TITLE, "100%");
-	WebTableHeader(LOCALE_LANG_USERNAME . "|" . USER_LANG_FULLNAME . "|" . USER_LANG_OPTIONS . "|$quotatitle");
+	WebTableHeader(LOCALE_LANG_USERNAME . "|" . USER_LANG_FULLNAME . "|" . USER_LANG_OPTIONS . "|");
 	echo $usertable;
 	if ($legend) 
 		echo "<tr><td colspan='6' class='mytablelegend'>$legend</td>";
@@ -468,8 +394,9 @@ function DisplayUsers()
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-function DisplayAddEdit($action, $username, $userinfo = null)
+function DisplayAddEdit($action, $username, $password = null, $verify = null, $userinfo = null)
 {
+	global $directory;
 	global $usermanager;
 	global $groupmanager;
 	global $quota_options;
@@ -477,14 +404,11 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 	try {
 		$webconfig = new Webconfig();
 		$shellaccess = $webconfig->GetShellAccessState();
-   		$servicelist = $usermanager->GetInstalledServices();
+   		$servicelist = $directory->GetServices();
 	} catch (Exception $e) {
 		WebDialogWarning($e->getMessage());
 		return ;
 	}
-
-	$password = '';
-	$verify = '';
 
 	if (is_null($userinfo)) {
 		if (! empty($username)) {
@@ -515,6 +439,7 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 				'deleteMailbox' => '',
 				'ftpFlag' => true,
 				'mailFlag' => true,
+				'googleAppsFlag' => true,
 				'openvpnFlag' => true,
 				'pptpFlag' => true,
 				'proxyFlag' => true,
@@ -561,23 +486,30 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 
 	$addoptions = "";
 
-	if (in_array(User::SERVICE_EMAIL, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_EMAIL, $servicelist)) {
 		$quota = isset($userinfo['mailquota']) ? $userinfo['mailquota'] : '';
 		$emailon = isset($userinfo['mailFlag']) && $userinfo['mailFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_EMAIL . "</td>
-				<td valign='bottom'>
-					<input type='checkbox' name='userinfo[mailFlag]' $emailon /> &nbsp; " .
-					WEB_LANG_MAILBOX_QUOTA . " " .
-					WebDropDownHash("userinfo[mailquota]", $quota, $quota_options) . "
-				</td>
+				<td colspan='2' valign='bottom'><input type='checkbox' name='userinfo[mailFlag]' $emailon /></td>
 			</tr>
 		";
 	}
 
-	if (in_array(User::SERVICE_PBX, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_GOOGLE_APPS, $servicelist)) {
+		$appson = isset($userinfo['googleAppsFlag']) && $userinfo['googleAppsFlag'] ? "checked" : "";
+
+		$addoptions .= "
+			<tr>
+				<td class='mytablesubheader' nowrap>" . USER_LANG_GOOGLE_APPS . "</td>
+				<td colspan='2'><input type='checkbox' name='userinfo[googleAppsFlag]' $appson /></td>
+			</tr>
+		";
+	}
+
+	if (in_array(ClearDirectory::SERVICE_TYPE_PBX, $servicelist)) {
 		$pbxon = isset($userinfo['pbxFlag']) && $userinfo['pbxFlag'] ? "checked" : "";
 		$presenceon = isset($userinfo['pbxPresenceFlag']) && $userinfo['pbxPresenceFlag'] ? "checked" : "";
 		$extension = isset($userinfo['pbxExtension']) ? $userinfo['pbxExtension'] : '';
@@ -585,7 +517,7 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_PBX . "</td>
-				<td>
+				<td colspan='2'>
 					<input type='checkbox' name='userinfo[pbxFlag]' $pbxon /> &nbsp; " .
 					USER_LANG_EXTENSION . "
 					<input size='10' type='text' name='userinfo[pbxExtension]' value='$extension' onchange=\"checkExtension(users,this.value);\" id='extension'/> &nbsp; " .
@@ -597,68 +529,68 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 	}
 
 
-	if (in_array(User::SERVICE_PROXY, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_PROXY, $servicelist)) {
 		$proxyon = isset($userinfo['proxyFlag']) && $userinfo['proxyFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_PROXY . "</td>
-				<td><input type='checkbox' name='userinfo[proxyFlag]' $proxyon /></td>
+				<td colspan='2'><input type='checkbox' name='userinfo[proxyFlag]' $proxyon /></td>
 			</tr>
 		";
 	}
 
-	if (in_array(User::SERVICE_OPENVPN, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_OPENVPN, $servicelist)) {
 		$pptpon = isset($userinfo['openvpnFlag']) && $userinfo['openvpnFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_OPENVPN . "</td>
-				<td><input type='checkbox' name='userinfo[openvpnFlag]' $pptpon /></td>
+				<td colspan='2'><input type='checkbox' name='userinfo[openvpnFlag]' $pptpon /></td>
 			</tr>
 		";
 	}
 
-	if (in_array(User::SERVICE_PPTP, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_PPTP, $servicelist)) {
 		$pptpon = isset($userinfo['pptpFlag']) && $userinfo['pptpFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_PPTP . "</td>
-				<td><input type='checkbox' name='userinfo[pptpFlag]' $pptpon /></td>
+				<td colspan='2'><input type='checkbox' name='userinfo[pptpFlag]' $pptpon /></td>
 			</tr>
 		";
 	}
 
-	if (in_array(User::SERVICE_SAMBA, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_SAMBA, $servicelist)) {
 		$sambaon = isset($userinfo['sambaFlag']) && $userinfo['sambaFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_SAMBA . "</td>
-				<td><input type='checkbox' name='userinfo[sambaFlag]' $sambaon /></td>
+				<td colspan='2'><input type='checkbox' name='userinfo[sambaFlag]' $sambaon /></td>
 			</tr>
 		";
 	}
 
-	if (in_array(User::SERVICE_FTP, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_FTP, $servicelist)) {
 		$ftpon = isset($userinfo['ftpFlag']) && $userinfo['ftpFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_FTP . "</td>
-				<td><input type='checkbox' name='userinfo[ftpFlag]' $ftpon /></td>
+				<td colspan='2'><input type='checkbox' name='userinfo[ftpFlag]' $ftpon /></td>
 			</tr>
 		";
 	}
 
-	if (in_array(User::SERVICE_WEB, $servicelist)) {
+	if (in_array(ClearDirectory::SERVICE_TYPE_WEB, $servicelist)) {
 		$webon = isset($userinfo['webFlag']) && $userinfo['webFlag'] ? "checked" : "";
 
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_WEB . "</td>
-				<td><input type='checkbox' name='userinfo[webFlag]' $webon /></td>
+				<td colspan='2'><input type='checkbox' name='userinfo[webFlag]' $webon /></td>
 			</tr>
 		";
 	}
@@ -674,13 +606,13 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 		$addoptions .= "
 			<tr>
 				<td class='mytablesubheader' nowrap>" . USER_LANG_SHELL . "</td>
-				<td>" . WebDropDownArray("userinfo[loginShell]", $userinfo['loginShell'], $shells) . "</td>
+				<td colspan='2'>" . WebDropDownArray("userinfo[loginShell]", $userinfo['loginShell'], $shells) . "</td>
 			</tr>
 		";
 	}
 
-	$password = isset($userinfo['password']) ? $userinfo['password'] : "";
-	$verify = isset($userinfo['verify']) ? $userinfo['verify'] : "";
+	$password = isset($password) ? $password : "";
+	$verify = isset($verify) ? $verify : "";
 	$title = isset($userinfo['title']) ? $userinfo['title'] : "";
 	$org = isset($userinfo['organization']) ? $userinfo['organization'] : "";
 	$orgunit = isset($userinfo['unit']) ? $userinfo['unit'] : "";
@@ -692,57 +624,27 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 	$country = isset($userinfo['country']) ? $userinfo['country'] : "";
 	$tel = isset($userinfo['telephone']) ? $userinfo['telephone'] : "";
 	$fax = isset($userinfo['fax']) ? $userinfo['fax'] : "";
+	$aliases = isset($userinfo['aliases']) ? $userinfo['aliases'] : "";
 	$firstname = isset($userinfo['firstName']) ? htmlspecialchars($userinfo['firstName'], ENT_QUOTES) : "";
 	$lastname = isset($userinfo['lastName']) ? htmlspecialchars($userinfo['lastName'], ENT_QUOTES) : "";
 
 	// Group options
+	//--------------	
+
 	$groups = array();
-	$builtins = array();
 	$grouphtml = "";
-	$builtinhtml = "";
 
 	try {
 		$nogroup = new Group("notused"); // Locale only
-		$groups = $groupmanager->GetGroupList(GroupManager::TYPE_USER_DEFINED);
-		$builtins = $groupmanager->GetGroupList(GroupManager::TYPE_BUILTIN);
+		$groups = $groupmanager->GetGroupList(Group::FILTER_NORMAL);
 	} catch (Exception $e) {
 		WebDialogWarning($e->getMessage());
-	}
-
-	if (count($builtins) > 0) {
-		foreach ($builtins as $group) {
-			$members = $group['members'];
-			$checked = (isset($username) && in_array($username, $members)) ? "checked" : "";
-
-			if ($group['group'] == Group::CONSTANT_ALL_USERS_GROUP) {
-				$readonly = "readonly disabled";
-				$checked = "checked";
-			} else {
-				$readonly = "";
-			}
-
-			$row = "
-				<tr>
-					<td class='mytablesubheader' nowrap>" . $group['group'] . "</td>
-					<td>
-						<input $readonly type='checkbox' name='groupinfo[" . $group['group'] . "]' $checked />" .
-						$group['description'] . "
-					</td>
-				</tr>
-			";
-
-			// Put "allusers" group at the top of the list
-			if ($group['group'] == Group::CONSTANT_ALL_USERS_GROUP)
-				$builtinhtml = $row . $builtinhtml;
-			else
-				$builtinhtml = $builtinhtml . $row;
-		}
 	}
 
 	if (count($groups) > 0) {
 		$grouphtml = "
 			<tr>
-				<td colspan='2' class='mytableheader'>" . GROUP_LANG_USER_DEFINED_GROUPS . "</td>
+				<td colspan='3' class='mytableheader'>" . GROUP_LANG_USER_DEFINED_GROUPS . "</td>
 			</tr>
 		";
 
@@ -753,7 +655,7 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 			$grouphtml .= "
 				<tr>
 					<td class='mytablesubheader' nowrap>" . $group['group'] . "</td>
-					<td>
+					<td colspan='2'>
 						<input type='checkbox' name='groupinfo[" . $group['group'] . "]' $checked />" .
 						$group['description'] . "
 					</td>
@@ -769,101 +671,137 @@ function DisplayAddEdit($action, $username, $userinfo = null)
 	WebTableOpen($tabletitle);
 	echo "
 		<tr>
-			<td colspan='2' class='mytableheader'>" . USER_LANG_USER_DETAILS . "</td>
+			<td colspan='3' class='mytableheader'>" . USER_LANG_USER_DETAILS . "</td>
 		</tr>
 		<tr>
-			<td class='mytablesubheader' nowrap>" . LOCALE_LANG_USERNAME . "</td>
-			<td>
+			<td width='250' class='mytablesubheader' nowrap>" . LOCALE_LANG_USERNAME . "</td>
+			<td colspan='2'>
 				<input type='hidden' name='userinfo[webconfigFlag]' value='on' />
 				$userinfo_html
 			</td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . USER_LANG_FIRST_NAME . "</td>
-			<td><input size='30' type='text' name='userinfo[firstName]' value='$firstname' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[firstName]' value='$firstname' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . USER_LANG_LAST_NAME . "</td>
-			<td><input size='30' type='text' name='userinfo[lastName]' value='$lastname' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[lastName]' value='$lastname' /></td>
 		</tr>
 		<tr>
-			<td colspan='2' class='mytableheader'>" . LOCALE_LANG_PASSWORD . "</td>
+			<td colspan='3' class='mytableheader'>" . LOCALE_LANG_PASSWORD . "</td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . LOCALE_LANG_PASSWORD . "</td>
-			<td><input size='30' type='password' name='userinfo[password]' value='$password' /></td>
+			<td colspan='2'><input size='30' type='password' name='password' value='$password' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . LOCALE_LANG_VERIFY . "</td>
-			<td><input size='30' type='password' name='userinfo[verify]' value='$verify' /></td>
+			<td colspan='2'><input size='30' type='password' name='verify' value='$verify' /></td>
 		</tr>
 
 		<tr>
-			<td colspan='2' class='mytableheader'>" . ORGANIZATION_LANG_ADDRESS . "</td>
+			<td colspan='3' class='mytableheader'>" . ORGANIZATION_LANG_ADDRESS . "</td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_STREET . "</td>
-			<td><input size='30' type='text' name='userinfo[street]' value='$street' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[street]' value='$street' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_ROOM_NUMBER . "</td>
-			<td><input size='30' type='text' name='userinfo[roomNumber]' value='$room' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[roomNumber]' value='$room' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_CITY . "</td>
-			<td><input size='30' type='text' name='userinfo[city]' value='$city' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[city]' value='$city' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_REGION . "</td>
-			<td><input size='30' type='text' name='userinfo[region]' value='$region' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[region]' value='$region' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_COUNTRY . "</td>
-			<td><input size='30' type='text' name='userinfo[country]' value='$country' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[country]' value='$country' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_POSTAL_CODE . "</td>
-			<td><input size='30' type='text' name='userinfo[postalCode]' value='$postalcode' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[postalCode]' value='$postalcode' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_ORGANIZATION . "</td>
-			<td><input size='30' type='text' name='userinfo[organization]' value='$org' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[organization]' value='$org' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_ORGANIZATION_UNIT . "</td>
-			<td><input size='30' type='text' name='userinfo[unit]' value='$orgunit' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[unit]' value='$orgunit' /></td>
 		</tr>
 		<tr>
-			<td colspan='2' class='mytableheader'>" . USER_LANG_PHONE_NUMBERS . "</td>
+			<td colspan='3' class='mytableheader'>" . USER_LANG_PHONE_NUMBERS . "</td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_PHONE . "</td>
-			<td><input size='30' type='text' name='userinfo[telephone]' value='$tel' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[telephone]' value='$tel' /></td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader' nowrap>" . ORGANIZATION_LANG_FAX . "</td>
-			<td><input size='30' type='text' name='userinfo[fax]' value='$fax' /></td>
+			<td colspan='2'><input size='30' type='text' name='userinfo[fax]' value='$fax' /></td>
 		</tr>
 		";
+
+		// FIXME: make generic, e.g. allow zarafa too
+		if (in_array(ClearDirectory::SERVICE_TYPE_GOOGLE_APPS, $servicelist) ||
+			in_array(ClearDirectory::SERVICE_TYPE_EMAIL, $servicelist) ) {
+
+			echo "
+				<tr>
+					<td colspan='3' class='mytableheader'>" . USER_LANG_MAIL_SERVICES . "</td>
+				</tr>
+				<tr>
+					<td class='mytablesubheader' nowrap>" . WEB_LANG_MAILBOX_QUOTA . "</td>
+					<td colspan='2'>" . WebDropDownHash("userinfo[mailquota]", $quota, $quota_options) . "</td>
+				</tr>
+			";
+
+			if ($action == "add") {
+				echo "
+					<tr>
+						<td class='mytablesubheader' nowrap>" . USER_LANG_MAIL_ALIAS . "</td>
+						<td colspan='2'><input size='30' type='text' name='userinfo[aliases]' value='$aliases' /></td>
+					</tr>
+				";
+			} else {
+				echo "
+				<tr>
+					<td class='mytablesubheader' nowrap>" . USER_LANG_MAIL_ALIASES . "</td>
+					<td width='120'>
+						<input style='width: 120px' type='text' name='alias' id='alias' value='' />
+						<input type='hidden' name='aliasusername' id='aliasusername' value='$username' />
+					</td>
+					<td>" . WebButton('AddAliasButton', LOCALE_LANG_ADD, WEBCONFIG_ICON_PLUS, array('type' => 'button', 'onclick' => "AddAlias('$username')")) . "</td>
+
+				</tr>
+				<tr>
+					<td class='mytablesubheader' nowrap><div id='whirly'>&nbsp; </div></td>
+					<td colspan='2'><div id='aliaslist'></div></td>
+				</tr>
+				";
+			}
+		}
 
 		if ($addoptions) {
 			echo "
 				<tr>
-					<td colspan='2' class='mytableheader'>" . USER_LANG_SERVICES . "</td>
+					<td colspan='3' class='mytableheader'>" . USER_LANG_SERVICES . "</td>
 				</tr>
 				$addoptions
 			";
 		}
 
 		echo "
-		<tr>
-			<td colspan='2' class='mytableheader'>" . GROUP_LANG_BUILTIN_GROUPS . "</td>
-		</tr>
-		$builtinhtml
 		$grouphtml
 		<tr>
 			<td class='mytablesubheader' nowrap>&#160;</td>
-			<td>$action_html</td> 
+			<td colspan='2'>$action_html</td> 
 		</tr>
 	";
 	WebTableClose();
@@ -912,6 +850,7 @@ function ConvertFlags(&$userinfo)
 	$attribute_list = array(
 		'ftpFlag',
 		'mailFlag',
+		'googleAppsFlag',
 		'openvpnFlag',
 		'pptpFlag',
 		'sambaFlag',

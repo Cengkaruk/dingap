@@ -117,8 +117,12 @@ class QuarantineReport extends Gui implements Report
 			if ($label == Mailzu::TYPE_PENDING){
 				continue;
 			}
+
+			$thetotal = 1;
+
 			// show total in legend, but not chartdata
 			if ($label == Mailzu::TYPE_TOTAL){
+				$thetotal = $value;
 				$htmlrows .= "<tr class='mytableheader'><td>{$this->headers[$label]}</td><td>$value</td></tr>";
 				continue;
 			}else{
@@ -136,6 +140,8 @@ class QuarantineReport extends Gui implements Report
 		//------------
 
 		$legend = WebChartLegend(REPORT_LANG_SUMMARY, $htmlrows);
+		$chartinfo = ($thetotal == 0) ? array() : array($chartheader, $chartdata);
+
 		WebTableOpen(MAILZU_LANG_STATE, "100%");
 		echo "
 		  <tr>
@@ -146,7 +152,7 @@ class QuarantineReport extends Gui implements Report
 				"bar",
 				350,
 				0,
-				array($chartheader, $chartdata),
+				$chartinfo,
 				0,
 				0,
 				0

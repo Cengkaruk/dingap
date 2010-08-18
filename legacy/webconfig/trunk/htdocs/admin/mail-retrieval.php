@@ -23,6 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once("../../gui/Webconfig.inc.php");
+require_once("../../api/ClearDirectory.class.php");
 require_once("../../api/Fetchmail.class.php");
 require_once("../../api/UserManager.class.php");
 require_once(GlobalGetLanguageTemplate(__FILE__));
@@ -248,7 +249,7 @@ function DisplayAdd()
 	$users = new UserManager();
 
 	try {
-		$userlist = $users->GetAllUsers(UserManager::TYPE_EMAIL);
+		$userlist = $users->GetAllUsers(ClearDirectory::SERVICE_TYPE_EMAIL);
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 		return;
@@ -345,7 +346,7 @@ function DisplayEdit($EditEntry)
 
 	try {
 		$entries = $fetchmail->GetConfigEntries();
-		$userlist = $users->GetAllUsers(UserManager::TYPE_EMAIL);
+		$userlist = $users->GetAllUsers(ClearDirectory::SERVICE_TYPE_EMAIL);
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 		return;

@@ -63,8 +63,6 @@ class BackupRestore extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	const FILE_CONFIG = '/etc/backup.conf';
-	const FILE_GROUP = '/etc/group';
-	const FILE_GROUP_BACKUP = '/etc/.group';
 	const PATH_ARCHIVE = '/var/lib/backuprestore';
 	const PATH_UPLOAD = '/var/lib/backuprestore/upload';
 	const CMD_TAR = '/bin/tar';
@@ -159,17 +157,6 @@ class BackupRestore extends Engine
 			} catch (Exception $e) {
 				throw new EngineException($e->GetMessage(), COMMON_ERROR);
 			}
-		}
-
-		// Copy the group file
-		//--------------------
-
-		$file = new File(self::FILE_GROUP);
-
-		try {
-			$file->CopyTo(self::FILE_GROUP_BACKUP);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
 		}
 
 		// Create the backup

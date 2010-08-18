@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2007-2008 Point Clark Networks.
+// Copyright 2007-2010 Point Clark Networks.
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -23,12 +23,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Provides monitoring/management tools to RAID arrays.
+ * Wrapper for JNetTop utility.
  *
  * @package Api
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2007-2008, Point Clark Networks
+ * @copyright Copyright 2007-2010, Point Clark Networks
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,6 @@
 require_once('Engine.class.php');
 require_once("ShellExec.class.php");
 require_once("ConfigurationFile.class.php");
-require_once "File/CSV/DataSource.php";
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -50,7 +49,7 @@ require_once "File/CSV/DataSource.php";
  * @package Api
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2007-2008, Point Clark Networks
+ * @copyright Copyright 2007-2010, Point Clark Networks
  */
 
 class JNetTop extends Engine
@@ -62,6 +61,7 @@ class JNetTop extends Engine
 	const CMD_JNETTOP = '/usr/bin/jnettop';
 	const FILE_CONFIG = '/etc/system/jnettop.conf';
 	const FILE_DUMP = '/usr/webconfig/tmp/jnettop.dmp';
+
 	protected $config = null;
 	protected $is_loaded = false;
 
@@ -86,9 +86,10 @@ class JNetTop extends Engine
 	}
 
 	/**
-	 * Gets a list of fields to monitor.
+	 * Returns a list of fields to monitor.
 	 *
-	 * @returns  Array  an array of fields
+	 * @return array an array of fields
+	 * @throws EngineException
 	 */
 
 	function GetFields()
@@ -97,7 +98,7 @@ class JNetTop extends Engine
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		try {
-			$fields = Array();
+			$fields = array();
 
 			if (!$this->is_loaded)
 				$this->_LoadConfig();
@@ -106,34 +107,46 @@ class JNetTop extends Engine
 			$fields = explode(',', $values);
 			return $fields;
 		} catch (Exception $e) {
-			# Return default entry
-			return Array('srcname');
+			// Return default entry
+			return array('srcname');
 		}
 	}
 
 	/**
 	 * Initializes monitor.
 	 *
+	 * @return void
+	 * @throws EngineException
 	 */
 
-	function Init($interface, $interval)
+	function Initialize($interface, $interval)
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		$file = new File(self::FILE_DUMP);
-		if ($file->Exists())
-			$file->Delete();
-		$shell = new ShellExec();
-		$args = "-i $interface --display text -t $interval --format";
-		$fields = $this->GetFields();
-		$args .= " '";
-		foreach ($fields as $field)
-			$args .= "\$" . $field . "\$,"; 
-		# Strip off the last comma separator and replace with single quote
-		$args = preg_replace("/,$/", "'", $args);
-		$options = array('background' => true, 'log' => 'jnettop.dmp');
-		$retval = $shell->Execute(self::CMD_JNETTOP, $args, true, $options);
+		try {
+			$file = new File(self::FILE_DUMP);
+
+			if ($file->Exists())
+				$file->Delete();
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+
+		try {
+			$shell = new ShellExec();
+			$args = "-i $interface --display text -t $interval --format";
+			$fields = $this->GetFields();
+			$args .= " '";
+			foreach ($fields as $field)
+				$args .= "\$" . $field . "\$,"; 
+			// Strip off the last comma separator and replace with single quote
+			$args = preg_replace("/,$/", "'", $args);
+			$options = array('env' => "LANG=en_US", 'background' => true, 'log' => 'jnettop.dmp');
+			$retval = $shell->Execute(self::CMD_JNETTOP, $args, true, $options);
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
 
 		if ($retval != 0) {
 			$errstr = $shell->GetLastOutputLine();
@@ -152,23 +165,12 @@ class JNetTop extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
+	 * Loads configuration files.
+	 *
 	 * @access private
+	 * @return void
+ 	 * @throws EngineException
 	 */
-
-	function __destruct()
-	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
-
-		parent::__destruct();
-	}
-
-	/**
-	* Loads configuration files.
-	*
-	* @return void
-	* @throws EngineException
-	*/
 
 	protected function _LoadConfig()
 	{
@@ -187,16 +189,16 @@ class JNetTop extends Engine
 	}
 
 	/**
-	 * Generic set routine.
+	 * Sets a parameter in the configuration file
 	 *
-	 * @private
-	 * @param  string  $key  key name
-	 * @param  string  $value  value for the key
-	 * @return  void
+	 * @access private
+	 * @param string $key key name
+	 * @param string $value value for the key
+	 * @return void
 	 * @throws EngineException
 	 */
 
-	function _SetParameter($key, $value)
+	protected function _SetParameter($key, $value)
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
@@ -213,6 +215,19 @@ class JNetTop extends Engine
 
 		$this->is_loaded = false;
 	}
+
+	/**
+	 * @access private
+	 */
+
+	function __destruct()
+	{
+		if (COMMON_DEBUG_MODE)
+			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+
+		parent::__destruct();
+	}
+
 }
 
 // vim: syntax=php ts=4
