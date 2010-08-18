@@ -1,0 +1,76 @@
+#!/bin/sh
+
+SQLBASE="/usr/share/archive/mysql/tables.sql"
+DBINFO="/etc/system/database"
+MYSQLADMIN="/usr/share/system-mysql/usr/bin/mysqladmin"
+MYSQL="/usr/share/system-mysql/usr/bin/mysql"
+
+# Start system database
+#----------------------
+
+[ -x /etc/rc.d/init.d/system-mysqld ] || exit 0
+
+if [ ! -e /var/lib/system-mysql/mysql.sock ]; then
+	/etc/rc.d/init.d/system-mysqld start
+	/sbin/chkconfig system-mysqld on
+fi
+
+# Grab database password
+#-----------------------
+
+DBPASS=`grep ^password $DBINFO 2>/dev/null | sed "s/^password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$DBPASS" ]; then
+	echo "Unable to authenticate with database"
+	exit 1
+fi
+
+# Create Archive databases (if necessary) 
+#----------------------------------------
+
+$MYSQL -uroot -p"$DBPASS" -e 'status;' archive_current >/dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+	echo "Creating current archive database"
+	$MYSQLADMIN -uroot -p"$DBPASS" create archive_current >/dev/null 2>&1
+fi
+
+$MYSQL -uroot -p"$DBPASS" -e 'status;' archive_search >/dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+	echo "Creating search archive database"
+	$MYSQLADMIN -uroot -p"$DBPASS" create archive_search >/dev/null 2>&1
+fi
+
+
+# Add/Update Archvive database password
+#--------------------------------------
+
+ARCHIVE_PASSWORD=`grep ^archive.password $DBINFO 2>/dev/null | sed "s/^archive.password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$ARCHIVE_PASSWORD" ]; then
+	echo "Generating password"
+	ARCHIVE_PASSWORD=`openssl rand -base64 12`
+	echo "archive.password = $ARCHIVE_PASSWORD" >> $DBINFO
+fi
+
+echo "Updating privileges"
+$MYSQL -uroot -p"$DBPASS" -e "GRANT ALL PRIVILEGES ON archive_current.* TO archive@localhost IDENTIFIED BY \"$ARCHIVE_PASSWORD\" WITH GRANT OPTION;" archive_current >/dev/null 2>&1
+$MYSQL -uroot -p"$DBPASS" -e "GRANT ALL PRIVILEGES ON archive_search.* TO archive@localhost IDENTIFIED BY \"$ARCHIVE_PASSWORD\" WITH GRANT OPTION;" archive_search >/dev/null 2>&1
+
+# Create tables (if necessary)
+#-----------------------------
+
+TABLE_EXISTS=`$MYSQL -uroot -p"$DBPASS" -e 'show tables;' archive_current 2>/dev/null | grep archive`
+
+if [ -z "$TABLE_EXISTS" ]; then
+	echo "Creating base tables"
+	$MYSQL -uroot -p"$DBPASS" archive_current < $SQLBASE
+fi
+
+TABLE_EXISTS=`$MYSQL -uroot -p"$DBPASS" -e 'show tables;' archive_search 2>/dev/null | grep archive`
+
+if [ -z "$TABLE_EXISTS" ]; then
+	echo "Creating base tables"
+	$MYSQL -uroot -p"$DBPASS" archive_search < $SQLBASE
+fi

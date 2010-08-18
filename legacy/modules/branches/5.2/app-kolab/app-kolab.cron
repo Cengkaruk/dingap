@@ -1,0 +1,5 @@
+#!/bin/sh
+
+if [ -e /var/lib/imap/annotations.db ]; then
+	cp /var/lib/imap/annotations.db /var/lib/imap/annotations.db.`date '+%A'`
+fi

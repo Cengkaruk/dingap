@@ -1,0 +1,18 @@
+menu htdocs/menus/firewall-block
+menu htdocs/menus/firewall-groups
+menu htdocs/menus/firewall-port-forward
+locale firewallforward api/lang
+locale firewall-block htdocs/admin/lang
+locale firewall-groups htdocs/admin/lang
+locale firewall-port-forward htdocs/admin/lang
+include api/FirewallForward.class.php
+include api/FirewallOutgoing.class.php
+include htdocs/admin/firewall-block.php
+include htdocs/admin/firewall-groups.php
+include htdocs/admin/firewall-port-forward.php
+include htdocs/images/icons/16x16/icon-firewall-port-forward.png
+include htdocs/images/icons/32x32/icon-firewall-port-forward.png
+include htdocs/images/icons/16x16/icon-firewall-groups.png
+include htdocs/images/icons/32x32/icon-firewall-groups.png
+include htdocs/images/icons/16x16/icon-firewall-block.png
+include htdocs/images/icons/32x32/icon-firewall-block.png

@@ -1,0 +1,75 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-kolab
+Version: %VERSION%
+Release: %RELEASE%
+Summary: User and group architecture module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: kolabd >= 2.2.0
+Requires: app-webconfig = %VERSION%
+Requires: app-setup = %VERSION%
+Provides: cc-kolab
+Obsoletes: cc-kolab
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+User and group architecture module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.daily
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 0755 app-kolab.cron $RPM_BUILD_ROOT/etc/cron.daily/app-kolab
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-kolab - installing"
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-kolab - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+/etc/cron.daily/app-kolab

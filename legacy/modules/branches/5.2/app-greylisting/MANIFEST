@@ -1,0 +1,8 @@
+menu htdocs/menus/mail-greylisting
+locale postgrey api/lang
+locale mail-greylisting htdocs/admin/lang
+include api/Postgrey.class.php
+include htdocs/admin/mail-greylisting.php
+include htdocs/images/icons/16x16/icon-mail-greylisting.png
+include htdocs/images/icons/32x32/icon-mail-greylisting.png
+include ./upgrade

@@ -1,0 +1,84 @@
+#!/bin/sh
+
+# Add /etc/ethers if file does not exist
+#------------------------------------------------------------------
+
+if [ ! -e /etc/ethers ]; then
+	logger -p local6.notice -t installer "app-dnsmasq - creating empty /etc/ethers"
+	touch /etc/ethers
+fi
+
+# Convert old DHCP configuration
+#------------------------------------------------------------------
+
+if ( [ -e /etc/dhcpd.conf.rpmsave ] || [ -e /etc/dhcpd.conf ] ); then
+	logger -p local6.notice -t installer "app-dnsmasq - detected dhcpd configuration"
+	if [ ! -e /etc/dnsmasq/dhcp.conf ]; then
+		logger -p local6.notice -t installer "app-dnsmasq - converting dhcpd configuration"
+		/usr/sbin/dhcp2dnsmasq >/dev/null 2>&1
+	fi
+fi
+
+# Fix DHCP DNS configuration - bug #436
+#------------------------------------------------------------------
+
+ETHS="ppp eth"
+NUMBER="0 1 2 3 4 5"
+
+for ETH in $ETHS; do
+	for NUM in $NUMBER; do
+
+		# Check for duplicate DNS server parameter, e.g.:
+		# dhcp-option=eth0,6,192.168.2.3
+		# dhcp-option=eth0,6,192.168.2.4
+
+		CHECK=`grep -c "^dhcp-option=${ETH}${NUM},6" /etc/dnsmasq/dhcp.conf 2>/dev/null`
+		if ( [ -n "$CHECK" ] && [ $CHECK -gt 1 ] ) ; then
+			logger -p local6.notice -t installer "app-dnsmasq - fixing DHCP server configuration"
+
+			# Munge the configuration to merge the lines, e.g.: 
+			# dhcp-option=eth0,6,192.168.2.3,192.168.2.4
+
+			LIST=`grep "^dhcp-option=${ETH}${NUM},6" /etc/dnsmasq/dhcp.conf 2>/dev/null | sed "s/.*${ETH}${NUM},6,//"`
+			NEWDNSLINE="dhcp-option=${ETH}${NUM},6"
+			for DNS in $LIST; do
+				NEWDNSLINE="$NEWDNSLINE,$DNS"
+			done
+
+			# Remove the broken configuration and add the new one
+			grep -v "^dhcp-option=${ETH}${NUM},6" /etc/dnsmasq/dhcp.conf > /etc/dnsmasq/dhcp.conf.new
+			mv /etc/dnsmasq/dhcp.conf.new /etc/dnsmasq/dhcp.conf
+			echo $NEWDNSLINE >> /etc/dnsmasq/dhcp.conf
+		fi
+	done
+done
+
+# Add daemon setting
+#------------------------------------------------------------------
+
+CHECK=`grep ^user /etc/dnsmasq.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-dnsmasq - adding daemon user setting to configuration"
+	echo "user=nobody" >> /etc/dnsmasq.conf
+fi
+
+# Remove old bind-interfaces parameter
+#------------------------------------------------------------------
+
+CHECK=`grep ^bind-interfaces /etc/dnsmasq.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-dnsmasq - removing bind-interfaces from configuration"
+	grep -v ^bind-interfaces /etc/dnsmasq.conf > /etc/dnsmasq.conf.new
+	mv /etc/dnsmasq.conf.new /etc/dnsmasq.conf
+fi
+
+# Remove problematic interface parameter
+#------------------------------------------------------------------
+
+CHECK=`grep ^interface /etc/dnsmasq.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-dnsmasq - removing interfaces from configuration"
+	grep -v ^interface /etc/dnsmasq.conf > /etc/dnsmasq.conf.new
+	mv /etc/dnsmasq.conf.new /etc/dnsmasq.conf
+fi
+

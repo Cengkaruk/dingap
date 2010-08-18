@@ -1,0 +1,9 @@
+KOLAB_META_START
+TARGET=/etc/ppp/options.ldap
+PERMISSIONS=0600
+OWNERSHIP=root:root
+KOLAB_META_END
+ld-base-dn @@@base_dn@@@
+ld-bind-dn @@@bind_dn@@@
+ld-bind-pw @@@bind_pw@@@
+ld-search-filter (pcnPPTPFlag=TRUE)

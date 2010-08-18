@@ -1,0 +1,70 @@
+#!/bin/sh
+
+# Make sure include to configlets directory exists
+#-------------------------------------------------
+
+CHECK=`grep -i "^include.*/etc/proftpd.d/\*.conf" /etc/proftpd.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-proftpd - adding LDAP settings to configuration"
+	echo "" >> /etc/proftpd.conf
+	echo "include /etc/proftpd.d/*.conf" >> /etc/proftpd.conf
+fi
+
+# Configuration parameter changes
+#--------------------------------
+
+FILELIST=`ls /etc/proftpd.d/*.conf`
+
+for FILE in /etc/proftpd.conf $FILELIST; do
+	CHECK=`grep DisplayFirstChdir $FILE 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-proftpd - changing deprecated DisplayFirstChdir parameter in $FILE"
+		sed -i -e 's/DisplayFirstChdir/DisplayChdir/' $FILE
+	fi
+
+	CHECK=`grep ^DirFakeGroup $FILE 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-proftpd - removing DirFakeGroup in $FILE"
+		sed -i -e 's/DirFakeGroup/# DirFakeGroup/' $FILE
+	fi
+done
+
+# Remove version from banner
+#---------------------------
+
+CHECK=`grep "^ServerName.* [45].[0-3]" /etc/proftpd.conf`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-proftpd - removing misleading version number in banner "
+	sed -i -e 's/^ServerName\(.*\) [45].[0-3]/ServerName\1/' /etc/proftpd.conf
+fi
+
+# Move anonymous configuration to configlet
+#------------------------------------------
+
+CHECK=`grep '^<Anonymous ~ftp>' /etc/proftpd.conf 2>/dev/null`
+
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-proftpd - moving anonymous configuration to /etc/proftpd.d/anonymous.conf"
+
+	SKIP=0
+	IFS=""
+
+	while read -r LINE; do
+		if [ "$LINE" == "<Anonymous ~ftp>" ]; then
+			echo "# This configuration has been moved to /etc/proftpd.d/anonymous.conf" >> /etc/proftpd.conf.$$
+			SKIP=1
+		fi
+
+		if [ $SKIP == 1 ]; then
+			echo "$LINE" >> /etc/proftpd.d/anonymous.conf
+		else
+			echo "$LINE" >> /etc/proftpd.conf.$$
+		fi
+
+		if [ "$LINE" == "</Anonymous>" ]; then
+			SKIP=0
+		fi
+	done </etc/proftpd.conf
+
+	mv /etc/proftpd.conf.$$ /etc/proftpd.conf
+fi

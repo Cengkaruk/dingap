@@ -1,0 +1,4 @@
+include api/Console.class.php
+include wsdl/Console.wsdl
+include ./text-console
+include ./bash_profile

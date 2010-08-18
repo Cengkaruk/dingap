@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# Upgrade groups
+#---------------
+
+if ( [ -x /usr/sbin/upgrade-4xgroups ] && [ -e /etc/system/pre5x ] ); then
+	/usr/sbin/upgrade-4xgroups >/dev/null 2>&1
+fi
+
+# Clean /etc/passwd 
+#------------------
+
+if [ -x /usr/sbin/clean-passwd ]; then
+	/usr/sbin/clean-passwd >/dev/null 2>&1
+fi
+
+# Add Windows attributes
+#-----------------------
+
+if [ -x /usr/sbin/add-windows-groupinfo ]; then
+	/usr/sbin/add-windows-groupinfo >/dev/null 2>&1
+fi
+
+if [ -x /usr/sbin/add-samba-directories ]; then
+	/usr/sbin/add-samba-directories >/dev/null 2>&1
+fi
+
+# Make sure home directories exist and have correct permissions
+#--------------------------------------------------------------
+
+if [ -x /usr/sbin/syncusers ]; then
+	/usr/sbin/syncusers >/dev/null 2>&1
+fi
+
+# Perform a Samba upgrade as soon as LDAP is running
+#---------------------------------------------------
+
+if ( [ ! -e /etc/system/initialized/sambalocal ] && [ -e /etc/system/pre5x ] && [ -x /usr/share/system/modules/samba/upgrade-4xsamba ] ); then
+	/usr/share/system/modules/samba/upgrade-4xsamba >/dev/null 2>&1
+fi
+
+# Update flexshare permissions with new LDAP info
+#------------------------------------------------
+
+if ( [ ! -e /etc/system/initialized/flexshare ] && [ -e /etc/system/pre5x ] && [ -x /usr/share/system/modules/flexshare/update-flexshare ] ); then
+	echo "Updating file permissions.  Please be patient..."
+	/usr/share/system/modules/flexshare/update-flexshare >/dev/null 2>&1
+fi

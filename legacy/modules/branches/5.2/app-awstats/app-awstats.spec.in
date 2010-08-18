@@ -1,0 +1,103 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-awstats
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Web log file analyzer module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: awstats >= 6.9
+Requires: util-linux
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-httpd = %VERSION%
+Requires: app-reports = %VERSION%
+Provides: cc-awstats
+Obsoletes: cc-awstats
+Obsoletes: cc-webalizer-httpd
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Web log file analyzer module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/awstats
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/awstats
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/reports/awstats/old
+
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/awstats
+install -m 755 awstatsreports $RPM_BUILD_ROOT/usr/sbin/
+install -m 644 app-awstats.cron $RPM_BUILD_ROOT/etc/cron.d/app-awstats
+install -m 644 awstats.conf $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d/awstats.conf
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-awstats - installing"
+
+/usr/sbin/addsudo /usr/sbin/awstatsreports app-awstats
+
+#------------------------------------------------------------------------------
+# U P G R A D E  S C R I P T
+#------------------------------------------------------------------------------
+
+# Restart webconfig via syswatch (see Syswatch.ReconfigureSystem() in API)
+killall -q -USR1 syswatch >/dev/null 2>&1
+
+/usr/share/system/modules/awstats/upgrade
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-awstats - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/etc/cron.d/app-awstats
+/usr/sbin/awstatsreports
+/usr/share/system/modules/awstats/upgrade
+/usr/webconfig/conf/httpd.d/awstats.conf
+/var/webconfig/

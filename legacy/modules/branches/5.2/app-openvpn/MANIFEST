@@ -1,0 +1,11 @@
+menu htdocs/menus/openvpn
+locale openvpn api/lang
+locale openvpn htdocs/admin/lang
+include api/OpenVpn.class.php
+include htdocs/admin/openvpn.php
+include htdocs/images/icons/16x16/icon-openvpn.png
+include htdocs/images/icons/32x32/icon-openvpn.png
+include ./auth-ldap
+include ./clients.conf
+include ./calcopenvpn
+include ./openvpn.auth-ldap.template

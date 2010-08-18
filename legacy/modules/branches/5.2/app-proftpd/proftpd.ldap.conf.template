@@ -1,0 +1,17 @@
+KOLAB_META_START
+TARGET=/etc/proftpd.d/ldap.conf
+PERMISSIONS=0640
+OWNERSHIP=root:ftp
+KOLAB_META_END
+# This file is automatically updated by ldapsync -- please do not edit.
+<Global>
+	LDAPServer 127.0.0.1
+	LDAPDNInfo "@@@bind_dn@@@" "@@@bind_pw@@@"
+	LDAPDoAuth on "ou=Users,ou=Accounts,@@@base_dn@@@" "(&(pcnFTPFlag=TRUE)(uid=%v))"
+	LDAPDoUIDLookups on "ou=Users,ou=Accounts,@@@base_dn@@@"
+	LDAPDoGIDLookups on "ou=Groups,ou=Accounts,@@@base_dn@@@"
+	LDAPAuthBinds off
+	LDAPAttr userPassword pcnFtpPassword
+	LDAPAttr memberUid member
+	LDAPUseTLS off
+</Global>

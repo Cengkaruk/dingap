@@ -1,0 +1,7 @@
+locale logs htdocs/admin/lang
+locale report api/lang
+menu htdocs/menus/logs
+include gui/Report.class.php
+include htdocs/admin/logs.php
+include htdocs/images/icons/16x16/icon-logs.png
+include htdocs/images/icons/32x32/icon-logs.png

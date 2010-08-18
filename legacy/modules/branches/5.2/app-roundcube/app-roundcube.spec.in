@@ -1,0 +1,84 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-roundcube
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Web-based IMAP client
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: roundcubemail >= 0.3.1
+Requires: webconfig-php-imap
+Requires: webconfig-php-mysql
+Requires: php-xml
+Requires: php-xmlrpc
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-php = %VERSION%
+Requires: app-cyrus-imapd = %VERSION%
+Requires: app-system-mysql = %VERSION%
+Provides: cc-roundcube
+Obsoletes: cc-roundcube
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Web-based IMAP client.
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/roundcubemail/config
+
+install -m 0644 db.inc.php $RPM_BUILD_ROOT/usr/share/roundcubemail/config/db.inc.php
+install -m 0644 main.inc.php $RPM_BUILD_ROOT/usr/share/roundcubemail/config/main.inc.php
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-roundcube - installing"
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-roundcube - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+%config(noreplace) %attr(-,root,root) /usr/share/roundcubemail/config/db.inc.php
+%config(noreplace) %attr(-,root,root) /usr/share/roundcubemail/config/main.inc.php

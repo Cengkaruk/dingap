@@ -1,0 +1,1526 @@
+#!/usr/bin/perl -wT
+
+###############################################################################
+#
+# Copyright 2002-2006 Point Clark Networks.
+#
+###############################################################################
+
+use strict;
+use Net::Ping;
+use Sys::Syslog qw(:DEFAULT setlogsock);
+use HTTP::Request;
+use LWP::UserAgent;
+use POSIX;
+
+# Catch signals
+$SIG{'TERM'} = 'SigtermCatcher';
+$SIG{'HUP'}  = 'SighupCatcher';
+
+# Perl security stuff - see "man perlsec"
+$ENV{'PATH'}  = '/sbin:/usr/bin:/bin';
+$ENV{'SHELL'} = '/bin/sh';
+delete @ENV{'ENV', 'BASH_ENV'};
+
+
+###############################################################################
+#
+# Functions
+#
+###############################################################################
+
+# Main functions
+sub GetConfigSettings();
+sub GetConnectionList();
+sub GetWanStatus();
+sub GetWanList();
+sub ConnectionCheckConfig($);
+sub ConnectionCheck($);
+sub ConnectionGetConfig($);
+sub ConnectionGetRemoteConfig($$);
+sub ConnectionWriteConfig($);
+sub ConnectionRestart($);
+sub DeleteConfig();
+sub Initialize();
+sub IpsecRestart();
+sub MyPing($);
+sub SendNetInfo();
+sub SetDefaultSource();
+sub WriteStatus($);
+sub WriteStatusFile($$);
+sub CheckRoutes();
+
+# Auto-whitelist for intrusion detection
+sub CheckWhitelistConfig();
+sub UpdateWhitelist();
+
+# Validation and helper functions
+sub ValidateIP($);
+sub ValidateNetwork($);
+sub ValidateId($);
+sub SigtermCatcher();
+sub SighupCatcher();
+sub LogMsg($);
+
+
+###############################################################################
+#
+# Configuration Variables (globals)
+#
+###############################################################################
+
+# Configuration settings (/etc/vpnwatch)
+#---------------------------------------
+
+my $INTERVAL = 60;  # ping/restart interval in seconds - keep this above 60
+my $DEBUG = 0;      # 0 for no debug, 1 for debug
+my $SYSLOG = "local6";  # local6 is a custom log
+my $AGGRESSIVE = 0; # 0 for normal, 1 for aggressive restart
+my $ENABLED = 1;    # 0 for disabled, 1 for enabled
+
+# Configuration settings (/etc/firewall)
+#---------------------------------------
+
+my $LANNET = "";     # LAN network (an override for cases when eth1 and eth2 are LANs)
+my $LANIF = "";      # LAN interface
+my $EXTIF = "";      # External/WAN interface
+my $VPNIF = "";      # External/WAN interface on multi-WAN systems
+
+# Paths
+#------
+
+my $SYSWATCHSTATE = "/var/lib/syswatch/state";
+my $IPSECBIN = "/usr/sbin/ipsec";
+my $MD5SUMBIN = "/usr/bin/md5sum";
+my $PIDFILE = "/var/run/vpnwatchd.pid";
+my $CONFIG = "/etc/ipsec.d/ipsec.managed";
+my $SETTINGSFILE = "/etc/vpnwatch";
+my $WEBSERVICESFILE = "/usr/share/system/modules/services/config";
+my $FIREWALLCFG = "/etc/firewall";
+my $FIREWALLRESTART = "/etc/rc.d/init.d/firewall restart >/dev/null 2>&1";
+my $DEFAULTSRC = "/etc/sysconfig/defaultsource";
+my $STATUSPATH = "/var/lib/ipsec";
+my $IDSCONFIG = "/etc/snortsam.conf";
+my $IDSPATH = "/etc/snort";
+my $IDSFILE = "vpn-autowhitelist.conf";
+
+# Flags
+#------
+
+my $CONFIG_TAKE_ACTION = 20;
+my $CONFIG_NO_ACTION = 21;
+my $CONFIG_OK = 22;
+my $CONFIG_WASDELETED = 23;
+my $CONFIG_MISMATCHED = 24;
+my $CONFIG_IPMISMATCH = 25;
+my $ALL_CONNECTIONS_DOWN = "-100";
+my $ALL_CONNECTIONS_DISABLED = "-101";
+my $STATUS_OK = 0;
+my $STATUS_WARN = 1;
+my $STATUS_DOWN = 2;
+my $STATUS_INVALID = 3;
+my $STATUS_THROTTLED = 4;
+my $STATUS_INIT = 5;
+my $STATUS_CHANGED = 6;
+
+my %g_lang;
+$g_lang{"en_US"}->{0} = "ok";
+$g_lang{"en_US"}->{1} = "warning";
+$g_lang{"en_US"}->{2} = "down";
+$g_lang{"en_US"}->{3} = "invalid configuration";
+$g_lang{"en_US"}->{4} = "throttled";
+$g_lang{"en_US"}->{5} = "initializing";
+
+# Other Globals (for efficiency)
+#-------------------------------
+
+my $IDSMD5 = "start";
+my @SDNSERVERS;
+my %g_vpnlist;
+my $g_ping = Net::Ping->new("icmp");
+my $g_reload = $CONFIG_TAKE_ACTION;
+my $g_restart = $CONFIG_NO_ACTION;
+my $g_rereadcfg = $CONFIG_TAKE_ACTION;
+my $g_active_wans = "startup"; # Should be local static variable
+
+
+##############################################################################
+#
+# Main loop
+#
+##############################################################################
+
+Initialize();
+
+while (1) {
+
+	# On startup or when we receive a HUP signal, the "g_rereadconfig" flag is set.
+	#------------------------------------------------------------------------------
+
+	if ($g_rereadcfg == $CONFIG_TAKE_ACTION) { 
+		$g_rereadcfg = $CONFIG_NO_ACTION;
+		GetConfigSettings();
+	}
+
+	# In some cases (e.g. WAN IP changes), we need to rebuild the VPN from scratch.
+	#------------------------------------------------------------------------------
+
+	if ($g_reload == $CONFIG_TAKE_ACTION) { 
+		$g_reload = $CONFIG_NO_ACTION;
+		SendNetInfo();
+		SetDefaultSource();
+		DeleteConfig();
+		if ($ENABLED) {
+			GetConnectionList();
+			foreach my $connection (keys %g_vpnlist) {
+				ConnectionGetConfig($connection);
+				ConnectionWriteConfig($connection);
+				WriteStatus($connection);
+			}
+			CheckWhitelistConfig();
+			UpdateWhitelist();
+		}
+	}
+
+	# Bail if managed VPN is disabled
+	#--------------------------------
+
+	if (!$ENABLED) {
+		LogMsg("debug: system - managed VPN is disabled... waiting") if $DEBUG;
+		WriteStatus($ALL_CONNECTIONS_DISABLED);
+		sleep $INTERVAL;
+		next;
+	}
+
+	# Bail if no connections defined
+	#-------------------------------
+
+	my $conncount = scalar(keys(%g_vpnlist));
+	if ($conncount == 0) {
+		LogMsg("debug: system - no managed VPN connections to check") if $DEBUG;
+		sleep $INTERVAL;
+		next;
+	}
+
+	# Restart IPsec if requested
+	#---------------------------
+
+	if ($g_restart == $CONFIG_TAKE_ACTION) { 
+		$g_restart = $CONFIG_NO_ACTION;
+		IpsecRestart();
+	}
+
+	# Check the state of the WAN
+	#---------------------------
+
+	my $wanstatus = GetWanStatus();
+	if ($wanstatus == $STATUS_DOWN) {
+		LogMsg(" warn: system - Internet connection is down");
+		WriteStatus($ALL_CONNECTIONS_DOWN);
+		sleep $INTERVAL;
+		next;
+	} elsif (($wanstatus == $STATUS_CHANGED) || ($wanstatus == $STATUS_INIT)){
+		# On multi-WAN connections, check to see if we need to change
+		# interfaces for the VPN connection.  If a change is required for
+		# one connection, then just reload/restart everything.
+		SendNetInfo();
+		foreach my $connection (keys %g_vpnlist) {
+			if (ConnectionCheckConfig($connection) == $CONFIG_MISMATCHED) {
+				$g_reload = $CONFIG_TAKE_ACTION;
+				$g_restart = $CONFIG_TAKE_ACTION;
+				next;
+			}
+		}
+		next if ($g_restart == $CONFIG_TAKE_ACTION);
+	}
+
+	# Check the state of routes (especially multiwan)
+	#------------------------------------------------
+
+	CheckRoutes();
+
+	# Check the state of each VPN connection
+	#---------------------------------------
+
+	foreach my $connection (keys %g_vpnlist) {
+
+		# STATUS_INVALID means we don't have enough configuration information
+		# to build a connection (e.g. LAN settings are missing).  Try to 
+		# reload the configuration first.
+		#--------------------------------------------------------------------
+
+		if ($g_vpnlist{$connection}->{status} == $STATUS_INVALID) {
+			ConnectionGetConfig($connection);
+			ConnectionWriteConfig($connection);
+			UpdateWhitelist();
+		}
+
+		# Check the connection
+		#---------------------
+
+		my $connection_status = ConnectionCheck($connection);
+
+		if ($connection_status == $STATUS_DOWN) {
+
+			# The connection is down.  The code below tries to be smart
+			# about what to do next.
+			#----------------------------------------------------------
+
+			my $cfgstate = ConnectionCheckConfig($connection);
+
+			# If a network setting changed (dynamic IP, LAN settings),
+			# reload this connection's information
+			#---------------------------------------------------------
+
+			if ($cfgstate == $CONFIG_MISMATCHED) {
+				ConnectionGetConfig($connection);
+				ConnectionWriteConfig($connection);
+				ConnectionRestart($connection);
+				UpdateWhitelist();
+
+			# If connection was removed, reset connection list and this loop
+			#---------------------------------------------------------------
+
+			} elsif ($cfgstate == $CONFIG_WASDELETED) {
+				$g_reload = $CONFIG_TAKE_ACTION;
+				$g_restart = $CONFIG_TAKE_ACTION;
+				last;
+
+			# Immediately reload *all* configuration if local IP has changed
+			#---------------------------------------------------------------
+
+			} elsif ($cfgstate == $CONFIG_IPMISMATCH) {
+				$g_reload = $CONFIG_TAKE_ACTION;
+				$g_restart = $CONFIG_TAKE_ACTION;
+				last;
+
+			# Configuration is ok, so try to restart connection
+			#--------------------------------------------------
+
+			} elsif ($cfgstate == $CONFIG_OK) {
+				ConnectionRestart($connection);
+			} 
+		}
+
+		# IPsec will sometimes get stuck and require a hard restart.
+		# If this machine is only connecting to a single remote network, then
+		# we can be fairly aggressive (restart every 10 down counts).  If this
+		# machine has multiple connections (e.g. a hub in a hub/spoke VPN), then
+		# we have to be more polite (restart every 100 down counts).
+
+		if (($connection_status == $STATUS_DOWN) || ($connection_status == $STATUS_THROTTLED)) {
+			if (($AGGRESSIVE == 1) && (($g_vpnlist{$connection}->{downcount} % 10) == 0)) {
+				LogMsg(" info: $g_vpnlist{$connection}->{to_name} - connection down and aggressive mode configured");
+				IpsecRestart();
+				last;
+			} elsif (($conncount == 1) && (($g_vpnlist{$connection}->{downcount} % 10) == 0)) {
+				LogMsg(" info: $g_vpnlist{$connection}->{to_name} - connection down for too long... hard restart");
+				IpsecRestart();
+				last;
+			} elsif (($conncount > 1) && (($g_vpnlist{$connection}->{downcount} % 100) == 0)) {
+				LogMsg(" info: $g_vpnlist{$connection}->{to_name} - connection down for too long... hard restart");
+				IpsecRestart();
+				last;
+			}
+		}
+	}
+
+	sleep $INTERVAL;
+}
+
+
+###############################################################################
+# F U N C T I O N S
+###############################################################################
+
+###############################################################################
+#
+# Initialize
+#
+###############################################################################
+
+sub Initialize() {
+	umask 077;
+	setlogsock('unix');
+	openlog('vpnwatchd', 'ndelay', $SYSLOG);
+	LogMsg(" info: system - started");
+
+	# Daemonize
+	#----------
+
+	if (-e $PIDFILE) {
+		my $isup = `/sbin/pidof vpnwatchd`;
+		chomp($isup);
+		if ($isup) {
+			LogMsg(" warn: vpnwatchd already running? $PIDFILE");
+			exit 1;
+		} else {
+			LogMsg(" warn: cleaning up old PID file");
+			unlink($PIDFILE);
+		}
+	}
+
+	if (fork()) { exit; }
+	setsid();
+	open(PIDFILE, ">$PIDFILE");
+	printf PIDFILE "%d\n", getpid();
+	close(PIDFILE);
+
+	$0 = "vpnwatchd";
+
+	# Delete cache file
+	system("/bin/rm -f /var/lib/ipsec/cache");
+}
+
+
+###############################################################################
+#
+# GetConfigSettings
+#
+###############################################################################
+
+sub GetConfigSettings() {
+
+	if ((-e $FIREWALLCFG) && (open(FIREWALLCFG, "$FIREWALLCFG"))) {
+		while (<FIREWALLCFG>) {
+			if (/^LANNET=/)      { ($LANNET) = /^LANNET=(.*)/; $LANNET =~ s/"//g; }
+			if (/^EXTIF=/)       { ($EXTIF) = /^EXTIF=(.*)/; $EXTIF =~ s/"//g; }
+			if (/^LANIF=/)       { ($LANIF) = /^LANIF=(.*)/; $LANIF =~ s/"//g; }
+			if (/^VPNIF=/)       { ($VPNIF) = /^VPNIF=(.*)/; $VPNIF =~ s/"//g; }
+		}
+	}
+
+	if ((-e $SETTINGSFILE) && (open(SETTINGSFILE, "$SETTINGSFILE"))) {
+		while (<SETTINGSFILE>) {
+			if (/^interval=/)    { ($INTERVAL) = /^interval=(.*)/; }
+			if (/^debug=/)       { ($DEBUG) = /^debug=(.*)/; }
+			if (/^syslog=/)      { ($SYSLOG) = /^syslog=(.*)/; }
+			if (/^aggressive=/)  { ($AGGRESSIVE) = /^aggressive=(.*)/; }
+			if (/^enabled=/)     { ($ENABLED) = /^enabled=(.*)/; }
+		}
+		close(SETTINGSFILE);
+	}
+
+	my $prefix = "sdn";
+	my $domain = "pointclark.com";
+	my $servers = "4";
+	my $sdnversion = "4.01";
+
+	if ((-e $WEBSERVICESFILE) && (open(WEBSERVICESFILE, "$WEBSERVICESFILE"))) {
+		while (<WEBSERVICESFILE>) {
+			if (/^sdn_prefix/)    { ($prefix) = /sdn_prefix\s*=\s*(.*)/; }
+			if (/^sdn_domain/)    { ($domain) = /sdn_domain\s*=\s*(.*)/; }
+			if (/^sdn_servers/)    { ($servers) = /sdn_servers\s*=\s*(.*)/; }
+			if (/^sdn_version/)    { ($sdnversion) = /sdn_version\s*=\s*(.*)/; }
+		}
+		close(WEBSERVICESFILE);
+	}
+
+	LogMsg(" info: system - managed VPN is disabled\n") if (!$ENABLED);
+	LogMsg(" info: system - interval set to $INTERVAL seconds\n");
+	LogMsg(" info: system - debug set to $DEBUG\n");
+	LogMsg(" info: system - syslog set to $SYSLOG\n");
+	LogMsg(" info: system - aggressive mode set to $AGGRESSIVE\n");
+
+	for (my $inx = 1; $inx <= $servers; $inx++) {
+		my $url = "https://$prefix$inx.$domain/$sdnversion";
+		push (@SDNSERVERS, $url);
+		LogMsg(" info: system - SDN cluster added, $url\n");
+	}
+
+	if ($LANNET) {
+		if (ValidateNetwork($LANNET) != 0) {
+			LogMsg(" warn: system - LAN network in config file is invalid: $LANNET\n");
+			$LANNET = "";
+		} else {
+			LogMsg(" info: system - LAN network set to $LANNET\n");
+		}
+	}
+
+	if ($LANIF) {
+ 		$LANIF =~ s/\s.*//g; # Only first LAN interface (if more than one)
+		if ($LANIF =~ /^([a-z]+[0-9\.]+)$/) { 
+			$LANIF = $1; 
+		} else {
+			LogMsg(" warn: system - invalid LAN interface $LANIF, using default eth1");
+			$LANIF = "eth1"; 
+		}
+		LogMsg(" info: system - LAN interface set to $LANIF\n");
+	} else {
+		$LANIF = "eth1";
+		LogMsg(" info: system - LAN interface not specified, using default $LANIF");
+	}
+
+	# Preferred WAN interface on Multi-WAN
+	if ($VPNIF) {
+		LogMsg(" info: system - preferred VPN interface set to $VPNIF\n");
+		if ($VPNIF =~ /^([a-z]+[0-9\.]+)$/) { 
+			$VPNIF = $1; 
+		} else {
+			LogMsg(" warn: system - invalid preferred WAN interface $VPNIF");
+			$VPNIF = "";
+		}
+	}
+
+	if ($EXTIF) {
+ 		$EXTIF =~ s/\s.*//g; # Only first WAN interface (if more than one)
+		if ($EXTIF =~ /^([a-z]+[0-9\.]+)$/) { 
+			$EXTIF = $1; 
+		} else {
+			LogMsg(" warn: system - invalid WAN interface $EXTIF, using default eth0");
+			$EXTIF = "eth0"; 
+		}
+		LogMsg(" info: system - WAN interface set to $EXTIF\n");
+	} else {
+		LogMsg(" warn: system - WAN interface not set, using default eth0\n");
+		$EXTIF = "eth0"; 
+	}
+}
+
+
+###############################################################################
+#
+# WriteStatus and WriteStatusFile
+#
+###############################################################################
+
+sub WriteStatus($) {
+	my $connection = $_[0];
+
+	if ($connection == $ALL_CONNECTIONS_DOWN) {
+		LogMsg("debug: system - setting all connections to down") if $DEBUG;
+		foreach my $connection (keys %g_vpnlist) {
+			WriteStatusFile($connection, $STATUS_DOWN);
+		}
+	} elsif ($connection == $ALL_CONNECTIONS_DISABLED) {
+		LogMsg("debug: system - setting all connections to disabled") if $DEBUG;
+		system("rm -f $STATUSPATH/*");
+	} else {
+		WriteStatusFile($connection, $g_vpnlist{$connection}->{status});
+	}
+}
+
+sub WriteStatusFile($$) {
+	my $connection = $_[0];
+	my $status = $_[1];
+
+	my $statusfile = "$STATUSPATH/$connection";
+	if (-e $statusfile) {
+		system("rm -f $statusfile");
+	}
+
+	if (open(STATUS, ">$statusfile")) {
+		LogMsg(" info: $g_vpnlist{$connection}->{to_name} - changed status to " . $g_lang{"en_US"}->{$status});
+		print STATUS "status code = $status\n";
+		close(STATUS);
+	}
+}
+
+
+###############################################################################
+#
+# SetDefaultSource
+#
+###############################################################################
+
+sub SetDefaultSource() {
+	my $lanip = "";
+
+	$lanip = `/bin/grep IPADDR /etc/sysconfig/network-scripts/ifcfg-$LANIF | /bin/sed -e s/IPADDR=//i | /bin/sed 's/"//g'`;
+	chomp($lanip);
+	if (!$lanip || (ValidateIP($lanip) != 0)) {
+		LogMsg("error: system - LAN IP could not be determined on interface $LANIF - $lanip");
+	} else {
+		LogMsg(" info: system - using LAN IP $lanip");
+		if (! open(DEFAULTSRC, ">$DEFAULTSRC")) {
+			LogMsg("error: file open error $DEFAULTSRC: $!");
+		} else {
+			print DEFAULTSRC "DEFAULTSOURCE=\"$lanip\"\n";
+			close(DEFAULTSRC);
+		}
+	}
+}
+
+
+###############################################################################
+#
+# GetConnectionList
+#
+###############################################################################
+
+sub GetConnectionList() {
+	my $connection;
+	my $from_id;
+	my $to_id;
+	my $secret;
+
+	LogMsg(" info: system - reloading connection list");
+
+	%g_vpnlist = (); # Reset list
+
+	if (!open(CONFIG, $CONFIG)) {
+		LogMsg(" info: system - no managed connections defined");
+		return;
+	}
+
+	while (<CONFIG>) {
+		s/ //g;
+		next if (/^#/);
+		next if (/^\s/);
+
+		($from_id, $to_id, $secret) = (/(.*)->(.*),(.*)/);
+
+		# Parse to/from target servers
+		#-----------------------------
+
+		if (!$to_id || ValidateId($to_id)) {
+			LogMsg("error: system - could not parse target VPN ID number: $_");
+			next;
+		}
+		$connection = $to_id;
+
+		if (!$from_id || ValidateId($from_id)) {
+			LogMsg("error: VPN ID $connection - could not parse local VPN ID number: $_");
+			next;
+		}
+		if (!$secret) {
+			LogMsg("error: VPN ID $connection - could not parse secret: $_");
+			next;
+		}
+
+		# The connection will now exist, but with the "Invalid" flag set.  
+		# Once all the data has been validated below, we set this to "ok"
+		#----------------------------------------------------------------
+
+		$g_vpnlist{$connection}->{from_id} = $from_id;
+		$g_vpnlist{$connection}->{to_id} = $to_id;
+		$g_vpnlist{$connection}->{secret} = $secret;
+		$g_vpnlist{$connection}->{status} = $STATUS_INVALID;
+
+		LogMsg("debug: VPN ID $connection - parsed VPN information from config") if $DEBUG;
+	}
+
+	close(CONFIG);
+}
+
+
+###############################################################################
+#
+# ConnectionGetConfig
+#
+###############################################################################
+
+sub ConnectionGetConfig($) {
+	my $connection = $_[0];
+	my $pinghost;
+	my $from_ip;
+	my $from_gw;
+	my $from_net;
+	my $from_domain;
+	my $from_version;
+	my $to_ip;
+	my $to_gw;
+	my $to_net;
+	my $to_rawlist;
+	my $to_domain;
+	my $to_name;
+	my $to_version;
+	my $ignore;
+
+	LogMsg(" info: VPN ID $connection - loading configuration");
+
+	# Perl/cat weirdness:
+	# If I check for the existence of part of data structure
+	# (e.g. if ($g_vpnlist{$connection}->{id})) then perl seems
+	# to create it (?).  I'm sure there's a way around this,
+	# but I'm using the hack below for now.
+	#----------------------------------------------------------
+
+	# Grab the gateway information from the SDN
+	#----------------------------------------------------------
+
+	($to_ip, $to_gw, $pinghost, $to_net, $to_name, $to_domain, $to_version) = split(/ /, ConnectionGetRemoteConfig($g_vpnlist{$connection}->{to_id}, "to"));
+	($from_ip, $from_gw, $ignore, $from_net, $ignore, $from_domain, $from_version) = split(/ /, ConnectionGetRemoteConfig($g_vpnlist{$connection}->{from_id}, "from"));
+
+	# Set the name to make the logs easier to read (ID numbers are a pain)
+	if ($to_name) {
+		$g_vpnlist{$connection}->{to_name} = $to_name;
+	} else {
+		$g_vpnlist{$connection}->{to_name} = $connection;
+	}
+
+	# Sanity check
+	if (!$pinghost || (ValidateIP($pinghost) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine destination LAN IP");
+		return;
+	}
+	if (!$to_ip || (ValidateIP($to_ip) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine destination IP");
+		return;
+	}
+	if (!$to_gw || (ValidateIP($to_gw) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine destination gateway");
+		return;
+	}
+	if (!$to_net || (ValidateNetwork($to_net) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine destination LAN information");
+		return;
+	}
+	if (!$to_version) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine destination Managed VPN version");
+		return;
+	}
+	if (!$from_ip || (ValidateIP($from_ip) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine IP");
+		return;
+	}
+	if (!$from_gw || (ValidateIP($from_gw) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine gateway");
+		return;
+	}
+	if (!$from_net || (ValidateNetwork($from_net) != 0)) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine LAN information");
+		return;
+	}
+	if (!$from_version) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - could not determine Managed VPN version");
+		return;
+	}
+
+	$g_vpnlist{$connection}->{from_ip} = $from_ip;
+	$g_vpnlist{$connection}->{from_gw} = $from_gw;
+	$g_vpnlist{$connection}->{from_net} = $from_net;
+	$g_vpnlist{$connection}->{from_domain} = $from_domain;
+	$g_vpnlist{$connection}->{from_version} = $from_version;
+	$g_vpnlist{$connection}->{to_ip} = $to_ip;
+	$g_vpnlist{$connection}->{to_gw} = $to_gw;
+	$g_vpnlist{$connection}->{to_net} = $to_net;
+	$g_vpnlist{$connection}->{to_domain} = $to_domain;
+	$g_vpnlist{$connection}->{to_version} = $to_version;
+	$g_vpnlist{$connection}->{pinghost} = $pinghost;
+	$g_vpnlist{$connection}->{downcount} = 1;
+	$g_vpnlist{$connection}->{status} = $STATUS_INIT;
+
+	LogMsg("debug: local - IP: $from_ip") if $DEBUG;
+	LogMsg("debug: local - gateway: $from_gw") if $DEBUG;
+	LogMsg("debug: local - domain: $from_domain") if $DEBUG;
+	LogMsg("debug: local - LAN network: $from_net") if $DEBUG;
+	LogMsg("debug: local - VPN version: $from_version") if $DEBUG;
+	LogMsg(" info: $g_vpnlist{$connection}->{to_name} - ID $connection matches $to_domain");
+	LogMsg("debug: $g_vpnlist{$connection}->{to_name} - IP: $to_ip") if $DEBUG;
+	LogMsg("debug: $g_vpnlist{$connection}->{to_name} - gateway: $to_gw") if $DEBUG;
+	LogMsg("debug: $g_vpnlist{$connection}->{to_name} - domain: $to_domain") if $DEBUG;
+	LogMsg("debug: $g_vpnlist{$connection}->{to_name} - LAN network: $to_net") if $DEBUG;
+	LogMsg("debug: $g_vpnlist{$connection}->{to_name} - VPN version: $to_version") if $DEBUG;
+	LogMsg("debug: $g_vpnlist{$connection}->{to_name} - ping host: $pinghost") if $DEBUG;
+}
+
+
+###############################################################################
+#
+# DeleteConfig
+#
+###############################################################################
+
+sub DeleteConfig() {
+	LogMsg("debug: system - deleting stale config files") if $DEBUG;
+	`/bin/rm -f /etc/ipsec.d/ipsec.managed\.\* 2>/dev/null`;
+	`/bin/rm -f /etc/ipsec.managed\.\* 2>/dev/null`;
+}
+
+
+###############################################################################
+#
+# ConnectionCheckConfig
+#
+###############################################################################
+
+sub ConnectionCheckConfig($) {
+	my $connection = $_[0];
+	my $ignore;
+	my $from_ip;
+	my $from_gw;
+	my $from_net;
+	my $from_domain;
+	my $from_version;
+	my $to_ip;
+	my $to_gw;
+	my $to_net;
+	my $to_name;
+	my $to_domain;
+	my $to_version;
+	my $pinghost;
+
+	# TODO: make this a function (to be used by ConnectionGetConfig and ConnectionCheckConfig)
+	
+	LogMsg(" info: $g_vpnlist{$connection}->{to_name} - checking for changes in IP information");
+
+	# Check for config disappearing
+	#------------------------------
+
+	if (! -f "/etc/ipsec.d/ipsec.managed.vpnid$connection.conf") {
+		LogMsg(" info: $g_vpnlist{$connection}->{to_name} - configuration has been dropped.");
+		return $CONFIG_WASDELETED;
+	}
+
+	# Check for changes on remote system
+	#-----------------------------------
+
+	($to_ip, $to_gw, $pinghost, $to_net, $to_name, $to_domain, $to_version) = split(/ /, ConnectionGetRemoteConfig($g_vpnlist{$connection}->{to_id}, "to"));
+
+	if ((!$to_ip) || $to_ip ne $g_vpnlist{$connection}->{to_ip}) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - IP lookup mismatch $g_vpnlist{$connection}->{to_ip} ($to_ip)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$to_gw) || $to_gw ne $g_vpnlist{$connection}->{to_gw}) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - gateway lookup mismatch $g_vpnlist{$connection}->{to_gw} ($to_gw)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$to_net) || $to_net ne $g_vpnlist{$connection}->{to_net}) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - LAN network lookup mismatch: $g_vpnlist{$connection}->{to_net} ($to_net)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$to_version) || $to_version ne $g_vpnlist{$connection}->{to_version}) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - new version on remote site detected");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$pinghost) || $pinghost ne $g_vpnlist{$connection}->{pinghost}) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - Ping host lookup mismatch: $g_vpnlist{$connection}->{pinghost} ($pinghost)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	# Check for changes on local system (multi-WAN boxes can switch interfaces)
+	#----------------------------------
+
+	($from_ip, $from_gw, $ignore, $from_net, $ignore, $ignore, $from_version) = split(/ /, ConnectionGetRemoteConfig($g_vpnlist{$connection}->{from_id}, "from"));
+
+	if ((!$from_ip) || $from_ip ne $g_vpnlist{$connection}->{from_ip}) {
+		LogMsg(" warn: local - IP lookup mismatch $g_vpnlist{$connection}->{from_ip} ($from_ip)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$from_gw) || $from_gw ne $g_vpnlist{$connection}->{from_gw}) {
+		LogMsg(" warn: local - gateway lookup mismatch $g_vpnlist{$connection}->{from_gw} ($from_gw)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$from_net) || $from_net ne $g_vpnlist{$connection}->{from_net}) {
+		LogMsg(" warn: local - LAN network lookup mismatch: $g_vpnlist{$connection}->{from_net} ($from_net)");
+		return $CONFIG_MISMATCHED;
+	}
+
+	if ((!$from_version) || $from_version ne $g_vpnlist{$connection}->{from_version}) {
+		LogMsg(" warn: local - new version on remote site detected");
+		return $CONFIG_MISMATCHED;
+	}
+
+	return $CONFIG_OK;
+}
+
+
+###############################################################################
+#
+# ConnectionCheck: Check to see if all VPN connections are up
+#
+# Since this function is executed every minute or so, it should be short
+# and sweet on success.
+#
+###############################################################################
+
+sub ConnectionCheck($) {
+	my $connection = $_[0];
+	my $check;
+
+	if ($g_vpnlist{$connection}->{status} == $STATUS_OK) {
+		$check = MyPing($g_vpnlist{$connection}->{pinghost});
+		if ($check == 0) {
+			LogMsg("debug: $g_vpnlist{$connection}->{to_name} - ping check #1 to $g_vpnlist{$connection}->{pinghost} failed") if $DEBUG;
+			$g_vpnlist{$connection}->{status} = $STATUS_WARN;
+			$g_vpnlist{$connection}->{downcount} = 1;
+			WriteStatus($connection);
+			return $STATUS_WARN;
+		}
+	} elsif ($g_vpnlist{$connection}->{status} == $STATUS_WARN) {
+		$check = MyPing($g_vpnlist{$connection}->{pinghost});
+		if ($check == 0) {
+			LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - ping check #2 to $g_vpnlist{$connection}->{pinghost} failed");
+			$g_vpnlist{$connection}->{status} = $STATUS_DOWN;
+			$g_vpnlist{$connection}->{downcount} = 2;
+			WriteStatus($connection);
+			return $STATUS_DOWN;
+		} else {
+			LogMsg("debug: $g_vpnlist{$connection}->{to_name} - ping check #2 to $g_vpnlist{$connection}->{pinghost} ok") if $DEBUG;
+			$g_vpnlist{$connection}->{status} = $STATUS_OK;
+			$g_vpnlist{$connection}->{downcount} = 0;
+			WriteStatus($connection);
+			return $STATUS_OK;
+		}
+	} elsif ($g_vpnlist{$connection}->{status} == $STATUS_DOWN) {
+		$check = MyPing($g_vpnlist{$connection}->{pinghost});
+		if ($check == 0) {
+			$g_vpnlist{$connection}->{downcount} = $g_vpnlist{$connection}->{downcount} + 1;
+
+			# We do not want to keep reloading IPsec every 60 seconds forever.
+			# We use a simple throttling mechanism to reduce the number of retry attempts.
+			#-----------------------------------------------------------------------------
+
+			if ($g_vpnlist{$connection}->{downcount} > 3600) {
+				if (($g_vpnlist{$connection}->{downcount} % 60) == 0) {
+					LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, count $g_vpnlist{$connection}->{downcount}");
+					return $STATUS_DOWN;
+				} else {
+					LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, throttling reload (level 4)");
+					return $STATUS_THROTTLED;
+				}
+			} elsif ($g_vpnlist{$connection}->{downcount} > 120) {
+				if (($g_vpnlist{$connection}->{downcount} % 10) == 0) {
+					LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, count $g_vpnlist{$connection}->{downcount}");
+					return $STATUS_DOWN;
+				} else {
+					LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, throttling reload (level 3)");
+					return $STATUS_THROTTLED;
+				}
+			} elsif ($g_vpnlist{$connection}->{downcount} > 30) {
+				if (($g_vpnlist{$connection}->{downcount} % 3) == 0) {
+					LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, count $g_vpnlist{$connection}->{downcount}");
+					return $STATUS_DOWN;
+				} else {
+					LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, throttling reload (level 2)");
+					return $STATUS_THROTTLED;
+				}
+			} else {
+				LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - VPN connection is down, count $g_vpnlist{$connection}->{downcount}");
+				return $STATUS_DOWN;
+			}
+		} else {
+			LogMsg(" info: $g_vpnlist{$connection}->{to_name} - VPN connection is up! - $g_vpnlist{$connection}->{pinghost}");
+
+			$g_vpnlist{$connection}->{status} = $STATUS_OK;
+			$g_vpnlist{$connection}->{downcount} = 0;
+			WriteStatus($connection);
+			return $STATUS_OK;
+		}
+	} elsif ($g_vpnlist{$connection}->{status} == $STATUS_INIT) {
+		$check = MyPing($g_vpnlist{$connection}->{pinghost});
+		if ($check == 0) {
+			LogMsg("debug: $g_vpnlist{$connection}->{to_name} - ping check to $g_vpnlist{$connection}->{pinghost} failed") if $DEBUG;
+			$g_vpnlist{$connection}->{status} = $STATUS_DOWN;
+			$g_vpnlist{$connection}->{downcount} = 1;
+			WriteStatus($connection);
+			return $STATUS_DOWN;
+		} else {
+			LogMsg(" info: $g_vpnlist{$connection}->{to_name} - VPN connection is up! - $g_vpnlist{$connection}->{pinghost}");
+			$g_vpnlist{$connection}->{status} = $STATUS_OK;
+			$g_vpnlist{$connection}->{downcount} = 0;
+			WriteStatus($connection);
+			return $STATUS_OK;
+		}
+	}
+	return $STATUS_OK;
+}
+
+###############################################################################
+#
+# CheckWhitelistConfig
+# 
+###############################################################################
+
+sub CheckWhitelistConfig() {
+
+	# Bail if intrusion prevention is not installed
+	#----------------------------------------------
+
+	return if (! -e $IDSCONFIG);
+
+	# Check for auto-whitelist config
+	#--------------------------------
+
+	if (! open(CONFIG, "$IDSCONFIG")) {
+		LogMsg("error: system - could open $IDSCONFIG: $!");
+		return;
+	}
+
+	# Check to see if our auto-whitelist is already configured
+	#---------------------------------------------------------
+
+	my $match = 0;
+	while (<CONFIG>) {
+		$match = 1 if (/^include\s+$IDSPATH\/$IDSFILE/);
+	}
+	close(CONFIG);
+
+	if ($match) {
+		LogMsg("debug: system - intrusion prevention already configured") if $DEBUG;
+		return;
+	}
+
+	# Add our configuration
+	#----------------------
+
+	if (! open(CONFIG, ">>$IDSCONFIG")) {
+		LogMsg("error: system - could open $IDSCONFIG: $!");
+		return;
+	}
+
+	LogMsg(" info: system - configuring intrusion prevention auto-whitelist");
+	print CONFIG "include $IDSPATH/$IDSFILE\n";
+	close(CONFIG);
+}
+
+
+###############################################################################
+#
+# UpdateWhitelist
+# 
+# SnortSam does not have a "HUP" to reload configs.  We use a simple md5sum
+# to check when the file has really changed.
+#
+###############################################################################
+
+sub UpdateWhitelist() {
+	
+	# Bail if intrusion prevention is not installed
+	#----------------------------------------------
+
+	if (! -e $IDSCONFIG) {
+		LogMsg("debug: system - skipped intrusion prevention whitelist") if $DEBUG;
+		return;
+	}
+
+	# Bail if intrusion detection config directory is missing
+	#--------------------------------------------------------
+
+	if (! -d $IDSPATH) {
+		LogMsg("debug: system - skipped intrusion prevention whitelist") if $DEBUG;
+		return;
+	}
+
+	# Bail if md5sum is missing
+	#--------------------------
+
+	if (! -x $MD5SUMBIN) {
+		LogMsg("debug: system - unable to generate md5sum for intrusion prevention whitelist") if $DEBUG;
+		return;
+	}
+
+	# Create whitelist file
+	#----------------------
+
+	LogMsg(" info: system - updating intrusion prevention whitelist");
+
+	unlink("$IDSPATH/$IDSFILE") if (-e "$IDSPATH/$IDSFILE");
+	if (open(WHITELIST, ">$IDSPATH/$IDSFILE")) {
+		print WHITELIST "# This file is auto-generated by vpnwatchd\n";
+	} else {
+		LogMsg("error: system - could not write $IDSPATH/$IDSFILE: $!");
+		return;
+	}
+
+	# Write remote IPs to whitelist
+	#------------------------------
+
+	foreach my $connection (keys %g_vpnlist) {
+		if (
+		    (($g_vpnlist{$connection}->{status} == $STATUS_OK) || ($g_vpnlist{$connection}->{status} == $STATUS_INIT))
+		    )
+		{
+			print WHITELIST "dontblock $g_vpnlist{$connection}->{to_ip}\n";
+			LogMsg(" info: system - adding $g_vpnlist{$connection}->{to_ip} to intrusion prevention whitelist");
+		}
+	}
+	close(WHITELIST);
+
+	# Restart intrusion prevention system if file has changed (see note above)
+	#--------------------------------------------------------
+
+	my $newmd5 = `$MD5SUMBIN "$IDSPATH/$IDSFILE"`;
+	$newmd5 =~ s/\s+.*//;
+	chomp($newmd5);
+	LogMsg("debug: system - intrusion prevention whitelist md5sum (old/new) $IDSMD5/$newmd5") if $DEBUG;
+	if ($newmd5 ne $IDSMD5) {
+		LogMsg(" info: system - reloading intrusion prevention system");
+		$IDSMD5 = $newmd5;
+		`/etc/init.d/snortsam condrestart >/dev/null 2>&1`;
+	}
+}
+
+
+###############################################################################
+#
+# ConnectionWriteConfig
+#
+###############################################################################
+
+sub ConnectionWriteConfig($) {
+	my $connection = $_[0];
+	my $file_conf;
+	my $left;
+	my $leftnexthop;
+	my $leftsubnet;
+	my $right;
+	my $rightnexthop;
+	my $rightsubnet;
+	my $connname;
+
+	if ($g_vpnlist{$connection}->{status} == $STATUS_INVALID) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - not enough info to write config file");
+		return;
+	}
+
+	$connname = $g_vpnlist{$connection}->{to_name};
+
+	LogMsg(" info: $g_vpnlist{$connection}->{to_name} - updating configuration file");
+
+	# Left and right are arbitrary designations... so we'll sort by ID to
+	# determine which is which.
+
+	if ($g_vpnlist{$connection}->{from_domain} lt $g_vpnlist{$connection}->{to_domain}) {
+		$left         = $g_vpnlist{$connection}->{from_ip};
+		$leftnexthop  = $g_vpnlist{$connection}->{from_gw};
+		$leftsubnet   = $g_vpnlist{$connection}->{from_net};
+		$right        = $g_vpnlist{$connection}->{to_ip};
+		$rightnexthop = $g_vpnlist{$connection}->{to_gw};
+		$rightsubnet  = $g_vpnlist{$connection}->{to_net};
+	} else {
+		$left         = $g_vpnlist{$connection}->{to_ip};
+		$leftnexthop  = $g_vpnlist{$connection}->{to_gw};
+		$leftsubnet   = $g_vpnlist{$connection}->{to_net};
+		$right        = $g_vpnlist{$connection}->{from_ip};
+		$rightnexthop = $g_vpnlist{$connection}->{from_gw};
+		$rightsubnet  = $g_vpnlist{$connection}->{from_net};
+	}
+
+	#--------------------------
+	# New style config (iproute2)
+	#----------------------------
+
+	LogMsg(" info: $g_vpnlist{$connection}->{to_name} - using iproute style configuration");
+	$file_conf =<<EOF;
+# This file is automatically created by the VPN watch software.
+# Do not modify!
+#
+# connection = $g_vpnlist{$connection}->{from_id} ($g_vpnlist{$connection}->{from_ip}) -> $g_vpnlist{$connection}->{to_id} ($g_vpnlist{$connection}->{to_ip})
+#
+conn vpn-$connname-lan-to-lan
+	left=$left
+	leftnexthop=$leftnexthop
+	leftsubnet=$leftsubnet
+	right=$right
+	rightnexthop=$rightnexthop
+	rightsubnet=$rightsubnet
+EOF
+
+	# Write files... lots of sanity checks
+	#-------------------------------------
+
+	if (open(TMP, ">/tmp/ipsec.managed.vpnid$connection.conf")) {
+		print TMP $file_conf;
+		close(TMP);
+	} else {
+		LogMsg("error: $g_vpnlist{$connection}->{to_name} - could not open /tmp/ipsec.managed.vpnid$connection.conf: $!");
+		return;
+	}
+
+	if (open(TMP, ">/tmp/ipsec.managed.vpnid$connection.secrets")) {
+		print TMP "$left $right : PSK $g_vpnlist{$connection}->{secret}\n";
+		close(TMP);
+	} else {
+		LogMsg("error: $g_vpnlist{$connection}->{to_name} - could not open /tmp/ipsec.managed.vpnid$connection.secrets: $!");
+		return;
+	}
+
+	system("mv /tmp/ipsec.managed.vpnid$connection.conf /etc/ipsec.d/ipsec.managed.vpnid$connection.conf");
+	system("mv /tmp/ipsec.managed.vpnid$connection.secrets /etc/ipsec.d/ipsec.managed.vpnid$connection.secrets");
+}
+
+
+###############################################################################
+#
+# IpsecRestart
+#
+###############################################################################
+
+sub IpsecRestart() {
+	my $atboot = `/bin/ls /etc/rc3.d/S*ipsec 2>/dev/null`;
+	if (!$atboot) {
+		LogMsg(" info: system - IPsec not set to run at boot... auto-restart skipped");
+		return;
+	}
+
+	LogMsg(" info: system - stopping IPsec");
+	`/etc/init.d/ipsec stop >/dev/null 2>&1`;
+	sleep 10;
+
+	while (GetWanStatus() == $STATUS_DOWN) {
+		LogMsg("debug: system - waiting for Internet connection...") if $DEBUG;
+		sleep 20;
+	}
+
+	LogMsg(" info: system - starting IPsec");
+	`/etc/init.d/ipsec start >/dev/null &`;
+	sleep 10;
+	return;
+}
+
+
+###############################################################################
+#
+# ConnectionRestart
+#
+###############################################################################
+
+sub ConnectionRestart($) {
+	my $connection = $_[0];
+	my @tunnels;
+
+	# Only restart valid connections
+	#-------------------------------
+
+	if ($g_vpnlist{$connection}->{status} == $STATUS_INVALID) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - not enough info to restart");
+		return;
+	}
+
+	# See if IPsec is running!
+	#-------------------------
+
+	my $isup = `/sbin/pidof pluto`;
+	chomp($isup);
+	if (!$isup) {
+		LogMsg(" warn: $g_vpnlist{$connection}->{to_name} - detected IPsec is not running properly");
+		IpsecRestart();
+		return;
+	}
+
+	# Ok... it's running, so we gently restart our connection
+	#--------------------------------------------------------
+
+	my @rawtunnels;
+	@rawtunnels = `/bin/grep "^conn " /etc/ipsec.d/ipsec.managed.vpnid$connection.conf 2>/dev/null`;
+
+	foreach my $tunnel (@rawtunnels) {
+		$tunnel =~ s/conn\s*//g;
+		if ($tunnel =~ /^([\w\.\-]+)$/) {
+			$tunnel = $1; 
+			chomp($tunnel);
+			push(@tunnels, $tunnel);
+		} else {
+			LogMsg("error: $g_vpnlist{$connection}->{to_name} - could not parse name of tunnel");
+			return;
+		}
+	}
+
+	# Re-read secrets
+	`$IPSECBIN auto --rereadsecrets`; # Reread secrets
+
+	LogMsg(" info: $g_vpnlist{$connection}->{to_name} - restarting VPN tunnels");
+	my @actions = ('--down', '--unroute', '--replace', '--asynchronous --up', '--route');
+	foreach my $action (@actions) {
+		foreach my $tunnel (@tunnels) {
+			`$IPSECBIN auto $action $tunnel`; 
+			LogMsg("debug: $g_vpnlist{$connection}->{to_name} - tunnel $action $tunnel") if $DEBUG;
+		}
+	}
+
+	return;
+}
+
+
+###############################################################################
+#
+# LogMsg
+#
+###############################################################################
+
+sub LogMsg($) {
+	syslog('info', $_[0]);
+}
+
+
+###############################################################################
+#
+# Signal catchers
+#
+###############################################################################
+
+sub SigtermCatcher() {
+	LogMsg(" info: system - terminated");
+	WriteStatus($ALL_CONNECTIONS_DISABLED);
+	unlink($PIDFILE);
+	closelog();
+	exit 0;
+}
+
+sub SighupCatcher() {
+	LogMsg(" info: system - reloading VPN configuration");
+	SendNetInfo();
+	$g_reload = $CONFIG_TAKE_ACTION;
+	$g_rereadcfg = $CONFIG_TAKE_ACTION;
+}
+
+
+###############################################################################
+#
+# MyPing
+#
+# - Problem: A regular ping will **hang** on a regular ICMP ping() when there 
+#   is a "resource unavailable" error (EAGAIN).
+#
+# - Solution: We do a SYN ping() first, and check the error.  This is more
+#   overhead, but that's life.
+#
+# - Note: do not use a global scope for the synping variable.
+#
+###############################################################################
+
+sub MyPing($) {
+	my $ip = $_[0];
+	my $synackerr;
+	my $synping = Net::Ping->new("syn");
+
+	setlocale(LC_ALL, "en_US");
+
+	$synping->service_check(1);
+	$synping->ping($ip, 3);
+	$synping->ack($ip);
+	$synackerr = $synping->nack($ip);
+
+	if ($synackerr && ($synackerr =~ /Resource temporarily unavailable/i)) {
+		LogMsg("debug: system - $ip - SYN ACK returned resource unavailable") if $DEBUG;
+		return 0;
+	} else {
+		my $check = $g_ping->ping($ip, 3);
+		LogMsg("debug: system - $ip - ping returned $check") if $DEBUG;
+		return $check;
+	}
+}
+
+
+###############################################################################
+#
+# GetWanStatus
+#
+###############################################################################
+
+sub GetWanStatus() {
+
+	# Use ifconfig if syswatch does not have WAN interface status information
+	
+	if (! -e $SYSWATCHSTATE) {
+		LogMsg(" warn: system - syswatch network status unavailable");
+		my $iface = $EXTIF;
+		$iface = $VPNIF if ($VPNIF);
+
+		my $ifconfig = `LANG=en_US /sbin/ifconfig $iface 2>/dev/null`;
+		if ($ifconfig) {
+			return $STATUS_OK;
+		} else {
+			return $STATUS_DOWN;
+		}
+	} else {
+		my $active_wans = GetWanList();
+
+		if ($active_wans) {
+			if ($g_active_wans eq "startup") {
+				LogMsg("debug: system - active WAN interfaces initialized - $active_wans") if $DEBUG;
+				$g_active_wans = $active_wans;
+				return $STATUS_INIT;
+			} elsif ($active_wans ne $g_active_wans) {
+				LogMsg(" info: system - active WAN interface changed - $active_wans (was $g_active_wans)");
+				$g_active_wans = $active_wans;
+				return $STATUS_CHANGED;
+			}
+			LogMsg("debug: system - active WAN interfaces unchanged") if $DEBUG;
+			return $STATUS_OK;
+		} else {
+			return $STATUS_DOWN;
+		}
+	}
+}
+
+###############################################################################
+#
+# GetWanList
+#
+###############################################################################
+
+sub GetWanList() {
+	return "" if (! open(STATE, "$SYSWATCHSTATE"));
+
+	my $active_wans = "";
+
+	while(<STATE>) {
+		if (/SYSWATCH_WANIF=/) {
+			$active_wans = $_;	
+			$active_wans =~ s/SYSWATCH_WANIF=//;
+			$active_wans =~ s/"//g;
+			$active_wans =~ s/\s+$//g;
+			last;
+		}
+	}
+
+	close(STATE);
+
+	return $active_wans;
+}
+
+###############################################################################
+#
+# ConnectionGetRemoteConfig
+#
+###############################################################################
+
+sub ConnectionGetRemoteConfig($$) {
+	my $id = $_[0];
+	my $type = $_[1];
+	my $payload;
+	my $logger;
+	my $useragent = new LWP::UserAgent;
+
+	my $hostkey = `/bin/grep -m 1 "^[[:space:]]*<hostkey" /etc/suvad.conf | /bin/sed 's/^[[:space:]]*<hostkey>//' | /bin/sed 's/<.hostkey>.*//'`;
+	chomp($hostkey);
+
+	if (! $hostkey) {
+		LogMsg(" info: local - Using old suva configuration format");
+		$hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[;"]//g'`;
+		chomp($hostkey);
+	}
+
+	my $vendor = `/bin/cat /usr/share/system/settings/vendor 2>/dev/null | /bin/sed 's/.*=[[:space:]]*//'`; # hack
+	chomp($vendor);
+	my $post = "?hostkey=$hostkey&action=getinfobyid&id=$id&vendor=$vendor";
+
+	if (($type eq "to") && ($g_vpnlist{$id} && $g_vpnlist{$id}->{to_name})) {
+		$logger = $g_vpnlist{$id}->{to_name};
+	} elsif ($type eq "from") {
+		$logger = "local";
+	} else {
+		$logger = "VPN ID $id";
+	}
+
+	LogMsg(" info: $logger - retrieving VPN info from SDN");
+	$useragent->timeout(20);
+
+	foreach my $sdn (@SDNSERVERS) {
+		my $request = new HTTP::Request(GET => "$sdn/ipsec.php" . $post);
+		my $result = $useragent->request($request);
+		if ($result->is_success) {
+			$payload = $result->content;
+			chomp($payload);
+			if (!($payload =~ /exit_code\|\d+\|/)) {
+				LogMsg("debug: $logger - SDN $sdn: invalid payload") if $DEBUG;
+			} elsif ($payload =~ /exit_code\|0\|/) {
+				$payload =~ s/exit_code\|0\|.*\n//g;
+				$payload =~ s/\|/ /g;
+				LogMsg(" info: $logger - SDN returned network settings");
+				return $payload;
+			} else {
+				$payload =~ s/exit_code\|\d+\|//g;
+				LogMsg("debug: $logger - SDN $sdn: $payload") if $DEBUG;
+			}
+		} else {
+			LogMsg("debug: $logger - SDN $sdn: " . $result->status_line) if $DEBUG;
+		}
+	}
+
+	LogMsg(" warn: $logger - SDN did not return any information");
+	return "none";
+}
+
+
+###############################################################################
+#
+# SendNetInfo
+#
+###############################################################################
+
+sub SendNetInfo() {
+	LogMsg(" info: system - sending IP info to SDN");
+	if (-f "/usr/sbin/vpnupdate") {
+		`/usr/sbin/vpnupdate >/dev/null &`;
+	}
+}
+
+###############################################################################
+#
+# CheckRoutes 
+#
+###############################################################################
+
+sub CheckRoutes() {
+
+	# In a multiwan environment, we have to make sure the IPsec routing
+	# changes have appeared in the multiwan routing tables.
+	# The routing table on WAN1 should be the same as the default
+	# routing table... except for the default route.
+
+	my $wan_list = GetWanList();
+
+	# Bail, no WANs
+	return if (! $wan_list);
+
+	# Bail, no multiwan
+	my (@wan_interfaces) = split(/ /, $wan_list);
+	return if $#wan_interfaces < 1;
+
+	my $wan1_route = `/sbin/ip route show table 100 | /bin/sort`;
+	my $default_route = `/sbin/ip route | /bin/sort`;
+LogMsg(" info: system - test123 $wan1_route");
+LogMsg(" info: system - test123 $default_route");
+
+	$default_route =~ s/default.*//g;
+	$wan1_route =~ s/default.*//g;
+
+	if ($wan1_route ne $default_route) {
+		LogMsg(" info: system - detected routing change");
+		system("$FIREWALLRESTART");
+	}
+}
+
+###############################################################################
+#
+# Data validation routines
+#
+###############################################################################
+
+sub ValidateId($) {
+	my $id = $_[0];
+
+	return 0 if ($id =~ /^([0-9]+)$/);
+	return 1;
+}
+
+sub ValidateURL($) {
+	my $url = $_[0];
+
+	return 0 if ($url =~ /^([0-9a-zA-Z\.\-_]+)$/);
+	return 1;
+}
+
+sub ValidateNetwork($) {
+	my $network =  $_[0];
+	my (@parts) = split(/\//, $network);
+
+	return 1 if ($#parts != 1);
+	return 1 if ($parts[1] =~ /\D/);
+	return ValidateIP($parts[0]);
+}
+
+sub ValidateIP($) {
+	my $ip =  $_[0];
+	my (@parts) = split(/\./, $ip);
+	my $part;
+
+	return 1 if ($#parts != 3);
+
+	foreach $part (@parts) {
+		return 1 if ($part =~ /\D/);
+		return 1 if (($part > 255) || ($part < 0));
+	}
+
+	return 0;
+}

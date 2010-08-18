@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# dhcptest
+# --------
+# 
+# Test DNSMASQ.CONF for DHCP server collisions 
+# (i.e. another DHCP server existing on the same interface).
+#
+#
+# Requires: mktemp
+# Requires: dhcping
+#
+# Changelog:
+# ----------
+#	13 May 2005 - initial release
+#
+IPTABLES="/sbin/iptables" || exit 1
+DHCPING="/usr/bin/dhcping" || exit 1
+TMP=`mktemp /tmp/dhcptest.XXXXXXXXX` || exit 1
+CFG='/etc/dnsmasq.conf'
+if [ -r $CFG ]; then
+	for ETH in `grep "interface=" $CFG | gawk -F=  '{print $2}'`
+	do
+		$IPTABLES -I INPUT -i ! $ETH -d 255.255.255.255 -j REJECT
+		$IPTABLES -I INPUT -i $ETH -d 255.255.255.255 -j ACCEPT
+		RESULT=`$DHCPING  -s 255.255.255.255 2>/dev/null`
+		if ! [ -z "$RESULT" ]; then
+			echo "$ETH:$RESULT" >> $TMP
+		fi
+		$IPTABLES -D INPUT -i ! $ETH -d 255.255.255.255 -j REJECT
+		$IPTABLES -D INPUT -i $ETH -d 255.255.255.255 -j ACCEPT
+	done
+	if [ -s $TMP ]; then
+		cat $TMP
+		rm $TMP
+		exit 2
+	fi
+else
+	exit 1
+fi
+rm $TMP
+exit 0

@@ -1,0 +1,103 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-pptpd
+Version: %VERSION%
+Release: %RELEASE%
+Summary: PPTP VPN server module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: kernel >= 2.6.9
+Requires: ppp >= 2.4.3-14
+Requires: pptpd >= 1.3.0
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-pptpd
+Obsoletes: cc-pptpd
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+PPTP VPN server module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/ppp
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/pptpd
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
+
+install -m 600 options.ldap $RPM_BUILD_ROOT/etc/ppp/
+install -m 644 ppp.options.ldap.template $RPM_BUILD_ROOT/etc/openldap/templates
+install -m 644 options.pptpd $RPM_BUILD_ROOT/usr/share/system/modules/pptpd/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/pptpd/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-pptpd - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-pptpd - disabling on boot"
+	chkconfig --level 2345 pptpd off
+
+	TIMESTAMP=`date "+%b-%d-%Y-%T"`
+	logger -p local6.notice -t installer "app-pptpd - installing default configuration"
+	cp -a /etc/ppp/options.pptpd /usr/share/system/modules/pptpd/options.pptpd.$TIMESTAMP
+	cp /usr/share/system/modules/pptpd/options.pptpd /etc/ppp/options.pptpd
+fi
+
+/usr/share/system/modules/pptpd/upgrade
+
+logger -p local6.notice -t installer "app-pptpd - synchronizing with LDAP"
+/usr/sbin/ldapsync config pptpd >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-pptpd - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/etc/openldap/templates/ppp.options.ldap.template
+/usr/share/system/modules/pptpd/upgrade
+/usr/share/system/modules/pptpd/options.pptpd
+/var/webconfig/
+%config(noreplace) /etc/ppp/options.ldap

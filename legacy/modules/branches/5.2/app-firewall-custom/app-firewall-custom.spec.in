@@ -1,0 +1,76 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-firewall-custom
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Firewall - custom rules
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: ClearFoundation
+Packager: ClearFoundation
+Requires: app-setup >= %VERSION%
+Requires: app-webconfig >= %VERSION%
+Requires: app-firewall >= %VERSION% 
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Firewall - custom rules
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/rc.d
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 755 rc.firewall.custom $RPM_BUILD_ROOT/etc/rc.d/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-firewall-custom - installing"
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-firewall-custom - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/rc.d/rc.firewall.custom
+/var/webconfig

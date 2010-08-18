@@ -1,0 +1,57 @@
+# This is the configuration file for the syswatch daemon
+# ** no extra spaces please **
+#------------------------------------------------------------------------------
+
+# Connection type
+# - values: dhcp, static, or pppoe
+
+#conntype=dhcp
+
+
+# Server type
+# - values: gateway, onlan
+
+#servtype=onlan
+
+
+# Heartbeat
+# - Number of times we ping between writing a "heartbeat" in the log file
+# - default: 10
+
+#heartbeat=10
+
+
+# Retries
+# - Number of times we should ping before we call the network "down" 
+# - default: 5 
+
+#retries=5
+
+
+# Ping interval
+# - Interval time (in seconds) between test pings
+# - default: 60
+
+#interval=60
+
+
+# Failed interval
+# - Time (in seconds) between pings when Internet is down
+# - default: 15
+
+#failedinterval=15
+
+
+# Firewall
+# - Command that restarts the firewall
+# - default: "/etc/rc.d/init.d/firewall restart >/dev/null"
+
+#firewall="/etc/rc.d/init.d/firewall restart >/dev/null"
+
+
+# Ping servers
+# - The syswatch daemon by default will just ping the next hop on the Internet
+#   and another device.  You can override this with a comma separated list of 
+#   2 servers.
+
+#ping_servers=111.222.333.444,555.666.777.888

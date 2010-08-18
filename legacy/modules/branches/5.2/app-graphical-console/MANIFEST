@@ -1,0 +1,2 @@
+include ./xinitrc
+include ./bash_profile

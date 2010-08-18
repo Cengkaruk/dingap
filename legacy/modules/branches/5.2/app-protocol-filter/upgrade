@@ -1,0 +1,66 @@
+#!/usr/webconfig/bin/php -q
+<?
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2006-2008 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+require_once($BASEDIR . "/api/Layer7Filter.class.php");
+
+
+$ipp2p_xlate = array(
+                   Layer7Filter::IPP2P_EDK => 'edonkey',
+                   Layer7Filter::IPP2P_KAZAA => 'fasttrack',
+                   Layer7Filter::IPP2P_GNU => 'gnutella',
+                   Layer7Filter::IPP2P_DC => 'directconnect',
+                   Layer7Filter::IPP2P_BIT => 'bittorrent',
+                   Layer7Filter::IPP2P_APPLE => 'applejuice',
+                   Layer7Filter::IPP2P_WINMX => 'napster',
+                   Layer7Filter::IPP2P_SOUL => 'soulseek',
+                   Layer7Filter::IPP2P_ARES => 'ares'
+               );
+
+$layer7 = new Layer7Filter();
+$layer7->GetProtocols($groups, $patterns);
+
+$firewall = new Firewall();
+$rules = $firewall->GetRules();
+
+foreach ($rules as $rule) {
+	if (!($rule->GetFlags() & Layer7Filter::IPP2P)) 
+		continue;
+
+	foreach ($ipp2p_xlate as $network => $protocol) {
+		if (!$rule->IsEnabled() ||
+		        !($rule->GetFlags() & FirewallRule::INCOMING_BLOCK) ||
+		        !($rule->GetFlags() & $network))
+			 continue;
+
+		$layer7->EnableProtocol($patterns, $protocol);
+		break;
+	}
+
+	$firewall->DeleteRule($rule);
+}
+
+// vi: ts=4
+?>

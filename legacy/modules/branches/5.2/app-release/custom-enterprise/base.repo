@@ -1,0 +1,84 @@
+[base-os]
+name=ClearOS Enterprise 5.2 - OS
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2
+		http://download1.clearfoundation.com/clearos/enterprise/5.2
+		http://download2.clearfoundation.com/clearos/enterprise/5.2
+		http://download3.clearfoundation.com/clearos/enterprise/5.2
+		http://download4.clearfoundation.com/clearos/enterprise/5.2
+gpgcheck=1
+
+[base-console]
+name=ClearOS Enterprise 5.2 - Console
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2/console
+		http://download1.clearfoundation.com/clearos/enterprise/5.2/console
+		http://download2.clearfoundation.com/clearos/enterprise/5.2/console
+		http://download3.clearfoundation.com/clearos/enterprise/5.2/console
+		http://download4.clearfoundation.com/clearos/enterprise/5.2/console
+gpgcheck=1
+
+[base-updates]
+name=ClearOS Enterprise 5.2 - Updates
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2/updates
+		http://download1.clearfoundation.com/clearos/enterprise/5.2/updates
+		http://download2.clearfoundation.com/clearos/enterprise/5.2/updates
+		http://download3.clearfoundation.com/clearos/enterprise/5.2/updates
+		http://download4.clearfoundation.com/clearos/enterprise/5.2/updates
+gpgcheck=1
+
+[base-supplements]
+name=ClearOS Enterprise 5.2 - Supplements
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2/supplements
+		http://download1.clearfoundation.com/clearos/enterprise/5.2/supplements
+		http://download2.clearfoundation.com/clearos/enterprise/5.2/supplements
+		http://download3.clearfoundation.com/clearos/enterprise/5.2/supplements
+		http://download4.clearfoundation.com/clearos/enterprise/5.2/supplements
+gpgcheck=1
+
+[base-kernels]
+name=ClearOS Enterprise 5.2 - Kernels
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2/kernels
+		http://download1.clearfoundation.com/clearos/enterprise/5.2/kernels
+		http://download2.clearfoundation.com/clearos/enterprise/5.2/kernels
+		http://download3.clearfoundation.com/clearos/enterprise/5.2/kernels
+		http://download4.clearfoundation.com/clearos/enterprise/5.2/kernels
+gpgcheck=1
+
+[base-extras]
+name=ClearOS Enterprise 5.2 - Extras
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2/extras
+		http://download1.clearfoundation.com/clearos/enterprise/5.2/extras
+		http://download2.clearfoundation.com/clearos/enterprise/5.2/extras
+		http://download3.clearfoundation.com/clearos/enterprise/5.2/extras
+		http://download4.clearfoundation.com/clearos/enterprise/5.2/extras
+gpgcheck=1
+enabled=0
+
+[base-plus]
+name=ClearOS Enterprise 5.2 - Plus
+baseurl=http://download.clearfoundation.com/clearos/enterprise/5.2/plus
+		http://download1.clearfoundation.com/clearos/enterprise/5.2/plus
+		http://download2.clearfoundation.com/clearos/enterprise/5.2/plus
+		http://download3.clearfoundation.com/clearos/enterprise/5.2/plus
+		http://download4.clearfoundation.com/clearos/enterprise/5.2/plus
+gpgcheck=1
+enabled=0
+
+[clearcentos-os]
+name=ClearOS 5.x - Minified CentOS - OS
+baseurl=http://download.clearfoundation.com/clearcentos/5/os
+		http://download1.clearfoundation.com/clearcentos/5/os
+		http://download2.clearfoundation.com/clearcentos/5/os
+		http://download3.clearfoundation.com/clearcentos/5/os
+		http://download4.clearfoundation.com/clearcentos/5/os
+gpgcheck=1
+enabled=1
+
+[clearcentos-updates]
+name=ClearOS 5.x - Minified CentOS - Updates
+baseurl=http://download.clearfoundation.com/clearcentos/5/updates
+		http://download1.clearfoundation.com/clearcentos/5/updates
+		http://download2.clearfoundation.com/clearcentos/5/updates
+		http://download3.clearfoundation.com/clearcentos/5/updates
+		http://download4.clearfoundation.com/clearcentos/5/updates
+gpgcheck=1
+enabled=1

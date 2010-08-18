@@ -1,0 +1,13 @@
+locale samba api/lang
+include api/Nmbd.class.php
+include api/Samba.class.php
+include api/Winbind.class.php
+include smb.conf
+include smb.ldap.conf.template
+include smb.winbind.conf.template
+include add-windows-groupinfo
+include add-samba-directories
+include upgrade
+include upgrade-api
+include upgrade-4xsamba
+include samba-add-machine

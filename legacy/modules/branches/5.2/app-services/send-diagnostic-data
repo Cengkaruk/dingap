@@ -1,0 +1,202 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2009 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This is just a quick hack for version 5.1 to get a better understanding
+// of what kind of hardware is out there.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+// Disable
+exit(0);
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+require_once($BASEDIR . "/api/Diagnostics.class.php");
+require_once($BASEDIR . "/api/Firewall.class.php");
+require_once($BASEDIR . "/api/IfaceManager.class.php");
+require_once($BASEDIR . "/api/Mailer.class.php");
+require_once($BASEDIR . "/api/Register.class.php");
+require_once($BASEDIR . "/api/ShellExec.class.php");
+
+$report = "";
+$break = "########################################################################\n";
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// See if diagnostics is enabled
+//
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$register = new Register();
+	$state = $register->GetDiagnosticsState();
+} catch (Exception $e) {
+}
+
+if (! $state)
+	exit(0);
+
+try {
+	$diagnostics = new Diagnostics();
+	$statusinfo = $diagnostics->GetSubscriptionStatus(true);
+} catch (Exception $e) {
+}
+
+if (! (isset($statusinfo['subscribed']) && $statusinfo['subscribed']))
+	exit(0); 
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Directory and General 
+//
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	require_once($BASEDIR . "/api/Suva.class.php");
+
+	$suva = new Suva();
+	$hostkey = $suva->GetHostkey();
+
+	$report .= "\n# General\n$break";
+	$report .= "Hostkey: $hostkey\n";	
+} catch (Exception $e) {
+}
+
+try {
+	if (file_exists($BASEDIR . "/api/UserManager.class.php")) {
+		require_once($BASEDIR . "/api/UserManager.class.php");
+		$usermanager = new UserManager();
+		$allusers = 
+		$usercount = count($usermanager->GetAllUsers());
+	} else {
+		$usercount = 0;
+	}
+
+	$report .= "Number of users: $usercount\n";
+} catch (Exception $e) {
+}
+
+try {
+	require_once($BASEDIR . "/api/DaemonManager.class.php");
+	$daemons = new DaemonManager();
+	$statusdata = $daemons->GetStatusData();
+
+	foreach ($statusdata as $daemon => $info) {
+		$installed = (isset($info['installed']) && $info['installed']) ? "yes" : "no";
+		$running = (isset($info['running']) && $info['running']) ? "yes" : "no";
+		$report .= "Daemon: $daemon @ $installed|$running\n";
+	}
+} catch (Exception $e) {
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Network
+//
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$report .= "\n# Network\n$break";
+
+	$ifaces = new IfaceManager();
+	$ifacelist = $ifaces->GetInterfaceDetails();
+
+	foreach ($ifacelist as $iface => $ifaceinfo) {
+		$configured = isset($ifaceinfo['ifcfg']['device']) ? "yes" : "no";
+		$role = isset($ifaceinfo['role']) ? $ifaceinfo['role'] : "";
+		$speed = isset($ifaceinfo['speed']) ? $ifaceinfo['speed'] : "";
+		$report .= "Network interface: $iface @ $configured|$role|$speed\n";
+	}
+} catch (Exception $e) {
+}
+
+try {
+	$firewall = new Firewall();
+
+	$mode = $firewall->GetMode();
+	$report .= "Firewall Mode: $mode\n";
+} catch (Exception $e) {
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Hardware
+//
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$shell = new ShellExec();
+	$shell->Execute('/bin/df', '');
+
+	$report .= "\n# Hard disk\n$break";
+	$report .= implode("\n", $shell->GetOutput());
+
+	$shell = new ShellExec();
+	$shell->Execute('/sbin/lspci', '');
+
+	$report .= "\n# Hardware\n$break";
+	$report .= implode("\n", $shell->GetOutput());
+} catch (Exception $e) {
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Send It
+//
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$mailer = new Mailer();
+
+	$mailer->SetSubject("ClearOS Hardware Data");
+	$mailer->SetSender("diagnostics@mailgateway.clearsdn.com");
+	$mailer->AddRecipient("diagnostics@mailgateway.clearsdn.com");
+	$mailer->SetBody($report);
+	$mailer->SetSmtpHost("mailgateway.clearsdn.com");
+	$mailer->SetSmtpPort(443);
+	$mailer->Send();
+} catch (Exception $e) {
+}
+
+// Add new update time in cron
+//----------------------------
+
+try {
+	// Address PHP's strict date() time zone warning
+	$ntptime = new NtpTime();
+	date_default_timezone_set($ntptime->GetTimeZone());
+
+	$cronentry = rand(0,59) . " " . rand(0,23) . " 1 * * root /usr/sbin/send-diagnostic-data >/dev/null 2>&1\n";
+	$cron = new Cron();
+
+	if ($cron->ExistsCrondConfiglet("app-services-diagnostics"))
+		$cron->DeleteCrondConfiglet("app-services-diagnostics");
+
+	$cron->AddCrondConfiglet("app-services-diagnostics", $cronentry);
+} catch (Exception $e) {
+}
+
+?>

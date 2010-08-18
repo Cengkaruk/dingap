@@ -1,0 +1,7 @@
+menu htdocs/menus/mediatomb
+locale mediatomb htdocs/admin/lang
+include api/MediaTomb.class.php
+include htdocs/admin/mediatomb.php
+include htdocs/images/icons/16x16/icon-mediatomb.png
+include htdocs/images/icons/32x32/icon-mediatomb.png
+include ./config.xml

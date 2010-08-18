@@ -1,0 +1,32 @@
+#!/bin/bash
+# $Id: subst,v 1.2 2004/09/17 03:36:06 devel Exp $
+
+SETCOLOR_SUCCESS="echo -en \\033[1;32m"
+SETCOLOR_FAILURE="echo -en \\033[1;31m"
+SETCOLOR_WARNING="echo -en \\033[1;33m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+if [ "$#" != "3" ]; then
+	$SETCOLOR_FAILURE
+	echo "$0 <CONFIG> <INPUT> <OUTPUT>"
+	$SETCOLOR_NORMAL
+	exit 1
+fi
+
+$SETCOLOR_WARNING
+
+EXPR=
+LINES=`cat $1`
+for LINE in $LINES; do
+	KEY=`echo $LINE | cut -d '=' -f1`
+	VALUE=`echo $LINE | cut -d '=' -f2`
+	EXPR="-e s#%$KEY%#$VALUE#g $EXPR"
+done
+
+sed $EXPR $2 > $3
+
+$SETCOLOR_NORMAL
+
+exit $?
+
+# vi: ts=4

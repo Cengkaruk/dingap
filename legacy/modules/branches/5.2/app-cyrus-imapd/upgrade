@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Upgrade using Dovecot settings
+#-------------------------------
+
+CHECK=`ls /etc/rc3.d/S*dovecot 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-cyrus-imapd - enabling mail server based on Dovecot settings"
+	/sbin/chkconfig --add cyrus-imapd >/dev/null 2>&1
+	/sbin/chkconfig --level 2345 cyrus-imapd on >/dev/null 2>&1
+
+	if [ -e /etc/rc.d/init.d/dovecot ]; then
+		logger -p local6.notice -t installer "app-cyrus-imapd - disabling Dovecot mail"
+		/sbin/service dovecot stop >/dev/null 2>&1
+		/sbin/chkconfig --del dovecot >/dev/null 2>&1
+	fi
+
+	if [ -e /etc/dovecot.conf ]; then
+		logger -p local6.notice -t installer "app-cyrus-imapd - migrating Dovecot settings"
+		PROTOCOLS=`grep "^protocols[[:space:]]*=[[:space:]]*" /etc/dovecot.conf 2>/dev/null | sed 's/protocols.*=//'`
+		/usr/share/system/modules/cyrus-imapd/cyrusadmin "$PROTOCOLS" >/dev/null 2>&1
+	fi
+fi
+
+# Add default SSL certs
+#----------------------
+
+umask 0177
+
+if [ ! -e /etc/imapd.d/key.pem ]; then
+	if [ -e /etc/ssl/private/sys-0-key.pem ]; then
+		logger -p local6.notice -t installer "app-cyrus-imapd - copying system SSL key"
+		cp -a /etc/ssl/private/sys-0-key.pem /etc/imapd.d/key.pem
+	else
+		logger -p local6.notice -t installer "app-cyrus-imapd - creating default SSL key"
+		/usr/bin/openssl genrsa -out /etc/imapd.d/key.pem 2048 2>/dev/null
+	fi
+fi
+
+if [ ! -e /etc/imapd.d/cert.pem ]; then
+	if [ -e /etc/ssl/sys-0-cert.pem ]; then
+		logger -p local6.notice -t installer "app-cyrus-imapd - copying default SSL certificate"
+		cp -a /etc/ssl/sys-0-cert.pem /etc/imapd.d/cert.pem
+	else
+		logger -p local6.notice -t installer "app-cyrus-imapd - creating default SSL certificate"
+		/usr/bin/openssl req -new -key /etc/imapd.d/key.pem -x509 -out /etc/imapd.d/cert.pem -config /etc/system/openssl.cnf -days 3000 2>/dev/null
+	fi
+fi
+
+chmod 0600 /etc/imapd.d/key.pem /etc/imapd.d/cert.pem
+chown cyrus.mail /etc/imapd.d/key.pem /etc/imapd.d/cert.pem
+
+# TODO: Something weird is happening of 4.x upgrades -- stop and start Cyrus is required
+RUNNING=`/sbin/pidof cyrus-master`
+if [ -n "$RUNNING" ]; then
+	service cyrus-imapd stop >/dev/null 2>&1
+	sleep 3
+	service cyrus-imapd start >/dev/null 2>&1
+fi

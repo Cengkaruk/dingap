@@ -1,0 +1,105 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-snort
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Intrusion detection module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: gzip
+Requires: snort >= 2.8.3
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-reports = %VERSION%
+Requires: app-services = %VERSION%
+Requires: app-snortsam = %VERSION%
+Requires: cloud-snort-updates = %VERSION%
+Provides: cc-snort
+Obsoletes: snortalog
+Obsoletes: snortsnarf
+Obsoletes: cc-snort
+Obsoletes: cc-snortalog
+Obsoletes: cc-snortsnarf
+Obsoletes: cc-snort-report
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Intrusion detection module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/snort
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/scripts/
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/reports/snort
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/snort/upgrade
+install -m 755 snortreport $RPM_BUILD_ROOT/usr/share/system/scripts/snortreport
+install -m 755 snortreport.sh $RPM_BUILD_ROOT/usr/sbin/snortreport.sh
+install -m 644 app-snort-report.cron $RPM_BUILD_ROOT/etc/cron.d/app-snort-report
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-snort - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-snort - disabling on boot"
+	chkconfig --add snort
+	chkconfig --level 2345 snort off
+fi
+
+/usr/sbin/addsudo /usr/bin/zgrep app-snort
+
+/usr/share/system/modules/snort/upgrade >/dev/null 2>&1 || :
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-snort - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/etc/cron.d/app-snort-report
+/usr/sbin/snortreport.sh
+/usr/share/system/modules/snort/upgrade
+/usr/share/system/scripts/snortreport
+/var/webconfig/

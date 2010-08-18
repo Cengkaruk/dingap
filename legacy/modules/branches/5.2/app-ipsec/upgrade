@@ -1,0 +1,64 @@
+#!/bin/sh
+
+# Upgrade really old configuration files
+CHECK=`grep "_updown.app" /etc/ipsec.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ipsec - upgrading ipsec.conf to version 2"
+	cp -p /etc/ipsec.conf /usr/share/system/modules/ipsec/ipsec.conf.old.$$
+	cp -p /usr/share/system/modules/ipsec/ipsec.conf /etc/ipsec.conf
+fi
+
+# Change updown script
+CHECK=`grep "_updown.cp"  /etc/ipsec.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ipsec - changing updown script"
+	sed -i -e 's/_updown.cp/_updown.app/' /etc/ipsec.conf
+fi
+
+# Add rightupdown
+CHECK=`grep "rightupdown="  /etc/ipsec.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ipsec - adding rightupdown script"
+	sed -i -e "s/leftupdown/rightupdown=\/usr\/libexec\/ipsec\/_updown.app\n\
+	leftupdown/" /etc/ipsec.conf
+fi
+
+# Change old include parameter
+CHECK=`grep "^include ipsec.\*.conf"  /etc/ipsec.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ipsec - changing default include statement"
+	sed -i -e 's/include ipsec.\*.conf/include \/etc\/ipsec.d\/*.conf/' /etc/ipsec.conf
+fi
+
+# Update ipsec.secrets
+CHECK=`grep "^include.*/etc/ipsec.d/.*secrets" /etc/ipsec.secrets 2> /dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ipsec - updating /etc/ipsec.secrets"
+	echo "include /etc/ipsec.d/*.secrets" > /etc/ipsec.secrets
+fi
+
+# Move old configlets
+FILES=`ls /etc/ipsec.*conf /etc/ipsec.*secrets /etc/ipsec.*managed 2>/dev/null`
+for FILE in $FILES; do
+	if ( [ "$FILE" != "/etc/ipsec.conf" ] && [ "$FILE" != "/etc/ipsec.secrets" ] ); then
+		logger -p local6.notice -t installer "app-ipsec - moving configuration $FILE"
+		mv $FILE /etc/ipsec.d
+	fi
+done
+
+# Check permissions
+if [ -e /etc/ipsec.conf ]; then
+	CHECKPERMS=`stat --format=%a /etc/ipsec.conf`
+	if [ "$CHECKPERMS" != "600" ]; then
+		logger -p local6.notice -t installer "app-ipsec - updating file permissions on /etc/ipsec.conf"
+		chmod 0600 /etc/ipsec.conf
+	fi
+fi
+
+if [ -e /etc/ipsec.secrets ]; then
+	CHECKPERMS=`stat --format=%a /etc/ipsec.secrets`
+	if [ "$CHECKPERMS" != "600" ]; then
+		logger -p local6.notice -t installer "app-ipsec - updating file perissions on /etc/ipsec.secrets"
+		chmod 0600 /etc/ipsec.secrets
+	fi
+fi

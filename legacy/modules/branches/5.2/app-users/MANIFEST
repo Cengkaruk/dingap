@@ -1,0 +1,46 @@
+menu htdocs/menus/admins
+menu htdocs/menus/user
+menu htdocs/menus/users
+menu htdocs/menus/groups
+menu htdocs/menus/security
+locale admins htdocs/admin/lang
+locale group api/lang
+locale groups htdocs/admin/lang
+locale user api/lang
+locale user htdocs/admin/lang
+locale users htdocs/admin/lang
+locale security htdocs/admin/lang
+include api/factory/UserFactory.class.php
+include api/factory/_UserFactory.class.php
+include api/Group.class.php
+include api/GroupManager.class.php
+include api/User.class.php
+include api/UserManager.class.php
+include htdocs/admin/admins.php
+include htdocs/admin/admins.js.php
+include htdocs/admin/groups.php
+include htdocs/admin/security.php
+include htdocs/admin/user.php
+include htdocs/admin/user.inc.php
+include htdocs/admin/users.php
+include htdocs/admin/users.js.php
+include htdocs/admin/users.xml.php
+include htdocs/images/icons/16x16/icon-admins.png
+include htdocs/images/icons/32x32/icon-admins.png
+include htdocs/images/icons/16x16/icon-groups.png
+include htdocs/images/icons/32x32/icon-groups.png
+include htdocs/images/icons/16x16/icon-user.png
+include htdocs/images/icons/32x32/icon-user.png
+include htdocs/images/icons/16x16/icon-users.png
+include htdocs/images/icons/32x32/icon-users.png
+include htdocs/images/icons/16x16/icon-security.png
+include htdocs/images/icons/32x32/icon-security.png
+include ./clean-passwd
+include ./syncusers
+include ./syncmailboxes
+include ./userpasswd
+include ./upgrade
+include ./upgrade-3xusers
+include ./upgrade-4xusers
+include ./upgrade-4xgroups
+include ./config/license

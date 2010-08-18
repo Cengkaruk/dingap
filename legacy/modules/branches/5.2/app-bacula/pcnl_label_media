@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# 1. Device name
+# 2. Pool
+# 3. Label
+
+if [ $# -ne 3 ]; then
+	echo "Wrong number of args, expected 3 - [DeviceName] [PoolName] [Label]."
+	exit 1
+fi
+
+/etc/bacula/bconsole  -c /etc/bacula/bconsole.conf <<END_OF_DATA
+@output
+label "$1" pool="$2"
+$3
+END_OF_DATA
+exit 0

@@ -1,0 +1,13 @@
+FileSet {
+  # DO NOT REMOVE - Webconfig NO_DELETE
+  Name = "MyWindows98Client"
+  Enable VSS = yes
+  Include {
+    Options {
+      Signature = MD5
+      IgnoreCase = Yes
+      Compression = GZIP5
+    }
+    File = "C:/My Documents/"
+  }
+}

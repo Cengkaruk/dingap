@@ -1,0 +1,137 @@
+#!/usr/webconfig/bin/php -q
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2003-2009 ClearCenter
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This script pulls updates for subscribed services (e.g. content filter)
+//
+///////////////////////////////////////////////////////////////////////////////
+
+/*****************************************************************************/
+/* D E P E N D E N C I E S                                                   */
+/*****************************************************************************/
+
+require_once("/var/webconfig/api/Cron.class.php");
+require_once("/var/webconfig/api/NtpTime.class.php");
+require_once("/var/webconfig/api/Register.class.php");
+require_once("/var/webconfig/api/Software.class.php");
+require_once("/var/webconfig/common/Logger.class.php");
+
+/*****************************************************************************/
+/* C H E C K  R E G I S T R A T I O N                                        */
+/*****************************************************************************/
+
+$register = new Register();
+
+$isregistered = $register->GetStatus(); 
+if (!$isregistered) {
+	Logger::Syslog("service-update", "system is not registered");
+	return;
+}
+
+/*****************************************************************************/
+/* S E R V I C E S  U P D A T E                                              */
+/*****************************************************************************/
+
+$services = array();
+$service = array();
+
+$antispam = new Software("app-spamassassin");
+
+if ($antispam->IsInstalled()) {
+	require_once("/var/webconfig/api/AntispamUpdates.class.php");
+	$service["object"] = new AntispamUpdates();
+	$service["name"] = "antispam";
+	$services[] = $service;
+}
+
+$antimalware = new Software("app-clamlib");
+
+if ($antimalware->IsInstalled()) {
+	require_once("/var/webconfig/api/AntimalwareUpdates.class.php");
+	$service["object"] = new AntimalwareUpdates();
+	$service["name"] = "antimalware";
+	$services[] = $service;
+}
+
+$intrusionprotection = new Software("app-snort");
+
+if ($intrusionprotection->IsInstalled()) {
+	require_once("/var/webconfig/api/IntrusionProtectionUpdates.class.php");
+	$service["object"] = new IntrusionProtectionUpdates();
+	$service["name"] = "intrusion protection";
+	$services[] = $service;
+}
+
+$contentfilter = new Software("app-dansguardian-av");
+
+if ($contentfilter->IsInstalled()) {
+	require_once("/var/webconfig/api/ContentFilterUpdates.class.php");
+	$service["object"] = new ContentFilterUpdates();
+	$service["name"] = "content filter";
+	$services[] = $service;
+}
+
+if (count($services) == 0)
+	exit;
+
+foreach ($services as $serviceinfo) {
+
+	$service = $serviceinfo["object"];
+	$name = $serviceinfo["name"];
+
+	try {
+		$doupdate = $service->CheckForUpdate();
+		if ($doupdate) {
+			Logger::Syslog("service-update", "$name requires an update");
+			$service->InstallUpdate();
+		} else {
+			Logger::Syslog("service-update", "$name up-to-date");
+		}
+	} catch (Exception $e) {
+		Logger::Syslog("service-update", "Unable to update: " . $e->GetMessage());
+	}
+}
+
+// Add new update time in cron
+//----------------------------
+
+try {
+	// Address PHP's strict date() time zone warning
+	$ntptime = new NtpTime();
+	date_default_timezone_set($ntptime->GetTimeZone());
+
+	$nextday = date("w") + 1;
+	$cronentry = rand(0,59) . " " . rand(4,8) . " * * " . $nextday . " root /usr/sbin/app-services-update >/dev/null 2>&1\n";
+	$cron = new Cron();
+
+	if ($cron->ExistsCrondConfiglet("app-services"))
+		$cron->DeleteCrondConfiglet("app-services");
+
+	$cron->AddCrondConfiglet("app-services", $cronentry);
+} catch (Exception $e) {
+	Logger::Syslog("service-update", "Could not set cron job: " . $e->GetMessage());
+}
+
+// vim: syntax=php ts=4
+?>

@@ -1,0 +1,67 @@
+#!/bin/bash
+
+#--------------------------------------------------
+# Startup
+#--------------------------------------------------
+
+# Bail if process is already running
+if [ -e /var/run/filtertraining.pid ]; then
+	exit 0
+fi
+
+# Bail if Amavis is not installed
+if [ ! -d /var/lib/amavis ]; then
+	exit 0
+fi
+
+echo $$ > /var/run/filtertraining.pid
+
+# Set paths
+SPAMDBDIR="/var/lib/amavis/var/.spamassassin"
+FILTERDIR="/var/spool/filter/training"
+
+SPAM_MAILBOX="$FILTERDIR/spam-mailbox"
+SPAM_WEBCLIENT="$FILTERDIR/spam-web"
+
+NOTSPAM_MAILBOX="$FILTERDIR/notspam-mailbox"
+NOTSPAM_WEBCLIENT="$FILTERDIR/notspam-web"
+
+trap "rm -f /var/run/filtertraining.pid $FILTERDIR/spam* $FILTERDIR/notspam*" 0 1 2 3 15
+
+#--------------------------------------------------
+# Spam training
+#--------------------------------------------------
+
+if [ -e "$SPAM_MAILBOX" ]; then
+	echo "SpamAssassin - training spam from $SPAM_MAILBOX"
+	mv $SPAM_MAILBOX $SPAM_MAILBOX.processing
+	chmod 440 $SPAM_MAILBOX.processing
+	chown root.amavis $SPAM_MAILBOX.processing
+	su -l amavis -s /bin/sh -c "/usr/bin/sa-learn --progress --spam $SPAM_MAILBOX.processing --dbpath $SPAMDBDIR"
+fi
+
+if [ -e "$SPAM_WEBCLIENT" ]; then
+	chmod 440 $SPAM_WEBCLIENT*
+	chown root.amavis $SPAM_WEBCLIENT*
+	echo "SpamAssassin - training spam from $SPAM_WEBCLIENT*"
+	su -l amavis -s /bin/sh -c "/usr/bin/sa-learn --progress --spam $SPAM_WEBCLIENT* --dbpath $SPAMDBDIR"
+fi
+
+#--------------------------------------------------
+# NotSpam training
+#--------------------------------------------------
+
+if [ -e "$NOTSPAM_MAILBOX" ]; then
+	echo "SpamAssassin - training notspam from $NOTSPAM_MAILBOX"
+	mv $NOTSPAM_MAILBOX $NOTSPAM_MAILBOX.processing
+	chmod 440 $NOTSPAM_MAILBOX.processing
+	chown root.amavis $NOTSPAM_MAILBOX.processing
+	su -l amavis -s /bin/sh -c "/usr/bin/sa-learn --progress --ham $NOTSPAM_MAILBOX.processing --dbpath $SPAMDBDIR"
+fi
+
+if [ -e "$NOTSPAM_WEBCLIENT" ]; then
+	chmod 440 $NOTSPAM_WEBCLIENT*
+	chown root.amavis $NOTSPAM_WEBCLIENT*
+	echo "SpamAssassin - training notspam from $NOTSPAM_WEBCLIENT*"
+	su -l amavis -s /bin/sh -c "/usr/bin/sa-learn --progress --ham $NOTSPAM_WEBCLIENT* --dbpath $SPAMDBDIR"
+fi

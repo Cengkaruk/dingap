@@ -1,0 +1,106 @@
+#!/bin/sh
+
+#-----------------------------------------------------------------------------
+#  Copyright 2006 Point Clark Networks.
+#-----------------------------------------------------------------------------
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#-----------------------------------------------------------------------------
+#
+# SpamAssassin developers really like to move things around in their
+# configuration and setup... they should win a prize ;)
+#
+#-----------------------------------------------------------------------------
+
+# Sysconfig filename and parameter change
+#----------------------------------------
+
+CHECK=`grep "^OPTIONS=" /etc/sysconfig/spamd 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-spamassassin - changing and updating sysconfig file"
+	sed -e 's/^OPTIONS=/SPAMDOPTIONS=/' /etc/sysconfig/spamd > /etc/sysconfig/spamassassin
+	mv /etc/sysconfig/spamd /etc/sysconfig/spamassassin.rpmold
+fi
+
+# Remove old Lock file
+#---------------------
+
+if [ -f /var/lock/subsys/spamd ]; then
+	logger -p local6.notice -t installer "app-spamassassin - removing old lock file"
+	rm -f /var/lock/subsys/spamd
+fi
+
+# Remove old config file
+#-----------------------
+
+if [ -e /etc/mail/spamassassin/cc-extra.cf ]; then
+	logger -p local6.notice -t installer "app-spamassassin - removing unused configuration file"
+	rm -f /etc/mail/spamassassin/cc-extra.cf
+fi
+
+
+# Deprecated parameters
+#----------------------
+
+DEPRECATEDLIST="clear-terse-report-template terse-report clear-spamtrap-template spamtrap subject_tag rewrite_subject defang_mime"
+for DEPRECATED in $DEPRECATEDLIST; do
+	CHECK=`grep "^$DEPRECATED" /etc/mail/spamassassin/local.cf 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-spamassassin - removing deprecated parameter $DEPRECATED"
+		perl -p -i -e "s/^$DEPRECATED[[:space:]]*/# deprecated: $DEPRECATED /" /etc/mail/spamassassin/local.cf
+	fi
+done
+
+# Parameter change: auto-whitelist 
+#---------------------------------
+
+USINGAW=`grep -- "OPTIONS=.*-a" /etc/sysconfig/spamassassin 2>/dev/null`
+if [ -n "$USINGAW" ]; then
+	logger -p local6.notice -t installer "app-spamassassin - migrating use_auto_whitelist configuration"
+	perl -p -i -e 's/-a//' /etc/sysconfig/spamassassin
+	perl -p -i -e "s/^use_auto_whitelist//" /etc/mail/spamassassin/local.cf
+	echo "use_auto_whitelist 1" >> /etc/mail/spamassassin/local.cf
+fi
+
+# Parameter change: subject_tag -> rewrite_header
+#------------------------------------------------
+
+REWRITE_SUBJECT=`grep "^rewrite_subject.*1" /etc/mail/spamassassin/local.cf 2>/dev/null`
+SUBJECT_TAG=`grep "^subject_tag" /etc/mail/spamassassin/local.cf | sed 's/subject_tag[[:space:]]*//' /etc/mail/spamassassin/local.cf 2>/dev/null`
+if ( [ -n "$REWRITE_SUBJECT" ] && [ -n "$SUBJECT_TAG" ] ); then
+	logger -p local6.notice -t installer "app-spamassassin - migrating rewrite_header configuration"
+	perl -p -i -e "s/^subject_tag[[:space:]]*/rewrite_header Subject /" /etc/mail/spamassassin/local.cf
+fi
+
+# Parameter change: required_hits -> required_score
+#--------------------------------------------------
+
+CHECK=`grep "^required_hits[[:space:]]*" /etc/mail/spamassassin/local.cf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-spamassassin - migrating required_score configuration"
+	perl -p -i -e 's/^required_hits[[:space:]]*/required_score /' /etc/mail/spamassassin/local.cf
+fi
+
+# "spamassassin --lint" does not like blank white/blacklists
+#-----------------------------------------------------------
+
+for LIST in whitelist blacklist; do
+	BLANKLIST=`grep "^${LIST}_from[[:space:]]*$" /etc/mail/spamassassin/local.cf`
+	if [ -n "$BLANKLIST" ]; then
+		logger -p local6.notice -t installer "app-spamassassin - cleaning up blank $LIST"
+		perl -p -i -e "s/^${LIST}_from[[:space:]]*$/# ${LIST}_from/" /etc/mail/spamassassin/local.cf
+	fi
+done

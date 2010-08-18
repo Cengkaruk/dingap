@@ -1,0 +1,10 @@
+menu htdocs/menus/mail-quarantine
+locale mail-quarantine htdocs/admin/lang
+locale mailzu api/lang
+include api/Mailzu.class.php
+include gui/QuarantineReport.class.php
+include htdocs/admin/mail-quarantine.php
+include htdocs/images/icons/16x16/icon-mail-quarantine.png
+include htdocs/images/icons/32x32/icon-mail-quarantine.png
+include ./amavisd-mysql_objects-4.1.sql
+include ./quarantine_bootstrap

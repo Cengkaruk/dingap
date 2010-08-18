@@ -1,0 +1,109 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-upgrade
+Version: %VERSION%
+Release: %RELEASE%
+Summary: System upgrade module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+# Core packages that may not have been required in the past
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-firewall
+Requires: app-services
+Requires: app-hardware-report
+Requires: app-syswatch
+Requires: app-ntp
+Requires: app-software-updates
+Requires: app-remote-backup
+Requires: app-ssl
+Requires: app-theme
+Requires: webconfig-php
+# Remove upgrade packages
+Provides: cc-upgrade
+Obsoletes: cc-upgradeto31
+Obsoletes: cc-upgradeto32
+Obsoletes: cc-upgradeto40
+Obsoletes: cc-upgradeto41
+Obsoletes: cc-upgradeto42
+Obsoletes: cc-upgradeto43
+Obsoletes: app-upgradeto50
+Obsoletes: app-upgradeto51
+Obsoletes: app-upgradeto52
+# Deprecated modules
+Obsoletes: bpalogin
+Obsoletes: compat-firewall
+Obsoletes: compat-iptables
+Obsoletes: dspam
+Obsoletes: cc-bpalogin
+Obsoletes: cc-dspam
+Obsoletes: cc-oldkernel
+Obsoletes: cc-upgrade
+Obsoletes: cc-devel
+Obsoletes: cc-wireless
+# Deprecated X packages (and dependencies)
+Obsoletes: VFlib2
+Obsoletes: fonts-xorg-base
+Obsoletes: xorg-x11-Mesa-libGL
+# Deprecated printing packages (and dependencies)
+Obsoletes: pnm2ppa
+Obsoletes: perl-libxml-enno
+Obsoletes: perl-XML-Encoding
+#Obsoletes: perl-Parse-Yapp Required by Samba4 Alpha
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+System upgrade module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/upgrade
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-upgrade - installing"
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-upgrade - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%dir /usr/share/system/modules/upgrade

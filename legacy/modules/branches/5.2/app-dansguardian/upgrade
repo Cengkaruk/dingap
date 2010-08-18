@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# Remove dual-logging used in 3.x
+#--------------------------------
+
+CHECK=`grep "loglocation.*access_dansguardian.log" /etc/dansguardian/dansguardian.conf`
+
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-dansguardian - removing old log file location"
+	grep -v "loglocation.*access_dansguardian.log" /etc/dansguardian/dansguardian.conf > /etc/dansguardian/dansguardian.conf.new
+	mv /etc/dansguardian/dansguardian.conf.new /etc/dansguardian/dansguardian.conf
+	chmod 644 /etc/dansguardian/dansguardian.conf
+fi
+
+NUMLOGS=`grep -c "^logfileformat" /etc/dansguardian/dansguardian.conf`
+
+if [ "$NUMLOGS" == "2" ]; then
+	logger -p local6.notice -t installer "app-dansguardian - removing old log file format"
+	grep -v "logfileformat.*3" /etc/dansguardian/dansguardian.conf > /etc/dansguardian/dansguardian.conf.new
+	mv /etc/dansguardian/dansguardian.conf.new /etc/dansguardian/dansguardian.conf
+	chmod 644 /etc/dansguardian/dansguardian.conf
+fi
+
+# Update the configuration file version
+#--------------------------------------
+
+CURRENT="2.8.0b"
+
+CHECK=`grep "DansGuardian config file for version" /etc/dansguardian/dansguardian.conf`
+
+if [ -n "$CHECK" ]; then
+	VERSION=`echo $CHECK | sed "s/.*DansGuardian config file for version[[:space:]]//"`
+	if [ "$VERSION" != "$CURRENT" ]; then
+		logger -p local6.notice -t installer "app-dansguardian - updating configuration file version: $VERSION - $CURRENT"
+		sed -e "s/DansGuardian config file for version.*/DansGuardian config file for version $CURRENT/" /etc/dansguardian/dansguardian.conf > /etc/dansguardian/dansguardian.conf.new
+		mv /etc/dansguardian/dansguardian.conf.new /etc/dansguardian/dansguardian.conf
+		chmod 644 /etc/dansguardian/dansguardian.conf
+	fi
+fi
+
+# Make sure phraselist is set
+#----------------------------
+
+if ( [ -e /etc/dansguardian/phraselists ] && [ ! -L /etc/dansguardian/phraselists ] ); then
+	TIMESTAMP=`date "+%b-%d-%Y-%T"`
+	mv /etc/dansguardian/phraselists /etc/dansguardian/phraselists.$TIMESTAMP
+	ln -s /etc/dansguardian-av/lists/phraselists /etc/dansguardian/phraselists
+elif [ ! -e /etc/dansguardian/phraselists ]; then
+	ln -s /etc/dansguardian-av/lists/phraselists /etc/dansguardian/phraselists
+fi
+

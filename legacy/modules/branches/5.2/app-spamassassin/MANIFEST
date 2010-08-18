@@ -1,0 +1,13 @@
+menu htdocs/menus/mail-antispam
+locale spamassassin api/lang
+locale mail-antispam htdocs/admin/lang
+include api/SpamAssassin.class.php
+include htdocs/admin/mail-antispam.php
+include htdocs/admin/mail-antispam.js.php
+include htdocs/images/icons/16x16/icon-mail-antispam.png
+include htdocs/images/icons/32x32/icon-mail-antispam.png
+include ./upgrade
+include ./local.cf
+include ./app-tweaks.cf
+include ./app-spamassassin.cron
+include ./app-sa-update

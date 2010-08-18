@@ -1,0 +1,12 @@
+menu htdocs/menus/firewall-dmz
+menu htdocs/menus/firewall-1to1nat
+include api/FirewallDmz.class.php
+include api/FirewallOneToOneNat.class.php
+locale firewall-dmz htdocs/admin/lang
+locale firewall-1to1nat htdocs/admin/lang
+include htdocs/admin/firewall-dmz.php
+include htdocs/admin/firewall-1to1nat.php
+include htdocs/images/icons/16x16/icon-firewall-dmz.png
+include htdocs/images/icons/32x32/icon-firewall-dmz.png
+include htdocs/images/icons/16x16/icon-firewall-1to1nat.png
+include htdocs/images/icons/32x32/icon-firewall-1to1nat.png

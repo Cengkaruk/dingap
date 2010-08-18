@@ -1,0 +1,10 @@
+menu htdocs/menus/web-report
+locale web-report htdocs/admin/lang
+include htdocs/images/icons/16x16/icon-web-report.png
+include htdocs/images/icons/32x32/icon-web-report.png
+include htdocs/admin/web-report.php
+include api/Awstats.class.php
+include ./awstats.conf
+include ./awstatsreports
+include ./app-awstats.cron
+include ./upgrade

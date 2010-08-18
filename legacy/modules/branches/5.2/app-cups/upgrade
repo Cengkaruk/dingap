@@ -1,0 +1,11 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+CHECK=`grep -i "Include /etc/cups/cupsd.policy.conf" /etc/cups/cupsd.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-cups - upgrading old configuration"
+	cp -p /etc/cups/cupsd.conf /usr/share/system/modules/cups/cupsd.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp -p /etc/cups/cupsd.conf /etc/cups/cupsd.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp /usr/share/system/modules/cups/cupsd.conf /etc/cups/cupsd.conf >/dev/null 2>&1
+fi

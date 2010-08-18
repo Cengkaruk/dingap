@@ -1,0 +1,12 @@
+menu htdocs/menus/proxy-filter
+locale dansguardianav api/lang
+locale proxy-filter htdocs/admin/lang
+include api/DansGuardianAv.class.php
+include htdocs/images/icons/16x16/icon-proxy-filter.png
+include htdocs/images/icons/32x32/icon-proxy-filter.png
+include htdocs/admin/proxy-filter.php
+include htdocs/admin/proxy-filter.js.php
+include ./bannedextensionlist.all
+include ./bannedmimetypelist.all
+include ./dansguardian-cleanlists
+include ./dansguardian-seturl

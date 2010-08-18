@@ -1,0 +1,108 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-dansguardian-av
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Content filtering module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: dansguardian-av >= 2.10.0.3
+Requires: dansguardian-blacklists >= 2.8c
+Requires: dansguardian-phraselists >= 2.9
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-clamlib = %VERSION%
+Requires: app-services => %VERSION%
+Requires: app-squid = %VERSION%
+Requires: cloud-dansguardian-updates = %VERSION%
+Provides: cc-dansguardian-av
+Obsoletes: cc-dansguardian-av
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Content filtering module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/dansguardian-av/lists
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/dansguardian-av
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 644 *.all $RPM_BUILD_ROOT/etc/dansguardian-av/lists/
+install -m 755 dansguardian-cleanlists $RPM_BUILD_ROOT/usr/sbin
+install -m 755 dansguardian-seturl $RPM_BUILD_ROOT/usr/sbin
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-dansguardian-av - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+    logger -p local6.notice -t installer "app-dansguardian-av - disabling on boot"
+	chkconfig --level 2345 dansguardian-av off
+
+    logger -p local6.notice -t installer "app-dansguardian-av - creating default configuration"
+	TIMESTAMP=`date "+%b-%d-%Y-%T"`
+	COMMENTOUTLIST="contentregexplist bannedregexpurllist bannedphraselist"
+	for FILE in $COMMENTOUTLIST; do
+		if [ -e /etc/dansguardian-av/$FILE ]; then
+			cp /etc/dansguardian-av/$FILE /usr/share/system/modules/dansguardian-av/$FILE.$TIMESTAMP
+			sed -i -e "s/^[^#]/#&/" /etc/dansguardian-av/$FILE
+		fi
+	done
+fi
+
+# Clean lists
+/usr/sbin/dansguardian-cleanlists >/dev/null 2>&1
+/sbin/service dansguardian-av condrestart >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-dansguardian-av - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%dir /usr/share/system/modules/dansguardian-av
+/etc/dansguardian-av/lists/bannedextensionlist.all
+/etc/dansguardian-av/lists/bannedmimetypelist.all
+/usr/sbin/dansguardian-cleanlists
+/usr/sbin/dansguardian-seturl
+/var/webconfig/

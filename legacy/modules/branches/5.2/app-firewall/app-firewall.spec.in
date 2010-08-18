@@ -1,0 +1,127 @@
+#-----------------------------------------------------------------------------
+# M A C R O S
+#------------------------------------------------------------------------------
+
+%define fwextras %POLICY_WITH_FWEXTRAS%
+
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-firewall
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Firewall module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: firewall >= 1.3.5-6
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-network = %VERSION%
+Provides: cc-firewall
+Obsoletes: cc-firewall
+%if %{fwextras} == "false"
+Obsoletes: cc-firewall-dmz, cc-multiwan
+%endif
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Firewall module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/rc.d/init.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/firewall
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/firewall
+
+install -m 755 firewall $RPM_BUILD_ROOT/etc/rc.d/init.d/
+install -m 755 snortsam-reblock $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 rc.firewall $RPM_BUILD_ROOT/etc/rc.d/
+install -m 755 rc.firewall.types $RPM_BUILD_ROOT/etc/rc.d/
+install -m 755 rc.firewall.local $RPM_BUILD_ROOT/etc/rc.d/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/firewall
+install -m 755 upgrade-rules $RPM_BUILD_ROOT/usr/share/system/modules/firewall
+install -m 755 upgrade-3x $RPM_BUILD_ROOT/usr/share/system/modules/firewall
+install -m 644 firewall.conf $RPM_BUILD_ROOT/etc/firewall
+install -m 644 firewall.lua $RPM_BUILD_ROOT/etc/rc.d/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E - C O N V E R T   S C R I P T
+#------------------------------------------------------------------------------
+
+%pre
+if [ -e /etc/firewall ]; then
+	cp /etc/firewall /etc/firewall.preconvert
+fi
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-firewall - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+    logger -p local6.notice -t installer "app-firewall - enabling on boot"
+	/sbin/chkconfig --add firewall >/dev/null 2>&1
+fi
+
+/usr/share/system/modules/firewall/upgrade >/dev/null 2>&1
+/usr/share/system/modules/firewall/upgrade-rules >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-firewall - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/firewall
+%config(noreplace) /etc/rc.d/rc.firewall.local
+%attr(0755,root,root) /usr/sbin/snortsam-reblock
+/etc/rc.d/rc.firewall
+/etc/rc.d/rc.firewall.types
+/etc/rc.d/firewall.lua
+/etc/rc.d/init.d/firewall
+%dir /usr/share/system/modules/firewall
+/usr/share/system/modules/firewall/upgrade
+/usr/share/system/modules/firewall/upgrade-rules
+/usr/share/system/modules/firewall/upgrade-3x
+/var/webconfig/
+%dir /var/lib/firewall

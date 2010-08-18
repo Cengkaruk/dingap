@@ -1,0 +1,3 @@
+ACTION!="add", GOTO="mptctl_end"
+SUBSYSTEM=="pci", DRIVER=="mpt*", ENV{MODALIAS}=="?*", RUN+="/sbin/modprobe mptctl"
+LABEL="mptctl_end"

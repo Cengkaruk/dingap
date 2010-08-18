@@ -1,0 +1,94 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-user-import
+Version: %VERSION%
+Release: %RELEASE%
+Summary: User import/export utility
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: webconfig-pear >= 4.3
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-user-import
+Obsoletes: cc-user-import
+BuildRoot: /tmp/%{name}-build
+
+%description
+User import/export utility
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/user-import
+
+install -m 0644 import_template.ods $RPM_BUILD_ROOT/usr/share/system/modules/user-import/import_template.ods
+install -m 0644 import_template.xls $RPM_BUILD_ROOT/usr/share/system/modules/user-import/import_template.xls
+install -m 0644 import_template.csv $RPM_BUILD_ROOT/usr/share/system/modules/user-import/import_template.csv
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E - I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%pre
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-user-import - installing"
+
+/usr/sbin/addsudo /var/webconfig/scripts/userimport.php app-user-import
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-user-import - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+%attr(0644, root,root) /usr/share/system/modules/user-import/import_template.ods
+%attr(0644, root,root) /usr/share/system/modules/user-import/import_template.xls
+%attr(0644, root,root) /usr/share/system/modules/user-import/import_template.csv
+%attr(0740, root,root) /var/webconfig/scripts/userimport.php
+%attr(0644, root,root) /var/webconfig/scripts/userimport.inc.php

@@ -1,0 +1,537 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+# Copyright 2002 Point Clark Networks.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+###############################################################################
+
+###############################################################################
+#
+# General functions for other scripts
+#
+###############################################################################
+
+sub SearchReplace($$$);
+sub KeyReplace($$$$);
+sub KeyLookup($$$);
+sub CheckIP($);
+sub IPaddrToQuad($);
+sub IPquadToAddr($);
+
+sub SetHostname($);
+sub SetLanguage($);
+sub SetMode($);
+sub SetPppoeFirewall();
+sub SetDHCP($$);
+sub SetGateway($);
+
+my $f_hosts    = "/etc/hosts";
+my $f_network  = "/etc/sysconfig/network";
+my $f_dnsmasq  = "/etc/dnsmasq.conf";
+my $f_lan      = "/etc/sysconfig/network-scripts/ifcfg-eth1";
+my $f_lanalone = "/etc/sysconfig/network-scripts/ifcfg-eth0";
+my $f_webcfg   = "/var/webconfig/conf/httpd.conf";
+my $f_samba    = "/etc/samba/smb.conf";
+my $f_httpd    = "/etc/httpd/conf/httpd.conf";
+my $f_httpddef = "/etc/httpd/conf.d/default.conf";
+my $f_dhcpdcfg = "/etc/sysconfig/dhcpd";
+my $f_dhcpd    = "/etc/dhcpd.conf";
+my $f_dhcpd_dnsmasq = "/etc/dnsmasq/dhcp.conf";
+my $f_apache   = "/etc/httpd/conf/httpd.conf";
+my $f_iptables = "/etc/rc.d/init.d/iptables";
+my $f_pcmcia   = "/etc/rc.d/init.d/pcmcia";
+my $f_squirrelmail   = "/etc/squirrelmail/config.php";
+my $f_firewall = "/etc/firewall";
+my $f_postfix = "/etc/postfix/main.cf";
+my $f_dansguardian = "/etc/dansguardian/dansguardian.conf";
+
+
+$|=1;
+
+###############################################################################
+#                            F U N C T I O N S
+###############################################################################
+
+###############################################################################
+#
+# KeyLookup
+# - Grabs information from a configuration file by specifying a key value
+#   - e.g you can find the value of "interfaces" in smb.conf by calling
+#	 $iprange = KeyLookup('/etc/samba/smb.conf', 'interfaces', '=');
+#
+###############################################################################
+
+sub KeyLookup($$$) {
+	my $cfgfile   = $_[0];
+	my $key       = $_[1];
+	my $delimiter = $_[2];
+	my $result    = "";
+	my $line;
+
+	# We remove all of the spaces/tabs so we do a clean comparison
+	$key =~ s/\s//g;
+	$key = $key . $delimiter;
+	return if (!open(CFGFILE, "$cfgfile"));
+
+	while (<CFGFILE>) {
+		$line = $_;
+		s/\s//g;
+		if (/$key/i) {
+			$result = substr($line, (index($line, $delimiter) + 1));
+			$result =~ s/^\s+//;
+		}
+	}
+
+	close (CFGFILE);
+	chomp $result;
+	return $result;
+}
+
+
+###############################################################################
+#
+# KeyReplace
+# - Replaces a value in a configuration file given a valid key
+#   - e.g you can replace a line in smb.conf by calling
+#	 KeyReplace('/etc/samba/smb.conf', 'interfaces', '=', '10.0.0.0/24');
+# - Target file will have mode 644 permissions
+#
+###############################################################################
+
+sub KeyReplace($$$$) {
+	my $cfgfile   = $_[0];
+	my $key       = $_[1];
+	my $delimiter = $_[2];
+	my $value     = $_[3];
+	my $tempfile  = "/tmp/app-$$";
+	my $retval    = -1;
+	my $line;
+
+	my $keychk = $key . $delimiter;
+	$keychk	=~ s/\s//g;
+	$keychk	=~ s/\$/\\\$/g;
+
+	open(CFGFILE, "$cfgfile") or return "File open error $cfgfile: $!";
+	open(TEMP, ">$tempfile") or return "File open error $tempfile: $!";
+
+	while (<CFGFILE>) {
+		$line = $_;
+		s/\s//g;
+		if (/^$keychk/i) {
+			print (TEMP $key . $delimiter . $value . "\n");
+			$retval = 0;
+		} else {
+			print (TEMP $line);
+		}
+	}
+	close (TEMP);
+	close (CFGFILE);
+	
+	system("/bin/mv $tempfile $cfgfile");;
+	chmod 0644, "$cfgfile";
+	return $retval;
+}
+
+
+###############################################################################
+#
+# SearchReplace()
+# - Searches and replaces a value in a file... use with caution !
+# - Target file will have mode 644 permissions
+#
+###############################################################################
+
+sub SearchReplace($$$) {
+	my $cfgfile   = $_[0];
+	my $search    = $_[1];
+	my $replace   = $_[2];
+	my $message   = "";
+	my $tempfile  = "/tmp/ccsr-$$";
+	my $retval    = -1;
+	my $line;
+
+	open(CFGFILE, "$cfgfile") or return "File open error $cfgfile: $!";
+	open(TEMP, ">$tempfile") or return "File open error $tempfile: $!";
+
+	while (<CFGFILE>) {
+	$line = $_;
+	if (s/$search/$replace/g) {
+		$message .= "$_<br>";
+		$retval = 0; 
+	}
+		print (TEMP $_);
+	}
+	close (TEMP);
+	close (CFGFILE);
+
+	system("/bin/mv $tempfile $cfgfile");
+	chmod 0644, "$cfgfile";
+	return $retval;
+}
+
+
+###############################################################################
+#
+# Handy IP Address functions ... thanks to e-smith :-)
+#
+###############################################################################
+
+sub CheckIP ($) {
+	my $ip =  $_[0];
+	my (@parts) = split(/\./, $ip);
+	my $part;
+
+	return 1 if ($#parts != 3);
+
+	foreach $part (@parts) {
+		return 1 if ($part =~ /\D/);
+		return 1 if (($part > 255) || ($part < 0));
+	}
+
+	return 0;
+}
+
+sub IPaddrToQuad ($) {
+	my $addrBits = $_[0];
+	return sprintf ("%d.%d.%d.%d", 
+		($addrBits >> 24) & 0xff,
+		($addrBits >> 16) & 0xff,
+		($addrBits >> 8) & 0xff,
+		$addrBits & 0xff);
+}
+
+sub IPquadToAddr ($) {
+	my $quad = $_[0];
+	if ($quad =~  /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/) {
+		return ($1 << 24) + ($2 << 16) + ($3 << 8) + $4;
+	}
+	return 0;
+}
+
+
+###############################################################################
+#
+# SetHostname()
+#
+###############################################################################
+
+sub SetHostname($) {
+
+	my $hostname = $_[0];
+	my $subd = "";
+	my $domain;
+	my $keychk;
+	my $line;
+	my $tempfile = "/tmp/app-hosts";
+	my $hostsdone = "false";
+
+	print("Setting hostname to $hostname\n");
+
+	if ((!$hostname) || (!($hostname =~ /^([\.\-A-Za-z0-9]*)$/))) {
+		print("... invalid hostname\n");
+		return;
+	}
+
+	if ($hostname =~ /\./) {
+		# Grab the nickname for xyz.domain.com domains
+		$subd = substr($hostname, 0, index($hostname, "."));
+		$domain = substr($hostname, index($hostname, ".") + 1);
+	} else {
+		print("... invalid hostname\n");
+		return;
+	}
+
+	# Fixme - this is a hack for detecting standalone mode
+	my $ip = KeyLookup($f_lan, 'IPADDR', '=');
+	if ((!$ip) || (length($ip) < 7)) {
+		print("... no eth1 interface\n");
+		$ip = KeyLookup($f_lanalone, 'IPADDR', '=');
+	}
+	$ip =~ s/"//g;
+
+	# /etc/hosts
+	#--------------------------------------------------------
+
+	if ((-w $f_hosts) && ($ip) && (length($ip) > 7) ) {
+		print("... updating $f_hosts\n");
+		open(CFGFILE, "$f_hosts") or return "File open error $cfgfile: $!";
+		open(TEMP, ">$tempfile") or return "File open error $tempfile: $!";
+
+		while (<CFGFILE>) {
+			$line = $_;
+			s/\s/ /g;
+			if (/^$ip /i) {
+				print (TEMP "$ip $hostname $subd\n");
+				$hostsdone = "true";
+			} else {
+				print (TEMP $line);
+			}
+		}
+		close (TEMP);
+		close (CFGFILE);
+		system("/bin/mv $tempfile $f_hosts");
+
+		if ($hostsdone eq "false") {
+		    if (open(HOSTS, ">>$f_hosts")) {
+		        print(HOSTS "$ip $hostname $subd\n");
+		        close(HOSTS);
+		    }
+		}
+	}
+
+	# Sysconfig
+	#--------------------------------------------------------
+
+	if (-w $f_network) {
+		print("... updating $f_network\n");
+		KeyReplace($f_network, "HOSTNAME", "=", $hostname);
+	}
+
+	# Dnsmasq
+	#--------------------------------------------------------
+
+	if (-w $f_dnsmasq) {
+		print("... updating $f_dnsmasq\n");
+		KeyReplace($f_dnsmasq, "domain-suffix", "=", $domain);
+	}
+
+	# DHCP server
+	#--------------------------------------------------------
+
+	if (-w $f_dhcpd) {
+		print("... updating $f_dhcpd\n");
+		# An ugly cheat using the KeyReplace function
+		KeyReplace($f_dhcpd, "option domain-name \"", "", $domain . "\";");
+	}
+
+	# Mail server
+	#--------------------------------------------------------
+
+	if (-w $f_postfix) {
+		print("... updating $f_postfix\n");
+		KeyReplace($f_postfix, "myhostname", "=", $hostname);
+		KeyReplace($f_postfix, "mydomain", "=", $domain);
+	}
+
+	# Webmail server
+	#--------------------------------------------------------
+
+	if (-w $f_squirrelmail) {
+		print("... updating $f_squirrelmail\n");
+		KeyReplace($f_squirrelmail, "\$domain", " = ", "'$domain';");
+	}
+
+	# Web server
+	#--------------------------------------------------------
+
+	if (-w $f_httpd) {
+		print("... updating $f_httpd\n");
+		KeyReplace($f_httpd, "ServerName", " ", $hostname);
+	}
+
+	if (-w $f_httpddef) {
+		print("... updating $f_httpddef\n");
+		KeyReplace($f_httpddef, "\tServerName", " ", "$domain");
+		KeyReplace($f_httpddef, "\tServerAlias", " ", "*.$domain");
+	}
+}
+
+
+###############################################################################
+#
+# SetLanguage()
+#
+###############################################################################
+
+sub SetLanguage($) {
+	my $code = $_[0];
+
+	$code =~ s/\..*//g;
+	$shortcode = $code;
+	$shortcode =~ s/_.*//g;
+
+	print "Updating language settings: $code / $shortcode\n";
+
+	# Webmail server
+	#--------------------------------------------------------
+
+	if (-w $f_squirrelmail) {
+		print("... updating $f_squirrelmail\n");
+		KeyReplace($f_squirrelmail, "\$squirrelmail_default_language", " = ", "'$code';");
+	}
+
+	# Content filter
+	#--------------------------------------------------------
+
+	if (-w $f_dansguardian) {
+		my $dgcode = "ukenglish";
+		if ($code eq "da_DK") {
+			$dgcode = "danish";
+		} elsif ($code eq "de_DE") {
+			$dgcode = "german";
+		} elsif ($code eq "es_ES") {
+			$dgcode = "mxspanish";
+		} elsif ($code eq "fr_FR") {
+			$dgcode = "french";
+		} elsif ($code eq "it_IT") {
+			$dgcode = "italian";
+		} elsif ($code eq "nl_NL") {
+			$dgcode = "dutch";
+		} elsif ($code eq "pl_PL") {
+			$dgcode = "polish";
+		} elsif ($code eq "pt_BR") {
+			$dgcode = "portuguese";
+		} elsif ($code eq "pt_PT") {
+			$dgcode = "portuguese";
+		} elsif ($code eq "sv_SE") {
+			$dgcode = "swedish";
+		} elsif ($code eq "tr_TR") {
+			$dgcode = "turkish";
+		} elsif ($code eq "zh_CN") {
+			$dgcode = "chinesebig5";
+		}
+		print("... updating $f_dansguardian with $dgcode\n");
+		KeyReplace($f_dansguardian, "language", " = ", $dgcode);
+	}
+}
+
+
+################################################################################
+#
+# SetPppoeFirewall
+#
+################################################################################
+
+sub SetPppoeFirewall() {
+	print("Setting firewall to PPPoE mode\n");
+	if (-w $f_firewall) {
+		KeyReplace($f_firewall, "EXTIF", "=", "ppp0");
+	}
+}
+
+################################################################################
+#
+# SetMode
+#
+################################################################################
+
+sub SetMode($) {
+	my $mode = $_[0];
+	print("Setting server mode to $mode\n");
+
+	if ($mode eq "standalone") {
+		if (-w $f_firewall) {
+			KeyReplace($f_firewall, "MODE", "=", "trustedstandalone");
+		}
+		if (-w $f_dhcpdcfg) {
+			KeyReplace($f_dhcpdcfg, "DHCPDARGS", "=", "eth0");
+		}
+		if (-w $f_samba) {
+			KeyReplace($f_samba, "bind interfaces only", " = ", "no");
+			KeyReplace($f_samba, "interfaces", " = ", "eth0");
+		}
+	}
+
+	if ($mode eq "gateway") {
+		if (-w $f_firewall) {
+			KeyReplace($f_firewall, "MODE", "=", "gateway");
+		}
+		if (-w $f_firewall) {
+			KeyReplace($f_firewall, "LANIF", "=", "eth1");
+		}
+		if (-w $f_dhcpdcfg) {
+			KeyReplace($f_dhcpdcfg, "DHCPDARGS", "=", "eth1");
+		}
+		if (-w $f_samba) {
+			KeyReplace($f_samba, "bind interfaces only", " = ", "yes");
+			KeyReplace($f_samba, "interfaces", " = ", "eth1");
+		}
+	}
+}
+
+
+################################################################################
+#
+# SetDHCP
+#
+################################################################################
+
+sub SetDHCP($$) {
+	my $ip = $_[0];
+	my $netmask = $_[1];
+
+	print("Setting DHCP server settings\n");
+	if (!$ip || !$netmask || (CheckIP($ip) != 0) || (CheckIP($netmask) != 0)) {
+		print("... invalid IP/Netmask\n");
+		return;
+	}
+
+	my $ip_b      = IPquadToAddr($ip);
+	my $netmask_b = IPquadToAddr($netmask);
+	my $network   = IPaddrToQuad($ip_b & $netmask_b);
+	my $broadcast = IPaddrToQuad($ip_b | (~ $netmask_b));
+
+	# We'll just set the range from x.x.x.100 to x.x.x.254
+	#-----------------------------------------------------
+
+	(my @range) = split(/\./, $ip);
+	my $lowrange = $range[0] . "." .  $range[1] . "." .  $range[2] . ".100";
+	my $highrange = $range[0] . "." .  $range[1] . "." .  $range[2] . ".254";
+	KeyReplace($f_dhcpd, "option subnet-mask", " ", $netmask . ";");
+	KeyReplace($f_dhcpd, "option broadcast-address", " ", $broadcast . ";");
+	KeyReplace($f_dhcpd, "option routers", " ", $ip . ";");
+	KeyReplace($f_dhcpd, "option domain-name-servers", " ", $ip . ";");
+	KeyReplace($f_dhcpd, "option option netbios-name-servers", " ", $ip . ";");
+	KeyReplace($f_dhcpd, "subnet", " ", $network . " netmask " . $netmask . " {");
+	KeyReplace($f_dhcpd, "range", " ", $lowrange . " " . $highrange . ";");
+
+	# Right the dnsmasq version too
+	#------------------------------
+
+	system("/bin/mkdir -p /etc/dnsmasq");
+	system("/bin/rm -f /etc/dnsmasq/dhcp.conf");
+	if (open(DNSMASQ, ">$f_dhcpd_dnsmasq")) {
+		print DNSMASQ "read-ethers\n";
+		print DNSMASQ "dhcp-option=eth1,1,$netmask\n";
+		print DNSMASQ "dhcp-option=eth1,3,$ip\n";
+		print DNSMASQ "dhcp-option=eth1,6,$ip\n";
+		print DNSMASQ "dhcp-range=eth1,$lowrange,$highrange,12h\n";
+		close DNSMASQ;
+	}
+}
+
+
+################################################################################
+#
+# SetGateway
+#
+################################################################################
+
+sub SetGateway($) {
+	my $gateway = $_[0];
+	print("Setting gateway device to $gateway\n");
+
+	if (!$gateway || !($gateway =~ /^([ethp0-9]*)$/)) {
+		print("... invalid interface name\n");
+		return;
+	}
+
+	if (KeyReplace($f_network, "GATEWAYDEV", "=", $gateway) != 0) {
+		`echo "GATEWAYDEV=$gateway" >> $f_network`;
+	}
+}

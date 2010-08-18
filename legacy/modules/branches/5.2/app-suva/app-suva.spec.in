@@ -1,0 +1,91 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-suva
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Suva encryption and authentication module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: compat-suvlets
+Requires: suva-client >= 3.0
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-suva
+Obsoletes: cc-suva
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Suva encryption and authentication module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/suva
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 755 setdevicename $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/suva/
+install -m 644 suvad.conf $RPM_BUILD_ROOT/usr/share/system/modules/suva/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-suva - installing"
+
+/usr/sbin/addsudo /usr/bin/mkhost.sh app-suva
+
+/usr/share/system/modules/suva/upgrade >/dev/null 2>&1
+
+# Remove in ClearOS 6.0 - only required for 5.2 beta issue
+[ -e /etc/system/initialized/suva ] && rm -f /etc/system/initialized/suva
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+    logger -p local6.notice -t installer "app-suva - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+/usr/sbin/setdevicename
+/usr/share/system/modules/suva/upgrade
+/usr/share/system/modules/suva/suvad.conf

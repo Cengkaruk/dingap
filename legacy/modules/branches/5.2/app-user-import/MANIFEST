@@ -1,0 +1,14 @@
+menu htdocs/menus/import
+locale userimport api/lang
+locale import htdocs/admin/lang
+include api/UserImport.class.php
+include htdocs/admin/import.php
+include htdocs/admin/import.js.php
+include htdocs/admin/import-status.php
+include htdocs/images/icons/16x16/icon-import.png
+include htdocs/images/icons/32x32/icon-import.png
+include scripts/userimport.inc.php
+include scripts/userimport.php
+include ./import_template.ods
+include ./import_template.xls
+include ./import_template.csv

@@ -1,0 +1,8 @@
+menu htdocs/menus/firewall-custom
+locale firewallcustom api/lang
+locale firewall-custom htdocs/admin/lang
+include api/FirewallCustom.class.php
+include htdocs/admin/firewall-custom.php
+include htdocs/images/icons/16x16/icon-firewall-custom.png
+include htdocs/images/icons/32x32/icon-firewall-custom.png
+include ./rc.firewall.custom

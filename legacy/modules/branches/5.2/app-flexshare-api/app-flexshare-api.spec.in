@@ -1,0 +1,117 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-flexshare-api
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Flexshare API
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: cyrus-sasl
+Requires: passwd
+Requires: shadow-utils
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-ldap = %VERSION%
+Requires: app-mailer = %VERSION%
+Requires: app-ssl = %VERSION%
+Provides: cc-flexshare-api
+Obsoletes: cc-flexshare-api
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Flexshare API
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/flexshare
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/flexshare/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/flexshare/shares
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+
+install -m 0755 updateflexperms $RPM_BUILD_ROOT/usr/sbin
+install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/flexshare
+install -m 0755 check_mbox.php $RPM_BUILD_ROOT/var/flexshare/scripts/check_mbox.php
+install -m 0644 app-flexshare.cron $RPM_BUILD_ROOT/etc/cron.d/app-flexshare
+install -m 0600 flexshare.conf $RPM_BUILD_ROOT/etc
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E - I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%pre
+/usr/sbin/useradd -d /var/flexshare -s /sbin/nologin -M -r -u 351 flexshare 2>/dev/null
+exit 0
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-flexshare-api - installing"
+
+# Always check sudoers
+#---------------------
+
+/usr/sbin/addsudo /usr/sbin/httpd app-flexshare-api
+/usr/sbin/addsudo /usr/sbin/proftpd app-flexshare-api
+/usr/sbin/addsudo /usr/sbin/updateflexperms app-flexshare-api
+/usr/sbin/addsudo /bin/mount app-flexshare-api
+/usr/sbin/addsudo /bin/umount app-flexshare-api
+
+/usr/share/system/modules/flexshare/upgrade >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-flexshare-api - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/usr/sbin/updateflexperms
+/usr/share/system/modules/flexshare/upgrade
+/var/webconfig
+%config(noreplace) /etc/flexshare.conf
+%dir /var/flexshare
+%dir /var/flexshare/shares
+%dir /var/flexshare/scripts
+/var/flexshare/scripts/check_mbox.php
+/etc/cron.d/app-flexshare

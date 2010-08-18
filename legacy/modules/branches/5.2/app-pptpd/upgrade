@@ -1,0 +1,86 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Convert old options.pptpd file
+#-------------------------------
+
+CHECK=`grep "^mppe-[0-9].*" /etc/ppp/options.pptpd 2>/dev/null`
+if [ ! -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - upgrading old config file"
+	cp -a /etc/ppp/options.pptpd /usr/share/system/modules/pptpd/options.pptpd.$TIMESTAMP
+	cp /usr/share/system/modules/pptpd/options.pptpd /etc/ppp/options.pptpd
+fi
+
+# Remove old chapms-strip-domain
+#-------------------------------
+
+CHECK=`grep chapms-strip-domain /etc/ppp/options.pptpd 2>/dev/null`
+if [ ! -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - removing chapms-strip-domain"
+	grep -v chapms-strip-domain /etc/ppp/options.pptpd > /etc/ppp/options.pptpd.new
+	mv /etc/ppp/options.pptpd.new /etc/ppp/options.pptpd
+fi
+
+# Remove users from pap/chap-secrets
+#-----------------------------------
+
+CHECK=`grep "&ldap" /etc/ppp/chap-secrets 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - scrubbing PPTP users from secrets"
+
+	echo "# client        server  secret                  IP addresses" > /etc/ppp/chap-secrets.new
+	echo "# client        server  secret                  IP addresses" > /etc/ppp/pap-secrets.new
+	chmod 600 /etc/ppp/chap-secrets.new /etc/ppp/pap-secrets.new
+
+	for ETHNUM in 0 1 2 3 4 5 6 7 8 9; do
+		if [ -e "/etc/sysconfig/network-scripts/ifcfg-ppp$ETHNUM" ]; then
+			source /etc/sysconfig/network-scripts/ifcfg-ppp$ETHNUM
+			logger -p local6.notice -t installer "app-pptpd - skipping PPPoE user $USER on ppp$ETHNUM"
+			grep "$USER" /etc/ppp/chap-secrets >> /etc/ppp/chap-secrets.new
+			grep "$USER" /etc/ppp/pap-secrets >> /etc/ppp/pap-secrets.new
+		fi
+	done
+	
+	mv /etc/ppp/chap-secrets /etc/ppp/chap-secrets.pre-ldap
+	mv /etc/ppp/pap-secrets /etc/ppp/pap-secrets.pre-ldap
+	mv /etc/ppp/chap-secrets.new /etc/ppp/chap-secrets 
+	mv /etc/ppp/pap-secrets.new /etc/ppp/pap-secrets 
+fi
+
+# Add LDAP include file
+#----------------------
+
+CHECK=`grep "file.*/etc/ppp/options.ldap" /etc/ppp/options.pptpd 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - adding LDAP configuration to options file"
+	echo "file /etc/ppp/options.ldap" >> /etc/ppp/options.pptpd
+fi
+
+# Add devname to include file
+#----------------------------
+
+CHECK=`grep "^devname" /etc/ppp/options.pptpd 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - adding devname configuration to options file"
+	echo "devname pptp" >> /etc/ppp/options.pptpd
+fi
+
+# Add LDAP hook to pap/chap-secrets
+#----------------------------------
+
+CHECK=`grep "&ldap" /etc/ppp/chap-secrets 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - adding LDAP hook to chap-secrets"
+	echo "* * &ldap *" >> /etc/ppp/chap-secrets
+fi
+
+# Remove debug mode
+#------------------
+
+CHECK=`grep "^debug$" /etc/ppp/options.pptpd 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-pptpd - removing old debug mode parameter"
+	grep -v "^debug$" /etc/ppp/options.pptpd > /etc/ppp/options.pptpd.$$
+	mv /etc/ppp/options.pptpd.$$ /etc/ppp/options.pptpd
+fi

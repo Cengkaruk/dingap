@@ -1,0 +1,131 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-cyrus-imapd
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Mail - IMAP/POP server module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: cyrus-imapd >= 2.3.11
+Requires: cyrus-imapd-utils
+Requires: imapsync
+Requires: rsync
+Requires: vixie-cron
+Requires: webconfig-php-imap
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-ssl = %VERSION%
+Requires: app-users = %VERSION%
+Requires: app-postfix = %VERSION%
+Obsoletes: cc-dovecot
+Obsoletes: cc-imap
+Obsoletes: cc-mail
+Provides: cc-cyrus-imapd
+Obsoletes: cc-cyrus-imapd
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Mail - IMAP/POP server module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/imapd.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/cyrus-imapd/
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 644 cyrus.conf $RPM_BUILD_ROOT/usr/share/system/modules/cyrus-imapd/
+install -m 644 imapd.conf $RPM_BUILD_ROOT/usr/share/system/modules/cyrus-imapd/
+install -m 640 ldap.conf $RPM_BUILD_ROOT/etc/imapd.d
+install -m 644 app-cyrus-imapd.cron $RPM_BUILD_ROOT/etc/cron.d/app-cyrus-imapd
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/cyrus-imapd/
+install -m 755 upgradeapi $RPM_BUILD_ROOT/usr/share/system/modules/cyrus-imapd/
+install -m 755 cyrusadmin $RPM_BUILD_ROOT/usr/share/system/modules/cyrus-imapd/
+install -m 755 imap2cyrus $RPM_BUILD_ROOT/usr/sbin
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-cyrus-imapd - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+    logger -p local6.notice -t installer "app-cyrus-imapd - disabling on boot"
+    chkconfig --add cyrus-imapd
+    chkconfig --level 2345 cyrus-imapd off
+
+    TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+	logger -p local6.notice -t installer "app-cyrus-imapd - creating default configuration"
+	cp /etc/cyrus.conf /usr/share/system/modules/cyrus-imapd/cyrus.conf.$TIMESTAMP
+	cp /etc/imapd.conf /usr/share/system/modules/cyrus-imapd/imapd.conf.$TIMESTAMP
+	cp /usr/share/system/modules/cyrus-imapd/cyrus.conf /etc/cyrus.conf
+	cp /usr/share/system/modules/cyrus-imapd/imapd.conf /etc/imapd.conf
+
+	CHECK=`grep '^mail.\*' /etc/syslog.conf 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-cyrus-imapd - changing mail log policy"
+		sed -i -e 's/^mail\.\*/mail.info/' /etc/syslog.conf 
+	fi
+fi
+
+/usr/share/system/modules/cyrus-imapd/upgrade
+/usr/share/system/modules/cyrus-imapd/upgradeapi
+
+logger -p local6.notice -t installer "app-cyrus-imapd - synchronizing with LDAP"
+/usr/sbin/ldapsync config cyrus-imapd  >/dev/null 2>&1
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-cyrus-imapd - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+/etc/cron.d/app-cyrus-imapd
+%config(noreplace) %attr(0640,cyrus,mail) /etc/imapd.d/ldap.conf
+/usr/sbin/imap2cyrus
+/usr/share/system/modules/cyrus-imapd/cyrus.conf
+/usr/share/system/modules/cyrus-imapd/imapd.conf
+/usr/share/system/modules/cyrus-imapd/upgrade
+/usr/share/system/modules/cyrus-imapd/upgradeapi
+/usr/share/system/modules/cyrus-imapd/cyrusadmin

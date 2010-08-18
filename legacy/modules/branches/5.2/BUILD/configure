@@ -1,0 +1,39 @@
+#!/bin/bash
+
+CONFDIR=`pwd`
+
+[ -f .config ] && source .config
+
+read -p "Vendor [$VENDOR]: " _VENDOR
+read -p "Product [$PRODUCT]: " _PRODUCT
+read -p "Version [$VERSION]: " _VERSION
+read -p "Release [$RELEASE]: " _RELEASE
+
+[ -z "$_VENDOR" ] || VENDOR=$_VENDOR
+[ -z "$_PRODUCT" ] || PRODUCT=$_PRODUCT
+[ -z "$_VERSION" ] || VERSION=$_VERSION
+[ -z "$_RELEASE" ] || RELEASE=$_RELEASE
+
+echo "VENDOR=$VENDOR" > .config
+echo "PRODUCT=$PRODUCT" >> .config
+echo "VERSION=$VERSION" >> .config
+echo "RELEASE=$RELEASE" >> .config
+echo "CONFDIR=$CONFDIR" >> .config
+
+if [ -f policy.$PRODUCT ]; then
+	cat policy.$PRODUCT >> .config
+elif [ -f .policies ]; then
+	POLICIES=`cat .policies | grep -v "^#" | awk -F: '{ print $1 }'`
+	for POLICY in $POLICIES; do
+		DESC=`grep $POLICY .policies | awk -F: '{ print $2 }'`
+		EVAL="read -p \"$DESC [\$$POLICY]: \" _$POLICY"
+		eval $EVAL
+		EVAL="[ -z \"\$_$POLICY\" ] || $POLICY=\$_$POLICY"
+		eval $EVAL
+		EVAL="echo \"$POLICY=\$$POLICY\" >> .config"
+		EVAL="echo \"$POLICY=\$$POLICY\" >> policy.$PRODUCT"
+		eval $EVAL
+	done
+fi 
+
+exit 0

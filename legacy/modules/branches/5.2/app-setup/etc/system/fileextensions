@@ -1,0 +1,107 @@
+# Archives
+bin archive CD ISO image
+bz2 archive Bzip compressed file
+cdr archive Mac disk image
+cue archive CD ISO image
+dmg archive Mac disk image
+gz archive Gzip compressed file
+hqx archive Mac binhex encoded file
+iso archive CD ISO image
+rar archive RAR compressed file
+sea archive Mac compressed file
+sit archive Mac compressed file
+smi archive Mac self mounting disk image
+tar archive Tape archive file
+tgz archive Tape archive compressed file
+zip archive Zip compressed file
+
+# Documents
+chm document Compiled HTML help file
+doc document Microsoft Word document
+docm document Microsoft Word 2007 macro-enabled document
+docx document Microsoft Word 2007 document
+hlp document Help file
+msc document Microsoft Common Console document
+pdf document Portable document format
+xls document Microsoft Excel spreadsheet
+xlsm document Microsoft Excel 2007 macro-enabled spreadsheet
+xlsx document Microsoft Excel 2007 spreadsheet
+pps document Microsoft PowerPoint slideshow
+ppsx document Microsoft PowerPoint 2007 slideshow
+ppt document Microsoft PowerPoint presentation
+pptm document Microsoft PowerPoint 2007 macro-enabled presentation
+pptx document Microsoft PowerPoint 2007 presentation
+rtf document Rich text format document
+
+# Media
+asf media Advanced Streaming Format
+asx media Windows Media Audio / Video
+avi media Movie file
+midi media Audio file
+mov media Quicktime file
+mp3 media Music file
+mp4 media Music file
+mpeg media Movie file
+mpg media Movie file
+ogg media Music file
+pcd media Photo CD image
+qt media Quicktime file
+wav media Audio file
+wma media Windows Media Audio file
+wmf media Movie file
+wmv media Windows Media File
+
+# Miscellaneous
+crt miscellaneous Security certificate 
+otf miscellaneous Font file
+shb miscellaneous Windows shell scrap object
+
+# Programs
+ade program Microsoft Access project extension
+adp program Microsoft Access project
+app program Executable application
+bas program Microsoft Visual Basic class module
+bat program Batch file
+cab program Windows compressed setup file
+cmd program Microsoft Windows NT command script
+com program Microsoft MS-DOS program
+cpl program Microsoft Control Panel extension
+dll program Microsoft Windows system file
+exe program Program
+fxp program FoxPro compiled source
+grp program Windows program manager group
+hta program HTML program
+inf program Setup Information
+ini program Windows system file
+isp program Internet Communication settings
+jse program Javascript Encoded Script file
+js program Javaccript file
+lnk program Windows Shortcut
+mda program Microsoft Access add-in program 
+mdb program Microsoft Access program
+mde program Microsoft Access MDE database
+mdt program Microsoft Access workgroup information 
+mdw program Microsoft Access workgroup information 
+mdz program Microsoft Access wizard program 
+msi program Microsoft Windows Installer package
+msp program Microsoft Windows Installer patch
+mst program Microsoft Visual Test source files
+ops program Microsoft Office XP settings 
+pif program Microsoft MS-DOS program shortcut
+prf program Microsoft Outlook profile settings
+prg program Program file
+reg program Microsoft Windows registry entries
+scf program Microsoft Windows Explorer command
+scr program Screensaver
+sct program Microsoft Windows Script Component
+sh program Shell script
+shs program Shell scrap object
+sys program Windows system file
+url program Internet shortcut
+vbe program VBScript encoded script file
+vbs program VBScript file
+vb program VBScript file
+vxd program Windows system file
+wsc program Windows Script Component
+wsf program Windows Script file
+wsh program Windows Script Host Settings file

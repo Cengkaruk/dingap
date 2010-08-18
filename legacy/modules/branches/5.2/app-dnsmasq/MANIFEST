@@ -1,0 +1,12 @@
+menu htdocs/menus/dhcp
+locale dnsmasq api/lang 
+locale dhcp htdocs/admin/lang
+include htdocs/admin/dhcp.php
+include htdocs/images/icons/16x16/icon-dhcp.png
+include htdocs/images/icons/32x32/icon-dhcp.png
+include api/DnsMasq.class.php
+include wsdl/DnsMasq.wsdl
+include ./dnsmasq.conf
+include ./dhcptest
+include ./dhcp2dnsmasq
+include ./upgrade

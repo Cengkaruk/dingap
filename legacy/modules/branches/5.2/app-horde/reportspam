@@ -1,0 +1,5 @@
+#!/bin/sh
+
+logger -p mail.info -t learn "spam reported by user $1"
+touch /var/spool/filter/training/spam-web
+tee /var/spool/filter/training/spam-web.$1.$$ > /dev/null

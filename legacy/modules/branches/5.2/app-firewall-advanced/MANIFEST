@@ -1,0 +1,5 @@
+menu htdocs/menus/firewall-advanced
+locale firewall-advanced htdocs/admin/lang
+include htdocs/admin/firewall-advanced.php
+include htdocs/images/icons/16x16/icon-firewall-advanced.png
+include htdocs/images/icons/32x32/icon-firewall-advanced.png

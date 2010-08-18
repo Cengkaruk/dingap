@@ -1,0 +1,191 @@
+#!/bin/sh
+
+# Copy over master.cf that does not contain 4.x upgrade parameters
+#-----------------------------------------------------------------
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+CHECK=`grep ^mailprefilter /etc/postfix/master.cf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+    /usr/bin/logger -p local6.notice -t installer "app-postfix - upgrading master.cf for groupware and antivirus"
+    cp /etc/postfix/master.cf /usr/share/system/modules/postfix/master.cf.$TIMESTAMP
+    cp /usr/share/system/modules/postfix/master.cf /etc/postfix/
+
+	# Some users have added 2525 or 2500 as alternate ports... do our best to detect this.
+	PORTLIST="2500 2525 10025"
+	for PORT in $PORTLIST; do
+		PORTCHECK=`grep "^$PORT[[:space:]]" /usr/share/system/modules/postfix/master.cf.$TIMESTAMP 2>/dev/null`
+		if [ -n "$PORTCHECK" ]; then
+			/usr/bin/logger -p local6.notice -t installer "app-postfix - adding custom port $PORT to master.cf"
+			echo "$PORT      inet  n       -       n       -       -       smtpd" >> /etc/postfix/master.cf
+		fi
+	done
+fi
+
+# Clean out deprecated or not so useful parameters
+#-------------------------------------------------
+
+DEPRECATED="readme_directory sample_directory"
+for PARAM in $DEPRECATED; do
+	CHECK=`grep ^$PARAM /etc/postfix/main.cf 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		/usr/bin/logger -p local6.notice -t installer "app-postfix - removing deprecated parameter: $PARAM"
+		grep -v ^$PARAM /etc/postfix/main.cf > /etc/postfix/main.cf.new
+		mv /etc/postfix/main.cf.new /etc/postfix/main.cf
+	fi
+done
+
+# Fix bounce configuration error (bug #127)
+#------------------------------------------
+
+CHECK=`grep "^luser_relay = bounce" /etc/postfix/main.cf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	/usr/bin/logger -p local6.notice -t installer "app-postfix - cleaning up luser_relay"
+	sed -e 's/^luser_relay = bounce/luser_relay =/' /etc/postfix/main.cf > /etc/postfix/main.cf.tmp
+	mv /etc/postfix/main.cf.tmp /etc/postfix/main.cf
+	chmod 644 /etc/postfix/main.cf
+fi
+
+# Relatively safe changes to parameters
+#--------------------------------------
+
+/usr/sbin/postconf -e 'smtpd_tls_cert_file = /etc/postfix/cert.pem'
+/usr/sbin/postconf -e 'smtpd_tls_key_file = /etc/postfix/key.pem'
+/usr/sbin/postconf -e 'smtpd_tls_loglevel = 1'
+/usr/sbin/postconf -e 'smtpd_use_tls = yes'
+/usr/sbin/postconf -e 'kolabpolicy_max_idle = 20'
+/usr/sbin/postconf -e 'kolabpolicy_time_limit = 3600'
+/usr/sbin/postconf -e 'smtpd_sasl_local_domain = $mydomain'
+/usr/sbin/postconf -e 'unknown_local_recipient_reject_code = 550'
+/usr/sbin/postconf -e 'transport_maps = hash:/etc/postfix/transport'
+/usr/sbin/postconf -e 'recipient_delimiter = +'
+/usr/sbin/postconf -e 'content_filter = mailprefilter'
+#/usr/sbin/postconf -e 'luser_relay ='
+/usr/sbin/postconf -e 'message_strip_characters = \0'
+/usr/sbin/postconf -e 'mailbox_transport = mailpostfilter'
+
+# SMTPD restrictions
+#-------------------
+
+CHECK=`grep "^smtpd_recipient_restrictions" /etc/postfix/main.cf`
+if [ -z "$CHECK" ]; then
+	/usr/sbin/postconf -e 'smtpd_recipient_restrictions = permit_sasl_authenticated, permit_mynetworks, reject_unauth_destination'
+fi
+
+# SASL
+#-----
+
+CHECK=`grep "^smtpd_sasl_auth_enable" /etc/postfix/main.cf`
+if [ -z "$CHECK" ]; then
+	/usr/bin/logger -p local6.notice -t installer "app-postfix - adding SASL support"
+	/usr/sbin/postconf -e 'smtpd_sasl_auth_enable = yes'
+	/usr/sbin/postconf -e 'smtpd_sasl_security_options = noanonymous'
+	/usr/sbin/postconf -e 'broken_sasl_auth_clients = yes'
+fi
+
+# Spam control
+#-------------
+
+CHECK=`grep "^bounce_queue_lifetime" /etc/postfix/main.cf`
+if [ -z "$CHECK" ]; then
+	/usr/bin/logger -p local6.notice -t installer "app-postfix - decreasing bounce queue lifetime (spam)"
+	/usr/sbin/postconf -e 'bounce_queue_lifetime = 6h'
+fi
+
+# Spam training
+#--------------
+
+CHECK=`grep "^train.spam:" /etc/aliases`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-postfix - adding train.spam to mail aliases"
+	echo "train.spam: >/var/spool/filter/training/spam-mailbox" >> /etc/aliases
+fi
+
+CHECK=`grep "^train.notspam:" /etc/aliases`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-postfix - adding train.notspam to mail aliases"
+	echo "train.notspam: >/var/spool/filter/training/notspam-mailbox" >> /etc/aliases
+fi
+
+# Aliases
+#--------
+
+if [ ! -e /etc/postfix/aliases ]; then
+	ln -s /etc/aliases /etc/postfix/aliases
+fi
+
+/usr/bin/newaliases >/dev/null 2>&1
+
+# Fix old directory permissions
+#------------------------------
+
+chown filter:filter /var/spool/filter
+chmod 775 /var/spool/filter
+
+# Deprecated POP-before-SMTP
+#---------------------------
+
+CHECK=`grep "^hash.*pop-before-smtp" /etc/postfix/main.cf`
+if [ -n "$CHECK" ]; then
+	/usr/bin/logger -p local6.notice -t installer "app-postfix - removing deprecated pop-before-smtp"
+	sed -e 's/[[:space:]]*check_client_access[[:space:]]*hash:\/etc\/postfix\/pop-before-smtp,//' /etc/postfix/main.cf > /etc/postfix/main.cf.$TIMESTAMP
+	mv /etc/postfix/main.cf.$TIMESTAMP /etc/postfix/main.cf
+fi
+
+# Add default SSL certs
+#----------------------
+
+umask 0177
+
+if [ ! -e /etc/postfix/key.pem ]; then
+    if [ -e /etc/ssl/private/sys-0-key.pem ]; then
+        logger -p local6.notice -t installer "app-postfix - copying system SSL key"
+        cp -a /etc/ssl/private/sys-0-key.pem /etc/postfix/key.pem
+    else
+        logger -p local6.notice -t installer "app-postfix - creating default SSL key"
+        /usr/bin/openssl genrsa -out /etc/postfix/key.pem 2048 2>/dev/null
+    fi
+fi
+
+if [ ! -e /etc/postfix/cert.pem ]; then
+    if [ -e /etc/ssl/sys-0-cert.pem ]; then
+        logger -p local6.notice -t installer "app-postfix - copying default SSL certificate"
+        cp -a /etc/ssl/sys-0-cert.pem /etc/postfix/cert.pem
+    else
+        logger -p local6.notice -t installer "app-postfix - creating default SSL certificate"
+        /usr/bin/openssl req -new -key /etc/postfix/key.pem -x509 -out /etc/postfix/cert.pem -config /etc/system/openssl.cnf -days 3000 2>/dev/null
+    fi
+fi
+
+chmod 0600 /etc/postfix/key.pem /etc/postfix/cert.pem >/dev/null 2>&1
+chown root.root /etc/postfix/key.pem /etc/postfix/cert.pem
+
+# Remove bad networks specified in trusted hosts
+#-----------------------------------------------
+
+/usr/share/system/modules/postfix/cleantrusted >/dev/null 2>&1
+
+# Aliases to LDAP
+#----------------
+
+CHECK=`postconf | grep ^virtual_alias_maps | grep "ldap:/etc/postfix/ldap-aliases.cf"`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-postfix - adding LDAP alias support"
+	CURRENT=`postconf | grep ^virtual_alias_maps`
+	/usr/sbin/postconf -e "$CURRENT, ldap:/etc/postfix/ldap-aliases.cf"
+fi
+
+CHECK=`postconf | grep ^virtual_alias_maps | grep "ldap:/etc/postfix/ldap-groups.cf"`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-postfix - adding LDAP groups support"
+	CURRENT=`postconf | grep ^virtual_alias_maps`
+	/usr/sbin/postconf -e "$CURRENT, ldap:/etc/postfix/ldap-groups.cf"
+fi
+
+# Reload Postfix
+#---------------
+
+CHECK=`/sbin/pidof master`
+if [ ! -z "$CHECK" ]; then
+	service postfix reload >/dev/null 2>&1
+fi

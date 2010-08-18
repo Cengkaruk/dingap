@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Startup script for the Dynamic IP VPN watcher.
+#
+# chkconfig: - 99 01
+# description: This script keeps an eye on your IPsec VPN connections.
+# processname: vpnwatchd
+# pidfile: /var/run/vpnwatchd.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+prog="vpnwatch"
+RETVAL=0
+
+# See how we were called.
+case "$1" in
+  start)
+	echo -n $"Starting $prog: "
+	daemon /usr/sbin/vpnwatchd
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/vpnwatchd
+	;;
+  stop)
+	echo -n $"Stopping $prog: "
+	killproc vpnwatchd
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/vpnwatchd
+	;;
+  status)
+	status vpnwatchd
+	RETVAL=$?
+	;;
+  reload)
+	echo -n "Reloading $prog: "
+	killproc vpnwatchd -HUP
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/vpnwatchd
+	;;
+  condrestart)
+	if [ -e /var/lock/subsys/vpnwatchd ]; then
+		$0 stop
+		$0 start
+		RETVAL=$?
+	fi
+	;;
+  restart)
+	$0 stop
+	$0 start
+	RETVAL=$?
+	;;
+  *)
+	echo "Usage: $prog {start|stop|restart|condrestart|reload|status}"
+	exit 1
+esac
+
+exit $RETVAL

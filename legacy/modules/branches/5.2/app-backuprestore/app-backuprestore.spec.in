@@ -1,0 +1,90 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-backuprestore
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Backup and restore module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: tar
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-backuprestore
+Obsoletes: cc-backuprestore
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Backup and restore module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/backuprestore/upload
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/
+
+install -m 644 backup.conf $RPM_BUILD_ROOT/etc/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E  I N S T A L L  S C R I P T 
+#------------------------------------------------------------------------------
+
+%pre
+if [ -e /var/backuprestore ]; then
+	mkdir -p /var/lib/backuprestore
+	mv /var/backuprestore /var/lib/backuprestore/old
+fi
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T 
+#------------------------------------------------------------------------------
+
+%post 
+logger -p local6.notice -t installer "app-backuprestore - installing"
+
+/usr/sbin/addsudo /bin/tar app-backuprestore
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-backuprestore - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+/etc/backup.conf
+%dir /var/lib//backuprestore
+%dir /var/lib/backuprestore/upload
