@@ -65,12 +65,10 @@ exit;
 sub UpdateRunLevels() {
 	print("Updating runlevels\n");
 
-	if ( -f "/etc/init.d/mmsmtpd" ) { system("chkconfig --level 2345 mmsmtpd off"); }
 	if ( -f "/etc/init.d/mdmonitor" ) { system("chkconfig --level 2345 mdmonitor off"); }
 	if ( -f "/etc/init.d/mdmpd" ) { system("chkconfig --level 2345 mdmpd off"); }
 	if ( -f "/etc/init.d/pcmcia" ) { system("chkconfig --level 2345 pcmcia off"); }
 	if ( -f "/etc/init.d/xfs" ) { system("chkconfig --level 2345 xfs off"); }
-
 	if ( -f "/etc/init.d/kudzu" ) { system("chkconfig --level 345 kudzu on"); }
 	if ( -f "/etc/init.d/suvad" ) { system("chkconfig --level 2345 suvad on"); }
 }
@@ -83,12 +81,7 @@ sub UpdateRunLevels() {
 ################################################################################
 
 sub MiscStuff() {
-	my $f_samba = "/etc/samba/smb.conf";
-	my $f_apache = "/etc/httpd/conf/httpd.conf";
 	my $f_lilo = "/etc/lilo.conf";
-	my $f_logowww = "/var/www/html/logo.png";
-	my $f_docroot = "/var/www/html";
-	my $f_logo = "/usr/share/system/modules/setup/logo.png";
 
 	# The kickstart LILO install is a bit broken...  Fix it here
 	if ( -e $f_lilo) {
