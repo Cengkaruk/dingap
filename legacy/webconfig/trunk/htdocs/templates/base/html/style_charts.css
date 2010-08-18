@@ -1,0 +1,19 @@
+.chartlegend {
+  font-size:    9pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   white;
+  border:       1px solid #aaaaaa;
+}
+.chartlegendtitle {
+  font-size:    9pt;
+  font-family:  arial, verdana;
+  background:   #EEEEEE;
+  color:        black;
+}
+.chartlegendkey {
+  font-size:    9pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   white;
+}
