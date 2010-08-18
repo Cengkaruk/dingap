@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Suva"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Suva">
+
+	<types>
+		<xsd:schema targetNamespace="Suva">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+		</xsd:schema>
+	</types>
+
+	<message name="GetHostkeyRequest">
+	</message>
+
+	<message name="GetHostkeyResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<portType name="SuvaPortType">
+		<operation name="GetHostkey">
+			<input message="tns:GetHostkeyRequest"/>
+			<output message="tns:GetHostkeyResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="SuvaBinding" type="tns:SuvaPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetHostkey">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetHostkey" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Suva"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Suva"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Suva">
+		<port name="SuvaPort" binding="tns:SuvaBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Hostname"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Hostname">
+
+	<types>
+		<xsd:schema targetNamespace="Hostname">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+		</xsd:schema>
+	</types>
+
+	<message name="GetRequest">
+	</message>
+
+	<message name="GetResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="SetRequest">
+		<part name="hostname" type="xsd:string"/>
+	</message>
+
+	<message name="SetResponse">
+	</message>
+
+	<message name="GetActualRequest">
+	</message>
+
+	<message name="GetActualResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="GetDomainRequest">
+	</message>
+
+	<message name="GetDomainResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<portType name="HostnamePortType">
+		<operation name="Get">
+			<input message="tns:GetRequest"/>
+			<output message="tns:GetResponse"/>
+		</operation>
+		<operation name="Set">
+			<input message="tns:SetRequest"/>
+			<output message="tns:SetResponse"/>
+		</operation>
+		<operation name="GetActual">
+			<input message="tns:GetActualRequest"/>
+			<output message="tns:GetActualResponse"/>
+		</operation>
+		<operation name="GetDomain">
+			<input message="tns:GetDomainRequest"/>
+			<output message="tns:GetDomainResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="HostnameBinding" type="tns:HostnamePortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="Get">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Get" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+		<operation name="Set">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Set" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+		<operation name="GetActual">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetActual" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+		<operation name="GetDomain">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetDomain" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Hostname"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Hostname">
+		<port name="HostnamePort" binding="tns:HostnameBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

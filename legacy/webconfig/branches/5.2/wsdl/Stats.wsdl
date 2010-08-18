@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Stats"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Stats">
+
+	<types>
+		<xsd:schema targetNamespace="Stats">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="ArrayOfInterfaces">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="DiskStats">
+				<xsd:all>
+					<xsd:element name="device" type="xsd:string"/>
+					<xsd:element name="mount" type="xsd:string"/>
+					<xsd:element name="filesystem" type="xsd:string"/>
+					<xsd:element name="blocks" type="xsd:unsignedLong"/>
+					<xsd:element name="used" type="xsd:unsignedLong"/>
+					<xsd:element name="timestamp" type="xsd:unsignedLong"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="ArrayOfDiskStats">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:DiskStats"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="InterfaceStats">
+				<xsd:all>
+					<xsd:element name="bytes" type="xsd:unsignedLong"/>
+					<xsd:element name="packets" type="xsd:unsignedLong"/>
+					<xsd:element name="errors" type="xsd:unsignedLong"/>
+					<xsd:element name="dropped" type="xsd:unsignedLong"/>
+					<xsd:element name="fifo" type="xsd:unsignedLong"/>
+					<xsd:element name="frame" type="xsd:unsignedLong"/>
+					<xsd:element name="compressed" type="xsd:unsignedLong"/>
+					<xsd:element name="multicast" type="xsd:unsignedLong"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="InterfaceConfig">
+				<xsd:all>
+					<xsd:element name="address" type="xsd:string"/>
+					<xsd:element name="netmask" type="xsd:string"/>
+					<xsd:element name="broadcast" type="xsd:string"/>
+					<xsd:element name="hwaddress" type="xsd:string"/>
+					<xsd:element name="mtu" type="xsd:int"/>
+					<xsd:element name="metric" type="xsd:int"/>
+					<xsd:element name="flags" type="xsd:int"/>
+					<xsd:element name="link" type="xsd:int"/>
+					<xsd:element name="speed" type="xsd:int"/>
+					<xsd:element name="type" type="xsd:string"/>
+					<xsd:element name="role" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="Interface">
+				<xsd:all>
+					<xsd:element name="device" type="xsd:string"/>
+					<xsd:element name="config" type="tns:InterfaceConfig"/>
+					<xsd:element name="receive" type="tns:InterfaceStats"/>
+					<xsd:element name="transmit" type="tns:InterfaceStats"/>
+					<xsd:element name="timestamp" type="xsd:unsignedLong"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="ArrayOfInterfaceStats">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:Interface"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="InterfaceInfo">
+				<xsd:all>
+					<xsd:element name="type" type="xsd:string"/>
+					<xsd:element name="type_name" type="xsd:string"/>
+					<xsd:element name="role" type="xsd:string"/>
+					<xsd:element name="role_name" type="xsd:string"/>
+					<xsd:element name="boot_proto" type="xsd:string"/>
+					<xsd:element name="boot_proto_name" type="xsd:string"/>
+					<xsd:element name="address" type="xsd:string"/>
+					<xsd:element name="link" type="xsd:int"/>
+					<xsd:element name="speed" type="xsd:int"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="ProcessCount">
+				<xsd:all>
+					<xsd:element name="running" type="xsd:int"/>
+					<xsd:element name="total" type="xsd:int"/>
+					<xsd:element name="timestamp" type="xsd:unsignedLong"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="MemStats">
+				<xsd:all>
+					<xsd:element name="mem_total" type="xsd:unsignedLong"/>
+					<xsd:element name="mem_free" type="xsd:unsignedLong"/>
+					<xsd:element name="swap_total" type="xsd:unsignedLong"/>
+					<xsd:element name="swap_free" type="xsd:unsignedLong"/>
+					<xsd:element name="timestamp" type="xsd:unsignedLong"/>
+				</xsd:all>
+			</xsd:complexType>
+		</xsd:schema>
+	</types>
+
+	<message name="GetReleaseRequest">
+	</message>
+	<message name="GetReleaseResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="GetInterfacesRequest">
+	</message>
+	<message name="GetInterfacesResponse">
+		<part name="result" type="tns:ArrayOfInterfaces"/>
+	</message>
+
+	<message name="GetInterfaceInfoRequest">
+		<part name="device" type="xsd:string"/>
+	</message>
+	<message name="GetInterfaceInfoResponse">
+		<part name="result" type="tns:InterfaceInfo"/>
+	</message>
+
+	<message name="GetDiskStatsRequest">
+	</message>
+	<message name="GetDiskStatsResponse">
+		<part name="result" type="tns:ArrayOfDiskStats"/>
+	</message>
+
+	<message name="GetInterfaceStatsRequest">
+	</message>
+	<message name="GetInterfaceStatsResponse">
+		<part name="result" type="tns:ArrayOfInterfaceStats"/>
+	</message>
+
+	<message name="GetProcessCountRequest">
+	</message>
+	<message name="GetProcessCountResponse">
+		<part name="result" type="tns:ProcessCount"/>
+	</message>
+
+	<message name="GetMemStatsRequest">
+	</message>
+	<message name="GetMemStatsResponse">
+		<part name="result" type="tns:MemStats"/>
+	</message>
+
+	<portType name="StatsPortType">
+		<operation name="GetRelease">
+			<input message="tns:GetReleaseRequest"/>
+			<output message="tns:GetReleaseResponse"/>
+		</operation>
+
+		<operation name="GetInterfaces">
+			<input message="tns:GetInterfacesRequest"/>
+			<output message="tns:GetInterfacesResponse"/>
+		</operation>
+
+		<operation name="GetInterfaceInfo">
+			<input message="tns:GetInterfaceInfoRequest"/>
+			<output message="tns:GetInterfaceInfoResponse"/>
+		</operation>
+
+		<operation name="GetDiskStats">
+			<input message="tns:GetDiskStatsRequest"/>
+			<output message="tns:GetDiskStatsResponse"/>
+		</operation>
+
+		<operation name="GetInterfaceStats">
+			<input message="tns:GetInterfaceStatsRequest"/>
+			<output message="tns:GetInterfaceStatsResponse"/>
+		</operation>
+
+		<operation name="GetProcessCount">
+			<input message="tns:GetProcessCountRequest"/>
+			<output message="tns:GetProcessCountResponse"/>
+		</operation>
+
+		<operation name="GetMemStats">
+			<input message="tns:GetMemStatsRequest"/>
+			<output message="tns:GetMemStatsResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="StatsBinding" type="tns:StatsPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetRelease">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetRelease" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetInterfaces">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetInterfaces" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetInterfaceInfo">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetInterfaceInfo" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetDiskStats">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetDiskStats" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetInterfaceStats">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetInterfaceStats" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetProcessCount">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetProcessCount" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetMemStats">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetMemStats" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Stats"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Stats">
+		<port name="StatsPort" binding="tns:StatsBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

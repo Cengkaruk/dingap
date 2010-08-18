@@ -1,0 +1,195 @@
+/* Standard HTML Tags */
+/* ------------------ */
+
+body {
+  font-size:     9pt;
+  font-family:   arial, verdana;
+  margin-top:    0pt;
+  margin-left:   0pt;
+  margin-right:  0pt;
+  margin-bottom: 0pt;
+  background:    #EEEEEE;
+}
+td,th {
+  font-size:       9pt;
+  font-family:     arial, verdana;
+}
+h1 {
+  font-size:       12pt;
+  font-family:     arial, verdana;
+  color:           #333333;
+}
+h2,h3 {
+  font-size:       9pt;
+  font-family:     arial, verdana;
+  color:           #333333;
+}
+hr {
+  color:           #CCCCCC;
+  width:           75%;
+}
+img {
+  border-width:    0;
+}
+form {
+  margin:          0;
+}
+pre {
+  font:            courier;
+  font-size:       8pt;
+}
+textarea {
+  font-size:       8pt;
+  font-family:     arial, verdana;
+  width:           100%;
+}
+input {
+  font-size:       9pt;
+  font-family:     arial, verdana;
+}
+select {
+  font-size:       9pt;
+  font-family:     arial, verdana;
+}
+a:link {
+  text-decoration: none;
+  color:           #006699;
+}
+a:visited {
+  text-decoration: none;
+  color:           #006699;
+}
+a:hover {
+  background:      transparent;
+  color:           #006699;
+}
+
+/* Text Format Tags */
+/* ---------------- */
+
+.small {
+  font-size: 8pt;
+  font-family: arial, verdana;
+}
+.content {
+  font-size:    9pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   #EEEEEE;
+}
+.help {
+  border-left: thin dotted #999999;
+  padding: 10px;
+}
+.alert {
+  font-size:    9pt;
+  color:        red;
+}
+.ok {
+  font-size:    9pt;
+  color:        green;
+}
+
+
+/* Tables */
+/* ------ */
+
+.mytable {
+  background:    white;
+  border:        1px outset #aaaaaa;
+}
+.mytabletitle {
+  font-size:    9pt;
+  font-family:  arial, verdana;
+  font-weight:  bold;
+  color:        white;
+  background:   #065590;
+}
+.mytableheader {
+  font-size:    9pt;
+  font-family:  arial, verdana;
+  font-weight:  bold;
+  color:        black;
+  background:   #CCCCCC;
+}
+
+/* Buttons */
+/* ------- */
+
+.button {
+  font-size: 9pt;
+  color: #006699;
+  background: transparent;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
+  padding-top: 4px;
+  text-align: left;
+}
+
+
+/* Borders */
+/* ------- */
+
+.bordertop {
+  border-top: 1px solid #999999;
+  padding: 10px;
+}
+.borderbottom {
+  border-bottom: 1px solid #999999;
+  padding: 10px;
+}
+
+
+/* Dialog Boxes */
+/* ------------ */
+
+.dialogdaemon { background: #CCCCCC; color: black; }
+.dialogdaemon th { border-bottom: 1px solid #666666; }
+
+.dialoginfo { background: #C0C0FF; color: black; }
+.dialoginfo th { border-bottom: 1px solid #666666; }
+
+.dialogintro { background: #CCCCCC; color: black; }
+.dialogintro th { border-bottom: 1px solid #666666; }
+
+.dialogreport { background: #CCCCCC; color: black; }
+.dialogreport th { border-bottom: 1px solid #666666; }
+
+.dialogsaved { background: #C0C0FF; color: black; }
+.dialogsaved th { border-bottom: 1px solid #666666; }
+
+.dialogwarning { background: #FFFF99; color: black; }
+.dialogwarning th { border-bottom: 1px solid #666666; }
+
+
+/* Menu */
+/* ---- */
+
+.menu {
+  margin: 5px;
+  font-family: arial, verdana;
+  font-size: 8pt;
+  font-weight: bold;
+  text-align: left;
+  border: 1px solid #666666; 
+  background: #CCCCCC;
+}
+.menu p {
+  margin: 0; 
+  padding: 2px; 
+  color: white;
+  background: #065590;
+}
+.menu a { 
+  background: #CCCCCC;
+  display: block; 
+  margin: 1; 
+  padding: 3px;
+  padding-left: 4px;
+  border: 1px solid #CCCCCC;
+}
+.menu a:link { text-decoration: none; color: #333333; }
+.menu a:visited { text-decoration: none; color: #333333 }
+.menu a:hover { text-decoration: none; color: #444444; background: #BBBBBB; border: 1px solid #999999; }

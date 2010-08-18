@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Console"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Console">
+
+	<types>
+		<xsd:schema targetNamespace="Console">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="LocaleString">
+				<xsd:all>
+					<xsd:element name="tag" type="xsd:string"/>
+					<xsd:element name="string" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="ArrayOfLocaleString">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:LocaleString[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="Uptime">
+				<xsd:all>
+					<xsd:element name="uptime" type="xsd:long"/>
+					<xsd:element name="idle" type="xsd:long"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="LoadAverages">
+				<xsd:all>
+					<xsd:element name="one" type="xsd:float"/>
+					<xsd:element name="five" type="xsd:float"/>
+					<xsd:element name="fifteen" type="xsd:float"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="SystemStats">
+				<xsd:all>
+					<xsd:element name="uptime" type="tns:Uptime"/>
+					<xsd:element name="load" type="tns:LoadAverages"/>
+					<xsd:element name="timestamp" type="xsd:long"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="InterfaceConfig">
+				<xsd:all>
+					<xsd:element name="device" type="xsd:string"/>
+					<xsd:element name="role" type="xsd:string"/>
+					<xsd:element name="type" type="xsd:string"/>
+					<xsd:element name="boot_proto" type="xsd:string"/>
+					<xsd:element name="address" type="xsd:string"/>
+					<xsd:element name="netmask" type="xsd:string"/>
+					<xsd:element name="gateway" type="xsd:string"/>
+					<xsd:element name="mtu" type="xsd:int"/>
+					<xsd:element name="dhcp_hostname" type="xsd:string"/>
+					<xsd:element name="peer_dns" type="xsd:boolean"/>
+					<xsd:element name="pppoe_username" type="xsd:string"/>
+					<xsd:element name="pppoe_password" type="xsd:string"/>
+					<xsd:element name="wifi_mode" type="xsd:string"/>
+					<xsd:element name="wifi_rate" type="xsd:string"/>
+					<xsd:element name="wifi_essid" type="xsd:string"/>
+					<xsd:element name="wifi_secret_key" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+		</xsd:schema>
+	</types>
+
+	<message name="GetLocaleStringsRequest">
+	</message>
+
+	<message name="GetLocaleStringsResponse">
+		<part name="result" type="tns:ArrayOfLocaleString"/>
+	</message>
+
+	<message name="GetSystemStatsRequest">
+	</message>
+
+	<message name="GetSystemStatsResponse">
+		<part name="result" type="tns:SystemStats"/>
+	</message>
+
+	<message name="LoadInterfaceRequest">
+		<part name="device" type="xsd:string"/>
+	</message>
+
+	<message name="LoadInterfaceResponse">
+		<part name="result" type="tns:InterfaceConfig"/>
+	</message>
+
+	<message name="SaveInterfaceRequest">
+		<part name="config" type="tns:InterfaceConfig"/>
+	</message>
+
+	<message name="SaveInterfaceResponse">
+	</message>
+
+	<message name="AuthCheckRequest">
+	</message>
+
+	<message name="AuthCheckResponse">
+	</message>
+
+	<portType name="ConsolePortType">
+		<operation name="GetLocaleStrings">
+			<input message="tns:GetLocaleStringsRequest"/>
+			<output message="tns:GetLocaleStringsResponse"/>
+		</operation>
+
+		<operation name="GetSystemStats">
+			<input message="tns:GetSystemStatsRequest"/>
+			<output message="tns:GetSystemStatsResponse"/>
+		</operation>
+
+		<operation name="LoadInterface">
+			<input message="tns:LoadInterfaceRequest"/>
+			<output message="tns:LoadInterfaceResponse"/>
+		</operation>
+
+		<operation name="SaveInterface">
+			<input message="tns:SaveInterfaceRequest"/>
+			<output message="tns:SaveInterfaceResponse"/>
+		</operation>
+
+		<operation name="AuthCheck">
+			<input message="tns:AuthCheckRequest"/>
+			<output message="tns:AuthCheckResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="ConsoleBinding" type="tns:ConsolePortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetLocaleStrings">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetLocaleStrings" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetSystemStats">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetSystemStats" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="LoadInterface">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/LoadInterface" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="SaveInterface">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/SaveInterface" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="AuthCheck">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/AuthCheck" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Console"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Console">
+		<port name="ConsolePort" binding="tns:ConsoleBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

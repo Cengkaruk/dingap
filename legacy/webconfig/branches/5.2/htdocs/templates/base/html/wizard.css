@@ -1,0 +1,20 @@
+.wizardcommon {
+    text-align: left;
+    white-space: nowrap;
+}
+.wizardcurrent {
+	background: #DDDDDD url(/templates/standard-4.2/images/icon_wizard_current.png ) 5px no-repeat;
+    padding: 6px 30px 6px 25px;
+	border: 1px solid #BBBBBB;
+}
+.wizardcomplete {
+	background: url(/templates/standard-4.2/images/icon_wizard_complete.png ) 5px no-repeat;
+	color: #999999;
+    padding: 6px 30px 6px 25px;
+	border: 1px solid #EEEEEE;
+}
+.wizardtodo {
+	color: #999999;
+    padding: 6px 30px 6px 25px;
+	border: 1px solid #EEEEEE;
+}
