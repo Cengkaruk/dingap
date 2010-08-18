@@ -1,6 +1,0 @@
-include ./custom/default-web.html
-include ./custom/logo.png
-include ./custom/upgrade
-include ./custom/splash.xpm.gz
-include ./custom/issue
-include ./custom/product
