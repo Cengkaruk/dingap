@@ -7,7 +7,8 @@ KOLAB_META_END
 host                        localhost
 base                        @@@base_dn@@@
 scope                       sub
-timelimit                   30
+timelimit                   50
+pagesize                    20000
 bind_policy                 soft
 pam_lookup_policy           yes
 pam_password                exop

@@ -38,9 +38,6 @@ objectIdentifier pcnWebPassword PcnAttribute:104
 objectIdentifier pcnSambaPassword PcnAttribute:105
 objectIdentifier pcnWebconfigPassword PcnAttribute:106
 objectIdentifier pcnMailPassword PcnAttribute:107
-objectIdentifier cpsGoogleAppsFlag PcnAttribute:108
-objectIdentifier cpsHostedExchangeFlag PcnAttribute:109
-objectIdentifier cpsPCManagementFlag PcnAttribute:110
 objectIdentifier pcnPbxPassword PcnAttribute:111
 objectIdentifier pcnPbxExtension PcnAttribute:112
 objectIdentifier pcnPbxPresenceState PcnAttribute:113
@@ -53,6 +50,10 @@ objectIdentifier pcnPPTPFlag PcnAttribute:119
 objectIdentifier pcnProxyFlag PcnAttribute:120
 objectIdentifier pcnWebconfigFlag PcnAttribute:121
 objectIdentifier pcnWebFlag PcnAttribute:122
+objectIdentifier pcnGoogleAppsPassword PcnAttribute:123
+objectIdentifier pcnGoogleAppsFlag PcnAttribute:124
+objectIdentifier pcnMailAliases PcnAttribute:125
+objectIdentifier pcnMailForwarders PcnAttribute:126
 
 attributetype ( pcnSHAPassword
     NAME 'pcnSHAPassword'
@@ -138,29 +139,19 @@ attributetype ( pcnMailPassword
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
     SINGLE-VALUE )
 
-attributetype ( cpsGoogleAppsFlag
-    NAME 'cpsGoogleAppsFlag'
-    DESC 'indicates whether a user has been set up for google apps for your domain'
-    EQUALITY caseIgnoreMatch
-    SUBSTR caseIgnoreSubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128}
-    SINGLE-VALUE )
+attributetype ( pcnMailAliases
+    NAME 'pcnMailAliases'
+    DESC 'mail aliases'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
 
-attributetype ( cpsHostedExchangeFlag 
-    NAME 'cpsHostedExchangeFlag'
-    DESC 'indicates whether a user has been set up for hosted exchange'
-    EQUALITY caseIgnoreMatch
-    SUBSTR caseIgnoreSubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128}
-    SINGLE-VALUE )
-
-attributetype ( cpsPCManagementFlag
-    NAME 'cpsPCManagementFlag'
-    DESC 'indicates whether a user has been set up for pc management'
-    EQUALITY caseIgnoreMatch
-    SUBSTR caseIgnoreSubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{128}
-    SINGLE-VALUE )
+attributetype ( pcnMailForwarders
+    NAME 'pcnMailForwarders'
+    DESC 'mail forwarders'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
 
 attributetype ( pcnPbxPassword
     NAME 'pcnPbxPassword'
@@ -191,6 +182,13 @@ attributetype ( pcnPbxState
 attributetype ( pcnOpenVPNPassword
     NAME 'pcnOpenVPNPassword'
     DESC 'password for OpenVPN clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnGoogleAppsPassword
+    NAME 'pcnGoogleAppsPassword'
+    DESC 'password for Google Apps clients'
     EQUALITY caseIgnoreIA5Match
     SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
     SINGLE-VALUE )
@@ -244,6 +242,13 @@ attributetype ( pcnWebFlag
 	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
     SINGLE-VALUE )
 
+attributetype ( pcnGoogleAppsFlag
+    NAME 'pcnGoogleAppsFlag'
+    DESC 'account flag for Google Apps clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
 
 ###########################################################################
 #
@@ -261,13 +266,14 @@ objectIdentifier pcnWebconfigAccount PcnObjectClass:7
 objectIdentifier pcnMailAccount PcnObjectClass:8
 objectIdentifier pcnPbxAccount PcnObjectClass:9
 objectIdentifier pcnOpenVPNAccount PcnObjectClass:10
+objectIdentifier pcnGoogleAppsAccount PcnObjectClass:11
 
 objectclass ( pcnAccount
     NAME 'pcnAccount'
     SUP top AUXILIARY
     DESC 'Point Clark Networks account object'
     MUST ( uid )
-    MAY ( pcnSHAPassword $ pcnMD5Password $ pcnMicrosoftNTPassword $ pcnMicrosoftLanmanPassword $ cpsGoogleAppsFlag $ cpsHostedExchangeFlag $ cpsPCManagementFlag) )
+    MAY ( pcnSHAPassword $ pcnMD5Password $ pcnMicrosoftNTPassword $ pcnMicrosoftLanmanPassword ) )
 
 objectclass ( pcnProxyAccount
     NAME 'pcnProxyAccount'
@@ -316,7 +322,7 @@ objectclass ( pcnMailAccount
     SUP top AUXILIARY
     DESC 'Mail account object'
     MUST ( uid $ pcnMailFlag )
-    MAY ( pcnMailPassword ) )
+    MAY ( pcnMailPassword $ pcnMailAliases $ pcnMailForwarders ) )
 
 objectclass ( pcnPbxAccount
     NAME 'pcnPbxAccount'
@@ -331,3 +337,10 @@ objectclass ( pcnOpenVPNAccount
     DESC 'OpenVPN VPN account object'
     MUST ( uid $ pcnOpenVPNFlag )
     MAY ( pcnOpenVPNPassword ) )
+
+objectclass ( pcnGoogleAppsAccount
+    NAME 'pcnGoogleAppsAccount'
+    SUP top AUXILIARY
+    DESC 'Google Apps account object'
+    MUST ( uid $ pcnGoogleAppsFlag )
+    MAY ( pcnGoogleAppsPassword ) )

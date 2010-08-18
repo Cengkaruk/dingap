@@ -13,6 +13,7 @@ Vendor: Point Clark Networks
 Packager: Point Clark Networks
 Requires: app-setup >= %VERSION%
 Requires: app-webconfig >= %VERSION%
+Requires: app-firewall >= %VERSION%
 Requires: jnettop
 BuildRoot: %_tmppath/%name-%version-buildroot
 

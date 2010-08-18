@@ -4,3 +4,7 @@ sdn_servers = 4
 sdn_version = 4.05
 sdn_url = https://secure.clearcenter.com/portal
 sdn_os_license = 0
+sdn_jws_version = 1.0
+sdn_jws_prefix = ws
+sdn_jws_servers = 3
+sdn_jws_realm = webservice

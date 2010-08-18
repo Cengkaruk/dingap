@@ -60,13 +60,10 @@ logger -p local6.notice -t installer "app-openvpn - installing"
 if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
 	logger -p local6.notice -t installer "app-openvpn - disabling on boot"
 	chkconfig --level 2345 openvpn off
+fi
 
+if [ ! -e /etc/openvpn/clients.conf ]; then
 	logger -p local6.notice -t installer "app-openvpn - creating default configuration"
-
-	if [ -e /etc/openvpn/clients.conf ]; then
-		cp /etc/openvpn/clients.conf /usr/share/system/modules/openvpn/clients.conf.$$
-	fi
-
 	cp -p /usr/share/system/modules/openvpn/clients.conf /etc/openvpn/clients.conf
 fi
 

@@ -18,7 +18,8 @@ Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Requires: app-reports = %VERSION%
 Requires: app-services = %VERSION%
-Requires: app-snortsam  = %VERSION%
+Requires: app-snortsam = %VERSION%
+Requires: cloud-snort-updates = %VERSION%
 Provides: cc-snort
 Obsoletes: snortalog
 Obsoletes: snortsnarf

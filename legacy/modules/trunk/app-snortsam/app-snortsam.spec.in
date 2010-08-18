@@ -40,7 +40,10 @@ Intrusion prevention module
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/snortsam
+
 cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/snortsam
 
 #------------------------------------------------------------------------------
 # I N S T A L L  S C R I P T
@@ -56,6 +59,10 @@ if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
 fi
 
 /usr/sbin/addsudo /usr/bin/snortsam-state app-snortsam
+
+/usr/share/system/modules/snortsam/upgrade >/dev/null 2>&1
+
+exit 0
 
 #------------------------------------------------------------------------------
 # U N I N S T A L L  S C R I P T
@@ -80,3 +87,5 @@ fi
 %files
 %defattr(-,root,root)
 /var/webconfig/
+%dir /usr/share/system/modules/snortsam
+/usr/share/system/modules/snortsam/upgrade

@@ -21,6 +21,7 @@ Requires: app-mail-quarantine = %VERSION%
 Requires: app-gateway-antispam = %VERSION%
 Requires: app-postfix = %VERSION%
 Requires: app-services = %VERSION%
+Requires: cloud-spamassassin-updates = %VERSION%
 Provides: cc-spamassassin
 Obsoletes: cc-spamassassin
 Obsoletes: cc-spamassassin-filter

@@ -28,25 +28,33 @@ $BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webc
 require_once($BASEDIR . '/api/ClearDirectory.class.php');
 require_once($BASEDIR . '/api/Ldap.class.php');
 require_once($BASEDIR . '/api/Network.class.php');
+require_once($BASEDIR . '/api/Organization.class.php');
 require_once($BASEDIR . '/common/Logger.class.php');
 
 // Command line options
 //--------------------------------------------------------------------
 
-$roles = array('master', 'slave');
+$roles = array(
+	ClearDirectory::MODE_STANDALONE,
+	ClearDirectory::MODE_MASTER,
+	ClearDirectory::MODE_REPLICATE
+);
 
 $shortopts  = "";
 $shortopts .= "d:"; // Domain
 $shortopts .= "p:"; // Password
-$shortopts .= "r:"; // Role (master/slave)
+$shortopts .= "r:"; // Role
+$shortopts .= "m:"; // Master hostname
 $shortopts .= "f";  // Force
 $shortopts .= "h";  // Help
 
 $helpopts  = "";
-$helpopts .= "  -r: LDAP role ('master' or 'slave')\n";
 $helpopts .= "  -d: domain (e.g. example.com)\n";
 $helpopts .= "  -f: force initialization\n";
+$helpopts .= "  -m: master hostname\n";
 $helpopts .= "  -p: password\n";
+$helpopts .= "  -r: LDAP role ('standalone' ,'master' or 'replicate')\n";
+$helpopts .= "\n";
 $helpopts .= "  -h: help\n";
 
 $options = getopt($shortopts);
@@ -59,6 +67,7 @@ $help = isset($options['h']) ? true : false;
 $role = isset($options['r']) ? $options['r'] : "";
 $domain = isset($options['d']) ? $options['d'] : "";
 $password = isset($options['p']) ? $options['p'] : "";
+$master_hostname = isset($options['m']) ? $options['m'] : "";
 
 // Usage issues
 //--------------------------------------------------------------------
@@ -84,25 +93,35 @@ try {
 // Handle command line options
 //--------------------------------------------------------------------
 
+while (! $directory->IsValidMode($role)) {
+	echo "What is the role of this server (" . implode(", " ,$roles) . ")?: ";
+	$role = trim(fgets(STDIN));
+}
+
 while (! $network->IsValidDomain($domain)) {
 	echo "What is your domain (e.g. example.com)?: ";
 	$domain = trim(fgets(STDIN));
 }
 
-while (! $directory->IsValidRole($role)) {
-	echo "What is the role of this server ('master' or 'slave')?: ";
-	$role = trim(fgets(STDIN));
+if ($role == ClearDirectory::MODE_REPLICATE) {
+	while (! $network->IsValidHostname($master_hostname)) {
+		echo "What is the hostname of the master LDAP server?: ";
+		$master_hostname = trim(fgets(STDIN));
+	}
 }
 
 while (! $directory->IsValidPassword($password)) {
 	ttyecho(false); // Disable echo to terminal
-	echo "Select a password for your LDAP system: ";
+	$message = ($role == ClearDirectory::MODE_REPLICATE) ? "Specify the master LDAP password?: " : "Select a password for your LDAP system: ";
+	echo $message;
 	$password = trim(fgets(STDIN));
 	ttyecho(true); // Re-enable echo to terminal
 }
 
-echo "The following settings will be used to setup LDAP\n\n";
+echo "The following settings will be used to set up LDAP\n\n";
 echo "Role:     $role\n";
+if ($role == ClearDirectory::MODE_REPLICATE)
+	echo "Master:   $master_hostname\n";
 echo "Domain:   $domain\n";
 echo "Password: " . str_repeat("*", strlen($password)) . "\n";
 echo "\n";
@@ -115,15 +134,42 @@ try {
 	if (file_exists($BASEDIR . '/api/Samba.class.php')) {
 		require_once($BASEDIR . '/api/Samba.class.php');
 		$samba = new Samba();
-		$samba->SetRunningState(false);
+		if ($samba->IsInstalled())
+			$samba->SetRunningState(false);
+	}
+} catch (Exception $e) {
+	echo "warning: " . $e->GetMessage() . "\n";
+}
+
+try {
+	$ldap = new Ldap();
+	$organization = new Organization();
+
+	if ($role == ClearDirectory::MODE_STANDALONE) {
+		$directory->Initialize($role, $domain, $password, false, true, $force);
+		$organization->SetDomain($domain);
+		$ldap->SetBindPolicy(Ldap::CONSTANT_LOCALHOST);
+	} else if ($role == ClearDirectory::MODE_MASTER) {
+		$directory->Initialize($role, $domain, $password, false, true, $force);
+		$organization->SetDomain($domain);
+		$ldap->SetBindPolicy(Ldap::CONSTANT_LAN);
+	} else if ($role == ClearDirectory::MODE_REPLICATE) {
+		$directory->Initialize($role, $domain, $password, false, true, $force, $master_hostname);
+		$organization->SetDomain($domain);
+		$ldap->SetBindPolicy(Ldap::CONSTANT_LOCALHOST);
+	} else {
+		echo "LDAP role is not supported: " . $role . "\n";
+		exit(1);
 	}
 
-	if ($role == ClearDirectory::CONSTANT_ROLE_MASTER)
-		$directory->Initialize($role, $domain, $password, false, true, $force);
-	elseif ($role == ClearDirectory::CONSTANT_ROLE_MASTER)
-		echo "LDAP role is not supported... yet: " . $role . "\n";
-	else
-		echo "LDAP role is not supported: " . $role . "\n";
+	// Initialize Samba elements in LDAP
+	if (file_exists($BASEDIR . '/api/Samba.class.php')) {
+		require_once($BASEDIR . '/api/Samba.class.php');
+		if (!$samba->IsDirectoryInitialized()) {
+			$workgroup = $samba->GetWorkgroup();
+			$samba->InitializeDirectory($workgroup);
+		}
+	}
 } catch (Exception $e) {
 	echo "error: " . $e->GetMessage() . "\n";
 }

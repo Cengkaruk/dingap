@@ -42,15 +42,12 @@ Software updates management module
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/api
-mkdir -p -m 755 $RPM_BUILD_ROOT/etc/yum.repos.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/sysconfig
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/software-updates
 
-install -m 0644 config/base.repo $RPM_BUILD_ROOT/etc/yum.repos.d/
-install -m 0644 clearcentos.repo $RPM_BUILD_ROOT/etc/yum.repos.d/
 install -m 0644 protected-packages $RPM_BUILD_ROOT/etc/sysconfig/
 install -m 0644 app-software-update.cron $RPM_BUILD_ROOT/etc/cron.d/app-software-update
 
@@ -108,8 +105,6 @@ fi
 %defattr(-,root,root)
 %config(noreplace) /etc/cron.d/app-software-update
 /etc/sysconfig/protected-packages
-/etc/yum.repos.d/base.repo
-/etc/yum.repos.d/clearcentos.repo
 /usr/bin/apt-get
 /usr/sbin/software-update
 /usr/sbin/yuminstall

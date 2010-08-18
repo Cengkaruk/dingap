@@ -11,3 +11,4 @@ include htdocs/images/icons/16x16/icon-intrusion-prevention.png
 include htdocs/images/icons/32x32/icon-intrusion-prevention.png
 include htdocs/images/icons/16x16/icon-ips-report.png
 include htdocs/images/icons/32x32/icon-ips-report.png
+include ./upgrade

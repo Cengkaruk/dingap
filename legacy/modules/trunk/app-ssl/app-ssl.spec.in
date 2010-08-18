@@ -14,6 +14,7 @@ Packager: Point Clark Networks
 Requires: openssl
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
+Requires: cloud-security-audit = %VERSION%
 Provides: cc-ssl
 Obsoletes: cc-ssl
 BuildRoot: %_tmppath/%name-%version-buildroot

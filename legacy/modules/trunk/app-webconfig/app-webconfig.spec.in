@@ -24,9 +24,11 @@ Requires: util-linux
 Requires: webconfig-php
 Requires: webconfig-utils
 Requires: app-setup = %VERSION%
-Requires: app-webconfig-default = %VERSION%
+Requires: app-theme = %VERSION%
+Provides: app-webconfig-default
 Provides: cc-webconfig
 Obsoletes: cc-webconfig
+Obsoletes: app-webconfig-default
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
@@ -47,16 +49,18 @@ Web-based administration tool - core modules
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/htdocs/tmp
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/common
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/webconfig
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
 
 cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig
-install -m 644 Config.inc.php $RPM_BUILD_ROOT/var/webconfig/common
+install -m 644 webconfig.conf $RPM_BUILD_ROOT/etc/system/webconfig
+install -m 644 Config.inc.php $RPM_BUILD_ROOT/var/webconfig/common/
 install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/webconfig/
 install -m 755 upgrade-api $RPM_BUILD_ROOT/usr/share/system/modules/webconfig/
-install -m 755 api $RPM_BUILD_ROOT/usr/bin/api
+install -m 755 api $RPM_BUILD_ROOT/usr/bin/
 
 #------------------------------------------------------------------------------
 # P R E P  S C R I P T
@@ -139,6 +143,7 @@ fi
 
 %files
 %defattr(-,root,root)
+%config(noreplace) /etc/system/webconfig
 %dir %attr(-,webconfig,webconfig) /var/webconfig/htdocs/tmp
 %dir /usr/share/system/modules/webconfig
 /usr/share/system/modules/webconfig/upgrade

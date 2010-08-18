@@ -34,23 +34,15 @@ require_once($BASEDIR . "/api/Folder.class.php");
 require_once($BASEDIR . "/api/Ldap.class.php");
 require_once($BASEDIR . "/api/UserManager.class.php");
 
-// Startup LDAP
+// Check LDAP
 //------------------------------
-
-$wait = 5;
-$count = 0;
 
 try {
 	$ldap = new Ldap();
-
-	while (!$ldap->GetRunningState() && ($count <= $wait)) {
-		LogIt("starting LDAP server");
-		$ldap->SetRunningState(true);
-		sleep(2);
-		$count++;
-	}
+	if (!$ldap->GetRunningState())
+		exit(1);
 } catch (Exception $e) {
-	LogIt("LDAP failed to start: " . $e->GetMessage());
+	LogIt("LDAP status error: " . $e->GetMessage());
 	exit(1);
 }
 

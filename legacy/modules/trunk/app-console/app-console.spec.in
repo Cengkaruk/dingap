@@ -73,9 +73,6 @@ logger -p local6.notice -t installer "app-console - installing"
 # Add sudoers stuff
 #------------------
 
-# FIXME: remove after 5.1 final release -- beta upgrade only
-sed -i -e 's/^Cmnd_Alias CLEARCONSOLE.*/Cmnd_Alias CLEARCONSOLE = \/usr\/bin\/iptraf, \/usr\/sbin\/console_start, \/usr\/sbin\/tc-yum, \/bin\/rpm, \/sbin\/halt, \/sbin\/reboot/' /etc/sudoers
-
 CHECK=`grep "^Cmnd_Alias CLEARCONSOLE =" /etc/sudoers`
 if [ -z "$CHECK" ]; then
 	logger -p local6.notice -t installer "app-console - adding sudoers alias"
@@ -117,15 +114,6 @@ if [ -n "$CHECK" ]; then
 	init q >/dev/null 2>&1
 	killall -q lynx >/dev/null 2>&1
 fi
-
-# FIXME: 5.1 beta -- remove after final release
-CHECK=`grep "^c7:.*autologin=.*console tty" /etc/inittab 2>/dev/null`
-if [ -n "$CHECK" ]; then
-	logger -p local6.notice -t installer "app-console - removing beta X console inittab"
-	grep -v "^c7:.*autologin=.*console tty" /etc/inittab > /etc/inittab.$$
-	mv /etc/inittab.$$ /etc/inittab
-	killall X >/dev/null 2>&1
-fi	
 
 # Install new console
 #--------------------

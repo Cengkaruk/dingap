@@ -33,7 +33,6 @@ sizelimit 10000
 modulepath /usr/lib/openldap
 moduleload accesslog.la
 moduleload ppolicy.la
-moduleload syncprov.la
 
 
 # Monitor database
@@ -51,10 +50,6 @@ suffix     cn=accesslog
 rootdn     cn=accesslog
 index      default eq
 index      entryCSN,objectClass,reqEnd,reqResult,reqStart
-
-overlay syncprov
-syncprov-nopresent TRUE
-syncprov-reloadhint TRUE
 
 
 # Primary database
@@ -98,19 +93,23 @@ index  kolabDeleteflag pres,eq
 # password policies 
 overlay ppolicy
 
-# syncrepl provider for primary database
-overlay syncprov
-syncprov-checkpoint 100 5
+# replication
+syncrepl
+	rid=0
+	provider=ldaps://@@@master_hostname@@@:636
+	bindmethod=simple
+	searchbase="@@@base_dn@@@"
+	binddn="cn=manager,cn=internal,@@@base_dn@@@"
+	credentials=@@@bind_pw@@@
+	filter="(objectclass=*)"
+	schemachecking=on
+	type=refreshAndPersist
+	syncdata=accesslog
+	retry="15 +"
+	logbase="cn=accesslog"
 
-# accesslog overlay definitions for primary database
-overlay accesslog
-logdb cn=accesslog
-logops writes
-logsuccess TRUE
-logpurge 32+00:00 01+00:00
-
-# syncuser granted limitless searches
-limits dn.exact="cn=updateuser,@@@base_dn@@@" time.soft=unlimited time.hard=unlimited size.soft=unlimited size.hard=unlimited
+# refer updates
+updateref ldap://@@@master_hostname@@@
 
 access to dn="@@@base_dn@@@" attrs=children
 	by group/kolabGroupOfNames="cn=admin,cn=internal,@@@base_dn@@@" write

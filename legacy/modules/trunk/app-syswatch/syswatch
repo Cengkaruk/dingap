@@ -73,14 +73,12 @@ sub SynchronizeTime();
 sub SignalClusterChange();
 
 # Automagic system fixes
-sub CheckGpg();
 sub CheckUpgrade();
 sub CheckResolv(); # PPPoE ... sigh
 sub CheckWhitelistConfig();
 sub CheckFirewallConf();
 sub CheckNetworkBakFiles();
 sub CheckClamAv();
-sub CheckSaBlacklist();
 sub CheckSecurityAudit();
 sub ManageSslCertificates();
 sub ResetSuvaDeviceName();
@@ -226,9 +224,7 @@ ReadConfig();
 GetNetworkInfo();
 GetPingServers();
 ManageSslCertificates();
-CheckGpg();
 CheckClamAv();
-CheckSaBlacklist();
 CheckSecurityAudit();
 ResetDaemons();
 
@@ -1017,8 +1013,16 @@ sub GetIp($) {
 	    ) {
 	    my $payload;
 	    my $useragent = new LWP::UserAgent;
-	    my $hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[";]//g'`;
-	    chomp($hostkey);
+
+		my $hostkey = `/bin/grep -m 1 "^[[:space:]]*<hostkey" /etc/suvad.conf | /bin/sed 's/^[[:space:]]*<hostkey>//' | /bin/sed 's/<.hostkey>.*//'`;
+		chomp($hostkey);
+
+		if (! $hostkey) {
+			LogMsg("info", "system", "using old suva configuration format\n");
+			$hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[;"]//g'`;
+			chomp($hostkey);
+		}
+
 	    my $vendor = `/bin/cat /usr/share/system/settings/vendor 2>/dev/null | /bin/sed 's/.*= //'`; # hack
 	    chomp($vendor);
 	    my $post = "?hostkey=$hostkey";
@@ -1051,7 +1055,7 @@ sub GetIp($) {
 	#--------------------------------------------------
 
 	} else {
-		my $ifconfig = `/sbin/ifconfig 2>/dev/null | /bin/grep -A1 ^$extif`;
+		my $ifconfig = `LANG=en_US /sbin/ifconfig 2>/dev/null | /bin/grep -A1 ^$extif`;
 
 		if ($ifconfig) {
 			my @lines = split(/\n/, $ifconfig);
@@ -1277,19 +1281,6 @@ sub CheckSecurityAudit() {
 
 ###############################################################################
 #
-# CheckSaBlacklist: Sanity checks blacklist setup
-#
-###############################################################################
-
-sub CheckSaBlacklist() {
-	if ((-e $FILE_SALIST) && (! -e "$FILE_SALIST.db")) {
-		LogMsg("info", "system", "updating antispam blacklist\n");
-		system("/usr/sbin/postmap /etc/postfix/filters/sa-blacklist") 
-	}
-}
-
-###############################################################################
-#
 # CheckUpgrade: Workaround for upgrades (temporary)
 #
 ###############################################################################
@@ -1300,33 +1291,6 @@ sub CheckUpgrade() {
 		system("/bin/touch /etc/postfix/transport") if (! -e "/etc/postfix/transport");
 		if ((-e "/usr/sbin/postmap") && (! -e "/etc/postfix/transport.db")) {
 			system("/usr/sbin/postmap /etc/postfix/transport") 
-		}
-	}
-}
-
-
-###############################################################################
-#
-# CheckGpg: Checks for proper GPG key import (clock skew issue)
-#
-###############################################################################
-
-sub CheckGpg() {
-	return if (!(-e "/usr/bin/gpg"));
-
-	my $gpgcheck = `/usr/bin/gpg --homedir /root/.gnupg --fingerprint 2>/dev/null`;
-
-	return if ($gpgcheck =~ /pointclark.net/);
-
-	LogMsg("info", "system", "detected GPG key import problem\n");
-	my @keys = ('pointclark-gpg-key', 'redhat-gpg-key', 'centos-gpg-key', 'gpg-key', 'RPM-GPG-KEY');
-
-	foreach my $key (@keys) {
-		if (-e "/usr/share/system/modules/setup/$key") {
-			LogMsg("info", "system", "importing GPG key - $key\n");
-			# yes... do it twice
-			`/usr/bin/gpg --homedir /root/.gnupg --import /usr/share/system/modules/setup/$key >/dev/null 2>&1`;
-			`/usr/bin/gpg --homedir /root/.gnupg --import /usr/share/system/modules/setup/$key >/dev/null 2>&1`;
 		}
 	}
 }
@@ -1499,7 +1463,7 @@ sub UpdateWhitelist() {
 	# Add local IPs to whitelist
 	#---------------------------
 
-	my $ifconfig = `/sbin/ifconfig 2>/dev/null`;
+	my $ifconfig = `LANG=en_US /sbin/ifconfig 2>/dev/null`;
 
 	if ($ifconfig) {
 		my @lines = split(/\n/, $ifconfig);

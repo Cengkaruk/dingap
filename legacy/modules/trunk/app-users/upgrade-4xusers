@@ -62,7 +62,7 @@ $ldap_data_flags = "";
 
 foreach ($lines as $line) {
 	// Start processing when new DN is detected
-	if (preg_match("/dn: cn/", $line)) {
+	if (preg_match("/^dn: cn/", $line) || preg_match("/^dn:: /", $line)) {
 		$new_dn = true;
 		$ldap_data_flags = "";
 	}
@@ -79,19 +79,29 @@ foreach ($lines as $line) {
 			foreach ($old_object as $item) {
 				$matches = array();
 
+				// Added in 5.2 -- hack so we don't have to touch the other logic.
+				// Convert base64 encoded DN
+				if (preg_match("/^dn:: (.*)/", $item, $matches)) {
+					$item = "dn: " . base64_decode($matches[1]);
+					$matches = array();
+				}
+
 				// Move to Users container
 				if (preg_match("/^dn: ([^,]*),(.*)/", $item, $matches)) {
 					$ldap_data .= "dn: $matches[1],ou=Users,ou=Accounts,$matches[2]\n";
 					LogIt("converting LDAP user: " . preg_replace("/^cn=/", "", $matches[1]));
 				// Change gidNumber
 				} else if (preg_match("/^gidNumber:/", $item)) {
-					$ldap_data .= "gidNumber: 400\n";
+					$ldap_data .= "gidNumber: 63000\n";
 				// Change uidNumber on flexshare
 				} else if (preg_match("/^uidNumber: 403/", $item)) {
 					$ldap_data .= "uidNumber: 351\n";
 				// Change uidNumber on email-archive
 				} else if (preg_match("/^uidNumber: 421/", $item)) {
 					$ldap_data .= "uidNumber: 352\n";
+				// Change country code to 2 letters (ugh)
+				} else if (preg_match("/^c: (.*)/", $item, $matches)) {
+					$ldap_data .= "c: " . substr($matches[1], 0, 2) . "\n";
 				} else {
 					$ldap_data .= $item . "\n";
 				}
@@ -169,7 +179,7 @@ try {
 
 	LogIt("provisioning LDAP database");
 	$directory = new ClearDirectory();
-	$directory->Initialize(ClearDirectory::CONSTANT_ROLE_MASTER, $domain, "", false, false, true);
+	$directory->Initialize(ClearDirectory::MODE_MASTER, $domain, "", false, false, true);
 
 	$wasrunning = $ldap->GetRunningState();
 

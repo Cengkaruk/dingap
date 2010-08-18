@@ -60,12 +60,12 @@ cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
 logger -p local6.notice -t installer "app-amavisd-new - installing"
 
 if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
-	logger -p local6.notice -t installer "app-amavisd - disabling on boot"
+	logger -p local6.notice -t installer "app-amavisd-new - disabling on boot"
 	chkconfig --level 2345 amavisd off
 
 	TIMESTAMP=`date "+%b-%d-%Y-%T"`
 
-	logger -p local6.notice -t installer "app-amavisd - creating default configuration"
+	logger -p local6.notice -t installer "app-amavisd-new - creating default configuration"
 	[ -e /etc/amavisd.conf ] && cp /etc/amavisd.conf /usr/share/system/modules/amavisd-new/amavisd.conf.$TIMESTAMP
 	cp /usr/share/system/modules/amavisd-new/amavisd.conf /etc/amavisd.conf
 fi

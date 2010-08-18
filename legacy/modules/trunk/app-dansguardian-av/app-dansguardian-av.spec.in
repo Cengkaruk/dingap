@@ -19,6 +19,7 @@ Requires: app-webconfig = %VERSION%
 Requires: app-clamlib = %VERSION%
 Requires: app-services => %VERSION%
 Requires: app-squid = %VERSION%
+Requires: cloud-dansguardian-updates = %VERSION%
 Provides: cc-dansguardian-av
 Obsoletes: cc-dansguardian-av
 BuildRoot: %_tmppath/%name-%version-buildroot

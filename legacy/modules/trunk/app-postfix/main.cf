@@ -346,6 +346,7 @@ mynetworks = 127.0.0.0/8, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12
 # The ADDRESS_REWRITING_README document gives information about
 # address masquerading or other forms of address rewriting including
 # username->Firstname.Lastname mapping.
+virtual_alias_maps = $virtual_maps, ldap:/etc/postfix/ldap-aliases.cf, ldap:/etc/postfix/ldap-groups.cf
 
 # ADDRESS REDIRECTION (VIRTUAL DOMAIN)
 #

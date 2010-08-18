@@ -223,6 +223,8 @@ downrule() {
 
 addsource() {
 	st=0
+	# ClearFoundation - don't think this is required anymore
+	return $st
 	#
 	# Fix for Bug #66215 to solve SNAT/MASQUERADE problems with recent
 	# 2.6.x kernels.

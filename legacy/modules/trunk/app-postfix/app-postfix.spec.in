@@ -59,6 +59,7 @@ Mail - SMTP server module
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/pam.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/sysconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/postfix
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/reports/postfix
@@ -77,6 +78,8 @@ install -m 755 filtertraining $RPM_BUILD_ROOT/usr/sbin/
 install -m 755 mailqfmt.pl $RPM_BUILD_ROOT/usr/sbin/
 install -m 644 app-postfix-report.cron $RPM_BUILD_ROOT/etc/cron.d/app-postfix-report
 install -m 644 app-filter-training.cron $RPM_BUILD_ROOT/etc/cron.d/app-filter-training
+install -m 644 ldap-aliases.cf.template $RPM_BUILD_ROOT/etc/openldap/templates
+install -m 644 ldap-groups.cf.template $RPM_BUILD_ROOT/etc/openldap/templates
 
 cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
 echo %{version}-%{release} > $RPM_BUILD_ROOT/usr/share/system/modules/postfix/version
@@ -91,13 +94,6 @@ CHECK=`grep "^filter:" /etc/passwd`
 if [ -z "$CHECK" ]; then
 	logger -p local6.notice -t installer "app-postfix - adding mail filter user"
 	/usr/sbin/adduser -d /var/spool/filter -s /sbin/nologin -r filter
-fi
-
-# TODO: Legacy issue.  Remove in 5.0
-if [ -L /var/webconfig/api/factory ]; then
-	rm -f /var/webconfig/api/factory
-	mkdir /var/webconfig/api/factory
-	cp /var/webconfig/api/factory.default/* /var/webconfig/api/factory/
 fi
 
 #------------------------------------------------------------------------------
@@ -174,10 +170,10 @@ fi
 # U P G R A D E  S C R I P T
 #------------------------------------------------------------------------------
 
-/usr/share/system/modules/postfix/upgrade
-
 logger -p local6.notice -t installer "app-postfix - synchronizing with LDAP"
 /usr/sbin/ldapsync config postfix  >/dev/null 2>&1
+
+/usr/share/system/modules/postfix/upgrade
 
 if [ ! -e /etc/aliases.db ]; then
 	/usr/bin/newaliases >/dev/null 2>&1
@@ -230,3 +226,5 @@ fi
 /var/webconfig/
 /etc/cron.d/app-postfix-report
 /etc/cron.d/app-filter-training
+/etc/openldap/templates/ldap-aliases.cf.template
+/etc/openldap/templates/ldap-groups.cf.template

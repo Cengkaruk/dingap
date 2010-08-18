@@ -91,32 +91,6 @@ if [ -n "$CHECK" ]; then
 	sed -i -e "s/^\$policy_bank{.AM.PDP.}.*/\$policy_bank{'QRELEASE'} = {protocol => 'AM.PDP', inet_acl => [qw( 127.0.0.1 [::1])], release_method => 'smtp:[127.0.0.1]:10026'};/" /etc/amavisd/api.conf
 fi
 
-# Add spam mapping
-#-----------------
- 
-implantmap() {
-	MAP=$1
-
-	CHECK=`grep $MAP /etc/amavisd.conf`
-	if [ -z "$CHECK" ]; then
-		IFS="|"
-		rm -f /etc/amavisd.conf.$$
-		while read -r LINE; do
-			IMPLANT=`echo $LINE | grep MBL_`
-			echo "$LINE" >> /etc/amavisd.conf.$$
-			if [ -n "$IMPLANT" ]; then
-				logger -p local6.notice -t installer "app-amavisd-new - added spam mapping $MAP"
-				echo "    [ qr'^$MAP' => 2.0 ]," >> /etc/amavisd.conf.$$
-			fi	
-		done </etc/amavisd.conf
-
-		mv /etc/amavisd.conf.$$ /etc/amavisd.conf
-	fi
-}
-
-implantmap INetMsg.SpamDomain
-implantmap winnow
-
 # Remove deprecated files
 #------------------------
 

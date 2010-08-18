@@ -15,7 +15,6 @@ Requires: httpd >= 2.2.3
 Requires: mod_ssl >= 2.2.3
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
-Requires: app-product = %VERSION%
 Requires: app-flexshare-api = %VERSION%
 Requires: app-ssl = %VERSION%
 Requires: app-users = %VERSION%

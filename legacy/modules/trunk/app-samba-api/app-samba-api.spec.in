@@ -12,11 +12,14 @@ Source: %{name}-%{version}.tar.gz
 Vendor: Point Clark Networks
 Packager: Point Clark Networks
 Requires: openldap-servers
-Requires: samba-common >= 3.3.2
-Requires: samba-client >= 3.3.2
+# Tweak the Samba requirements to help Samba4 integration
+# Requires: samba-common >= 3.3.2
+# Requires: samba-client >= 3.3.2
+# Requires: tdb-tools
+Requires: /usr/bin/net
+Requires: /usr/bin/smbclient
+Requires: /usr/bin/tdbtool
 Requires: shadow-utils
-Requires: tdb-tools
-Requires: app-product = %VERSION%
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 BuildRoot: %_tmppath/%name-%version-buildroot
@@ -69,7 +72,7 @@ logger -p local6.notice -t installer "app-samba-api - installing"
 
 if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
 	logger -p local6.notice -t installer "app-samba-api - creating default configuration"
-	cp /etc/samba/smb.conf /usr/share/system/modules/samba/smb.conf.$$
+	[ -e /etc/samba/smb.conf ] && cp /etc/samba/smb.conf /usr/share/system/modules/samba/smb.conf.$$
 	cp /usr/share/system/modules/samba/smb.conf /etc/samba/
 
 	NAME=`grep "samba_name = " /etc/system/product | sed 's/samba_name = //g'`
@@ -86,10 +89,8 @@ fi
 /usr/sbin/addsudo /usr/bin/smbpasswd app-samba-api
 /usr/sbin/addsudo /usr/sbin/add-samba-directories app-samba-api
 
-/usr/share/system/modules/samba/upgrade
-
-# Fix internal build.  Remove in 5.2
-/usr/share/system/modules/samba/upgrade-api
+/usr/share/system/modules/samba/upgrade >/dev/null 2>&1
+/usr/share/system/modules/samba/upgrade-api >/dev/null 2>&1 
 
 logger -p local6.notice -t installer "app-samba-api - synchronizing with LDAP"
 /usr/sbin/ldapsync config smb >/dev/null 2>&1

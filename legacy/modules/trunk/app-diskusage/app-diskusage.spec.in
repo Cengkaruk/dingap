@@ -3,17 +3,18 @@
 #------------------------------------------------------------------------------
 
 Name: app-diskusage
-Version: 5.1
-Release: 1
+Version: %VERSION%
+Release: %RELEASE%
 Summary: Disk usage module
 License: GPL
 Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
-Requires: app-setup >= 5.1
-Requires: app-webconfig >= 5.1
-Requires: philesight
+Requires: app-setup >= %VERSION%
+Requires: app-webconfig >= %VERSION%
+Requires: cloud-resource-monitor >= %VERSION%
+Requires: philesight >= 20091214-2.1
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
@@ -36,7 +37,6 @@ Disk usage module
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
-mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/htdocs/cgi
 
 install -m 0644 app-diskusage.cron $RPM_BUILD_ROOT/etc/cron.d/app-diskusage
 cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
@@ -48,13 +48,6 @@ cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
 %post
 logger -p local6.notice -t installer "app-diskusage - installing"
 
-ln /usr/webconfig/include/philesight/philesight.cgi /var/webconfig/htdocs/cgi/philesight.cgi
-ln /usr/webconfig/include/philesight/philesight.rb /var/webconfig/htdocs/cgi/philesight.rb
-# Create the first database
-echo 'Creating disk space utilization database.  Please be patient...this may take a while.'
-cd /usr/webconfig/include/philesight
-./philesight --db /usr/webconfig/tmp/ps.db --index /
-
 exit 0
 
 #------------------------------------------------------------------------------
@@ -65,9 +58,7 @@ exit 0
 
 if [ "$1" = "0" ]; then
 	logger -p local6.notice -t installer "app-diskusage - uninstalling"
-	rm /var/webconfig/htdocs/cgi/philesight.cgi
-	rm /var/webconfig/htdocs/cgi/philesight.rb
-	rm /usr/webconfig/tmp/ps.db
+	[ -e /usr/webconfig/tmp/ps.db ] && rm /usr/webconfig/tmp/ps.db
 fi
 
 #------------------------------------------------------------------------------

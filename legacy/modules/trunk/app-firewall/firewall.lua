@@ -1994,7 +1994,6 @@ function RunProxyPorts()
 					echo("Enabling web proxy bypass for host: " .. r_addr)
 
 					iptables("nat", "-A PREROUTING -d " .. r_addr .. " -j " .. FW_ACCEPT)
-					iptables("filter", "-A FORWARD -d " .. r_addr .. " -j " .. FW_ACCEPT)
 				end
 			end
 
@@ -2180,12 +2179,12 @@ function RunCustomRules()
 
 				if r_port ~= nil and string.len(r_port) ~= 0 and
 					(tonumber(r_proto) == 6 or tonumber(r_proto) == 17) then
-					forward = forward .. " --dport " .. r_port
+					forward = forward .. " --sport " .. r_port
 				end
 
 				if dst_port ~= nil and string.len(dst_port) ~= 0 and
 					(tonumber(r_proto) == 6 or tonumber(r_proto) == 17) then
-					forward = forward .. " --sport " .. dst_port
+					forward = forward .. " --dport " .. dst_port
 				end
 
 				iptables("filter", forward .. " -j " .. FW_DROP)

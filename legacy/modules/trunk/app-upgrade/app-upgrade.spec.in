@@ -14,7 +14,6 @@ Packager: Point Clark Networks
 # Core packages that may not have been required in the past
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
-Requires: app-webconfig-default
 Requires: app-firewall
 Requires: app-services
 Requires: app-hardware-report
@@ -23,6 +22,7 @@ Requires: app-ntp
 Requires: app-software-updates
 Requires: app-remote-backup
 Requires: app-ssl
+Requires: app-theme
 Requires: webconfig-php
 # Remove upgrade packages
 Provides: cc-upgrade
@@ -33,6 +33,8 @@ Obsoletes: cc-upgradeto41
 Obsoletes: cc-upgradeto42
 Obsoletes: cc-upgradeto43
 Obsoletes: app-upgradeto50
+Obsoletes: app-upgradeto51
+Obsoletes: app-upgradeto52
 # Deprecated modules
 Obsoletes: bpalogin
 Obsoletes: compat-firewall
@@ -50,9 +52,9 @@ Obsoletes: fonts-xorg-base
 Obsoletes: xorg-x11-Mesa-libGL
 # Deprecated printing packages (and dependencies)
 Obsoletes: pnm2ppa
-Obsoletes: perl-Parse-Yapp
 Obsoletes: perl-libxml-enno
 Obsoletes: perl-XML-Encoding
+#Obsoletes: perl-Parse-Yapp Required by Samba4 Alpha
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description

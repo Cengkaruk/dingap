@@ -23,27 +23,41 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
 // Only LDAP upgrade is required for now.  
 // There's nothing to do if LDAP is not installed.
-if (! file_exists('/var/webconfig/api/Ldap.class.php'))
+if (! file_exists($BASEDIR . '/api/Ldap.class.php'))
 	exit(0);
 
-require_once('/var/webconfig/api/Ldap.class.php');
-require_once('/var/webconfig/api/Samba.class.php');
+require_once($BASEDIR . '/api/Ldap.class.php');
+require_once($BASEDIR . '/api/ClearDirectory.class.php');
+require_once($BASEDIR . '/api/Samba.class.php');
 
 $ldap = new Ldap();
 $samba = new Samba();
 
+// Fix "Domain Admins" group attributes (ClearOS 5.1)
+//---------------------------------------------------
+
 try {
-	$dn = "cn=domain_admins," . $ldap->GetGroupsOu();
+	$dn = "cn=domain_admins," . ClearDirectory::GetGroupsOu();
 
 	if ($ldap->Exists($dn)) {
+		$attributes = array();
 		$attributes['sambaSID'] = $samba->GetDomainSid() . '-512';
 		$attributes['displayName'] = "Domain Admins";
 		$ldap->Modify($dn, $attributes);
 	}
+} catch (Exception $e) {
+	throw new EngineException($e->GetMessage(), COMMON_WARNING);
+}
 
-	$dn = "cn=Windows Administrator," . $ldap->GetUsersOu();
+// Fix "winadmin account" (ClearOS 5.1)
+//-------------------------------------
+
+try {
+	$dn = "cn=Windows Administrator," . ClearDirectory::GetUsersOu();
 
 	if ($ldap->Exists($dn)) {
 		$attributes = array();
@@ -52,6 +66,54 @@ try {
 		$attributes['displayName'] = "Windows Administrator";
 		$ldap->Modify($dn, $attributes);
 	}
+} catch (Exception $e) {
+	throw new EngineException($e->GetMessage(), COMMON_WARNING);
+}
+
+// Change default group for machines in the domain to domain_computers
+//--------------------------------------------------------------------
+	
+try {
+	$computers = array();
+	
+	$result = $ldap->Search(
+			"(objectclass=posixAccount)",
+			ClearDirectory::GetComputersOu()
+	);
+
+	$ldap->Sort($result, 'uid');
+	$entry = $ldap->GetFirstEntry($result);
+
+	while ($entry) {
+		$attributes = array();
+		$attributes['gidNumber'] = Samba::CONSTANT_GID_DOMAIN_COMPUTERS;
+
+		$dn = $ldap->GetDn($entry);
+		$ldap->Modify($dn, $attributes);
+
+		$entry = $ldap->NextEntry($entry);
+	}
+} catch (Exception $e) {
+	throw new EngineException($e->GetMessage(), COMMON_WARNING);
+}
+
+// Force permissions on roaming profiles
+//--------------------------------------
+
+try {
+	$shareinfo = $samba->GetShareInfo("profiles");
+
+	if (! isset($shareinfo['force group']))
+		$samba->_SetShareInfo("profiles", "force group", "domain_users");
+
+	if (! isset($shareinfo['force directory mode']))
+		$samba->_SetShareInfo("profiles", "force directory mode", "02775");
+
+	if (! isset($shareinfo['force directory security mode']))
+		$samba->_SetShareInfo("profiles", "force directory security mode", "02775");
+
+} catch (SambaShareNotFoundException $e) {
+	// Not fatal
 } catch (Exception $e) {
 	throw new EngineException($e->GetMessage(), COMMON_WARNING);
 }

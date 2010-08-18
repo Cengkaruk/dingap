@@ -120,11 +120,3 @@ if [ -n "$CHECK" ]; then
 	logger -p local6.notice -t installer "app-samba-api - disabling wide links"
 	sed -i -e "s/^[[:space:]]*\[global\][[:space:]]*$/\[global\]\n# Disable link support\nwide links = No\n/" /etc/samba/smb.conf
 fi
-
-# FIXME - Remove in 5.2 release.  Default is set in LDAP bootstrap (Samba.class.php)
-# Disable password aging
-CHECK=`pdbedit -P "maximum password age" | grep "account policy \"maximum password age\" value is: 15552000$"`
-if [ -n "$CHECK" ]; then
-	logger -p local6.notice -t installer "app-samba-api - disabling maximum password age"
-	pdbedit -P "maximum password age" -C -1 >/dev/null 2>&1
-fi

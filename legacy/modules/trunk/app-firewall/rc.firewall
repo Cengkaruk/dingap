@@ -49,6 +49,7 @@ export FW_LOG_DROPS="no"
 # Configuration
 export FW_CONF=${FW_CONF:-"/etc/firewall"}
 export FW_ADHOC=${FW_ADHOC:-"/etc/rc.d/rc.firewall.local"}
+export FW_CUSTOM=${FW_CUSTOM:-"/etc/rc.d/rc.firewall.custom"}
 export FW_TYPES="/etc/rc.d/rc.firewall.types"
 
 # Default mode
@@ -183,7 +184,18 @@ if (set -o noclobber; echo "$$" > "$FW_LOCKFILE") 2> /dev/null; then
 		# will allow custom rules to be run before others.  Ad-hoc rules should
 		# use -I to insert rules ahead of others if need be.
 		rm -f "$FW_LOCKFILE"
+
+		if [ -e $FW_CUSTOM ]; then
+			source $FW_CUSTOM || RC=1
+			/usr/bin/logger -p local6.notice -t firewall "========== start $FW_CUSTOM =========="
+			/usr/bin/logger -p local6.notice -t firewall -f $FW_CUSTOM
+			/usr/bin/logger -p local6.notice -t firewall "========== end $FW_CUSTOM =========="
+		fi
+
 		source $FW_ADHOC || RC=1
+		/usr/bin/logger -p local6.notice -t firewall "========== start $FW_ADHOC =========="
+		/usr/bin/logger -p local6.notice -t firewall -f $FW_ADHOC
+		/usr/bin/logger -p local6.notice -t firewall "========== start $FW_ADHOC =========="
 	else
 		RC=1
 		rm -f "$FW_LOCKFILE"

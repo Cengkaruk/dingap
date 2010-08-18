@@ -23,6 +23,8 @@ include htdocs/admin/security.php
 include htdocs/admin/user.php
 include htdocs/admin/user.inc.php
 include htdocs/admin/users.php
+include htdocs/admin/users.js.php
+include htdocs/admin/users.xml.php
 include htdocs/images/icons/16x16/icon-admins.png
 include htdocs/images/icons/32x32/icon-admins.png
 include htdocs/images/icons/16x16/icon-groups.png
@@ -37,7 +39,6 @@ include ./clean-passwd
 include ./syncusers
 include ./syncmailboxes
 include ./userpasswd
-include ./usersetup
 include ./upgrade
 include ./upgrade-3xusers
 include ./upgrade-4xusers

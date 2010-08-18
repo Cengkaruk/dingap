@@ -22,6 +22,7 @@ Requires: app-ldap = %VERSION%
 Requires: app-samba-api = %VERSION%
 Requires: app-services = %VERSION%
 Requires: app-ssl = %VERSION%
+Requires: app-password-policies = %VERSION%
 # KLUDGE: we want to pull in the import tool by default
 Requires: app-user-import
 Provides: cc-users
@@ -55,7 +56,6 @@ install -m 0755 clean-passwd $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 syncusers $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 syncmailboxes $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 userpasswd $RPM_BUILD_ROOT/usr/sbin/
-install -m 0755 usersetup $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 upgrade-4xusers $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 upgrade-4xgroups $RPM_BUILD_ROOT/usr/sbin/
 install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/users/
@@ -85,7 +85,6 @@ fi
 /usr/sbin/addsudo /usr/sbin/groupmod app-users
 /usr/sbin/addsudo /usr/sbin/syncusers app-users
 /usr/sbin/addsudo /usr/sbin/syncmailboxes app-users
-/usr/sbin/addsudo /usr/sbin/usersetup app-users
 
 /usr/share/system/modules/users/upgrade >/dev/null 2>&1
 
@@ -128,4 +127,3 @@ fi
 /usr/sbin/syncusers
 /usr/sbin/syncmailboxes
 /usr/sbin/userpasswd
-/usr/sbin/usersetup

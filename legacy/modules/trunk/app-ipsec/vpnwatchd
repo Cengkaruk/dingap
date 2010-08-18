@@ -1315,7 +1315,7 @@ sub GetWanStatus() {
 		my $iface = $EXTIF;
 		$iface = $VPNIF if ($VPNIF);
 
-		my $ifconfig = `/sbin/ifconfig $iface 2>/dev/null`;
+		my $ifconfig = `LANG=en_US /sbin/ifconfig $iface 2>/dev/null`;
 		if ($ifconfig) {
 			return $STATUS_OK;
 		} else {
@@ -1380,8 +1380,16 @@ sub ConnectionGetRemoteConfig($$) {
 	my $payload;
 	my $logger;
 	my $useragent = new LWP::UserAgent;
-	my $hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[;"]//g'`;
+
+	my $hostkey = `/bin/grep -m 1 "^[[:space:]]*<hostkey" /etc/suvad.conf | /bin/sed 's/^[[:space:]]*<hostkey>//' | /bin/sed 's/<.hostkey>.*//'`;
 	chomp($hostkey);
+
+	if (! $hostkey) {
+		LogMsg(" info: local - Using old suva configuration format");
+		$hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[;"]//g'`;
+		chomp($hostkey);
+	}
+
 	my $vendor = `/bin/cat /usr/share/system/settings/vendor 2>/dev/null | /bin/sed 's/.*=[[:space:]]*//'`; # hack
 	chomp($vendor);
 	my $post = "?hostkey=$hostkey&action=getinfobyid&id=$id&vendor=$vendor";
@@ -1459,8 +1467,10 @@ sub CheckRoutes() {
 	my (@wan_interfaces) = split(/ /, $wan_list);
 	return if $#wan_interfaces < 1;
 
-	my $wan1_route = `/sbin/ip route show table 100`;
-	my $default_route = `/sbin/ip route`;
+	my $wan1_route = `/sbin/ip route show table 100 | /bin/sort`;
+	my $default_route = `/sbin/ip route | /bin/sort`;
+LogMsg(" info: system - test123 $wan1_route");
+LogMsg(" info: system - test123 $default_route");
 
 	$default_route =~ s/default.*//g;
 	$wan1_route =~ s/default.*//g;

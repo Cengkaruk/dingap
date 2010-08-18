@@ -165,6 +165,23 @@ chown root.root /etc/postfix/key.pem /etc/postfix/cert.pem
 
 /usr/share/system/modules/postfix/cleantrusted >/dev/null 2>&1
 
+# Aliases to LDAP
+#----------------
+
+CHECK=`postconf | grep ^virtual_alias_maps | grep "ldap:/etc/postfix/ldap-aliases.cf"`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-postfix - adding LDAP alias support"
+	CURRENT=`postconf | grep ^virtual_alias_maps`
+	/usr/sbin/postconf -e "$CURRENT, ldap:/etc/postfix/ldap-aliases.cf"
+fi
+
+CHECK=`postconf | grep ^virtual_alias_maps | grep "ldap:/etc/postfix/ldap-groups.cf"`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-postfix - adding LDAP groups support"
+	CURRENT=`postconf | grep ^virtual_alias_maps`
+	/usr/sbin/postconf -e "$CURRENT, ldap:/etc/postfix/ldap-groups.cf"
+fi
+
 # Reload Postfix
 #---------------
 

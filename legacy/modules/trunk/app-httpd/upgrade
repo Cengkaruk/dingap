@@ -67,9 +67,9 @@ fi
 # Add default logo and start page
 #--------------------------------
 
-if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/system/modules/product/logo.png ] ); then
+if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/system/modules/release/logo.png ] ); then
 	logger -p local6.notice -t installer "app-httpd - adding default logo"
-	cp /usr/share/system/modules/product/logo.png /var/www/html/logo.png
+	cp /usr/share/system/modules/release/logo.png /var/www/html/logo.png
 	chmod 664 /var/www/html/logo.png
 fi
 

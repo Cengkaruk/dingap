@@ -106,7 +106,7 @@ if ($verify != $password) {
 
 try {
 	$user = new User($username);
-	$user->SetPassword($password, false);
+	$user->SetPassword($password, $password, $username, false);
 
 	echo "userpasswd: all authentication tokens updated successfully.\n";
 	Logger::Syslog("userpasswd", "password change succeeded for $username");

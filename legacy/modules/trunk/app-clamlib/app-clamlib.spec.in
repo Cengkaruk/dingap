@@ -11,12 +11,13 @@ Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
 Vendor: Point Clark Networks
 Packager: Point Clark Networks
-Requires: clamav >= 0.95.1
-Requires: clamav-db >= 0.95.1
-Requires: clamav-server >= 0.95.1
+Requires: clamav >= 0.96.1
+Requires: clamav-db >= 0.96.1
+Requires: clamav-server >= 0.96.1
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Requires: app-services = %VERSION%
+Requires: cloud-clamav-updates = %VERSION%
 Provides: cc-clamlib
 Obsoletes: cc-clamlib
 Obsoletes: cc-sophos

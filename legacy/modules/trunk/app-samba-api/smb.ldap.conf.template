@@ -12,3 +12,4 @@ ldap machine suffix = ou=Computers,ou=Accounts
 ldap passwd sync = no
 ldap suffix = @@@base_dn@@@
 ldap user suffix = ou=Users,ou=Accounts
+ldap connection timeout = 8

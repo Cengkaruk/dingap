@@ -1,8 +1,10 @@
-menu htdocs/menus/10-jnettop
-locale jnettop htdocs/admin/lang api/lang
+menu htdocs/menus/network-traffic
+locale jnettop api/lang
+locale network-traffic htdocs/admin/lang
 include api/JNetTop.class.php
-include htdocs/admin/jnettop.php
-include htdocs/admin/jnetstatus.js.php
-include htdocs/admin/jnetstatus.php
-include htdocs/images/icon-jnettop.png
+include htdocs/admin/network-traffic.php
+include htdocs/admin/network-traffic.js.php
+include htdocs/admin/network-traffic.xml.php
+include htdocs/images/icons/16x16/icon-network-traffic.png
+include htdocs/images/icons/32x32/icon-network-traffic.png
 include ./jnettop.conf

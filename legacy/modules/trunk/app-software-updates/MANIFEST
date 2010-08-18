@@ -1,4 +1,4 @@
-menu htdocs/menus/software-addons
+#menu htdocs/menus/software-addons
 menu htdocs/menus/software-updates
 menu htdocs/menus/software-modules
 locale softwareupdate api/lang
@@ -27,5 +27,3 @@ include ./app-software-update.cron
 include ./protected-packages
 include ./upgrade
 include ./software-update
-include ./config/base.repo
-include ./clearcentos.repo

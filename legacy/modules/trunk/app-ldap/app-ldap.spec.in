@@ -43,6 +43,7 @@ LDAP module
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cleardirectory
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/schema
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/provision
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
@@ -64,6 +65,7 @@ install -m 640 provision.ldif.template $RPM_BUILD_ROOT/etc/openldap/provision
 install -m 644 DB_CONFIG.template $RPM_BUILD_ROOT/etc/openldap/provision
 install -m 644 DB_CONFIG.accesslog.template $RPM_BUILD_ROOT/etc/openldap/provision
 install -m 640 slapd.conf.template $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 640 slapd-replicate.conf.template $RPM_BUILD_ROOT/etc/openldap/provision
 install -m 644 ldap.conf.template $RPM_BUILD_ROOT/etc/openldap/provision
 install -m 644 nss_ldap.conf.template $RPM_BUILD_ROOT/etc/openldap/templates
 
@@ -97,6 +99,7 @@ logger -p local6.notice -t installer "app-ldap - installing"
 /usr/sbin/addsudo /usr/sbin/ldapsync app-ldap
 /usr/sbin/addsudo /usr/bin/openssl app-ldap
 /usr/sbin/addsudo /usr/sbin/authconfig app-ldap
+/usr/sbin/addsudo /usr/sbin/ldapsetup app-ldap
 
 /usr/share/system/modules/ldap/upgrade
 
@@ -123,6 +126,7 @@ fi
 %files
 %defattr(-,root,root)
 %dir /etc/openldap/provision
+%dir /etc/cleardirectory
 /usr/sbin/ldapsetup
 /usr/sbin/ldapsync
 /usr/sbin/prestart-ldap
@@ -133,6 +137,7 @@ fi
 %attr(0644,root,root) /etc/openldap/provision/DB_CONFIG.accesslog.template
 %attr(0644,root,root) /etc/openldap/provision/ldap.conf.template
 %attr(0640,root,ldap) /etc/openldap/provision/slapd.conf.template
+%attr(0640,root,ldap) /etc/openldap/provision/slapd-replicate.conf.template
 %attr(0644,root,root) /etc/openldap/templates/nss_ldap.conf.template
 /etc/openldap/schema/pcn.schema
 /etc/openldap/schema/rfc2307bis.schema

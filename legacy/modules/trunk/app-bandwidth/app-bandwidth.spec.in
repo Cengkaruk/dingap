@@ -16,6 +16,7 @@ Requires: iproute
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Requires: app-firewall = %VERSION%
+Requires: cloud-bandwidth-monitor = %VERSION%
 Provides: cc-bandwidth
 Obsoletes: cc-bandwidth
 Conflicts: shapecfg

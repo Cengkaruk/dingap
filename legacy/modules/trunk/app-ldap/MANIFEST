@@ -1,3 +1,4 @@
+locale cleardirectory api/lang
 locale ldap api/lang
 locale ldap htdocs/admin/lang
 menu htdocs/menus/ldap
@@ -22,5 +23,6 @@ include ./DB_CONFIG.accesslog.template
 include ./ldap.conf.template
 include ./nss_ldap.conf.template
 include ./slapd.conf.template
+include ./slapd-replicate.conf.template
 include ./prestart-ldap
 include ./poststart-ldap

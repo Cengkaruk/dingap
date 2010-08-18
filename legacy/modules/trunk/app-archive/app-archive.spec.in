@@ -17,7 +17,7 @@ Requires: webconfig-php-imap
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Requires: app-cyrus-imapd = %VERSION%
-Requires: app-flexshare = %VERSION%
+Requires: app-flexshare-api = %VERSION%
 Requires: app-mailer = %VERSION%
 Requires: app-ntp = %VERSION%
 Requires: app-postfix = %VERSION%

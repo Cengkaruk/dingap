@@ -12,7 +12,7 @@ Source: %{name}-%{version}.tar.gz
 Vendor: Point Clark Networks
 Packager: Point Clark Networks
 Requires: compat-suvlets
-Requires: suva-client >= 2.1
+Requires: suva-client >= 3.0
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Provides: cc-suva
@@ -56,6 +56,9 @@ logger -p local6.notice -t installer "app-suva - installing"
 /usr/sbin/addsudo /usr/bin/mkhost.sh app-suva
 
 /usr/share/system/modules/suva/upgrade >/dev/null 2>&1
+
+# Remove in ClearOS 6.0 - only required for 5.2 beta issue
+[ -e /etc/system/initialized/suva ] && rm -f /etc/system/initialized/suva
 
 exit 0
 

@@ -48,3 +48,6 @@ include ./app-filter-training.cron
 include ./getlocaldomains
 include ./getprimarydomain
 include ./filtertraining
+include ./ldap-groups.cf.template
+include ./ldap-aliases.cf.template
+

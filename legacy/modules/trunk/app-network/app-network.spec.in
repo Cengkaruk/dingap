@@ -20,6 +20,9 @@ Requires: wireless-tools
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Requires: app-ppp = %VERSION%
+Requires: cloud-port-monitor = %VERSION%
+Requires: cloud-dynamic-dns = %VERSION%
+Requires: cloud-domain-services = %VERSION%
 Provides: cc-network
 Obsoletes: cc-network
 BuildRoot: %_tmppath/%name-%version-buildroot

@@ -21,7 +21,6 @@ Requires: webconfig-php-mysql
 Requires: perl-DBD-MySQL
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
-Requires: app-product = %VERSION%
 Requires: app-firewall = %VERSION%
 Requires: app-users = %VERSION%
 Requires: app-reports = %VERSION%
