@@ -1,0 +1,13 @@
+include ./custom/default-web.html
+include ./custom/logo.png
+include ./custom/upgrade
+include ./custom/splash.xpm.gz
+include ./custom/issue
+include ./custom/product
+include ./custom/release
+include ./custom/product-gpg-key
+include ./custom/base.repo
+include ./custom/openssl.cnf
+include ./rpm-gpg/RPM-GPG-KEY-CentOS-5
+include ./rpm-gpg/pointclark-gpg-key
+include ./rpm-gpg/clearos-gpg-key
