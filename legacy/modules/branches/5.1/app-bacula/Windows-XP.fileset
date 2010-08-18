@@ -1,0 +1,32 @@
+FileSet {
+  # DO NOT REMOVE - Webconfig NO_DELETE
+  Name = "MyWindowsXpClient"
+  Enable VSS = yes
+  Include {
+    Options {
+      Signature = MD5
+      IgnoreCase = Yes
+      Compression = GZIP5
+      Exclude = Yes
+      # Exclude Mozilla-based programs' file caches
+      WildDir = "[A-Z]:/Documents and Settings/*/Application Data/*/Profiles/*/*/Cache"
+      WildDir = "[A-Z]:/Documents and Settings/*/Application Data/*/Profiles/*/*/Cache.Trash"
+      WildDir = "[A-Z]:/Documents and Settings/*/Application Data/*/Profiles/*/*/ImapMail"
+
+      # Exclude user's registry files - they're always in use anyway.
+      WildFile = "[A-Z]:/Documents and Settings/*/Local Settings/Application Data/Microsoft/Windows/usrclass.*"
+      WildFile = "[A-Z]:/Documents and Settings/*/ntuser.*"
+
+      # Exclude directories full of lots and lots of useless little files
+      WildDir = "[A-Z]:/Documents and Settings/*/Cookies"
+      WildDir = "[A-Z]:/Documents and Settings/*/Recent"
+      WildDir = "[A-Z]:/Documents and Settings/*/Local Settings/History"
+      WildDir = "[A-Z]:/Documents and Settings/*/Local Settings/Temp"
+      WildDir = "[A-Z]:/Documents and Settings/*/Local Settings/Temporary Internet Files"
+
+      # These are always open and unable to be backed up
+      WildFile = "[A-Z]:/Documents and Settings/All Users/Application Data/Microsoft/Network/Downloader/qmgr[01].dat"
+    }
+    File = "C:/Documents and Settings/"
+  }
+}

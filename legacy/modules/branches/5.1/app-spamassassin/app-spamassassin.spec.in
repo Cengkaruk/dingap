@@ -1,0 +1,115 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-spamassassin
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Antispam module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: fuzzyocr >= 3.5.1
+Requires: spamassassin >= 3.2.5
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-amavisd-new = %VERSION%
+Requires: app-mail-quarantine = %VERSION%
+Requires: app-gateway-antispam = %VERSION%
+Requires: app-postfix = %VERSION%
+Requires: app-services = %VERSION%
+Provides: cc-spamassassin
+Obsoletes: cc-spamassassin
+Obsoletes: cc-spamassassin-filter
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Antispam module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/mail/spamassassin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/spamassassin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/spamassassin/
+install -m 755 app-sa-update $RPM_BUILD_ROOT/usr/sbin/
+install -m 644 local.cf $RPM_BUILD_ROOT/usr/share/system/modules/spamassassin/
+install -m 644 app-tweaks.cf $RPM_BUILD_ROOT/etc/mail/spamassassin/
+install -m 644 app-spamassassin.cron $RPM_BUILD_ROOT/etc/cron.d/app-spamassassin
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-spamassassin - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-spamassassin - disabling on boot"
+	chkconfig --level 2345 spamassassin off
+
+	logger -p local6.notice -t installer "app-spamassassin - installing default configuration"
+	cp /etc/mail/spamassassin/local.cf /usr/share/system/modules/spamassassin/local.cf.$$
+	cp /usr/share/system/modules/spamassassin/local.cf /etc/mail/spamassassin/
+fi
+
+/usr/sbin/addsudo /usr/bin/net app-spamassassin
+
+HOUR=`date '+%H'`
+echo "0 $HOUR * * * root /usr/sbin/app-sa-update >/dev/null 2>&1" > /etc/cron.d/app-spamassassin
+
+#------------------------------------------------------------------------------
+# U P G R A D E  S C R I P T
+#------------------------------------------------------------------------------
+
+/usr/share/system/modules/spamassassin/upgrade
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-spamassassin - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/cron.d/app-spamassassin
+/etc/mail/spamassassin/app-tweaks.cf
+/usr/sbin/app-sa-update
+/usr/share/system/modules/spamassassin/upgrade
+/usr/share/system/modules/spamassassin/local.cf
+/var/webconfig/

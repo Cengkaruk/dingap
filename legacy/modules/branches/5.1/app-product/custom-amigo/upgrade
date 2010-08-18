@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Change default template
+
+if [ -e /etc/system/webconfig ]; then
+	CHECK=`grep "^template.*amigo" /etc/system/webconfig 2>/dev/null`
+	if [ -z "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-product - updating template"
+		sed -i -e 's/^template[[:space:]]*=.*/template = amigo-5.1/' /etc/system/webconfig
+		# Reset login sessions
+		rm -f /var/webconfig/tmp/sess_* >/dev/null 2>&1
+	fi
+fi

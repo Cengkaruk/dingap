@@ -1,0 +1,55 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2007 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+error_reporting(0);
+
+require_once("/var/webconfig/api/Flexshare.class.php");
+require_once("/var/webconfig/api/File.class.php");
+
+try {
+	$file = new File(Flexshare::FILE_INITIALIZED);
+
+	if ($file->Exists())
+		exit(0);
+
+	$flexshare = new Flexshare();
+	$allshares = $flexshare->GetShareSummary();
+
+	foreach ($allshares as $share) {
+		if (isset($share['Enabled']) && $share['Enabled']) {
+			$flexshare->ToggleShare($share['Name'], false);
+			$flexshare->ToggleShare($share['Name'], true);
+		}
+	} 
+
+	if (! $file->Exists())
+		$file->Create();
+
+} catch (Exception $e) {
+	echo "error: " . $e->GetMessage() . "\n";
+}
+
+// vim: syntax=php ts=4
+?>

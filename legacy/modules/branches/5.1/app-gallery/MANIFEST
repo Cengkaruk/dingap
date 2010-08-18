@@ -1,0 +1,6 @@
+menu htdocs/menus/gallery
+locale gallery htdocs/admin/lang
+include api/Gallery.class.php
+include htdocs/images/icons/16x16/icon-gallery.png
+include htdocs/images/icons/32x32/icon-gallery.png
+include htdocs/admin/gallery.php

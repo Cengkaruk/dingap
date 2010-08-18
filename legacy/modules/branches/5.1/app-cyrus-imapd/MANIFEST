@@ -1,0 +1,15 @@
+menu htdocs/menus/mail-pop-imap
+locale cyrus api/lang
+locale mail-pop-imap htdocs/admin/lang
+include api/Cyrus.class.php
+include htdocs/images/icons/16x16/icon-mail-pop-imap.png
+include htdocs/images/icons/32x32/icon-mail-pop-imap.png
+include htdocs/admin/mail-pop-imap.php
+include ./imap2cyrus
+include ./app-cyrus-imapd.cron
+include ./cyrus.conf
+include ./imapd.conf
+include ./ldap.conf
+include ./upgrade
+include ./upgradeapi
+include ./cyrusadmin

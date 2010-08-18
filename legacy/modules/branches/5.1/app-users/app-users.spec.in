@@ -1,0 +1,131 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-users
+Version: %VERSION%
+Release: %RELEASE%
+Summary: User manager module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: passwd
+Requires: shadow-utils
+Requires: cyrus-sasl
+Requires: nss_ldap
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-kolab = %VERSION%
+Requires: app-ldap = %VERSION%
+Requires: app-samba-api = %VERSION%
+Requires: app-services = %VERSION%
+Requires: app-ssl = %VERSION%
+# KLUDGE: we want to pull in the import tool by default
+Requires: app-user-import
+Provides: cc-users
+Obsoletes: cc-users
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+User manager module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/users
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 0755 clean-passwd $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 syncusers $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 syncmailboxes $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 userpasswd $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 usersetup $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 upgrade-4xusers $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 upgrade-4xgroups $RPM_BUILD_ROOT/usr/sbin/
+install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/users/
+install -m 0755 upgrade-3xusers $RPM_BUILD_ROOT/usr/share/system/modules/users/
+install -m 0644 config/license $RPM_BUILD_ROOT/usr/share/system/modules/users/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-users - installing"
+
+if [ ! -e /etc/sysconfig/saslauthd ]; then
+	logger -p local6.notice -t installer "app-users - adding SASL daemon configuration for LDAP"
+	echo "SOCKETDIR=/var/run/saslauthd" > /etc/sysconfig/saslauthd
+	echo "MECH=ldap" >> /etc/sysconfig/saslauthd
+	echo "FLAGS=" >> /etc/sysconfig/saslauthd
+fi
+
+/usr/sbin/addsudo /usr/bin/passwd app-users
+/usr/sbin/addsudo /usr/sbin/app-passwd app-users
+/usr/sbin/addsudo /usr/sbin/useradd app-users
+/usr/sbin/addsudo /usr/sbin/userdel app-users
+/usr/sbin/addsudo /usr/sbin/groupadd app-users
+/usr/sbin/addsudo /usr/sbin/groupdel app-users
+/usr/sbin/addsudo /usr/sbin/groupmod app-users
+/usr/sbin/addsudo /usr/sbin/syncusers app-users
+/usr/sbin/addsudo /usr/sbin/syncmailboxes app-users
+/usr/sbin/addsudo /usr/sbin/usersetup app-users
+
+/usr/share/system/modules/users/upgrade >/dev/null 2>&1
+
+# Remove after 5.0 final release (RC upgrade only)
+[ -d /home/winadmin ] && mv /home/winadmin /usr/share/system/modules/users/winadmin.old
+[ -d /home/guest ] && mv /home/guest /usr/share/system/modules/users/guest.old
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-users - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+%dir /usr/share/system/modules/users
+/usr/share/system/modules/users/license
+/usr/share/system/modules/users/upgrade
+/usr/share/system/modules/users/upgrade-3xusers
+/usr/sbin/clean-passwd
+/usr/sbin/upgrade-4xusers
+/usr/sbin/upgrade-4xgroups
+/usr/sbin/syncusers
+/usr/sbin/syncmailboxes
+/usr/sbin/userpasswd
+/usr/sbin/usersetup

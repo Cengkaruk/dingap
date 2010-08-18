@@ -1,0 +1,66 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-graphical-console
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Graphical console module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: xconsole
+Requires: xorg-x11-server-Xorg
+Requires: xorg-x11-xinit
+Requires: ratpoison
+Requires: urw-fonts
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-console = %VERSION%
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Graphical console module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/clearconsole
+
+install -m 644 xinitrc $RPM_BUILD_ROOT/var/lib/clearconsole/.xinitrc
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-graphical-console - installing"
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/lib/clearconsole/.xinitrc

@@ -1,0 +1,7 @@
+menu htdocs/menus/flexshare
+locale flexshare htdocs/admin/lang
+include htdocs/admin/flexshare.php
+include htdocs/admin/flexshare.js.php
+include htdocs/images/icons/16x16/icon-flexshare.png
+include htdocs/images/icons/32x32/icon-flexshare.png
+include ./update-flexshare

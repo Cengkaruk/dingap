@@ -1,0 +1,142 @@
+#!/bin/bash
+
+SETCOLOR_SUCCESS="echo -en \\033[1;32m"
+SETCOLOR_FAILURE="echo -en \\033[1;31m"
+SETCOLOR_WARNING="echo -en \\033[1;33m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+if [ $# -lt 1 ]; then
+	$SETCOLOR_FAILURE
+	echo "$0 <MODULE BASE> [<ROOT DIR>]"
+	$SETCOLOR_NORMAL
+	exit 1
+fi
+
+SKIP="no"
+MODE="none"
+FILES=
+MODULE="none"
+
+if [ "$#" == "3" ]; then
+	ROOTDIR=$2
+elif [ -n "$WEBCONFIG_ROOT" ]; then
+	ROOTDIR=$WEBCONFIG_ROOT
+else
+	ROOTDIR=/var/webconfig
+fi
+
+CONF=`dirname $0`
+source $CONF/.config
+
+TEMPA=`mktemp /tmp/MANIFEST.XXXXXX`
+TEMPB=`mktemp /tmp/MANIFEST.XXXXXX`
+
+$CONF/subst $CONF/.config MANIFEST $TEMPA
+[ "$?" != "0" ] && exit 1
+$CONF/subst $CONF/.config MANIFEST.$PRODUCT $TEMPB
+[ "$?" != "0" ] && exit 1
+
+cat $TEMPB >> $TEMPA || exit 1
+rm -f $TEMPB || exit 1
+
+cat $TEMPA | sort | uniq > /var/tmp/MANIFEST.$USER
+rm -f /var/tmp/FILES.$USER
+
+echo "Processing manifest"
+
+while read LINE; do
+	MODE=`echo $LINE | cut -d ' ' -f1`
+	DATA=`echo $LINE | sed "s/$MODE //"`
+	COMMENT=`echo $LINE | grep ^#`
+
+	if [ -n "$COMMENT" ]; then
+		continue
+	elif [ "$MODE" == "menu" ]; then
+		if [ "$POLICY_WITH_LOCALES" == "true" ]; then
+			echo "$DATA.??_??" >> /var/tmp/FILES.$USER
+		else
+			echo "$DATA.en_US" >> /var/tmp/FILES.$USER
+		fi
+	elif [ "$MODE" == "include" ]; then
+		echo "$DATA" >> /var/tmp/FILES.$USER
+	elif [ "$MODE" == "locale" ]; then
+		MODULE=`echo $LINE | cut -d ' ' -f2` 
+		PARTS=`echo $LINE | sed "s/$MODE //" | sed "s/$MODULE //"`
+		for PART in $PARTS; do
+			# echo "--- adding locale file $PART/$MODULE.??_??"
+			if [ "$POLICY_WITH_LOCALES" == "true" ]; then
+				echo "$PART/$MODULE.??_??" >> /var/tmp/FILES.$USER
+			else
+				echo "$PART/$MODULE.en_US" >> /var/tmp/FILES.$USER
+			fi
+		done
+	fi
+done < /var/tmp/MANIFEST.$USER
+
+rm -f $TEMPA
+
+MODULE=`basename $1`
+
+$SETCOLOR_FAILURE
+mkdir -p /var/tmp/app-buildroot-$USER/$MODULE/webconfig
+RC=$?
+$SETCOLOR_NORMAL
+[ "$RC" != "0" ] && exit 1
+
+$SETCOLOR_WARNING
+CWD=`pwd`
+cd $ROOTDIR
+
+while read FILE; do
+	# TODO: I already spent too much time on this "space in filename"
+	# issue.  Quick hack so I can move on.
+	IS_WILDCARD=`echo "$FILE" | grep '?'`
+
+	if [ -f "$CWD/$FILE" ]; then
+		DIR=`dirname "$FILE"`
+		mkdir -p "/var/tmp/app-buildroot-$USER/$MODULE/$DIR"
+		if [ -n "$IS_WILDCARD" ]; then
+			cp -av $CWD/$FILE /var/tmp/app-buildroot-$USER/$MODULE/$DIR
+		else
+			cp -av "$CWD/$FILE" "/var/tmp/app-buildroot-$USER/$MODULE/$DIR"
+		fi
+		if [ $? != 0 ]; then
+			RC=1
+			break
+		fi
+		continue
+	fi
+
+	DIR=`dirname "$FILE"`
+
+	mkdir -p "/var/tmp/app-buildroot-$USER/$MODULE/webconfig/$DIR"
+
+	if [ "$POLICY_OVERRIDE_MENUS" == true ]; then
+		FILE=`echo $FILE | sed 's/menus\//menus\/override\//'`
+	fi
+
+	if [ -n "$IS_WILDCARD" ]; then
+		cp -av $FILE /var/tmp/app-buildroot-$USER/$MODULE/webconfig/$DIR
+	else
+		cp -av "$FILE" "/var/tmp/app-buildroot-$USER/$MODULE/webconfig/$DIR"
+	fi
+	if [ $? != 0 ]; then
+		RC=1
+		break
+	fi
+done < /var/tmp/FILES.$USER
+
+$SETCOLOR_NORMAL
+[ "$RC" != "0" ] && exit 1
+
+$SETCOLOR_FAILURE
+(cd /var/tmp/app-buildroot-$USER && tar -czhf $1.tar.gz $MODULE)
+RC=$?
+$SETCOLOR_NORMAL
+[ "$RC" != "0" ] && exit 1
+
+$SETCOLOR_SUCCESS
+echo Success $1.tar.gz
+$SETCOLOR_NORMAL
+
+exit $RC

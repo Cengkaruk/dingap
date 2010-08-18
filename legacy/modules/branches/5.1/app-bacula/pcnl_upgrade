@@ -1,0 +1,8 @@
+#!/usr/webconfig/bin/php
+<?php
+	# Version 2.0.x depreciated the user of AcceptAnyVolume
+	error_reporting(0);
+	include_once("/var/webconfig/api/File.class.php");
+	$file = new File("/etc/bacula/bacula-dir.conf", true);
+	$file->DeleteLines("/Accept\s*Any\s*Volume.*/i");
+?>

@@ -1,0 +1,92 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2009 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// Creates home directories based on information provided in LDAP
+//
+///////////////////////////////////////////////////////////////////////////////
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+require_once($BASEDIR . "/common/Logger.class.php");
+require_once($BASEDIR . "/api/Folder.class.php");
+require_once($BASEDIR . "/api/Ldap.class.php");
+require_once($BASEDIR . "/api/UserManager.class.php");
+
+// Startup LDAP
+//------------------------------
+
+$wait = 5;
+$count = 0;
+
+try {
+	$ldap = new Ldap();
+
+	while (!$ldap->GetRunningState() && ($count <= $wait)) {
+		LogIt("starting LDAP server");
+		$ldap->SetRunningState(true);
+		sleep(2);
+		$count++;
+	}
+} catch (Exception $e) {
+	LogIt("LDAP failed to start: " . $e->GetMessage());
+	exit(1);
+}
+
+// Create home directories
+//------------------------------
+
+try {
+	$usermanager = new UserManager();
+	$homedirs = $usermanager->GetHomeDirectories();
+
+	foreach ($homedirs as $username => $dirinfo) {
+		$folder = new Folder($dirinfo['homedirectory']);
+
+		if (!$folder->Exists()) {
+			$folder->Create($username, $dirinfo['group'], $dirinfo['permissions']);
+			LogIt("added home directory for " . $username);
+		} else {
+			$folder->Chown($username, $dirinfo['group']);
+			$folder->Chmod("0755");
+		}
+	}
+} catch (Exception $e) {
+	// TODO: when the domain is changed, this will generate warning messages.
+	// Hopefully, this will be fixed in kolabconf/ldapsync is replace
+	// LogIt("user synchronization failed: " . $e->GetMessage());
+	exit(1);
+}
+
+// Log function
+//------------------------------
+
+function LogIt($logmessage)
+{
+	Logger::Syslog("syncusers", $logmessage);
+	echo "$logmessage\n";
+}
+
+// vim: syntax=php ts=4
+?>

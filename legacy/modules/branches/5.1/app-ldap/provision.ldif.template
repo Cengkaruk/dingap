@@ -1,0 +1,210 @@
+#----------------------------------------------------------
+# Core LDAP structure
+#----------------------------------------------------------
+
+dn: @@@base_dn@@@
+dc: @@@base_dn_rdn@@@
+objectClass: top
+objectClass: domain
+structuralObjectClass: domain
+
+dn: ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: organizationalUnit
+ou: Accounts
+
+dn: ou=Groups,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+dn: ou=Users,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: organizationalUnit
+ou: Users
+
+dn: ou=Computers,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: organizationalUnit
+ou: Computers
+
+dn: ou=Servers,@@@base_dn@@@
+objectClass: top
+objectClass: organizationalUnit
+ou: Servers
+
+#----------------------------------------------------------
+# Reserved Servers
+#----------------------------------------------------------
+
+dn: cn=Master,ou=Servers,@@@base_dn@@@
+objectClass: top
+objectClass: account
+objectClass: posixAccount
+cn: Master
+uid: master$
+homeDirectory: /dev/null
+loginShell: /sbin/nologin
+uidNumber: 1000
+gidNumber: 60000
+
+#----------------------------------------------------------
+# Reserved Groups
+#----------------------------------------------------------
+
+dn: cn=allusers,ou=Groups,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixGroup
+objectClass: groupOfNames
+gidNumber: 400
+cn: allusers
+member: cn=No Members,ou=Users,ou=Accounts,@@@base_dn@@@
+description: All Users
+
+dn: cn=guests,ou=Groups,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixGroup
+objectClass: groupOfNames
+gidNumber: 401
+cn: guests
+member: cn=No Members,ou=Users,ou=Accounts,@@@base_dn@@@
+description: Nobody
+
+#----------------------------------------------------------
+# Reserved Users
+#----------------------------------------------------------
+
+dn: cn=Windows Administrator,ou=Users,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: Windows Administrator
+sn: Windows Administrator
+uid: winadmin
+uidNumber: 302
+gidNumber: 1000512
+homeDirectory: /home/winadmin
+loginShell: /sbin/nologin
+
+dn: cn=No Members,ou=Users,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: No Members
+sn: No Members
+uid: nomembers
+uidNumber: 350
+gidNumber: 400
+homeDirectory: /dev/null
+loginShell: /sbin/nologin
+
+dn: cn=Flexshare System,ou=Users,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: Flexshare System
+sn: Flexshare System
+uid: flexshare
+uidNumber: 351
+gidNumber: 400
+loginShell: /sbin/nologin
+homeDirectory: /dev/null
+
+dn: cn=Email Archive,ou=Users,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: Email Archive
+sn: Email Archive
+uid: email-archive
+uidNumber: 352
+gidNumber: 400
+loginShell: /sbin/nologin
+homeDirectory: /dev/null
+
+dn: cn=Guest Account,ou=Users,ou=Accounts,@@@base_dn@@@
+objectClass: top
+objectClass: posixAccount
+objectClass: shadowAccount
+objectClass: inetOrgPerson
+cn: Guest Account
+sn: Guest Account
+uid: guest
+uidNumber: 353
+gidNumber: 400
+homeDirectory: /home/guest
+loginShell: /sbin/nologin
+
+#----------------------------------------------------------
+# Kolab
+#----------------------------------------------------------
+
+dn: k=kolab,@@@base_dn@@@
+k: kolab
+kolabHost: @@@fqdnhostname@@@
+postfix-mydomain: @@@domain@@@
+postfix-mydestination: @@@domain@@@
+postfix-mynetworks: 127.0.0.0/8
+postfix-enable-virus-scan: TRUE
+cyrus-autocreatequota: 100000
+cyrus-quotawarn: 80
+cyrus-admins: manager
+cyrus-imap: TRUE
+cyrus-pop3: FALSE
+cyrus-imaps: TRUE
+cyrus-pop3s: TRUE
+cyrus-sieve: TRUE
+apache-http: FALSE
+apache-allow-unauthenticated-fb: FALSE
+proftpd-ftp: FALSE
+uid: freebusy
+objectClass: top
+objectClass: kolab
+structuralObjectClass: kolab
+
+dn: cn=internal,@@@base_dn@@@
+cn: internal
+objectClass: top
+objectClass: namedObject
+structuralObjectClass: namedObject
+
+dn: cn=admin,cn=internal,@@@base_dn@@@
+cn: admin
+objectClass: top
+objectClass: kolabGroupOfNames
+member: cn=manager,cn=internal,@@@base_dn@@@
+structuralObjectClass: kolabGroupOfNames
+
+dn: cn=manager,cn=internal,@@@base_dn@@@
+cn: manager
+sn: n/a
+uid: manager
+userPassword: @@@bind_pw_hash@@@
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: kolabInetOrgPerson
+structuralObjectClass: inetOrgPerson
+
+dn: cn=nobody,cn=internal,@@@base_dn@@@
+cn: nobody
+sn: n/a n/a
+uid: nobody
+userPassword: @@@php_pw_hash@@@
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: kolabInetOrgPerson
+structuralObjectClass: inetOrgPerson
+
+dn: cn=calendar,cn=internal,@@@base_dn@@@
+cn: calendar
+sn: n/a n/a
+uid: calendar@lan
+userPassword: @@@calendar_pw_hash@@@
+objectClass: top
+objectClass: inetOrgPerson
+objectClass: kolabInetOrgPerson
+structuralObjectClass: inetOrgPerson

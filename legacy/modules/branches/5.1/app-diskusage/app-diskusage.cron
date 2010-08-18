@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+HOME=/usr/webconfig/include/philesight
+
+0 0 * * * root './philesight --db /usr/webconfig/tmp/ps.db --index /' >/dev/null 2>&1

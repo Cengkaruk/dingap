@@ -1,0 +1,6 @@
+menu htdocs/menus/mysql
+locale mysql htdocs/admin/lang
+include api/Mysql.class.php
+include htdocs/admin/mysql.php
+include htdocs/images/icons/16x16/icon-mysql.png
+include htdocs/images/icons/32x32/icon-mysql.png

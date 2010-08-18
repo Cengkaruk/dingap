@@ -1,0 +1,17 @@
+# Policies
+# Add policies one per line.  Each policy has two fields seperated by a ':'.
+# The first field is the policy name which will be used as a PHP define,
+# (set to 1).  The second field is a short description.
+# 
+POLICY_WITH_VPN:Include VPN? (true/false)
+POLICY_WITH_ANTIVIRUS:Include antivirus framework? (true/false)
+POLICY_WITH_ANTISPAM:Include antispam filter? (true/false)
+POLICY_WITH_INTRUSION_PREVENTION:Include intrusion prevention? (true/false)
+POLICY_WITH_WEBCONFIGMYSQL:Include MySQL in webconfig? (true/false)
+POLICY_WITH_FWEXTRAS:Include firewall extras? (true/false)
+POLICY_WITH_ENTERPRISE:Include enterprise modules? (true/false)
+POLICY_WITH_AUTOUPDATE:Include auto-update? (true/false)
+POLICY_WITH_FTPGROUPS:Include FTP group support? (true/false)
+POLICY_WITH_LOCALES:Include other langugages? (true/false)
+POLICY_OVERRIDE_MENUS:Override default menus? (true/false)
+

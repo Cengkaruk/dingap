@@ -1,0 +1,140 @@
+#!/usr/bin/engine
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2003-2006 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+
+require_once("/var/webconfig/api/Register.class.php");
+require_once("/var/webconfig/api/SoftwareUpdate.class.php");
+require_once("/var/webconfig/api/SoftwareUpdates.class.php");
+require_once("/var/webconfig/common/Logger.class.php");
+
+///////////////////////////////////////////////////////////////////////////////
+// Check software registration
+///////////////////////////////////////////////////////////////////////////////
+
+$register = new Register();
+
+try {
+	Logger::Syslog("software-update", "starting");
+	$isregistered = $register->GetStatus();
+
+	if (!$isregistered) {
+		Logger::Syslog("software-update", "system is not registered.");
+		exit(0);
+	}
+
+	unset($register);
+} catch (Exception $e) {
+	Logger::Syslog("software-update", $e->GetMessage());
+	exit(1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// See if software-update is enabled
+///////////////////////////////////////////////////////////////////////////////
+
+$softwarews = new SoftwareUpdates();
+
+try {
+	$critstate = $softwarews->GetAutoUpdateState(SoftwareUpdates::TYPE_CRITICAL);
+	$recstate = $softwarews->GetAutoUpdateState(SoftwareUpdates::TYPE_RECOMMENDED);
+} catch (Exception $e) {
+	Logger::Syslog("software-update", $e->GetMessage());
+	exit(1);
+}
+
+if (!$critstate && !$recstate) {
+	Logger::Syslog("software-update", "disabled");
+	exit(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Do the update
+///////////////////////////////////////////////////////////////////////////////
+
+$update = new SoftwareUpdate();
+
+if ($critstate)
+	RunUpdate(SoftwareUpdates::TYPE_CRITICAL);
+
+if ($recstate)
+	RunUpdate(SoftwareUpdates::TYPE_RECOMMENDED);
+
+///////////////////////////////////////////////////////////////////////////////
+// Set a new cron job
+///////////////////////////////////////////////////////////////////////////////
+
+$softwarews->SetAutoUpdateTime();
+
+Logger::Syslog("software-update", "done");
+
+
+/*****************************************************************************/
+/* F U N C T I O N S                                                         */
+/*****************************************************************************/
+
+function RunUpdate($type) {
+
+	global $update;
+	global $softwarews;
+
+	if ($type == SoftwareUpdates::TYPE_CRITICAL)
+		Logger::Syslog("software-update", "checking for critical updates");
+	else if ($type == SoftwareUpdates::TYPE_RECOMMENDED)
+		Logger::Syslog("software-update", "checking for recommended updates");
+
+	$swlist = array();
+
+	try {
+		$swlist = $softwarews->GetSoftwareUpdates();
+	} catch (Exception $e) {
+		Logger::Syslog("software-update", $e->GetMessage());
+		exit(1);
+	}
+
+	foreach ($swlist as $software) {
+		// Only list software for our desired type (critical, recommended, etc.).
+		if ($software["type"] != $type)
+			continue;
+
+		if ($software["rpmcheck"] == SoftwareUpdates::CODE_REQUIRED) {
+			Logger::Syslog("software-update", "$software[name] requires an update");
+			try {
+				$update->Install("$software[name]", false);
+			} catch (Exception $e) {
+				Logger::Syslog("software-update", $e->GetMessage());
+			}
+		} else if ($software["rpmcheck"] == SoftwareUpdates::CODE_OK) {
+			Logger::Syslog("software-update", "$software[name] is up-to-date");
+		} else if ($software["rpmcheck"] == SoftwareUpdates::CODE_OBSOLETE) {
+			Logger::Syslog("software-update", "$software[name] is bleeding edge");
+		}
+	}
+}
+
+// vim: syntax=php ts=4
+?>

@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# Make sure /etc/sysconfig/saslauthd is configured properly
+#----------------------------------------------------------
+
+if [ -e /etc/sysconfig/saslauthd ]; then
+	CHECK=`grep ^MECH= /etc/sysconfig/saslauthd`
+	if [ -z "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-users - updating SASL daemon configuration for LDAP"
+		echo "MECH=ldap" >> /etc/sysconfig/saslauthd
+	else
+		CHECK=`grep "^MECH=.*ldap" /etc/sysconfig/saslauthd`
+		if [ -z "$CHECK" ]; then
+			logger -p local6.notice -t installer "app-users - changing SASL daemon configuration for LDAP"
+			sed -i -e 's/^MECH=.*/MECH=ldap/' /etc/sysconfig/saslauthd
+		fi
+	fi
+fi
+
+# Remove deprecated /etc/.pcngroups file
+#---------------------------------------
+
+if [ -e /etc/.pcngroups ]; then
+	logger -p local6.notice -t installer "app-users - removing deprecated pcngroups file"
+	mv /etc/.pcngroups /usr/share/system/modules/users/old.pcngroups
+fi
+
+# Remove deprecated /etc/.gid.curr file
+#--------------------------------------
+
+if [ -e /etc/.gid.curr ]; then
+	logger -p local6.notice -t installer "app-users - removing deprecated .gid.curr file"
+	mv /etc/.gid.curr /usr/share/system/modules/users/old.gid.curr
+fi
+
+# Remove deprecated /etc/.group file
+#-----------------------------------
+
+if [ -e /etc/.group ]; then
+	logger -p local6.notice -t installer "app-users - removing deprecated .group file"
+	mv /etc/.group /usr/share/system/modules/users/old.group
+fi

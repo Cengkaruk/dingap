@@ -1,0 +1,11 @@
+menu htdocs/menus/proxy-filter-unsupported
+locale proxy-filter-unsupported htdocs/admin/lang 
+locale dansguardian api/lang
+include api/DansGuardian.class.php
+include htdocs/images/icons/16x16/icon-proxy-filter-unsupported.png
+include htdocs/images/icons/32x32/icon-proxy-filter-unsupported.png
+include htdocs/admin/proxy-filter-unsupported.php
+include ./bannedextensionlist.all
+include ./bannedmimetypelist.all
+include ./upgrade
+include ./cleanlists

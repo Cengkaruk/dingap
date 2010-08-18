@@ -1,0 +1,2 @@
+include gui/GeoIP.class.php
+include gui/GeoIPregionvars.php

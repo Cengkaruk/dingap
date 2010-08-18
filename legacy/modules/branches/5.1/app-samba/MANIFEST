@@ -1,0 +1,8 @@
+menu htdocs/menus/samba
+locale samba htdocs/admin/lang
+include htdocs/images/icons/16x16/icon-samba.png
+include htdocs/images/icons/32x32/icon-samba.png
+include htdocs/admin/samba.php
+include htdocs/admin/samba.xml.php
+include htdocs/admin/samba.js.php
+include wsdl/Samba.wsdl

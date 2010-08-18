@@ -1,0 +1,102 @@
+#!/bin/sh
+
+# Add prettier error pages if box is using default
+#-------------------------------------------------
+
+if [ -h /etc/squid/errors ]; then
+	CHECK=`/bin/grep ^error_directory /etc/squid/squid.conf`
+	if [ -z "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-squid - updating error pages"
+		rm /etc/squid/errors
+		ln -s /usr/share/system/modules/squid/redirect /etc/squid/errors
+		echo "error_directory /etc/squid/errors" >> /etc/squid/squid.conf
+	fi
+fi
+
+# Add safe ports
+#---------------
+
+if [ -e /etc/squid/squid.conf ]; then
+	# Add webconfig ports to Safe_ports in old config (for content filter on standalone box)
+	/bin/sed -i -e 's/^acl Safe_ports port 81.*10000.*/acl Safe_ports port 81 82 83 10000    # Web-based administration tools/' /etc/squid/squid.conf
+fi
+
+# Handle banner ad / pop-up blocker
+#----------------------------------
+
+if [ -e /etc/rc.d/init.d/privoxy ]; then
+	/sbin/service privoxy stop >/dev/null 2>&1
+	/sbin/chkconfig --del privoxy >/dev/null 2>&1
+fi
+
+CHECK=`grep "^cache_peer 127.0.0.1 parent 8118" /etc/squid/squid.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-squid - disabling privoxy add-on"
+	grep -v "^cache_peer 127.0.0.1 parent 8118" /etc/squid/squid.conf > /etc/squid/squid.conf.new
+	mv /etc/squid/squid.conf.new /etc/squid/squid.conf
+
+	logger -p local6.notice -t installer "app-squid - enbling adzapper add-on"
+	grep -v "^redirect_program" /etc/squid/squid.conf > /etc/squid/squid.conf.new
+	mv /etc/squid/squid.conf.new /etc/squid/squid.conf
+	echo "redirect_program /usr/sbin/adzapper" >> /etc/squid/squid.conf
+fi
+
+# Add follow_x_forwarded_for
+#---------------------------
+
+CHECK=`grep "^follow_x_forwarded_for allow localhost" /etc/squid/squid.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-squid - adding X-forward support"
+	echo "" >> /etc/squid/squid.conf
+	echo "#  TAG: follow_x_forwarded_for" >> /etc/squid/squid.conf
+	echo "#   For details, see http://devel.squid-cache.org/follow_xff/" >> /etc/squid/squid.conf
+	echo "follow_x_forwarded_for allow localhost" >> /etc/squid/squid.conf
+fi
+
+# Remove deprecated
+#------------------
+
+DEPRECATED="\
+httpd_accel_host \
+httpd_accel_port \
+httpd_accel_uses_host_header \
+httpd_accel_with_proxy \
+auth_param.ntlm.max_challenge_reuses \
+auth_param.ntlm.max_challenge_lifetime \
+auth_param.ntlm.use_ntlm_negotiate \
+"
+
+for DEPRECATE in $DEPRECATED; do
+	CHECK=`grep "^$DEPRECATE[[:space:]]*" /etc/squid/squid.conf 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-squid - removing deprecated parameter $DEPRECATE"
+		sed -i -e "s/^$DEPRECATE[[:space:]]*/# Deprecated $DEPRECATE /" /etc/squid/squid.conf
+	fi
+done
+
+# Update file permissions
+#------------------------
+
+CHECKPERMS=`stat --format=%a /etc/squid/squid.conf`
+if [ "$CHECKPERMS" != "640" ]; then
+	logger -p local6.notice -t installer "app-squid - updating file permissions of squid.conf"
+	chmod 640 /etc/squid/squid.conf	
+fi
+
+CHECKOWNERSHIP=`stat --format=%U.%G /etc/squid/squid.conf`
+if [ "$CHECKOWNERSHIP" != "root.squid" ]; then
+	logger -p local6.notice -t installer "app-squid - updating file ownership of squid.conf"
+	chown root.squid /etc/squid/squid.conf
+fi
+
+# Remove deprecated MAC address support
+#--------------------------------------
+
+IFS=""
+ARPACLS=`grep "^acl pcngroup.* arp .*" /etc/squid/squid.conf 2>/dev/null`
+for ACL in $ARPACLS; do
+	GROUP=`echo $ACL | awk '{ print $2 }'`
+	logger -p local6.notice -t installer "app-squid - removing deprecated ARP configuration: $GROUP"
+	sed -i -e "s/^acl $GROUP arp/# acl $GROUP arp/" /etc/squid/squid.conf
+	sed -i -e "s/^http_access allow $GROUP /# http_access allow $GROUP/" /etc/squid/squid.conf
+done

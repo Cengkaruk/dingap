@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# 1. Job name
+# 2. Client name
+# 3. Device name
+# 4. BSR filename
+# 5. Restore location
+# 6. Replace policy
+
+if [ $# -ne 6 ]; then
+	echo "Wrong number of args, expected 6 - [JobName][Client][DeviceName][BSRFile][RestoreLocation][Replace]."
+	exit 1
+fi
+
+/etc/bacula/bconsole  -c /etc/bacula/bconsole.conf <<END_OF_DATA
+@output /dev/null
+run job="Restore" client="$2" storage="$3"
+0
+mod
+8
+$4
+mod
+9
+$5
+mod
+10
+$6
+@output
+yes
+quit
+END_OF_DATA
+exit 0

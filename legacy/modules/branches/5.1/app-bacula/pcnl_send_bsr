@@ -1,0 +1,19 @@
+#!/usr/webconfig/bin/php
+<?php
+    error_reporting(0);
+    include_once("/var/webconfig/api/ShellExec.class.php");
+    try {
+        $args = $argv[1] . ' ' . $argv[2];
+        $options = array();
+        $options['background'] = true;
+        $shell = new ShellExec;
+        $retval = $shell->Execute('/usr/bacula/pcnl_send_bsr.fork', $args, true, $options);
+        if ($retval != 0) {
+            $errstr = $shell->GetLastOutputLine();
+            throw new EngineException($errstr, COMMON_WARNING);
+        }
+    } catch (Exception $e) {
+        throw new EngineException($e->GetMessage(), COMMON_ERROR);
+    }
+// vim: syntax=php ts=4
+?>

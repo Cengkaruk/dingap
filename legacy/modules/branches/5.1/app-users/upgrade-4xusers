@@ -1,0 +1,214 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2009 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+require_once($BASEDIR . "/common/Logger.class.php");
+require_once($BASEDIR . "/api/ClearDirectory.class.php");
+require_once($BASEDIR . "/api/File.class.php");
+require_once($BASEDIR . "/api/Folder.class.php");
+require_once($BASEDIR . "/api/Ldap.class.php");
+require_once($BASEDIR . "/api/ShellExec.class.php");
+
+try {
+	// Bail if there's nothing to upgrade
+	$oldldif = new File("/etc/openldap/upgrade.ldif", true);
+
+	if (! $oldldif->Exists())
+		exit(0);
+
+	$lines = $oldldif->GetContentsAsArray();
+} catch (Exception $e) {
+	LogIt($e->GetMessage());
+	exit(1);
+}
+
+// See if this is a 4.x upgrade.ldif
+foreach ($lines as $line) {
+	if (preg_match("/^dn: ou=Users,ou=Accounts/", $line)) {
+		LogIt("skipping 4.x upgrade on non-4.x LDIF");
+		exit(0);
+	}
+}
+
+// Find the following information
+// - All users and relevant data
+$new_dn = false;
+$old_object = array();
+$ldap_data = "";
+$ldap_data_flags = "";
+
+foreach ($lines as $line) {
+	// Start processing when new DN is detected
+	if (preg_match("/dn: cn/", $line)) {
+		$new_dn = true;
+		$ldap_data_flags = "";
+	}
+
+	// Stop processing object data if blank line detected.
+	// Convert the object
+	if (preg_match("/^$/", $line))  {
+		$new_dn = false;
+
+		// Only care about user accounts
+		if (in_array("objectClass: pcnWebconfigAccount", $old_object)) {
+
+			// Do the conversion
+			foreach ($old_object as $item) {
+				$matches = array();
+
+				// Move to Users container
+				if (preg_match("/^dn: ([^,]*),(.*)/", $item, $matches)) {
+					$ldap_data .= "dn: $matches[1],ou=Users,ou=Accounts,$matches[2]\n";
+					LogIt("converting LDAP user: " . preg_replace("/^cn=/", "", $matches[1]));
+				// Change gidNumber
+				} else if (preg_match("/^gidNumber:/", $item)) {
+					$ldap_data .= "gidNumber: 400\n";
+				// Change uidNumber on flexshare
+				} else if (preg_match("/^uidNumber: 403/", $item)) {
+					$ldap_data .= "uidNumber: 351\n";
+				// Change uidNumber on email-archive
+				} else if (preg_match("/^uidNumber: 421/", $item)) {
+					$ldap_data .= "uidNumber: 352\n";
+				} else {
+					$ldap_data .= $item . "\n";
+				}
+
+				// Flag conversion
+				if (preg_match("/^objectClass: pcnFTPAccount/", $item, $matches) && !isset($ldap_data_flags['pcnFTPFlag']))
+					$ldap_data_flags['pcnFTPFlag'] = "FALSE";
+				if (preg_match("/^objectClass: pcnMailAccount/", $item, $matches) && !isset($ldap_data_flags['pcnMailFlag']))
+					$ldap_data_flags['pcnMailFlag'] = "FALSE";
+				if (preg_match("/^objectClass: pcnOpenVPNAccount/", $item, $matches) && !isset($ldap_data_flags['pcnOpenVPNFlag']))
+					$ldap_data_flags['pcnOpenVPNFlag'] = "FALSE";
+				if (preg_match("/^objectClass: pcnPPTPAccount/", $item, $matches) && !isset($ldap_data_flags['pcnPPTPFlag']))
+					$ldap_data_flags['pcnPPTPFlag'] = "FALSE";
+				if (preg_match("/^objectClass: pcnProxyAccount/", $item, $matches) && !isset($ldap_data_flags['pcnProxyFlag']))
+					$ldap_data_flags['pcnProxyFlag'] = "FALSE";
+				if (preg_match("/^objectClass: pcnWebconfigAccount/", $item, $matches) && !isset($ldap_data_flags['pcnWebconfigFlag']))
+					$ldap_data_flags['pcnWebconfigFlag'] = "FALSE";
+				if (preg_match("/^objectClass: pcnWebAccount/", $item, $matches) && !isset($ldap_data_flags['pcnWebFlag']))
+					$ldap_data_flags['pcnWebFlag'] = "FALSE";
+
+				if (preg_match("/^pcnFTPPassword:/", $item, $matches))
+					$ldap_data_flags['pcnFTPFlag'] = "TRUE";
+				else if (preg_match("/^pcnMailPassword:/", $item, $matches))
+					$ldap_data_flags['pcnMailFlag'] = "TRUE";
+				else if (preg_match("/^pcnOpenVPNPassword:/", $item, $matches))
+					$ldap_data_flags['pcnOpenVPNFlag'] = "TRUE";
+				else if (preg_match("/^pcnPPTPPassword:/", $item, $matches))
+					$ldap_data_flags['pcnPPTPFlag'] = "TRUE";
+				else if (preg_match("/^pcnProxyPassword:/", $item, $matches))
+					$ldap_data_flags['pcnProxyFlag'] = "TRUE";
+				else if (preg_match("/^pcnWebconfigPassword:/", $item, $matches))
+					$ldap_data_flags['pcnWebconfigFlag'] = "TRUE";
+				else if (preg_match("/^pcnWebPassword:/", $item, $matches))
+					$ldap_data_flags['pcnWebFlag'] = "TRUE";
+			}
+
+			// Dump converted flags
+			foreach ($ldap_data_flags as $key => $value)
+				$ldap_data .= "$key: $value\n";
+
+			$ldap_data .= "\n";
+		}
+
+		$old_object = array();
+	}
+
+	// Copy old object data, but ignore some fields
+	if ($new_dn) {
+		if (preg_match("/^(creatorsName|createTimestamp|entryCSN|entryUUID|modifiersName|modifyTimestamp):/", $line))
+			continue;
+
+		$old_object[] = $line;
+	}
+}
+
+// Dump the new LDIF data
+try {
+	$newldif = new File("/etc/openldap/converted4x.ldif", true);
+
+	if ($newldif->Exists())
+		$newldif->Delete();	
+
+	LogIt("creating LDIF import data");
+	$newldif->Create("root", "root", "0600");
+	$newldif->AddLines($ldap_data);
+} catch (Exception $e) {
+	LogIt($e->GetMessage());
+	exit(1);
+}
+
+// Initialize LDAP
+try {
+	$ldap = new Ldap();
+	$domain = $ldap->GetDefaultDomain();
+
+	LogIt("provisioning LDAP database");
+	$directory = new ClearDirectory();
+	$directory->Initialize(ClearDirectory::CONSTANT_ROLE_MASTER, $domain, "", false, false, true);
+
+	$wasrunning = $ldap->GetRunningState();
+
+	if ($wasrunning)
+		$ldap->SetRunningState(false);
+
+	LogIt("importing LDIF data into LDAP");
+	$shell = new ShellExec();
+	$shell->Execute(Ldap::COMMAND_SLAPADD, "-n3 -l /etc/openldap/converted4x.ldif", true);
+
+	if ($wasrunning)
+		$ldap->SetRunningState(true);
+
+} catch (Exception $e) {
+	LogIt($e->GetMessage());
+	exit(1);
+}
+
+// Cleanup old files
+try {
+	$folder = new Folder("/etc/openldap/backup");
+
+	if (! $folder->Exists())
+		$folder->Create("root", "root", "0700");
+
+	LogIt("archiving LDIF files");
+	$oldldif->MoveTo("/etc/openldap/backup/backup4x.ldif");
+	$newldif->MoveTo("/etc/openldap/backup/converted4x.ldif");
+
+} catch (Exception $e) {
+	LogIt($e->GetMessage());
+	exit(1);
+}
+
+function LogIt($logmessage)
+{
+	Logger::Syslog("upgrade-4xusers", $logmessage);
+	echo "$logmessage\n";
+}
+
+
+?>

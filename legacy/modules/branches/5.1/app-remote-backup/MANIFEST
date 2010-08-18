@@ -1,0 +1,24 @@
+menu htdocs/menus/remote-server-backup
+locale remote-server-backup htdocs/admin/lang
+locale remotebackup api/lang
+locale filebrowser api/lang
+include api/RemoteBackup.class.php
+include api/RemoteBackup.list.php
+include api/FileBrowser.class.php
+include scripts/rbs.inc.php
+include scripts/script.inc.php
+include scripts/rbs-client.php
+include scripts/rbs-schedule.php
+include htdocs/admin/remote-server-backup.php
+include htdocs/admin/remote-server-backup.js.php
+include htdocs/js/webtoolkit.base64.js
+include htdocs/js/webtoolkit.url.js
+include js/common.js
+include js/remote-server-backup.js
+include js/filebrowser.js
+include htdocs/images/icons/16x16/icon-remote-server-backup.png
+include htdocs/images/icons/32x32/icon-remote-server-backup.png
+include ./rbs_qp_sysconfig-backup.ini
+include ./rbs.conf
+include ./app-remote-backup.cron
+include ./rbs-upgrade.php

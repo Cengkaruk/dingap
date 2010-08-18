@@ -1,0 +1,97 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-httpd
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Web server module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: httpd >= 2.2.3
+Requires: mod_ssl >= 2.2.3
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-product = %VERSION%
+Requires: app-flexshare-api = %VERSION%
+Requires: app-ssl = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-httpd
+Obsoletes: cc-httpd
+Obsoletes: cc-apache
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Web server module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/www/virtual
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/httpd
+
+install -m 644 config/index.html $RPM_BUILD_ROOT/usr/share/system/modules/httpd/
+install -m 644 httpd.conf $RPM_BUILD_ROOT/usr/share/system/modules/httpd/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/httpd/
+cp -ra webconfig/* $RPM_BUILD_ROOT/var/webconfig
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-httpd - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-httpd - disabling on boot"
+	chkconfig --level 2345 httpd off
+fi
+
+/usr/share/system/modules/httpd/upgrade >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-httpd - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/usr/share/system/modules/httpd/index.html
+/usr/share/system/modules/httpd/upgrade
+/usr/share/system/modules/httpd/httpd.conf
+%attr(-,root,root) %dir /var/www/virtual
+/var/webconfig

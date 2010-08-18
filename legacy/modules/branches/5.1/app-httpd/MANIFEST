@@ -1,0 +1,11 @@
+menu htdocs/menus/web-server
+locale httpd api/lang
+locale web-server htdocs/admin/lang
+include api/Httpd.class.php
+include htdocs/admin/web-server.php
+include htdocs/admin/web-server.js.php
+include htdocs/images/icons/16x16/icon-web-server.png
+include htdocs/images/icons/32x32/icon-web-server.png
+include ./upgrade
+include ./config/index.html
+include ./httpd.conf

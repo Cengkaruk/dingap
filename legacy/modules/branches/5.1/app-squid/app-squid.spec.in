@@ -1,0 +1,136 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-squid
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Web proxy server module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: adzapper
+Requires: log2mysql >= 1.1
+Requires: squid >= 2.6.STABLE21
+Requires: vixie-cron
+Requires: webconfig-pear
+Requires: webconfig-php-mysql
+# TODO: Move perl-DBD-MySQL dependency to log2mysql
+Requires: perl-DBD-MySQL
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-product = %VERSION%
+Requires: app-firewall = %VERSION%
+Requires: app-users = %VERSION%
+Requires: app-reports = %VERSION%
+Requires: app-system-mysql = %VERSION%
+Provides: cc-squid
+Obsoletes: cc-privoxy
+Obsoletes: cc-proxy-report
+Obsoletes: cc-sarg
+Obsoletes: cc-squid
+Obsoletes: cc-webalizer-squid
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Web proxy server module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/squid/redirect
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d
+
+install -m 644 wpad.conf $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d
+install -m 644 squid.system.conf $RPM_BUILD_ROOT/etc/system/squid
+install -m 644 squid.conf $RPM_BUILD_ROOT/usr/share/system/modules/squid/
+install -m 644 app-squid-report.cron $RPM_BUILD_ROOT/etc/cron.d/app-squid-report
+install -m 644 app-squid-purge.cron $RPM_BUILD_ROOT/etc/cron.d/app-squid-purge
+install -m 755 configupgrade $RPM_BUILD_ROOT/usr/share/system/modules/squid/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/squid/
+install -m 755 proxy-report-reset $RPM_BUILD_ROOT/usr/sbin
+install -m 755 proxy-report-purge $RPM_BUILD_ROOT/usr/sbin
+cp redirect/* $RPM_BUILD_ROOT/usr/share/system/modules/squid/redirect
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-squid - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+    logger -p local6.notice -t installer "app-squid - disabling on boot"
+	chkconfig --level 2345 squid off
+
+    logger -p local6.notice -t installer "app-squid - creating default configuration"
+	cp /etc/squid/squid.conf /usr/share/system/modules/squid/squid.conf.$$
+	cp -p /usr/share/system/modules/squid/squid.conf /etc/squid/squid.conf
+	chown root.squid /etc/squid/squid.conf
+	chmod 640 /etc/squid/squid.conf
+
+	if [ -h /etc/squid/errors ]; then
+		logger -p local6.notice -t installer "app-squid - creating custom errors"
+		rm /etc/squid/errors
+		ln -s /usr/share/system/modules/squid/redirect /etc/squid/errors
+	fi
+fi
+
+/usr/share/system/modules/squid/upgrade >/dev/null 2>&1
+/usr/share/system/modules/squid/configupgrade >/dev/null 2>&1
+/usr/sbin/ldapsync config squid >/dev/null 2>&1
+/sbin/service squid condrestart >/dev/null 2>&1
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-squid - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/system/squid
+/etc/cron.d/app-squid-report
+/etc/cron.d/app-squid-purge
+/usr/sbin/proxy-report-reset
+/usr/sbin/proxy-report-purge
+/usr/share/system/modules/squid/squid.conf
+/usr/share/system/modules/squid/configupgrade
+/usr/share/system/modules/squid/upgrade
+/usr/share/system/modules/squid/redirect/*
+/usr/webconfig/conf/httpd.d/wpad.conf
+/var/webconfig/

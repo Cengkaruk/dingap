@@ -1,0 +1,17 @@
+menu htdocs/menus/network-report
+menu htdocs/menus/resource-report
+locale network-report htdocs/admin/lang
+locale resource-report htdocs/admin/lang
+include htdocs/images/icons/16x16/icon-network-report.png
+include htdocs/images/icons/32x32/icon-network-report.png
+include htdocs/images/icons/16x16/icon-resource-report.png
+include htdocs/images/icons/32x32/icon-resource-report.png
+include htdocs/admin/resource-report.php
+include htdocs/admin/network-report.php
+include api/Mrtg.class.php
+include ./mrtg.cfg
+include ./mrtg.cfg.dynamic
+include ./mrtg.cfg.en_US
+include ./mrtg.cfg.pt_BR
+include ./mrtg_run
+include ./system

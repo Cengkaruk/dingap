@@ -1,0 +1,153 @@
+#-----------------------------------------------------------------------------
+# M A C R O S
+#------------------------------------------------------------------------------
+
+%define managedvpn %POLICY_WITH_VPN%
+
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-ipsec
+Version: %VERSION%
+Release: %RELEASE%
+Summary: IPSec VPN module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: iproute
+Requires: openswan >= 2.6.14
+Requires: perl
+Requires: perl-Crypt-SSLeay
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-services = %VERSION%
+Requires: app-syswatch = %VERSION%
+Provides: cc-ipsec
+Obsoletes: cc-ipsec
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+IPSec VPN module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/rc.d/init.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/ipsec.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/ipsec
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/ipsec
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/libexec/ipsec
+
+%if %{managedvpn} == "true"
+install -m 755 vpnwatchd.sysv $RPM_BUILD_ROOT/etc/rc.d/init.d/vpnwatchd
+install -m 755 vpnwatchd $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 vpnupdate $RPM_BUILD_ROOT/usr/sbin/
+%endif
+
+install -m 755 fix-vpn-routes $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 updown.app $RPM_BUILD_ROOT/usr/libexec/ipsec/_updown.app
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/ipsec/
+install -m 600 ipsec.secrets $RPM_BUILD_ROOT/usr/share/system/modules/ipsec/
+install -m 600 ipsec.conf $RPM_BUILD_ROOT/usr/share/system/modules/ipsec/
+touch $RPM_BUILD_ROOT/etc/ipsec.d/ipsec.empty.conf
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-ipsec - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	if [ -x /etc/rc.d/init.d/vpnwatchd ]; then
+		logger -p local6.notice -t installer "app-ipsec - disabling managed VPN on boot"
+		chkconfig --add vpnwatchd
+		chkconfig --level 2345 vpnwatchd off
+	fi
+
+	logger -p local6.notice -t installer "app-ipsec - disabling on boot"
+	chkconfig --level 2345 ipsec off
+
+	logger -p local6.notice -t installer "app-ipsec - setting default ipsec.conf"
+	[ -f /etc/ipsec.conf ] && cp -p /etc/ipsec.conf /usr/share/system/modules/ipsec/ipsec.conf.$$
+	cp -p /usr/share/system/modules/ipsec/ipsec.conf /etc/ipsec.conf
+
+	logger -p local6.notice -t installer "app-ipsec - setting default ipsec.secrets"
+	[ -f /etc/ipsec.secrets ] && cp -p /etc/ipsec.secrets /usr/share/system/modules/ipsec/ipsec.secrets.$$
+	cp -p /usr/share/system/modules/ipsec/ipsec.secrets /etc/ipsec.secrets
+fi
+
+/usr/share/system/modules/ipsec/upgrade
+exit 0
+
+%postun
+if [ $1 == 1 ]; then
+	if [ -x /etc/rc.d/init.d/vpnwatchd ]; then
+		service vpnwatchd condrestart >/dev/null 2>&1
+	fi
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ $1 == 0 ]; then
+	logger -p local6.notice -t installer "app-ipsec - uninstalling"
+
+	if [ -x /etc/rc.d/init.d/vpnwatchd ]; then
+		PIDCHK=`/sbin/pidof vpnwatchd`
+		if [ ! -z "$PIDCHK" ]; then
+			service vpnwatchd stop >/dev/null 2>&1
+		fi
+		/sbin/chkconfig --del vpnwatchd
+	fi
+fi
+exit 0
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%if %{managedvpn} == "true"
+/etc/rc.d/init.d/vpnwatchd
+/usr/sbin/vpnwatchd
+/usr/sbin/vpnupdate
+/usr/sbin/fix-vpn-routes
+%endif
+/etc/ipsec.d/ipsec.empty.conf
+/usr/libexec/ipsec/_updown.app 
+/usr/share/system/modules/ipsec/ipsec.conf
+/usr/share/system/modules/ipsec/ipsec.secrets
+/usr/share/system/modules/ipsec/upgrade
+%dir /var/lib/ipsec
+/var/webconfig/

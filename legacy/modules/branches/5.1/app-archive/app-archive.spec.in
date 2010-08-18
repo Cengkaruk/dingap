@@ -1,0 +1,120 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-archive
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Mail archival system module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: vixie-cron
+Requires: webconfig-php-mysql
+Requires: webconfig-php-imap
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-cyrus-imapd = %VERSION%
+Requires: app-flexshare = %VERSION%
+Requires: app-mailer = %VERSION%
+Requires: app-ntp = %VERSION%
+Requires: app-postfix = %VERSION%
+Requires: app-system-mysql = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-archive
+Obsoletes: cc-archive
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Mail archival system module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/archive/current
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/archive/search
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/archive/links
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/archive
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/archive/mysql
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
+
+install -m 0600 archive.conf $RPM_BUILD_ROOT/etc/archive.conf
+install -m 0644 tables.sql $RPM_BUILD_ROOT/usr/share/archive/mysql/tables.sql
+install -m 0644 app-archive.cron $RPM_BUILD_ROOT/etc/cron.d/app-archive
+install -m 0740 archive_bootstrap $RPM_BUILD_ROOT/usr/bin
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E - I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%pre
+/usr/sbin/useradd -d /var/archive -s /sbin/nologin -M -r -u 403 archive 2>/dev/null
+exit 0
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-archive - installing"
+
+/usr/sbin/addsudo /usr/bin/archive_bootstrap app-archive
+/usr/sbin/addsudo /var/webconfig/scripts/archive.php app-archive
+/usr/sbin/addsudo /var/webconfig/scripts/archive_resend.php app-archive
+/usr/sbin/addsudo /var/webconfig/scripts/avscan.php app-archive
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-archive - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+%config(noreplace) %attr(0640,root,root) /etc/archive.conf
+%dir %attr(0755,root,root) /var/archive
+%dir %attr(0700,root,root) /var/archive/current
+%dir %attr(0700,root,root) /var/archive/search
+%dir %attr(0700,root,root) /var/archive/links
+%attr(0700,root,root) /var/webconfig/scripts/archive.php
+%attr(0644,root,root) /var/webconfig/scripts/archive.inc.php
+%attr(0700,root,root) /var/webconfig/scripts/archive_mbox.php
+%attr(0700,root,root) /var/webconfig/scripts/archive_mesg.php
+%attr(0700,root,root) /var/webconfig/scripts/archive_resend.php
+/usr/bin/archive_bootstrap
+/usr/share/archive/mysql/tables.sql
+/etc/cron.d/app-archive

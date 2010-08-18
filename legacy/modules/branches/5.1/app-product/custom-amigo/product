@@ -1,0 +1,16 @@
+# Product details
+name = Amigo Enterprise
+version = 5.1
+
+# Registration
+free_trial = 0
+portal_url = https://subscriptions.amigo.first.gr/portal
+
+# Links
+help_url =
+
+# Apps
+samba_name = Amigo
+samba_workgroup = Enterprise
+samba_comment = Amigo Enterprise
+

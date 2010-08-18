@@ -1,0 +1,156 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-mrtg
+Version: %VERSION%
+Release: %RELEASE%
+Summary: System statistics module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: mrtg >= 2.14.5
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-mrtg
+Obsoletes: cc-mrtg
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+System statistics module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/mrtg
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/reports/mrtg
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/mrtg/
+
+install -m 755 system $RPM_BUILD_ROOT/etc/mrtg/
+install -m 755 mrtg_run $RPM_BUILD_ROOT/etc/mrtg/
+install -m 644 mrtg.cfg $RPM_BUILD_ROOT/usr/share/system/modules/mrtg/
+install -m 644 mrtg.cfg.dynamic $RPM_BUILD_ROOT/etc/mrtg/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E  S C R I P T
+#------------------------------------------------------------------------------
+
+%pre
+# Old version -- this file is a symbolic link... remove it.
+if [ -h /etc/mrtg/mrtg.cfg ]; then
+	logger -p local6.notice -t installer "app-mrtg - removing old soft link"
+	rm -f /etc/mrtg/mrtg.cfg 2>/dev/null
+fi
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-mrtg - installing"
+
+# ... and do this all the time -- not just on install (locale issues)
+echo "*/5 * * * * root /etc/mrtg/mrtg_run; LANG=C /usr/bin/mrtg /etc/mrtg/mrtg.cfg >/dev/null 2>/dev/null" > /etc/cron.d/mrtg
+
+#------------------------------------------------------------------------------
+# U P G R A D E   S C R I P T
+#------------------------------------------------------------------------------
+
+# Remove all the old mrtg entries -- use cron.d directory instead
+#----------------------------------------------------------------
+
+CHECKCRON=`grep "root .*mrtg" /etc/crontab`
+if [ -n "$CHECKCRON" ]; then
+	logger -p local6.notice -t installer "app-mrtg - removing old /etc/crontab entry"
+	grep -v '* * * * root .*mrtg' /etc/crontab > /etc/crontab.new
+	mv /etc/crontab.new /etc/crontab
+fi
+
+# Install new mrtg.cfg
+#---------------------
+
+if [ -e /etc/mrtg/mrtg.cfg ]; then
+	cp /etc/mrtg/mrtg.cfg /usr/share/system/modules/mrtg/mrtg.cfg.$$
+fi
+cp /usr/share/system/modules/mrtg/mrtg.cfg /etc/mrtg/
+
+# Fix old paths
+#--------------
+
+NEWPATH="/var/webconfig/reports/mrtg"
+if [ -e /var/webconfig/htdocs/reports/mrtg/load.log ]; then
+	OLDPATH="/var/webconfig/htdocs/reports/mrtg"
+elif [ -e /var/webconfig/htdocs/reports/data/mrtg/load.log ]; then
+	OLDPATH="/var/webconfig/htdocs/reports/data/mrtg"
+else
+	OLDPATH="/var/webconfig/htdocs/mrtg"
+fi
+
+if [ -e "$OLDPATH/load.log" ]; then
+	logger -p local6.notice -t installer "app-mrtg - moving data to new directory"
+	mv $OLDPATH/* $NEWPATH
+	if [ -e $NEWPATH/internet.log ]; then
+		if [ -e /etc/sysconfig/network-scripts/ifcfg-ppp0 ]; then
+			logger -p local6.notice -t installer "app-mrtg - changing name of internet.log to net_ppp0.log"
+			mv $OLDPATH/internet.log $NEWPATH/net_ppp0.log 2>/dev/null
+		else
+			logger -p local6.notice -t installer "app-mrtg - changing name of internet.log to net_eth0.log"
+			mv $OLDPATH/internet.log $NEWPATH/net_eth0.log 2>/dev/null
+		fi
+	fi
+	if [ -e $NEWPATH/lan.log ]; then
+		logger -p local6.notice -t installer "app-mrtg - changing name of lan.log to net_eth1.log"
+		mv $OLDPATH/lan.log $NEWPATH/net_eth1.log 2>/dev/null
+	fi
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-mrtg - uninstalling"
+	if [ -e /etc/cron.d/mrtg ]; then
+		logger -p local6.notice -t installer "app-mrtg - removing cron entry"
+		rm -f /etc/cron.d/mrtg
+	fi
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr (-,root,root)
+/etc/mrtg/system
+/etc/mrtg/mrtg_run
+%config(noreplace) /etc/mrtg/mrtg.cfg.dynamic
+/usr/share/system/modules/mrtg/
+/var/webconfig/

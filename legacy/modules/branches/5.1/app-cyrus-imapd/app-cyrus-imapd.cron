@@ -1,0 +1,2 @@
+30 5 * * *  cyrus /usr/lib/cyrus-imapd/quota -f >/dev/null 2>&1
+45 5 * * *  cyrus /usr/lib/cyrus-imapd/squatter -r -v user >/dev/null 2>&1

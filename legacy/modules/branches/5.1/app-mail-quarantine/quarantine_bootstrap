@@ -1,0 +1,110 @@
+#!/bin/sh
+
+MYSQL="/usr/share/system-mysql/usr/bin/mysql"
+MYSQLADMIN="/usr/share/system-mysql/usr/bin/mysqladmin"
+
+SQLBASE="/usr/share/system/modules/mail-quarantine/amavisd-mysql_objects-4.1.sql"
+DBINFO="/etc/system/database"
+AMAVISCONF="/etc/amavisd/api.conf"
+MAILZU="/etc/system/mailzu"
+POSTFIX="/etc/postfix/main.cf"
+
+# Start system database
+#----------------------
+
+[ -x /etc/rc.d/init.d/system-mysqld ] || exit 0
+
+if [ ! -e /var/lib/system-mysql/mysql.sock ]; then
+	/etc/rc.d/init.d/system-mysqld start
+	/sbin/chkconfig system-mysqld on
+fi
+
+# Grab database password
+#-----------------------
+
+DBPASS=`grep ^password $DBINFO 2>/dev/null | sed "s/^password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$DBPASS" ]; then
+	echo "Unable to authenticate with database"
+	exit 1
+fi
+
+# Create Amavisd databases (if necessary) 
+#----------------------------------------
+
+$MYSQL -uroot -p"$DBPASS" -e 'status;' amavisd >/dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+	echo "Creating amavisd database"
+	$MYSQLADMIN -uroot -p"$DBPASS" create amavisd >/dev/null 2>&1
+fi
+
+# Add/Update Amavisd database password
+#--------------------------------------
+
+AMAVISD_PASSWORD=`grep ^amavisd.password $DBINFO 2>/dev/null | sed "s/^amavisd.password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$AMAVISD_PASSWORD" ]; then
+	echo "Generating password"
+	AMAVISD_PASSWORD=`openssl rand -base64 12`
+	echo "amavisd.password = $AMAVISD_PASSWORD" >> $DBINFO
+fi
+
+AMAVISD_PASSWORD_SEDSAFE=`echo $AMAVISD_PASSWORD | sed 's/\//\\\\\//g'`
+
+echo "Updating privileges"
+$MYSQL -uroot -p"$DBPASS" -e "GRANT ALL PRIVILEGES ON amavisd.* TO amavisd@localhost IDENTIFIED BY \"$AMAVISD_PASSWORD\" WITH GRANT OPTION;" amavisd >/dev/null 2>&1
+
+# Create tables (if necessary)
+#-----------------------------
+
+TABLE_EXISTS=`$MYSQL -uroot -p"$DBPASS" -e 'show tables;' amavisd 2>/dev/null | grep quarantine`
+
+if [ -z "$TABLE_EXISTS" ]; then
+	echo "Creating base tables"
+	$MYSQL -uroot -p"$DBPASS" amavisd < $SQLBASE
+fi
+
+# Update Amavis configuration file
+#------------------------------------------------
+
+CHECK=`grep "storage_sql_dsn.*$AMAVISD_PASSWORD" $AMAVISCONF`
+if [ -z "$CHECK" ]; then
+	echo "Setting database password in Amavis"
+	sed -i -e "s/^@storage_sql_dsn.*/@storage_sql_dsn = ( ['DBI:mysql:database=amavisd;host=127.0.0.1;port=3308', 'amavisd', '$AMAVISD_PASSWORD_SEDSAFE']);/" $AMAVISCONF
+fi
+
+# Create/Update mailzu system file (if necessary)
+#------------------------------------------------
+
+if [ ! -e "$MAILZU" ]; then
+	echo "Creating mailzu system file"
+	MYDOMAIN=`grep ^mydomain $POSTFIX 2>/dev/null | sed "s/^mydomain[[:space:]]*=[[:space:]]*//"`
+	echo "password = $AMAVISD_PASSWORD" > $MAILZU
+	echo "domain = $MYDOMAIN" >> $MAILZU
+else
+	PASSWORD=`grep ^password $MAILZU 2>/dev/null | sed "s/^password[[:space:]]*=[[:space:]]*//"`
+	if [ -z "$PASSWORD" ]; then
+		echo "Adding password to mailzu system file"
+		echo "password = $AMAVISD_PASSWORD" >> $MAILZU
+	fi
+	if [ "$PASSWORD" != "$AMAVISD_PASSWORD" ]; then
+		PASSWORD_SEDSAFE=`echo $PASSWORD | sed 's/\//\\\\\//g'`
+		echo "Updating password in mailzu system file"
+		sed -i -e "s/$PASSWORD_SEDSAFE/$AMAVISD_PASSWORD_SEDSAFE/" $MAILZU
+	fi
+	MYDOMAIN=`grep ^mydomain $POSTFIX 2>/dev/null | sed "s/^mydomain[[:space:]]*=[[:space:]]*//"`
+	DOMAIN=`grep ^domain $MAILZU 2>/dev/null | sed "s/^domain[[:space:]]*=[[:space:]]*//"`
+	if [ -z "$DOMAIN" ]; then
+		echo "Adding domain to mailzu system file"
+		echo "domain = $MYDOMAIN" >> $MAILZU
+	fi
+	if [ "$PASSWORD" != "$AMAVISD_PASSWORD" ]; then
+		echo "Updating domain in mailzu system file"
+		sed -i -e "s/$DOMAIN/$MYDOMAIN/" $MAILZU
+	fi
+fi
+
+# for security always reset permissions 
+chown root:root $MAILZU
+chmod 0600 $MAILZU

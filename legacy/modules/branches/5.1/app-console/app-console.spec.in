@@ -1,0 +1,182 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-console
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Administration console module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: tconsole
+Requires: text-console
+Requires: iptraf
+Requires: /etc/inittab
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-soap >=  %VERSION%
+Provides: cc-console
+Obsoletes: cc-console
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Administration console module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/clearconsole
+
+install -m 644 bash_profile $RPM_BUILD_ROOT/var/lib/clearconsole/.bash_profile
+install -m 755 text-console $RPM_BUILD_ROOT/usr/bin/
+install -m 755 text-console $RPM_BUILD_ROOT/usr/sbin/console_start
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+
+#------------------------------------------------------------------------------
+# P R E I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%pre
+# Add the clearconsole user
+CHECKUSER=`grep ^clearconsole /etc/passwd 2>/dev/null`
+if [ -z "$CHECKUSER" ]; then
+	logger -p local6.notice -t installer "app-console - adding clearconsole user"
+	adduser -g 99 -d /var/lib/clearconsole -s /bin/bash -c "ClearOS Console" -M -r clearconsole >/dev/null 2>&1
+fi
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-console - installing"
+
+# Add sudoers stuff
+#------------------
+
+# FIXME: remove after 5.1 final release -- beta upgrade only
+sed -i -e 's/^Cmnd_Alias CLEARCONSOLE.*/Cmnd_Alias CLEARCONSOLE = \/usr\/bin\/iptraf, \/usr\/sbin\/console_start, \/usr\/sbin\/tc-yum, \/bin\/rpm, \/sbin\/halt, \/sbin\/reboot/' /etc/sudoers
+
+CHECK=`grep "^Cmnd_Alias CLEARCONSOLE =" /etc/sudoers`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - adding sudoers alias"
+	echo "Cmnd_Alias CLEARCONSOLE = /usr/bin/iptraf, /usr/sbin/console_start, /usr/sbin/tc-yum, /bin/rpm, /sbin/halt, /sbin/reboot" >> /etc/sudoers
+fi
+
+CHECK=`grep "^clearconsole[[:space:]]*" /etc/sudoers`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - adding sudoers entry"
+	echo "clearconsole ALL=NOPASSWD: CLEARCONSOLE" >> /etc/sudoers
+fi
+
+# Remove old consoles
+#--------------------
+
+CHECK=`grep "/usr/sbin/launcher" /etc/inittab 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - cleaning up old console"
+	sed -i -e 's/\/usr\/sbin\/launcher.*/\/sbin\/mingetty tty1/' /etc/inittab
+	sleep 1
+	init q >/dev/null 2>&1
+	killall launcher >/dev/null 2>&1
+fi
+
+CHECK=`grep "/usr/sbin/console" /etc/inittab 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - removing really old inittab entry"
+	sed -i -e 's/\/usr\/sbin\/console.*/\/sbin\/mingetty tty1/' /etc/inittab
+	sleep 1
+	init q >/dev/null 2>&1
+	killall -q lynx >/dev/null 2>&1
+fi
+
+CHECK=`grep "/bin/su admin" /etc/inittab 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - removing really really old inittab entry"
+	sed -i -e 's/\/bin\/su admin.*/\/sbin\/mingetty tty1/' /etc/inittab
+	sleep 1
+	init q >/dev/null 2>&1
+	killall -q lynx >/dev/null 2>&1
+fi
+
+# FIXME: 5.1 beta -- remove after final release
+CHECK=`grep "^c7:.*autologin=.*console tty" /etc/inittab 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - removing beta X console inittab"
+	grep -v "^c7:.*autologin=.*console tty" /etc/inittab > /etc/inittab.$$
+	mv /etc/inittab.$$ /etc/inittab
+	killall X >/dev/null 2>&1
+fi	
+
+# Install new console
+#--------------------
+
+CHECK=`grep "^1:2345:respawn:/sbin/mingetty tty1" /etc/inittab 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-console - enabling console on boot"
+	sed -i -e 's/^1:2345:respawn:\/sbin\/mingetty tty1/1:2345:respawn:\/sbin\/mingetty --autologin=clearconsole tty1/' /etc/inittab
+fi
+
+
+/usr/sbin/addsudo /sbin/halt app-console
+/usr/sbin/addsudo /sbin/reboot app-console
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-console - uninstalling"
+
+	CHECK=`grep "^1:2345:respawn:/sbin/mingetty .*autologin=clearconsole.* tty1" /etc/inittab 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-console - removing inittab entry"
+		sed -i -e 's/^1:2345:respawn:\/sbin\/mingetty .*autologin=clearconsole.* tty1/1:2345:respawn:\/sbin\/mingetty tty1/' /etc/inittab
+		sleep 1
+		init q >/dev/null 2>&1
+		killall X >/dev/null 2>&1
+	fi	
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/usr/bin/text-console
+/usr/sbin/console_start
+/var/webconfig/
+/var/lib/clearconsole/.bash_profile
+%dir %attr(-,clearconsole,root) /var/lib/clearconsole

@@ -1,0 +1,8 @@
+menu htdocs/menus/10-jnettop
+locale jnettop htdocs/admin/lang api/lang
+include api/JNetTop.class.php
+include htdocs/admin/jnettop.php
+include htdocs/admin/jnetstatus.js.php
+include htdocs/admin/jnetstatus.php
+include htdocs/images/icon-jnettop.png
+include ./jnettop.conf

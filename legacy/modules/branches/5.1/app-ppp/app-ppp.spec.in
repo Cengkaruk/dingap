@@ -1,0 +1,90 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-ppp
+Version: %VERSION%
+Release: %RELEASE%
+Summary: PPP module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: ppp >= 2.4.3
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-ppp
+Obsoletes: cc-ppp
+Obsoletes: cc-pppoe
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+PPP module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/ppp
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 755 firewall-up $RPM_BUILD_ROOT/usr/share/system/scripts/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/ppp/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-ppp - installing"
+
+/usr/share/system/modules/ppp/upgrade
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-ppp - uninstalling"
+	CHECKFW=`grep '/usr/share/system/scripts/firewall-up' /etc/ppp/ip-up.local 2>/dev/null`
+	if [ -n "$CHECKFW" ]; then
+		logger -p local6.notice -t installer "app-ppp - removing PPTP and multiwan support"
+		grep -v '/usr/share/system/scripts/firewall-up' /etc/ppp/ip-up.local > /etc/ppp/ip-up.local.new
+		mv /etc/ppp/ip-up.local.new /etc/ppp/ip-up.local
+		chmod 755 /etc/ppp/ip-up.local
+	fi
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/usr/share/system/scripts/firewall-up
+/usr/share/system/modules/ppp/upgrade
+/var/webconfig

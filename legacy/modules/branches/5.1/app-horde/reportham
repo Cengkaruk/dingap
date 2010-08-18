@@ -1,0 +1,5 @@
+#!/bin/sh
+
+logger -p mail.info -t learn "notspam reported by user $1"
+touch /var/spool/filter/training/notspam-web
+tee /var/spool/filter/training/notspam-web.$1.$$ > /dev/null

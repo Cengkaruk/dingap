@@ -1,0 +1,3 @@
+20 4 * * *   root   /usr/sbin/pflogsumm /var/log/maillo*[g1-4] > /var/webconfig/reports/postfix/data-month.out
+25 4 * * *   root   /usr/sbin/pflogsumm -d yesterday /var/log/maillo*[g1] > /var/webconfig/reports/postfix/data-yesterday.out
+27 * * * *   root   /usr/sbin/pflogsumm -d today /var/log/maillo*[g1] > /var/webconfig/reports/postfix/data-today.out

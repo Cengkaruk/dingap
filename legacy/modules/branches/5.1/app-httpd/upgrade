@@ -1,0 +1,115 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Upgrade old configuration file
+#-------------------------------
+
+CHECK=`grep "docs-2\.0" /etc/httpd/conf/httpd.conf 2>/dev/null`
+
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-httpd - upgrading old configuration file"
+	cp -p /etc/httpd/conf/httpd.conf /usr/share/system/modules/httpd/httpd.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp -p /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp /usr/share/system/modules/httpd/httpd.conf /etc/httpd/conf/httpd.conf
+
+	KEEPERS="ServerAdmin ServerName DirectoryIndex NameVirtualHost"
+
+	for PARAM in $KEEPERS; do
+		OLDVALUE=`grep "^$PARAM[[:space:]]*" /usr/share/system/modules/httpd/httpd.conf.$TIMESTAMP.old`
+		EXISTS=`grep "^$PARAM[[:space:]]*" /etc/httpd/conf/httpd.conf`
+		if [ -n "$EXISTS" ]; then
+			logger -p local6.notice -t installer "app-httpd - migrating parameter value for $PARAM"
+			sed -i -e "s/^$PARAM[[:space:]].*/$OLDVALUE/" /etc/httpd/conf/httpd.conf
+		elif [ -n "$OLDVALUE" ]; then
+			# Try to put configuration in a nice spot instead of the end of the file
+			CHECK=`grep -c "^#$PARAM[[:space:]]" /etc/httpd/conf/httpd.conf`
+			if [ $CHECK == 1 ]; then
+				logger -p local6.notice -t installer "app-httpd - migrating parameter value for $PARAM (commented)"
+				sed -i -e "s/^#$PARAM[[:space:]].*/$OLDVALUE/" /etc/httpd/conf/httpd.conf
+			else
+				logger -p local6.notice -t installer "app-httpd - migrating parameter $PARAM"
+				echo $OLDVALUE >> /etc/httpd/conf/httpd.conf
+			fi
+		fi
+	done
+fi
+
+# Update server hostname
+#-----------------------
+
+CHECK=`grep ^ServerName /etc/httpd/conf/httpd.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-httpd - updating default hostname" 
+	HOSTNAME=`grep HOSTNAME /etc/sysconfig/network 2>/dev/null | sed 's/.*=//' | sed 's/"//g'`
+	if [ -z "$HOSTNAME" ]; then
+		HOSTNAME=`hostname`
+	fi
+
+	# Try to put configuration in a nice spot instead of the end of the file
+	CHECK=`grep -c "^#ServerName[[:space:]]" /etc/httpd/conf/httpd.conf`
+	if [ $CHECK == 1 ]; then
+		sed -i -e "s/^#ServerName[[:space:]].*/ServerName $HOSTNAME/" /etc/httpd/conf/httpd.conf
+	else
+		echo "ServerName $HOSTNAME" >> /etc/httpd/conf/httpd.conf
+	fi
+fi
+
+# Add index.htm to DirectoryIndex
+#--------------------------------
+
+CHECK=`grep "^DirectoryIndex.*index.htm[[:space:]]" /etc/httpd/conf/httpd.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-httpd - adding index.htm to DirectoryIndex"
+	sed -i -e 's/^DirectoryIndex/DirectoryIndex index.htm/' /etc/httpd/conf/httpd.conf
+fi
+
+# Add default logo and start page
+#--------------------------------
+
+if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/system/modules/product/logo.png ] ); then
+	logger -p local6.notice -t installer "app-httpd - adding default logo"
+	cp /usr/share/system/modules/product/logo.png /var/www/html/logo.png
+	chmod 664 /var/www/html/logo.png
+fi
+
+if ( [ ! -f /var/www/html/index.html ] && [ -f /usr/share/system/modules/product/default-web.html ] ); then
+	logger -p local6.notice -t installer "app-httpd - updating default web page"
+	cp -p /usr/share/system/modules/product/default-web.html /var/www/html/index.html
+	chmod 664 /var/www/html/index.html
+fi
+
+# Add combined logging for SSL site
+#----------------------------------
+
+if [ -e /etc/httpd/conf.d/ssl.conf ]; then
+	CHECKSSL=`grep "^CustomLog logs\/ssl_combined_access_log" /etc/httpd/conf.d/ssl.conf`
+	if [ -z "$CHECKSSL" ]; then
+		logger -p local6.notice -t installer "app-httpd - adding extra log format to SSL site"
+		sed -e 's/<VirtualHost _default_:443>/<VirtualHost _default_:443>\
+CustomLog logs\/ssl_combined_access_log combined/' /etc/httpd/conf.d/ssl.conf > /etc/httpd/conf.d/ssl.conf.new
+		mv /etc/httpd/conf.d/ssl.conf.new /etc/httpd/conf.d/ssl.conf
+	fi
+fi
+
+# Enable LDAP for Flexshare
+#--------------------------
+
+CHECK=`grep "^LoadModule.*ldap_module.*modules/mod_ldap.so" /etc/httpd/conf/httpd.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-httpd - adding LDAP hook"
+	echo "LoadModule ldap_module modules/mod_ldap.so" >> /etc/httpd/conf/httpd.conf
+fi
+
+# Update file permissions
+#------------------------
+
+for FILE in /var/www/html/index.html /var/www/html/logo.png; do
+	if [ -e $FILE ]; then
+		CHECKPERMS=`stat --format=%a $FILE`
+		if [ "$CHECKPERMS" != "664" ]; then
+			logger -p local6.notice -t installer "app-httpd - updating file permissions of $FILE"
+			chmod 664 $FILE
+		fi
+	fi
+done

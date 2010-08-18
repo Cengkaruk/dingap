@@ -1,0 +1,196 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+# Copyright 2002 Point Clark Networks.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+###############################################################################
+
+use strict;
+use lib '/usr/share/system/scripts';
+use File::Find;
+require 'functions';
+
+sub UpdateRunLevels();
+sub MiscStuff();
+
+
+# Usual security measures... see "perlsec" manual page for details.
+#------------------------------------------------------------------
+
+$ENV {'PATH'} = '/sbin:/bin:/usr/bin:/usr/sbin';
+$ENV {'SHELL'} = '/bin/bash';
+delete $ENV {'ENV', 'BASH_ENV'};
+
+if ($< != 0) {
+	print("You must be root to update system files... exiting.\n");
+	exit;
+}
+
+
+# Main
+#-----
+
+UpdateRunLevels();
+MiscStuff();
+
+exit;
+
+
+
+###############################################################################
+# F U N C T I O N S
+###############################################################################
+
+###############################################################################
+#
+# UpdateRunLevels: Set our default run levels (mostly off)
+#
+###############################################################################
+
+sub UpdateRunLevels() {
+	print("Updating runlevels\n");
+
+	if ( -f "/etc/init.d/mmsmtpd" ) { system("chkconfig --level 2345 mmsmtpd off"); }
+	if ( -f "/etc/init.d/mdmonitor" ) { system("chkconfig --level 2345 mdmonitor off"); }
+	if ( -f "/etc/init.d/mdmpd" ) { system("chkconfig --level 2345 mdmpd off"); }
+	if ( -f "/etc/init.d/pcmcia" ) { system("chkconfig --level 2345 pcmcia off"); }
+	if ( -f "/etc/init.d/xfs" ) { system("chkconfig --level 2345 xfs off"); }
+
+	if ( -f "/etc/init.d/kudzu" ) { system("chkconfig --level 345 kudzu on"); }
+	if ( -f "/etc/init.d/suvad" ) { system("chkconfig --level 2345 suvad on"); }
+}
+
+
+################################################################################
+#
+# Misc: Miscellaneous things we want done at install time
+#
+################################################################################
+
+sub MiscStuff() {
+	my $f_samba = "/etc/samba/smb.conf";
+	my $f_apache = "/etc/httpd/conf/httpd.conf";
+	my $f_lilo = "/etc/lilo.conf";
+	my $f_logowww = "/var/www/html/logo.png";
+	my $f_docroot = "/var/www/html";
+	my $f_logo = "/usr/share/system/modules/setup/logo.png";
+
+	# The kickstart LILO install is a bit broken...  Fix it here
+	if ( -e $f_lilo) {
+		print("Fixing LILO boot message entry\n");
+		system("grep -v 'message=' /etc/lilo.conf > /etc/lilo.conf.new");
+		system("mv /etc/lilo.conf.new /etc/lilo.conf");
+		system("/sbin/lilo");
+	}
+
+	# Some syslog options...
+	print("Updating logging options\n");
+	KeyReplace("/etc/sysconfig/syslog", "KLOGD_OPTIONS", "=", "\"-c 1 -2\"");
+
+	# Privoxy RPM is borked
+	system("rpm -e privoxy --noscripts >/dev/null 2>&1");
+
+	# Make sure sudoers has the proper permissions
+	chmod 0440, "/etc/sudoers";
+
+	# Update grub 
+	if ( -e "/usr/share/system/scripts/updategrub" ) {
+		system("/usr/share/system/scripts/updategrub");
+	}
+
+	# Remove zeroconf
+	if ( -e "/etc/sysconfig/network" ) {
+		system("echo \"NOZEROCONF=yes\" >> /etc/sysconfig/network");
+	}
+
+	# Add MAC addresses to network configuration
+	if ( -x "/usr/share/system/modules/network/upgrade" ) {
+		system("/usr/share/system/modules/network/upgrade");
+	}
+
+	# Custom postinstall
+	if ( -e "/usr/share/system/modules/setup/postinstall" ) {
+		system("/usr/share/system/modules/setup/postinstall");
+	}
+
+	# Weird kudzu issue as described @ http://www.firstpr.com.au/web-mail/kudzu-mods/
+	system("/sbin/kudzu -t 1 >/dev/null 2>&1");
+
+	# File cleanup
+	my $cleanupinit = `ls /etc/init.d/*rpmsave /etc/init.d/*rpmnew 2>/dev/null`;
+	chomp($cleanupinit);
+
+	my @cleanuplist = split(/\s/, $cleanupinit);
+	push (@cleanuplist, 
+		'/etc/HOSTNAME',
+		'/etc/aliases.rpmnew',
+		'/etc/apt/sources.list.rpmnew',
+		'/etc/apt/rpmpriorities.rpmsave',
+		'/etc/cron.d/cc-archive',
+		'/etc/cron.d/cc-awstats',
+		'/etc/cron.d/cc-cyrus-imapd',
+		'/etc/cron.d/cc-filter-training',
+		'/etc/cron.d/cc-flexshare',
+		'/etc/cron.d/cc-ntp',
+		'/etc/cron.d/cc-postfix-report',
+		'/etc/cron.d/cc-raid',
+		'/etc/cron.d/cc-remote-backup',
+		'/etc/cron.d/cc-services',
+		'/etc/cron.d/cc-snort-report',
+		'/etc/cron.d/cc-software-update',
+		'/etc/cron.d/cc-spamassassin',
+		'/etc/cron.d/cc-squid-purge',
+		'/etc/cron.d/cc-squid-report',
+		'/etc/cups/cupsd.conf.rpmnew',
+		'/etc/fstab.rpmsave',
+		'/etc/httpd/conf/httpd.conf.cc',
+		'/etc/firewall.rpmnew',
+		'/etc/krb.conf.rpmnew',
+		'/etc/krb5.conf.rpmnew',
+		'/etc/xinetd.d/ipop3.rpmsave',
+		'/etc/xinetd.d/imap.rpmsave',
+		'/etc/info-dir.rpmsave',
+		'/etc/inittab.rpmnew',
+		'/etc/ipsec.conf.cc',
+		'/etc/issue.rpmsave',
+		'/etc/issue.net.rpmsave',
+		'/etc/man.config.rpmnew',
+		'/etc/mime.types.rpmsave',
+		'/etc/nsswitch.conf.rpmnew',
+		'/etc/pam.d/system-auth.rpmnew',
+		'/etc/postfix/main.cf.rpmnew',
+		'/etc/passwd.rpmnew',
+		'/etc/rc.d/rc.sysinit.rpmsave',
+		'/etc/samba/smb.conf.cc',
+		'/etc/samba/smb.conf.rpmnew',
+		'/etc/squid/squid.conf.rpmnew',
+		'/etc/sysconfig/pcmcia.cc',
+		'/etc/sysconfig/pcmcia.rpmnew',
+		'/etc/sysconfig/network-scripts/ifcfg-eth0.bak',
+		'/etc/sysconfig/network-scripts/ifcfg-eth1.bak',
+		'/etc/sysconfig/network-scripts/ifcfg-ppp0.bak',
+		'/etc/sysconfig/network-scripts/ifcfg-lo.rpmsave',
+		'/usr/share/info/dir.rpmnew'
+	);
+
+	foreach my $file (@cleanuplist) {
+		if (-e $file) {
+			system("mv -v $file /usr/share/system/modules/setup/cleanup/ >> /root/upgrade.log");
+		}
+	}
+}

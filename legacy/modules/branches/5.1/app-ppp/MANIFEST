@@ -1,0 +1,4 @@
+include api/Chap.class.php
+locale chap api/lang
+include ./firewall-up
+include ./upgrade

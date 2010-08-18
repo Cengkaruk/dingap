@@ -1,0 +1,85 @@
+#!/bin/sh
+
+#------------------------------------------------------------------------------
+# U P G R A D E  S C R I P T
+#------------------------------------------------------------------------------
+
+# Upgrade 3.x firewall config file
+#---------------------------------
+
+VERSIONTWOFW=`grep "^INCOMING_ALLOW" /etc/firewall.preconvert 2>/dev/null`
+if [ ! -z "$VERSIONTWOFW" ]; then
+	logger -p local6.notice -t installer "app-firewall - converting 3.x firewall format"
+	cp /etc/firewall.preconvert /usr/share/system/modules/firewall/firewall.3x
+	/usr/share/system/modules/firewall/upgrade-3x > /etc/firewall.3x
+	mv /etc/firewall.3x /etc/firewall
+fi
+
+if [ -e /etc/firewall.preconvert ]; then
+	rm /etc/firewall.preconvert
+fi
+
+# Explicitly define interface definitions
+#----------------------------------------
+
+if [ -e /etc/firewall ]; then
+	. /etc/firewall
+	if [ -z "$EXTIF" ]; then
+		if [ -e /etc/sysconfig/network-scripts/ifcfg-ppp0 ]; then
+			logger -p local6.notice -t installer "app-firewall - setting external interface to ppp0"
+			/bin/sed -e 's/^EXTIF=.*/EXTIF="ppp0"/' /etc/firewall > /etc/firewall.new
+		else
+			logger -p local6.notice -t installer "app-firewall - setting external interface to eth0"
+			/bin/sed -e 's/^EXTIF=.*/EXTIF="eth0"/' /etc/firewall > /etc/firewall.new
+		fi
+		mv /etc/firewall.new /etc/firewall
+	fi
+
+	CHECK=`grep ^HOTIF /etc/firewall`
+	if [ -z "$CHECK" ]; then
+		echo "" >> /etc/firewall
+		echo "# Hot LAN" >> /etc/firewall
+		echo "HOTIF=" >> /etc/firewall
+	fi
+
+	# Fix DMZIZ typo
+	/bin/sed -i -e 's/^DMZIZ/DMZIF/' /etc/firewall
+fi
+
+# Clean up old "declare" statements
+#----------------------------------
+
+if [ -e /etc/firewall ]; then
+	grep -v "^# Rule flags" /etc/firewall > /etc/firewall.new
+	mv /etc/firewall.new /etc/firewall
+	grep -v "^declare" /etc/firewall > /etc/firewall.new
+	mv /etc/firewall.new /etc/firewall
+fi
+
+# Change SQUID_FILTER_TRANSPARENT to SQUID_FILTER_PORT
+#-----------------------------------------------------
+
+if [ -e /etc/firewall ]; then
+	sed -i -e 's/SQUID_FILTER_TRANSPARENT/SQUID_FILTER_PORT/' /etc/firewall
+fi
+
+# Reset old bandwidth configuration parameters
+#_--------------------------------------------
+
+OLDPARAMS="\
+BANDWIDTH_QOS \
+BANDWIDTH_UPSTREAM \
+BANDWIDTH_DOWNSTREAM \
+BANDWIDTH_UPSTREAM_BURST \
+BANDWIDTH_UPSTREAM_CBURST \
+BANDWIDTH_DOWNSTREAM_BURST \
+BANDWIDTH_DOWNSTREAM_CBURST \
+"
+
+for PARAM in $OLDPARAMS; do
+	CHECK=`grep "^$PARAM=[0-9]" /etc/firewall`
+	if [ -n "$CHECK" ]; then
+    	logger -p local6.notice -t installer "app-firewall - setting default bandwidth setting $PARAM"
+		sed -i -e "s/^$PARAM=.*/$PARAM=\"\"/" /etc/firewall
+	fi
+done

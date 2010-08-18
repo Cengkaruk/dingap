@@ -1,0 +1,7 @@
+#!/usr/webconfig/bin/php
+<?php
+	error_reporting(0);
+	include_once("/var/webconfig/api/Bacula.class.php");
+	$bacula = new Bacula();
+	$bacula->SendAdminBsr($argv[1], $argv[2]);
+?>

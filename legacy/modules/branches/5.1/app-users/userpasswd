@@ -1,0 +1,121 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2006 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+require_once("/var/webconfig/api/User.class.php");
+require_once("/var/webconfig/common/Logger.class.php");
+
+///////////////////////////////////////////////////////////////////////////////
+// Function to read a password from standard in without echoing password
+///////////////////////////////////////////////////////////////////////////////
+
+function ttyecho($on)
+{
+	global $ttyecho;
+
+	if ($on) {
+		if (isset($ttyecho))
+			exec("stty $ttyecho");
+	} else {
+		$ttyecho = exec("stty -g");
+		exec("stty -echo");
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Usage
+///////////////////////////////////////////////////////////////////////////////
+
+if (!isset($argv[1])) {
+	echo "usage: " . $argv[0] . " <username>\n";
+	exit(1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Check to see if user exists
+///////////////////////////////////////////////////////////////////////////////
+
+$username = $argv[1];
+
+try {
+	$user = new User($username);
+	$exists = $user->Exists();
+} catch (Exception $e) {
+	echo "userpasswd: failed " . $e->GetMessage() . "\n";
+	exit(1);
+}
+
+if (! $exists) {
+	echo "userpasswd: Unknown user name '$username'\n";
+	Logger::Syslog("userpasswd", "password change failed for non-existent user $username");
+	exit(252);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Grab password from standard in
+///////////////////////////////////////////////////////////////////////////////
+
+ttyecho(false); // Disable echo to terminal
+
+echo "Changing password for user $username\nNew password: ";
+$password = trim(fgets(STDIN));
+
+echo "\nRetype new password: ";
+$verify = trim(fgets(STDIN));
+
+echo "\n";
+
+ttyecho(true); // Re-enable echo to terminal
+
+if (empty($verify) || empty($password)) {
+	echo "userpasswd: password/verify must not be blank\n";
+	Logger::Syslog("userpasswd", "password change failed for $username: blank password");
+	exit(1);
+}
+
+if ($verify != $password) {
+	Logger::Syslog("userpasswd", "password change failed for $username: mismatched password");
+	echo "userpasswd: passwords do not match\n";
+	exit(1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Attempt to set the password
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$user = new User($username);
+	$user->SetPassword($password, false);
+
+	echo "userpasswd: all authentication tokens updated successfully.\n";
+	Logger::Syslog("userpasswd", "password change succeeded for $username");
+	exit(0);
+} catch (Exception $e) {
+	echo "password change failed: " . $e->GetMessage() . "\n";
+	Logger::Syslog("userpasswd", "password change failed for $username: " . $e->GetMessage());
+	exit(1);
+}
+
+// vim: syntax=php ts=4
+?>

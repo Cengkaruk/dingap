@@ -1,0 +1,104 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-openvpn
+Version: %VERSION%
+Release: %RELEASE%
+Summary: OpenVPN module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: openvpn >= 2.1
+Requires: openvpn-auth-ldap
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-openvpn
+Obsoletes: cc-openvpn
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+OpenVPN module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/openvpn
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openvpn
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 644 clients.conf $RPM_BUILD_ROOT/usr/share/system/modules/openvpn/
+install -m 755 calcopenvpn $RPM_BUILD_ROOT/usr/bin/calcopenvpn
+install -m 600 auth-ldap $RPM_BUILD_ROOT/etc/openvpn
+install -m 644 openvpn.auth-ldap.template $RPM_BUILD_ROOT/etc/openldap/templates
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T 
+#------------------------------------------------------------------------------
+
+%post 
+logger -p local6.notice -t installer "app-openvpn - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-openvpn - disabling on boot"
+	chkconfig --level 2345 openvpn off
+
+	logger -p local6.notice -t installer "app-openvpn - creating default configuration"
+
+	if [ -e /etc/openvpn/clients.conf ]; then
+		cp /etc/openvpn/clients.conf /usr/share/system/modules/openvpn/clients.conf.$$
+	fi
+
+	cp -p /usr/share/system/modules/openvpn/clients.conf /etc/openvpn/clients.conf
+fi
+
+logger -p local6.notice -t installer "app-openvpn - synchronizing with LDAP"
+/usr/sbin/ldapsync config openvpn >/dev/null 2>&1
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+	
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-openvpn - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/openvpn/auth-ldap
+/etc/openldap/templates/openvpn.auth-ldap.template
+/var/webconfig/
+/usr/share/system/modules/openvpn/clients.conf
+/usr/bin/calcopenvpn

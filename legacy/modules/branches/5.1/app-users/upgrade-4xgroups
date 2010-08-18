@@ -1,0 +1,242 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2009 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+require_once($BASEDIR . "/common/Logger.class.php");
+require_once($BASEDIR . "/api/File.class.php");
+require_once($BASEDIR . "/api/Group.class.php");
+require_once($BASEDIR . "/api/User.class.php");
+require_once($BASEDIR . "/api/UserManager.class.php");
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Main
+//
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$convertfile = new File("/usr/share/system/modules/users/group4x.converted");
+	$pre5xfile = new File("/etc/system/pre5x");
+
+	if (!$pre5xfile->Exists() || $convertfile->Exists())
+		exit(0);
+} catch (Exception $e) {
+	LogIt($e->GetMessage());
+	exit(1);
+}
+
+if (! file_exists("/etc/.group.convert"))
+	ConvertGroupData();
+
+PurgeEtcGroup();
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function PurgeEtcGroup() {
+	try {
+		$convert_file = new File("/etc/.group.convert");
+		$raw_groups = $convert_file->GetContentsAsArray();
+	} catch (Exception $e) {
+		exit(0);
+	}
+
+	LogIt("migrating groups from /etc/group");
+
+	foreach ($raw_groups as $line) {
+		$parts = explode(":", $line);
+
+		$groupname = $parts[0];
+		$description = $parts[1];
+		$members = explode(",", $parts[2]);
+		
+		try {
+			$file = new File("/etc/group");
+			$line = $file->LookupValue('/^' . $groupname . ':/i');
+
+			if ($line) {
+				$shell = new ShellExec();
+				if ($shell->Execute("/usr/sbin/groupdel", $groupname) != 0)
+					LogIt($shell->GetFirstOutputLine());
+			}
+
+			LogIt("deleting group from /etc/group: $groupname");
+		} catch (FileNoMatchException $e) {
+			LogIt("skipping delete from /etc/group for non-existent group: $groupname");
+		} catch (Exception $e) {
+			LogIt("error deleting group $groupname from /etc/group: " . $e->GetMessage());
+			exit(1);
+		}
+
+		try {
+			$group = new Group($groupname);
+
+			if (! $group->Exists()) {
+				LogIt("adding new group to LDAP: $groupname");
+				$group->Add($description);
+			}
+
+			foreach ($members as $member) {
+				$user = new User($member);
+				if ($user->Exists()) {
+					if ($group->AddMember($member))
+						LogIt("adding user to group: $member in $groupname");
+				} else {
+					LogIt("skipping non-existent user in group: $member in $groupname");
+				}
+			}
+		} catch (Exception $e) {
+			LogIt($e->GetMessage());
+		}
+	}
+
+	// Populate "allusers"
+	//--------------------
+
+	try {
+		$usermanager = new UserManager();
+		$allusers = $usermanager->GetAllUsers();
+
+		$group = new Group("allusers");
+		$group->SetMembers($allusers);
+	} catch (Exception $e) {
+		LogIt($e->GetMessage());
+	}
+
+	// Set convert completed flag
+	//---------------------------
+
+	try {
+		$convert_file->MoveTo("/usr/share/system/modules/users/group4x.converted");
+	} catch (Exception $e) {
+		LogIt($e->GetMessage());
+		exit(1);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Converts old group data
+// - Merges group data from /etc/.gid.desc and /etc/group into /etc/.group.convert
+// - Deletes group information from /etc/group
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function ConvertGroupData() {
+
+	// Load group data from /etc/group and /etc/.gid.desc
+	//---------------------------------------------------
+	
+	$raw_descriptions = array();
+	$raw_groupinfo = array();
+	
+	try {
+		$file_descriptions = new File("/etc/.gid.desc");
+		$file_group = new File("/etc/group");
+	
+		if ($file_descriptions->Exists()) {
+			$raw_descriptions = $file_descriptions->GetContentsAsArray();
+			LogIt("reading group descriptions from /etc/.gid.desc");
+		} else {
+			return;
+		}
+	
+		LogIt("reading group data from /etc/group");
+		$raw_groupinfo = $file_group->GetContentsAsArray();
+	} catch (Exception $e) {
+		LogIt($e->GetMessage());
+		exit(1);
+	}
+	
+	// Generate an array with group descriptions
+	//------------------------------------------
+	
+	$groupdata = array();
+	$descriptions = array();
+	
+	foreach ($raw_descriptions as $line) {
+		$split =  explode(":", $line);
+		$descriptions[$split[0]] = $split[1];
+	}
+	
+	// Dump group data to /etc/.group.convert since we need to clean
+	// up /etc/group before attemping to load data into LDAP.
+	//---------------------------------------------------------------
+	
+	$convert_data = "";
+	
+	foreach ($raw_groupinfo as $line) {
+		$data = explode(":", $line);
+	
+		if (count($data) == 4) {
+			$gid = $data[2];
+	
+			if (($gid < 60000) || ($gid > 62000))
+				continue;
+	
+			$description = isset($descriptions[$gid]) ? $descriptions[$gid] : "";
+			$convert_data .= "$data[0]:$description:$data[3]\n";
+			LogIt("created upgrade data for $data[0] / $description");
+		}
+	}
+	
+	try {
+		if ($convert_data) {
+			LogIt("creating new group data in /etc/.group.convert");
+			$file = new File("/etc/.group.convert", true);
+	
+			if ($file->Exists())
+				$file->Delete();
+	
+			$file->Create("root", "root", "0644");
+			$file->AddLines($convert_data);
+		}
+
+		if ($file_descriptions->Exists())
+			$file_descriptions->MoveTo("/usr/share/system/modules/users/gid.desc");
+	} catch (Exception $e) {
+		LogIt($e->GetMessage());
+		exit(1);
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Simple logger
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function LogIt($logmessage)
+{
+	Logger::Syslog("upgrade-4xgroups", $logmessage);
+	echo "$logmessage\n";
+}
+
+// vim: syntax=php ts=4
+?>

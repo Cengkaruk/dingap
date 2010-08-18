@@ -1,0 +1,18 @@
+menu htdocs/menus/mail-archive
+locale mail-archive htdocs/admin/lang
+locale archive api/lang
+include api/Archive.class.php
+include htdocs/admin/mail-archive.php
+include htdocs/admin/mail-archive.js.php
+include htdocs/admin/mail-archive-getstatus.php
+include htdocs/images/icons/16x16/icon-mail-archive.png
+include htdocs/images/icons/32x32/icon-mail-archive.png
+include scripts/archive.inc.php
+include scripts/archive_mbox.php
+include scripts/archive_mesg.php
+include scripts/archive.php
+include scripts/archive_resend.php
+include ./archive.conf
+include ./tables.sql
+include ./archive_bootstrap
+include ./app-archive.cron

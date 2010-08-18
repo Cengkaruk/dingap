@@ -1,0 +1,81 @@
+#!/bin/bash
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+DBINFO="/etc/system/database"
+MYSQLDUMP="/usr/share/system-mysql/usr/bin/mysqldump"
+MYSQL="/usr/share/system-mysql/usr/bin/mysql"
+DUMPFILE="/var/tmp/rebuild-database.sql.$TIMESTAMP"
+
+# Check database status
+#----------------------
+
+if [ ! -e /var/lib/system-mysql/mysql.sock ]; then
+	echo "Database is not running... will not proceeed"
+	exit 1
+fi
+
+# Grab database password
+#-----------------------
+
+DBPASS=`grep ^password $DBINFO 2>/dev/null | sed "s/^password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$DBPASS" ]; then
+	echo "Unable to authenticate with database"
+	exit 1
+fi
+
+# Stop log2mysql process
+#-----------------------
+
+killall log2mysql >/dev/null 2>&1
+
+# Copy the database passwords
+#----------------------------
+
+cp /etc/system/database /etc/system/database.rebuild.$TIMESTAMP
+
+# Dump the database
+#------------------
+
+echo "Backing up the database to $DUMPFILE.$$"
+$MYSQLDUMP --all-databases -uroot -p"$DBPASS" > $DUMPFILE
+
+# Reset database to nil
+#----------------------
+
+echo "Stopping the database"
+/etc/rc.d/init.d/system-mysqld stop >/dev/null 2>&1
+sleep 5
+/etc/rc.d/init.d/system-mysqld stop >/dev/null 2>&1
+sleep 5
+
+echo "Restarting the database"
+rm -rf /var/lib/system-mysql/*
+/etc/rc.d/init.d/system-mysqld start
+
+# Reload database data
+#---------------------
+
+echo "Reloading the database"
+DBPASS=`grep ^password $DBINFO 2>/dev/null | sed "s/^password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$DBPASS" ]; then
+	echo "Unable to authenticate with database"
+	exit 1
+fi
+
+$MYSQL -uroot -p"$DBPASS" < $DUMPFILE
+
+/etc/rc.d/init.d/system-mysqld stop >/dev/null 2>&1
+sleep 3
+/etc/rc.d/init.d/system-mysqld stop >/dev/null 2>&1
+sleep 3
+/etc/rc.d/init.d/system-mysqld start >/dev/null 2>&1
+
+# Restore password file
+#----------------------
+
+mv /etc/system/database.rebuild.$TIMESTAMP /etc/system/database
+
+echo "Done... you may want to copy/remove the backup file $DUMPFILE"

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# There is some gremlin that we cannot track down in Openswan
+# or (likely) our updown script.  A route for the LAN network going
+# out a WAN interface (bad) will sometimes appear.
+
+source /etc/rc.d/init.d/functions-automagic
+
+for LANNET in $AUTOMAGIC_LANNETS; do
+		for EXTIF in $AUTOMAGIC_EXTIFS; do
+				ip route delete $LANNET dev $EXTIF
+		done
+done

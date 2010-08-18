@@ -1,0 +1,79 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2003-2006 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+require_once("/var/webconfig/api/ClearDirectory.class.php");
+require_once("/var/webconfig/api/Organization.class.php");
+require_once("/var/webconfig/common/Logger.class.php");
+
+try {
+	// No upgrade required if domain is already set
+	//---------------------------------------------
+
+	$directory = new ClearDirectory();
+
+	if ($directory->IsInitialized()) {
+		LogIt("LDAP data is up-to-date");
+		exit;
+	}
+
+	// Determine a good default domain name
+	//-------------------------------------
+
+	$organization = new Organization();
+
+	if (file_exists("/var/webconfig/api/Postfix.class.php")) {
+		require_once("/var/webconfig/api/Postfix.class.php");
+		$postfix = new Postfix();
+		$domain = $postfix->GetDomain();
+		LogIt("migrating to LDAP with mail domain $domain");
+	} else {
+		$domain = $organization->SuggestDefaultDomain();
+		LogIt("migrating to LDAP with default domain $domain");
+	}
+
+	// Initialize LDAP
+	//----------------
+
+	LogIt("initializing LDAP");
+	$directory->Initialize('master', $domain, false);
+
+	// Set the domain name
+	//--------------------
+
+	$organization->SetDomain($domain);
+
+} catch (Exception $e) {
+	LogIt("An error occurred: " . $e->GetMessage());
+}
+
+
+function LogIt($logmessage) 
+{
+	Logger::Syslog("ldapinit", $logmessage);
+	echo "$logmessage\n";
+}
+
+// vim: syntax=php ts=4
+?>

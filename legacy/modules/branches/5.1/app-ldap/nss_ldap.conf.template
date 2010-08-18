@@ -1,0 +1,24 @@
+KOLAB_META_START
+TARGET=/etc/ldap.conf
+PERMISSIONS=0644
+OWNERSHIP=root:root
+KOLAB_META_END
+# This file is automatically updated by ldapsync -- please do not edit.
+host                        localhost
+base                        @@@base_dn@@@
+scope                       sub
+timelimit                   30
+bind_policy                 soft
+pam_lookup_policy           yes
+pam_password                exop
+nss_initgroups_ignoreusers  root,ldap
+nss_schema                  rfc2307bis
+nss_map_attribute           uniqueMember member
+ssl                         no
+ldap_version                3
+pam_filter                  objectclass=posixAccount
+nss_base_passwd             ou=Users,ou=Accounts,@@@base_dn@@@
+nss_base_passwd             ou=Computers,ou=Accounts,@@@base_dn@@@
+nss_base_shadow             ou=Users,ou=Accounts,@@@base_dn@@@
+nss_base_group              ou=Groups,ou=Accounts,@@@base_dn@@@
+tls_checkpeer               no

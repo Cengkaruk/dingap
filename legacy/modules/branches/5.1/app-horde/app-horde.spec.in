@@ -1,0 +1,101 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-horde
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Web access module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: fetchmail
+Requires: horde >= 3.2.4
+Requires: horde-imp >= 4.2
+Requires: horde-ingo >= 1.2
+Requires: horde-kronolith >= 2.2
+Requires: horde-mnemo >= 2.2
+Requires: horde-nag >= 2.2
+Requires: horde-schema >= 3.2.4
+Requires: horde-turba >= 2.2.1
+Requires: webconfig-php-imap
+Requires: webconfig-pear >= 4.3
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-cyrus-imapd = %VERSION%
+Requires: app-network = %VERSION%
+Requires: app-ssl = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-horde
+Obsoletes: cc-horde
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Web access module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 755 reportham $RPM_BUILD_ROOT/usr/bin/
+install -m 755 reportspam $RPM_BUILD_ROOT/usr/bin/
+install -m 644 horde.conf $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-horde - installing"
+
+logger -p local6.notice -t installer "app-horde - synchronizing with LDAP"
+/usr/sbin/ldapsync config >/dev/null 2>&1
+
+# Restart webconfig via syswatch (see Syswatch.ReconfigureSystem() in API)
+killall -q -USR1 syswatch >/dev/null 2>&1
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-horde - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config /usr/webconfig/conf/httpd.d/horde.conf
+/usr/bin/reportham
+/usr/bin/reportspam
+/var/webconfig/

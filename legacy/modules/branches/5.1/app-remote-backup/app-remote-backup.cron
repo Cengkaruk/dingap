@@ -1,0 +1,1 @@
+0 0 * * * root /var/webconfig/scripts/rbs-schedule.php >/dev/null 2>&1

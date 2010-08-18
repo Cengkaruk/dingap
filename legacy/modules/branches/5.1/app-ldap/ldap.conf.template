@@ -1,0 +1,5 @@
+BASE         @@@base_dn@@@
+HOST         127.0.0.1
+TIMELIMIT    30
+SIZELIMIT    1200
+TLS_REQCERT  allow

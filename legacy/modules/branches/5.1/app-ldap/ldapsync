@@ -1,0 +1,166 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2006-2008 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+require_once($BASEDIR . "/common/Logger.class.php");
+require_once($BASEDIR . "/api/ClearDirectory.class.php");
+require_once($BASEDIR . "/api/Daemon.class.php");
+require_once($BASEDIR . "/api/Ldap.class.php");
+require_once($BASEDIR . "/api/Organization.class.php");
+require_once($BASEDIR . "/api/ShellExec.class.php");
+
+$command = isset($argv[1]) ? $argv[1] : "full";
+$option = isset($argv[2]) ? $argv[2] : "";
+
+try {
+	$ldap = new Ldap();
+	$directory = new ClearDirectory();
+
+	$isrunning = $ldap->GetRunningState();
+	$isinitialized = $directory->IsInitialized();
+
+	if (!($isrunning && $isinitialized))
+		exit(0);
+
+	///////////////////////////////////////////////////////////////////////////////
+	// A configuration reload (required when an LDAP-related module is installed)
+	///////////////////////////////////////////////////////////////////////////////
+
+	if ($command == "config") {
+
+		$shell = new ShellExec();
+		$shell->Execute(Ldap::COMMAND_KOLABCONF, "-n", true);
+
+		if (! empty($option)) {
+			$daemon = new Daemon($option);
+			$daemon->Reset();
+		}
+
+	///////////////////////////////////////////////////////////////////////////////
+	// A full configuration reload (required when LDAP settings change)
+	///////////////////////////////////////////////////////////////////////////////
+
+	} else if ($command == "full") {
+		LogIt("running full LDAP synchronization");
+
+		LogIt("restarting LDAP server");
+		$ldap = new Ldap();
+		$ldap->Restart();
+
+		LogIt("restarting authentication server");
+		$saslauthd = new Daemon("saslauthd");
+		$saslauthd->SetBootState(true);
+		$saslauthd->Restart();
+
+		LogIt("synchronizing configuration");
+		$shell = new ShellExec();
+		$shell->Execute(Ldap::COMMAND_KOLABCONF, "-n", true);
+
+		$domain = $ldap->GetDefaultDomain();
+
+		LogIt("synchronizing daemons with domain $domain");
+
+		// Samba
+		// TODO: Samba API is often installed with smb
+		if (file_exists($BASEDIR . "/api/Samba.class.php") && file_exists("/etc/rc.d/init.d/smb")) {
+			LogIt("synchronizing Samba file and print services");
+			require_once($BASEDIR . "/api/Samba.class.php");
+			$samba = new Samba();
+			$samba->Reset();
+		}
+
+		// Netbios
+		// TODO: Samba API is often installed with nmb
+		if (file_exists($BASEDIR . "/api/Nmbd.class.php") && file_exists("/etc/rc.d/init.d/nmb")) {
+			LogIt("synchronizing Samba netbios services");
+			require_once($BASEDIR . "/api/Nmbd.class.php");
+			$nmbd = new Nmbd();
+			$nmbd->Reset();
+		}
+
+		// Cyrus
+		if (file_exists($BASEDIR . "/api/Cyrus.class.php")) {
+			LogIt("synchronizing POP/IMAP mail");
+			require_once($BASEDIR . "/api/Cyrus.class.php");
+			$cyrus = new Cyrus();
+			$cyrus->Reset();
+		}
+
+		// Postfix
+		if (file_exists($BASEDIR . "/api/Postfix.class.php")) {
+			LogIt("synchronizing SMTP mail");
+			require_once($BASEDIR . "/api/Postfix.class.php");
+			$postfix = new Postfix();
+			$postfix->SetDomain($domain);
+			$postfix->Reset();
+		}
+
+		// Horde
+		if (file_exists($BASEDIR . "/api/Horde.class.php")) {
+			LogIt("synchronizing webmail");
+			require_once($BASEDIR . "/api/Horde.class.php");
+			$horde = new Horde();
+			$horde->SetMailDomain($domain);
+		}
+
+		// Squid
+		if (file_exists($BASEDIR . "/api/Squid.class.php")) {
+			LogIt("synchronizing web proxy");
+			require_once($BASEDIR . "/api/Squid.class.php");
+			$squid = new Squid();
+			$squid->SetBasicAuthenticationInfoDefault();
+			$squid->Reset();
+		}
+
+		// Proftpd
+		if (file_exists($BASEDIR . "/api/Proftpd.class.php")) {
+			LogIt("synchronizing FTP");
+			require_once($BASEDIR . "/api/Proftpd.class.php");
+			$proftpd = new Proftpd();
+			$proftpd->Reset();
+		}
+
+		// Amavis
+		if (file_exists($BASEDIR . "/api/Amavis.class.php")) {
+			LogIt("synchronizing antivirus");
+			require_once($BASEDIR . "/api/Amavis.class.php");
+			$amavis = new Amavis();
+			$amavis->Reset();
+		}
+	}
+
+} catch (Exception $e) {
+	LogIt($e->GetMessage());
+}
+
+function LogIt($logmessage)
+{
+	Logger::Syslog("ldapsync", $logmessage);
+	echo "$logmessage\n";
+}
+
+// vim: syntax=php ts=4
+?>

@@ -1,0 +1,124 @@
+#!/bin/sh
+
+if [ -e /etc/firewall.preconvert ]; then
+	. /etc/firewall.preconvert
+fi
+
+for ITEM in $INCOMING_ALLOW $INCOMING_ALLOW_RANGE; do
+	PROTO=`echo $ITEM | cut -d '|' -f 1 | sed 's/TCP/6/i' | sed 's/UDP/17/i' | sed 's/ALL/0/i'`
+	PORT=`echo $ITEM | cut -d '|' -f 2 | sed 's/^0$//'`
+	NEWRULES="||0x10000001|$PROTO||$PORT| $NEWRULES"
+done
+
+for ITEM in $OUTGOING_BLOCK $OUTGOING_BLOCK_RANGE; do
+	PROTO=`echo $ITEM | cut -d '|' -f 1 | sed 's/TCP/6/i' | sed 's/UDP/17/i' | sed 's/ALL/0/i'`
+	PORT=`echo $ITEM | cut -d '|' -f 2 | sed 's/^0$//'`
+	NEWRULES="||0x10000004|$PROTO||$PORT| $NEWRULES"
+done
+
+for ITEM in $OUTGOING_BLOCK_DESTS; do
+	DEST=`echo $ITEM | cut -d '|' -f 1`
+	NEWRULES="||0x10000004|0|$DEST|| $NEWRULES"
+done
+
+for ITEM in $FORWARD; do
+	PROTO=`echo $ITEM | cut -d '|' -f 1 | sed 's/TCP/6/i' | sed 's/UDP/17/i' | sed 's/ALL/0/i'`
+	NAME=`echo $ITEM | cut -d '|' -f 2`
+	FROMPORT=`echo $ITEM | cut -d '|' -f 3 | sed 's/^0$//'`
+	TORAW=`echo $ITEM | cut -d '|' -f 4`
+	TOIP=`echo $TORAW | cut -d ':' -f 1`
+	TOPORT=`echo $TORAW | cut -d ':' -f 2 | sed 's/^0$//'`
+	NEWRULES="$NAME||0x10000008|$PROTO|$TOIP|$TOPORT|$FROMPORT $NEWRULES"
+done
+
+for ITEM in $FORWARD_RANGE; do
+	PROTO=`echo $ITEM | cut -d '|' -f 1 | sed 's/TCP/6/i' | sed 's/UDP/17/i' | sed 's/ALL/0/i'`
+	NAME=`echo $ITEM | cut -d '|' -f 2`
+	FROMRAW=`echo $ITEM | cut -d '|' -f 3`
+	LOWPORT=`echo $FROMRAW | cut -d ':' -f 1 | sed 's/^0$//'`
+	HIGHPORT=`echo $FROMRAW | cut -d ':' -f 2 | sed 's/^0$//'`
+	TO=`echo $ITEM | cut -d '|' -f 4`
+	NEWRULES="$NAME||0x10000008|$PROTO|$TO||$LOWPORT:$HIGHPORT $NEWRULES"
+done
+
+for ITEM in $ONE_TO_ONE_NAT; do
+	TO=`echo $ITEM | cut -d '|' -f 1`
+	FROM=`echo $ITEM | cut -d '|' -f 2`
+	NEWRULES="||0x10000080|0|$FROM||$TO $NEWRULES"
+done
+
+for ITEM in $ONE_TO_ONE_NAT_PORT; do
+	TO=`echo $ITEM | cut -d '|' -f 1`
+	FROM=`echo $ITEM | cut -d '|' -f 2`
+	PROTO=`echo $ITEM | cut -d '|' -f 3 | sed 's/TCP/6/i' | sed 's/UDP/17/i' | sed 's/ALL/0/i'`
+	PORT=`echo $ITEM | cut -d '|' -f 4 | sed 's/^0$//'`
+	NEWRULES="||0x10000080|$PROTO|$FROM|$PORT|$TO $NEWRULES"
+done
+
+for ITEM in $DMZ_INCOMING; do
+	PROTO=`echo $ITEM | cut -d '|' -f 1 | sed 's/TCP/6/i' | sed 's/UDP/17/i' | sed 's/ALL/0/i'`
+	TO=`echo $ITEM | cut -d '|' -f 2`
+	PORT=`echo $ITEM | cut -d '|' -f 3 | sed 's/^0$//'`
+	NEWRULES="||0x10000020|$PROTO|$TO|$PORT| $NEWRULES"
+done
+
+for ITEM in $WIFI_MAC_LIST; do
+	NEWRULES="||0x12000200|0|$ITEM|| $NEWRULES"
+done
+
+for ITEM in $PPTP_FORWARD; do
+	NEWRULES="||0x10000100|47|$ITEM|1723| $NEWRULES"
+done
+
+if [ -z "$LANIF" ]; then
+	LANIF="eth1"
+fi
+if [ -z "$EXTIF" ]; then
+	if [ -e /etc/sysconfig/network-scripts/ifcfg-ppp0 ]; then
+		EXTIF="ppp0"
+	else
+		EXTIF="eth0"
+	fi
+fi
+
+# echo "MAC_FILTER_LIST=\"$MAC_FILTER_LIST\"" 
+# echo "PPTP_FORWARD=\"$PPTP_FORWARD\"" 
+
+echo "###############################################################################"
+echo "#" 
+echo "# Use the web-based administration tool to change the firewall configuration." 
+echo "#" 
+echo "###############################################################################" 
+echo "" 
+echo "# Mode" 
+echo "#-----" 
+echo "" 
+echo "MODE=\"$MODE\"" 
+echo "" 
+echo "# Interfaces" 
+echo "#-----------" 
+echo "" 
+echo "EXTIF=\"$EXTIF\"" 
+echo "LANIF=\"$LANIF\"" 
+echo "DMZIF=\"$DMZIF\"" 
+echo "WIFIF=\"$WIFI_INTERFACE\""
+echo "" 
+echo "# Special Rules\"" 
+echo "#--------------\"" 
+echo "" 
+echo "BANDWIDTH_QOS=\"on\""
+echo "BANDWIDTH_UPSTREAM="
+echo "BANDWIDTH_DOWNSTREAM="
+echo "SQUID_TRANSPARENT=\"$SQUID_TRANSPARENT\"" 
+echo "SQUID_FILTER_TRANSPARENT=\"$SQUID_FILTER_TRANSPARENT\""
+echo "IPSEC_SERVER=\"$IPSEC_SERVER\"" 
+echo "PPTP_SERVER=\"$PPTP_SERVER\"" 
+echo "ONE_TO_ONE_NAT_MODE=\"$ONE_TO_ONE_NAT_MODE\""
+echo "DMZ_INCOMING_NOFIREWALL=\"$DMZ_INCOMING_NOFIREWALL\""
+echo "LANNET=\"$LANNET\""
+echo ""
+echo "RULES=\"\\"
+for RULE in $NEWRULES; do
+	echo -e "\t$RULE \\"
+done
+echo "\""

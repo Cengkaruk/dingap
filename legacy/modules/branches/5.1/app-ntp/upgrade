@@ -1,0 +1,30 @@
+#!/bin/sh
+
+# Remove timesync at boot (now part of syswatch)
+#-----------------------------------------------
+
+NTPREMOVE=`grep "timesync" /etc/rc.d/rc.local 2>/dev/null`
+if [ ! -z "$NTPREMOVE" ]; then
+	logger -p local6.notice -t installer "app-ntp - removing old time synchronization on boot"
+	grep -v 'timesync' /etc/rc.d/rc.local > /etc/rc.d/rc.local.new
+	mv /etc/rc.d/rc.local.new /etc/rc.d/rc.local
+	chmod 755 /etc/rc.d/rc.local
+fi
+
+# Remove old ntpdate entry
+#-------------------------
+
+OLDNTP=`grep ntpdate /etc/crontab 2>/dev/null`
+if [ ! -z "$OLDNTP" ]; then
+	logger -p local6.notice -t installer "app-ntp - removing old ntpdate from crontab"
+	grep -v 'ntpdate' /etc/crontab > /etc/crontab.new
+	mv /etc/crontab.new /etc/crontab
+fi
+
+# Remove old ntp cron job
+#------------------------
+
+if [ -e /etc/cron.d/cc-ntptime ]; then
+	logger -p local6.notice -t installer "app-ntp - removing old ntpdate cron job"
+	rm -f /etc/cron.d/cc-ntptime
+fi

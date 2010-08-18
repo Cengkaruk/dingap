@@ -1,0 +1,38 @@
+#!/bin/sh
+
+API_FILE="/etc/amavisd/api.conf"
+
+if [ -e $API_FILE ]; then
+	# Automatically configure the @local_domains_maps parameter
+	if [ -x /usr/sbin/getlocaldomains ]; then
+		VALUE=`/usr/sbin/getlocaldomains amavis`
+		if [ -n "$VALUE" ]; then
+			sed -i -e "s/^@local_domains_maps[[:space:]]*=.*/@local_domains_maps = $VALUE;/" $API_FILE
+		fi
+	fi
+
+	# Automatically configure the $mydomain parameter
+	if [ -x /usr/sbin/getprimarydomain ]; then
+		VALUE=`/usr/sbin/getprimarydomain`
+		if [ -n "$VALUE" ]; then
+			EXISTS=`grep '^$mydomain[[:space:]]*' /etc/amavisd/api.conf 2>/dev/null`
+			if [ -n "$EXISTS" ]; then
+				sed -i -e "s/^\$mydomain[[:space:]]*=.*/\$mydomain = \"$VALUE\";/" $API_FILE
+			else
+				sed -i -e "s/^@local_domains_maps/\$mydomain = \"$VALUE\";\n\
+@local_domains_maps/" $API_FILE
+			fi
+		fi
+	fi
+fi
+
+# Startup system-mysql
+if [ ! -e /var/lock/subsys/system-mysqld ]; then
+	/sbin/service system-mysqld start
+	/sbin/chkconfig system-mysqld on
+fi
+
+# Bootstrap the quarantine
+if [ -x /usr/sbin/quarantine_bootstrap ]; then
+	/usr/sbin/quarantine_bootstrap >/dev/null 2>&1
+fi
