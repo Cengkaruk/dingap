@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="System"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="System">
+
+	<types>
+		<xsd:schema targetNamespace="System">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+		</xsd:schema>
+	</types>
+
+	<message name="ShutdownRequest">
+	</message>
+
+	<message name="RestartRequest">
+	</message>
+
+	<portType name="SystemPortType">
+		<operation name="Shutdown">
+			<input message="tns:ShutdownRequest"/>
+		</operation>
+		<operation name="Restart">
+			<input message="tns:RestartRequest"/>
+		</operation>
+	</portType>
+
+	<binding name="SystemBinding" type="tns:SystemPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="Shutdown">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Shutdown" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="System"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+		</operation>
+		<operation name="Restart">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Restart" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="System"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+		</operation>
+	</binding>
+
+	<service name="System">
+		<port name="SystemPort" binding="tns:SystemBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

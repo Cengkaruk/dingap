@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="IfaceManager"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="IfaceManager">
+
+	<types>
+		<xsd:schema targetNamespace="IfaceManager">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="ArrayOfInterfaces">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="VendorDetails">
+				<xsd:all>
+					<xsd:element name="vendor" type="xsd:string"/>
+					<xsd:element name="device" type="xsd:string"/>
+					<xsd:element name="sub_device" type="xsd:string"/>
+					<xsd:element name="bus" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+
+		</xsd:schema>
+	</types>
+
+	<message name="GetInterfacesRequest">
+		<part name="ignore_ppp" type="xsd:boolean"/>
+		<part name="ignore_log" type="xsd:boolean"/>
+	</message>
+
+	<message name="GetInterfacesResponse">
+		<part name="result" type="tns:ArrayOfInterfaces"/>
+	</message>
+
+	<message name="GetInterfaceCountRequest">
+	</message>
+
+	<message name="GetInterfaceCountResponse">
+		<part name="result" type="xsd:int"/>
+	</message>
+
+	<message name="GetVendorDetailsRequest">
+		<part name="iface" type="xsd:string"/>
+	</message>
+
+	<message name="GetVendorDetailsResponse">
+		<part name="result" type="tns:VendorDetails"/>
+	</message>
+
+	<portType name="IfaceManagerPortType">
+		<operation name="GetInterfaces">
+			<input message="tns:GetInterfacesRequest"/>
+			<output message="tns:GetInterfacesResponse"/>
+		</operation>
+
+		<operation name="GetInterfaceCount">
+			<input message="tns:GetInterfaceCountRequest"/>
+			<output message="tns:GetInterfaceCountResponse"/>
+		</operation>
+
+		<operation name="GetVendorDetails">
+			<input message="tns:GetVendorDetailsRequest"/>
+			<output message="tns:GetVendorDetailsResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="IfaceManagerBinding" type="tns:IfaceManagerPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetInterfaces">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetInterfaces" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="IfaceManager"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="IfaceManager"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetInterfaceCount">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetInterfaceCount" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="IfaceManager"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="IfaceManager"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetVendorDetails">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetVendorDetails" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="IfaceManager"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="IfaceManager"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="IfaceManager">
+		<port name="IfaceManagerPort" binding="tns:IfaceManagerBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

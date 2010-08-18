@@ -1,0 +1,5 @@
+/* IE hacks */
+
+.yui-button button {
+    padding-left: 24px;
+}

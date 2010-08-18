@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Resolver"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Resolver">
+
+	<types>
+		<xsd:schema targetNamespace="Resolver">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="ArrayOfNameservers">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+		</xsd:schema>
+	</types>
+
+	<message name="GetNameserversRequest">
+	</message>
+
+	<message name="GetNameserversResponse">
+		<part name="result" type="tns:ArrayOfNameservers"/>
+	</message>
+
+	<message name="SetNameserversRequest">
+		<part name="nameservers" type="tns:ArrayOfNameservers"/>
+	</message>
+
+	<message name="SetNameserversResponse">
+	</message>
+
+	<portType name="ResolverPortType">
+		<operation name="GetNameservers">
+			<input message="tns:GetNameserversRequest"/>
+			<output message="tns:GetNameserversResponse"/>
+		</operation>
+
+		<operation name="SetNameservers">
+			<input message="tns:SetNameserversRequest"/>
+			<output message="tns:SetNameserversResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="ResolverBinding" type="tns:ResolverPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetNameservers">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetNameservers" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Resolver"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Resolver"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="SetNameservers">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/SetNameservers" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Resolver"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Resolver"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Resolver">
+		<port name="ResolverPort" binding="tns:ResolverBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+
