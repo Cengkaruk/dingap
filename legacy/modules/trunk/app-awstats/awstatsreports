@@ -1,0 +1,122 @@
+#!/bin/sh
+
+###############################################################################
+# 
+#  Copyright 2004-2005 Point Clark Networks.
+# 
+###############################################################################
+# 
+#  This program is free software; you can redistribute it and#or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# 
+###############################################################################
+
+LOG_DIR="/var/log/httpd"
+DEFAULT_ACCESS="access_log"
+SSL_OLD_ACCESS="ssl_access_log"
+SSL_COMBINED_ACCESS="ssl_combined_access_log"
+
+# Get locale
+#--------------------------------------------------------------------------
+
+if [ -e /etc/sysconfig/i18n ]; then
+	. /etc/sysconfig/i18n
+fi
+
+MYLANG=`echo $LANG | sed 's/_.*//'`
+if [ -z $MYLANG ]; then
+	/usr/bin/logger -t 'awstats' -p user.notice "could not determine locale - using English"
+	MYLANG="en"
+fi
+
+
+# Scan for virtual domain logs
+#--------------------------------------------------------------------------
+
+LIST=`ls $LOG_DIR/*access_log 2>/dev/null`
+
+for LOG in $LIST; do
+
+	# Determine domain name
+	#----------------------
+
+	LOGFILENAME=`echo $LOG | sed 's/.*httpd\///i'`
+	ISDEFAULTDOMAIN="no"
+
+	if [ "$LOGFILENAME" == "$DEFAULT_ACCESS" ]; then
+		DOMAIN=`grep -i "^[[:space:]]*ServerName" /etc/httpd/conf.d/default.conf | awk '{ print $2 }'`
+		DEFAULTDOMAIN="$DOMAIN"
+		ISDEFAULTDOMAIN="yes"
+	elif [ "$LOGFILENAME" == "$SSL_COMBINED_ACCESS" ]; then
+		DOMAIN="$DEFAULTDOMAIN.ssl-only"
+	elif [ "$LOGFILENAME" == "$SSL_OLD_ACCESS" ]; then
+		/usr/bin/logger -t 'awstats' -p user.notice "skipping old ssl_access_log"
+		LOG="skip" # cheating here
+	else
+		DOMAIN=`echo $LOGFILENAME | sed 's/_access_log//i'`
+	fi
+
+
+	# Run through last four logs
+	#---------------------------
+
+	for ARCHIVE in 4 3 2 1 NIL; do
+		if [ "$ARCHIVE" == "NIL" ]; then
+			SUFFIX=""
+		else
+			SUFFIX=".$ARCHIVE"
+		fi
+
+		if [ -f "$LOG$SUFFIX" ]; then
+			SIZECHECK=`wc -l $LOG$SUFFIX | awk '{ print $1 }'`
+			FORMATCHECK=`grep -i Mozilla $LOG$SUFFIX`
+
+			if [ -z "$FORMATCHECK" ]; then
+				/usr/bin/logger -t 'awstats' -p user.notice "using common log format on $LOG$SUFFIX"
+				FORMAT=4
+			else
+				/usr/bin/logger -t 'awstats' -p user.notice "using combined log format on $LOG$SUFFIX"
+				FORMAT=1
+			fi
+
+			if [ $SIZECHECK -lt 40000 ]; then
+				/usr/bin/logger -t 'awstats' -p user.notice "using DNS lookups on $LOG$SUFFIX"
+				DNSLOOKUP=1
+			else
+				/usr/bin/logger -t 'awstats' -p user.notice "skipping DNS lookups on $LOG$SUFFIX (too large)"
+				DNSLOOKUP=2
+			fi
+
+			echo "Include \"/etc/awstats/conf.default\"" > /etc/awstats/awstats.$DOMAIN.conf
+			echo "LogFile=\"$LOG$SUFFIX\"" >> /etc/awstats/awstats.$DOMAIN.conf
+			echo "SiteDomain=\"$DOMAIN\"" >> /etc/awstats/awstats.$DOMAIN.conf
+			echo "DNSLookup=$DNSLOOKUP" >> /etc/awstats/awstats.$DOMAIN.conf
+			echo "Lang=$MYLANG" >> /etc/awstats/awstats.$DOMAIN.conf
+			echo "LogFormat=$FORMAT" >> /etc/awstats/awstats.$DOMAIN.conf
+			/usr/bin/logger -t 'awstats' -p user.notice "running statistics for $DOMAIN on log $LOG$SUFFIX"
+			/var/webconfig/htdocs/cgi/awstats.pl -config=$DOMAIN -update | logger -t 'awstats' -p user.notice
+
+			if ( [ "$ISDEFAULTDOMAIN" == "yes" ] && [ -e ${LOG_DIR}/${SSL_COMBINED_ACCESS}${SUFFIX} ] ); then
+				echo "Include \"/etc/awstats/conf.default\"" > /etc/awstats/awstats.$DOMAIN.merged.conf
+				echo "LogFile=\"/usr/share/awstats/tools/logresolvemerge.pl $LOG$SUFFIX ${LOG_DIR}/${SSL_COMBINED_ACCESS}${SUFFIX} |\"" >> /etc/awstats/awstats.$DOMAIN.merged.conf
+				echo "SiteDomain=\"$DOMAIN\"" >> /etc/awstats/awstats.$DOMAIN.merged.conf
+				echo "DNSLookup=$DNSLOOKUP" >> /etc/awstats/awstats.$DOMAIN.merged.conf
+				echo "Lang=$MYLANG" >> /etc/awstats/awstats.$DOMAIN.merged.conf
+				echo "LogFormat=$FORMAT" >> /etc/awstats/awstats.$DOMAIN.merged.conf
+				/usr/bin/logger -t 'awstats' -p user.notice "running statistics for $DOMAIN merged with SSL"
+				/var/webconfig/htdocs/cgi/awstats.pl -config=$DOMAIN.merged -update | logger -t 'awstats' -p user.notice
+			fi
+		fi
+	done
+done

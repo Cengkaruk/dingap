@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# TODO: it is always a bit dodgy counting on error output, but...
+CHECK=`LANG=en_US /usr/bin/clamconf 2>&1 | grep "requires boolean"`
+
+if ( [ -e /etc/clamd.conf ] && [ -n "$CHECK" ] ) ; then
+	logger -p local6.notice -t installer "app-clamlib - upgrading old configuration file format"
+
+	/usr/share/system/modules/clamlib/updateclamconf /etc/clamd.conf /usr/share/system/modules/clamlib/clamd-upgrade.conf > /etc/clamd.conf.new
+
+	if [ -s /etc/clamd.conf.new ]; then	
+		TIMESTAMP=`date "+%b-%d-%Y-%T"`
+		mv -f /etc/clamd.conf /usr/share/system/modules/clamlib/clamd.conf.$TIMESTAMP
+		mv -f /etc/clamd.conf.new /etc/clamd.conf
+	else
+		logger -p local6.notice -t installer "app-clamlib - unable to upgrade /etc/clamd.conf"
+	fi
+
+	/usr/share/system/modules/clamlib/updateclamconf /etc/freshclam.conf /usr/share/system/modules/clamlib/freshclam-upgrade.conf > /etc/freshclam.conf.new
+
+	if [ -s /etc/freshclam.conf.new ]; then	
+		TIMESTAMP=`date "+%b-%d-%Y-%T"`
+		mv -f /etc/freshclam.conf /usr/share/system/modules/clamlib/freshclam.conf.$TIMESTAMP
+		mv -f /etc/freshclam.conf.new /etc/freshclam.conf
+	else
+		logger -p local6.notice -t installer "app-clamlib - unable to upgrade /etc/freshclam.conf"
+	fi
+
+	/sbin/service clamd condrestart >/dev/null 2>&1
+fi
+
+# Change log facility
+CHECK=`grep "^LogFacility[[:space:]]*LOG_MAIL$" /etc/clamd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-clamlib - changing log facility for clamd.conf"
+	sed -i -e 's/^LogFacility[[:space:]].*LOG_MAIL$/LogFacility LOG_DAEMON/' /etc/clamd.conf
+fi
+
+CHECK=`grep "^LogFacility[[:space:]]*LOG_MAIL$" /etc/freshclam.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-clamlib - changing log facility for freshclam.con"
+	sed -i -e 's/^LogFacility[[:space:]].*LOG_MAIL$/LogFacility LOG_DAEMON/' /etc/freshclam.conf
+fi
+
+exit 0

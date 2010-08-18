@@ -1,0 +1,94 @@
+#!/usr/bin/awk -f
+#
+# updateclamconf
+#
+# Merge two clamd.conf or freshclam.conf files and write the result to
+# the standard output. The result file contains all comments from the
+# second file with the active (i.e. not commented-out) settings from
+# the first file merged into it. Settings which were only in the first
+# file file and not mentioned in the second file any more, are appended
+# at the end, but commented out.
+#
+# Any comment must start with a hash and a space:
+#        # comment
+# while any commented out setting must start with a hash and no space:
+#        #settingname settingvalue
+#
+# The first file may optionally have the format that was used up to
+# version 0.88.7. In that case the settings will be converted to the
+# format that is used in version 0.90 and newer.
+#
+# Known issues:
+#
+# If an option exists more than once in eiter file, all occurrences are
+# moved to the position of the first occurrence. AFAIK this
+# currently only applies to the DatabaseMirror option in
+# freshclam.conf.
+
+# Copyright (c) 2006 SUSE LINUX Products GmbH, Nuernberg, Germany.
+#
+# Authors: Reinhard Max <max@suse.de>
+#          Kurt Keller <Kurt@pinboard.com>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2 as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+BEGIN {
+    if (ARGC != 3) {
+	print "usage: updateclamconf oldfile newfile" > "/dev/stderr"
+	exit 1
+    }
+    # some options may be overridden from the command line
+    $0 = override
+    for (i=1; i<=NF; i+=2) {
+	options[$i] = $(i+1)
+    }
+    pass = 0
+}
+lastname != FILENAME {
+    lastname = FILENAME
+    pass++
+}
+# collect options from the first file
+pass == 1 && $0 ~ /^[[:space:]]*[^#]/ {
+    if (NF == 1) {
+	$2 = "yes"
+    }
+    if (!($1 in options)) {
+	options[$1] = $0
+    } else {
+	options[$1] = options[$1] "\n" $0
+    }
+}
+# merge options into the content of the second file
+pass == 2 {
+    # copy $1, so that sub() doesn't modify $0
+    o = $1
+    sub("^#", "", o)
+    if (o in options) {
+        if (o == "NotifyClamd" && options[o] ~ / yes$/) {
+            sub("^#", "")  
+            options[o] = $0
+        }
+        print options[o] 
+        delete options[o]
+    } else { 
+        print
+    }
+}
+# print out any options that were only found in the first file
+END {
+    for (o in options) {
+	print "\n# These options weren't found in the new config file"
+	for (o in options) {
+	    print "# " o, options[o]
+	}
+	break
+    }
+}

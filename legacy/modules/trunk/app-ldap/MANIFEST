@@ -1,0 +1,26 @@
+locale ldap api/lang
+locale ldap htdocs/admin/lang
+menu htdocs/menus/ldap
+include api/Ldap.class.php
+include api/ClearDirectory.class.php
+include htdocs/admin/ldap.php
+include htdocs/admin/ldap.xml.php
+include htdocs/admin/ldap.js.php
+include htdocs/images/icons/16x16/icon-ldap.png
+include htdocs/images/icons/32x32/icon-ldap.png
+include ./ldapsync
+include ./ldapsetup
+include ./pcn.schema
+include ./rfc2307bis.schema
+include ./RADIUS-LDAPv3.schema
+include ./upgrade
+include ./upgrade-3xldap
+include ./provision.accesslog.ldif
+include ./provision.ldif.template
+include ./DB_CONFIG.template
+include ./DB_CONFIG.accesslog.template
+include ./ldap.conf.template
+include ./nss_ldap.conf.template
+include ./slapd.conf.template
+include ./prestart-ldap
+include ./poststart-ldap

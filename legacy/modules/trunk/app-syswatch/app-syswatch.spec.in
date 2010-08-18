@@ -1,0 +1,122 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-syswatch
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Network and system monitor module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: perl
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-services = %VERSION%
+Provides: cc-syswatch
+Obsoletes: cc-syswatch
+Obsoletes: cc-netwatchd
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Network and system monitor module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/rc.d/init.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/logrotate.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/syswatch
+
+install -m 644 etc/syswatch $RPM_BUILD_ROOT/etc/
+install -m 644 etc/logrotate.d/syswatch $RPM_BUILD_ROOT/etc/logrotate.d
+install -m 755 etc/rc.d/init.d/syswatch $RPM_BUILD_ROOT/etc/rc.d/init.d/
+install -m 755 syswatch $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 dnsupdate $RPM_BUILD_ROOT/usr/sbin/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-syswatch - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-syswatch - enabling on boot"
+	/sbin/chkconfig --add syswatch
+fi
+
+/usr/sbin/addsudo /usr/bin/killall app-syswatch
+
+# Remove old server from custom config
+CHECK=`grep 216.40.215.42 /etc/syswatch 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	sed -i -e 's/216.40.215.42/69.90.141.108/' /etc/syswatch >/dev/null 2>&1
+fi
+
+# Force an IP update for good measure
+rm -f /var/lib/dynamicdns
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ $1 = 0 ]; then
+    logger -p local6.notice -t installer "app-syswatch - uninstalling"
+	service syswatch stop >/dev/null 2>&1
+	chkconfig --del syswatch
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U P G R A D E  S C R I P T
+#------------------------------------------------------------------------------
+
+%postun
+if [ $1 == 1 ]; then
+	service syswatch condrestart >/dev/null 2>&1
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/syswatch
+/etc/logrotate.d/syswatch
+/etc/rc.d/init.d/syswatch
+/usr/sbin/dnsupdate
+/usr/sbin/syswatch
+/var/lib/syswatch
+/var/webconfig/

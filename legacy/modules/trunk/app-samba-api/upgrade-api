@@ -1,0 +1,59 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2003-2009 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+// Only LDAP upgrade is required for now.  
+// There's nothing to do if LDAP is not installed.
+if (! file_exists('/var/webconfig/api/Ldap.class.php'))
+	exit(0);
+
+require_once('/var/webconfig/api/Ldap.class.php');
+require_once('/var/webconfig/api/Samba.class.php');
+
+$ldap = new Ldap();
+$samba = new Samba();
+
+try {
+	$dn = "cn=domain_admins," . $ldap->GetGroupsOu();
+
+	if ($ldap->Exists($dn)) {
+		$attributes['sambaSID'] = $samba->GetDomainSid() . '-512';
+		$attributes['displayName'] = "Domain Admins";
+		$ldap->Modify($dn, $attributes);
+	}
+
+	$dn = "cn=Windows Administrator," . $ldap->GetUsersOu();
+
+	if ($ldap->Exists($dn)) {
+		$attributes = array();
+		$attributes['gidNumber'] = '1000512';
+		$attributes['sambaSID'] = $samba->GetDomainSid() . '-500';
+		$attributes['displayName'] = "Windows Administrator";
+		$ldap->Modify($dn, $attributes);
+	}
+} catch (Exception $e) {
+	throw new EngineException($e->GetMessage(), COMMON_WARNING);
+}
+
+?>

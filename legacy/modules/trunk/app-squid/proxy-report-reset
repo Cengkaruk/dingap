@@ -1,0 +1,4 @@
+#!/bin/sh
+
+grep ^report /etc/system/database | awk '{ print $3 }' | xargs -I '{}' /usr/share/system-mysql/usr/bin/mysqladmin -ureports -p'{}' -f drop reports
+

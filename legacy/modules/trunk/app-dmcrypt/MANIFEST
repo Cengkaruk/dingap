@@ -1,0 +1,10 @@
+menu htdocs/menus/encrypted-filesystem
+locale encrypted-filesystem htdocs/admin/lang
+locale dmcrypt api/lang
+include api/DmCrypt.class.php
+include htdocs/admin/encrypted-filesystem.php
+include htdocs/admin/encrypted-filesystem.js.php
+include htdocs/images/icons/16x16/icon-encrypted-filesystem.png
+include htdocs/images/icons/32x32/icon-encrypted-filesystem.png
+include scripts/dmcrypt.inc.php
+include scripts/dmcrypt.php

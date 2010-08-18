@@ -1,0 +1,2 @@
+locale pcmcia api/lang
+include api/Pcmcia.class.php

@@ -1,0 +1,62 @@
+menu htdocs/menus/proxy
+menu htdocs/menus/proxy-report
+locale squid api/lang
+locale filtered htdocs/public/lang
+locale proxy htdocs/public/lang
+locale proxy htdocs/admin/lang
+locale proxy-report htdocs/admin/lang
+include api/Squid.class.php
+include gui/ProxyReport.class.php
+include htdocs/admin/proxy.php
+include htdocs/admin/proxy-report.php
+include htdocs/images/icons/16x16/icon-proxy.png
+include htdocs/images/icons/32x32/icon-proxy.png
+include htdocs/images/icons/16x16/icon-proxy-report.png
+include htdocs/images/icons/32x32/icon-proxy-report.png
+include htdocs/public/filtered.php
+include htdocs/public/proxy.php
+include htdocs/public/proxy.js.php
+include htdocs/public/proxy.xml.php
+include wsdl/Squid.wsdl
+include ./app-squid-report.cron
+include ./app-squid-purge.cron
+include ./proxy-report-purge
+include ./proxy-report-reset
+include ./squid.conf
+include ./squid.system.conf
+include ./configupgrade
+include ./upgrade
+include ./wpad.conf
+include ./redirect/ERR_ACCESS_DENIED.template
+include ./redirect/ERR_CACHE_ACCESS_DENIED.template
+include ./redirect/ERR_CACHE_MGR_ACCESS_DENIED.template
+include ./redirect/ERR_CANNOT_FORWARD.template
+include ./redirect/ERR_CONNECT_FAIL.template
+include ./redirect/ERR_DNS_FAIL.template
+include ./redirect/ERR_ESI.template
+include ./redirect/ERR_FORWARDING_DENIED.template
+include ./redirect/ERR_FTP_DISABLED.template
+include ./redirect/ERR_FTP_FAILURE.template
+include ./redirect/ERR_FTP_FORBIDDEN.template
+include ./redirect/ERR_FTP_NOT_FOUND.template
+include ./redirect/ERR_FTP_PUT_CREATED.template
+include ./redirect/ERR_FTP_PUT_ERROR.template
+include ./redirect/ERR_FTP_PUT_MODIFIED.template
+include ./redirect/ERR_FTP_UNAVAILABLE.template
+include ./redirect/ERR_ICAP_FAILURE.template
+include ./redirect/ERR_INVALID_REQ.template
+include ./redirect/ERR_INVALID_RESP.template
+include ./redirect/ERR_INVALID_URL.template
+include ./redirect/ERR_LIFETIME_EXP.template
+include ./redirect/ERR_NO_RELAY.template
+include ./redirect/ERR_ONLY_IF_CACHED_MISS.template
+include ./redirect/ERR_READ_ERROR.template
+include ./redirect/ERR_READ_TIMEOUT.template
+include ./redirect/ERR_SECURE_CONNECT_FAIL.template
+include ./redirect/ERR_SHUTTING_DOWN.template
+include ./redirect/ERR_SOCKET_FAILURE.template
+include ./redirect/ERR_TOO_BIG.template
+include ./redirect/ERR_UNSUP_REQ.template
+include ./redirect/ERR_URN_RESOLVE.template
+include ./redirect/ERR_WRITE_ERROR.template
+include ./redirect/ERR_ZERO_SIZE_OBJECT.template

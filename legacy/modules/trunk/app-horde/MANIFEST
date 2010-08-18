@@ -1,0 +1,10 @@
+menu htdocs/menus/webmail
+locale horde api/lang
+locale webmail htdocs/admin/lang
+include api/Horde.class.php
+include htdocs/admin/webmail.php
+include htdocs/images/icons/16x16/icon-webmail.png
+include htdocs/images/icons/32x32/icon-webmail.png
+include ./reportham
+include ./reportspam
+include ./horde.conf

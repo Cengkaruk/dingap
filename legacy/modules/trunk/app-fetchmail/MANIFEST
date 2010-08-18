@@ -1,0 +1,9 @@
+menu htdocs/menus/mail-retrieval
+locale fetchmail api/lang
+locale mail-retrieval htdocs/admin/lang
+include api/Fetchmail.class.php
+include htdocs/images/icons/16x16/icon-mail-retrieval.png
+include htdocs/images/icons/32x32/icon-mail-retrieval.png
+include htdocs/admin/mail-retrieval.php
+include ./fetchmail.sysv
+include ./fetchmail

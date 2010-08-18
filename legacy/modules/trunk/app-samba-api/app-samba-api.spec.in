@@ -1,0 +1,132 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-samba-api
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Windows networks and file sharing API module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: openldap-servers
+Requires: samba-common >= 3.3.2
+Requires: samba-client >= 3.3.2
+Requires: shadow-utils
+Requires: tdb-tools
+Requires: app-product = %VERSION%
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Windows networks and file sharing API module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/samba
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/samba/
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/samba
+
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/samba/
+install -m 755 upgrade-api $RPM_BUILD_ROOT/usr/share/system/modules/samba/
+install -m 755 add-windows-groupinfo $RPM_BUILD_ROOT/usr/sbin
+install -m 755 add-samba-directories $RPM_BUILD_ROOT/usr/sbin
+install -m 755 upgrade-4xsamba $RPM_BUILD_ROOT/usr/share/system/modules/samba/
+install -m 644 smb.conf $RPM_BUILD_ROOT/usr/share/system/modules/samba/
+install -m 644 smb.ldap.conf.template $RPM_BUILD_ROOT/etc/openldap/templates/
+install -m 644 smb.winbind.conf.template $RPM_BUILD_ROOT/etc/openldap/templates/
+install -m 755 samba-add-machine $RPM_BUILD_ROOT/usr/sbin/
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+touch $RPM_BUILD_ROOT/etc/samba/flexshare.conf
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-samba-api - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-samba-api - creating default configuration"
+	cp /etc/samba/smb.conf /usr/share/system/modules/samba/smb.conf.$$
+	cp /usr/share/system/modules/samba/smb.conf /etc/samba/
+
+	NAME=`grep "samba_name = " /etc/system/product | sed 's/samba_name = //g'`
+	WORKGROUP=`grep "samba_workgroup = " /etc/system/product | sed 's/samba_workgroup = //g'`
+	COMMENT=`grep "samba_comment = " /etc/system/product | sed 's/samba_comment = //g'`
+
+	sed -i -e "s/^[[:space:]]*netbios name[[:space:]]=.*/netbios name = $NAME/" /etc/samba/smb.conf
+	sed -i -e "s/^[[:space:]]*workgroup[[:space:]]=.*/workgroup = $WORKGROUP/" /etc/samba/smb.conf
+	sed -i -e "s/^[[:space:]]*server string[[:space:]]=.*/server string = $COMMENT/" /etc/samba/smb.conf
+fi
+
+/usr/sbin/addsudo /usr/bin/net app-samba-api
+/usr/sbin/addsudo /usr/bin/pdbedit app-samba-api
+/usr/sbin/addsudo /usr/bin/smbpasswd app-samba-api
+/usr/sbin/addsudo /usr/sbin/add-samba-directories app-samba-api
+
+/usr/share/system/modules/samba/upgrade
+
+# Fix internal build.  Remove in 5.2
+/usr/share/system/modules/samba/upgrade-api
+
+logger -p local6.notice -t installer "app-samba-api - synchronizing with LDAP"
+/usr/sbin/ldapsync config smb >/dev/null 2>&1
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-samba-api - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) %attr(0644,root,root) /etc/samba/flexshare.conf
+/etc/openldap/templates/smb.ldap.conf.template 
+/etc/openldap/templates/smb.winbind.conf.template 
+/usr/share/system/modules/samba/smb.conf
+/usr/share/system/modules/samba/upgrade
+/usr/share/system/modules/samba/upgrade-api
+/usr/share/system/modules/samba/upgrade-4xsamba
+/usr/sbin/add-windows-groupinfo
+/usr/sbin/add-samba-directories
+/usr/sbin/samba-add-machine
+/var/webconfig/
+%dir /var/samba

@@ -1,0 +1,5 @@
+menu htdocs/menus/hardware-report
+locale hardware-report htdocs/admin/lang
+include htdocs/admin/hardware-report.php
+include htdocs/images/icons/16x16/icon-hardware-report.png
+include htdocs/images/icons/32x32/icon-hardware-report.png

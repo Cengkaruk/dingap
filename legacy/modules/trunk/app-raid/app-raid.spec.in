@@ -1,0 +1,100 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-raid
+Version: %VERSION%
+Release: %RELEASE%
+Summary: RAID tools module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: mdadm
+Requires: mpt-status >= 1.2.0
+Requires: tw_cli >= 9.5.0
+Requires: util-linux
+Requires: vixie-cron
+Requires: udev
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-mailer = %VERSION%
+Requires: app-ntp = %VERSION%
+Provides: cc-raid
+Obsoletes: cc-raid
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+RAID tools module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/raid
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/udev/rules.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bin
+
+install -m 0600 raid.conf $RPM_BUILD_ROOT/etc/system/raid.conf
+install -m 0644 55-mptctl.rules $RPM_BUILD_ROOT/etc/udev/rules.d
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-raid - installing"
+
+/usr/sbin/addsudo /sbin/mdadm app-raid
+/usr/sbin/addsudo /sbin/sfdisk app-raid
+/usr/sbin/addsudo /usr/sbin/mpt-status app-raid
+/usr/sbin/addsudo /usr/sbin/tw_cli app-raid
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-raid - uninstalling"
+	if [ -e /etc/cron.d/app-raid ]; then
+		logger -p local6.notice -t installer "app-raid - removing cron entry"
+		rm -f /etc/cron.d/app-raid
+	fi
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+/etc/udev/rules.d/55-mptctl.rules
+%config(noreplace) %attr(0640,root,root) /etc/system/raid.conf

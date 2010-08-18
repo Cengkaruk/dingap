@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+
+##
+##  Copyright (c) 2004  Klaraelvdalens Datakonsult AB
+##  Copyright (c) 2003  Code Fusion cc
+##  Copyright (c) 2009  Point Clark Networks
+##
+##    Writen by Stuart Bing?<s.binge@codefusion.co.za>
+##    Portions based on work by the following people:
+##
+##      (c) 2003  Tassilo Erlewein  <tassilo.erlewein@erfrakon.de>
+##      (c) 2003  Martin Konold     <martin.konold@erfrakon.de>
+##      (c) 2003  Achim Frank       <achim.frank@erfrakon.de>
+##
+##
+##  This  program is free  software; you can redistribute  it and/or
+##  modify it  under the terms of the GNU  General Public License as
+##  published by the  Free Software Foundation; either version 2, or
+##  (at your option) any later version.
+##
+##  This program is  distributed in the hope that it will be useful,
+##  but WITHOUT  ANY WARRANTY; without even the  implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+##  General Public License for more details.
+##
+##  You can view the  GNU General Public License, online, at the GNU
+##  Project's homepage; see <http://www.gnu.org/licenses/gpl.html>.
+##
+
+use strict;
+use Sys::Syslog;
+use IO::File;
+use Kolab;
+use Kolab::Util;
+use Kolab::LDAP;
+use Kolab::LDAP::Backend;
+use vars qw(%pids);
+
+Kolab::reloadConfig("/etc/kolab/kolab.globals");
+
+openlog('kolabd', 'cons, pid', ($Kolab::config{'syslog_facility'} || 'user'));
+
+eval {
+  Kolab::LDAP::startup("/var/lib/kolab");
+
+  Kolab::log('K', 'Loading backends');
+  Kolab::LDAP::Backend::load;
+  Kolab::LDAP::Backend::load('user');
+  Kolab::LDAP::Backend::load('sf');
+  
+  Kolab::log('K', 'Performing backend startup');
+  &Kolab::LDAP::Backend::startup;
+  
+  Kolab::log('K', 'Synchronising');
+  Kolab::LDAP::sync;
+  
+  Kolab::log('K', 'Synchronisation complete, starting up daemon');
+}; Kolab::log( 'K', $@, KOLAB_ERROR ) if $@;
+

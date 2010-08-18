@@ -1,0 +1,95 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-clamlib
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Antivirus engine module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: clamav >= 0.95.1
+Requires: clamav-db >= 0.95.1
+Requires: clamav-server >= 0.95.1
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-services = %VERSION%
+Provides: cc-clamlib
+Obsoletes: cc-clamlib
+Obsoletes: cc-sophos
+Obsoletes: sophos-mmsmtp
+Obsoletes: sophos-ide
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Antivirus engine module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/clamlib
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 0755 freshclam-reset $RPM_BUILD_ROOT/usr/share/system/modules/clamlib/
+install -m 0755 updateclamconf $RPM_BUILD_ROOT/usr/share/system/modules/clamlib/
+install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/clamlib/
+install -m 0644 clamd-upgrade.conf $RPM_BUILD_ROOT/usr/share/system/modules/clamlib/
+install -m 0644 freshclam-upgrade.conf $RPM_BUILD_ROOT/usr/share/system/modules/clamlib/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-clamlib - installing"
+
+/usr/sbin/addsudo /usr/bin/freshclam app-clamlib
+/usr/share/system/modules/clamlib/upgrade >/dev/null 2>&1
+/usr/share/system/modules/clamlib/freshclam-reset >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-clamlib - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+/usr/share/system/modules/clamlib/freshclam-reset
+/usr/share/system/modules/clamlib/upgrade
+/usr/share/system/modules/clamlib/updateclamconf
+/usr/share/system/modules/clamlib/clamd-upgrade.conf
+/usr/share/system/modules/clamlib/freshclam-upgrade.conf

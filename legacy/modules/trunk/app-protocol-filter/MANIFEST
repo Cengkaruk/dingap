@@ -1,0 +1,16 @@
+menu htdocs/menus/protocol-filter
+menu htdocs/menus/protocol-filter-report
+locale protocol-filter htdocs/admin/lang
+locale protocol-filter-report htdocs/admin/lang
+locale layer7filter api/lang
+include api/Layer7Filter.class.php
+include api/FirewallLayer7Filter.class.php
+include htdocs/admin/protocol-filter.php
+include htdocs/admin/protocol-filter-report.php
+include htdocs/admin/protocol-filter-report.js.php
+include htdocs/admin/protocol-filter-report.xml.php
+include htdocs/images/icons/16x16/icon-protocol-filter.png
+include htdocs/images/icons/32x32/icon-protocol-filter.png
+include htdocs/images/icons/16x16/icon-protocol-filter-report.png
+include htdocs/images/icons/32x32/icon-protocol-filter-report.png
+include ./upgrade

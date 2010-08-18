@@ -1,0 +1,18 @@
+menu htdocs/menus/date
+locale ntpd api/lang
+locale ntptime api/lang
+locale time api/lang
+locale date htdocs/admin/lang
+include api/Ntpd.class.php
+include api/NtpTime.class.php
+include api/Time.class.php
+include htdocs/admin/date.php
+include htdocs/admin/date.inc.php
+include htdocs/admin/date.js.php
+include htdocs/admin/date.xml.php
+include htdocs/images/icons/16x16/icon-date.png
+include htdocs/images/icons/32x32/icon-date.png
+include ./config/ntpdate
+include ./app-ntp.cron
+include ./timesync
+include ./upgrade

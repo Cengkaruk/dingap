@@ -1,0 +1,129 @@
+locale daemon api/lang
+locale file api/lang
+locale filetypes api/lang
+locale filegroup api/lang
+locale folder api/lang
+locale locale api/lang
+locale os api/lang
+locale posixuser api/lang
+locale process api/lang
+locale shellexec api/lang
+locale software api/lang
+locale system api/lang
+locale webconfig api/lang
+
+include api/ConfigurationFile.class.php
+include api/Country.class.php
+include api/Cron.class.php
+include api/Daemon.class.php
+include api/Daemon.inc.php
+include api/DaemonManager.class.php
+include api/Engine.class.php
+include api/File.class.php
+include api/FileTypes.inc.php
+include api/FileTypes.class.php
+include api/FileGroup.class.php
+include api/FileGroupManager.class.php
+include api/Folder.class.php
+include api/Locale.class.php
+include api/Mime.class.php
+include api/Organization.class.php
+include api/Os.class.php
+include api/PosixUser.class.php
+include api/Process.class.php
+include api/ProcessManager.class.php
+include api/Shell.class.php
+include api/ShellExec.class.php
+include api/Software.class.php
+include api/Stats.class.php
+include api/Syslog.class.php
+include api/System.class.php
+include api/Webconfig.class.php
+include api/StorageDevice.class.php
+
+include api/Country/da.php
+include api/Country/de.php
+include api/Country/en.php
+include api/Country/es.php
+include api/Country/fi.php
+include api/Country/fr.php
+include api/Country/hu.php
+include api/Country/it.php
+include api/Country/nl.php
+include api/Country/pl.php
+include api/Country/pt.php
+include api/Country/ro.php
+include api/Country/ru.php
+include api/Country/sl.php
+include api/Country/sv.php
+include api/Country/tr.php
+include api/Country/zh.php
+
+include wsdl/System.wsdl
+include wsdl/Stats.wsdl
+
+include gui/Gui.class.php
+include gui/ScreenScraper.class.php
+include gui/Webconfig.inc.php
+
+include ./Config.inc.php
+include common/Error.class.php
+include common/Globals.inc.php
+include common/ErrorQueue.class.php
+include common/Logger.class.php
+
+locale daemon htdocs/admin/lang
+locale index htdocs/admin/lang
+locale processes htdocs/admin/lang
+locale setup htdocs/admin/lang
+locale shutdown htdocs/admin/lang
+locale portal htdocs/public/lang
+locale organization api/lang 
+locale organization htdocs/admin/lang
+
+menu htdocs/menus/index
+menu htdocs/menus/daemon
+menu htdocs/menus/processes
+menu htdocs/menus/shutdown
+menu htdocs/menus/organization
+
+include htdocs/include/getimage.php
+#include htdocs/include/charts.inc
+#include htdocs/include/charts.php
+#include htdocs/include/charts.swf
+#include htdocs/include/charts_key.swf
+
+include htdocs/index.php
+include htdocs/admin/daemon.php
+include htdocs/admin/index.php
+include htdocs/admin/organization.php
+include htdocs/admin/organization.inc.php
+include htdocs/admin/organization.js.php
+include htdocs/admin/organization.xml.php
+include htdocs/admin/processes.php
+include htdocs/admin/processes.inc.php
+include htdocs/admin/processes.js.php
+include htdocs/admin/setup.php
+include htdocs/admin/setup.js.php
+include htdocs/admin/setup.xml.php
+include htdocs/admin/shutdown.php
+include htdocs/public/portal.php
+include htdocs/images/404.gif
+include htdocs/images/transparent.gif
+include htdocs/images/icons/16x16/icon-daemon.png
+include htdocs/images/icons/32x32/icon-daemon.png
+include htdocs/images/icons/16x16/icon-help.png
+include htdocs/images/icons/32x32/icon-help.png
+include htdocs/images/icons/16x16/icon-index.png
+include htdocs/images/icons/32x32/icon-index.png
+include htdocs/images/icons/16x16/icon-organization.png
+include htdocs/images/icons/32x32/icon-organization.png
+include htdocs/images/icons/16x16/icon-processes.png
+include htdocs/images/icons/32x32/icon-processes.png
+include htdocs/images/icons/16x16/icon-shutdown.png
+include htdocs/images/icons/32x32/icon-shutdown.png
+
+include ./upgrade
+include ./upgrade-api
+include ./api
+

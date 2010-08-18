@@ -1,0 +1,16 @@
+menu htdocs/menus/raid
+locale raid api/lang
+locale raid htdocs/admin/lang
+include api/Raid.class.php
+include api/RaidSoftware.class.php
+include api/Raid3ware.class.php
+include api/RaidLsi.class.php
+include htdocs/admin/raid.php
+include htdocs/admin/raid.js.php
+include htdocs/admin/raidstatus.php
+include htdocs/admin/raidstatus.js
+include htdocs/images/icons/16x16/icon-raid.png
+include htdocs/images/icons/32x32/icon-raid.png
+include scripts/raid_notification.php
+include ./raid.conf
+include ./55-mptctl.rules

@@ -1,0 +1,143 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-ldap
+Version: %VERSION%
+Release: %RELEASE%
+Summary: LDAP module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: nss_ldap
+Requires: openldap-servers >= 2.4.12
+Requires: openldap-clients >= 2.4.12
+Requires: kolabd-schema
+Requires: horde-schema
+Requires: samba-schema
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-ldap
+Obsoletes: cc-ldap
+BuildRoot: %_tmppath/%name-%version-root
+
+%description
+LDAP module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/schema
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/provision
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/ldap
+
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/ldap/
+install -m 755 upgrade-3xldap $RPM_BUILD_ROOT/usr/share/system/modules/ldap/
+install -m 755 ldapsetup $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 ldapsync $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 prestart-ldap $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 poststart-ldap $RPM_BUILD_ROOT/usr/sbin/
+
+install -m 644 pcn.schema $RPM_BUILD_ROOT/etc/openldap/schema
+install -m 644 rfc2307bis.schema $RPM_BUILD_ROOT/etc/openldap/schema
+install -m 644 RADIUS-LDAPv3.schema $RPM_BUILD_ROOT/etc/openldap/schema
+
+install -m 640 provision.accesslog.ldif $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 640 provision.ldif.template $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 644 DB_CONFIG.template $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 644 DB_CONFIG.accesslog.template $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 640 slapd.conf.template $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 644 ldap.conf.template $RPM_BUILD_ROOT/etc/openldap/provision
+install -m 644 nss_ldap.conf.template $RPM_BUILD_ROOT/etc/openldap/templates
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# P R E P  S C R I P T
+#------------------------------------------------------------------------------
+
+# TODO: this is a bit kludgy.  The LDAP API creates the Kolab configuration
+# file which must be readable by user "kolab".
+
+%pre
+/usr/sbin/useradd -d /var/lib/kolab -s /sbin/nologin -M -r -u 414 kolab 2>/dev/null
+exit 0
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-ldap - installing"
+
+# Sudoers additions
+#------------------
+
+/usr/sbin/addsudo /usr/sbin/slappasswd app-ldap
+/usr/sbin/addsudo /usr/sbin/slapadd app-ldap
+/usr/sbin/addsudo /usr/sbin/slapcat app-ldap
+/usr/sbin/addsudo /usr/sbin/kolabconf app-ldap
+/usr/sbin/addsudo /usr/sbin/ldapsync app-ldap
+/usr/sbin/addsudo /usr/bin/openssl app-ldap
+/usr/sbin/addsudo /usr/sbin/authconfig app-ldap
+
+/usr/share/system/modules/ldap/upgrade
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-ldap - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%dir /etc/openldap/provision
+/usr/sbin/ldapsetup
+/usr/sbin/ldapsync
+/usr/sbin/prestart-ldap
+/usr/sbin/poststart-ldap
+%attr(0640,root,ldap) /etc/openldap/provision/provision.ldif.template
+%attr(0640,root,ldap) /etc/openldap/provision/provision.accesslog.ldif
+%attr(0644,root,root) /etc/openldap/provision/DB_CONFIG.template
+%attr(0644,root,root) /etc/openldap/provision/DB_CONFIG.accesslog.template
+%attr(0644,root,root) /etc/openldap/provision/ldap.conf.template
+%attr(0640,root,ldap) /etc/openldap/provision/slapd.conf.template
+%attr(0644,root,root) /etc/openldap/templates/nss_ldap.conf.template
+/etc/openldap/schema/pcn.schema
+/etc/openldap/schema/rfc2307bis.schema
+/etc/openldap/schema/RADIUS-LDAPv3.schema
+%dir /usr/share/system/modules/ldap
+/usr/share/system/modules/ldap/upgrade
+/usr/share/system/modules/ldap/upgrade-3xldap
+/var/webconfig

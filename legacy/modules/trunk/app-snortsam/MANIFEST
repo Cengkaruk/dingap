@@ -1,0 +1,13 @@
+menu htdocs/menus/intrusion-prevention
+menu htdocs/menus/ips-report
+locale snortsam api/lang
+locale intrusion-prevention htdocs/admin/lang
+locale ips-report htdocs/admin/lang
+include api/SnortSam.class.php
+include gui/SnortSamReport.class.php
+include htdocs/admin/intrusion-prevention.php
+include htdocs/admin/ips-report.php
+include htdocs/images/icons/16x16/icon-intrusion-prevention.png
+include htdocs/images/icons/32x32/icon-intrusion-prevention.png
+include htdocs/images/icons/16x16/icon-ips-report.png
+include htdocs/images/icons/32x32/icon-ips-report.png

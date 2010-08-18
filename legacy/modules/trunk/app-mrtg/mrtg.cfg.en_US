@@ -1,0 +1,81 @@
+###############################################################################
+# Multi Router Traffic Grapher -- Configuration File
+###############################################################################
+
+WorkDir: /var/webconfig/reports/mrtg
+Options[_]: nopercent,growright,nobanner,nolegend,noinfo,gauge
+MaxBytes[_]: 1250000000
+
+
+###############################################################################
+# 
+# Stats
+#
+###############################################################################
+
+#----------------------------
+# Network
+#----------------------------
+
+Include: /etc/mrtg/mrtg.cfg.dynamic
+
+#----------------------------
+# TCP Connections
+#----------------------------
+
+Target[tcp]: `/etc/mrtg/system tcp`
+Title[tcp]: Established TCP Connections
+PageTop[tcp]: <h3>Established TCP Connections</h3>
+YLegend[tcp]: Connections
+ShortLegend[tcp]: &nbsp;&nbsp;&nbsp;
+LegendI[tcp]: 
+LegendO[tcp]: Established&nbsp;
+
+#----------------------------
+# Load
+#----------------------------
+
+Target[load]: `/etc/mrtg/system load`
+Title[load]: Load Averages (x 100)
+PageTop[load]: <h3>Load Averages</h3>
+YLegend[load]: Load Averages
+ShortLegend[load]: &nbsp;&nbsp;&nbsp;
+LegendI[load]: 5-minute Load&nbsp;
+LegendO[load]: 15-minute Load&nbsp;
+
+#----------------------------
+# Swap
+#----------------------------
+
+Target[swap]: `/etc/mrtg/system swap`
+Title[swap]: Swap Memory Usage
+PageTop[swap]: <h3>Swap Memory Usage</h3>
+YLegend[swap]: Swap Usage
+ShortLegend[swap]: &nbsp;&nbsp;&nbsp;
+LegendI[swap]: 
+LegendO[swap]: Used&nbsp;
+
+#----------------------------
+# Processes
+#----------------------------
+
+Target[processes]: `/etc/mrtg/system processes`
+Title[processes]: Processes
+PageTop[processes]: <h3>Processes</h3>
+YLegend[processes]: Processes
+ShortLegend[processes]: &nbsp;&nbsp;&nbsp;
+LegendI[processes]: Total&nbsp;
+LegendO[processes]: Running&nbsp;
+
+#----------------------------
+# Uptime
+#----------------------------
+
+Target[uptime]: `/etc/mrtg/system uptime`
+Title[uptime]: Uptime and Idle Time
+PageTop[uptime]: <h3>Uptime and Idle Time</h3>
+YLegend[uptime]: Uptime (sec)
+ShortLegend[uptime]: &nbsp;&nbsp;&nbsp;
+LegendI[uptime]: Total Uptime&nbsp;
+LegendO[uptime]: Idle Time&nbsp;
+

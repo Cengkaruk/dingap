@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Path change
+if [ -e /var/webconfig/htdocs/webalizer ]; then
+	logger -p local6.notice -t installer "app-awstats - archiving old reports"
+	mv /var/webconfig/htdocs/webalizer /var/webconfig/reports/awstats/old
+elif [ -e /var/webconfig/htdocs/reports/apache ]; then
+	logger -p local6.notice -t installer "app-awstats - archiving old reports"
+	mv /var/webconfig/htdocs/reports/apache /var/webconfig/reports/awstats/old
+elif [ -e /var/webconfig/htdocs/reports/httpd ]; then
+	logger -p local6.notice -t installer "app-awstats - archiving old reports"
+	mv /var/webconfig/htdocs/reports/httpd /var/webconfig/reports/awstats/old
+fi
+
+# Get rid of legacy cronjob in old versions
+CHECKCRON=`grep 'webalizer' /etc/crontab 2>/dev/null`
+if [ -n "$CHECKCRON" ]; then
+	logger -p local6.notice -t installer "app-awstats - removing legacy cron job"
+	grep -v 'webalizer' /etc/crontab > /etc/crontab.new
+	mv /etc/crontab.new /etc/crontab
+fi

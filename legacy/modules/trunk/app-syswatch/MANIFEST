@@ -1,0 +1,7 @@
+include api/Syswatch.class.php
+include wsdl/Syswatch.wsdl
+include ./dnsupdate
+include ./syswatch
+include ./etc/syswatch
+include ./etc/logrotate.d/syswatch
+include ./etc/rc.d/init.d/syswatch

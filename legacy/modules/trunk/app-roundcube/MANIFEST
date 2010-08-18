@@ -1,0 +1,7 @@
+menu htdocs/menus/roundcube
+locale roundcube htdocs/admin/lang api/lang
+include api/RoundCube.class.php
+include htdocs/admin/roundcube.php
+include htdocs/images/icons/16x16/icon-roundcube.png
+include ./db.inc.php
+include ./main.inc.php

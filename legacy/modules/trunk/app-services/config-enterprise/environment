@@ -1,0 +1,6 @@
+sdn_prefix = sdn
+sdn_domain = clearsdn.com
+sdn_servers = 4
+sdn_version = 4.05
+sdn_url = https://secure.clearcenter.com/portal
+sdn_os_license = 0

@@ -1,0 +1,5 @@
+#menu htdocs/menus/antispam
+locale antispam htdocs/admin/lang
+include htdocs/admin/antispam.php
+include htdocs/images/icons/16x16/icon-antispam.png
+include htdocs/images/icons/32x32/icon-antispam.png

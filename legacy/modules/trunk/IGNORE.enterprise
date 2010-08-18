@@ -1,0 +1,6 @@
+find -name .ignore | xargs rm -f
+touch app-pcmcia/.ignore
+touch app-wireless/.ignore
+touch app-jnettop/.ignore
+touch app-roundcube/.ignore
+touch app-mythtv-backend/.ignore

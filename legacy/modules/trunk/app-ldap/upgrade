@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# Use new standard location for initialization flags
+#---------------------------------------------------
+
+if ( [ -e /etc/kolab/.kolab2_configured ] && [ ! -e /etc/system/initialized/directory ] ); then
+	logger -p local6.notice -t installer "app-ldap - migrating LDAP initialization flag"
+	touch /etc/system/initialized/directory
+fi
+
+if [ -e /etc/system/initialized/ldap ]; then
+	logger -p local6.notice -t installer "app-ldap - migrating directory initialization flag"
+	mv /etc/system/initialized/ldap /etc/system/initialized/directory
+fi
+
+# Remove old BIND_IP setting
+#---------------------------
+
+CHECK=`/bin/grep ^BIND_IP /etc/sysconfig/ldap 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ldap - removing unused BIND_IP setting"
+	/bin/grep -v ^BIND_IP /etc/sysconfig/ldap > /etc/sysconfig/ldap.$$
+	mv /etc/sysconfig/ldap.$$ /etc/sysconfig/ldap
+fi
+
+# Add default SSL certs
+#----------------------
+
+umask 0116
+
+if [ ! -e /etc/openldap/cacerts/key.pem ]; then
+	logger -p local6.notice -t installer "app-ldap - creating default SSL key"
+	/usr/bin/openssl genrsa -out /etc/openldap/cacerts/key.pem 2048 2>/dev/null
+fi
+
+if [ ! -e /etc/openldap/cacerts/cert.pem ]; then
+	logger -p local6.notice -t installer "app-ldap - creating default SSL certificate"
+	/usr/bin/openssl req -new -key /etc/openldap/cacerts/key.pem -x509 -out /etc/openldap/cacerts/cert.pem -config /etc/system/openssl.cnf -days 3000 2>/dev/null
+fi
+
+chown root.ldap /etc/openldap/cacerts/key.pem /etc/openldap/cacerts/cert.pem

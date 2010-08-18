@@ -1,0 +1,2 @@
+echo "$new_routers" > /var/lib/dhclient/$interface.routers
+

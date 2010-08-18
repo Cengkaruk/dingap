@@ -1,0 +1,2 @@
+MECH=pam
+SOCKET=/var/spool/postfix/var/run/saslauthd/mux

@@ -1,0 +1,8 @@
+menu htdocs/menus/network-status
+locale network-status htdocs/admin/lang
+include api/ConnectionTracking.class.php
+include api/NetworkServices.class.php
+include htdocs/admin/network-status.php
+include htdocs/images/icons/16x16/icon-network-status.png
+include htdocs/images/icons/32x32/icon-network-status.png
+include ./tracklist.c

@@ -1,0 +1,38 @@
+menu htdocs/menus/dns
+menu htdocs/menus/network
+locale hosts api/lang
+locale ethers api/lang
+locale hostname api/lang
+locale iface api/lang
+locale network api/lang
+locale resolver api/lang
+locale wireless api/lang
+locale dns htdocs/admin/lang
+locale network htdocs/admin/lang
+include api/Ethers.class.php
+include api/Hostname.class.php
+include api/HostnameChecker.class.php
+include api/Hosts.class.php
+include api/Iface.class.php
+include api/IfaceManager.class.php
+include api/NetStat.class.php
+include api/Network.class.php
+include api/Routes.class.php
+include api/Resolver.class.php
+include htdocs/admin/dns.php
+include htdocs/admin/network.php
+include htdocs/admin/network.inc.php
+include htdocs/admin/network.js.php
+include htdocs/admin/network.xml.php
+include htdocs/images/icons/16x16/icon-dns.png
+include htdocs/images/icons/32x32/icon-dns.png
+include htdocs/images/icons/16x16/icon-network.png
+include htdocs/images/icons/32x32/icon-network.png
+include wsdl/Hostname.wsdl
+include wsdl/Iface.wsdl
+include wsdl/IfaceManager.wsdl
+include wsdl/Network.wsdl
+include wsdl/Resolver.wsdl
+include ./dhclient-exit-hooks
+include ./upgrade
+include ./upgrade-api

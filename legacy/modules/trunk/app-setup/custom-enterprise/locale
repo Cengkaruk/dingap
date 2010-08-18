@@ -1,0 +1,11 @@
+//============================================================================
+//
+// Do not touch these :-)
+//
+// - country code
+// - description
+// - keyboard (default)
+//
+//============================================================================
+
+language_list = cs_CZ,Czech,cz-lat2|da_DK,Danish,us|nl_NL,Dutch,us|en_US,English (US),us|fi_FI,Finnish,fi|fr_FR,French,fr-latin1|de_DE,German,de-latin1-nodeadkeys|gr_GR,Greek,us|hu_HU,Hungarian,us|it_IT,Italian,it|no_NO,Norwegian,no-latin1|pl_PL,Polish,pl|pt_BR,Portuguese(Brazilian),pt-latin1|pt_PT,Portuguese,pt-latin1|zh_CN,Simplified Chinese,us|sl_SL,Slovenian,us|es_ES,Spanish,es|sv_SE,Swedish,sv-latin1|tr_TR,Turkish,trq|ro_RO,Romanian,us|ru_RU,Russian,ru

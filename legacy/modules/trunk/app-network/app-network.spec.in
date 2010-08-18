@@ -1,0 +1,99 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-network
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Network tools and configuration module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: bind-utils
+Requires: dhclient
+Requires: ethtool
+Requires: net-tools
+Requires: rp-pppoe
+Requires: wireless-tools
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-ppp = %VERSION%
+Provides: cc-network
+Obsoletes: cc-network
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Network tools and configuration module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/network
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 0644 dhclient-exit-hooks $RPM_BUILD_ROOT/etc
+install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/network/
+install -m 0755 upgrade-api $RPM_BUILD_ROOT/usr/share/system/modules/network/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-network - installing"
+
+/usr/sbin/addsudo /bin/hostname app-network
+/usr/sbin/addsudo /bin/netstat app-network
+/usr/sbin/addsudo /sbin/ethtool app-network
+/usr/sbin/addsudo /sbin/ifconfig app-network
+/usr/sbin/addsudo /sbin/ifdown app-network
+/usr/sbin/addsudo /sbin/ifup app-network
+/usr/sbin/addsudo /sbin/iwconfig app-network
+
+/usr/share/system/modules/network/upgrade >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-network - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+/etc/dhclient-exit-hooks
+/usr/share/system/modules/network/upgrade
+/usr/share/system/modules/network/upgrade-api

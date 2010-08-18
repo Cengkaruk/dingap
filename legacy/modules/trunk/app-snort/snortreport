@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ISRUNNING=`/sbin/pidof -x snortreport.sh`
+if [ -n "$ISRUNNING" ]; then
+	logger -p local6.notice -t reports "intrusion detection report already running"
+	exit 0
+fi
+
+REPORT_DIR=/var/webconfig/reports/snort/init
+if [ ! -e "$REPORT_DIR" ]; then
+	logger -p local6.notice -t reports "updating intrusion detection report using all data"
+	/usr/sbin/snortreport.sh -a 2>/dev/null
+	touch /var/webconfig/reports/snort/init
+	logger -p local6.notice -t reports "finished intrusion detection report using all data"
+else
+	logger -p local6.notice -t reports "updating intrusion detection report"
+	/usr/sbin/snortreport.sh -u 2>/dev/null
+	logger -p local6.notice -t reports "finished intrusion detection report"
+fi

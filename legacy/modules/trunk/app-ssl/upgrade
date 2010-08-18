@@ -1,0 +1,7 @@
+#!/bin/sh
+
+CHECK=`grep "emailAddress_max[[:space:]]*=[[:space:]]*40" /etc/ssl/openssl.cnf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ssl - changing email max to 100"
+	sed -i -e 's/^emailAddress_max[[:space:]]*=.*/emailAddress_max               = 100/' /etc/ssl/openssl.cnf
+fi

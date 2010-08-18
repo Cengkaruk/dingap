@@ -1,0 +1,105 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-proftpd
+Version: %VERSION%
+Release: %RELEASE%
+Summary: FTP server module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: proftpd >= 1.3.1
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-proftpd
+Obsoletes: cc-proftpd
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+FTP server module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/proftpd.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/proftpd/
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 644 proftpd.conf $RPM_BUILD_ROOT/usr/share/system/modules/proftpd/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/proftpd/
+install -m 644 proftpd.ldap.conf.template $RPM_BUILD_ROOT/etc/openldap/templates
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-proftpd - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-proftpd - disabling on boot"
+	chkconfig --level 2345 proftpd off
+
+	TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+	logger -p local6.notice -t installer "app-proftpd - creating default configuration"
+	cp /etc/proftpd.conf /usr/share/system/modules/proftpd/proftpd.conf.$TIMESTAMP
+	cp /usr/share/system/modules/proftpd/proftpd.conf /etc/
+
+	BANNER=`sed -e 's/release .*//' /etc/release`
+	sed -i -e "s/^ServerName.*/ServerName \"$BANNER\"/" /etc/proftpd.conf
+fi
+
+/usr/share/system/modules/proftpd/upgrade >/dev/null 2>&1
+
+logger -p local6.notice -t installer "app-proftpd - synchronizing with LDAP"
+/usr/sbin/ldapsync config proftpd >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-proftpd - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+/usr/share/system/modules/proftpd/proftpd.conf
+/usr/share/system/modules/proftpd/upgrade
+/etc/openldap/templates/proftpd.ldap.conf.template

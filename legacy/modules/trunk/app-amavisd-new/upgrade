@@ -1,0 +1,132 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Upgrade old configuration file
+#-------------------------------
+
+CHECK=`grep "/etc/amavisd/api.conf" /etc/amavisd.conf 2>/dev/null`
+
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-amavisd-new - upgrading 4.x configuration file"
+	cp -p /etc/amavisd.conf /usr/share/system/modules/amavisd-new/amavisd.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp -p /etc/amavisd.conf /etc/amavisd.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp /usr/share/system/modules/amavisd-new/amavisd.conf /etc/amavisd.conf >/dev/null 2>&1
+
+	KEEPERS="\
+		bypass_virus_checks_maps \
+		bypass_spam_checks_maps \
+		mailfrom_notify_admin \
+		mailfrom_notify_recip \
+		mailfrom_notify_spamadmin \
+		sa_spam_modifies_subj \
+		sa_spam_subject_tag \
+		sa_spam_level_char \
+		sa_tag_level_deflt  \
+		sa_tag2_level_deflt \
+		sa_kill_level_deflt \
+		sa_spam_subject_tag \
+		final_virus_destiny \
+		final_banned_destiny \
+		final_spam_destiny \
+		final_bad_header_destiny"
+
+	for PARAM in $KEEPERS; do
+		OLDVALUE=`grep "^.$PARAM[[:space:]]" /usr/share/system/modules/amavisd-new/amavisd.conf.$TIMESTAMP.old | sed 's/;.*/;/'`
+		EXISTS=`grep "^.$PARAM[[:space:]]" /etc/amavisd/api.conf | sed 's/;.*/;/'`
+		if [ -n "$EXISTS" ]; then
+			logger -p local6.notice -t installer "app-amavisd-new - migrating parameter value for $PARAM"
+			sed -i -e "s/^\\\$$PARAM[[:space:]]*=.*/$OLDVALUE/" /etc/amavisd/api.conf
+		else
+			logger -p local6.notice -t installer "app-amavisd-new - migrating parameter $PARAM"
+			echo $OLDVALUE >> /etc/amavisd/api.conf
+		fi
+	done
+
+	# A whole bunch of shell code just to swap out the one line of
+	# banned file extensions.  Fix the ".." regular expression in the
+	# old 4.x configurations while we're at it.
+
+	BANNEDEXT=`grep -A1 "# PCN: banned extensions" /usr/share/system/modules/amavisd-new/amavisd.conf.$TIMESTAMP.old | grep -v "# PCN:" | sed 's/\.\./\\\./'`
+	SKIP=0
+	IFS=""
+
+	while read -r LINE; do
+		if [ $SKIP == 1 ]; then
+			SKIP=0 
+			echo $BANNEDEXT >> /etc/amavisd/api.conf.$$
+		else
+			echo "$LINE" >> /etc/amavisd/api.conf.$$
+		fi
+
+		if [ "$LINE" == "  # Banned extensions" ]; then
+			SKIP=1
+		fi
+	done </etc/amavisd/api.conf
+
+	mv /etc/amavisd/api.conf.$$ /etc/amavisd/api.conf
+fi
+
+# Make sure api.conf ends with 1;
+#--------------------------------
+
+CHECK=`tail -n1 /etc/amavisd/api.conf | grep "^1;$"`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-amavisd-new - adding proper file terminator to api.conf"
+	echo "1;" >> /etc/amavisd/api.conf
+fi
+
+# Update quarantine policy
+#-------------------------
+
+CHECK=`grep "^\$interface_policy{.9998.}.*AM.PDP" /etc/amavisd/api.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-amavisd-new - updating quarantine interface policy"
+	sed -i -e "s/^\$interface_policy{.9998.}.*AM.PDP.*/\$interface_policy{'9998'} = 'QRELEASE';/" /etc/amavisd/api.conf
+fi
+
+CHECK=`grep "^\$policy_bank{.AM.PDP.}" /etc/amavisd/api.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-amavisd-new - updating quarantine policy"
+	sed -i -e "s/^\$policy_bank{.AM.PDP.}.*/\$policy_bank{'QRELEASE'} = {protocol => 'AM.PDP', inet_acl => [qw( 127.0.0.1 [::1])], release_method => 'smtp:[127.0.0.1]:10026'};/" /etc/amavisd/api.conf
+fi
+
+# Add spam mapping
+#-----------------
+ 
+implantmap() {
+	MAP=$1
+
+	CHECK=`grep $MAP /etc/amavisd.conf`
+	if [ -z "$CHECK" ]; then
+		IFS="|"
+		rm -f /etc/amavisd.conf.$$
+		while read -r LINE; do
+			IMPLANT=`echo $LINE | grep MBL_`
+			echo "$LINE" >> /etc/amavisd.conf.$$
+			if [ -n "$IMPLANT" ]; then
+				logger -p local6.notice -t installer "app-amavisd-new - added spam mapping $MAP"
+				echo "    [ qr'^$MAP' => 2.0 ]," >> /etc/amavisd.conf.$$
+			fi	
+		done </etc/amavisd.conf
+
+		mv /etc/amavisd.conf.$$ /etc/amavisd.conf
+	fi
+}
+
+implantmap INetMsg.SpamDomain
+implantmap winnow
+
+# Remove deprecated files
+#------------------------
+
+if [ -e /etc/amavisd.kolab.conf ]; then
+	logger -p local6.notice -t installer "app-amavisd-new - removing deprecated file /etc/amavisd.kolab.conf"
+	rm -f /etc/amavisd.kolab.conf
+fi
+
+if [ -e /etc/amavisd/quarantine.conf ]; then
+	logger -p local6.notice -t installer "app-amavisd-new - removing deprecated file /etc/amavisd/quarantine.conf"
+	rm -f /etc/amavisd/quarantine.conf
+fi
+

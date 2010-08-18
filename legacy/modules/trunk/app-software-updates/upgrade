@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Directory changes
+#------------------
+
+if [ -e /usr/local/system/configs/autoupdate/recommended ]; then
+	logger -p local6.notice -t installer "app-software-update - migrating old recommended software auto-update"
+    mv /usr/local/system/configs/autoupdate/recommended /usr/share/system/modules/services/recommended
+fi
+
+if [ -e /usr/local/system/configs/autoupdate/crit ]; then
+	logger -p local6.notice -t installer "app-software-update - migrating old critical software auto-update"
+    mv /usr/local/system/configs/autoupdate/crit /usr/share/system/modules/services/crit
+fi
+
+# Add some entries to installonlypkgs
+PACKAGES="lirc-kmdl"
+for PACKAGE in $PACKAGES; do
+	CHECK=`grep "^installonlypkgs.*[[:space:]]$PACKAGE" /etc/yum.conf 2>/dev/null`
+	CHECK2=`grep "^installonlypkgs.*[[:space:]=]$PACKAGE[[:space:]]" /etc/yum.conf 2>/dev/null`
+	if ( [ -z "$CHECK" ] && [ -z "$CHECK2" ] ); then
+		logger -p local6.notice -t installer "app-software-update - adding installonlypkgs item: $PACKAGE"
+		sed -i -e "s/^installonlypkgs=/installonlypkgs=$PACKAGE /" yum.conf
+	fi
+done

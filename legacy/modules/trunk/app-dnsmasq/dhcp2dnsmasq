@@ -1,0 +1,89 @@
+#!/usr/bin/perl -w
+
+my $DNSMASQCFG = "/etc/dnsmasq/dhcp.conf";
+my $DHCPCFGALT = "/etc/dhcpd.conf.rpmsave";
+my $DHCPCFGMAIN = "/etc/dhcpd.conf";
+my $DHCPCFG;
+
+# Bail if no conversion is necessary
+if (-e $DHCPCFGMAIN) {
+	$DHCPCFG = $DHCPCFGMAIN;
+} elsif (-e $DHCPCFGALT) {
+	$DHCPCFG = $DHCPCFGALT;
+} else {
+	print "No dhcpd.conf found\n";
+	exit 0;
+}
+
+print "Converting $DHCPCFG\n";
+
+system("mkdir -p /etc/dnsmasq");
+
+my $insubnet = 0;
+my $eth = "eth1";
+my $dnsserver;
+my $winsserver;
+my $domain;
+
+open(DNSMASQ, ">$DNSMASQCFG") || die "Failed to open $DNSMASQCFG: $!";
+open(DHCP, "$DHCPCFG") || die "Failed to open $DHCPCFG: $!";
+while(<DHCP>) {
+	
+	($domain) = (/option\s+domain-name\s+(.*)/) if (/^option\s+domain-name\s+/);
+	($dnsserver) = (/option\s+domain-name-servers\s+([\d\.]+)/) if (/^option\s+domain-name-servers\s+/);
+	($winsserver) = (/option\s+netbios-name-servers\s+([\d\.]+)/) if (/^option\s+netbios-name-servers\s+/);
+
+	$insubnet = 1 if (/^subnet/);
+	$insubnet = 0 if (/^}/);
+
+	if ($insubnet) {
+		if (/^\s*subnet/) {
+			(my $subnet, my $netmask) = (/\s*subnet\s+([\d\.]+)\s+netmask\s+([\d\.]+)/);
+
+			# Ugly hackery to determine interface
+			my $trimsubnet = $subnet;
+			$trimsubnet =~ s/\.\d+$//;
+			$eth = `/bin/grep -l "IPADDR=.*$trimsubnet" /etc/sysconfig/network-scripts/ifcfg-eth*`;
+			if (! $eth)   {
+			 	$eth = "eth0";
+			}
+			$eth =~ s/.*ifcfg-//;
+			chomp($eth);
+			print DNSMASQ "dhcp-option=$eth,6,$dnsserver\n" if ($dnsserver);
+			print DNSMASQ "dhcp-option=$eth,44,$winsserver\n" if ($winsserver);
+			print DNSMASQ "dhcp-option=$eth,1,$netmask\n";
+		}
+
+print $_;
+		if (/^\s*range/) {
+			(my $lowrange, my $toprange) = (/\s*range\s+([\d\.]+)\s+([\d\.]+)/);
+			print DNSMASQ "dhcp-range=$eth,$lowrange,$toprange,12h\n";
+		}
+
+		if (/^\s*option\s+broadcast-address/) {
+			(my $broadcastaddress) = (/\s*option\s+broadcast-address\s+([\d\.]+)/);
+			print DNSMASQ "dhcp-option=$eth,28,$broadcastaddress\n";
+		}
+
+		if (/^\s*option\s+routers/) {
+			(my $routers) = (/\s*routers\s+([\d\.]+)/);
+			print DNSMASQ "dhcp-option=$eth,3,$routers\n";
+		}
+	}
+}
+close(DHCP);
+close(DNSMASQ);
+
+if (-e "/etc/dnsmasq.conf") {
+	if ($domain) {
+		$domain =~ s/"//g;
+		$domain =~ s/;//g;
+		system("/bin/sed -e 's/^domain=.*/domain=$domain/' /etc/dnsmasq.conf > /etc/dnsmasq.conf.new");
+		system("/bin/mv /etc/dnsmasq.conf.new /etc/dnsmasq.conf");
+	}
+
+	system("/bin/grep -v '^conf-file=/etc/dnsmasq/dhcp.conf' /etc/dnsmasq.conf > /etc/dnsmasq.conf.new");
+	system("/bin/mv /etc/dnsmasq.conf.new /etc/dnsmasq.conf");
+	system("/bin/echo 'conf-file=/etc/dnsmasq/dhcp.conf' >> /etc/dnsmasq.conf");
+}
+system("/bin/mv $DHCPCFG /etc/dhcpd.old");

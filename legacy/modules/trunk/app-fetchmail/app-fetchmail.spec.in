@@ -1,0 +1,87 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-fetchmail
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Maildrop module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: fetchmail
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-postfix = %VERSION%
+Provides: cc-fetchmail
+Obsoletes: cc-fetchmail
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Maildrop module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/rc.d/init.d/
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 755 fetchmail.sysv $RPM_BUILD_ROOT/etc/rc.d/init.d/fetchmail
+install -m 0710 fetchmail $RPM_BUILD_ROOT/etc/fetchmail
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-fetchmail - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-fetchmail - disabling on boot"
+	chkconfig --add fetchmail
+	chkconfig --level 2345 fetchmail off
+fi
+
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-fetchmail - uninstalling"
+	service fetchmail stop >/dev/null 2>&1
+	chkconfig --level 2345 fetchmail off
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%attr(0710,root,root) %config(noreplace) /etc/fetchmail
+/var/webconfig/
+/etc/rc.d/init.d/fetchmail

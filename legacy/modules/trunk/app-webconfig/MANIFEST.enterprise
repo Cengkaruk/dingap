@@ -1,0 +1,11 @@
+locale language htdocs/admin/lang
+locale settings htdocs/admin/lang
+menu htdocs/menus/language
+#menu htdocs/menus/settings
+include htdocs/admin/language.php
+include htdocs/admin/language.inc.php
+include htdocs/admin/settings.php
+include htdocs/images/icons/16x16/icon-language.png
+include htdocs/images/icons/32x32/icon-language.png
+include htdocs/images/icons/16x16/icon-settings.png
+include htdocs/images/icons/32x32/icon-settings.png

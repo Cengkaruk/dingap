@@ -1,0 +1,21 @@
+menu htdocs/menus/antivirus
+menu htdocs/menus/antiphishing
+locale clamav api/lang
+locale freshclam api/lang
+locale antiphishing htdocs/admin/lang
+locale antivirus htdocs/admin/lang
+include api/ClamAv.class.php
+include api/Freshclam.class.php
+include htdocs/admin/antiphishing.php
+include htdocs/admin/antivirus.php
+include htdocs/admin/antivirus-report.php
+include htdocs/admin/antivirus-status.php
+include htdocs/images/icons/16x16/icon-antivirus.png
+include htdocs/images/icons/32x32/icon-antivirus.png
+include htdocs/images/icons/16x16/icon-antiphishing.png
+include htdocs/images/icons/32x32/icon-antiphishing.png
+include ./clamd-upgrade.conf
+include ./freshclam-reset
+include ./freshclam-upgrade.conf
+include ./updateclamconf
+include ./upgrade

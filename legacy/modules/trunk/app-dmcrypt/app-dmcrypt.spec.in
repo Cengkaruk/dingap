@@ -1,0 +1,82 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-dmcrypt
+Version: %VERSION%
+Release: %RELEASE%
+Summary: File volume encryption utility
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: cryptsetup
+Requires: webconfig-utils >= 4.0-3.1
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-dmcrypt
+Obsoletes: cc-dmcrypt
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+File volume encryption utility
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/dmcrypt
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-dmcrypt installing"
+
+addsudo /var/webconfig/scripts/dmcrypt.php app-dmcrypt
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-dmcrypt - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+%attr(0755, root,root) /var/webconfig/scripts/dmcrypt.php
+%attr(0644, root,root) /var/webconfig/scripts/dmcrypt.inc.php

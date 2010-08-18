@@ -1,0 +1,59 @@
+#!/usr/bin/perl -w
+
+###############################################################################
+#
+# Copyright 2002 Point Clark Networks.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+###############################################################################
+
+use strict;
+use lib '/usr/share/system/scripts';
+use Getopt::Long;
+require 'functions';
+
+# Usual security measures... see "perlsec" manual page for details.
+#------------------------------------------------------------------
+
+$ENV {'PATH'} = '/sbin';
+$ENV {'SHELL'} = '/bin/bash';
+delete $ENV {'ENV', 'BASH_ENV'};
+
+if ($< != 0) {
+	print("You must be root to update system files... exiting.\n");
+	exit;
+}
+
+my $ip;
+my $netmask;
+my %opts;
+my $f_dhcpd = "/etc/dhcpd.conf";
+
+# Command line options
+#---------------------
+
+GetOptions(
+	"ip=s" => \$ip,
+	"netmask=s" => \$netmask,
+);
+
+if (!$ip || !$netmask || (CheckIP($ip) != 0) || (CheckIP($netmask) != 0)) {
+	print("Invalid IP/Netmask... using default 192.168.1.0/255.255.255.0\n");
+	$ip = "192.168.1.0";
+	$netmask = "255.255.255.0";
+}
+
+SetDHCP($ip, $netmask);
