@@ -25,6 +25,8 @@ Requires: webconfig-php
 Requires: webconfig-utils
 Requires: app-setup = %VERSION%
 Requires: app-theme = %VERSION%
+# TODO: version change required for 5.2 update
+Requires: app-theme-clearos5x >= 5.2-15
 Provides: app-webconfig-default
 Provides: cc-webconfig
 Obsoletes: cc-webconfig
