@@ -65,6 +65,7 @@ include wsdl/Stats.wsdl
 include gui/Gui.class.php
 include gui/ScreenScraper.class.php
 include gui/Webconfig.inc.php
+include gui/Charts.inc.php
 
 include ./Config.inc.php
 include common/Error.class.php
@@ -96,6 +97,7 @@ include htdocs/include/getimage.php
 include htdocs/index.php
 include htdocs/admin/daemon.php
 include htdocs/admin/index.php
+include htdocs/admin/index.js.php
 include htdocs/admin/organization.php
 include htdocs/admin/organization.inc.php
 include htdocs/admin/organization.js.php
@@ -297,6 +299,11 @@ include htdocs/images/flags/za.png
 include htdocs/images/flags/zw.png
 include htdocs/templates/base/images/icons/16x16/dialog_icon_warning.png
 include htdocs/templates/base/images/icons/16x16/icon-arrowright.png
+include htdocs/templates/base/images/icons/16x16/icon-arrowup.png
+include htdocs/templates/base/images/icons/16x16/icon-arrowdown.png
+include htdocs/templates/base/images/icons/16x16/icon-clearsdn-info.png
+include htdocs/templates/base/images/icons/16x16/icon-clearsdn-ok.png
+include htdocs/templates/base/images/icons/16x16/icon-clearsdn-warning.png
 include htdocs/templates/base/images/icons/16x16/icon-delete.png
 include htdocs/templates/base/images/icons/16x16/icon-next.png
 include htdocs/templates/base/images/icons/16x16/icon-pptpd.png
