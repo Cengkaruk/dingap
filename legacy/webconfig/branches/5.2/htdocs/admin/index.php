@@ -23,6 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once("../../gui/Webconfig.inc.php");
+require_once("../../gui/Charts.inc.php");
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,6 +31,7 @@ require_once(GlobalGetLanguageTemplate(__FILE__));
 // Header
 //
 ///////////////////////////////////////////////////////////////////////////////
+
 
 WebAuthenticate();
 WebHeader(WEB_LANG_PAGE_TITLE);
@@ -41,8 +43,32 @@ WebDialogIntro(WEB_LANG_PAGE_TITLE, "/images/icon-intro.png", WEB_LANG_PAGE_INTR
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-DisplaySystemOverview();
-DisplayInterfaces();
+if (file_exists("../../api/ClearSdnService.class.php")) {
+	require_once("../../api/ClearSdnService.class.php");
+	echo "<script type='text/javascript' src='/templates/standard-5.1/js/jquery/jquery.jqplot.min.js'></script>
+	<script type='text/javascript' src='/templates/standard-5.1/js/jquery/jqplot.barRenderer.min.js'></script>
+	<script type='text/javascript' src='/templates/standard-5.1/js/jquery/jqplot.pieRenderer.min.js'></script>
+	<!--[if IE]><script type='text/javascript' src='/templates/standard-5.1/js/jquery/excanvas.min.js'></script><![endif]-->\n
+	";
+
+	$sdn = new ClearSdnService();
+	echo "<table width='100%'>";
+	echo "<tr>";
+	echo "<td width='50%' valign='top'>";
+	DisplaySystemOverview();
+	DisplayInterfaces();
+	echo "</td>";
+	echo "<td width='50%' valign='top'>";
+	WebTableOpen(CLEARSDN_SERVICE_LANG_SERVICES_TITLE, "100%", "clearsdn-alerts");
+	echo "<tr id='clearsdn-splash'><td align='center'><img src='/images/icon-os-to-sdn.png' alt=''><div id='whirly' style='padding: 10 0 10 0'>" . WEBCONFIG_ICON_LOADING . "</div></td></tr>";
+	WebTableClose("100%");
+	echo "</td>";
+	echo "</tr>";
+	echo "</table>";
+} else {
+	DisplaySystemOverview();
+	DisplayInterfaces();
+}
 
 // E-mail dashboard
 if (file_exists("../../gui/PostfixReport.class.php")) {
@@ -114,8 +140,7 @@ function DisplaySystemOverview()
 		$tablerow .= "
 		  <tr>
 			<td class='mytablesubheader' nowrap>" . TIME_LANG_TIME . "</td>
-			<td nowrap>$thedate $thetime ($timezone)</td>
-			<td nowrap>" . WebUrlJump("/admin/date.php", LOCALE_LANG_EDIT) . "</td>
+			<td nowrap>$thedate $thetime</td>
 		  </tr>
 		";
 	}
@@ -141,7 +166,6 @@ function DisplaySystemOverview()
 			  <tr>
 				<td class='mytablesubheader' nowrap>" . LOCALE_LANG_LANGUAGE . "</td>
 				<td nowrap>$langdesc - $langcode</td>
-				<td nowrap>" . WebUrlJump("/admin/language.php", LOCALE_LANG_EDIT) . "</td>
 			  </tr>
 			";
 		} catch (Exception $e) {
@@ -166,7 +190,6 @@ function DisplaySystemOverview()
 			  <tr>
 				<td class='mytablesubheader' nowrap>" . WEB_LANG_NUMBER_OF_USERS . "</td>
 				<td nowrap>$usercount</td>
-				<td nowrap>" . WebUrlJump("/admin/users.php", LOCALE_LANG_EDIT) . "</td>
 			  </tr>
 			";
 		} catch (Exception $e) {
@@ -241,20 +264,18 @@ function DisplayInterfaces()
 			<td>$eth</td>
 			<td>$roletext <input type='hidden' name='role' value='$role' /></td>
 			<td>$typetext</td>
-			<td>$bootproto</td>
 			<td>$ip</td>
 			<td>$link</td>
-			<td>$speed</td>
 		  </tr>
 		";
 	}
 
-	WebTableOpen(IFACE_LANG_INTERFACE, "100%");
-	WebTableHeader("|" . FIREWALL_LANG_ROLE . "|" . IFACE_LANG_TYPE .
-			"|" . IFACE_LANG_BOOTPROTO . "|" . NETWORK_LANG_IP .
-			"|" . IFACE_LANG_LINK . "|" . IFACE_LANG_SPEED);
+	WebTableOpen(NETWORK_LANG_NETWORK, "100%");
+	WebTableHeader(IFACE_LANG_INTERFACE . "|" . FIREWALL_LANG_ROLE . "|" . IFACE_LANG_TYPE .
+			"|" . NETWORK_LANG_IP .
+			"|" . IFACE_LANG_LINK);
 	echo $ethsummary;
 	WebTableClose("100%");
 }
-
+// vim: syntax=php ts=4
 ?>

@@ -30,6 +30,11 @@ require_once('../../api/StorageDevice.class.php');
 require_once('../../api/Folder.class.php');
 require_once('../../api/Mailer.class.php');
 require_once('../../api/Hostname.class.php');
+require_once("../../api/Product.class.php");
+require_once("../../api/ClearSdnService.class.php");
+require_once("../../api/ClearSdnStore.class.php");
+require_once("../../api/ClearSdnShoppingCart.class.php");
+require_once("../../api/ClearSdnCartItem.class.php");
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -363,6 +368,36 @@ try {
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+// Handle Update
+//
+///////////////////////////////////////////////////////////////////////////////
+
+if (isset($_POST['addtocart'])) {
+	try {
+		$item = new ClearSdnCartItem(ClearSdnService::SDN_BACKUP);
+		$item->SetPid($_POST['pid']);
+		$item->SetDescription($_POST['description-' . $_POST['pid']]);
+		$item->SetUnitPrice($_POST['unitprice-' . $_POST['pid']]);
+		$item->SetUnit($_POST['unit-' . $_POST['pid']]);
+		$item->SetDiscount($_POST['discount-' . $_POST['pid']]);
+		$item->SetCurrency($_POST['currency-' . $_POST['pid']]);
+		$item->SetClass(ClearSdnCartItem::CLASS_SERVICE);
+		$item->SetGroup("notused");
+		$cart = new ClearSdnShoppingCart();
+		$cart->AddItem($item);
+		WebFormOpen("cart.php");
+		WebDialogInfo(CLEARSDN_SHOPPING_CART_LANG_ITEM_ADDED_TO_CART . "&nbsp;&nbsp;" . WebButtonViewCart());
+		WebFormClose();
+	} catch (ValidationException $e) {
+		WebDialogWarning(WEB_LANG_ALREADY_SUBSCRIBED);
+	} catch (Exception $e) {
+		WebDialogWarning($e->GetMessage());
+	}
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
 // M A I N
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -503,6 +538,7 @@ function DisplayStatus()
 function DisplayTabView()
 {
 	global $rbs;
+	$sdn = new ClearSdnService();
 
 	$key = null;
 	try {
@@ -524,6 +560,8 @@ function DisplayTabView()
 	$tabinfo['restore']['contents'] = GetRestoreTab();
 	$tabinfo['history']['title'] = WEB_LANG_HISTORY_TITLE;
 	$tabinfo['history']['contents'] = GetHistoryTab();
+	$tabinfo['subscription']['title'] = CLEARSDN_SERVICE_LANG_SUBSCRIPTION;
+	$tabinfo['subscription']['contents'] = GetSubscriptionTab();
 
 	echo "<div style='width: 100%'>";
 	WebTab(WEB_LANG_PAGE_TITLE, $tabinfo, $rbs_active_tab);
@@ -605,6 +643,55 @@ function GetBackupTab()
 	echo "</table>\n";
 	WebFormClose();
 
+	return ob_get_clean();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// GetSubscriptionTab()
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function GetSubscriptionTab()
+{
+	ob_start();
+	$sdn = new ClearSdnService();
+	$store = new ClearSdnStore();
+	echo "<div id='sdn-confirm-purchase' title='" . CLEARSDN_STORE_LANG_PURCHASE_CONFIRMATION . "'>";
+	echo "<div id='sdn-confirm-purchase-content'></div>";
+	echo "</div>";
+	WebFormOpen($_SERVER['PHP_SELF'], "post", "backup", "id='clearsdnform' target='_blank'");
+	echo "<table cellspacing='0' cellpadding='5' width='100%' border='0' class='tablebody' id='clearsdn-overview'>\n";
+	echo "
+		<tr id='clearsdn-splash'>
+		<td align='center'><img src='/images/icon-os-to-sdn.png' alt=''>
+		<div id='whirly' style='padding: 10 0 10 0'>" . WEBCONFIG_ICON_LOADING . "</div>
+		</td>
+		</tr>
+	";
+	echo "</table>";
+	WebFormClose();
+
+	echo "
+        <script language='javascript'>
+          $(document).ready(function() {
+            $.ajax({
+              type: 'POST',
+              url: 'clearsdn-ajax.php',
+              data: 'action=getServiceDetails&service=" . ClearSdnService::SDN_BACKUP . (isset($_POST['usecache']) ? "&usecache=1" : "") . "',
+              success: function(html) {
+                $('#clearsdn-splash').remove();
+                $('#clearsdn-overview').append(html);
+              },
+              error: function(xhr, text, err) {
+                $('#whirly').html(xhr.responseText.toString());
+                // TODO...should need below hack...edit templates.css someday
+                $('.ui-state-error').css('max-width', '700px'); 
+              }
+            });
+          });
+        </script>
+	";
 	return ob_get_clean();
 }
 

@@ -62,7 +62,7 @@ function DisplaySummary()
 
 		$endoflife = $register->GetEndOfLife();
 		$endoflicense = $register->GetEndOfLicense();
-		$servicelist = $register->GetServiceList();
+		//$servicelist = $register->GetServiceList();
 		$diagnostics = $register->GetDiagnosticsState();
 
 		// Horizon 2
@@ -83,6 +83,7 @@ function DisplaySummary()
 	$listitems = "";	
 	$index = 0;
 
+	/*
 	foreach ($servicelist as $service) {
 		if ($service['state']) {
 			$iconclass = "iconenabled";
@@ -103,6 +104,7 @@ function DisplaySummary()
 			</tr>
 		";
 	}
+	*/
 
 	// TODO: create some kind of method call instead of the "if" hack below
 
@@ -195,11 +197,11 @@ function DisplaySummary()
 	if (!WebIsSetup())
 		WebFormClose();
 
-	if (!WebIsSetup()) {
+	/*if (!WebIsSetup()) {
 		WebTableOpen(WEB_LANG_SERVICE_LIST, "550");
 		echo $listitems;
 		WebTableClose("550");
-	}
+	}*/
 }
 
 

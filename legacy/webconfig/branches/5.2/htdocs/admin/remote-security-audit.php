@@ -46,7 +46,7 @@ if (isset($_POST['converteval'])) {
 
 WebAuthenticate();
 WebHeader(WEB_LANG_PAGE_TITLE, "default", $style);
-WebDialogIntro(WEB_LANG_PAGE_TITLE, "/images/icon-antispam.png", WEB_LANG_PAGE_INTRO);
+WebDialogIntro(WEB_LANG_PAGE_TITLE, "/images/icon-remote-security-audit.png", WEB_LANG_PAGE_INTRO);
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -56,7 +56,7 @@ WebDialogIntro(WEB_LANG_PAGE_TITLE, "/images/icon-antispam.png", WEB_LANG_PAGE_I
 
 if (isset($_POST['addtocart'])) {
 	try {
-		$item = new ClearSdnCartItem(ClearSdnService::SDN_AS);
+		$item = new ClearSdnCartItem(ClearSdnService::SDN_AUDIT);
 		$item->SetPid($_POST['pid']);
 		$item->SetDescription($_POST['description-' . $_POST['pid']]);
 		$item->SetUnitPrice($_POST['unitprice-' . $_POST['pid']]);
@@ -101,7 +101,7 @@ function DisplayDetails()
 	echo "<div id='sdn-confirm-purchase' title='" . CLEARSDN_STORE_LANG_PURCHASE_CONFIRMATION . "'>";
 	echo "<div id='sdn-confirm-purchase-content'></div>";
 	echo "</div>";
-	WebFormOpen($_SERVER['PHP_SELF'], "post", "antispam", "id='clearsdnform' target='_blank'");
+	WebFormOpen($_SERVER['PHP_SELF'], "post", "remote-security-audit", "id='clearsdnform' target='_blank'");
 	WebTableOpen(CLEARSDN_SERVICE_LANG_OVERVIEW, "100%", "clearsdn-overview");
 	echo "
 		<tr id='clearsdn-splash'>
@@ -123,7 +123,7 @@ function DisplayDetails()
             $.ajax({
               type: 'POST',
               url: 'clearsdn-ajax.php',
-              data: 'action=getServiceDetails&service=" . ClearSdnService::SDN_AS . (isset($_POST['usecache']) ? "&usecache=1" : "") . "',
+              data: 'action=getServiceDetails&service=" . ClearSdnService::SDN_AUDIT . (isset($_POST['usecache']) ? "&usecache=1" : "") . "',
               success: function(html) {
                 $('#clearsdn-splash').remove();
                 $('#clearsdn-overview').append(html);
