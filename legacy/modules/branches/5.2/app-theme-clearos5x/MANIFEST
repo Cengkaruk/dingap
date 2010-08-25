@@ -106,7 +106,7 @@ include htdocs/templates/standard-5.1/images/navbar-small.jpg
 include htdocs/templates/standard-5.1/images/left-nav-middle.png
 include htdocs/templates/standard-5.1/images/left-nav-bottom.png
 include htdocs/templates/standard-5.1/js/jquery/jquery-1.3.2.min.js
-include htdocs/templates/standard-5.1/js/jquery/jquery.jqplot.js
+include htdocs/templates/standard-5.1/js/jquery/jquery.jqplot.min.js
 include htdocs/templates/standard-5.1/js/jquery/jqplot.barRenderer.min.js
 include htdocs/templates/standard-5.1/js/jquery/jqplot.canvasAxisLabelRenderer.min.js
 include htdocs/templates/standard-5.1/js/jquery/jqplot.categoryAxisRenderer.min.js
