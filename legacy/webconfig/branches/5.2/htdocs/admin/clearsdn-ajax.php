@@ -45,6 +45,8 @@ else if (isset($_POST['action']) && $_POST['action'] == 'uploadCart')
 	UploadCart();
 else if (isset($_POST['action']) && $_POST['action'] == 'getServiceSummary')
 	GetServiceSummary();
+else if (isset($_POST['action']) && $_POST['action'] == 'getDynamicDnsSettings')
+	GetDynamicDnsSettings();
 else
 	WebDialogWarning(WEB_LANG_INVALID_ACTION);
 
@@ -143,7 +145,7 @@ function GetServiceDetails()
 		$counter = 0;
 		foreach ($logs as $entry) {
 			$rowclass = 'rowenabled' . (($counter % 2) ? 'alt' : '');
-			$log .= "<tr class='$rowclass'><td width='2%'>" . $sdn->GetLogIcon($entry[0]) . "</td><td width='80%'>" . $entry[1] . "</td><td width='18%'>" . date("F j, Y H:i", strtotime($entry[2])) . "</td></tr>";
+			$log .= "<tr class='$rowclass'><td width='2%'>" . $sdn->GetLogIcon($entry[0]) . "</td><td width='80%'>" . $entry[1] . "</td><td width='18%' align='right'>" . date("F j, Y H:i", strtotime($entry[2])) . "</td></tr>";
 			$counter++;
 		}
 		
@@ -374,6 +376,67 @@ function GetServiceSummary()
 		echo "</tr>";
 	}
 }
+function GetDynamicDnsSettings()
+{
+	try {
+		$sdn = new ClearSdnService();
+		$data = $sdn->GetDynamicDnsSettings(); 
+		
+		$logs = array();
+		if (isset($data['logs'])) {
+			$logs = $data['logs'];
+			$counter = 0;
+			foreach ($logs as $entry) {
+				$rowclass = 'rowenabled' . (($counter % 2) ? 'alt' : '');
+				$log .= "<tr class='$rowclass'><td width='2%'>" . $sdn->GetLogIcon($entry[0]) . "</td><td width='35%'>" . $entry[1] . "</td>" .
+					"<td width='30%'>" . $entry[2] . "</td><td width='15%'>" . $entry[3] . "</td>" .
+					"<td width='18%' align='right'>" . date("F j, Y H:i", strtotime($entry[4])) . "</td></tr>";
+				$counter++;
+			}
+		}
+		echo "<tr>";
+        echo "<td class='mytablesubheader' width='40%'>" . WEB_LANG_STATUS . "</td>";
+        echo "<td width='60%'>" . WebDropDownEnabledDisabled("enabled", $data['status'], 0, 'toggleControls()', 'enabled') . "</td>";
+        echo "</tr>";
+		echo "<tr>";
+        echo "<td class='mytablesubheader'>" . WEB_LANG_SUBDOMAIN . "</td>";
+        echo "<td><input type='text' name='subdomain' id='subdomain' value='" . $data['subdomain'] . "'></td>";
+        echo "</tr>";
+		echo "<tr>";
+        echo "<td class='mytablesubheader'>" . WEB_LANG_DOMAIN . "</td>";
+        echo "<td>" . WebDropDownHash("domain", $data['domain'], $data['domainOptions'], 0, null, 'domain') . "</td>";
+        echo "</tr>";
+        echo "<tr>";
+        echo "<td class='mytablesubheader' id='ipField'>" . WEB_LANG_IP . "</td>";
+        echo "<td><input type='text' name='ip' id='ip' value='" . $data['ip'] . "' style='width: 100px' /></td>";
+        echo "</tr>";
+        echo "<tr>";
+        echo "<td class='mytablesubheader'>&nbsp;</td>";
+		echo "<td>" . WebButtonUpdate("update");
+		echo "
+		  <script type='text/javascript' language='JavaScript'> " .
+            (count($data['logs']) > 0 ? " $('#clearsdn-nodata').remove(); $('#clearsdn-logs').append('" . addslashes($log) . "'); " : "") . " 
+          </script>
+		";
+		echo "</td>";
+        echo "</tr>";
+
+
+	} catch (ClearSdnFailedToConnectException $e) {
+		header('HTTP/1.1 500 Internal Server Error');
+		echo "<tr><td align='center'>" . CLEARSDN_SOAP_REQUEST_LANG_SOAP_CONNECTION_FAILED . "</td></tr>";
+		return;
+	} catch (ClearSdnDeviceNotRegisteredException $e) {
+		header('HTTP/1.1 500 Internal Server Error');
+		echo "<a href='register.php'>" . $e->GetMessage() . "</a>";
+		return;
+	} catch (Exception $e) {
+		header('HTTP/1.1 500 Internal Server Error');
+		echo "<tr><td align='center'>" . CLEARSDN_SOAP_REQUEST_LANG_SOAP_REQUEST_FAILED . "  " . $e->GetMessage() . "</td></tr>";
+		return;
+	}
+}
+
 
 // vim: syntax=php ts=4
 ?>
