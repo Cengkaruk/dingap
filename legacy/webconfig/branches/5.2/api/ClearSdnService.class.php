@@ -337,6 +337,85 @@ class ClearSdnService extends ClearSdnSoapRequest
 	}
 
 	/**
+	 * Returns an array of ClearSDN dynamic DNS information.
+	 *
+	 * @return array  information
+	 * @throws EngineException, ClearSdnFailedToConnectException, ClearSdnDeviceNotRegisteredException, ClearSdnSoapRequestRemoteException
+	 */
+
+	public function GetDynamicDnsSettings()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		try {
+			$cachekey = __CLASS__ . '-' . __FUNCTION__; 
+
+			$client = $this->Request(ClearSdnService::JWS_SDN_SERVICE);
+
+			$result = $client->getDynamicDnsSettings($this->sysinfo);
+
+			foreach ($client->_cookies as $cookiename => $value)
+				$_SESSION['clearsdn_cookie'][$cookiename] = $value[0]; // Take first element only
+
+			return $result;
+		} catch (SoapFault $e) {
+			// TODO - Change on ClearSDN will cause IllegalArgumentException to be thrown...need to reset JSESSIONID
+			if (ereg(".*java.lang.IllegalArgumentException.*", $e->faultstring)) {
+				unset($_SESSION['clearsdn_cookie']);
+				throw new ClearSdnFailedToConnectException($e->GetMessage());
+			}
+			if (ereg(".*DeviceNotRegisteredFault", $e->detail->exceptionName)) {
+				throw new ClearSdnDeviceNotRegisteredException($e->GetMessage());
+			} else {
+				throw new ClearSdnSoapRequestRemoteException($e->GetMessage());
+			}
+		} catch (ClearSdnFailedToConnectException $e) {
+			throw new ClearSdnFailedToConnectException($e->GetMessage());
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage());
+		}
+	}
+
+	/**
+	 * Update dynamic DNS settings to the ClearSDN.
+	 *
+	 * @throws EngineException, ClearSdnFailedToConnectException, ClearSdnDeviceNotRegisteredException, ClearSdnSoapRequestRemoteException
+	 */
+
+	public function SetDynamicDnsSettings($enabled, $subdomain, $domain, $ip)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		try {
+			$cachekey = __CLASS__ . '-' . __FUNCTION__; 
+
+			$client = $this->Request(ClearSdnService::JWS_SDN_SERVICE);
+
+			$result = $client->setDynamicDnsSettings($this->sysinfo, $enabled, $subdomain, $domain, $ip);
+
+			foreach ($client->_cookies as $cookiename => $value)
+				$_SESSION['clearsdn_cookie'][$cookiename] = $value[0]; // Take first element only
+		} catch (SoapFault $e) {
+			// TODO - Change on ClearSDN will cause IllegalArgumentException to be thrown...need to reset JSESSIONID
+			if (ereg(".*java.lang.IllegalArgumentException.*", $e->faultstring)) {
+				unset($_SESSION['clearsdn_cookie']);
+				throw new ClearSdnFailedToConnectException($e->GetMessage());
+			}
+			if (ereg(".*DeviceNotRegisteredFault", $e->detail->exceptionName)) {
+				throw new ClearSdnDeviceNotRegisteredException($e->GetMessage());
+			} else {
+				throw new ClearSdnSoapRequestRemoteException($e->GetMessage());
+			}
+		} catch (ClearSdnFailedToConnectException $e) {
+			throw new ClearSdnFailedToConnectException($e->GetMessage());
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage());
+		}
+	}
+
+	/**
 	 * Returns an appropriate icon corresponding with a ClearSDN log code.
 	 *
 	 * @param int $code  the log code
