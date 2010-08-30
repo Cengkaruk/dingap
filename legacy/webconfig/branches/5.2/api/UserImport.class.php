@@ -142,7 +142,7 @@ class UserImport extends Engine
 			$usermanager = new UserManager();
 			$groupmanager = new GroupManager();
 			$userlist = $usermanager->GetAllUsers();
-			$groups = $groupmanager->GetGroupList(GroupManager::TYPE_USER_DEFINED);
+			$groups = $groupmanager->GetGroupList();
 			foreach ($userlist as $username) {
 				// Reset group list
 				$grouplist = '';
