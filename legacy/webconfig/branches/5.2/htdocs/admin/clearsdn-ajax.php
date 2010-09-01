@@ -414,7 +414,7 @@ function GetDynamicDnsSettings()
         echo "<td class='mytablesubheader'>&nbsp;</td>";
 		echo "<td>" . WebButtonUpdate("update");
 		echo "
-		  <script type='text/javascript' language='JavaScript'> " .
+		  <script type='text/javascript' language='JavaScript'>toggleControls();\n" .
             (count($data['logs']) > 0 ? " $('#clearsdn-nodata').remove(); $('#clearsdn-logs').append('" . addslashes($log) . "'); " : "") . " 
           </script>
 		";
