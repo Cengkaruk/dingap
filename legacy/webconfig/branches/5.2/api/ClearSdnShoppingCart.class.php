@@ -42,6 +42,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('File.class.php');
+require_once('Folder.class.php');
 require_once('ClearSdnCartItem.class.php');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,6 +64,7 @@ class ClearSdnShoppingCart extends Engine
 {
 	protected $is_loaded = false;
 	protected $contents = array();
+	const FOLDER_STORE = "/var/lib/suva/store";
 	const FILE_CART = "/var/lib/suva/store/cart.txt";
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -194,6 +196,10 @@ class ClearSdnShoppingCart extends Engine
 	protected function _SaveToFile()
 	{
 		try {
+			$folder = new Folder(self::FOLDER_STORE, true);
+			if (!$folder->Exists())
+				$folder->Create('webconfig', 'webconfig', 755);
+			
 			$file = new File(self::FILE_CART, true);
 
 			if ($file->Exists())
@@ -217,8 +223,10 @@ class ClearSdnShoppingCart extends Engine
 		try {
 			$file = new File(self::FILE_CART, true);
 
-			if (!$file->Exists())
+			if (!$file->Exists()) {
+				$this->is_loaded = true;
 				return;
+			}
 
 			$contents = $file->GetContentsAsArray();
 			foreach ($contents as $lineitem) {
