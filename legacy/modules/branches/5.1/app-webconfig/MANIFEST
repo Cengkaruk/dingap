@@ -97,6 +97,7 @@ include htdocs/include/getimage.php
 include htdocs/index.php
 include htdocs/admin/daemon.php
 include htdocs/admin/index.php
+include htdocs/admin/index.js.php
 include htdocs/admin/organization.php
 include htdocs/admin/organization.inc.php
 include htdocs/admin/organization.js.php
