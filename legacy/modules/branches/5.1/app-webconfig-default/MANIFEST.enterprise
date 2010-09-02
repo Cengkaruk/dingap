@@ -105,6 +105,12 @@ include htdocs/templates/standard-5.1/images/navbar-small.jpg
 include htdocs/templates/standard-5.1/images/left-nav-middle.png
 include htdocs/templates/standard-5.1/images/left-nav-bottom.png
 include htdocs/templates/standard-5.1/js/jquery/jquery-1.3.2.min.js
+include htdocs/templates/standard-5.1/js/jquery/jquery.jqplot.min.js
+include htdocs/templates/standard-5.1/js/jquery/jqplot.barRenderer.min.js
+include htdocs/templates/standard-5.1/js/jquery/jqplot.canvasAxisLabelRenderer.min.js
+include htdocs/templates/standard-5.1/js/jquery/jqplot.categoryAxisRenderer.min.js
+include htdocs/templates/standard-5.1/js/jquery/jqplot.pieRenderer.min.js
+include htdocs/templates/standard-5.1/js/jquery/jqplot.pointLabels.min.js
 include htdocs/templates/standard-5.1/js/jquery-ui/ui.accordion.js
 include htdocs/templates/standard-5.1/js/jquery-ui/jquery-ui-1.7.2.custom.min.js
 include htdocs/templates/standard-5.1/js/superfish.js
