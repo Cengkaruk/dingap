@@ -30,6 +30,11 @@ require_once('../../api/StorageDevice.class.php');
 require_once('../../api/Folder.class.php');
 require_once('../../api/Mailer.class.php');
 require_once('../../api/Hostname.class.php');
+require_once("../../api/Product.class.php");
+require_once("../../api/ClearSdnService.class.php");
+require_once("../../api/ClearSdnStore.class.php");
+require_once("../../api/ClearSdnShoppingCart.class.php");
+require_once("../../api/ClearSdnCartItem.class.php");
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -353,10 +358,43 @@ try {
 	else if (array_key_exists('rbs_reset', $_POST)) {
 		$rbs->ResetVolume();
 	}
+	else if (array_key_exists('rbs_reset_history', $_POST)) {
+		$rbs->ResetHistory();
+	}
 
 } catch (Exception $e) {
 	WebDialogWarning($e->getMessage());
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Handle Update
+//
+///////////////////////////////////////////////////////////////////////////////
+
+if (isset($_POST['addtocart'])) {
+	try {
+		$item = new ClearSdnCartItem(ClearSdnService::SDN_BACKUP);
+		$item->SetPid($_POST['pid']);
+		$item->SetDescription($_POST['description-' . $_POST['pid']]);
+		$item->SetUnitPrice($_POST['unitprice-' . $_POST['pid']]);
+		$item->SetUnit($_POST['unit-' . $_POST['pid']]);
+		$item->SetDiscount($_POST['discount-' . $_POST['pid']]);
+		$item->SetCurrency($_POST['currency-' . $_POST['pid']]);
+		$item->SetClass(ClearSdnCartItem::CLASS_SERVICE);
+		$item->SetGroup("notused");
+		$cart = new ClearSdnShoppingCart();
+		$cart->AddItem($item);
+		WebFormOpen("cart.php");
+		WebDialogInfo(CLEARSDN_SHOPPING_CART_LANG_ITEM_ADDED_TO_CART . "&nbsp;&nbsp;" . WebButtonViewCart());
+		WebFormClose();
+	} catch (ValidationException $e) {
+		WebDialogWarning(WEB_LANG_ALREADY_SUBSCRIBED);
+	} catch (Exception $e) {
+		WebDialogWarning($e->GetMessage());
+	}
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -410,6 +448,9 @@ try {
 	} else if (array_key_exists('rbs_confirm_reset', $_POST)) {
 		// Display reset confirmation dialog
 		DisplayConfirmReset(key($_POST['rbs_confirm_reset']));
+	} else if (array_key_exists('rbs_confirm_reset_history', $_POST)) {
+		// Display reset history confirmation dialog
+		DisplayConfirmResetHistory(key($_POST['rbs_confirm_reset_history']));
 	} else {
 		// Display service configuration
 		DisplayTabView();
@@ -497,6 +538,7 @@ function DisplayStatus()
 function DisplayTabView()
 {
 	global $rbs;
+	$sdn = new ClearSdnService();
 
 	$key = null;
 	try {
@@ -505,8 +547,10 @@ function DisplayTabView()
 
 	if ($key == null)
 		$rbs_active_tab = 'config';
-	else
-		$rbs_active_tab = isset($_REQUEST['rbs_active_tab']) ? $_REQUEST['rbs_active_tab'] : 'config';
+	else {
+		$rbs_active_tab = isset($_REQUEST['rbs_active_tab']) ?
+			$_REQUEST['rbs_active_tab'] : 'config';
+	}
 
 	$tabinfo['config']['title'] = WEB_LANG_CONFIG_TITLE;
 	$tabinfo['config']['contents'] = GetConfigurationTab();
@@ -516,6 +560,8 @@ function DisplayTabView()
 	$tabinfo['restore']['contents'] = GetRestoreTab();
 	$tabinfo['history']['title'] = WEB_LANG_HISTORY_TITLE;
 	$tabinfo['history']['contents'] = GetHistoryTab();
+	$tabinfo['subscription']['title'] = CLEARSDN_SERVICE_LANG_SUBSCRIPTION;
+	$tabinfo['subscription']['contents'] = GetSubscriptionTab();
 
 	echo "<div style='width: 100%'>";
 	WebTab(WEB_LANG_PAGE_TITLE, $tabinfo, $rbs_active_tab);
@@ -602,6 +648,55 @@ function GetBackupTab()
 
 ///////////////////////////////////////////////////////////////////////////////
 //
+// GetSubscriptionTab()
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function GetSubscriptionTab()
+{
+	ob_start();
+	$sdn = new ClearSdnService();
+	$store = new ClearSdnStore();
+	echo "<div id='sdn-confirm-purchase' title='" . CLEARSDN_STORE_LANG_PURCHASE_CONFIRMATION . "'>";
+	echo "<div id='sdn-confirm-purchase-content'></div>";
+	echo "</div>";
+	WebFormOpen($_SERVER['PHP_SELF'], "post", "backup", "id='clearsdnform' target='_blank'");
+	echo "<table cellspacing='0' cellpadding='5' width='100%' border='0' class='tablebody' id='clearsdn-overview'>\n";
+	echo "
+		<tr id='clearsdn-splash'>
+		<td align='center'><img src='/images/icon-os-to-sdn.png' alt=''>
+		<div id='whirly' style='padding: 10 0 10 0'>" . WEBCONFIG_ICON_LOADING . "</div>
+		</td>
+		</tr>
+	";
+	echo "</table>";
+	WebFormClose();
+
+	echo "
+        <script language='javascript'>
+          $(document).ready(function() {
+            $.ajax({
+              type: 'POST',
+              url: 'clearsdn-ajax.php',
+              data: 'action=getServiceDetails&service=" . ClearSdnService::SDN_BACKUP . (isset($_POST['usecache']) ? "&usecache=1" : "") . "',
+              success: function(html) {
+                $('#clearsdn-splash').remove();
+                $('#clearsdn-overview').append(html);
+              },
+              error: function(xhr, text, err) {
+                $('#whirly').html(xhr.responseText.toString());
+                // TODO...should need below hack...edit templates.css someday
+                $('.ui-state-error').css('max-width', '700px'); 
+              }
+            });
+          });
+        </script>
+	";
+	return ob_get_clean();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
 // GetHistoryTab()
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -630,9 +725,10 @@ function GetHistoryTab()
 	WebFormOpen();
 
 	echo "<table cellspacing='0' cellpadding='5' width='100%' border='0' class='tablebody'>\n";
-	printf("<tr><td colspan='4'>%s %s</td></tr>\n",
+	printf("<tr><td colspan='4'>%s %s %s</td></tr>\n",
 		WebDropDownHash('rbs_backup_sort', $sort_mode, $sort_modes),
-		WebButtonRefresh('rbs_do_refresh'));
+		WebButtonRefresh('rbs_do_refresh'),
+		WebButtonReset('rbs_confirm_reset_history'));
 	echo "<input type='hidden' name='rbs_active_tab' value='history'>";
 	WebTableHeader('|' .  LOCALE_LANG_DATE . '|' . WEB_LANG_STATUS_TITLE . '|' .  WEB_LANG_SIZE);
 
@@ -1241,6 +1337,32 @@ function DisplayConfirmReset()
 	// Delete or Cancel...
 	printf("<tr><td align='center'>%s %s</tr>\n",
 		WebButtonDelete('rbs_reset'),
+		WebButtonCancel('rbs_cancel'));
+
+	WebTableClose('30%');
+	WebFormClose();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// DisplayConfirmResetHistory
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function DisplayConfirmResetHistory()
+{
+	global $rbs;
+
+	WebFormOpen();
+	echo "<input type='hidden' name='rbs_active_tab' value='history'>";
+	WebTableOpen(WEB_LANG_RESET_HISTORY_TITLE, '30%');
+
+	// Warning
+	printf("<tr><td>%s</td></tr>\n", WEB_LANG_RESET_HISTORY_WARNING);
+
+	// Delete or Cancel...
+	printf("<tr><td align='center'>%s %s</tr>\n",
+		WebButtonDelete('rbs_reset_history'),
 		WebButtonCancel('rbs_cancel'));
 
 	WebTableClose('30%');
