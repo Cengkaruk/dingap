@@ -88,11 +88,14 @@ $button_count = 0;
 
 // General icons
 define('WEBCONFIG_ICON_ADD', WebSetIcon("icon-add.png"));
+define('WEBCONFIG_ICON_ADD_TO_CART', WebSetIcon("icon-add-to-cart.png"));
 define('WEBCONFIG_ICON_ARROWRIGHT', WebSetIcon("icon-arrowright.png"));
 define('WEBCONFIG_ICON_BACK', WebSetIcon("icon-back.png"));
+define('WEBCONFIG_ICON_BUY', WebSetIcon("icon-buy.png"));
 define('WEBCONFIG_ICON_CALENDAR', WebSetIcon("icon-calendar.png"));
 define('WEBCONFIG_ICON_CANCEL', WebSetIcon("icon-cancel.png"));
 define('WEBCONFIG_ICON_CHECKMARK', WebSetIcon("icon-checkmark.png"));
+define('WEBCONFIG_ICON_CHECKOUT', WebSetIcon("icon-checkout.png"));
 define('WEBCONFIG_ICON_CONFIGURE', WebSetIcon("icon-configure.png"));
 define('WEBCONFIG_ICON_CONTINUE', WebSetIcon("icon-continue.png"));
 define('WEBCONFIG_ICON_DELETE', WebSetIcon("icon-delete.png"));
@@ -105,6 +108,7 @@ define('WEBCONFIG_ICON_FILTER', WebSetIcon("icon-filter.png"));
 define('WEBCONFIG_ICON_GO', WebSetIcon("icon-go.png"));
 define('WEBCONFIG_ICON_HELP', WebSetIcon("icon-help.png"));
 define('WEBCONFIG_ICON_INFO', WebSetIcon("icon-info.png"));
+define('WEBCONFIG_ICON_LEARN_MORE', WebSetIcon("icon-learn-more.png"));
 define('WEBCONFIG_ICON_LOGIN', WebSetIcon("icon-login.png"));
 define('WEBCONFIG_ICON_MINUS', WebSetIcon("icon-minus.png"));
 define('WEBCONFIG_ICON_NEXT', WebSetIcon("icon-next.png"));
@@ -117,6 +121,7 @@ define('WEBCONFIG_ICON_SAVE', WebSetIcon("icon-save.png"));
 define('WEBCONFIG_ICON_SEARCH', WebSetIcon("icon-search.png"));
 define('WEBCONFIG_ICON_STATUS', WebSetIcon("icon-status.png"));
 define('WEBCONFIG_ICON_SUPPORT', WebSetIcon("icon-support.png"));
+define('WEBCONFIG_ICON_SUBSCRIBE', WebSetIcon("icon-subscribe.png"));
 define('WEBCONFIG_ICON_TOGGLE', WebSetIcon("icon-toggle.png"));
 define('WEBCONFIG_ICON_UPDATE', WebSetIcon("icon-update.png"));
 define('WEBCONFIG_ICON_USERGUIDE', WebSetIcon("icon-userguide.png"));
@@ -508,6 +513,35 @@ function WebButtonNext($name, $step = null, $options = null)
 	return WebButton($name, LOCALE_LANG_NEXT . (isset($step) ? ' ' . $step : ''), WEBCONFIG_ICON_NEXT, $options);
 }
 
+function WebButtonLearnMore($name, $options = null)
+{
+	return WebButton($name, LOCALE_LANG_LEARN_MORE, WEBCONFIG_ICON_LEARN_MORE, $options);
+}
+
+function WebButtonBuy($name, $options = null)
+{
+	return WebButton($name, LOCALE_LANG_BUY, WEBCONFIG_ICON_BUY, $options);
+}
+
+function WebButtonSubscribe($name, $options = null)
+{
+	return WebButton($name, LOCALE_LANG_SUBSCRIBE, WEBCONFIG_ICON_SUBSCRIBE, $options);
+}
+
+function WebButtonAddToCart($name, $options = null)
+{
+	return WebButton($name, LOCALE_LANG_ADD_TO_CART, WEBCONFIG_ICON_ADD_TO_CART, $options);
+}
+
+function WebButtonViewCart($name, $options = null)
+{
+	return WebButton($name, LOCALE_LANG_VIEW_CART, WEBCONFIG_ICON_VIEW, $options);
+}
+
+function WebButtonCheckout($name, $options = null)
+{
+	return WebButton($name, LOCALE_LANG_CHECKOUT, WEBCONFIG_ICON_CHECKOUT, $options);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // W I D G E T S
