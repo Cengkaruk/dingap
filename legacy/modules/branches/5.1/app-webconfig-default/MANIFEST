@@ -169,6 +169,11 @@ include htdocs/images/flags/za.png
 include htdocs/images/flags/zw.png
 include htdocs/templates/base/images/icons/16x16/dialog_icon_warning.png
 include htdocs/templates/base/images/icons/16x16/icon-arrowright.png
+include htdocs/templates/base/images/icons/16x16/icon-arrowup.png
+include htdocs/templates/base/images/icons/16x16/icon-arrowdown.png
+include htdocs/templates/base/images/icons/16x16/icon-clearsdn-info.png
+include htdocs/templates/base/images/icons/16x16/icon-clearsdn-ok.png
+include htdocs/templates/base/images/icons/16x16/icon-clearsdn-warning.png
 include htdocs/templates/base/images/icons/16x16/icon-delete.png
 include htdocs/templates/base/images/icons/16x16/icon-next.png
 include htdocs/templates/base/images/icons/16x16/icon-pptpd.png
