@@ -65,6 +65,7 @@ include wsdl/Stats.wsdl
 include gui/Gui.class.php
 include gui/ScreenScraper.class.php
 include gui/Webconfig.inc.php
+include gui/Charts.inc.php
 
 include ./Config.inc.php
 include common/Error.class.php
