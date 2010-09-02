@@ -14,6 +14,7 @@ Packager: Point Clark Networks
 Provides: cc-patch
 Obsoletes: cc-patch
 Requires(post,preun): /usr/bin/logger
+Requires: clearcenter-store >= 5.1-30
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
