@@ -331,6 +331,7 @@ class Webconfig extends Daemon
 			try {
 				$file = new File(self::FILE_ACCESS_DATA);
 				$rawlist = $file->LookupValue("/^$username\s*=\s*/");
+				$rawlist .= "|/admin/clearsdn-ajax.php"; // TODO - Remove hack in 6.0 framework to allow ACL on per page basis for CC service pages
 				$validpages[Webconfig::TYPE_USER_ADMIN] = explode("|",$rawlist);
 			} catch (FileNotFoundException $e) {
 				// Not fatal
