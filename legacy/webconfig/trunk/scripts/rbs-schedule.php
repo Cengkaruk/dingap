@@ -75,6 +75,9 @@ try {
 	if (array_key_exists('mode', $config) && isset($config['mode'])) {
 		if ($config['mode']) $rbs_client_flags .= ' -T';
 	}
+	if (array_key_exists('debug', $config) && isset($config['debug'])) {
+		if ($config['debug']) $rbs_client_flags .= ' -v';
+	}
 
 	if (!array_key_exists('auto-backup', $config) || !$config['auto-backup']) {
 		$rbs->LogMessage('Auto-backup schedule is not enabled.', LOG_WARNING);

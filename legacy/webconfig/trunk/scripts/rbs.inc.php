@@ -964,7 +964,9 @@ class RemoteBackupService extends WebconfigScript
 	{
 		// If we're a child process or if we're signalling a running
 		// process to unmount and exit, don't do anything below...
-		if (!$this->session_state || $this->my_pid != posix_getpid()) return;
+		if ($this->my_pid != posix_getpid()) return;
+		if (!array_key_exists('mode', $this->state) ||
+			$this->state['mode'] == RBS_MODE_INVALID) return;
 
 		// Record time of termination
 		if (is_resource($this->state_fh)) {
