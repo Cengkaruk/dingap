@@ -15,6 +15,10 @@ Provides: cc-patch
 Obsoletes: cc-patch
 Requires(post,preun): /usr/bin/logger
 Requires: clearcenter-store >= 5.1-30
+Requires: app-webconfig >= 5.1-30
+Requires: app-webconfig-default >= 5.1-30
+Requires: app-remote-backup >= 5.1-30
+Requires: app-services >= 5.1-30
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
