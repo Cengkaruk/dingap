@@ -41,12 +41,24 @@ function WebServiceStatus($service, $description)
 	if (empty($_SESSION['system_registered']))
 		return;
 
-	$url = $_SESSION['system_sdn_redirect'] . "/" . $service . "/" . $_SESSION['system_hostkey'];
+	// FIXME: 5.2 workaround
+	if ($service == 'antimalware')
+		$url = "antimalware-updates.php";
+	else if ($service == 'antispam')
+		$url = "antispam-updates.php";
+	else if ($service == 'bandwidth')
+		$url = "remote-bandwidth-monitor.php";
+	else if ($service == 'content-filter')
+		$url = "content-filter-updates.php";
+	else if ($service == 'intrusion-protection')
+		$url = "intrusion-protection-updates.php";
+	else
+		$url = $_SESSION['system_sdn_redirect'] . "/" . $service . "/" . $_SESSION['system_hostkey'];
 
 	echo "
 		<script type='text/javascript' language='JavaScript'>
             var servicetitle = document.getElementById('clearos-service-title');
-			servicetitle.innerHTML = '<a target=\"_blank\" href=\"$url\">" . $description . " - </a> ';
+			servicetitle.innerHTML = '<a href=\"$url\">" . $description . " - </a> ';
 
             var servicestate = document.getElementById('clearos-service-state');
 			servicestate.innerHTML = '" . preg_replace("/'/", "\"", WEBCONFIG_ICON_LOADING) . "';
