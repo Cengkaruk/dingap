@@ -139,6 +139,13 @@ function GetServiceDetails()
 		return;
 	}
 
+	if (!isset($details['subscription_info'])) {
+		header('HTTP/1.1 500 Internal Server Error');
+		// TODO - Handle better and localize
+		echo "<tr><td align='center'>There are <a href='software-modules.php'>no modules</a> installed on this server that would benefit from this service.</td></tr>";
+		return;
+	}
+
 	$logs = array();
 	if (isset($details['subscription_info']['current_subscription']['logs'])) {
 		$logs = $details['subscription_info']['current_subscription']['logs'];
