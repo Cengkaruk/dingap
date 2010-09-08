@@ -61,7 +61,7 @@ echo "
                   cancelButton.attr('disabled', false);
                   cancelButton.removeClass('ui-state-disabled');
 
-                  $('#sdn-checkout-content').html('<div>" . addslashes(WEB_LANG_CONTENTS_UPLOADED) . "</div>" . addslashes("<div style='padding: 10 0 10 0; text-align: center;'><img src='/images/icon-clearsdn-transfer-success.png' alt=''></div>") . "');
+                  //$('#sdn-checkout-content').html('<div>" . addslashes(WEB_LANG_CONTENTS_UPLOADED) . "</div>" . addslashes("<div style='padding: 10 0 10 0; text-align: center;'><img src='/images/icon-clearsdn-transfer-success.png' alt=''></div>") . "');
                   location.replace(html);
                   // Pop-Ups pain in most browsers and loses continuity
                   //window.open(html, '_blank');
