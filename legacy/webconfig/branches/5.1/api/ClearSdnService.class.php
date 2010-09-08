@@ -429,9 +429,9 @@ class ClearSdnService extends ClearSdnSoapRequest
 
 		try {
 			// TODO Pete's not going to want this here...
-			if ($this->log_ok['min'] < $code && $code < $this->log_ok['max'])
+			if ($this->log_ok['min'] <= $code && $code <= $this->log_ok['max'])
 				return "<img src='/templates/base/images/icons/16x16/icon-clearsdn-ok.png' style='padding: 0 1 0 1'>";
-			else if ($this->log_warning['min'] < $code && $code < $this->log_warning['max'])
+			else if ($this->log_warning['min'] <= $code && $code <= $this->log_warning['max'])
 				return "<img src='/templates/base/images/icons/16x16/icon-clearsdn-info.png' style='padding: 0 1 0 1'>";
 			else
 				return "<img src='/templates/base/images/icons/16x16/icon-clearsdn-warning.png' style='padding: 0 1 0 1'>";
