@@ -672,11 +672,12 @@ class User extends Engine
 	 * @param string $password password
 	 * @param string $verify password verify
 	 * @param string $requested_by username requesting the password change
+	 * @param boolean $includesamba workaround for Samba password changes
 	 * @return void
 	 * @throws EngineException, ValidationException
 	 */
 
-	function ResetPassword($password, $verify, $requested_by)
+	function ResetPassword($password, $verify, $requested_by, $includesamba = true)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
@@ -695,7 +696,7 @@ class User extends Engine
 		// Set passwords in LDAP
 		//----------------------
 
-		$this->_SetPassword($password);
+		$this->_SetPassword($password, $includesamba);
 
 		Logger::Syslog(self::LOG_TAG, "password reset for user - " . $this->username . " / by - " . $requested_by);
 	}
