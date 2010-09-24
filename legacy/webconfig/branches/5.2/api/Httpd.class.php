@@ -663,6 +663,7 @@ class Httpd extends Daemon
 			$flexshare->SetFilePermission($domain, Flexshare::PERMISSION_READ_WRITE);
 			$flexshare->SetFileCreateMask($domain, Array('owner'=>6, 'group'=>6, 'world'=>4));
 			$flexshare->SetFileEnabled($domain, $smb);
+			$flexshare->SetFileBrowseable($domain, 0);
 
 			# Globals
 			$flexshare->SetGroup($domain, $group);
