@@ -30,6 +30,7 @@ Requires: app-theme-clearos5x >= 5.2-15
 Provides: app-webconfig-default
 Provides: cc-webconfig
 Obsoletes: cc-webconfig
+Obsoletes: cc-webconfig-default
 Obsoletes: app-webconfig-default
 BuildRoot: %_tmppath/%name-%version-buildroot
 
