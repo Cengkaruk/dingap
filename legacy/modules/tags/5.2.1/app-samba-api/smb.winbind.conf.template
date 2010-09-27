@@ -1,0 +1,13 @@
+KOLAB_META_START
+TARGET=/etc/samba/smb.winbind.conf
+PERMISSIONS=0644
+OWNERSHIP=root:root
+KOLAB_META_END
+# This file is automatically updated by ldapsync -- please do not edit.
+idmap backend = ldap:ldap://127.0.0.1/
+idmap uid = 10000000-19999999
+idmap gid = 10000000-19999999
+idmap alloc backend = ldap
+idmap alloc config : ldap_url = ldap://127.0.0.1
+idmap alloc config : ldap_base_dn = ou=idmap,@@@base_dn@@@
+idmap alloc config : ldap_user_dn = @@@bind_dn@@@

@@ -1,0 +1,33 @@
+menu htdocs/menus/register
+locale dynamicdns api/lang
+locale register api/lang
+locale webservices api/lang
+locale register htdocs/admin/lang
+include api/ApplicationWebServices.class.php
+include api/AntispamUpdates.class.php
+include api/AntimalwareUpdates.class.php
+include api/BandwidthMonitor.class.php
+include api/ContentFilterUpdates.class.php
+include api/Diagnostics.class.php
+include api/IntrusionProtectionUpdates.class.php
+include api/DynamicDns.class.php
+include api/DynamicVpn.class.php
+include api/IpReferrer.class.php
+include api/Register.class.php
+include api/Product.class.php
+include api/WebServices.class.php
+include htdocs/images/icons/16x16/icon-register.png
+include htdocs/images/icons/32x32/icon-register.png
+include htdocs/admin/register.php
+include htdocs/admin/register.inc.php
+include htdocs/admin/register.js.php
+include htdocs/admin/register.xml.php
+include htdocs/admin/clearcenter-status.inc.php
+include htdocs/admin/clearcenter-status.js.php
+include htdocs/admin/clearcenter-status.xml.php
+include gui/WebServices.inc.php
+include ./app-services-update
+include ./app-services.cron
+include ./app-services-diagnostics.cron
+include ./send-diagnostic-data
+include ./config/environment

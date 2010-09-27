@@ -1,0 +1,7 @@
+locale flexshare api/lang
+include api/Flexshare.class.php
+include ./app-flexshare.cron
+include ./check_mbox.php
+include ./flexshare.conf
+include ./updateflexperms
+include ./upgrade

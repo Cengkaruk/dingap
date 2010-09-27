@@ -1,0 +1,15 @@
+# ClearOS tweaks
+# 1) If it's in the SURBL list, it's spam... period.
+# 2) ALL_TRUSTED caused some grief in the past
+# 3) DNS response can be crappy with some ISPs
+score URIBL_SC_SURBL 7
+score URIBL_WS_SURBL 5
+score URIBL_PH_SURBL 7
+score URIBL_OB_SURBL 7
+score URIBL_AB_SURBL 7
+score URIBL_JP_SURBL 7
+score URIBL_SBL 5
+score URIBL_BLACK 5
+score URIBL_RHS_DOB 5
+score ALL_TRUSTED 0
+rbl_timeout 6

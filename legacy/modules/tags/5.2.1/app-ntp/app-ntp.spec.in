@@ -1,0 +1,90 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-ntp
+Version: %VERSION%
+Release: %RELEASE%
+Summary: System time module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: ntp
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-ntp
+Obsoletes: cc-ntp
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+System time module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/ntp
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 644 config/ntpdate $RPM_BUILD_ROOT/etc/system/
+install -m 644 app-ntp.cron $RPM_BUILD_ROOT/etc/cron.d/app-ntp
+install -m 755 timesync $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/ntp/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-ntp - installing"
+
+/usr/sbin/addsudo /sbin/hwclock app-ntp
+/usr/sbin/addsudo /usr/sbin/ntpdate app-ntp
+
+/usr/share/system/modules/ntp/upgrade
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-ntp - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/system/ntpdate
+/etc/cron.d/app-ntp
+/usr/sbin/timesync
+/usr/share/system/modules/ntp/upgrade
+/var/webconfig

@@ -1,0 +1,226 @@
+#!/usr/bin/perl -w
+
+#########################################################################
+#
+# Copyright 2006 Point Clark Networks.
+#
+#########################################################################
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+#########################################################################
+#
+# --file
+# --host1
+# --port1
+#
+#########################################################################
+
+use strict;
+use Getopt::Long;
+
+# Initialize 
+#------------------------------------------------------------------------
+
+$| = 1; # Flush output immediately
+
+$SIG{'INT'}  = 'Shutdown';
+$SIG{'TERM'} = 'Shutdown';
+
+$ENV {'PATH'}  = '/sbin:/usr/bin:/bin';
+$ENV {'SHELL'} = '/bin/sh';
+delete @ENV {'ENV', 'BASH_ENV'};  # Perl security stuff - see "man perlsec"
+
+sub Usage();
+sub ImapSync();
+sub BootstrapDovecot();
+sub ConvertEtcUsers();
+sub Shutdown();
+
+my $FILE_CONVERT_USERS = "/var/tmp/convertedusers";
+
+# Command line options
+#------------------------------------------------------------------------
+
+my %opt;
+
+GetOptions( 
+	"port=i" => \$opt{'port'},
+	"host=s" => \$opt{'host'},
+	"file=s" => \$opt{'file'},
+	"dovecot" => \$opt{'dovecot'},
+	"help" => \$opt{'help'}
+); 
+
+# Main
+#------------------------------------------------------------------------
+
+if (defined($opt{'help'})) {
+	Usage();
+	exit(0);
+}
+
+
+ConvertEtcUsers() if (-e "/etc/users");
+
+if (defined($opt{'dovecot'})) {
+	$opt{'port'} = "8143";
+	$opt{'host'} = "127.0.0.1";
+	$opt{'file'} = $FILE_CONVERT_USERS;
+	BootstrapDovecot();
+} elsif (defined($opt{'host'})) {
+	$opt{'port'} = "143" if !defined($opt{'port'});
+	$opt{'file'} = "/tmp/imapusers" if (!defined($opt{'file'}));
+
+	print "host: " . $opt{'host'} . "\n";
+	print "port: " . $opt{'port'} . "\n";
+	print "file: " . $opt{'file'} . "\n";
+} else {
+	Usage();
+	exit(1);
+}
+
+ImapSync();
+Shutdown();
+
+exit;
+
+#------------------------------------------------------------------------
+# BootstrapDovecot - boostraps a local copy of dovecot
+#------------------------------------------------------------------------
+
+sub BootstrapDovecot() {
+
+	if (! -e "/usr/sbin/dovecot" ) {
+		print "Dovecot server is not installed\n";
+		exit(1);
+	}
+
+	print "Starting Dovecot on port " . $opt{'port'} . "\n";
+
+	if (-e "/usr/lib/dovecot/imap") {
+		system("/bin/sed -e 's/^listen =.*//' /etc/dovecot.conf > /var/tmp/dovecot.conf");
+		system("/bin/sed -i -e 's/^protocols =.*/protocols = imap/' /var/tmp/dovecot.conf");
+		system("/bin/echo \"listen = *:$opt{'port'}\" >> /var/tmp/dovecot.conf");
+	} else {
+		open(DOVECOTCFG, ">/var/tmp/dovecot.conf");
+		print DOVECOTCFG "protocols = imap\n";
+		print DOVECOTCFG "imap_listen = " .  $opt{'host'} . ":" . $opt{'port'} . "\n";
+		print DOVECOTCFG "login_dir = /var/run/dovecot-login\n";
+		print DOVECOTCFG "login = imap\n";
+		print DOVECOTCFG "mail_extra_groups = mail\n";
+		print DOVECOTCFG "auth = default\n";
+		print DOVECOTCFG "auth_mechanisms = plain\n";
+		print DOVECOTCFG "auth_userdb = passwd\n";
+		print DOVECOTCFG "auth_passdb = passwd-file /etc/mail/passwd\n";
+		close(DOVECOTCFG);
+	}
+
+	system("/usr/sbin/dovecot -c /var/tmp/dovecot.conf");
+	sleep(3);
+}
+
+#------------------------------------------------------------------------
+# ConvertEtcUsers - converts /etc/users to username:password format
+#------------------------------------------------------------------------
+
+sub ConvertEtcUsers() {
+
+	if (! -e "/etc/users") {
+		print "User file does not exist: /etc/users\n";
+		exit(1);
+	}
+
+	print "Generating password file from /etc/users: $FILE_CONVERT_USERS\n";
+
+	umask(077);
+
+	open(OLDUSERS, "/etc/users");
+	open(IMAPUSERS, ">$FILE_CONVERT_USERS");
+
+	while(<OLDUSERS>) {
+		next if /^root/;
+		my @items = split(/\|/);
+		print IMAPUSERS $items[0] . "|" . $items[6] . "\n";
+	}
+
+	close(OLDUSERS);
+	close(IMAPUSERS);
+}
+
+#------------------------------------------------------------------------
+# ImapSync - runs imapsync
+#------------------------------------------------------------------------
+
+sub ImapSync() {
+
+	print "Running IMAP synchronization\n";
+
+	if (! -e $opt{'file'}) {
+		print "IMAP user file does not exist: " . $opt{'file'} . "\n";
+		exit(1);
+	}
+
+	open(IMAPUSERS, $opt{'file'});
+
+	while(<IMAPUSERS>) {
+		chomp();
+		my @items = split(/\|/, $_);
+
+		open(PASSWORD, ">/var/tmp/imappassword");
+		print PASSWORD $items[1] . "\n";
+		close(PASSWORD);
+
+
+		system("/usr/bin/imapsync --subscribe --syncinternaldates --host1 " . $opt{'host'} . " --port1 " . $opt{'port'} . " --user1 \"$items[0]\" --passfile1 /var/tmp/imappassword --authmech1 LOGIN --host2 localhost --user2 \"$items[0]\"  --passfile2 /var/tmp/imappassword --authmech2 LOGIN");
+	}
+
+	close(IMAPUSERS);
+}
+
+#------------------------------------------------------------------------
+# Shutdown - handle interrupt
+#------------------------------------------------------------------------
+
+sub Shutdown() {
+	system("/usr/bin/killall -q dovecot");
+	system("/bin/rm -f /var/tmp/dovecot.conf");
+	system("/bin/rm -f /var/tmp/imappassword");
+}
+
+#------------------------------------------------------------------------
+# Usage - usage output
+#------------------------------------------------------------------------
+
+sub Usage() {
+    print STDOUT <<EOF
+--host     IP or hostname of remote mail server (required)
+--port     port number (default: 143)
+--file     password file (default: /tmp/imapusers)
+--dovecot  peforms Dovecot upgrade (localhost only, other flags ignored)
+--help     help
+
+The password file should contain the usernames and passwords for all
+mailboxes.  The format is as follows:
+
+username|password
+username2|password2
+etc.
+
+Since this script synchronizes the remote mailboxes, you can re-run the 
+script at any time without worrying about duplicate mail messages.
+EOF
+}
+

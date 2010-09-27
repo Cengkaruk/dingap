@@ -1,0 +1,27 @@
+#!/bin/sh
+
+bindir=/opt/bacula/usr/bin
+
+if [ $# -ne 6 ]; then
+	echo "Wrong number of args, expected 6. TYPE HOST PORT USER PASS NAME"
+	exit 1
+fi
+
+# $1 TYPE
+# $2 HOST
+# $3 PORT
+# $4 USER
+# $5 PASS
+# $6 NAME
+
+if [ $1 == "mysql" ]; then 
+	if [ $6 == "bacula" ]; then 
+		$bindir/mysql -h$2 -P$3 $6 \
+		-e "GRANT ALL PRIVILEGES ON *.* TO '$4@localhost' IDENTIFIED BY '$5' WITH GRANT OPTION;"
+	else
+		/usr/bin/mysql -h$2 -P$3 $6 \
+		-e "GRANT ALL PRIVILEGES ON *.* TO '$4@localhost' IDENTIFIED BY '$5' WITH GRANT OPTION;"
+	fi
+fi
+
+exit $?

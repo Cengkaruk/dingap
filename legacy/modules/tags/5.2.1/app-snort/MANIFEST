@@ -1,0 +1,19 @@
+menu htdocs/menus/intrusion-detection
+menu htdocs/menus/ids-report
+locale snort api/lang
+locale intrusion-detection htdocs/admin/lang
+locale ids-report htdocs/admin/lang
+include api/Snort.class.php
+include api/Snort.inc.php
+include gui/SnortReport.class.php
+include htdocs/admin/intrusion-detection.php
+include htdocs/admin/ids-report.php
+include htdocs/images/icons/16x16/icon-intrusion-detection.png
+include htdocs/images/icons/32x32/icon-intrusion-detection.png
+include htdocs/images/icons/16x16/icon-ids-report.png
+include htdocs/images/icons/32x32/icon-ids-report.png
+include wsdl/Snort.wsdl
+include ./app-snort-report.cron
+include ./snortreport
+include ./snortreport.sh
+include ./upgrade

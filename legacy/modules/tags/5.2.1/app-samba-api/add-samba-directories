@@ -1,0 +1,45 @@
+#!/bin/sh
+
+WINADMIN=`getent passwd winadmin`
+DOMUSERS=`getent group domain_users`
+
+if ( [ -z "$WINADMIN" ] || [ -z "$DOMUSERS" ] ); then
+	exit 1
+fi
+
+DIRS="\
+/var/samba/netlogon|winadmin|domain_users|2755 \
+/var/samba/profiles|winadmin|domain_users|2775 \
+/var/samba/drivers|winadmin|domain_users|2755 \
+/var/samba/drivers/IA64|winadmin|domain_users|2755 \
+/var/samba/drivers/W32ALPHA|winadmin|domain_users|2755 \
+/var/samba/drivers/W32MIPS|winadmin|domain_users|2755 \
+/var/samba/drivers/W32PPC|winadmin|domain_users|2755 \
+/var/samba/drivers/W32X86|winadmin|domain_users|2755 \
+/var/samba/drivers/WIN40|winadmin|domain_users|2755 \
+/var/samba/drivers/x64|winadmin|domain_users|2755 \
+"
+
+for DIRINFO in $DIRS; do
+	DIR=`echo $DIRINFO | cut -d '|' -f 1`
+	OWNER=`echo $DIRINFO | cut -d '|' -f 2`
+	GROUP=`echo $DIRINFO | cut -d '|' -f 3`
+	PERMS=`echo $DIRINFO | cut -d '|' -f 4`
+
+	if [ -d $DIR ]; then
+		FILEPERMS=`stat --format=%a $DIR`
+		if [ "$FILEPERMS" != "$PERMS" ]; then
+			logger -p local6.notice -t installer "app-samba-api - fixing broken directory permissions on $DIR"
+			chmod $PERMS $DIR
+		fi
+
+		FILEOWNERSHIP=`stat --format=%U.%G $DIR`
+		if [ "$FILEOWNERSHIP" != "$OWNER.$GROUP" ]; then
+			logger -p local6.notice -t installer "app-samba-api - fixing broken directory ownership on $DIR"
+			chown $OWNER.$GROUP $DIR
+		fi
+	else
+		logger -p local6.notice -t installer "app-samba-api - adding samba directory: $DIR"
+		install -m $PERMS -o $OWNER -g $GROUP -d $DIR
+	fi
+done

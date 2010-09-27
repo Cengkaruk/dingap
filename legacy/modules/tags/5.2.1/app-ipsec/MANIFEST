@@ -1,0 +1,16 @@
+menu htdocs/menus/ipsec
+locale ipsec api/lang
+locale ipsec htdocs/admin/lang
+include api/IpSec.class.php
+include htdocs/admin/ipsec.php
+include htdocs/images/icons/16x16/icon-ipsec.png
+include htdocs/images/icons/32x32/icon-ipsec.png
+include ./ipsec.conf
+include ./ipsec.empty.conf
+include ./ipsec.secrets
+include ./fix-vpn-routes
+include ./vpnwatchd
+include ./vpnwatchd.sysv
+include ./vpnupdate
+include ./upgrade
+include ./updown.app

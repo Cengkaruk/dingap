@@ -1,0 +1,6 @@
+#!/bin/bash
+
+rm -f config
+ln -s config-$2 config
+
+exit 0

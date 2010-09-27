@@ -1,0 +1,93 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-file-antivirus
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Antivirus file scanner module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-clamlib = %VERSION%
+Provides: cc-file-antivirus
+Obsoletes: cc-file-antivirus
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Antivirus file scanner module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/lib/quarantine
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-file-antivirus - installing"
+
+/usr/sbin/addsudo /var/webconfig/scripts/avscan.php app-file-antivirus
+
+# Move old /var/lib/clamav/quarantine to /var/lib/quarantine
+if [ -d /var/lib/clamav/quarantine ]; then
+	logger -p local6.notice -t installer "app-file-antivirus - moving quarantine"
+	mkdir -p /var/lib/quarantine
+	mv -f /var/lib/clamav/quarantine/* /var/lib/quarantine/ >/dev/null 2>&1
+fi
+
+if [ -e /etc/cron.d/cc-antivirus ]; then
+	if [ -e /etc/cron.d/app-antivirus ]; then
+		rm -f /etc/cron.d/cc-antivirus
+	else
+		mv /etc/cron.d/cc-antivirus /etc/cron.d/app-antivirus
+	fi
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-file-antivirus - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+%dir %attr(-,root,root) /var/lib/quarantine

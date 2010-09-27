@@ -1,0 +1,87 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-system-mysql
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Internal MySQL database module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: system-mysql >= 5.0.45
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Provides: cc-system-mysql
+Obsoletes: cc-system-mysql
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Internal MySQL database module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+
+install -m 0755 rebuild-database $RPM_BUILD_ROOT/usr/sbin
+touch $RPM_BUILD_ROOT/etc/system/database
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-system-mysql - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-system-mysql - enabling on boot"
+	chkconfig --add system-mysqld
+	chkconfig --level 2345 system-mysqld on
+fi
+
+CHECK=`find /etc/system/database -perm +0004`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-system-mysql - updating config file permissions"
+	chmod 0600 /etc/system/database
+fi
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-system-mysql - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%attr(0600,root,root) %config(noreplace) /etc/system/database
+/usr/sbin/rebuild-database

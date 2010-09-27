@@ -1,0 +1,38 @@
+#!/bin/sh
+
+PROXYINFO="/etc/system/squid"
+DBINFO="/etc/system/database"
+MYSQL="/usr/share/system-mysql/usr/bin/mysql"
+
+# Check database status
+#----------------------
+
+[ -e /var/lib/system-mysql/mysql.sock ] || exit 0
+
+# Grab the number of records to keep
+#-----------------------------------
+
+RECORDS=`grep ^records $PROXYINFO 2>/dev/null | sed 's/.*=//'`
+if [ -z "$RECORDS" ]; then
+	RECORDS=2000000
+fi
+
+# Grab database password
+#-----------------------
+
+DBPASS=`grep ^password $DBINFO 2>/dev/null | sed "s/^password[[:space:]]*=[[:space:]]*//"`
+
+if [ -z "$DBPASS" ]; then
+    echo "Unable to authenticate with database"
+    exit 1
+fi
+
+# Purge database
+#---------------
+
+$MYSQL -uroot -p"$DBPASS" -e "\
+DROP TABLE IF EXISTS proxy_prune; \
+CREATE TABLE proxy_prune SELECT * FROM proxy ORDER BY date_time DESC LIMIT $RECORDS; \
+RENAME TABLE proxy TO proxy_old, proxy_prune TO proxy;  \
+DROP TABLE proxy_old; \
+" reports

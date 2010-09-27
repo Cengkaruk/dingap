@@ -1,0 +1,101 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-services
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Services and registration module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: vixie-cron
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-suva = %VERSION%
+Provides: cc-services
+Obsoletes: cc-services
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Services and registration module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p $RPM_BUILD_ROOT/usr/sbin
+mkdir -p $RPM_BUILD_ROOT/var/lib/suva/services
+mkdir -p $RPM_BUILD_ROOT/var/webconfig
+mkdir -p $RPM_BUILD_ROOT/usr/share/system/modules/services
+
+install -m 644 config/environment $RPM_BUILD_ROOT/usr/share/system/modules/services/
+install -m 755 send-diagnostic-data $RPM_BUILD_ROOT/usr/sbin/
+install -m 755 app-services-update $RPM_BUILD_ROOT/usr/sbin/
+install -m 644 app-services.cron $RPM_BUILD_ROOT/etc/cron.d/app-services
+install -m 644 app-services-diagnostics.cron $RPM_BUILD_ROOT/etc/cron.d/app-services-diagnostics
+
+cp -ra webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-services - installing"
+
+# Set a semi-random time for service update
+MINUTE=`date '+%M'`
+echo "$MINUTE 3 * * * root /usr/sbin/app-services-update >/dev/null 2>&1" > /etc/cron.d/app-services
+echo "$MINUTE 6 * * * root /usr/sbin/send-diagnostic-data >/dev/null 2>&1" > /etc/cron.d/app-services-diagnostics
+
+# Clear out cached subscription data
+find /var/lib/suva/services -name subscription -type f -exec rm -f '{}' \; >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-services - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root) 
+%config(noreplace) /etc/cron.d/app-services
+%config(noreplace) /etc/cron.d/app-services-diagnostics
+%dir /usr/share/system/modules/services
+/usr/share/system/modules/services/environment
+/usr/sbin/app-services-update
+/usr/sbin/send-diagnostic-data
+/var/lib/suva/services
+/var/webconfig/

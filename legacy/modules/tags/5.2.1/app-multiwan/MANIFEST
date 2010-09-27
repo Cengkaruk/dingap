@@ -1,0 +1,7 @@
+menu htdocs/menus/multiwan
+locale multiwan htdocs/admin/lang
+locale firewallmultiwan api/lang
+include api/FirewallMultiWan.class.php
+include htdocs/admin/multiwan.php
+include htdocs/images/icons/16x16/icon-multiwan.png
+include htdocs/images/icons/32x32/icon-multiwan.png

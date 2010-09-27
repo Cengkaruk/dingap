@@ -1,0 +1,83 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-webconfig-default
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Web-based administration tool - default template
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: app-setup = %VERSION%
+Provides: cc-webconfig-default
+Obsoletes: cc-webconfig-default
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Web-based administration tool - default template
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/webconfig-default
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 644 custom/webconfig $RPM_BUILD_ROOT/etc/system
+install -m 644 custom/default.conf $RPM_BUILD_ROOT/usr/webconfig/conf/httpd.d/core.conf
+install -m 755 custom/upgrade $RPM_BUILD_ROOT/usr/share/system/modules/webconfig-default/upgrade
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-webconfig-default - installing"
+
+/usr/share/system/modules/webconfig-default/upgrade >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-webconfig-default - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%config(noreplace) /etc/system/webconfig
+/usr/share/system/modules/webconfig-default/upgrade
+/var/webconfig
+/usr/webconfig/conf/httpd.d/core.conf

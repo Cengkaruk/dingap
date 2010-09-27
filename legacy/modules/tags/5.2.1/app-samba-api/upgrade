@@ -1,0 +1,129 @@
+#!/bin/sh
+
+if [ ! -e /etc/samba/smb.conf ]; then
+	exit 0
+fi
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Upgrade pre-5.x configuration files
+#------------------------------------
+
+CHECK=`grep "include[[:space:]]*=[[:space:]]*/etc/samba/smb.ldap.conf" /etc/samba/smb.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-samba-api - upgrading old configuration file"
+	cp -p /etc/samba/smb.conf /usr/share/system/modules/samba/smb.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp -p /etc/samba/smb.conf /etc/samba/smb.conf.$TIMESTAMP.old >/dev/null 2>&1
+	cp /usr/share/system/modules/samba/smb.conf /etc/samba/smb.conf
+
+	# Migrate global parameters
+	#--------------------------
+
+	KEEPERS="logon_drive logon_script netbios_name os_level server_string wins_server wins_support workgroup"
+
+	for PARAM in $KEEPERS; do
+		PARAM=`echo $PARAM | sed 's/_/ /' | sed 's/^[[:space:]]*//'`
+		OLDVALUE=`grep "^[[:space:]]*$PARAM[[:space:]]*=" /usr/share/system/modules/samba/smb.conf.$TIMESTAMP.old`
+		if [ -n "$OLDVALUE" ]; then
+			EXISTS=`grep "^[[:space:]]*$PARAM[[:space:]]*=" /etc/samba/smb.conf`
+			if [ -n "$EXISTS" ]; then
+				# Cleanup leading spaces
+				OLDVALUE=`echo $OLDVALUE | sed 's/^[[:space:]]*//'`
+				logger -p local6.notice -t installer "app-samba-api - migrating parameter value for $PARAM"
+				sed -i -e "s/^$PARAM[[:space:]].*/$OLDVALUE/" /etc/samba/smb.conf
+			else
+				logger -p local6.notice -t installer "app-samba-api - adding parameter value for $PARAM"
+				sed -i -e "s/^\[global\]/\[global\]\n\
+$OLDVALUE/" /etc/samba/smb.conf
+			fi
+		fi
+	done
+
+	# Migrate old shares
+	#-------------------
+
+	HOMES=`grep "^\[homes\]" /usr/share/system/modules/samba/smb.conf.$TIMESTAMP.old`
+	PRINTERS=`grep "^\[printers\]" /usr/share/system/modules/samba/smb.conf.$TIMESTAMP.old`
+	NETLOGON=`grep -i "^domain logons[[:space:]]*=[[:space:]]*yes" /usr/share/system/modules/samba/smb.conf.$TIMESTAMP.old`
+	CURRENT=""
+
+	rm -f /etc/samba/smb.conf.new
+	touch /etc/samba/smb.conf.new
+
+	IFS=""
+
+	while read -r line; do
+		BLOCK=`echo $line | grep "^\["`
+		AVAILABLE=`echo $line | grep -i "^[[:space:]]*available[[:space:]]*="`
+
+		if [ -n "$BLOCK" ]; then
+			CURRENT=$BLOCK
+		fi
+
+		if [ -n "$AVAILABLE" ]; then
+			if [ "$CURRENT" == "[homes]" ]; then
+				if [ -n "$HOMES" ]; then
+					echo -e "\tavailable = Yes" >> /etc/samba/smb.conf.new
+				else
+					echo -e "\tavailable = No" >> /etc/samba/smb.conf.new
+				fi
+			elif [ "$CURRENT" == "[netlogon]" ]; then
+				if [ -n "$NETLOGON" ]; then
+					echo -e "\tavailable = Yes" >> /etc/samba/smb.conf.new
+				else
+					echo -e "\tavailable = No" >> /etc/samba/smb.conf.new
+				fi
+			elif ( [ "$CURRENT" == "[printers]" ] || [ "$CURRENT" == "[print\$]" ] ); then
+				if [ -n "$PRINTERS" ]; then
+					echo -e "\tavailable = Yes" >> /etc/samba/smb.conf.new
+				else
+					echo -e "\tavailable = No" >> /etc/samba/smb.conf.new
+				fi
+			else
+				echo "$line" >> /etc/samba/smb.conf.new
+			fi
+		else
+			echo "$line" >> /etc/samba/smb.conf.new
+		fi
+	done < /etc/samba/smb.conf
+
+	mv /etc/samba/smb.conf.new /etc/samba/smb.conf
+
+	# Add nmb and winbind on boot if smb is set to run on boot
+	CHECK=`ls /etc/rc.d/rc3.d/S[0-9]*smb* 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-samba-api - enabling nmb on boot"
+		chkconfig nmb on
+		logger -p local6.notice -t installer "app-samba-api - enabling winbind on boot"
+		chkconfig winbind on
+	fi
+
+	# Migrate data into LDAP
+	if [ ! -e /etc/system/initialized/samba ]; then
+		/usr/share/system/modules/samba/upgrade-4xsamba >/dev/null 2>&1
+	fi
+fi
+
+# Add "smb ports" option
+CHECK=`grep "^smb[[:space:]]*ports[[:space:]]*=" /etc/samba/smb.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-samba-api - adding default smb ports parameter"
+	sed -i -e "s/^bind[[:space:]]*interfaces/smb ports = 139\nbind interfaces/" /etc/samba/smb.conf
+fi
+
+# Try adding group map info (fine if it fails)
+/usr/sbin/add-windows-groupinfo >/dev/null 2>&1
+
+# Fix wide links default
+CHECK=`LANG=en_US testparm -s --parameter-name "widelinks" 2>/dev/null | grep "Yes"`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-samba-api - disabling wide links"
+	sed -i -e "s/^[[:space:]]*\[global\][[:space:]]*$/\[global\]\n# Disable link support\nwide links = No\n/" /etc/samba/smb.conf
+fi
+
+# Add longer timeout for password chat
+CHECK=`LANG=en_US testparm -s --parameter-name "passwd chat timeout" 2>/dev/null | grep "2"`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-samba-api - setting password change timeout"
+	sed -i -e "s/^[[:space:]]*\[global\][[:space:]]*$/\[global\]\n# Setting password change timeout\npasswd chat timeout = 10\n/" /etc/samba/smb.conf
+fi

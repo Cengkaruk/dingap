@@ -1,0 +1,11 @@
+menu htdocs/menus/certificates
+locale ssl api/lang
+locale certificates htdocs/admin/lang
+include api/Ssl.class.php
+include htdocs/admin/certificates.php
+include htdocs/images/icons/16x16/icon-certificates.png
+include htdocs/images/icons/32x32/icon-certificates.png
+include ./openssl.cnf
+include ./certindex.txt
+include ./serial
+include ./upgrade

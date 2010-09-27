@@ -1,0 +1,17 @@
+[clearcentos-os]
+name=ClearOS 5.x - Minified CentOS - OS
+baseurl=http://download.clearfoundation.com/clearcentos/5/os
+		http://download1.clearfoundation.com/clearcentos/5/os
+		http://download2.clearfoundation.com/clearcentos/5/os
+		http://download3.clearfoundation.com/clearcentos/5/os
+		http://download4.clearfoundation.com/clearcentos/5/os
+gpgcheck=1
+
+[clearcentos-updates]
+name=ClearOS 5.x - Minified CentOS - Updates
+baseurl=http://download.clearfoundation.com/clearcentos/5/updates
+		http://download1.clearfoundation.com/clearcentos/5/updates
+		http://download2.clearfoundation.com/clearcentos/5/updates
+		http://download3.clearfoundation.com/clearcentos/5/updates
+		http://download4.clearfoundation.com/clearcentos/5/updates
+gpgcheck=1

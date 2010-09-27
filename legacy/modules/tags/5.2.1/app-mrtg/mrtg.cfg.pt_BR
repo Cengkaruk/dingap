@@ -1,0 +1,81 @@
+###############################################################################
+# Multi Router Traffic Grapher -- Configuration File
+###############################################################################
+
+WorkDir: /var/webconfig/reports/mrtg
+Options[_]: nopercent,growright,nobanner,nolegend,noinfo,gauge
+MaxBytes[_]: 1250000000
+
+
+###############################################################################
+# 
+# Stats
+#
+###############################################################################
+
+#----------------------------
+# Network
+#----------------------------
+
+Include: /etc/mrtg/mrtg.cfg.dynamic
+
+#----------------------------
+# TCP Connections
+#----------------------------
+
+Target[tcp]: `/etc/mrtg/system tcp`
+Title[tcp]: Conexões TCP Estabelecidas
+PageTop[tcp]: <h3>Conexões TCP Estabelecidas</h3>
+YLegend[tcp]: Conexões
+ShortLegend[tcp]: &nbsp;&nbsp;&nbsp;
+LegendI[tcp]: 
+LegendO[tcp]: Estabelecida&nbsp;
+
+#----------------------------
+# Load
+#----------------------------
+
+Target[load]: `/etc/mrtg/system load`
+Title[load]: Médias de Carga (x 100)
+PageTop[load]: <h3>Médias de Carga</h3>
+YLegend[load]: Médias de Carga
+ShortLegend[load]: &nbsp;&nbsp;&nbsp;
+LegendI[load]: Carga de 5 minutos&nbsp;
+LegendO[load]: Carga de 15 mintutos&nbsp;
+
+#----------------------------
+# Swap
+#----------------------------
+
+Target[swap]: `/etc/mrtg/system swap`
+Title[swap]: Uso de Swap
+PageTop[swap]: <h3>Uso de Swap</h3>
+YLegend[swap]: Uso de Swap
+ShortLegend[swap]: &nbsp;&nbsp;&nbsp;
+LegendI[swap]: 
+LegendO[swap]: Usado&nbsp;
+
+#----------------------------
+# Processes
+#----------------------------
+
+Target[processes]: `/etc/mrtg/system processes`
+Title[processes]: Processos
+PageTop[processes]: <h3>Processos</h3>
+YLegend[processes]: Processos
+ShortLegend[processes]: &nbsp;&nbsp;&nbsp;
+LegendI[processes]: Total&nbsp;
+LegendO[processes]: Executando&nbsp;
+
+#----------------------------
+# Uptime
+#----------------------------
+
+Target[uptime]: `/etc/mrtg/system uptime`
+Title[uptime]: Tempo Ativo e Tempo Ocioso
+PageTop[uptime]: <h3>Tempo Ativo e Tempo Ocioso</h3>
+YLegend[uptime]: Tempo Ativo (seg)
+ShortLegend[uptime]: &nbsp;&nbsp;&nbsp;
+LegendI[uptime]: Total de Tempo Ativo&nbsp;
+LegendO[uptime]: Tempo Ocioso&nbsp;
+

@@ -1,0 +1,27 @@
+menu htdocs/menus/firewall
+locale firewall api/lang
+locale firewallrule api/lang
+locale firewall htdocs/admin/lang
+locale firewall-common htdocs/admin/lang
+include api/Firewall.list.php
+include api/Firewall.class.php
+include api/FirewallIncoming.class.php
+include api/FirewallRule.class.php
+include api/FirewallRedirect.class.php
+include api/FirewallWifi.class.php
+include api/Network.class.php
+include wsdl/Firewall.wsdl
+include htdocs/admin/firewall.php
+include htdocs/admin/firewall-common.inc.php
+include htdocs/images/icons/16x16/icon-firewall.png
+include htdocs/images/icons/32x32/icon-firewall.png
+include ./firewall
+include ./firewall.conf
+include ./firewall.lua
+include ./rc.firewall
+include ./rc.firewall.local
+include ./rc.firewall.types
+include ./upgrade
+include ./upgrade-rules
+include ./upgrade-3x
+include ./snortsam-reblock

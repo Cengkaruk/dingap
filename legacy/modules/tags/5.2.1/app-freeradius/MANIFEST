@@ -1,0 +1,7 @@
+menu htdocs/menus/radius
+locale freeradius api/lang
+locale radius htdocs/admin/lang
+include api/FreeRadius.class.php
+include htdocs/images/icons/16x16/icon-radius.png
+include htdocs/images/icons/32x32/icon-radius.png
+include htdocs/admin/radius.php

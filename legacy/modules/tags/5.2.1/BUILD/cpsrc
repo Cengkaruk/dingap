@@ -1,0 +1,42 @@
+#!/bin/bash
+# $Id: cpsrc,v 1.2 2004/09/17 03:36:06 devel Exp $
+
+SETCOLOR_SUCCESS="echo -en \\033[1;32m"
+SETCOLOR_FAILURE="echo -en \\033[1;31m"
+SETCOLOR_WARNING="echo -en \\033[1;33m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+if [ "$#" != "3" ]; then
+	$SETCOLOR_FAILURE
+	echo "$0 <CONFIG> <RPM SPEC> <DESTINATION>"
+	$SETCOLOR_NORMAL
+	exit 1
+fi
+
+$SETCOLOR_FAILURE
+
+source $1
+
+RC=0
+DIR=`dirname $2`
+SOURCES=`egrep '(^Source)' $2 | \
+	grep -v "{name}" | awk -F: '{ print $2 }' | sed -e "s/%{version}/$VERSION/g"`
+SELF="$DIR-$VERSION.tar.gz"
+
+$SETCOLOR_NORMAL
+
+[ -z "$SOURCES" ] && exit 0
+
+$SETCOLOR_WARNING
+
+for SOURCE in $SOURCES; do
+	[ "$SELF" == "$SOURCE" ] && continue
+	cp -v $DIR/$SOURCE $3 || RC=1
+	[ "$RC" != "0" ] && break
+done
+
+$SETCOLOR_NORMAL
+
+exit $RC
+
+# vi: ts=4

@@ -1,0 +1,1 @@
+1 * * * *  root /usr/sbin/log2mysql >/dev/null 2>&1

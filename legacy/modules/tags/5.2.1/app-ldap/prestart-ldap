@@ -1,0 +1,38 @@
+#!/bin/sh
+
+# Upgrade version 3.x
+#	if [ ! -e /usr/share/system/modules/users/user_upgrade_status ]; then
+#	/usr/bin/logger -p local6.notice -t system  "running user conversion"
+#	/usr/sbin/ldapinit >/dev/null 2>&1
+#	/usr/sbin/convertusers >/dev/null 2>&1
+#	/usr/sbin/ldapsync >/dev/null 2>&1
+#fi
+
+# Upgrade a 4.x LDAP system
+#--------------------------
+
+if [ -e /etc/openldap/upgrade.ldif ]; then
+	IS4X=`grep "^dn: cn=domain-maintainer,cn=internal" /etc/openldap/upgrade.ldif`
+	if ( [ -n "$IS4X" ] && [ -x /usr/sbin/upgrade-4xusers ] ); then
+		CHECK=`grep ^bind_policy /etc/ldap.conf 2>/dev/null`
+		if [ -z "$CHECK" ]; then
+			echo "bind_policy soft" >> /etc/ldap.conf
+		fi
+		echo "Upgrading LDAP.  Please be patient..."
+		/usr/sbin/upgrade-4xusers >/dev/null 2>&1
+		chown -R ldap.ldap /var/lib/ldap >/dev/null 2>&1
+	fi
+fi
+
+# Recover from a hard shutdown
+#-----------------------------
+
+DIRS="/var/lib/ldap /var/lib/ldap/accesslog"
+for DIR in $DIRS; do
+	rm -f $DIR/__db*
+	DBS=`ls $DIR/*.bdb 2>/dev/null`
+	for DB in $DBS; do
+		slapd_db_verify $DB >/dev/null 2>&1
+	done
+	slapd_db_recover -h $DIR >/dev/null 2>&1
+done

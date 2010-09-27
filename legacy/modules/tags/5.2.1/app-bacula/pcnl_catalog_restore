@@ -1,0 +1,15 @@
+#!/bin/sh
+#@output /dev/null
+
+/etc/bacula/bconsole  -c /etc/bacula/bconsole.conf <<END_OF_DATA
+run "$1"
+$2
+mod
+8
+$3
+mod
+9
+/tmp/bacula-restores
+yes
+quit
+END_OF_DATA

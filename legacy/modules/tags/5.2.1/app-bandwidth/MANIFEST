@@ -1,0 +1,10 @@
+menu htdocs/menus/bandwidth
+locale bandwidth htdocs/admin/lang
+locale bandwidth api/lang
+include api/Bandwidth.class.php
+include htdocs/images/icons/16x16/icon-bandwidth.png
+include htdocs/images/icons/32x32/icon-bandwidth.png
+include htdocs/images/deprecated/icon-bandwidth-destination.gif
+include htdocs/images/deprecated/icon-bandwidth-source.gif
+include htdocs/admin/bandwidth.php
+include htdocs/admin/bandwidth.js.php

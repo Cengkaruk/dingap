@@ -1,0 +1,101 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-ssl
+Version: %VERSION%
+Release: %RELEASE%
+Summary: SSL certificates module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: openssl
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: cloud-security-audit = %VERSION%
+Provides: cc-ssl
+Obsoletes: cc-ssl
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+SSL certificates module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/ssl/private
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/ssl/certs
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/ssl
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 0600 openssl.cnf $RPM_BUILD_ROOT/etc/ssl
+install -m 0644 certindex.txt $RPM_BUILD_ROOT/etc/ssl
+install -m 0644 serial $RPM_BUILD_ROOT/etc/ssl
+install -m 0755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/ssl
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-ssl - installing"
+
+%{_sbindir}/groupadd -g 413 -r ssl 2>/dev/null
+
+/usr/sbin/addsudo /usr/bin/openssl app-ssl
+
+# Create Diffie-Hellman
+
+if [ ! -e /etc/ssl/dh1024.pem ]; then
+	openssl dhparam -out /etc/ssl/dh1024.pem 1024 >/dev/null 2>&1
+fi
+
+/usr/share/system/modules/ssl/upgrade >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-ssl - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+/usr/share/system/modules/ssl/upgrade
+%config(noreplace) /etc/ssl/openssl.cnf
+%config(noreplace) /etc/ssl/serial
+%config(noreplace) /etc/ssl/certindex.txt
+%dir /etc/ssl/private
+%dir /etc/ssl/certs

@@ -1,0 +1,86 @@
+#!/bin/sh
+
+# Use new standard location for initialization flags
+#---------------------------------------------------
+
+if ( [ -e /etc/kolab/.kolab2_configured ] && [ ! -e /etc/system/initialized/directory ] ); then
+	logger -p local6.notice -t installer "app-ldap - migrating LDAP initialization flag"
+	touch /etc/system/initialized/directory
+fi
+
+if [ -e /etc/system/initialized/ldap ]; then
+	logger -p local6.notice -t installer "app-ldap - migrating directory initialization flag"
+	mv /etc/system/initialized/ldap /etc/system/initialized/directory
+fi
+
+# Remove old BIND_IP setting
+#---------------------------
+
+CHECK=`/bin/grep ^BIND_IP /etc/sysconfig/ldap 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ldap - removing unused BIND_IP setting"
+	/bin/grep -v ^BIND_IP /etc/sysconfig/ldap > /etc/sysconfig/ldap.$$
+	mv /etc/sysconfig/ldap.$$ /etc/sysconfig/ldap
+fi
+
+# Add new indexes
+#----------------
+
+CHECK=`/bin/grep "^index[[:space:]]*sambaSIDList[[:space:]]*" /etc/openldap/slapd.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ldap - adding new index sambaSIDList"
+	sed -i -e "s/^index[[:space:]]*sambaSID[[:space:]]*eq,sub/index  sambaSID eq,sub\nindex  sambaSIDList eq/" /etc/openldap/slapd.conf
+fi
+
+CHECK=`/bin/grep "^index[[:space:]]*sambaGroupType[[:space:]]*" /etc/openldap/slapd.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ldap - adding new index sambaGroupType"
+	sed -i -e "s/^index[[:space:]]*sambaSID[[:space:]]*eq,sub/index  sambaSID eq,sub\nindex  sambaGroupType eq/" /etc/openldap/slapd.conf
+fi
+
+# Add password policy setting
+#----------------------------
+
+CHECK=`/bin/grep "^overlay[[:space:]]*ppolicy" /etc/openldap/slapd.conf`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-ldap - adding password policy engine"
+	sed -i -e "s/^# syncrepl/# password policies\noverlay ppolicy\n\n# syncrepl/" /etc/openldap/slapd.conf
+fi
+
+# ClarkConnect 4.x upgrade -- bootstrap /etc/ldap.conf
+#-------------------------
+
+if [ -e /etc/system/pre5x ]; then
+	BASEDN=`grep base_dn /etc/kolab/kolab.conf  | awk '{ print $3 }'`
+	CHECK=`grep "$BASEDN" /etc/ldap.conf`
+	if [ -z "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-ldap - creating /etc/ldap.conf for 4.x upgrade"
+		TIMESTAMP=`date "+%b-%d-%Y-%T"`
+		[ -e /etc/ldap.conf ] && mv /etc/ldap.conf /usr/share/system/modules/ldap.conf.$TIMESTAMP
+		grep -A 100 "^host[[:space:]]" /etc/openldap/templates/nss_ldap.conf.template | sed "s/@@@base_dn@@@/$BASEDN/" > /etc/ldap.conf
+	fi
+fi
+
+# Add default SSL certs
+#----------------------
+
+umask 0116
+
+if [ ! -e /etc/openldap/cacerts/key.pem ]; then
+	logger -p local6.notice -t installer "app-ldap - creating default SSL key"
+	/usr/bin/openssl genrsa -out /etc/openldap/cacerts/key.pem 2048 2>/dev/null
+fi
+
+if [ ! -e /etc/openldap/cacerts/cert.pem ]; then
+	logger -p local6.notice -t installer "app-ldap - creating default SSL certificate"
+	/usr/bin/openssl req -new -key /etc/openldap/cacerts/key.pem -x509 -out /etc/openldap/cacerts/cert.pem -config /etc/system/openssl.cnf -days 3000 2>/dev/null
+fi
+
+chown root.ldap /etc/openldap/cacerts/key.pem /etc/openldap/cacerts/cert.pem
+
+umask 0133
+
+# Restart LDAP (schema changes for one)
+#-------------
+
+/sbin/service ldap condrestart >/dev/null 2>&1

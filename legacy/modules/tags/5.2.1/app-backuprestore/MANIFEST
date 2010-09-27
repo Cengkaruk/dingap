@@ -1,0 +1,8 @@
+menu htdocs/menus/backup-settings
+locale backuprestore api/lang
+locale backup-settings htdocs/admin/lang
+include api/BackupRestore.class.php
+include htdocs/images/icons/16x16/icon-backup-settings.png
+include htdocs/images/icons/32x32/icon-backup-settings.png
+include htdocs/admin/backup-settings.php
+include ./backup.conf

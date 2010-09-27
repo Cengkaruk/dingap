@@ -1,0 +1,53 @@
+menu htdocs/menus/mail-aliases
+menu htdocs/menus/mail-disclaimer
+menu htdocs/menus/mail-queue
+menu htdocs/menus/mail-report
+menu htdocs/menus/mail-smtp
+locale aliases api/lang
+locale postfix api/lang
+locale altermime api/lang
+locale mail-aliases htdocs/admin/lang
+locale mail-disclaimer htdocs/admin/lang
+locale mail-queue htdocs/admin/lang
+locale mail-report htdocs/admin/lang
+locale mail-smtp htdocs/admin/lang
+include api/factory/AliasesFactory.class.php
+include api/factory/_AliasesFactory.class.php
+include api/Aliases.class.php
+include api/Altermime.class.php
+include api/MailFilter.class.php
+include api/Postfix.class.php
+include gui/PostfixReport.class.php
+include htdocs/images/icons/16x16/icon-mail-aliases.png
+include htdocs/images/icons/32x32/icon-mail-aliases.png
+include htdocs/images/icons/16x16/icon-mail-disclaimer.png
+include htdocs/images/icons/32x32/icon-mail-disclaimer.png
+include htdocs/images/icons/16x16/icon-mail-queue.png
+include htdocs/images/icons/32x32/icon-mail-queue.png
+include htdocs/images/icons/16x16/icon-mail-report.png
+include htdocs/images/icons/32x32/icon-mail-report.png
+include htdocs/images/icons/16x16/icon-mail-smtp.png
+include htdocs/images/icons/32x32/icon-mail-smtp.png
+include htdocs/admin/mailfilter.php
+include htdocs/admin/mail-aliases.php
+include htdocs/admin/mail-disclaimer.php
+include htdocs/admin/mail-queue.php
+include htdocs/admin/mail-queue.js.php
+include htdocs/admin/mail-report.php
+include htdocs/admin/mail-smtp.php
+include ./virtual
+include ./virtual.db
+include ./smtp.pam
+include ./mailqfmt.pl
+include ./main.cf
+include ./master.cf
+include ./upgrade
+include ./cleantrusted
+include ./app-postfix-report.cron
+include ./app-filter-training.cron
+include ./getlocaldomains
+include ./getprimarydomain
+include ./filtertraining
+include ./ldap-groups.cf.template
+include ./ldap-aliases.cf.template
+

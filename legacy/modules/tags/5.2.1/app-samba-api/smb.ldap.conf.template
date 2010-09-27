@@ -1,0 +1,15 @@
+KOLAB_META_START
+TARGET=/etc/samba/smb.ldap.conf
+PERMISSIONS=0644
+OWNERSHIP=root:root
+KOLAB_META_END
+# This file is automatically updated by ldapsync -- please do not edit.
+passdb backend = ldapsam:ldap://127.0.0.1
+ldap admin dn = cn=manager,cn=internal,@@@base_dn@@@
+ldap group suffix = ou=Groups,ou=Accounts
+ldap idmap suffix = ou=Idmap
+ldap machine suffix = ou=Computers,ou=Accounts
+ldap passwd sync = no
+ldap suffix = @@@base_dn@@@
+ldap user suffix = ou=Users,ou=Accounts
+ldap connection timeout = 8

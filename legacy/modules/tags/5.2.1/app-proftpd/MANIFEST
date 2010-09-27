@@ -1,0 +1,10 @@
+menu htdocs/menus/ftp
+locale ftp htdocs/admin/lang
+locale proftpd api/lang
+include api/Proftpd.class.php
+include htdocs/admin/ftp.php
+include htdocs/images/icons/16x16/icon-ftp.png
+include htdocs/images/icons/32x32/icon-ftp.png
+include ./proftpd.conf
+include ./proftpd.ldap.conf.template
+include ./upgrade

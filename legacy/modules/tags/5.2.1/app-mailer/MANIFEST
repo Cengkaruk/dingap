@@ -1,0 +1,8 @@
+menu htdocs/menus/mailer
+locale mailer api/lang
+locale mailer htdocs/admin/lang
+include api/Mailer.class.php
+include htdocs/admin/mailer.php
+include htdocs/images/icons/16x16/icon-mailer.png
+include htdocs/images/icons/32x32/icon-mailer.png
+include ./mailer.conf

@@ -1,0 +1,29 @@
+#menu htdocs/menus/software-addons
+menu htdocs/menus/software-updates
+menu htdocs/menus/software-modules
+locale softwareupdate api/lang
+locale softwareupdates api/lang
+locale software-addons htdocs/admin/lang
+locale software-updates htdocs/admin/lang
+locale software-modules htdocs/admin/lang
+locale softwareupdate htdocs/admin/lang
+include api/SoftwareUpdate.class.php
+include api/SoftwareUpdates.class.php
+include htdocs/admin/software-addons.php
+include htdocs/admin/software-updates.php
+include htdocs/admin/software-modules.php
+include htdocs/admin/softwareupdate.inc.php
+include htdocs/admin/softwareupdate.php
+include htdocs/admin/softwareupdate.js.php
+include htdocs/images/icons/16x16/icon-software-modules.png
+include htdocs/images/icons/32x32/icon-software-modules.png
+include htdocs/images/icons/16x16/icon-software-updates.png
+include htdocs/images/icons/32x32/icon-software-updates.png
+include htdocs/images/icons/16x16/icon-software-addons.png
+include htdocs/images/icons/32x32/icon-software-addons.png
+include ./yuminstall
+include ./apt-get
+include ./app-software-update.cron
+include ./protected-packages
+include ./upgrade
+include ./software-update

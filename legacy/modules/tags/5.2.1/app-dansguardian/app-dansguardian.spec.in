@@ -1,0 +1,109 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-dansguardian
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Content filtering module - basic
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: dansguardian >= 2.8.0-6.7
+Requires: dansguardian-blacklists >= 2.8b
+Requires: dansguardian-phraselists >= 2.9
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-services => %VERSION%
+Requires: app-squid = %VERSION%
+Obsoletes: cc-squidGuard
+Obsoletes: cc-squidguard
+Provides: cc-dansguardian
+Obsoletes: cc-dansguardian
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Content filtering module - basic
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/dansguardian
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/dansguardian
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+install -m 644 *.all $RPM_BUILD_ROOT/etc/dansguardian/
+install -m 755 upgrade $RPM_BUILD_ROOT/usr/share/system/modules/dansguardian/
+install -m 755 cleanlists $RPM_BUILD_ROOT/usr/share/system/modules/dansguardian/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-dansguardian - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-dansguardian - creating default configuration"
+	chkconfig --level 2345 dansguardian off
+	COMMENTOUTLIST="contentregexplist bannedregexpurllist bannedphraselist"
+	for FILE in $COMMENTOUTLIST; do
+		if [ -e /etc/dansguardian/$FILE ]; then
+			cp /etc/dansguardian/$FILE /usr/share/system/modules/dansguardian/$FILE.$$
+			sed -e "s/^[^#]/#&/" /etc/dansguardian/$FILE > /tmp/$FILE.new
+			mv /tmp/$FILE.new /etc/dansguardian/$FILE
+		fi
+	done
+
+	logger -p local6.notice -t installer "app-dansguardian - setting default log level"
+	sed -i -e 's/^loglevel.*/loglevel = 3/' /etc/dansguardian/dansguardian.conf
+fi
+
+sed -i -e 's/^forwardedfor.*/forwardedfor = on/' /etc/dansguardian/dansguardian.conf
+
+/usr/share/system/modules/dansguardian/upgrade
+/usr/share/system/modules/dansguardian/cleanlists >/dev/null 2>&1
+/sbin/service dansguardian condrestart >/dev/null 2>&1
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+    
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-dansguardian - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/etc/dansguardian
+/usr/share/system/modules/dansguardian/upgrade
+/usr/share/system/modules/dansguardian/cleanlists
+/var/webconfig/

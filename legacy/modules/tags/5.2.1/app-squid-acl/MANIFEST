@@ -1,0 +1,6 @@
+menu htdocs/menus/proxy-policy
+locale proxy-policy htdocs/admin/lang
+include htdocs/images/icons/16x16/icon-proxy-policy.png
+include htdocs/images/icons/32x32/icon-proxy-policy.png
+include htdocs/admin/proxy-policy.php
+include htdocs/admin/proxy-policy.js.php

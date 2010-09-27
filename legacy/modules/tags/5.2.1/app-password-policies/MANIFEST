@@ -1,0 +1,9 @@
+menu htdocs/menus/password-policies
+locale password-policies htdocs/admin/lang
+locale passwordpolicy api/lang
+include htdocs/images/icons/16x16/icon-password-policies.png
+include htdocs/images/icons/32x32/icon-password-policies.png
+include htdocs/admin/password-policies.php
+include api/PasswordPolicy.class.php
+include api/LdapPasswordPolicy.class.php
+include api/SambaPasswordPolicy.class.php

@@ -1,0 +1,80 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-flexshare
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Flexshare module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: vixie-cron
+Requires: webconfig-php-imap
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-flexshare-api = %VERSION%
+Requires: app-ssl = %VERSION%
+Requires: app-users = %VERSION%
+Provides: cc-flexshare
+Obsoletes: cc-flexshare
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Flexshare module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/flexshare
+
+install -m 0755 update-flexshare $RPM_BUILD_ROOT/usr/share/system/modules/flexshare/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-flexshare - installing"
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-flexshare - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig
+/usr/share/system/modules/flexshare/update-flexshare

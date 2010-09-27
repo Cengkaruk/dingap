@@ -1,0 +1,6 @@
+locale amavis api/lang
+include api/Amavis.class.php
+include ./upgrade
+include ./amavisd.conf 
+include ./api.conf 
+include ./autoconfigure-amavisd

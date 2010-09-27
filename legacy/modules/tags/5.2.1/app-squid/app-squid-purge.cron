@@ -1,0 +1,1 @@
+40 3 * * *  root /usr/sbin/proxy-report-purge >/dev/null 2>&1

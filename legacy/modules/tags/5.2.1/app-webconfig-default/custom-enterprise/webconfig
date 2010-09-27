@@ -1,0 +1,4 @@
+template = standard-5.1
+online_help = http://www.clearfoundation.com/userguide
+allow_user = 1
+allow_subadmins = 1

@@ -1,0 +1,19 @@
+KOLAB_META_START
+TARGET=/etc/postfix/ldap-groups.cf
+PERMISSIONS=0600
+OWNERSHIP=root:root
+KOLAB_META_END
+# This file is automatically updated by ldapsync -- please do not edit.
+server_host = @@@ldap_uri@@@
+search_base = ou=Groups,ou=Accounts,@@@base_dn@@@
+query_filter = (&(objectClass=groupOfNames)(cn=experimental.%s))
+result_attribute =
+leaf_result_attribute = mail
+special_result_attribute = member
+result_filter = %s
+search_timeout = 15
+scope = sub
+bind = yes
+bind_dn = @@@php_dn@@@
+bind_pw = @@@php_pw@@@
+version = 3

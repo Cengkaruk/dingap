@@ -1,0 +1,188 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-bacula
+Version: %VERSION%
+Release: %RELEASE%
+Summary: LAN backup and restore module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: bacula-mysql >= 2.0
+Requires: bacula-mysql-server
+Requires: dvd+rw-tools >= 7.0
+Requires: eject
+Requires: perl-DBD-MySQL
+Requires: perl-DBI
+Requires: mt-st
+Requires: mtx
+Requires: samba-client
+Requires: sharutils
+Requires: webconfig-bacula
+Requires: webconfig-php-mysql
+Requires: webconfig-php-imap
+Requires: which
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-autofs = %VERSION%
+Requires: app-mailer = %VERSION%
+Provides: cc-bacula
+Obsoletes: cc-bacula
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+LAN backup and restore module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/lib/php
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/bin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bacula
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/bacula
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/bacula
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/bacula/client_binaries
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/bacula
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+install -m 640 bacula-dir.conf $RPM_BUILD_ROOT/usr/share/system/modules/bacula/
+install -m 640 bacula-sd.conf $RPM_BUILD_ROOT/usr/share/system/modules/bacula/
+install -m 640 bacula-fd.conf $RPM_BUILD_ROOT/usr/share/system/modules/bacula/
+install -m 640 bconsole.conf $RPM_BUILD_ROOT/usr/share/system/modules/bacula/
+install -m 755 run_mysql_upgrade $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_catalog_restore $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_db_password $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_grant_privileges $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_label_media $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_restore_by_bsr $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_send_bsr $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_send_bsr.fork $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 pcnl_upgrade $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 backup_script-Catalog.sh $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 restore_script-Catalog.sh $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 create_mysql_database $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 make_mysql_tables $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 drop_mysql_database $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 grant_mysql_privileges $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 update_mysql_tables $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 update_mysql_tables_2 $RPM_BUILD_ROOT/usr/bacula/
+install -m 700 bacula_functions $RPM_BUILD_ROOT/usr/bacula/
+install -m 644 server.fileset $RPM_BUILD_ROOT/usr/bacula/
+install -m 644 Windows-98.fileset $RPM_BUILD_ROOT/usr/bacula/
+install -m 644 Windows-2000.fileset $RPM_BUILD_ROOT/usr/bacula/
+install -m 644 Windows-XP.fileset $RPM_BUILD_ROOT/usr/bacula/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-bacula - installing"
+
+/usr/sbin/addsudo /bin/ln app-bacula
+/usr/sbin/addsudo /bin/mount app-bacula
+/usr/sbin/addsudo /bin/rmdir app-bacula
+/usr/sbin/addsudo /bin/umount app-bacula
+/usr/sbin/addsudo /usr/bacula/pcnl_catalog_restore app-bacula
+/usr/sbin/addsudo /usr/bacula/pcnl_db_password app-bacula
+/usr/sbin/addsudo /usr/bacula/pcnl_grant_privileges app-bacula
+/usr/sbin/addsudo /usr/bacula/pcnl_label_media app-bacula
+/usr/sbin/addsudo /usr/bacula/pcnl_restore_by_bsr app-bacula
+/usr/sbin/addsudo /usr/bin/dvd+rw-mediainfo app-bacula
+/usr/sbin/addsudo /usr/bin/eject app-bacula
+/usr/sbin/addsudo /usr/bin/smbmount app-bacula
+/usr/sbin/addsudo /usr/bin/smbumount app-bacula
+/usr/sbin/addsudo /usr/sbin/bacula-dir app-bacula
+/usr/sbin/addsudo /usr/sbin/bacula-fd app-bacula
+/usr/sbin/addsudo /usr/sbin/bacula-sd app-bacula
+/usr/sbin/addsudo /usr/sbin/bconsole app-bacula
+
+# Remove instances of deprecated tag AcceptAnyVolume
+/usr/bacula/pcnl_upgrade > /dev/null 2>&1
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+    logger -p local6.notice -t installer "app-bacula - disabling on boot"
+    chkconfig --level 2345 bacula-dir off
+    chkconfig --level 2345 bacula-sd off
+    chkconfig --level 2345 bacula-fd off
+    chkconfig --level 2345 bacula-mysqld off
+
+    logger -p local6.notice -t installer "app-bacula - installing default configuration"
+    cp /etc/bacula/bacula-dir.conf /usr/share/system/modules/bacula/bacula-dir.conf.$$
+    cp /etc/bacula/bacula-sd.conf /usr/share/system/modules/bacula/bacula-sd.conf.$$
+    cp /etc/bacula/bacula-fd.conf /usr/share/system/modules/bacula/bacula-fd.conf.$$
+    cp /etc/bacula/bconsole.conf /usr/share/system/modules/bacula/bconsole.conf.$$
+    cp /usr/share/system/modules/bacula/bacula-dir.conf /etc/bacula/
+    cp /usr/share/system/modules/bacula/bacula-sd.conf /etc/bacula/
+    cp /usr/share/system/modules/bacula/bacula-fd.conf /etc/bacula/
+    cp /usr/share/system/modules/bacula/bconsole.conf /etc/bacula/
+fi
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-bacula - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/var/webconfig/
+%attr(0600,root,root) /usr/share/system/modules/bacula/bacula-dir.conf
+%attr(0600,root,root) /usr/share/system/modules/bacula/bacula-sd.conf
+%attr(0600,root,root) /usr/share/system/modules/bacula/bacula-fd.conf
+%attr(0600,root,root) /usr/share/system/modules/bacula/bconsole.conf
+/usr/bacula/bacula_functions
+/usr/bacula/pcnl_catalog_restore
+/usr/bacula/pcnl_db_password
+/usr/bacula/pcnl_grant_privileges
+/usr/bacula/pcnl_label_media
+/usr/bacula/pcnl_restore_by_bsr
+/usr/bacula/pcnl_upgrade
+/usr/bacula/backup_script-Catalog.sh
+/usr/bacula/restore_script-Catalog.sh
+/usr/bacula/create_mysql_database
+/usr/bacula/drop_mysql_database
+/usr/bacula/make_mysql_tables
+/usr/bacula/grant_mysql_privileges
+/usr/bacula/update_mysql_tables
+/usr/bacula/update_mysql_tables_2
+/usr/bacula/run_mysql_upgrade
+%attr(0770,webconfig,webconfig) /usr/bacula/pcnl_send_bsr
+%attr(0770,webconfig,webconfig) /usr/bacula/pcnl_send_bsr.fork
+%attr(0644,webconfig,webconfig) /usr/bacula/server.fileset
+%attr(0644,webconfig,webconfig) /usr/bacula/Windows-98.fileset
+%attr(0644,webconfig,webconfig) /usr/bacula/Windows-2000.fileset
+%attr(0644,webconfig,webconfig) /usr/bacula/Windows-XP.fileset
+%dir /var/bacula

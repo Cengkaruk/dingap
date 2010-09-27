@@ -1,0 +1,4 @@
+include ./clearos-5-i386-base.cfg    
+include ./clearos-5-i386-iso.cfg     
+include ./clearos-5-x86_64-base.cfg  
+include ./clearos-5-x86_64-iso.cfg   

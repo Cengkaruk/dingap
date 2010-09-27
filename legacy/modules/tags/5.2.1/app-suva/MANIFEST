@@ -1,0 +1,7 @@
+locale suva api/lang
+include api/Suva.class.php
+include api/SuvaWebService.class.php
+include wsdl/Suva.wsdl
+include ./setdevicename
+include ./upgrade
+include ./suvad.conf

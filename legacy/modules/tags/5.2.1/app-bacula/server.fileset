@@ -1,0 +1,21 @@
+FileSet {
+  # DO NOT REMOVE - Webconfig NO_DELETE
+  Name = "MyServerName"
+  Include {
+    Options {
+      Signature = MD5
+      Compression = GZIP5
+    }
+    File = "/home"
+    File = "/var/flexshare"
+    File = "/var/ftp"
+    File = "/var/lib/imap"
+    File = "/var/local"
+    File = "/var/log"
+    File = "/var/spool"
+    File = "/var/www"
+  }
+  Exclude {
+    File = "/var/spool/squid"
+  }
+}

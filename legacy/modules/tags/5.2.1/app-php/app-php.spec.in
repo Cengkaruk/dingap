@@ -1,0 +1,75 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-php
+Version: %VERSION%
+Release: %RELEASE%
+Summary: PHP module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: php >= 5.1.6
+Requires: php-imap >= 5.1.6
+Requires: php-mysql >= 5.1.6
+Requires: php-mbstring >= 5.1.6
+Requires: php-ldap >= 5.1.6
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-httpd = %VERSION%
+Provides: cc-php
+Obsoletes: cc-php
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+PHP module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/php
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-php - installing"
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-php - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%dir /usr/share/system/modules/php

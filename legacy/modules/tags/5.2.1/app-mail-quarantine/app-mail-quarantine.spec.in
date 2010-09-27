@@ -1,0 +1,85 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-mail-quarantine
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Mail - Quarantine module
+License: GPL
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: Point Clark Networks
+Packager: Point Clark Networks
+Requires: mailzu >= 0.8RC3-2
+Requires: amavisd-new >= 2.6.2-4
+Requires: webconfig-php-mysql
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-mail-antivirus = %VERSION%
+Requires: app-postfix = %VERSION%
+Requires: app-spamassassin = %VERSION%
+Provides: cc-mail-quarantine
+Obsoletes: cc-mail-quarantine
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Mail - Quarantine module
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT%{_sbindir}
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/mail-quarantine
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m0755 quarantine_bootstrap  $RPM_BUILD_ROOT%{_sbindir}/
+install -m0644 amavisd-mysql_objects-4.1.sql $RPM_BUILD_ROOT/usr/share/system/modules/mail-quarantine/
+
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-mail-quarantine - installing"
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+
+if [ "$1" = "0" ]; then
+	logger -p local6.notice -t installer "app-mail-quarantine - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+%{_sbindir}/quarantine_bootstrap
+/var/webconfig
+/usr/share/system/modules/mail-quarantine/amavisd-mysql_objects-4.1.sql

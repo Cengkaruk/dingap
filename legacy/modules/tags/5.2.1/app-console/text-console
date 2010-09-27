@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ -e /etc/sysconfig/i18n ]; then
+	source /etc/sysconfig/i18n
+fi
+
+if [ -z "$LANG" ]; then
+	LANG="en_US"
+else
+	LANG=`echo $LANG | sed 's/\..*//'`
+fi
+
+/usr/sbin/chroot /usr/share/console /bin/lynx -cfg=/etc/lynx.cfg -nobrowse http://127.0.0.1:82/admin/network.php

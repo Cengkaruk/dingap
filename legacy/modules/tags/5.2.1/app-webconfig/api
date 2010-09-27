@@ -1,0 +1,139 @@
+#!/usr/webconfig/bin/php
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2009 Point Clark Networks.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+$BASEDIR = isset($_ENV['WEBCONFIG_ROOT']) ? $_ENV['WEBCONFIG_ROOT'] : "/var/webconfig";
+
+$fullclass = isset($argv[1]) ? $argv[1] : "";
+$method = isset($argv[2]) ? $argv[2] : "";
+
+$class = preg_replace("/\..*/", "", $fullclass);
+
+// Check general usage issues
+//---------------------------
+
+if (empty($class) || !file_exists($BASEDIR . "/api/$class.class.php")) {
+	echo "Usage: api <class> <method> <param1> <param2> <param...>\n";
+	ShowClasses();
+	exit(1);
+}
+
+try {
+	// Create object and run method
+	//-----------------------------
+
+	require_once($BASEDIR . "/api/$class.class.php");
+
+	$matches = array();
+	$construct_param = preg_match("/$class\.(.*)/", $fullclass, $matches);
+
+	if (isset($matches[1]))
+		$object = new $class($matches[1]);
+	else
+		$object = new $class();
+
+	// Bail if method does not exist, spit out helpful hints
+	//------------------------------------------------------
+
+	if (!method_exists($object, $method)) {
+		echo "Method does not exist.  Available methods:\n";
+		ShowMethods($object);
+		exit(1);
+	}
+
+	// Run the method call with parameters
+	//------------------------------------
+
+	$params = $argv;
+	array_shift($params);
+	array_shift($params);
+	array_shift($params);
+	$paramcount = count($params);
+
+	// TODO: There must be a more clever way...
+	if ($paramcount == 0)
+		$result = $object->$method();
+	else if ($paramcount == 1)
+		$result = $object->$method($params[0]);
+	else if ($paramcount == 2)
+		$result = $object->$method($params[0], $params[1]);
+
+	if (! is_null($result)) {
+		if (is_array($result)) {
+			print_r($result);
+			echo "\n";
+		} else if (is_bool($result)) {
+			$boolval = $result ? "true" : "false";
+			echo "$boolval\n";
+		} else {
+			echo "$result\n";
+		}
+	}
+
+} catch (Exception $e) {
+	Logger::Syslog("api", $e->GetMessage());
+	echo "error: " . $e->GetMessage() . "\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// ShowClasses: shows available classes
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function ShowClasses()
+{
+	global $BASEDIR;
+
+	$listing = scandir($BASEDIR . "/api");
+
+	$matches = array();
+
+	foreach ($listing as $file) {
+		if (preg_match("/(.*)\.class\.php$/", $file, $matches)) {
+			echo "  $matches[1]\n";
+		}
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// ShowMethods: shows available methods in given object
+//
+///////////////////////////////////////////////////////////////////////////////
+
+function ShowMethods($object)
+{
+	$methods = get_class_methods($object);
+
+	sort($methods);
+
+	foreach ($methods as $available) {
+		if (! preg_match("/^(_|Log|GetValidationErrors|CopyValidationErrors|CheckValidationErrors)/", $available))
+			echo "  $available\n";
+	}
+}
+
+// vim: syntax=php ts=4
+?>

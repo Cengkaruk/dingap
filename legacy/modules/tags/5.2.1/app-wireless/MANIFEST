@@ -1,0 +1,4 @@
+menu htdocs/menus/10-wireless
+locale wireless htdocs/admin/lang
+include htdocs/images/icon-wireless.png
+include htdocs/admin/wireless.php

@@ -1,0 +1,42 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# TODO: Suva should handle this... I think
+# Add ClearCenter directory
+
+if [ ! -d /var/lib/suva/clearcenter.com ]; then
+	mkdir -p /var/lib/suva/clearcenter.com
+	chown suva.suva /var/lib/suva/clearcenter.com
+	chmod 750 /var/lib/suva/clearcenter.com
+fi
+
+# Upgrade default configuration
+
+CHECK=`grep "organization.*pointclark.net" /etc/suvad.conf 2>/dev/null `
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-suva - changing organization to clearcenter.com"
+
+	OLDKEY=`grep "^[[:space:]]*device-hostkey" /etc/suvad.conf 2>/dev/null | sed 's/";//' | sed 's/.*"//'`
+
+	cp /etc/suvad.conf /usr/share/system/modules/suva/suvad.conf.$TIMESTAMP
+	cp /usr/share/system/modules/suva/suvad.conf /etc/suvad.conf
+
+	if [ -n "$OLDKEY" ]; then
+		logger -p local6.notice -t installer "app-suva - migrating old hostkey"
+		/usr/bin/setkey.sh /etc/suvad.conf $OLDKEY
+	fi
+
+	/sbin/service suvad condrestart >/dev/null 2>&1
+fi
+
+# Fix configuration file permissions
+
+if [ -e /etc/suvad.conf ]; then
+	CHECKPERMS=`stat --format=%a /etc/suvad.conf`
+	if [ "$CHECKPERMS" != "600" ]; then
+		logger -p local6.notice -t installer "app-suva - updating file permissions of suvad.conf"
+		chmod 600 /etc/suvad.conf
+	fi
+fi
+

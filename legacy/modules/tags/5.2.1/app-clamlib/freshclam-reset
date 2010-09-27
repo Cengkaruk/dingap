@@ -1,0 +1,14 @@
+#!/bin/sh
+
+/usr/bin/clamscan /etc/hosts >/dev/null 2>&1
+
+if [ $? != 0 ]; then
+	rm -rf /var/lib/clamav/daily.inc
+	rm -rf /var/lib/clamav/main.inc
+	/usr/bin/freshclam
+fi
+
+INIT=`ls /etc/rc.d/rc3.d/S[0-9]*clamd 2>/dev/null`
+if ( [ ! -z $INIT ] && [ -x /etc/rc.d/init.d/clamd ] ); then
+	/etc/rc.d/init.d/clamd start >/dev/null 2>&1
+fi
