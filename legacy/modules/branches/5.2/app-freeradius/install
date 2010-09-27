@@ -1,0 +1,34 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Create random file for certs
+#-----------------------------
+
+if [ ! -e /etc/raddb/clearos-certs/random ]; then
+	logger -p local6.notice -t installer "app-freeradius - creating certificate helper random_file"
+	dd if=/dev/urandom of=/etc/raddb/clearos-certs/random bs=100 count=1 >/dev/null 2>&1
+	chown root.radiusd /etc/raddb/clearos-certs/random
+	chmod 640 /etc/raddb/clearos-certs/random
+fi
+
+# Use ClearOS configlets file instead of the default
+#---------------------------------------------------
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*eap.conf" /etc/raddb/radiusd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-freeradius - adding clearos-eap.conf configlet"
+	cp -a /etc/raddb/radiusd.conf /usr/share/system/modules/freeradius/radius.conf.$TIMESTAMP
+	sed -i -e 's/^[[:space:]]*\$INCLUDE[[:space:]]*eap.conf/\t\$INCLUDE clearos-eap.conf/' /etc/raddb/radiusd.conf
+fi
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*clients.conf" /etc/raddb/radiusd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-freeradius - adding clearos-clients.conf configlet"
+	cp -a /etc/raddb/radiusd.conf /usr/share/system/modules/freeradius/radius.conf.$TIMESTAMP
+	sed -i -e 's/^[[:space:]]*\$INCLUDE[[:space:]]*clients.conf/$INCLUDE clearos-clients.conf/' /etc/raddb/radiusd.conf
+fi
+
+# Signal syswatch to handle the certificates
+# TODO: create some kind of plugin or command wrapper for this
+killall -USR1 syswatch >/dev/null 2>&1

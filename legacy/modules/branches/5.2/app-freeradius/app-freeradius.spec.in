@@ -16,7 +16,9 @@ Requires: freeradius2-ldap
 Requires: freeradius2-utils
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
+Requires: app-ssl = %VERSION%
 Requires: app-users = %VERSION%
+Requires: app-syswatch >= 5.2-25
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
@@ -37,7 +39,20 @@ RADIUS server module
 %install
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/openldap/templates
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/raddb/clearos-certs
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/raddb/sites-available
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/raddb/sites-enabled
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/freeradius
 mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
+
+install -m 644 freeradius.conf.template $RPM_BUILD_ROOT/etc/openldap/templates
+install -m 640 clearos-clients.conf $RPM_BUILD_ROOT/etc/raddb/
+install -m 640 clearos-eap.conf $RPM_BUILD_ROOT/etc/raddb/
+install -m 640 clearos-inner-tunnel $RPM_BUILD_ROOT/etc/raddb/sites-available
+install -m 755 install $RPM_BUILD_ROOT/usr/share/system/modules/freeradius/
+
+ln -s /etc/raddb/sites-available/clearos-inner-tunnel $RPM_BUILD_ROOT/etc/raddb/sites-enabled/clearos-inner-tunnel
 
 cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
 
@@ -47,6 +62,16 @@ cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
 
 %post
 logger -p local6.notice -t installer "app-freeradius - installing"
+
+if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
+	logger -p local6.notice -t installer "app-freeradius - running install routine"
+	/usr/share/system/modules/freeradius/install
+fi
+
+logger -p local6.notice -t installer "app-freeradius - synchronizing with LDAP"
+/usr/sbin/ldapsync config radiusd >/dev/null 2>&1
+
+exit 0
 
 #------------------------------------------------------------------------------
 # U N I N S T A L L  S C R I P T
@@ -71,3 +96,11 @@ fi
 %files
 %defattr(-,root,root)
 /var/webconfig
+%dir %attr(770,root,radiusd) /etc/raddb/clearos-certs
+%dir /usr/share/system/modules/freeradius
+/usr/share/system/modules/freeradius/install
+/etc/openldap/templates/freeradius.conf.template
+%attr(640,root,radiusd) /etc/raddb/clearos-clients.conf 
+%attr(640,root,radiusd) /etc/raddb/clearos-eap.conf 
+%attr(640,root,radiusd) /etc/raddb/sites-available/clearos-inner-tunnel
+%attr{-,root,radiusd) /etc/raddb/sites-enabled/clearos-inner-tunnel
