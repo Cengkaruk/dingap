@@ -65,11 +65,20 @@ function DisplayUpdateLists($type, $description)
 	}
 
 	$available = "";
+	$available_contrib = "";
 	$installed = "";
 
 	ksort($swlist);
 
+// fun
+// contrib
+// critical
+// recommened
 	foreach ($swlist as $software) {
+		// KLUDGE -- processing contribs and official modules on same screen
+		if ($software['type'] == SoftwareUpdates::TYPE_CONTRIB)
+			$software['type'] = SoftwareUpdates::TYPE_MODULE;
+
 		// Only list software for our desired type (critical, recommended, etc.).
 		if ($software["type"] != $type) {
 			continue;
@@ -82,12 +91,9 @@ function DisplayUpdateLists($type, $description)
 				$newversion = $rpminfo->GetVersion();
 				$newrelease = $rpminfo->GetRelease();
 
-				if ($type == SoftwareUpdates::TYPE_CONTRIB)
-					$vendor = empty($software["vendor_name"]) ? "" : "<td>" . $software["vendor_name"] . "</td>";
 				$installed .= "
 					<tr>
 						<td>" . $software["summary"] . "</td>
-						$vendor
 						<td nowrap>" . $newversion . "-" . $newrelease . "</td>
 						<td nowrap>" . SOFTWAREUPDATE_LANG_MANUALLY_UPGRADED . "</td>
 						<td>$install</td>
@@ -102,13 +108,9 @@ function DisplayUpdateLists($type, $description)
 			$rpminfo = new Software($software["name"], $software["version"], $software["release"]);
 			$install = strftime("%x", $rpminfo->GetInstallTime());
 
-			if ($type == SoftwareUpdates::TYPE_CONTRIB)
-				$vendor = empty($software["vendor_name"]) ? "" : "<td>" . $software["vendor_name"] . "</td>";
-
 			$installed .= "
 				<tr>
 					<td>" . $software["summary"] . "</td>
-					$vendor
 					<td nowrap>" . $software["version"] . "-" . $software["release"] . "</td>
 					<td nowrap>" . strftime("%x", $software["date"]) . "</td>
 					<td>$install</td>
@@ -122,7 +124,6 @@ function DisplayUpdateLists($type, $description)
 			$installed .= "
 				<tr>
 					<td>" . $software["summary"] . "</td>
-					$vendor
 					<td nowrap>" . $software["version"] . "-" . $software["release"] . "</td>
 					<td nowrap>" . strftime("%x", $software["date"]) . "</td>
 					<td><span class='alert'>" . SOFTWAREUPDATE_LANG_UPDATE_AVAILABLE . "<span></td>
@@ -133,28 +134,24 @@ function DisplayUpdateLists($type, $description)
 			  ($software["rpmcheck"] == SoftwareUpdates::CODE_NOTINSTALLED) && ($type == SoftwareUpdates::TYPE_MODULE) ||
 			  ($software["rpmcheck"] == SoftwareUpdates::CODE_NOTINSTALLED) && ($type == SoftwareUpdates::TYPE_CONTRIB))
 		{
-			if ($type == SoftwareUpdates::TYPE_CONTRIB)
-				$vendor = empty($software["vendor_name"]) ? "" : "<td>" . $software["vendor_name"] . "</td>";
+			$vendor = empty($software["vendor_name"]) ? "ClearFoundation" : $software["vendor_name"];
 
-			$available .= "
+			$row = "
 				<tr>
 					<td>" . $software["summary"] . "</td>
-					$vendor
-					<td nowrap>" . $software["version"] . "-" . $software["release"] . "</td>
-					<td nowrap>" . strftime("%x", $software["date"]) . "</td>
-					<td><b><input type='checkbox' name='packagelist[$software[name]]' value='" . $software["summary"] . "' /></b></td>
+					<td width='250'>" . $vendor . "</td>
+					<td width='100'>" . $software["version"] . "-" . $software["release"] . "</td>
+					<td width='100'>" . strftime("%x", $software["date"]) . "</td>
+					<td width='40'><b><input type='checkbox' name='packagelist[$software[name]]' value='" . $software["summary"] . "' /></b></td>
 				</tr>
 			";
+
+			if (empty($software["vendor_name"]))
+				$available .= $row;
+			else
+				$available_contrib .= $row;
 		}
 
-	}
-
-	if ($type == SoftwareUpdates::TYPE_CONTRIB) {
-		$vendorheader = "Vendor|";
-		$colspan = "4";
-	} else {
-		$vendorheader = "";
-		$colspan = "3";
 	}
 
 	if (!$installed)
@@ -165,7 +162,7 @@ function DisplayUpdateLists($type, $description)
 	} else {
 		$available .= "
 		  <tr>
-		    <td colspan='$colspan'>&#160;</td>
+		    <td colspan='4'>&#160;</td>
 		    <td>". WebButtonGo("DisplayUpdateSelection") . "</td>
 		  </tr>
 		";
@@ -173,13 +170,29 @@ function DisplayUpdateLists($type, $description)
 
 	WebFormOpen();
 	WebTableOpen($description, "100%");
-	WebTableHeader(SOFTWAREUPDATE_LANG_DESC . "|$vendorheader" . SOFTWAREUPDATE_LANG_VERSION . "|" . SOFTWAREUPDATE_LANG_RELEASED . "|");
+	WebTableHeader(SOFTWAREUPDATE_LANG_DESC . "|Vendor|" . SOFTWAREUPDATE_LANG_VERSION . "|" . SOFTWAREUPDATE_LANG_RELEASED . "|");
 	echo $available;
 	WebTableClose("100%");
 	WebFormClose();
 
+	if (! empty($available_contrib)) {
+		WebFormOpen();
+		WebTableOpen("Third Party", "100%");
+		WebTableHeader(SOFTWAREUPDATE_LANG_DESC . "|Vendor|" . SOFTWAREUPDATE_LANG_VERSION . "|" . SOFTWAREUPDATE_LANG_RELEASED . "|");
+		echo $available_contrib;
+		echo "
+		  <tr>
+		    <td colspan='4'>&#160;</td>
+		    <td>". WebButtonGo("DisplayUpdateSelection") . "</td>
+		  </tr>
+		";
+		WebTableClose("100%");
+		WebFormClose();
+	}
+
+
 	WebTableOpen(SOFTWAREUPDATE_LANG_INSTALLATION_HISTORY, "100%");
-	WebTableHeader(SOFTWAREUPDATE_LANG_DESC . "|$vendorheader" . SOFTWAREUPDATE_LANG_VERSION . "|" . SOFTWAREUPDATE_LANG_RELEASED . "|" . SOFTWAREUPDATE_LANG_INSTALLED);
+	WebTableHeader(SOFTWAREUPDATE_LANG_DESC . "|" . SOFTWAREUPDATE_LANG_VERSION . "|" . SOFTWAREUPDATE_LANG_RELEASED . "|" . SOFTWAREUPDATE_LANG_INSTALLED);
 	echo $installed;
 	WebTableClose("100%");
 }
