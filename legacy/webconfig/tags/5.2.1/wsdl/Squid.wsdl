@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Squid"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Squid">
+
+	<types>
+		<xsd:schema targetNamespace="Squid">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+		</xsd:schema>
+	</types>
+
+	<message name="IsInstalledRequest">
+	</message>
+
+	<message name="IsInstalledResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="RestartRequest">
+	</message>
+
+	<message name="RestartResponse">
+	</message>
+
+	<portType name="SquidPortType">
+		<operation name="IsInstalled">
+			<input message="tns:IsInstalledRequest"/>
+			<output message="tns:IsInstalledResponse"/>
+		</operation>
+		<operation name="Restart">
+			<input message="tns:RestartRequest"/>
+			<output message="tns:RestartResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="SquidBinding" type="tns:SquidPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="IsInstalled">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/IsInstalled" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Squid"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Squid"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+		<operation name="Restart">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Restart" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Squid"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Squid"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Squid">
+		<port name="SquidPort" binding="tns:SquidBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

@@ -1,0 +1,293 @@
+/* Standard HTML Tags */
+/* ------------------ */
+
+html {
+  color: #333333;
+  background-color: #A9A59E;
+}
+body {
+  font-size:     8pt;
+  font-family:   arial, verdana;
+  margin:        10pt;
+}
+td,th {
+  font-size:       8pt;
+  font-family:     arial, verdana;
+}
+h1 {
+  font-size:       12pt;
+  font-family:     arial, verdana;
+  color:           #333333;
+}
+h2,h3 {
+  font-size:       8pt;
+  font-family:     arial, verdana;
+  color:           #333333;
+}
+hr {
+  color:           #CCCCCC;
+  width:           75%;
+}
+img {
+  border-width:    0;
+}
+form {
+  margin:          0;
+}
+pre {
+  font-family:     monospace;
+  font-size:       8pt;
+}
+textarea {
+  font-size:       8pt;
+  font-family:     arial, verdana;
+  width:           100%;
+  background:      transparent;
+}
+input {
+  font-size:       8pt;
+  font-family:     arial, verdana;
+}
+select {
+  font-size:       8pt;
+  font-family:     arial, verdana;
+  vertical-align:  middle;
+}
+a:link {
+  font-size:     8pt;
+  text-decoration: none;
+  color:           #006699;
+}
+a:visited {
+  font-size:     8pt;
+  text-decoration: none;
+  color:           #006699;
+}
+a:hover {
+  font-size:     8pt;
+  background:      transparent;
+  color:           #006699;
+}
+
+/* Text Format Tags */
+/* ---------------- */
+
+.small {
+  font-size: 8pt;
+  font-family: arial, verdana;
+}
+.content {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   transparent;
+}
+.help {
+  border-left: thin dotted #999999;
+  padding: 9px;
+}
+.alert {
+  font-size:    8pt;
+  color:        red;
+}
+.ok {
+  font-size:    8pt;
+  color:        green;
+}
+
+/* Input Format Tags */
+/* ----------------- */
+
+.readonly {
+  color:           #666666;
+  border:          none;
+}
+
+/* Tables */
+/* ------ */
+
+.mytable {
+  font-size:    8pt;
+  border: 1px solid #EEEEEE;
+  background: white;
+  padding: 1px;
+}
+.mytabletitle {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  font-weight:  bold;
+  color:        black;
+  padding-left: 25px;
+  border: 1px solid #999999;
+}
+.mytableheader {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  font-weight:  bold;
+  color:        #333333;
+  background:   #DDDDDD;
+  border-top:   1px solid #CCCCCC;
+  border-bottom:   1px solid #CCCCCC;
+  margin: 10px;
+}
+.mytablesubheader {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  font-weight:  bold;
+  text-align:   right;
+  color:        #333333;
+  background:   #EEEEEE;
+  border-right: 1px solid #BBBBBB;
+}
+.rowenabled {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   white;
+}
+.rowhoverhighlight {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   #FFFCCC;
+}
+.rowenabledalt {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        black;
+  background:   #EEEEEE;
+}
+.rowdisabled {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        #666666;
+  background:   white;
+}
+.rowdisabledalt {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        #666666;
+  background:   #EEEEEE;
+}
+.mytablealt {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        #333333;
+  background:   #EEEEEE;
+}
+.mytablelegend {
+  font-size:    8pt;
+  font-family:  arial, verdana;
+  color:        black;
+  text-align:   center;
+  background:   #DDDDDD;
+  border: 1px solid #CCCCCC;
+}
+.mytablecheckboxes {
+  font-size:    8pt;
+  border:       1px solid #999999;
+  background:   white;
+  margin:       2px;
+  padding:      2px;
+}
+.iconenabled {
+  background-image: url(/templates/standard-4.2/images/icon_enabled.png);
+  background-repeat: no-repeat;
+  background-position: 50% 45%;
+  padding: 7px;
+  width: 20px;
+}
+.icondisabled {
+  background-image: url(/templates/standard-4.2/images/icon_disabled.png);
+  background-repeat: no-repeat;
+  background-position: 50% 45%;
+  padding: 7px;
+  width: 20px;
+}
+
+/* Buttons */
+/* ------- */
+
+/* Dialog Boxes */
+/* ------------ */
+
+/* Menu */
+/* ---- */
+
+/* Progress Bar */
+/* ------------ */
+
+.progressbarbg {
+  height: 16px;
+  background-image: url('/images/pgb_bg.gif');
+  z-index: 0;
+}
+.progressbar {
+  position: absolute;
+  background-image: url('/images/pgb_fill.gif');
+  width: 1px;
+  height: 16px;
+  z-index: 1;
+}
+.progressbarpercent {
+  position: relative;
+  width: 100%;
+  color: #fff;
+  z-index: 2;
+}
+
+/* IPlex */
+/* ----- */
+
+div.syscurrent {
+  position:relative;
+  display:block;
+  top:-7px;
+  width:624px;
+  color:white;
+  background-color:green;
+  font-weight:bold;
+  text-align:center;
+  text-decoration:none;
+  border: 1px dashed white;
+}
+
+.syscurrent a:link    { text-decoration: none; color: white; background-color: transparent; }
+.syscurrent a:visited { text-decoration: none; color: white; background-color: transparent; }
+.syscurrent a:hover   { text-decoration: none; color: white; background-color: transparent; }
+
+div.syscommit {
+  position:relative;
+  display:block;
+  top:-7px;
+  width:624px;
+  color:white;
+  background-color:yellow;
+  font-weight:bold;
+  text-align:center;
+  text-decoration:none;
+  border: 1px dashed red;
+}
+
+.syscommit a:link    { text-decoration: none; color: black; background-color: transparent; }
+.syscommit a:visited { text-decoration: none; color: black; background-color: transparent; }
+.syscommit a:hover   { text-decoration: none; color: black; background-color: transparent; }
+
+
+div.sysapply {
+  position:relative;
+  display:block;
+  top:-7px;
+  width:624px;
+  color:white;
+  background-color:red;
+  font-weight:bold;
+  text-align:center;
+  text-decoration:none;
+  border: 1px dashed black;
+}
+
+.sysapply a:link    { text-decoration: none; color: white; background-color: transparent; }
+.sysapply a:visited { text-decoration: none; color: white; background-color: transparent; }
+.sysapply a:hover   { text-decoration: none; color: white; background-color: transparent; }
+

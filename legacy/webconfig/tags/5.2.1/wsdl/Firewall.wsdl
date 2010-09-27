@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Firewall"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Firewall">
+
+	<types>
+		<xsd:schema targetNamespace="Firewall">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+		</xsd:schema>
+	</types>
+
+	<message name="GetModeRequest">
+	</message>
+
+	<message name="GetModeResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="SetModeRequest">
+		<part name="mode" type="xsd:string"/>
+	</message>
+
+	<message name="SetModeResponse">
+	</message>
+
+	<message name="GetInterfaceRoleRequest">
+		<part name="device" type="xsd:string"/>
+	</message>
+
+	<message name="GetInterfaceRoleResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="IsInstalledRequest">
+	</message>
+
+	<message name="IsInstalledResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="RestartRequest">
+	</message>
+
+	<message name="RestartResponse">
+	</message>
+
+	<message name="RemoveInterfaceRoleRequest">
+		<part name="device" type="xsd:string"/>
+	</message>
+
+	<message name="RemoveInterfaceRoleResponse">
+	</message>
+
+	<portType name="FirewallPortType">
+		<operation name="GetMode">
+			<input message="tns:GetModeRequest"/>
+			<output message="tns:GetModeResponse"/>
+		</operation>
+
+		<operation name="SetMode">
+			<input message="tns:SetModeRequest"/>
+			<output message="tns:SetModeResponse"/>
+		</operation>
+
+		<operation name="GetInterfaceRole">
+			<input message="tns:GetInterfaceRoleRequest"/>
+			<output message="tns:GetInterfaceRoleResponse"/>
+		</operation>
+
+		<operation name="IsInstalled">
+			<input message="tns:IsInstalledRequest"/>
+			<output message="tns:IsInstalledResponse"/>
+		</operation>
+
+		<operation name="Restart">
+			<input message="tns:RestartRequest"/>
+			<output message="tns:RestartResponse"/>
+		</operation>
+
+		<operation name="RemoveInterfaceRole">
+			<input message="tns:RemoveInterfaceRoleRequest"/>
+			<output message="tns:RemoveInterfaceRoleResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="FirewallBinding" type="tns:FirewallPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetMode">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetMode" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="SetMode">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/SetMode" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetInterfaceRole">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetInterfaceRole" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="IsInstalled">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/IsInstalled" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="Restart">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Restart" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="RemoveInterfaceRole">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/RemoveInterfaceRole" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Firewall"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Firewall">
+		<port name="FirewallPort" binding="tns:FirewallBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

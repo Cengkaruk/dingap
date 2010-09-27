@@ -1,0 +1,182 @@
+/* Layout */
+/* ------ */
+
+.page-width {
+	width: 100%;
+	margin-left: 20px auto;
+	margin-right: 20px auto;
+}
+.page-width-nomenu {
+	width: 800px;
+	margin-top: 50px;
+	margin-left: 20px auto;
+	margin-right: 20px auto;
+}
+
+.pcn-header-left   { background: transparent url(/templates/standard-4.2/images/header_left.gif) no-repeat; height: 17px }
+.pcn-header-middle { background: transparent url(/templates/standard-4.2/images/header_middle.gif) repeat-x; }
+.pcn-header-right  { background: transparent url(/templates/standard-4.2/images/header_right.gif) no-repeat; height: 17px }
+
+.pcn-banner-left   { background: transparent url(/templates/standard-4.2/images/top_left_out.jpg) no-repeat;  }
+.pcn-banner-middle { background: transparent url(/templates/standard-4.2/images/top_middle_out.jpg) repeat-x; }
+.pcn-banner-right  { background: transparent url(/templates/standard-4.2/images/top_right_out.jpg) no-repeat; }
+
+.pcn-inner-banner-left   { background: transparent url(/templates/standard-4.2/images/top_left.jpg) no-repeat; width: 20px; height: 104px; }
+.pcn-inner-banner-middle   { background: transparent url(/templates/standard-4.2/images/top_middle_bg.jpg) repeat-x; }
+.pcn-inner-banner-right  { background: transparent url(/templates/standard-4.2/images/top_right.jpg) no-repeat; width: 20px; }
+
+.pcn-navbar-text {
+  font-size:    8pt;
+  position:  relative;
+  top: 5px;
+  text-align: center;
+}
+.pcn-navbar-overlay {
+  background: transparent url(/templates/standard-4.2/images/navbar_c01.jpg) no-repeat; width: 180px; height: 33px; 
+  background-position: 0% 0%;
+}
+
+.pcn-navbar  { margin-top: 0; margin-bottom: 2px; }
+.pcn-navbar-left  { background: transparent url(/templates/standard-4.2/images/navbar_left.jpg) no-repeat; }
+.pcn-navbar-buffer  { background: transparent url(/templates/standard-4.2/images/navbar_middle_bg.jpg) repeat-x; }
+.pcn-navbar-middle  { background: transparent url(/templates/standard-4.2/images/navbar_middle_bg.jpg) repeat-x; width: 650px; height: 33px; }
+.pcn-navbar-right  { background: transparent url(/templates/standard-4.2/images/navbar_right.jpg) no-repeat; }
+
+.pcn-body-left   { background: transparent url(/templates/standard-4.2/images/body_left.gif) repeat-y; }
+.pcn-body-middle { background: #F3F3F3; }
+.pcn-body-right  { background: transparent url(/templates/standard-4.2/images/body_right.gif) repeat-y; }
+
+.pcn-footer-left   { background: transparent url(/templates/standard-4.2/images/footer_left.gif) no-repeat; }
+.pcn-footer-middle { background: transparent url(/templates/standard-4.2/images/footer_middle.gif) repeat-x; }
+.pcn-footer-right  { background: transparent url(/templates/standard-4.2/images/footer_right.gif) no-repeat; }
+
+/* Menus */
+/* ----- */
+
+#menuwidth { width: 191px; }
+
+.menu-header-left   { background: transparent url(/templates/standard-4.2/images/menu_tl.png) no-repeat; width: 10px; height: 20px; }
+.menu-header-middle { background: transparent url(/templates/standard-4.2/images/menu_tm.png) repeat-x; }
+.menu-header-right  { background: transparent url(/templates/standard-4.2/images/menu_tr.png) no-repeat; width: 10px}
+
+.menu-body-middle  { background: #EEEEEE; }
+
+/* Tables */
+/* ------ */
+
+.mytablespacingtop { margin-top: 2px; }
+.mytablespacingbottom { margin-bottom: 2px; }
+
+.tablebody { 
+	/* border-top: 1px solid #CCCCCC; 
+	border-bottom: 1px solid #CCCCCC; */ 
+}
+
+.table-header-left   { background: transparent url(/templates/standard-4.2/images/table_tl.png) no-repeat; width: 10px; height: 30px; }
+.table-header-middle { background: transparent url(/templates/standard-4.2/images/table_tm.png) repeat-x; font-weight: bold; }
+.table-header-right  { background: transparent url(/templates/standard-4.2/images/table_tr.png) no-repeat; width: 10px}
+
+.table-left   { background: transparent url(/templates/standard-4.2/images/table_l.png) repeat-y; width: 3px; }
+.table-right   { background: transparent url(/templates/standard-4.2/images/table_r.png) repeat-y; width: 3px; }
+
+.table-footer-left   { background: transparent url(/templates/standard-4.2/images/table_bl.png) no-repeat; width: 10px;  height: 20px; }
+.table-footer-middle { background: transparent url(/templates/standard-4.2/images/table_bm.png) repeat-x; }
+.table-footer-right  { background: transparent url(/templates/standard-4.2/images/table_br.png) no-repeat; width: 10px}
+
+/* Dialog boxes */
+/* ------------ */
+
+.dialogpadding { height: 3px; }
+
+/* The numbering is a bit kludgy, but it keeps things simple */
+
+#dialogdaemon1 .sb-inner,
+#dialogdaemon2 .sb-inner,
+#dialogdaemon3 .sb-inner, 
+#dialogdaemon4 .sb-inner,
+#dialogdaemon5 .sb-inner
+	{ background: #DDDDDD; }
+
+#dialogintro1 .sb-inner,
+#dialogintro2 .sb-inner,
+#dialogintro3 .sb-inner, 
+#dialogintro4 .sb-inner,
+#dialogintro5 .sb-inner
+	{ background: #DDDDDD; }
+
+#dialoginfo1 .sb-inner,
+#dialoginfo2 .sb-inner,
+#dialoginfo3 .sb-inner, 
+#dialoginfo4 .sb-inner,
+#dialoginfo5 .sb-inner
+	{ background: #DDDDDD; }
+
+#dialogwarning1 .sb-inner,
+#dialogwarning2 .sb-inner,
+#dialogwarning3 .sb-inner, 
+#dialogwarning4 .sb-inner,
+#dialogwarning5 .sb-inner
+	{ background: #FFFF99; }
+
+/* Shaded dialog boxes */
+/* ------------------- */
+
+.sb { padding: 7px; width: 100% auto; margin-top: 5px auto; margin-bottom: 5px auto }
+.sb, .sbi, .sb *, .sbi * { position:relative; z-index:0; }
+* html .sb, * html .sbi { height:1%; }
+.sbi { display: inline-block; }
+.sb-inner { background: #ddd; }
+.sb-shadow { background: #333; }
+.sb-border { background: transparent; }
+
+/* Set this to the same value as ".sb padding" */
+.dialogpaddingworkaround { padding: 12px; }
+.dialogalignworkaround { position: static; vertical-align: middle; }
+
+/* Buttons */
+/* ------- */
+
+/* FIXME -- add missing icons */
+.pcnbutton-icon-add button { background: url(/templates/standard-4.2/images/icon_add.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-arrowright button { background: url(/templates/standard-4.2/images/icon_arrowright.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-back button { background: url(/templates/standard-4.2/images/icon_back.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-cancel button { background: url(/templates/standard-4.2/images/icon_cancel.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-checkmark button { background: url(/templates/standard-4.2/images/icon_checkmark.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-continue button { background: url(/templates/standard-4.2/images/icon_continue.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-delete button { background: url(/templates/standard-4.2/images/icon_delete.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-download button { background: url(/templates/standard-4.2/images/icon_download.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-disabled button { background: url(/templates/standard-4.2/images/icon_disabled.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-edit button { background: url(/templates/standard-4.2/images/icon_edit.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-enabled button { background: url(/templates/standard-4.2/images/icon_enabled.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-go button { background: url(/templates/standard-4.2/images/icon_go.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-help button { background: url(/templates/standard-4.2/images/icon_help.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-info button { background: url(/templates/standard-4.2/images/icon_info.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-ok button { background: url(/templates/standard-4.2/images/icon_ok.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-toggle button { background: url(/templates/standard-4.2/images/icon_toggle.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-update button { background: url(/templates/standard-4.2/images/icon_update.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-warning button { background: url(/templates/standard-4.2/images/icon_warning.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-xmark button { background: url(/templates/standard-4.2/images/icon_xmark.png ) 5px bottom no-repeat; }
+
+.pcnbutton-icon-renew button { background: url(/templates/standard-4.2/images/icon_renew.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-save button { background: url(/templates/standard-4.2/images/icon_save.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-view button { background: url(/templates/standard-4.2/images/icon_view.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-search button { background: url(/templates/standard-4.2/images/icon_search.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-email button { background: url(/templates/standard-4.2/images/icon_email.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-calendar button { background: url(/templates/standard-4.2/images/icon_calendar.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-filter button { background: url(/templates/standard-4.2/images/icon_filter.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-previous button { background: url(/templates/standard-4.2/images/icon_previous.png ) 5px bottom no-repeat; }
+.pcnbutton-icon-next button { background: url(/templates/standard-4.2/images/icon_next.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-backup button { background: url(/images/icon-bacula-backup.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-restore button { background: url(/images/icon-bacula-restore.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-config button { background: url(/images/icon-bacula-config.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-control button { background: url(/images/icon-bacula-control.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-schedule button { background: url(/images/icon-bacula-schedule.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-status button { background: url(/images/icon-bacula-status.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-report button { background: url(/images/icon-bacula-report.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-client button { background: url(/images/icon-bacula-client.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-storage button { background: url(/images/icon-bacula-storage.png ) 5px bottom no-repeat; }
+.pcnbutton_icon-bacula-email button { background: url(/images/icon-bacula-email.png ) 5px bottom no-repeat; }
+.pcn_icon_file { background: url(/images/icon-file.png ) center no-repeat; }
+.pcn_icon_folder { background: url(/images/icon-folder.png ) center no-repeat; }
+.pcn_icon_parent { background: url(/images/icon-parent.png ) center no-repeat; }
+

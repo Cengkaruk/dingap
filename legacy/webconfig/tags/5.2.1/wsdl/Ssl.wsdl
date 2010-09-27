@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Ssl"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Ssl">
+
+	<types>
+		<xsd:schema targetNamespace="Ssl">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="VpnDetails">
+				<xsd:all>
+					<xsd:element name="ca" type="xsd:string"/>
+					<xsd:element name="key" type="xsd:string"/>
+					<xsd:element name="certificate" type="xsd:string"/>
+					<xsd:element name="pkcs12" type="xsd:string"/>
+					<xsd:element name="configuration" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+		</xsd:schema>
+	</types>
+
+	<message name="GetVpnDetailsRequest">
+        <part name="username" type="xsd:string"/>
+        <part name="password" type="xsd:string"/>
+	</message>
+	<message name="GetVpnDetailsResponse">
+		<part name="result" type="tns:VpnDetails"/>
+	</message>
+
+	<portType name="SslPortType">
+		<operation name="GetVpnDetails">
+			<input message="tns:GetVpnDetailsRequest"/>
+			<output message="tns:GetVpnDetailsResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="SslBinding" type="tns:SslPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="GetVpnDetails">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetVpnDetails" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Ssl"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Ssl"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Ssl">
+		<port name="SslPort" binding="tns:SslBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

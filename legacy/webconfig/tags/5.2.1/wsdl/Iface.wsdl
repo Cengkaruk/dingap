@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="Iface"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="Iface">
+
+	<types>
+		<xsd:schema targetNamespace="Iface">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="ArrayOfInterfaces">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+		</xsd:schema>
+	</types>
+
+	<message name="SetInterfaceRequest">
+		<part name="iface" type="xsd:string"/>
+	</message>
+
+	<message name="SetInterfaceResponse">
+	</message>
+
+	<message name="GetLiveIpRequest">
+	</message>
+
+	<message name="GetLiveIpResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="GetTypeRequest">
+	</message>
+
+	<message name="GetTypeResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="GetBootProtocolRequest">
+	</message>
+
+	<message name="GetBootProtocolResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="GetTypeNameRequest">
+	</message>
+
+	<message name="GetTypeNameResponse">
+		<part name="result" type="xsd:string"/>
+	</message>
+
+	<message name="GetLinkStatusRequest">
+	</message>
+
+	<message name="GetLinkStatusResponse">
+		<part name="result" type="xsd:int"/>
+	</message>
+
+	<message name="GetSpeedRequest">
+	</message>
+
+	<message name="GetSpeedResponse">
+		<part name="result" type="xsd:int"/>
+	</message>
+
+	<message name="IsValidRequest">
+		<part name="iface" type="xsd:string"/>
+	</message>
+
+	<message name="IsValidResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="IsConfiguredRequest">
+	</message>
+
+	<message name="IsConfiguredResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="DeleteConfigRequest">
+		<part name="iface" type="xsd:string"/>
+	</message>
+
+	<message name="DeleteConfigResponse">
+	</message>
+
+	<message name="DisableRequest">
+		<part name="iface" type="xsd:string"/>
+	</message>
+
+	<message name="DisableResponse">
+	</message>
+
+	<portType name="IfacePortType">
+		<operation name="SetInterface">
+			<input message="tns:SetInterfaceRequest"/>
+			<output message="tns:SetInterfaceResponse"/>
+		</operation>
+
+		<operation name="GetLiveIp">
+			<input message="tns:GetLiveIpRequest"/>
+			<output message="tns:GetLiveIpResponse"/>
+		</operation>
+
+		<operation name="GetType">
+			<input message="tns:GetTypeRequest"/>
+			<output message="tns:GetTypeResponse"/>
+		</operation>
+
+		<operation name="GetBootProtocol">
+			<input message="tns:GetBootProtocolRequest"/>
+			<output message="tns:GetBootProtocolResponse"/>
+		</operation>
+
+		<operation name="GetTypeName">
+			<input message="tns:GetTypeNameRequest"/>
+			<output message="tns:GetTypeNameResponse"/>
+		</operation>
+
+		<operation name="GetLinkStatus">
+			<input message="tns:GetLinkStatusRequest"/>
+			<output message="tns:GetLinkStatusResponse"/>
+		</operation>
+
+		<operation name="GetSpeed">
+			<input message="tns:GetSpeedRequest"/>
+			<output message="tns:GetSpeedResponse"/>
+		</operation>
+
+		<operation name="IsConfigured">
+			<input message="tns:IsConfiguredRequest"/>
+			<output message="tns:IsConfiguredResponse"/>
+		</operation>
+
+		<operation name="IsValid">
+			<input message="tns:IsValidRequest"/>
+			<output message="tns:IsValidResponse"/>
+		</operation>
+
+		<operation name="DeleteConfig">
+			<input message="tns:DeleteConfigRequest"/>
+			<output message="tns:DeleteConfigResponse"/>
+		</operation>
+
+		<operation name="Disable">
+			<input message="tns:DisableRequest"/>
+			<output message="tns:DisableResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="IfaceBinding" type="tns:IfacePortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="SetInterface">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/SetInterface" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetLiveIp">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetLiveIp" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetType">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetType" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetBootProtocol">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetBootProtocol" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetTypeName">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetTypeName" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetLinkStatus">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetLinkStatus" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetSpeed">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetSpeed" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="IsConfigured">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/IsConfigured" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="IsValid">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/IsValid" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="DeleteConfig">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/DeleteConfig" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="Disable">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/Disable" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="Iface"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="Iface">
+		<port name="IfacePort" binding="tns:IfaceBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+

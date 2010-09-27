@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<definitions
+	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+	xmlns:si="http://soapinterop.org/xsd"
+	xmlns:tns="DnsMasq"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+	xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+	xmlns="http://schemas.xmlsoap.org/wsdl/"
+	targetNamespace="DnsMasq">
+
+	<types>
+		<xsd:schema targetNamespace="DnsMasq">
+			<xsd:import namespace="http://schemas.xmlsoap.org/soap/encoding/"/>
+			<xsd:import namespace="http://schemas.xmlsoap.org/wsdl/"/>
+
+			<xsd:complexType name="ActiveLeases">
+				<xsd:all>
+					<xsd:element name="mac" type="xsd:string"/>
+					<xsd:element name="end" type="xsd:long"/>
+					<xsd:element name="ip" type="xsd:string"/>
+					<xsd:element name="hostname" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="ArrayOfActiveLeases">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:ActiveLeases[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+			<xsd:complexType name="StaticLeases">
+				<xsd:all>
+					<xsd:element name="mac" type="xsd:string"/>
+					<xsd:element name="ip" type="xsd:string"/>
+					<xsd:element name="hostname" type="xsd:string"/>
+				</xsd:all>
+			</xsd:complexType>
+
+			<xsd:complexType name="ArrayOfStaticLeases">
+				<xsd:complexContent>
+					<xsd:restriction base="SOAP-ENC:Array">
+						<xsd:attribute ref="SOAP-ENC:arrayType" wsdl:arrayType="tns:StaticLeases[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+
+		</xsd:schema>
+	</types>
+
+	<message name="IsInstalledRequest">
+	</message>
+
+	<message name="IsInstalledResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="GetBootStateRequest">
+	</message>
+
+	<message name="GetBootStateResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="GetRunningStateRequest">
+	</message>
+
+	<message name="GetRunningStateResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="SetBootStateRequest">
+		<part name="state" type="xsd:boolean"/>
+	</message>
+
+	<message name="SetBootStateResponse">
+	</message>
+
+	<message name="SetRunningStateRequest">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="SetRunningStateResponse">
+	</message>
+
+	<message name="SetDomainSuffixRequest">
+		<part name="domain" type="xsd:string"/>
+	</message>
+
+	<message name="SetDomainSuffixResponse">
+	</message>
+
+	<message name="GetDhcpStateRequest">
+	</message>
+
+	<message name="GetDhcpStateResponse">
+		<part name="result" type="xsd:boolean"/>
+	</message>
+
+	<message name="EnableDhcpAutomagicallyRequest">
+	</message>
+
+	<message name="EnableDhcpAutomagicallyResponse">
+	</message>
+
+	<message name="GetActiveLeasesRequest">
+	</message>
+
+	<message name="GetActiveLeasesResponse">
+		<part name="result" type="tns:ArrayOfActiveLeases"/>
+	</message>
+
+	<message name="GetStaticLeasesRequest">
+	</message>
+
+	<message name="GetStaticLeasesResponse">
+		<part name="result" type="tns:ArrayOfStaticLeases"/>
+	</message>
+
+	<portType name="DnsMasqPortType">
+		<operation name="IsInstalled">
+			<input message="tns:IsInstalledRequest"/>
+			<output message="tns:IsInstalledResponse"/>
+		</operation>
+
+		<operation name="SetDomainSuffix">
+			<input message="tns:SetDomainSuffixRequest"/>
+			<output message="tns:SetDomainSuffixResponse"/>
+		</operation>
+
+		<operation name="GetBootState">
+			<input message="tns:GetBootStateRequest"/>
+			<output message="tns:GetBootStateResponse"/>
+		</operation>
+
+		<operation name="GetRunningState">
+			<input message="tns:GetRunningStateRequest"/>
+			<output message="tns:GetRunningStateResponse"/>
+		</operation>
+
+		<operation name="SetBootState">
+			<input message="tns:SetBootStateRequest"/>
+			<output message="tns:SetBootStateResponse"/>
+		</operation>
+
+		<operation name="SetRunningState">
+			<input message="tns:SetRunningStateRequest"/>
+			<output message="tns:SetRunningStateResponse"/>
+		</operation>
+
+		<operation name="GetDhcpState">
+			<input message="tns:GetDhcpStateRequest"/>
+			<output message="tns:GetDhcpStateResponse"/>
+		</operation>
+
+		<operation name="EnableDhcpAutomagically">
+			<input message="tns:EnableDhcpAutomagicallyRequest"/>
+			<output message="tns:EnableDhcpAutomagicallyResponse"/>
+		</operation>
+
+		<operation name="GetActiveLeases">
+			<input message="tns:GetActiveLeasesRequest"/>
+			<output message="tns:GetActiveLeasesResponse"/>
+		</operation>
+
+		<operation name="GetStaticLeases">
+			<input message="tns:GetStaticLeasesRequest"/>
+			<output message="tns:GetStaticLeasesResponse"/>
+		</operation>
+	</portType>
+
+	<binding name="DnsMasqBinding" type="tns:DnsMasqPortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="IsInstalled">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/IsInstalled" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="SetDomainSuffix">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/SetDomainSuffix" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetDhcpState">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetDhcpState" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="EnableDhcpAutomagically">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/EnableDhcpAutomagically" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetActiveLeases">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetActiveLeases" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+
+		<operation name="GetStaticLeases">
+			<soap:operation
+				soapAction="https://192.168.2.2:8504/soap.php/GetStaticLeases" style="rpc"/>
+			<input>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</input>
+			<output>
+				<soap:body use="encoded" namespace="DnsMasq"
+					encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+			</output>
+		</operation>
+	</binding>
+
+	<service name="DnsMasq">
+		<port name="DnsMasqPort" binding="tns:DnsMasqBinding">
+			<soap:address location="https://192.168.2.2:8504/soap.php"/>
+		</port>
+	</service>
+
+</definitions>
+
