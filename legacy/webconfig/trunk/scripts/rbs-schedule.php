@@ -58,9 +58,6 @@ set_error_handler('ErrorHandler');
 set_exception_handler('ExceptionHandler');
 
 try {
-	// Lock instance
-	$rbs->LockInstance();
-
 	// Ensure backup client program exists
 	$rbs_client = dirname($_SERVER['argv'][0]) . '/rbs-client.php';
 	if (!file_exists($rbs_client)) {
@@ -120,6 +117,8 @@ try {
 	$rbs->LogMessage("Sleeping for $sleep_time minutes...");
 	sleep($sleep_time * 60);
 
+	// Lock instance
+	$rbs->LockInstance();
 	$rbs->LogMessage('Starting scheduled backup.');
 
 	// Run delete snapshot first, flush the queue
@@ -135,6 +134,8 @@ try {
 	}
 	$rbs->LogMessage(sprintf('Backup %s (exit: %d)',
 		$rc == 0 ? 'successful' : 'failed', $rc));
+	unset($rbs);
+
 	switch ($rc) {
 	case -1:
 		SendEmailOnError(WEB_LANG_EMAIL_BODY_ERROR . '.');
@@ -154,6 +155,7 @@ try {
 		".\n\nException occured:";
 	$body .= sprintf("\nCode: %s, Message: %s",
 		$e->getCode(), $e->getMessage());
+	unset($rbs);
 	SendEmailOnError($body);
 	exit(1);
 }
