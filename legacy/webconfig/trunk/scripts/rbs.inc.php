@@ -447,6 +447,17 @@ class Retention
 	}
 }
 
+// Backup result codes
+define('RBS_RESULT_SUCCESS', 0);
+define('RBS_RESULT_GENERAL_FAILURE', 1);
+define('RBS_RESULT_PROTOCOL_ERROR', 2);
+define('RBS_RESULT_FIFO_ERROR', 3);
+define('RBS_RESULT_SERVICE_ERROR', 4);
+define('RBS_RESULT_SOCKET_ERROR', 5);
+define('RBS_RESULT_PROCESS_ERROR', 6);
+define('RBS_RESULT_VOLUME_FULL', 7);
+define('RBS_RESULT_UNKNOWN_ERROR', -1);
+
 // Backup configuration node types
 define('RBS_TYPE_BASE', 100);
 define('RBS_TYPE_FILEDIR', 101);
@@ -1010,7 +1021,7 @@ class RemoteBackupService extends WebconfigScript
 	{
 		$this->state['error_code'] = 0;
 		$this->state['is_local_fs'] = true;
-		$this->state['mode'] = RBS_MODE_BACKUP;
+		$this->state['mode'] = RBS_MODE_INVALID;
 		$this->state['status_code'] = 0;
 		$this->state['status_data'] = null;
 		$this->state['tm_completed'] = 0;
@@ -1389,7 +1400,7 @@ class RemoteBackupService extends WebconfigScript
 			break;
 		case 12:
 		// XXX: Data stream protocol error (12) really means filesystem full.
-			throw new ServiceException(ServiceException::CODE_VOLUME_FULL);
+			throw new ServiceException(ServiceException::CODE_VOLUME_FULL, $exitcode);
 		default:
 			throw new ServiceException(ServiceException::CODE_RSYNC, $exitcode);
 		}
@@ -2442,14 +2453,15 @@ class RemoteBackupService extends WebconfigScript
 	}
 
 	// Send session logout to server
-	public final function ControlSendSessionLogout()
+	public final function ControlSendSessionLogout($success = true)
 	{
 		if (!is_resource($this->socket_control))
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
 
 		// Send request
 		$this->ControlSocketWrite(self::CTRL_CMD_LOGOUT, 'Logout');
-		$this->SetStatusCode(self::STATUS_COMPLETE);
+		if ($success)
+			$this->SetStatusCode(self::STATUS_COMPLETE);
 	}
 
 	// Ping control socket

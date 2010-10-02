@@ -75,6 +75,10 @@ try {
 	if (array_key_exists('debug', $config) && isset($config['debug'])) {
 		if ($config['debug']) $rbs_client_flags .= ' -v';
 	}
+	$attempts = 1;
+	if (array_key_exists('attempts', $config) && isset($config['attempts'])) {
+		$attempts = $config['attempts'];
+	}
 
 	if (!array_key_exists('auto-backup', $config) || !$config['auto-backup']) {
 		$rbs->LogMessage('Auto-backup schedule is not enabled.', LOG_WARNING);
@@ -119,21 +123,30 @@ try {
 
 	// Lock instance
 	$rbs->LockInstance();
-	$rbs->LogMessage('Starting scheduled backup.');
 
 	// Run delete snapshot first, flush the queue
 	passthru($rbs_client . $rbs_client_flags . ' -D', $rc);
 
-	// Run backup script...
+	// Attempt backup
 	$rc = -1;
 	$result = null;
-	$ph = popen($rbs_client . $rbs_client_flags . ' 2>&1', 'r');
-	if (is_resource($ph)) {
-		$result = stream_get_contents($ph);
-		$rc = pclose($ph);
+	for ($attempt = 0; $rc != 0 && $attempt < $attempts; $attempt++) {
+		$rbs->LogMessage(
+			sprintf('Starting scheduled backup, attempt %d of %d.',
+				$attempt + 1, $attempts));
+
+		// Run backup script...
+		$ph = popen($rbs_client . $rbs_client_flags . ' 2>&1', 'r');
+		if (is_resource($ph)) {
+			$result = stream_get_contents($ph);
+			$rc = pclose($ph);
+		}
+		$rbs->LogMessage(sprintf('Backup %s (exit: %d)',
+			$rc == 0 ? 'successful' : 'failed', $rc));
+
+		if ($rc == RBS_RESULT_VOLUME_FULL) break;
 	}
-	$rbs->LogMessage(sprintf('Backup %s (exit: %d)',
-		$rc == 0 ? 'successful' : 'failed', $rc));
+
 	unset($rbs);
 
 	switch ($rc) {
@@ -149,13 +162,15 @@ try {
 	}
 	exit($rc);
 } catch (Exception $e) {
-	$rbs->LogMessage(sprintf('[%s] %s',
-		$e->getCode(), $e->getMessage()), LOG_ERR);
+	if (isset($rbs)) {
+		$rbs->LogMessage(sprintf('[%s] %s',
+			$e->getCode(), $e->getMessage()), LOG_ERR);
+		unset($rbs);
+	}
 	$body = WEB_LANG_EMAIL_BODY_ERROR .
 		".\n\nException occured:";
 	$body .= sprintf("\nCode: %s, Message: %s",
 		$e->getCode(), $e->getMessage());
-	unset($rbs);
 	SendEmailOnError($body);
 	exit(1);
 }
@@ -297,7 +312,6 @@ function SendEmailSummary()
 
 function SendEmailNotification($subject, $body)
 {
-	global $rbs;
 	global $config;
 
 	$mailer = new Mailer();
@@ -310,8 +324,6 @@ function SendEmailNotification($subject, $body)
 	try {
 		$mailer->Send();
 	} catch (Exception $e) {
-		$rbs->LogMessage(sprintf('[%s] %s',
-			$e->getCode(), $e->getMessage()), LOG_ERR);
 	}
 }
 
