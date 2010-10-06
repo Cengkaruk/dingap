@@ -447,6 +447,17 @@ class Retention
 	}
 }
 
+// Backup result codes
+define('RBS_RESULT_SUCCESS', 0);
+define('RBS_RESULT_GENERAL_FAILURE', 1);
+define('RBS_RESULT_PROTOCOL_ERROR', 2);
+define('RBS_RESULT_FIFO_ERROR', 3);
+define('RBS_RESULT_SERVICE_ERROR', 4);
+define('RBS_RESULT_SOCKET_ERROR', 5);
+define('RBS_RESULT_PROCESS_ERROR', 6);
+define('RBS_RESULT_VOLUME_FULL', 7);
+define('RBS_RESULT_UNKNOWN_ERROR', -1);
+
 // Backup configuration node types
 define('RBS_TYPE_BASE', 100);
 define('RBS_TYPE_FILEDIR', 101);
@@ -490,7 +501,7 @@ class RemoteBackupService extends WebconfigScript
 	const SYSLOG_FACILITY = LOG_LOCAL0;
 
 	// Maximum loop devices
-	const MAX_LOOP_DEV = 8;
+	const MAX_LOOP_DEV = 256;
 
 	// Maximum historical session stats to store
 	const MAX_SESSION_HISTORY = 60;
@@ -964,7 +975,9 @@ class RemoteBackupService extends WebconfigScript
 	{
 		// If we're a child process or if we're signalling a running
 		// process to unmount and exit, don't do anything below...
-		if (!$this->session_state || $this->my_pid != posix_getpid()) return;
+		if ($this->my_pid != posix_getpid()) return;
+		if (!array_key_exists('mode', $this->state) ||
+			$this->state['mode'] == RBS_MODE_INVALID) return;
 
 		// Record time of termination
 		if (is_resource($this->state_fh)) {
@@ -1008,7 +1021,7 @@ class RemoteBackupService extends WebconfigScript
 	{
 		$this->state['error_code'] = 0;
 		$this->state['is_local_fs'] = true;
-		$this->state['mode'] = RBS_MODE_BACKUP;
+		$this->state['mode'] = RBS_MODE_INVALID;
 		$this->state['status_code'] = 0;
 		$this->state['status_data'] = null;
 		$this->state['tm_completed'] = 0;
@@ -1387,7 +1400,7 @@ class RemoteBackupService extends WebconfigScript
 			break;
 		case 12:
 		// XXX: Data stream protocol error (12) really means filesystem full.
-			throw new ServiceException(ServiceException::CODE_VOLUME_FULL);
+			throw new ServiceException(ServiceException::CODE_VOLUME_FULL, $exitcode);
 		default:
 			throw new ServiceException(ServiceException::CODE_RSYNC, $exitcode);
 		}
@@ -2137,6 +2150,12 @@ class RemoteBackupService extends WebconfigScript
 		$code = sprintf('%d', $parts[0]);
 		$data = $parts[1];
 
+		switch ($code) {
+			case self::CTRL_CMD_PING:
+			case self::CTRL_REPLY_OK:
+				return;
+		}
+
 		$this->LogMessage(sprintf('%s: %s:%s', __FUNCTION__, $code,
 			$code == self::CTRL_CMD_MOUNT ? 'XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx' : $data),
 			LOG_DEBUG);
@@ -2187,6 +2206,12 @@ class RemoteBackupService extends WebconfigScript
 
 		default:
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
+		}
+
+		switch ($code) {
+			case self::CTRL_CMD_PING:
+			case self::CTRL_REPLY_OK:
+				return;
 		}
 
 		$this->LogMessage(sprintf('%s: %s:%s', __FUNCTION__, $code,
@@ -2440,14 +2465,15 @@ class RemoteBackupService extends WebconfigScript
 	}
 
 	// Send session logout to server
-	public final function ControlSendSessionLogout()
+	public final function ControlSendSessionLogout($success = true)
 	{
 		if (!is_resource($this->socket_control))
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
 
 		// Send request
 		$this->ControlSocketWrite(self::CTRL_CMD_LOGOUT, 'Logout');
-		$this->SetStatusCode(self::STATUS_COMPLETE);
+		if ($success)
+			$this->SetStatusCode(self::STATUS_COMPLETE);
 	}
 
 	// Ping control socket
