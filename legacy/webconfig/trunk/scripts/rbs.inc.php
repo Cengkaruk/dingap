@@ -501,7 +501,7 @@ class RemoteBackupService extends WebconfigScript
 	const SYSLOG_FACILITY = LOG_LOCAL0;
 
 	// Maximum loop devices
-	const MAX_LOOP_DEV = 8;
+	const MAX_LOOP_DEV = 256;
 
 	// Maximum historical session stats to store
 	const MAX_SESSION_HISTORY = 60;
@@ -2150,6 +2150,12 @@ class RemoteBackupService extends WebconfigScript
 		$code = sprintf('%d', $parts[0]);
 		$data = $parts[1];
 
+		switch ($code) {
+			case self::CTRL_CMD_PING:
+			case self::CTRL_REPLY_OK:
+				return;
+		}
+
 		$this->LogMessage(sprintf('%s: %s:%s', __FUNCTION__, $code,
 			$code == self::CTRL_CMD_MOUNT ? 'XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx' : $data),
 			LOG_DEBUG);
@@ -2200,6 +2206,12 @@ class RemoteBackupService extends WebconfigScript
 
 		default:
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
+		}
+
+		switch ($code) {
+			case self::CTRL_CMD_PING:
+			case self::CTRL_REPLY_OK:
+				return;
 		}
 
 		$this->LogMessage(sprintf('%s: %s:%s', __FUNCTION__, $code,
