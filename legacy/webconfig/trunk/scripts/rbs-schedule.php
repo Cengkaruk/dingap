@@ -30,6 +30,9 @@ require_once(dirname($_SERVER['argv'][0]) . '/../api/RemoteBackup.class.php');
 require_once(GlobalGetLanguageTemplate(dirname($_SERVER['argv'][0]) .
 	'/../htdocs/admin/remote-server-backup.php'));
 
+// Global defaults
+define('RBS_DEFAULT_ATTEMPTS', 3);
+
 set_time_limit(0);
 
 // Set our time zone
@@ -75,7 +78,7 @@ try {
 	if (array_key_exists('debug', $config) && isset($config['debug'])) {
 		if ($config['debug']) $rbs_client_flags .= ' -v';
 	}
-	$attempts = 1;
+	$attempts = RBS_DEFAULT_ATTEMPTS;
 	if (array_key_exists('attempts', $config) && isset($config['attempts'])) {
 		$attempts = $config['attempts'];
 	}
