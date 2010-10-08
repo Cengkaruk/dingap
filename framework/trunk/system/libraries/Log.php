@@ -85,6 +85,36 @@ class CI_Log {
 		{
 			return FALSE;
 		}
+
+		// Pull in ClearOS logging infrastructure
+		require_once('/usr/clearos/framework/config.php');
+
+		if (!ClearOsEnvironment::$debug_mode) 
+			return FALSE;
+
+		// See Error.php for explanation of error code handling
+		require_once('../../application/helpers/Logger.php');
+		require_once('../../application/helpers/Error.php');
+		if ($level === 'ERROR') {
+			$clearos_level = Error::CODE_ERROR;
+			$type = Error::TYPE_ERROR;
+		} else if ($level === 'DEBUG') {
+			$clearos_level = Error::CODE_DEBUG;
+			$type = Error::TYPE_PROFILE;
+		} else if ($level === 'INFO') {
+			$clearos_level = Error::CODE_INFO;
+			$type = Error::TYPE_ERROR;
+		} else {
+			$clearos_level = Error::CODE_ERROR;
+			$type = Error::TYPE_ERROR;
+		}
+
+		$error = new Error($clearos_level, $msg, 'Framework', 0, null, $type);
+
+		Logger::Log($error);
+
+		return;
+		// ClearFoundation -- we're done
 	
 		$filepath = $this->log_path.'log-'.date('Y-m-d').EXT;
 		$message  = '';
