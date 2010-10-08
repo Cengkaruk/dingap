@@ -1,5 +1,8 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed');
 
+/* Pull in ClearOS configuration */
+require_once('/usr/clearos/framework/config.php');
+
 /* load the MX core module class */
 require 'Modules.php';
 
@@ -74,11 +77,19 @@ class MX_Router extends CI_Router
 
 		foreach (Modules::$locations as $location => $offset) {
 		
+			// ClearFoundation -- add support for multiple development trees
+			if (isset(ClearOsEnvironment::$clearos_devel_versions['app'][$module]))
+				$app_version = ClearOsEnvironment::$clearos_devel_versions['app'][$module] . '/';
+			else if (isset(ClearOsEnvironment::$clearos_devel_versions['app']['default']))
+				$app_version = ClearOsEnvironment::$clearos_devel_versions['app']['default'] . '/';
+			else
+				$app_version = "";
+
 			/* module exists? */
-			if (is_dir($source = $location.$module.'/controllers/')) {
+			if (is_dir($source = $location.$module.'/'.$app_version.'controllers/')) {
 				
 				$this->module = $module;
-				$this->directory = $offset.$module.'/controllers/';
+				$this->directory = $offset.$module.'/'.$app_version.'controllers/';
 				
 				/* module sub-controller exists? */
 				if($directory AND is_file($source.$directory.$ext)) {

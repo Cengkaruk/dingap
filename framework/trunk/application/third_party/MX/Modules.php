@@ -1,8 +1,18 @@
 <?php (defined('BASEPATH')) OR exit('No direct script access allowed');
 
+/* Pull in ClearOS configuration */
+require_once('/usr/clearos/framework/config.php');
+
+// The router needs the relative path to the "apps" directory. 
+// Counting the number of slashes in the paths should work.
+// Then we add 3 directories to get from here down to the framework root.
+$relative_count = substr_count(ClearOsEnvironment::$framework_path, '/') - substr_count(ClearOsEnvironment::$apps_path, '/') + 3;
+$apps_path_name = preg_replace('/.*\//', "", ClearOsEnvironment::$apps_path);
+$relative_path = str_repeat('../', $relative_count) . $apps_path_name . '/';
+
 /* define the module locations and offset */
 Modules::$locations = array(
-	APPPATH.'modules/' => '../modules/',
+	ClearOsEnvironment::$apps_path.'/' => "$relative_path",
 );
 
 /* PHP5 spl_autoload */
@@ -168,9 +178,17 @@ class Modules
 			$modules[array_shift($segments)] = ltrim(implode('/', $segments).'/','/');
 		}	
 
+		// ClearFoundation -- add support for multiple development trees
+		if (isset(ClearOsEnvironment::$clearos_devel_versions['app'][$module]))
+			$app_version = ClearOsEnvironment::$clearos_devel_versions['app'][$module] . '/';
+		else if (isset(ClearOsEnvironment::$clearos_devel_versions['app']['default']))
+			$app_version = ClearOsEnvironment::$clearos_devel_versions['app']['default'] . '/';
+		else
+			$app_version = "";
+
 		foreach (Modules::$locations as $location => $offset) {					
 			foreach($modules as $module => $subpath) {
-				$fullpath = $location.$module.'/'.$base.$subpath;
+				$fullpath = $location.$module.'/'.$app_version.$base.$subpath;
 				if ($base == 'libraries/' && is_file($fullpath.ucfirst($file_ext))) return array($fullpath, ucfirst($file));
 				if (is_file($fullpath.$file_ext)) return array($fullpath, $file);
 			}
