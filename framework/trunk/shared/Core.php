@@ -2,36 +2,38 @@
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
+// Copyright 2006, 2010 ClearFoundation
 //
 ///////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//  
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Base settings, functions and environment for the ClearOS framework.
+ * ClearOS framework core settings and functions. 
  *
  * The functions and environment in this file are shared by both the base API
  * and the CodeIgniter engine. 
  *
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @package Framework
- * @copyright Copyright 2010, ClearFoundation
+ * @package ClearOS
+ * @subpackage Framework
+ * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright Copyright 2006, 2010 ClearFoundation
  */
 
 //////////////////////////////////////////////////////////////////////////////
@@ -76,9 +78,9 @@ if (isset($_ENV['CLEAROS_CONFIG'])) {
 @ini_set('include_path', '.');
 
 if (ClearOsFramework::$debug_mode) {
-	@ini_set('display_errors', true); 
-	@ini_set('display_startup_error', true);
-	@ini_set('log_errors', true);
+	@ini_set('display_errors', TRUE); 
+	@ini_set('display_startup_error', TRUE);
+	@ini_set('log_errors', TRUE);
 	@ini_set('error_log', ClearOsFramework::$debug_log_path . '/framework_log');
 }
 
@@ -173,7 +175,7 @@ function _clearos_error_handler($errno, $errmsg, $file, $line, $context)
 	// Log the error
 	//--------------
 
-	$error = new ClearOsError($errno, $errmsg, $file, $line, $context, ClearOsError::TYPE_ERROR, false);
+	$error = new ClearOsError($errno, $errmsg, $file, $line, $context, ClearOsError::TYPE_ERROR, FALSE);
 	ClearOsLogger::Log($error);
 
 	// Show error on standard out if running from command line
@@ -197,7 +199,7 @@ function _clearos_exception_handler(Exception $exception)
 	// Log the exception
 	//------------------
 
-	ClearOsLogger::LogException($exception, false);
+	ClearOsLogger::LogException($exception, TRUE);
 
 	// Show error on standard out if running from command line
 	//--------------------------------------------------------

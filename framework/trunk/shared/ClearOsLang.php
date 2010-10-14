@@ -1,24 +1,36 @@
 <?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2008 - 2010 EllisLab, Inc
+// Copyright 2006, 2010 ClearFoundation
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// CodeIgniter license
+//
+///////////////////////////////////////////////////////////////////////////////
+
 /**
- * CodeIgniter
- * Modifed by ClearFoundation to give API similar functionality to CI_Lang
+ * ClearOS language handling class. 
  *
- * @package		ClearOS
- * @author		ExpressionEngine Dev Team / ClearFoundation
- * @copyright	Copyright (c) 2008 - 2010, EllisLab, Inc., ClearFoundation 2010
- * @license		http://codeigniter.com/user_guide/license.html
- * @link		http://codeigniter.com
+ * @package ClearOS
+ * @subpackage Framework
+ * @author ExpressionEngine Dev Team, {@link http://www.foundation.com/ ClearFoundation}
+ * @license	http://codeigniter.com/user_guide/license.html CodeIgniter
+ * @copyright Copyright 2008 - 2010 EllisLab, Inc., 2010 ClearFoundation
  */
 
-// ------------------------------------------------------------------------
-
 /**
- * ClearOS Language Class
+ * ClearOS language handling class. 
  *
- * @package		ClearOS
- * @subpackage	Libraries
- * @author		ExpressionEngine Dev Team / ClearFoundation
+ * @package ClearOS
+ * @subpackage Framework
+ * @author ExpressionEngine Dev Team, {@link http://www.foundation.com/ ClearFoundation}
+ * @license	http://codeigniter.com/user_guide/license.html CodeIgniter
+ * @copyright Copyright 2008 - 2010 EllisLab, Inc., 2010 ClearFoundation
  */
+
 class ClearOsLang {
 
 	var $use_ci = TRUE;
@@ -36,10 +48,9 @@ class ClearOsLang {
 	// --------------------------------------------------------------------
 
 	/**
-	 * Load a language file
+	 * Loads a language file.
 	 *
-	 * @accesspublic
-	 * @param string $langfile the language file
+	 * @param string $langfile language file
 	 * @return true if load was successful
 	 */
 	function load($langfile = '')
