@@ -92,32 +92,33 @@ class CI_Log {
 		if (!ClearOsFramework::$debug_mode) 
 			return FALSE;
 
-		// See Error.php for explanation of error code handling
-		require_once(ClearOsFramework::$framework_path . '/application/helpers/Logger.php');
-		require_once(ClearOsFramework::$framework_path . '/application/helpers/Error.php');
+		// See ClearOsError.php for explanation of error code handling
+		require_once(ClearOsFramework::$framework_path . '/shared/ClearOsLogger.php');
+		require_once(ClearOsFramework::$framework_path . '/shared/ClearOsError.php');
+
 		if ($level === 'ERROR') {
-			$clearos_level = Error::CODE_ERROR;
-			$type = Error::TYPE_ERROR;
+			$clearos_level = ClearOsError::CODE_ERROR;
+			$type = ClearOsError::TYPE_ERROR;
 		} else if ($level === 'DEBUG') {
-			$clearos_level = Error::CODE_DEBUG;
-			$type = Error::TYPE_PROFILE;
+			$clearos_level = ClearOsError::CODE_DEBUG;
+			$type = ClearOsError::TYPE_PROFILE;
 		} else if ($level === 'INFO') {
-			$clearos_level = Error::CODE_INFO;
-			$type = Error::TYPE_ERROR;
+			$clearos_level = ClearOsError::CODE_INFO;
+			$type = ClearOsError::TYPE_ERROR;
 		} else {
-			$clearos_level = Error::CODE_ERROR;
-			$type = Error::TYPE_ERROR;
+			$clearos_level = ClearOsError::CODE_ERROR;
+			$type = ClearOsError::TYPE_ERROR;
 		}
 
-		$error = new Error($clearos_level, $msg, 'Framework', 0, null, $type);
+		$error = new ClearOsError($clearos_level, $msg, 'Framework', 0, null, $type);
 
-		Logger::Log($error);
+		ClearOsLogger::Log($error);
 
 		/*
 		$trace = debug_backtrace();
 		foreach ($trace as $item) {
-			$error = new Error($clearos_level, "backtrace", $item['file'], $item['line'], null, $type);
-			Logger::Log($error);
+			$error = new ClearOsError($clearos_level, "backtrace", $item['file'], $item['line'], null, $type);
+			ClearOsLogger::Log($error);
 		}
 		*/
 
