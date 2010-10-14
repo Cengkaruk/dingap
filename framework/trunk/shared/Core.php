@@ -26,8 +26,7 @@
  * Base settings, functions and environment for the ClearOS framework.
  *
  * The functions and environment in this file are shared by both the base API
- * and the front-end modules.  For example, the COMMON_TEMP_DIR constant is
- * accessible in an API class file, a view, or in a controller.
+ * and the CodeIgniter engine. 
  *
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
@@ -39,17 +38,25 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-require_once('ClearOsLogger.php');
+require_once('ClearOsConfig.php');
 require_once('ClearOsError.php');
 require_once("ClearOsLang.php");
+require_once('ClearOsLogger.php');
 
 ///////////////////////////////////////////////////////////////////////////////
-// E N V I R O N M E N T 
+// C O N F I G U R A T I O N
 ///////////////////////////////////////////////////////////////////////////////
 
-// The environment is defined in /usr/clearos/framework/config.php or,
-// if you are in development mode, a file defined by the CLEAROS_CONFIG
-// environment variable.
+// The default framework configuration/environment is defined in 
+// ClearOsConfig.php.  If you are in development mode, a file defined by the 
+// CLEAROS_CONFIG environment variable can be used to override the defaults.
+
+if (isset($_ENV['CLEAROS_CONFIG'])) {
+	if (!file_exists($_ENV['CLEAROS_CONFIG']))
+		die('You have defined a CLEAROS_CONFIG file, but the file is missing: ' . $_ENV['CLEAROS_CONFIG'] . '\n');
+	else
+		require_once($_ENV['CLEAROS_CONFIG']);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // T I M E  Z O N E
@@ -158,8 +165,10 @@ function _clearos_error_handler($errno, $errmsg, $file, $line, $context)
 	// If the @ symbol was used to suppress errors, bail
 	//--------------------------------------------------
 
+	/* FIXME -- revisit this ... it seems to suppress too much.
 	if (error_reporting(0) === 0)
 		return;
+	*/
 
 	// Log the error
 	//--------------
