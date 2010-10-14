@@ -41,7 +41,7 @@
 
 require_once('Logger.php');
 require_once('Error.php');
-
+require_once("ClearOsLang.php");
 
 ///////////////////////////////////////////////////////////////////////////////
 // E N V I R O N M E N T 
@@ -50,7 +50,6 @@ require_once('Error.php');
 // The environment is defined in /usr/clearos/framework/config.php or,
 // if you are in development mode, a file defined by the CLEAROS_CONFIG
 // environment variable.
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // T I M E  Z O N E
@@ -62,7 +61,6 @@ require_once('Error.php');
 
 @date_default_timezone_set(@date_default_timezone_get());
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // L O G G I N G
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,16 +68,53 @@ require_once('Error.php');
 // FIXME: this might be a temporary hack... test it
 @ini_set('include_path', '.');
 
-if (ClearOsEnvironment::$debug_mode) {
-    @ini_set('display_errors', true); 
-    @ini_set('display_startup_error', true);
-    @ini_set('log_errors', true);
-    @ini_set('error_log', ClearOsEnvironment::$debug_log_path . '/framework_log');
+if (ClearOsFramework::$debug_mode) {
+	@ini_set('display_errors', true); 
+	@ini_set('display_startup_error', true);
+	@ini_set('log_errors', true);
+	@ini_set('error_log', ClearOsFramework::$debug_log_path . '/framework_log');
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// L A N G U A G E  S U P P O R T
+///////////////////////////////////////////////////////////////////////////////
+//
+// CodeIgniter defines the global lang() function for translations.  If the
+// CodeIgniter framework is already initialized, its lang() framework is used.
+// If the CodeIgniter framework is not in use, then the following provides this 
+// same functionality for the API without having to pull in big chunks of the 
+// CodeIgniter framework.
+
+$clearos_lang = new ClearOsLang();
+
+function clearos_load_language($langfile)
+{
+	global $clearos_lang;
+
+	// Define the lang() function if it does not exist
+	//------------------------------------------------
+
+	if (! function_exists('lang')) {
+		function lang($key) {
+			global $clearos_lang;
+			return $clearos_lang->line($key);
+		}
+	}
+
+	// Load the language file
+	//-----------------------
+
+	if (isset($clearos_lang)) {
+		$clearos_lang->load($langfile);
+	} else {
+		require_once(ClearOsFramework::$framework_path . '/system/core/CodeIgniter.php');
+		$codeigniter =& get_instance();
+		$codeigniter->lang->load($langfile);
+	}
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-// C L E A R O S  G L O B A L  F U N C T I O N S
+// L I B R A R Y  L O A D E R
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -90,24 +125,18 @@ if (ClearOsEnvironment::$debug_mode) {
  */
 
 function clearos_load_library($fulllibrary) {
-    list($app, $library) = split('/', $fulllibrary);
+	list($app, $library) = split('/', $fulllibrary);
 
 	// FIXME: point to online document on what's going on here
-	if (!empty(ClearOsEnvironment::$clearos_devel_versions['app'][$app]))
-		$version = ClearOsEnvironment::$clearos_devel_versions['app'][$app];
-	else if (!empty(ClearOsEnvironment::$clearos_devel_versions['app']['default']))
-		$version = ClearOsEnvironment::$clearos_devel_versions['app']['default'];
+	if (!empty(ClearOsFramework::$clearos_devel_versions['app'][$app]))
+		$version = ClearOsFramework::$clearos_devel_versions['app'][$app];
+	else if (!empty(ClearOsFramework::$clearos_devel_versions['app']['default']))
+		$version = ClearOsFramework::$clearos_devel_versions['app']['default'];
 	else
 		$version = '';
 
-    require_once(ClearOsEnvironment::$apps_path . '/' . $app . '/' . $version . '/libraries/' . $library . '.php');
+	require_once(ClearOsFramework::$apps_path . '/' . $app . '/' . $version . '/libraries/' . $library . '.php');
 }
-
-function clearos_plugin($basepath, $fullmethod, $options = null) {
-    list($class, $method) = preg_split('/::/', $fullmethod);
-    echo "plugin debug $basepath -- $class -- $method\n";
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // E R R O R  A N D  E X C E P T I O N  H A N D L E R S
@@ -129,21 +158,21 @@ function _clearos_error_handler($errno, $errmsg, $file, $line, $context)
 	// If the @ symbol was used to suppress errors, bail
 	//--------------------------------------------------
 
-    if (error_reporting(0) === 0)
-        return;
+	if (error_reporting(0) === 0)
+		return;
 
-    // Log the error
+	// Log the error
 	//--------------
 
-    $error = new Error($errno, $errmsg, $file, $line, $context, Error::TYPE_ERROR, false);
-    Logger::Log($error);
+	$error = new Error($errno, $errmsg, $file, $line, $context, Error::TYPE_ERROR, false);
+	Logger::Log($error);
 
-    // Show error on standard out if running from command line
+	// Show error on standard out if running from command line
 	//--------------------------------------------------------
 
-    if (preg_match('/cli/', php_sapi_name())) {
+	if (preg_match('/cli/', php_sapi_name())) {
 		$errstring = $error->GetCodeString();
-        echo $errstring . ": " . $errmsg . " - $file ($line)\n";
+		echo $errstring . ": " . $errmsg . " - $file ($line)\n";
 	}
 }
 
@@ -159,15 +188,15 @@ function _clearos_exception_handler(Exception $exception)
 	// Log the exception
 	//------------------
 
-    Logger::LogException($exception, false);
+	Logger::LogException($exception, false);
 
-    // Show error on standard out if running from command line
+	// Show error on standard out if running from command line
 	//--------------------------------------------------------
 
-    if (preg_match('/cli/', php_sapi_name()))
-        echo "Fatal - uncaught exception: " . $exception->getMessage() . "\n";
-    else
-        echo "<div>Ooooops: " . $exception->getMessage() . "</div>";
+	if (preg_match('/cli/', php_sapi_name()))
+		echo "Fatal - uncaught exception: " . $exception->getMessage() . "\n";
+	else
+		echo "<div>Ooooops: " . $exception->getMessage() . "</div>";
 }
 
 // Set error and exception handlers
