@@ -89,12 +89,12 @@ class CI_Log {
 		// Pull in ClearOS logging infrastructure
 		require_once('/usr/clearos/framework/config.php');
 
-		if (!ClearOsEnvironment::$debug_mode) 
+		if (!ClearOsFramework::$debug_mode) 
 			return FALSE;
 
 		// See Error.php for explanation of error code handling
-		require_once('../../application/helpers/Logger.php');
-		require_once('../../application/helpers/Error.php');
+		require_once(ClearOsFramework::$framework_path . '/application/helpers/Logger.php');
+		require_once(ClearOsFramework::$framework_path . '/application/helpers/Error.php');
 		if ($level === 'ERROR') {
 			$clearos_level = Error::CODE_ERROR;
 			$type = Error::TYPE_ERROR;
@@ -112,6 +112,14 @@ class CI_Log {
 		$error = new Error($clearos_level, $msg, 'Framework', 0, null, $type);
 
 		Logger::Log($error);
+
+		/*
+		$trace = debug_backtrace();
+		foreach ($trace as $item) {
+			$error = new Error($clearos_level, "backtrace", $item['file'], $item['line'], null, $type);
+			Logger::Log($error);
+		}
+		*/
 
 		return;
 		// ClearFoundation -- we're done
