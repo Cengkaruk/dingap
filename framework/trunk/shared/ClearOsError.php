@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Error class.
+ * ClearOS error class.
  *
  * @package Common
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
@@ -32,7 +32,7 @@
  */
 
 /**
- * Common error object.
+ * ClearOS error class.
  *
  * @package Common
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
@@ -40,7 +40,7 @@
  * @copyright Copyright 2006, Point Clark Networks
  */
 
-class Error
+class ClearOsError
 {
 	protected $code;
 	protected $message;
@@ -59,12 +59,12 @@ class Error
 	const TYPE_PROFILE = 33;
 
 	protected $type_map = array(
-		Error::TYPE_EXCEPTION => 'exception',
-		Error::TYPE_ERROR => 'error',
-		Error::TYPE_PROFILE => 'profile' 
+		ClearOsError::TYPE_EXCEPTION => 'exception',
+		ClearOsError::TYPE_ERROR => 'error',
+		ClearOsError::TYPE_PROFILE => 'profile' 
 	);
 
-	// Error codes
+	// ClearOsError codes
 	//------------
 
 	// Define error code levels to make logging errors consistent across
@@ -96,10 +96,10 @@ class Error
 	const CODE_DEBUG = -8;
 
 	protected $code_map = array(
-		Error::CODE_ERROR => 'error',
-		Error::CODE_WARNING => 'warning',
-		Error::CODE_INFO => 'info',
-		Error::CODE_DEBUG => 'debug',
+		ClearOsError::CODE_ERROR => 'error',
+		ClearOsError::CODE_WARNING => 'warning',
+		ClearOsError::CODE_INFO => 'info',
+		ClearOsError::CODE_DEBUG => 'debug',
 		E_STRICT => 'PHP strict',   
 		E_ERROR => 'PHP error',
 		E_WARNING => 'PHP warning',
@@ -115,7 +115,7 @@ class Error
 	);
 
 	/**
-	 * Error constructor.
+	 * ClearOsError constructor.
 	 *
 	 * @param integer $code error code
 	 * @param string $message error message

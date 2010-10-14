@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Logger class.
+ * ClearOs logger class.
  *
  * @package Common
  * @author {@link http://www.pointclark.net/ Point Clark Networks}
@@ -35,7 +35,7 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-require_once('Error.php');
+require_once('ClearOsError.php');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -50,10 +50,10 @@ require_once('Error.php');
  * @copyright Copyright 2006, Point Clark Networks
  */
 
-class Logger
+class ClearOsLogger
 {
 	/**
-	 * Logger constructor.
+	 * ClearOsLogger constructor.
 	 */
 	private function __construct()
 	{}
@@ -66,7 +66,7 @@ class Logger
 	 * @return void
 	 */
 
-	public static function Log(Error $error)
+	public static function Log(ClearOsError $error)
 	{
 		global $COMMON_ERROR_TYPE;
 
@@ -87,10 +87,10 @@ class Logger
 		// messages are logged.
 
 		if (! COMMON_DEBUG_MODE) {
-			if ($type == Error::TYPE_EXCEPTION) {
- 				if ($errno <= Error::CODE_WARNING)
+			if ($type == ClearOsError::TYPE_EXCEPTION) {
+ 				if ($errno <= ClearOsError::CODE_WARNING)
 					return;
-			} else if ($type == Error::TYPE_ERROR) {
+			} else if ($type == ClearOsError::TYPE_ERROR) {
 				// if (($errno === E_NOTICE) || ($errno === E_STRICT))
 				//	return;
 				// TODO: things like ldap_read generate errors... but that's
@@ -165,13 +165,13 @@ class Logger
 	public static function LogException(Exception $exception, $iscaught)
 	{
 		self::Log(
-			new Error(
+			new ClearOsError(
 				$exception->getCode(),
 				$exception->getMessage(),
 				$exception->getFile(),
 				$exception->getLine(),
 				"",
-				Error::TYPE_EXCEPTION,
+				ClearOsError::TYPE_EXCEPTION,
 				$iscaught,
 				$exception->getTrace()
 			)
@@ -205,8 +205,8 @@ class Logger
 
 	public static function Profile($tag, $line, $message = 'called')
     {
-		$error = new Error(Error::CODE_DEBUG, $message, $tag, $line, null, Error::TYPE_PROFILE);
-        Logger::Log($error);
+		$error = new ClearOsError(ClearOsError::CODE_DEBUG, $message, $tag, $line, null, ClearOsError::TYPE_PROFILE);
+        ClearOsLogger::Log($error);
     }
 }
 

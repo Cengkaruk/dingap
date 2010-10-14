@@ -39,8 +39,8 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-require_once('Logger.php');
-require_once('Error.php');
+require_once('ClearOsLogger.php');
+require_once('ClearOsError.php');
 require_once("ClearOsLang.php");
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -164,8 +164,8 @@ function _clearos_error_handler($errno, $errmsg, $file, $line, $context)
 	// Log the error
 	//--------------
 
-	$error = new Error($errno, $errmsg, $file, $line, $context, Error::TYPE_ERROR, false);
-	Logger::Log($error);
+	$error = new ClearOsError($errno, $errmsg, $file, $line, $context, ClearOsError::TYPE_ERROR, false);
+	ClearOsLogger::Log($error);
 
 	// Show error on standard out if running from command line
 	//--------------------------------------------------------
@@ -188,7 +188,7 @@ function _clearos_exception_handler(Exception $exception)
 	// Log the exception
 	//------------------
 
-	Logger::LogException($exception, false);
+	ClearOsLogger::LogException($exception, false);
 
 	// Show error on standard out if running from command line
 	//--------------------------------------------------------
