@@ -2,10 +2,10 @@
 # P A C K A G E  I N F O
 #------------------------------------------------------------------------------
 
-Name: app-release
+Name: clearos-release
 Version: %VERSION%
 Release: %RELEASE%
-Summary: Product release information
+Summary: ClearOS product release information
 License: GPL
 Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
@@ -20,19 +20,18 @@ Provides: redhat-logos
 Provides: redhat-release
 Provides: redhat-release-server
 Provides: centos-release
-Provides: system-release
-Provides: clearos-enterprise-release
 Obsoletes: redhat-logos
 Obsoletes: redhat-release
 Obsoletes: redhat-release-server
 Obsoletes: centos-release
 Obsoletes: system-release
 Obsoletes: clearos-enterprise-release
+Obsoletes: app-release
 BuildArch: noarch 
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
-Product release information
+ClearOS product release information
 
 #------------------------------------------------------------------------------
 # B U I L D
