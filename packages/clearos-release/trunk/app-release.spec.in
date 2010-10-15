@@ -9,23 +9,26 @@ Summary: Product release information
 License: GPL
 Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
-Vendor: Point Clark Networks
-Packager: Point Clark Networks
+Vendor: ClearFoundation
+Packager: ClearFoundation
 Requires: coreutils
 Requires: sed
-Requires: util-linux
+Requires: util-linux-ng
 Requires: rpm
 Provides: system-logos
 Provides: redhat-logos
 Provides: redhat-release
+Provides: redhat-release-server
 Provides: centos-release
 Provides: system-release
 Provides: clearos-enterprise-release
 Obsoletes: redhat-logos
 Obsoletes: redhat-release
+Obsoletes: redhat-release-server
 Obsoletes: centos-release
 Obsoletes: system-release
 Obsoletes: clearos-enterprise-release
+BuildArch: noarch 
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
@@ -80,8 +83,8 @@ install -m 644 custom/issue $RPM_BUILD_ROOT/etc/issue.net
 # Upstream release files
 mkdir -p $RPM_BUILD_ROOT/etc
 install -m 644 custom/release $RPM_BUILD_ROOT/etc/release
-echo "CentOS release 5.4 (Final)" > $RPM_BUILD_ROOT/etc/redhat-release
 echo "ClearOS release %{version}" > $RPM_BUILD_ROOT/etc/clearos-release
+echo "ClearOS release %{version}" > $RPM_BUILD_ROOT/etc/system-release
 
 #------------------------------------------------------------------------------
 # P R E P  S C R I P T
@@ -194,7 +197,7 @@ fi
 /etc/issue
 /etc/issue.net
 /etc/clearos-release
-/etc/redhat-release
+/etc/system-release
 /etc/release
 %dir /etc/system
 /etc/system/product
