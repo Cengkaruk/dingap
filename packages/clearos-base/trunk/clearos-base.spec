@@ -2,11 +2,11 @@
 # P A C K A G E  I N F O
 #------------------------------------------------------------------------------
 
-Name: app-setup
-Version: %VERSION%
-Release: %RELEASE%
+Name: clearos-base
+Version: 6.0
+Release: 0.3%{dist}
 Summary: Initializes the system environment
-License: GPL
+License: Affero GPLv3 or later
 Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
 Vendor: Point Clark Networks
@@ -48,10 +48,13 @@ Requires: /sbin/pidof
 Provides: perl(functions)
 Provides: indexhtml
 Provides: cc-setup
+Provides: app-setup
 Obsoletes: cc-setup
 Obsoletes: cc-shell
 Obsoletes: cc-support
+Obsoletes: app-setup
 Obsoletes: indexhtml
+Buildarch: noarch
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
@@ -87,7 +90,7 @@ install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
 install -m 644 etc/system/fileextensions $RPM_BUILD_ROOT/etc/system/
 install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/system/scripts/
-install -m 755 bin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
+install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
 
 install -m 644 custom/organization $RPM_BUILD_ROOT/etc/system/
 install -m 644 custom/locale $RPM_BUILD_ROOT/usr/share/system/settings/
