@@ -1,0 +1,17 @@
+<?php
+
+// General package information
+//----------------------------
+
+$package['name'] = 'app-cron';
+$package['title'] = 'Cron';
+$package['description'] = 'This module provides cron tools';
+
+$package['version'] = '6.0';
+$package['release'] = '0.2';
+
+$package['vendor'] = 'ClearFoundation';
+$package['packager'] = 'ClearFoundation';
+$package['license'] = 'GPLv3';
+
+// vim: ts=4 syntax=php
