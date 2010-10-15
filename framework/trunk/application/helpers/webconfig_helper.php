@@ -845,25 +845,25 @@ function WebAuthenticate()
 			}
 
 			if (($username == "root") && $passwordok) {
-				Logger::SysLog("webconfig", "login - root login successful");
+				ClearOsLoggerSysLog("webconfig", "login - root login successful");
 				$_SESSION['system_login'] = "root";
 				$_SESSION['user_login'] = "root";
 				WebSetSessionAuthenticated();
 
 			} else if ($allowadmins && $passwordok && in_array($username, $validadmins)) {
-				Logger::SysLog("webconfig", "login - $username sub-admin login successful");
+				ClearOsLoggerSysLog("webconfig", "login - $username sub-admin login successful");
 				$_SESSION['user_login'] = $username;
 				WebSetSessionAuthenticated();
 				WebAuthenticateCheckAcl($username, $_SERVER['PHP_SELF']);
 
 			} else if ($allowusers && $passwordok) {
-				Logger::SysLog("webconfig", "login - $username user login successful");
+				ClearOsLoggerSysLog("webconfig", "login - $username user login successful");
 				$_SESSION['user_login'] = $username;
 				WebSetSessionAuthenticated();
 				WebAuthenticateCheckAcl($username, $_SERVER['PHP_SELF']);
 
 			} else {
-				Logger::SysLog("webconfig", "login - $username login failed");
+				ClearOsLoggerSysLog("webconfig", "login - $username login failed");
 
 				WebHeader($_SESSION['system_osname'], false);
 				WebAuthenticateDisplayLogin($username, $password, WEBCONFIG_LANG_ERRMSG_LOGIN_FAILED);
@@ -955,17 +955,17 @@ function WebAuthenticateCheckAcl($username, $page)
 	}
 
 	if ($allowadmins && in_array($authpage, $validadmin)) {
-		Logger::SysLog("webconfig", "access control - $username user accessed $page");
+		ClearOsLoggerSysLog("webconfig", "access control - $username user accessed $page");
 		$isvalid = true;
 	} else if ($allowusers && in_array($authpage, $validregular)) {
-		Logger::SysLog("webconfig", "access control - $username user accessed $page");
+		ClearOsLoggerSysLog("webconfig", "access control - $username user accessed $page");
 		$isvalid = true;
 	} else if (preg_match("/^\/index.php$/", $page) && isset($validregular[0])) {
 		// Forward user logins on document root to first valid page
 		WebForwardPage($validregular[0]);
 		exit;
 	} else {
-		Logger::SysLog("webconfig", "access control - $username denied access to $page");
+		ClearOsLoggerSysLog("webconfig", "access control - $username denied access to $page");
 		$isvalid = false;
 	}
 
