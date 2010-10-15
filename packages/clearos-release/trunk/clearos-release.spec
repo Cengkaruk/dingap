@@ -3,10 +3,10 @@
 #------------------------------------------------------------------------------
 
 Name: clearos-release
-Version: %VERSION%
-Release: %RELEASE%
+Version: 6.0
+Release: 0.3%{dist}
 Summary: ClearOS product release information
-License: GPL
+License: Copyright ClearFoundation
 Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
