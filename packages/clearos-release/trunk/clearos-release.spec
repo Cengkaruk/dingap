@@ -135,7 +135,7 @@ if [ $1 == 1 ]; then
 
 		logger -p local6.notice -t installer "app-release - found install $OLDPRODUCT $OLDVERSION"
 
-		echo "$LOGSTAMP: $OLDPRODUCT $OLDVERSION => $NEWPRODUCT $NEWVERSION" >> /usr/share/system/modules/setup/upgrade.log
+		echo "$LOGSTAMP: $OLDPRODUCT $OLDVERSION => $NEWPRODUCT $NEWVERSION" >> /usr/share/system/modules/release/upgrade.log
 
 		if [ "$OLDBASEPRODUCT" == "ClarkConnect" ]; then
 			logger -p local6.notice -t installer "app-release - detected product change, resetting registration"
