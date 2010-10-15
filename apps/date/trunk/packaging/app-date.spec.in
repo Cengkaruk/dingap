@@ -1,0 +1,113 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-date
+Group: Applications/Modules
+Version: %package_version%
+Release: %package_release%
+Summary: %package_title%
+License: %package_license%
+Packager: %package_packager%
+Vendor: %package_vendor%
+Source: %{name}-%{version}.tar.gz
+Requires: %{name}-core = %{version}-%{release}
+Buildarch: noarch
+Buildroot: %_tmppath/%name-%version-buildroot
+
+%description
+%package_description%
+
+%package core
+Summary: Core API and install for %{name}
+Group: System Environment/API
+Requires: app-base-core = %package_version%
+Requires: app-cron-core = %package_version%
+Requires: ntpdate
+
+%description core
+Core API and install for %{name}
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup -q
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos/apps/date
+
+install -m 644 packaging/app-date.cron $RPM_BUILD_ROOT/etc/cron.d/app-date
+install -m 755 packaging/timesync $RPM_BUILD_ROOT/usr/sbin/
+cp -r * $RPM_BUILD_ROOT/usr/clearos/apps/date/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-date - installing"
+
+%post core
+logger -p local6.notice -t installer "app-date-core - installing"
+
+/usr/clearos/apps/date/deploy/install
+/usr/clearos/apps/date/deploy/upgrade
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-date - uninstalling"
+fi
+
+%preun core
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-date-core - uninstalling"
+	/usr/clearos/apps/date/deploy/uninstall
+fi
+
+exit 0
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr(-,root,root)
+/usr/clearos/apps/date/controllers
+/usr/clearos/apps/date/htdocs
+/usr/clearos/apps/date/info
+/usr/clearos/apps/date/views
+
+%files core
+%defattr(-,root,root)
+%exclude /usr/clearos/apps/date/packaging
+%dir /usr/clearos/apps/date
+/usr/clearos/apps/date/language
+/usr/clearos/apps/date/libraries
+/usr/clearos/apps/date/deploy
+/etc/cron.d/app-date
+/usr/sbin/timesync

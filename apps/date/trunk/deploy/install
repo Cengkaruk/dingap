@@ -1,0 +1,6 @@
+#!/bin/sh
+
+/usr/sbin/addsudo /sbin/hwclock app-ntp
+/usr/sbin/addsudo /usr/sbin/ntpdate app-ntp
+
+exit 0
