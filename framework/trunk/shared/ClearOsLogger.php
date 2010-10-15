@@ -24,8 +24,7 @@
 /**
  * ClearOS logger class. 
  *
- * @package ClearOS
- * @subpackage Framework
+ * @package Framework
  * @author {@link http://www.foundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2006, 2010 ClearFoundation
@@ -44,8 +43,7 @@ require_once('ClearOsError.php');
 /**
  * ClearOS logger class. 
  *
- * @package ClearOS
- * @subpackage Framework
+ * @package Framework
  * @author {@link http://www.foundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2006, 2010 ClearFoundation

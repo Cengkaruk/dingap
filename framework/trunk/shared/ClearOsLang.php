@@ -14,8 +14,7 @@
 /**
  * ClearOS language handling class. 
  *
- * @package ClearOS
- * @subpackage Framework
+ * @package Framework
  * @author ExpressionEngine Dev Team, {@link http://www.foundation.com/ ClearFoundation}
  * @license	http://codeigniter.com/user_guide/license.html CodeIgniter
  * @copyright Copyright 2008 - 2010 EllisLab, Inc., 2010 ClearFoundation
@@ -24,8 +23,7 @@
 /**
  * ClearOS language handling class. 
  *
- * @package ClearOS
- * @subpackage Framework
+ * @package Framework
  * @author ExpressionEngine Dev Team, {@link http://www.foundation.com/ ClearFoundation}
  * @license	http://codeigniter.com/user_guide/license.html CodeIgniter
  * @copyright Copyright 2008 - 2010 EllisLab, Inc., 2010 ClearFoundation
