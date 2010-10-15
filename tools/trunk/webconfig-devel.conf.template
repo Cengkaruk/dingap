@@ -1,0 +1,206 @@
+ServerRoot "WEBCONFIG_ROOT/framework/trunk/htdocs/"
+PidFile  /var/run/webconfig.WEBCONFIG_USER.pid
+Timeout 300
+KeepAlive On
+MaxKeepAliveRequests 100
+KeepAliveTimeout 15
+MinSpareServers 1
+MaxSpareServers 2
+StartServers 1
+MaxClients 10
+MaxRequestsPerChild 100
+MaxKeepAliveRequests 100
+KeepAliveTimeout 15
+Listen WEBCONFIG_PORT
+
+User webconfig
+Group webconfig
+ServerAdmin root@localhost
+ServerName cc5devel.lan
+UseCanonicalName Off
+DocumentRoot "WEBCONFIG_ROOT/framework/trunk/htdocs"
+
+DirectoryIndex index.php index.html index.htm
+AccessFileName .htaccess
+# MIMEMagicFile /usr/webconfig/conf/magic
+TypesConfig /usr/webconfig/conf/mime.types
+DefaultType text/plain
+HostnameLookups Off
+ErrorLog /tmp/WEBCONFIG_USER-clearos-httpd.log
+LogLevel warn
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+CustomLog /tmp/WEBCONFIG_USER-clearos-httpd.log common
+ServerSignature On
+ServerTokens Prod
+ServerSignature Off
+
+AddType application/x-httpd-php .php
+AddType application/x-httpd-php .php3
+LoadModule php5_module /usr/webconfig/modules/libphp5.so
+
+
+<Directory />
+    Options FollowSymLinks
+    AllowOverride None
+</Directory>
+
+<Directory "WEBCONFIG_ROOT/framework/trunk/htdocs">
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+</Directory>
+
+<FilesMatch "^\.ht">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+Alias /icons/ "/usr/webconfig/icons/"
+<Directory "/usr/webconfig/icons">
+    Options Indexes MultiViews
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+</Directory>
+
+ScriptAlias /cgi-bin/ "/var/webconfig/cgi-bin/"
+<Directory "/var/webconfig/cgi-bin">
+    AllowOverride None
+    Options None
+    Order allow,deny
+    Allow from all
+</Directory>
+
+IndexOptions FancyIndexing VersionSort
+AddIconByEncoding (CMP,/icons/compressed.gif) x-compress x-gzip
+
+AddIconByType (TXT,/icons/text.gif) text/*
+AddIconByType (IMG,/icons/image2.gif) image/*
+AddIconByType (SND,/icons/sound2.gif) audio/*
+AddIconByType (VID,/icons/movie.gif) video/*
+
+AddIcon /icons/binary.gif .bin .exe
+AddIcon /icons/binhex.gif .hqx
+AddIcon /icons/tar.gif .tar
+AddIcon /icons/world2.gif .wrl .wrl.gz .vrml .vrm .iv
+AddIcon /icons/compressed.gif .Z .z .tgz .gz .zip
+AddIcon /icons/a.gif .ps .ai .eps
+AddIcon /icons/layout.gif .html .shtml .htm .pdf
+AddIcon /icons/text.gif .txt
+AddIcon /icons/c.gif .c
+AddIcon /icons/p.gif .pl .py
+AddIcon /icons/f.gif .for
+AddIcon /icons/dvi.gif .dvi
+AddIcon /icons/uuencoded.gif .uu
+AddIcon /icons/script.gif .conf .sh .shar .csh .ksh .tcl
+AddIcon /icons/tex.gif .tex
+AddIcon /icons/bomb.gif core
+
+AddIcon /icons/back.gif ..
+AddIcon /icons/hand.right.gif README
+AddIcon /icons/folder.gif ^^DIRECTORY^^
+AddIcon /icons/blank.gif ^^BLANKICON^^
+
+DefaultIcon /icons/unknown.gif
+
+IndexIgnore .??* *~ *# HEADER* README* RCS CVS *,v *,t
+
+AddLanguage ca .ca
+AddLanguage cs .cz .cs
+AddLanguage da .dk
+AddLanguage de .de
+AddLanguage el .el
+AddLanguage en .en
+AddLanguage eo .eo
+AddLanguage es .es
+AddLanguage et .et
+AddLanguage fr .fr
+AddLanguage he .he
+AddLanguage hr .hr
+AddLanguage it .it
+AddLanguage ja .ja
+AddLanguage ko .ko
+AddLanguage ltz .ltz
+AddLanguage nl .nl
+AddLanguage nn .nn
+AddLanguage no .no
+AddLanguage pl .po
+AddLanguage pt .pt
+AddLanguage pt-BR .pt-br
+AddLanguage ru .ru
+AddLanguage sv .sv
+AddLanguage zh-CN .zh-cn
+AddLanguage zh-TW .zh-tw
+
+LanguagePriority en ca cs da de el eo es et fr he hr it ja ko ltz nl nn no pl pt pt-BR ru sv zh-CN zh-TW
+ForceLanguagePriority Prefer Fallback
+
+AddCharset ISO-8859-1  .iso8859-1  .latin1
+AddCharset ISO-8859-2  .iso8859-2  .latin2 .cen
+AddCharset ISO-8859-3  .iso8859-3  .latin3
+AddCharset ISO-8859-4  .iso8859-4  .latin4
+AddCharset ISO-8859-5  .iso8859-5  .latin5 .cyr .iso-ru
+AddCharset ISO-8859-6  .iso8859-6  .latin6 .arb
+AddCharset ISO-8859-7  .iso8859-7  .latin7 .grk
+AddCharset ISO-8859-8  .iso8859-8  .latin8 .heb
+AddCharset ISO-8859-9  .iso8859-9  .latin9 .trk
+AddCharset ISO-2022-JP .iso2022-jp .jis
+AddCharset ISO-2022-KR .iso2022-kr .kis
+AddCharset ISO-2022-CN .iso2022-cn .cis
+AddCharset Big5        .Big5       .big5
+AddCharset WINDOWS-1251 .cp-1251   .win-1251
+AddCharset CP866       .cp866
+AddCharset KOI8-r      .koi8-r .koi8-ru
+AddCharset KOI8-ru     .koi8-uk .ua
+AddCharset ISO-10646-UCS-2 .ucs2
+AddCharset ISO-10646-UCS-4 .ucs4
+AddCharset UTF-8       .utf8
+AddCharset GB2312      .gb2312 .gb 
+AddCharset utf-7       .utf7
+AddCharset utf-8       .utf8
+AddCharset big5        .big5 .b5
+AddCharset EUC-TW      .euc-tw
+AddCharset EUC-JP      .euc-jp
+AddCharset EUC-KR      .euc-kr
+AddCharset shift_jis   .sjis
+
+AddType application/x-compress .Z
+AddType application/x-gzip .gz .tgz
+
+BrowserMatch "Mozilla/2" nokeepalive
+BrowserMatch "MSIE 4\.0b2;" nokeepalive downgrade-1.0 force-response-1.0
+BrowserMatch "RealPlayer 4\.0" force-response-1.0
+BrowserMatch "Java/1\.0" force-response-1.0
+BrowserMatch "JDK/1\.0" force-response-1.0
+BrowserMatch "Microsoft Data Access Internet Publishing Provider" redirect-carefully
+BrowserMatch "MS FrontPage" redirect-carefully
+BrowserMatch "^WebDrive" redirect-carefully
+BrowserMatch "^WebDAVFS/1.[0123]" redirect-carefully
+BrowserMatch "^gnome-vfs" redirect-carefully
+BrowserMatch "^XML Spy" redirect-carefully
+BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
+
+# FIXME - experimenting with expiry
+# LoadModule expires_module /usr/webconfig/modules/mod_expires.so
+# LoadModule headers_module /usr/webconfig/modules/mod_headers.so
+# LoadModule deflate_module /usr/webconfig/modules/mod_deflate.so
+# ExpiresActive On
+
+<VirtualHost _default_:WEBCONFIG_PORT>
+	# FIXME
+	ErrorDocument 404 /images/404.gif
+	SSLEngine on
+	SSLCertificateFile /usr/webconfig/conf/server.crt
+	SSLCertificateKeyFile /usr/webconfig/conf/server.key
+	SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:!EXP:+eNULL
+	SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0
+	RewriteEngine on
+	RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+	RewriteRule .* - [F]
+	# CodeIgniter - remove index.php from URL
+	RewriteRule ^/admin/(.*)$ /admin/index.php/$1 [L]
+	# Developer mode (info leak with stuff exposed via webconfig)
+	Alias /modules/ WEBCONFIG_ROOT/modules/
+	Alias /themes/ WEBCONFIG_ROOT/themes/
+</VirtualHost>
