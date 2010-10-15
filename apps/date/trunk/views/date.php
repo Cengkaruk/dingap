@@ -24,6 +24,7 @@
 // TODO: handle read-only entries
 // TODO: move time server to a separate page
 
+$this->load->library('form_validation');
 $this->lang->load('date');
 
 echo form_open('date');
