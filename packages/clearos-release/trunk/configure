@@ -1,6 +1,0 @@
-#!/bin/bash
-
-rm -f custom
-ln -s custom-$2 custom
-
-exit 0
