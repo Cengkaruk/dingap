@@ -1,6 +1,5 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -12,7 +11,9 @@
 |	http://example.com/
 |
 */
-$config['base_url']	= "http://example.com/";
+
+$config['base_url'] = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on") ? "https" : "http");
+$config['base_url'] .= "://".$_SERVER['HTTP_HOST'] . "/admin/";
 
 /*
 |--------------------------------------------------------------------------
@@ -24,7 +25,7 @@ $config['base_url']	= "http://example.com/";
 | variable so that it is blank.
 |
 */
-$config['index_page'] = "index.php";
+$config['index_page'] = "";
 
 /*
 |--------------------------------------------------------------------------
@@ -174,7 +175,7 @@ $config['directory_trigger'] 	= 'd'; // experimental not currently in use
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$config['log_threshold'] = 4;
 
 /*
 |--------------------------------------------------------------------------
@@ -185,7 +186,7 @@ $config['log_threshold'] = 0;
 | system/logs/ folder.  Use a full server path with trailing slash.
 |
 */
-$config['log_path'] = '';
+$config['log_path'] = '/tmp/';
 
 /*
 |--------------------------------------------------------------------------
@@ -264,7 +265,7 @@ $config['cookie_path']		= "/";
 | COOKIE data is encountered
 |
 */
-$config['global_xss_filtering'] = FALSE;
+$config['global_xss_filtering'] = TRUE;
 
 /*
 |--------------------------------------------------------------------------
@@ -274,7 +275,7 @@ $config['global_xss_filtering'] = FALSE;
 | checked on a submitted form. If you are accepting user data, it is strongly
 | recommended CSRF protection be enabled.
 */
-$config['csrf_protection'] = FALSE;
+$config['csrf_protection'] = TRUE;
 
 
 /*
