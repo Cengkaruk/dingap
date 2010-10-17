@@ -118,8 +118,7 @@ class ConfigurationFile extends File
 
 	public function __construct($filename, $method = 'explode', $token = '=', $limit = 2, $flags = null)
 	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		parent::__construct($filename, true);
 
@@ -165,8 +164,7 @@ class ConfigurationFile extends File
 
 	public function Load($reload=false)
 	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		if ($reload)
 			$this->loaded = false;
@@ -301,8 +299,7 @@ class ConfigurationFile extends File
 
 	public function __destruct()
 	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		parent::__destruct();
 	}
