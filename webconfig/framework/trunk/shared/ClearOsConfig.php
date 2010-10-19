@@ -77,7 +77,7 @@ class ClearOsConfig {
 	 * @var boolean debug mode flag
 	 */
 
-	public static $debug_mode = FALSE;
+	public static $debug_mode = TRUE;
 
 	/**
 	 * @var string debug log path
