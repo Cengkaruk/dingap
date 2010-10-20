@@ -38,6 +38,7 @@
 require_once('/usr/clearos/framework/config.php');
 
 clearos_load_language('date');
+clearos_load_language('base');
 clearos_load_library('base/Folder');
 clearos_load_library('base/File');
 clearos_load_library('base/ConfigurationFile');
@@ -147,13 +148,6 @@ class Time extends Engine
 
 		if (! $fileok)
 			throw new TimezoneNotSetException(TIME_LANG_ERRMSG_TIMEZONE_NOT_SET);
-
-/*
-echo "twotwotwo" . lang('date_time_zone') . "\n";
-echo "oneoneone" . lang('date_date') . "\n";
-*/
-// FIXME
-// throw new TimezoneNotSetException(lang('date_date'));
 
 		// Check the /etc/sysconfig/clock file for time zone info
 		//-------------------------------------------------------
