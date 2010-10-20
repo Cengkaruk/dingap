@@ -22,10 +22,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 // TODO: handle read-only entries
-// TODO: move time server to a separate page
 
 $this->load->library('form_validation');
-$this->lang->load('date');
+$this->lang->load('date/date');
+$this->lang->load('base/base');
 
 echo form_open('date');
 echo form_fieldset(lang('date_time_and_date'));
@@ -43,7 +43,7 @@ echo "
 		form_dropdown('timezone', $timezones, $timezone) . "
 	</div>
 	<div>" .
-		form_submit('submit', LOCALE_LANG_UPDATE) . "
+		form_submit('submit', lang('base_update')) . "
 		<div id='sync'>" . "Synchronize Now" . "</div><span id='result'></span>
 	</div>
 ";
