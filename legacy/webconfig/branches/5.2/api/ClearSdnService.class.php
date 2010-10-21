@@ -585,7 +585,8 @@ class ClearSdnService extends ClearSdnSoapRequest
 		require_once(COMMON_CORE_DIR . "/api/RemoteBackup.class.php");
 		$rbs = new RemoteBackup();
 		$state = 0;
-		if ($rbs->IsBackupScheduleEnabled() != null)
+		
+		if ($rbs->IsBackupScheduleEnabled() == 1 && $rbs->GetKeyHash != null)
 			$state = 1;
 		$this->servicelist[ClearSdnService::SDN_BACKUP] = array('state' => $state, 'size' => $total);
 	}
