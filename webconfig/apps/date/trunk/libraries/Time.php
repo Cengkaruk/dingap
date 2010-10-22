@@ -32,13 +32,18 @@
  */
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
+require_once($bootstrap . '/bootstrap.php');
+
+///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-require_once('/usr/clearos/framework/config.php');
-
-clearos_load_language('date');
-clearos_load_language('base');
+clearos_load_language('date/date');
+clearos_load_language('base/base');
 clearos_load_library('base/Folder');
 clearos_load_library('base/File');
 clearos_load_library('base/ConfigurationFile');
