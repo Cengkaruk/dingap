@@ -21,5 +21,4 @@ ldap {
 	edir_account_policy_check = no
 	groupname_attribute = cn
 	groupmembership_filter = "(|(&(objectClass=GroupOfNames)(member=%{control:Ldap-UserDn}))(&(objectClass=GroupOfUniqueNames)(uniquemember=%{control:Ldap-UserDn})))"
-	groupmembership_attribute = allusers
 }
