@@ -9,4 +9,5 @@ include ./install
 include ./clearos-inner-tunnel
 include ./clearos-clients.conf
 include ./clearos-eap.conf
+include ./clearos-users
 include ./freeradius.conf.template

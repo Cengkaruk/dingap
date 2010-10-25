@@ -49,6 +49,7 @@ mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig
 install -m 644 freeradius.conf.template $RPM_BUILD_ROOT/etc/openldap/templates
 install -m 640 clearos-clients.conf $RPM_BUILD_ROOT/etc/raddb/
 install -m 640 clearos-eap.conf $RPM_BUILD_ROOT/etc/raddb/
+install -m 640 clearos-users $RPM_BUILD_ROOT/etc/raddb/
 install -m 640 clearos-inner-tunnel $RPM_BUILD_ROOT/etc/raddb/sites-available
 install -m 755 install $RPM_BUILD_ROOT/usr/share/system/modules/freeradius/
 
@@ -67,6 +68,9 @@ if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
 	logger -p local6.notice -t installer "app-freeradius - running install routine"
 	/usr/share/system/modules/freeradius/install
 fi
+
+# FIXME in 6.0: during the 5.x testing phase, always run the install routine
+/usr/share/system/modules/freeradius/install
 
 logger -p local6.notice -t installer "app-freeradius - synchronizing with LDAP"
 /usr/sbin/ldapsync config radiusd >/dev/null 2>&1
@@ -100,7 +104,8 @@ fi
 %dir /usr/share/system/modules/freeradius
 /usr/share/system/modules/freeradius/install
 /etc/openldap/templates/freeradius.conf.template
-%attr(640,root,radiusd) /etc/raddb/clearos-clients.conf 
+%attr(640,root,radiusd) %config(noreplace) /etc/raddb/clearos-clients.conf 
+%attr(640,root,radiusd) %config(noreplace) /etc/raddb/clearos-users
 %attr(640,root,radiusd) /etc/raddb/clearos-eap.conf 
 %attr(640,root,radiusd) /etc/raddb/sites-available/clearos-inner-tunnel
-%attr{-,root,radiusd) /etc/raddb/sites-enabled/clearos-inner-tunnel
+%attr(-,root,radiusd) /etc/raddb/sites-enabled/clearos-inner-tunnel
