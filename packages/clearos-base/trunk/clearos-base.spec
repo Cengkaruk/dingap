@@ -106,10 +106,10 @@ fi
 
 CHECKSYSLOG=`grep "^local6" /etc/rsyslog.conf 2>/dev/null`
 if [ -z "$CHECKSYSLOG" ]; then
-	logger -p local6.notice -t installer "clearos-base - adding system log file to rsyslog"
 	echo "local6.*                        /var/log/system" >> /etc/rsyslog.conf
 	sed -i -e 's/[[:space:]]*\/var\/log\/messages/;local6.none \/var\/log\/messages/' /etc/rsyslog.conf
 	/sbin/service rsyslog restart >/dev/null 2>&1
+	logger -p local6.notice -t installer "clearos-base - adding system log file to rsyslog"
 fi
 
 # Add our own logs to rsyslog
@@ -117,10 +117,10 @@ fi
 
 CHECKSYSLOG=`grep "^local5" /etc/rsyslog.conf 2>/dev/null`
 if [ -z "$CHECKSYSLOG" ]; then
-	logger -p local5.notice -t installer "clearos-base - adding compliance log file to rsyslog"
 	echo "local5.*                        /var/log/compliance" >> /etc/rsyslog.conf
 	sed -i -e 's/[[:space:]]*\/var\/log\/messages/;local5.none \/var\/log\/messages/' /etc/rsyslog.conf
 	/sbin/service rsyslog restart >/dev/null 2>&1
+	logger -p local5.notice -t installer "clearos-base - adding compliance log file to rsyslog"
 fi
 
 #------------------------------------------------------------------------------
