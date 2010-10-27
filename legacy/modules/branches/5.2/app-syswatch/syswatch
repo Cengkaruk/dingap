@@ -106,8 +106,6 @@ my $FILE_DNS     = "/etc/resolv.conf";
 my $FILE_IDSCFG  = "/etc/snortsam.conf";
 my $FILE_IDSLIST = "system-autowhitelist.conf";
 my $FILE_STATE   = "$DIR_STATE/state";
-my $FILE_CERT    = "/etc/ssl/sys-0-cert.pem";
-my $FILE_KEY     = "/etc/ssl/private/sys-0-key.pem";
 my $FILE_CLAMDB  = "/var/lib/clamav/*.cvd";
 my $FILE_SALIST  = "/etc/postfix/filters/sa-blacklist";
 my $FILE_HA      = "/var/lib/syswatch/ha";
@@ -141,25 +139,52 @@ my $STATUS_NO = 40;
 my $STATUS_YES = 41;
 my @CONDRESTART_DAEMON_LIST = ('ldap', 'nmb', 'winbind', 'smb', 'squid', 'vpnwatchd', 'proftpd', 'cups', 'dansguardian-av');
 
+my %BASE_CERTS;
+$BASE_CERTS{'cert'} = "/etc/ssl/sys-0-cert.pem";
+$BASE_CERTS{'key'} = "/etc/ssl/private/sys-0-key.pem";
+$BASE_CERTS{'ca'} = "/etc/ssl/ca-cert.pem";
+$BASE_CERTS{'dh'} = "/etc/ssl/dh1024.pem";
+
 my %FILE_CERTS;
+$FILE_CERTS{'postfix'}->{'basedir'} = '/etc/postfix';
 $FILE_CERTS{'postfix'}->{'cert'} = '/etc/postfix/cert.pem';
 $FILE_CERTS{'postfix'}->{'key'} = '/etc/postfix/key.pem';
 $FILE_CERTS{'postfix'}->{'owner'} = 'root';
+$FILE_CERTS{'postfix'}->{'group'} = 'root';
+$FILE_CERTS{'postfix'}->{'perms'} = '0600';
 $FILE_CERTS{'postfix'}->{'daemon'} = 'postfix';
+$FILE_CERTS{'cyrus'}->{'basedir'} = '/etc/imapd.d';
 $FILE_CERTS{'cyrus'}->{'cert'} = '/etc/imapd.d/cert.pem';
 $FILE_CERTS{'cyrus'}->{'key'} = '/etc/imapd.d/key.pem';
 $FILE_CERTS{'cyrus'}->{'ca_config'} = '/etc/imapd.conf';
 $FILE_CERTS{'cyrus'}->{'ca_param'} = 'tls_ca_file';
+$FILE_CERTS{'cyrus'}->{'group'} = 'mail';
 $FILE_CERTS{'cyrus'}->{'owner'} = 'cyrus';
+$FILE_CERTS{'cyrus'}->{'perms'} = '0600';
 $FILE_CERTS{'cyrus'}->{'daemon'} = 'cyrus-imapd';
+$FILE_CERTS{'webconfig'}->{'basedir'} = '/usr/webconfig/conf';
 $FILE_CERTS{'webconfig'}->{'cert'} = '/usr/webconfig/conf/server.crt';
 $FILE_CERTS{'webconfig'}->{'key'} = '/usr/webconfig/conf/server.key';
 $FILE_CERTS{'webconfig'}->{'owner'} = 'webconfig';
+$FILE_CERTS{'webconfig'}->{'group'} = 'root';
+$FILE_CERTS{'webconfig'}->{'perms'} = '0600';
 $FILE_CERTS{'webconfig'}->{'daemon'} = 'webconfig';
+$FILE_CERTS{'cups'}->{'basedir'} = '/etc/cups/ssl';
 $FILE_CERTS{'cups'}->{'cert'} = '/etc/cups/ssl/server.crt';
 $FILE_CERTS{'cups'}->{'key'} = '/etc/cups/ssl/server.key';
 $FILE_CERTS{'cups'}->{'owner'} = 'root';
+$FILE_CERTS{'cups'}->{'group'} = 'lp';
+$FILE_CERTS{'cups'}->{'perms'} = '600';
 $FILE_CERTS{'cups'}->{'daemon'} = 'cups';
+$FILE_CERTS{'radiusd'}->{'basedir'} = '/etc/raddb/clearos-certs';
+$FILE_CERTS{'radiusd'}->{'cert'} = '/etc/raddb/clearos-certs/cert.pem';
+$FILE_CERTS{'radiusd'}->{'key'} = '/etc/raddb/clearos-certs/key.pem';
+$FILE_CERTS{'radiusd'}->{'ca'} = '/etc/raddb/clearos-certs/ca.pem';
+$FILE_CERTS{'radiusd'}->{'dh'} = '/etc/raddb/clearos-certs/dh1024.pem';
+$FILE_CERTS{'radiusd'}->{'owner'} = 'root';
+$FILE_CERTS{'radiusd'}->{'group'} = 'radiusd';
+$FILE_CERTS{'radiusd'}->{'perms'} = '640';
+$FILE_CERTS{'radiusd'}->{'daemon'} = 'radiusd';
 
 ###############################################################################
 #
@@ -1599,62 +1624,69 @@ sub RestartWebconfig() {
 sub ManageSslCertificates() {
 	sleep 5;
 
-	if (! ((-e $FILE_CERT) && (-e $FILE_KEY)) ) {
+	if (! ((-e $BASE_CERTS{'key'}) && (-e $BASE_CERTS{'cert'})) ) {
 		LogMsg("debug", "system", "secure server certificates not yet created\n") if $config{debug};
 		return;
 	}
 
 	LogMsg("debug", "system", "checking secure server certificates and keys\n") if $config{debug};
 
-	my $certmd5 = `$CMD_MD5SUM "$FILE_CERT"`;
-	my $keymd5 = `$CMD_MD5SUM "$FILE_KEY"`;
+	my $certmd5 = `$CMD_MD5SUM "$BASE_CERTS{'cert'}"`;
+	my $keymd5 = `$CMD_MD5SUM "$BASE_CERTS{'key'}"`;
+	my $camd5 = `$CMD_MD5SUM "$BASE_CERTS{'ca'}"`;
+	my $dhmd5 = `$CMD_MD5SUM "$BASE_CERTS{'dh'}"`;
 	
 	$certmd5 =~ s/\s+.*//;
 	$keymd5 =~ s/\s+.*//;
+	$camd5 =~ s/\s+.*//;
+	$dhmd5 =~ s/\s+.*//;
 
 	chomp($certmd5);
 	chomp($keymd5);
+	chomp($camd5);
+	chomp($dhmd5);
+
+	my %sslmd5s;
+	$sslmd5s{'cert'} = $certmd5;
+	$sslmd5s{'key'} = $keymd5;
+	$sslmd5s{'ca'} = $camd5;
+	$sslmd5s{'dh'} = $dhmd5;
 
 	foreach my $service (keys %FILE_CERTS) {
+		my $basedir = $FILE_CERTS{$service}->{'basedir'};
 		my $owner = $FILE_CERTS{$service}->{'owner'};
-		my $cert = $FILE_CERTS{$service}->{'cert'};
+		my $group = $FILE_CERTS{$service}->{'group'};
+		my $perms = $FILE_CERTS{$service}->{'perms'};
+
 		my $key = $FILE_CERTS{$service}->{'key'};
+
 		my $restart_daemon = $STATE_DISABLED;
+		my @ssltypes = ('cert', 'key', 'ca', 'dh');
 
-		if (-e $cert) {
-			my $md5 = `$CMD_MD5SUM "$cert"`;
-			$md5 =~ s/\s+.*//;
-			chomp($md5);
-
-			if ($md5 eq $certmd5) {
-				LogMsg("debug", "system", "secure server certificate is up-to-date: $cert\n") if $config{debug};
-			} else {
-				LogMsg("info", "system", "updating secure server certificate: $cert\n");
-				system("/bin/cp -a $FILE_CERT $cert");
-				system("/bin/chown $owner.root $cert >/dev/null 2>&1");
-				system("/bin/chmod 0600 $cert >/dev/null 2>&1");
-				$restart_daemon = $STATE_ENABLED;
-			}
-		} else {
-			LogMsg("debug", "system", "secure server certificate not installed: $cert\n") if $config{debug};
+		if (! -d $basedir) { 
+			LogMsg("debug", "system", "certificate base directory does not exist: $basedir\n") if $config{debug};
+			next;
 		}
 
-		if (-e $key) {
-			my $md5 = `$CMD_MD5SUM "$key"`;
-			$md5 =~ s/\s+.*//;
-			chomp($md5);
+		foreach my $certtype (@ssltypes) {
+			if (defined($FILE_CERTS{$service}->{$certtype})) {
+				my $source = $BASE_CERTS{$certtype};
+				my $target = $FILE_CERTS{$service}->{$certtype};
+				my $md5 = `$CMD_MD5SUM "$target" 2>/dev/null`;
 
-			if ($md5 eq $keymd5) {
-				LogMsg("debug", "system", "secure server key is up-to-date: $key\n") if $config{debug};
-			} else {
-				LogMsg("info", "system", "updating secure server key: $key\n");
-				system("/bin/cp -a $FILE_KEY $key");
-				system("/bin/chown $owner.root $key >/dev/null 2>&1");
-				system("/bin/chmod 0600 $key >/dev/null 2>&1");
-				$restart_daemon = $STATE_ENABLED;
+				$md5 =~ s/\s+.*//;
+				chomp($md5);
+
+				if ($md5 eq $sslmd5s{$certtype}) {
+					LogMsg("debug", "system", "secure server certificate is up-to-date: $target\n") if $config{debug};
+				} else {
+					LogMsg("info", "system", "updating secure server certificate: $target\n");
+					system("/bin/cp -a $source $target");
+					system("/bin/chown $owner.$group $target >/dev/null 2>&1");
+					system("/bin/chmod $perms $target >/dev/null 2>&1");
+					$restart_daemon = $STATE_ENABLED;
+				}
 			}
-		} else {
-			LogMsg("debug", "system", "secure server key not installed: $key\n") if $config{debug};
 		}
 
 		# This is a bit kludgy.
