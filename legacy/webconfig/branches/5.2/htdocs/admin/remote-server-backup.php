@@ -1161,7 +1161,7 @@ function DisplayBrowseList($mode, $root = '/', $backup_date = null, $change_snap
 	}
 
 	echo "<tr><td class='mytableheader'>Location: <span id='fb_path'>...</span></td></tr>\n";
-	printf("<tr><td%s %s %s %s%s</td></tr>",
+	printf("<tr><td>%s %s %s %s%s</td></tr>",
 		WebButtonSave($mode == RBS_MODE_RESTORE ? 'rbs_custom_save_restore' : 'rbs_custom_save_backup'),
 		WebButtonCancel($mode == RBS_MODE_RESTORE ? 'rbs_unmount' : 'rbs_cancel'),
 		WebButton('fb_select_all', WEB_LANG_SELECT_ALL, WEBCONFIG_ICON_CHECKMARK,
