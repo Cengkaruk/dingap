@@ -18,7 +18,10 @@ Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Requires: app-ssl = %VERSION%
 Requires: app-users = %VERSION%
+# FIXME: revert to %VERSION%
 Requires: app-syswatch >= 5.2-25
+# FIXME: this dependency should not be required in 6.0
+Requires: app-samba = %VERSION%
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
