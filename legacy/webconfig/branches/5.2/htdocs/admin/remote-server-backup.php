@@ -31,10 +31,13 @@ require_once('../../api/Folder.class.php');
 require_once('../../api/Mailer.class.php');
 require_once('../../api/Hostname.class.php');
 require_once("../../api/Product.class.php");
-require_once("../../api/ClearSdnService.class.php");
-require_once("../../api/ClearSdnStore.class.php");
-require_once("../../api/ClearSdnShoppingCart.class.php");
-require_once("../../api/ClearSdnCartItem.class.php");
+// FIXME - clean up in 6.0
+if (file_exists("../../api/ClearSdnService.class.php")) {
+	require_once("../../api/ClearSdnService.class.php");
+	require_once("../../api/ClearSdnStore.class.php");
+	require_once("../../api/ClearSdnShoppingCart.class.php");
+	require_once("../../api/ClearSdnCartItem.class.php");
+}
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -538,7 +541,6 @@ function DisplayStatus()
 function DisplayTabView()
 {
 	global $rbs;
-	$sdn = new ClearSdnService();
 
 	$key = null;
 	try {
@@ -560,8 +562,12 @@ function DisplayTabView()
 	$tabinfo['restore']['contents'] = GetRestoreTab();
 	$tabinfo['history']['title'] = WEB_LANG_HISTORY_TITLE;
 	$tabinfo['history']['contents'] = GetHistoryTab();
-	$tabinfo['subscription']['title'] = CLEARSDN_SERVICE_LANG_SUBSCRIPTION;
-	$tabinfo['subscription']['contents'] = GetSubscriptionTab();
+	// FIXME - clean up in 6.0
+	if (file_exists("../../api/ClearSdnService.class.php")) {
+		$sdn = new ClearSdnService();
+		$tabinfo['subscription']['title'] = CLEARSDN_SERVICE_LANG_SUBSCRIPTION;
+		$tabinfo['subscription']['contents'] = GetSubscriptionTab();
+	}
 
 	echo "<div style='width: 100%'>";
 	WebTab(WEB_LANG_PAGE_TITLE, $tabinfo, $rbs_active_tab);
