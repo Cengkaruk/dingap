@@ -586,7 +586,7 @@ class ClearSdnService extends ClearSdnSoapRequest
 		$rbs = new RemoteBackup();
 		$state = 0;
 		
-		if ($rbs->IsBackupScheduleEnabled() == 1 && $rbs->GetKeyHash != null)
+		if ($rbs->IsBackupScheduleEnabled() == 1 && $rbs->GetKeyHash() != null)
 			$state = 1;
 		$this->servicelist[ClearSdnService::SDN_BACKUP] = array('state' => $state, 'size' => $total);
 	}
