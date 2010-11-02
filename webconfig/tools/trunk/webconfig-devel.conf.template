@@ -199,8 +199,8 @@ BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
 	RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
 	RewriteRule .* - [F]
 	# CodeIgniter - remove index.php from URL
-	RewriteRule ^/admin/(.*)$ /admin/index.php/$1 [L]
+	RewriteRule ^/app/(.*)$ /app/index.php/$1 [L]
 	# Developer mode (info leak with stuff exposed via webconfig)
-	Alias /modules/ WEBCONFIG_ROOT/modules/
+	Alias /approot/ WEBCONFIG_ROOT/apps/
 	Alias /themes/ WEBCONFIG_ROOT/themes/
 </VirtualHost>
