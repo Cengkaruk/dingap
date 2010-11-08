@@ -161,6 +161,7 @@ class WebconfigScript
 	protected $state_owner = 'root';
 	protected $state_group = 'root';
 	protected $state_mode = 0660;
+	protected $state_readonly = true;
 	protected $debug = false;
 	protected $log_syslog = false;
 	protected $log_stderr = false;
@@ -242,7 +243,7 @@ class WebconfigScript
 			if (pclose($ph) == 0) $tz_abrv = $buffer;
 		}
 		if (!class_exists('DateTimeZone')) {
-			if (!date_default_timezone_set($tz_abrv)) {
+			if (!@date_default_timezone_set($tz_abrv)) {
 				if (!date_default_timezone_set('UTC'))
 					throw new ScriptException(ScriptException::CODE_INVALID_TIMEZONE);
 			}
@@ -379,13 +380,18 @@ class WebconfigScript
 			throw new StateException(StateException::CODE_CHGRP, $this->state_filename);
 
 		$this->state_fh = $fh;
+		$this->state_readonly = $readonly;
 		$this->UnserializeState();
 	}
 
 	// Lock state file, write serialized data
 	public final function SerializeState()
 	{
-		if (!is_resource($this->state_fh)) $this->OpenState();
+		if (!is_resource($this->state_fh)) {
+			throw new StateException(StateException::CODE_INVALID_RESOURCE,
+				$this->state_filename);
+		}
+		if ($this->state_readonly) return;
 		$this->FileWriteLocked($this->state_fh, serialize($this->state));
 	}
 

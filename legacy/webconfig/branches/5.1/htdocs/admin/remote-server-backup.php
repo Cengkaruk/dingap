@@ -31,10 +31,13 @@ require_once('../../api/Folder.class.php');
 require_once('../../api/Mailer.class.php');
 require_once('../../api/Hostname.class.php');
 require_once("../../api/Product.class.php");
-require_once("../../api/ClearSdnService.class.php");
-require_once("../../api/ClearSdnStore.class.php");
-require_once("../../api/ClearSdnShoppingCart.class.php");
-require_once("../../api/ClearSdnCartItem.class.php");
+// FIXME - clean up in 6.0
+if (file_exists("../../api/ClearSdnService.class.php")) {
+	require_once("../../api/ClearSdnService.class.php");
+	require_once("../../api/ClearSdnStore.class.php");
+	require_once("../../api/ClearSdnShoppingCart.class.php");
+	require_once("../../api/ClearSdnCartItem.class.php");
+}
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -538,7 +541,6 @@ function DisplayStatus()
 function DisplayTabView()
 {
 	global $rbs;
-	$sdn = new ClearSdnService();
 
 	$key = null;
 	try {
@@ -560,8 +562,12 @@ function DisplayTabView()
 	$tabinfo['restore']['contents'] = GetRestoreTab();
 	$tabinfo['history']['title'] = WEB_LANG_HISTORY_TITLE;
 	$tabinfo['history']['contents'] = GetHistoryTab();
-	$tabinfo['subscription']['title'] = CLEARSDN_SERVICE_LANG_SUBSCRIPTION;
-	$tabinfo['subscription']['contents'] = GetSubscriptionTab();
+	// FIXME - clean up in 6.0
+	if (file_exists("../../api/ClearSdnService.class.php")) {
+		$sdn = new ClearSdnService();
+		$tabinfo['subscription']['title'] = CLEARSDN_SERVICE_LANG_SUBSCRIPTION;
+		$tabinfo['subscription']['contents'] = GetSubscriptionTab();
+	}
 
 	echo "<div style='width: 100%'>";
 	WebTab(WEB_LANG_PAGE_TITLE, $tabinfo, $rbs_active_tab);
@@ -1161,7 +1167,7 @@ function DisplayBrowseList($mode, $root = '/', $backup_date = null, $change_snap
 	}
 
 	echo "<tr><td class='mytableheader'>Location: <span id='fb_path'>...</span></td></tr>\n";
-	printf("<tr><td%s %s %s %s%s</td></tr>",
+	printf("<tr><td>%s %s %s %s%s</td></tr>",
 		WebButtonSave($mode == RBS_MODE_RESTORE ? 'rbs_custom_save_restore' : 'rbs_custom_save_backup'),
 		WebButtonCancel($mode == RBS_MODE_RESTORE ? 'rbs_unmount' : 'rbs_cancel'),
 		WebButton('fb_select_all', WEB_LANG_SELECT_ALL, WEBCONFIG_ICON_CHECKMARK,

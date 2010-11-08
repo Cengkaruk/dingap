@@ -128,6 +128,7 @@ class ServiceException extends WebconfigScriptException
 	const CODE_MAIL_REINDEX = 41;
 	const CODE_MAIL_REBUILD = 42;
 	const CODE_VOLUME_FULL = 43;
+	const CODE_OPENDIR = 44;
 
 	private $exitcode = -1;
 
@@ -219,12 +220,11 @@ class Retention
 			for ($i = 0; $i < $purge; $i++) {
 				$path = sprintf('%s/%s/%s', $snapshots['path'],
 					$dir, array_shift($snapshots[$dir]));
-				$ph = popen("rm -vrf $path", 'r');
+				$ph = popen("rm -rf $path", 'r');
 				if (!is_resource($ph)) return false;;
-				$result = stream_get_contents($ph);
-				//echo $result;
-				unset($result);
+				while (!feof($ph)) $buffer = fgets($ph, 8192);
 				if (pclose($ph) == 0) $purged++;
+				unset($buffer);
 			}
 		}
 		return $purged;
@@ -448,6 +448,17 @@ class Retention
 	}
 }
 
+// Backup result codes
+define('RBS_RESULT_SUCCESS', 0);
+define('RBS_RESULT_GENERAL_FAILURE', 1);
+define('RBS_RESULT_PROTOCOL_ERROR', 2);
+define('RBS_RESULT_FIFO_ERROR', 3);
+define('RBS_RESULT_SERVICE_ERROR', 4);
+define('RBS_RESULT_SOCKET_ERROR', 5);
+define('RBS_RESULT_PROCESS_ERROR', 6);
+define('RBS_RESULT_VOLUME_FULL', 7);
+define('RBS_RESULT_UNKNOWN_ERROR', -1);
+
 // Backup configuration node types
 define('RBS_TYPE_BASE', 100);
 define('RBS_TYPE_FILEDIR', 101);
@@ -491,7 +502,7 @@ class RemoteBackupService extends WebconfigScript
 	const SYSLOG_FACILITY = LOG_LOCAL0;
 
 	// Maximum loop devices
-	const MAX_LOOP_DEV = 8;
+	const MAX_LOOP_DEV = 256;
 
 	// Maximum historical session stats to store
 	const MAX_SESSION_HISTORY = 60;
@@ -669,10 +680,13 @@ class RemoteBackupService extends WebconfigScript
 	const TIMEOUT_MOUNT = 1800;
 
 	// iSCSI device discovery time-out in seconds
-	const TIMEOUT_ISCSI_DEVICE = 120;
+	const TIMEOUT_ISCSI_DEVICE = 300;
+
+	// Socket re-connect timeout
+	const TIMEOUT_SOCKET_RETRY = 10;
 
 	// Control protocol version
-	const PROTOCOL_VERSION = '2.1';
+	const PROTOCOL_VERSION = '2.2';
 
 	// Control command: hello
 	const CTRL_CMD_HELLO = 100;
@@ -715,6 +729,9 @@ class RemoteBackupService extends WebconfigScript
 
 	// Control command: make snapshot directories, prepare backup plan
 	const CTRL_CMD_RETENTION_PREPARE = 220;
+
+	// Control command: delete any failed snapshots
+	const CTRL_CMD_CLEANUP = 230;
 
 	// Control command: ping
 	const CTRL_CMD_PING = 999;
@@ -962,7 +979,9 @@ class RemoteBackupService extends WebconfigScript
 	{
 		// If we're a child process or if we're signalling a running
 		// process to unmount and exit, don't do anything below...
-		if (!$this->session_state || $this->my_pid != posix_getpid()) return;
+		if ($this->my_pid != posix_getpid()) return;
+		if (!array_key_exists('mode', $this->state) ||
+			$this->state['mode'] == RBS_MODE_INVALID) return;
 
 		// Record time of termination
 		if (is_resource($this->state_fh)) {
@@ -1006,7 +1025,7 @@ class RemoteBackupService extends WebconfigScript
 	{
 		$this->state['error_code'] = 0;
 		$this->state['is_local_fs'] = true;
-		$this->state['mode'] = RBS_MODE_BACKUP;
+		$this->state['mode'] = RBS_MODE_INVALID;
 		$this->state['status_code'] = 0;
 		$this->state['status_data'] = null;
 		$this->state['tm_completed'] = 0;
@@ -1385,7 +1404,7 @@ class RemoteBackupService extends WebconfigScript
 			break;
 		case 12:
 		// XXX: Data stream protocol error (12) really means filesystem full.
-			throw new ServiceException(ServiceException::CODE_VOLUME_FULL);
+			throw new ServiceException(ServiceException::CODE_VOLUME_FULL, $exitcode);
 		default:
 			throw new ServiceException(ServiceException::CODE_RSYNC, $exitcode);
 		}
@@ -1964,7 +1983,7 @@ class RemoteBackupService extends WebconfigScript
 		$this->session_state |= self::STATE_ISCSI;
 
 		// Retrieve iSCSI block device name
-		for ($i = 0; $i < 10 && $this->iscsi_device == null; $i++) {
+		for ($i = 0; $i < self::TIMEOUT_ISCSI_DEVICE && $this->iscsi_device == null; $i++) {
 			sleep(1);
 			$ph = popen(self::FORMAT_ISCSI_SESSIONS . ' --print 3', 'r');
 			if (!is_resource($ph)) {
@@ -2012,6 +2031,21 @@ class RemoteBackupService extends WebconfigScript
 				$parts[1], self::ISCSI_PORTAL));
 		}
 		$this->session_state &= ~self::STATE_ISCSI;
+	}
+
+	// Touch snapshot stamp file
+	public final function TouchBackupStamp()
+	{
+		if ($this->state['is_local_fs']) {
+			$stamp = sprintf('%s/.%s', $this->vol_mount, $this->session_timestamp);
+			touch($stamp);
+		}
+	}
+
+	// Delete snapshot stamp file
+	public final function DeleteBackupStamp()
+	{
+		unlink(sprintf('%s/.%s', $this->vol_mount, $this->session_timestamp));
 	}
 
 	// Restore mail server(s)
@@ -2093,7 +2127,7 @@ class RemoteBackupService extends WebconfigScript
 
 				socket_close($this->socket_control);
 				$this->socket_control = null;
-				sleep(5);
+				sleep(self::TIMEOUT_SOCKET_RETRY);
 
 				$sd = socket_create(AF_UNIX, SOCK_STREAM, 0);
 				if (!is_resource($sd))
@@ -2135,6 +2169,12 @@ class RemoteBackupService extends WebconfigScript
 		$code = sprintf('%d', $parts[0]);
 		$data = $parts[1];
 
+		switch ($code) {
+			case self::CTRL_CMD_PING:
+			case self::CTRL_REPLY_OK:
+				return;
+		}
+
 		$this->LogMessage(sprintf('%s: %s:%s', __FUNCTION__, $code,
 			$code == self::CTRL_CMD_MOUNT ? 'XxXxXxXxXxXxXxXxXxXxXxXxXxXxXxXx' : $data),
 			LOG_DEBUG);
@@ -2153,7 +2193,7 @@ class RemoteBackupService extends WebconfigScript
 
 				socket_close($this->socket_control);
 				$this->socket_control = null;
-				sleep(5);
+				sleep(self::TIMEOUT_SOCKET_RETRY);
 
 				$sd = socket_create(AF_UNIX, SOCK_STREAM, 0);
 				if (!is_resource($sd))
@@ -2185,6 +2225,12 @@ class RemoteBackupService extends WebconfigScript
 
 		default:
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
+		}
+
+		switch ($code) {
+			case self::CTRL_CMD_PING:
+			case self::CTRL_REPLY_OK:
+				return;
 		}
 
 		$this->LogMessage(sprintf('%s: %s:%s', __FUNCTION__, $code,
@@ -2266,7 +2312,8 @@ class RemoteBackupService extends WebconfigScript
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
 
 		// Send request
-		$this->ControlSocketWrite(self::CTRL_CMD_SESSION, $this->state['mode']);
+		$this->ControlSocketWrite(self::CTRL_CMD_SESSION,
+			sprintf('%d:%d', $this->state['mode'], $this->state['is_local_fs']));
 
 		// Read reply
 		$this->ControlSocketRead($code, $data);
@@ -2438,14 +2485,15 @@ class RemoteBackupService extends WebconfigScript
 	}
 
 	// Send session logout to server
-	public final function ControlSendSessionLogout()
+	public final function ControlSendSessionLogout($success = true)
 	{
 		if (!is_resource($this->socket_control))
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
 
 		// Send request
 		$this->ControlSocketWrite(self::CTRL_CMD_LOGOUT, 'Logout');
-		$this->SetStatusCode(self::STATUS_COMPLETE);
+		if ($success)
+			$this->SetStatusCode(self::STATUS_COMPLETE);
 	}
 
 	// Ping control socket
@@ -2481,6 +2529,52 @@ class RemoteBackupService extends WebconfigScript
 
 		// Send request
 		$this->ControlSocketWrite(self::CTRL_CMD_BACKUP_START, 'Backup starting...');
+		$this->TouchBackupStamp();
+	}
+
+	// Purge previous failed snapshots (if any)
+	public final function ControlPurgeFailedSnapshots()
+	{
+		if (!is_resource($this->socket_control))
+			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
+
+		if (!$this->state['is_local_fs']) {
+			$this->ControlSocketWrite(self::CTRL_CMD_CLEANUP);
+			$this->ControlSocketRead($code, $data);
+			if ($code == self::CTRL_REPLY_OK) return;
+			throw new ProtocolException(
+				ProtocolException::CODE_ERROR, "$code:$data");
+		}
+		else {
+			$stamps = array();
+			$dh = opendir($this->vol_mount);
+			if (!is_resource($dh)) 
+				throw new ServiceException(ServiceException::CODE_OPENDIR);
+			while (($entry = readdir($dh)) !== false) {
+				if (!preg_match('/^\.[0-9]/', $entry)) continue;
+				$stamp = trim(str_replace('.', '', $entry));
+				if (strlen($stamp)) $stamps[] = $stamp;
+			}
+			closedir($dh);
+
+			clearstatcache();
+			$folders = array(Retention::DAILY, Retention::WEEKLY,
+				Retention::MONTHLY, Retention::YEARLY);
+			foreach ($stamps as $stamp) {
+				foreach ($folders as $folder) {
+					$path = sprintf('%s/%s/%s',
+						$this->vol_mount, $folder, $stamp);
+					if (!file_exists($path)) continue;
+					$this->LogMessage('Deleting failed snapshot: ' . $path, LOG_DEBUG);
+					$ph = popen('rm -rf ' . $path, 'r');
+					if (is_resource($ph)) {
+						$output = stream_get_contents($ph);
+						pclose($ph);
+					}
+				}
+				unlink(sprintf('%s/.%s', $this->vol_mount, $stamp));
+			}
+		}
 	}
 
 	// Send file-system stats
@@ -2511,6 +2605,7 @@ class RemoteBackupService extends WebconfigScript
 		$usage = sprintf('%u:%u:%d', $stats['used'], $stats['size'], $exitcode);
 		$this->ControlSocketWrite(self::CTRL_CMD_VOL_STATS, $usage);
 		$this->SetFilesystemStats($usage);
+		if ($exitcode == 0) $this->DeleteBackupStamp();
 	}
 
 	// Create snapshot directories, prepare backup plan
@@ -2523,7 +2618,7 @@ class RemoteBackupService extends WebconfigScript
 			$retention = new Retention($this->session_timestamp);
 			if (!$retention->MakeDirectories($this->vol_mount))
 				throw new ServiceException(ServiceException::CODE_MKDIR_SNAPSHOT);
-			return $retention->PreparePlan($snapshots, $policy, $this->vol_mount);
+			$plan = $retention->PreparePlan($snapshots, $policy, $this->vol_mount);
 		} else {
 			$this->ControlSocketWrite(self::CTRL_CMD_RETENTION_PREPARE,
 				base64_encode(serialize($policy)));

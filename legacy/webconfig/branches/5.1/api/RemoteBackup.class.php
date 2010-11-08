@@ -116,6 +116,9 @@ class RemoteBackup extends Engine
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
+		if (is_object($this->rbs_client))
+			$this->rbs_client->ResetState();
+
 		parent::__destruct();
 	}
 

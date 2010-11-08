@@ -44,14 +44,14 @@ if (array_key_exists('h', $options)) {
 	printf("-R        Reset backup history (DELETE ALL BACKUP DATA!)\n");
 	printf("-l F      Log to a file specified by F.\n");
 	printf("-v        Verbose mode (debug output).\n");
-	exit(0);
+	exit(RBS_RESULT_SUCCESS);
 }
 
 // Need pcntl_signal: PHP must have been built with --enable-pcntl
 if (!function_exists('pcntl_signal')) {
 	syslog(LOG_ERR, sprintf('%s: this script requires PHP with --enable-pcntl support!',
 		basename($_SERVER['argv'][0])));
-	exit(1);
+	exit(RBS_RESULT_GENERAL_FAILURE);
 }
 
 // Signal handler
@@ -99,7 +99,7 @@ $rbs->OpenState();
 // Signal running mount process to umount and exit
 if (array_key_exists('u', $options)) {
 	$rbs->SetMountMode();
-	exit(0);
+	exit(RBS_RESULT_SUCCESS);
 }
 
 // Queue snapshot for delete
@@ -113,7 +113,9 @@ $rbs->LockInstance();
 // Reset state
 $rbs->ResetState();
 
+// Set default mode
 $mode = 'Backup';
+$rbs->SetRestoreMode(false);
 $snapshot = null;
 
 // Set client mode; backup mode is the default
@@ -139,7 +141,7 @@ if (array_key_exists('r', $options)) {
 		if ($snapshot == null) {
 			// TODO: throw exception
 			$rbs->LogMessage('Unable to restore; no previous backups.', LOG_ERR);
-			exit(-1);
+			exit(RBS_RESULT_GENERAL_FAILURE);
 		}
 	}
 
@@ -154,7 +156,7 @@ if (array_key_exists('r', $options)) {
 		if ($e->getCode() == ServiceException::CODE_RESTORE_TO_INVALID)
 			$rbs->LogMessage('Restoration path is invalid: "' . $restore_to . '"', LOG_ERR);
 		$rbs->SetErrorCode($e->GetExceptionId());
-		exit(4);
+		exit(RBS_RESULT_SERVICE_ERROR);
 	}
 } else if (array_key_exists('m', $options)) {
 	// Set mount mode
@@ -174,7 +176,7 @@ if (array_key_exists('r', $options)) {
 	$rbs->SetDeleteMode();
 	if (!$rbs->SnapshotCountForDelete()) {
 		$rbs->LogMessage('No snapshots in queue for delete.', LOG_DEBUG);
-		exit(0);
+		exit(RBS_RESULT_SUCCESS);
 	}
 }
 
@@ -218,7 +220,7 @@ try {
 		// Reset (delete) all backup history!
 		$rbs->ControlRequestReset();
 		$rbs->ControlSendSessionLogout();
-		exit(0);
+		exit(RBS_RESULT_SUCCESS);
 	}
 
 	// Request provision update
@@ -326,8 +328,13 @@ try {
 				// XXX: Database dumps must be done before files/mail
 				$rbs->BackupDatabases();
 
+				// Purge previous failed backup snapshots
+				$rbs->ControlPurgeFailedSnapshots();
+
+				// Notify SDN that a backup is starting now...
 				$rbs->ControlBackupStart();
 
+				// Load data retention policy and execute plan
 				$policy = unserialize(trim(base64_decode($config['auto-backup-schedule']), '"'));
 				$backup_plan = $rbs->ControlRetentionPrepare($policy);
 				foreach ($backup_plan as $snapshot) {
@@ -358,16 +365,23 @@ try {
 			$rbs->SetErrorCode($e->GetExceptionId());
 			$rbs->LogMessage(sprintf('[%s] %s', $e->GetExceptionId(),
 				$e->getMessage()), LOG_ERR);
-			if ($e->getCode() != ServiceException::CODE_RSYNC) exit(4);
+			if ($e->getCode() != ServiceException::CODE_RSYNC &&
+				$e->getCode() != ServiceException::CODE_VOLUME_FULL)
+				exit(RBS_RESULT_SERVICE_ERROR);
 			$exitcode = $e->GetExitCode();
-			$rbs->SetErrorCode($e->GetExceptionId() . '_EXIT' . $exitcode);
+			if ($e->getCode() != ServiceException::CODE_VOLUME_FULL)
+				$rbs->SetErrorCode($e->GetExceptionId() . '_EXIT' . $exitcode);
 		}
 	}
 
 	// Send/update file-system stats
 	if ($rbs->IsBackupMode() || $rbs->IsHistoryMode() || $rbs->IsDeleteMode()) {
 		$rbs->ControlSendStats($exitcode);
-		if ($exitcode != 0) exit(4);
+		if ($exitcode == 12) {
+			$rbs->ControlSendSessionLogout(false);
+			exit(RBS_RESULT_VOLUME_FULL);
+		}
+		else if ($exitcode != 0) exit(RBS_RESULT_SERVICE_ERROR);
 		$snapshots = $rbs->ControlRequestSnapshots(true);
 		$rbs->SaveSnapshotHistory(sprintf(
 			RemoteBackupService::FORMAT_SNAPSHOT_HISTORY,
@@ -376,12 +390,12 @@ try {
 
 	// Success
 	$rbs->ControlSendSessionLogout();
-	exit(0);
+	exit(RBS_RESULT_SUCCESS);
 
 } catch (ControlSocketException $e) {
 	$rbs->SetErrorCode($e->GetExceptionId());
 	$rbs->LogMessage(sprintf('[%s] %s', $e->GetExceptionId(), $e->getMessage()), LOG_ERR);
-	exit(1);
+	exit(RBS_RESULT_SOCKET_ERROR);
 } catch (ProtocolException $e) {
 	if ($e->getCode() == ProtocolException::CODE_ERROR) {
 		// Try to extract remote exception ID
@@ -392,7 +406,7 @@ try {
 				$rbs->SetErrorCode($data);
 				$rbs->LogMessage(sprintf('[%s] %s',
 					$e->GetExceptionId(), $e->getMessage()), LOG_ERR);
-				exit(2);
+				exit(RBS_RESULT_PROTOCOL_ERROR);
 			}
 		}
 	}
@@ -400,26 +414,26 @@ try {
 	$rbs->LogMessage(sprintf('[%s] %s', $e->GetExceptionId(), $e->getMessage()), LOG_ERR);
 	$rbs->SetErrorCode($e->GetExceptionId());
 	$rbs->ControlSocketWrite(RemoteBackupService::CTRL_REPLY_ERROR, $e->GetExceptionId());
-	exit(2);
+	exit(RBS_RESULT_PROTOCOL_ERROR);
 } catch (FifoExecption $e) {
 	$rbs->LogMessage(sprintf('[%s] %s', $e->GetExceptionId(), $e->getMessage()), LOG_ERR);
 	$rbs->SetErrorCode($e->GetExceptionId());
 	$rbs->ControlSocketWrite(RemoteBackupService::CTRL_REPLY_ERROR, $e->GetExceptionId());
-	exit(3);
+	exit(RBS_RESULT_FIFO_ERROR);
 } catch (ProcessException $e) {
 	$rbs->SetErrorCode($e->GetExceptionId());
 	$rbs->LogMessage(sprintf('[%s] %s', $e->GetExceptionId(), $e->getMessage()), LOG_ERR);
 	$rbs->ControlSocketWrite(RemoteBackupService::CTRL_REPLY_ERROR, $e->GetExceptionId());
-	exit(4);
+	exit(RBS_RESULT_PROCESS_ERROR);
 } catch (ServiceException $e) {
 	$rbs->SetErrorCode($e->GetExceptionId());
 	$rbs->LogMessage(sprintf('[%s] %s', $e->GetExceptionId(), $e->getMessage()), LOG_ERR);
 	$rbs->ControlSocketWrite(RemoteBackupService::CTRL_REPLY_ERROR, $e->GetExceptionId());
-	exit(5);
+	exit(RBS_RESULT_SERVICE_ERROR);
 } catch (Exception $e) {
 	$rbs->LogMessage(sprintf('[%s] %s', $e->getCode(), $e->getMessage()), LOG_ERR);
 	$rbs->ControlSocketWrite(RemoteBackupService::CTRL_REPLY_ERROR, $e->GetExceptionId());
-	exit(6);
+	exit(RBS_RESULT_UNKNOWN_ERROR);
 }
 
 // vi: ts=4
