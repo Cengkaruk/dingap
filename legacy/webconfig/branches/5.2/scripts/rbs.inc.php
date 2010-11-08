@@ -128,6 +128,7 @@ class ServiceException extends WebconfigScriptException
 	const CODE_MAIL_REINDEX = 41;
 	const CODE_MAIL_REBUILD = 42;
 	const CODE_VOLUME_FULL = 43;
+	const CODE_OPENDIR = 44;
 
 	private $exitcode = -1;
 
@@ -679,13 +680,13 @@ class RemoteBackupService extends WebconfigScript
 	const TIMEOUT_MOUNT = 1800;
 
 	// iSCSI device discovery time-out in seconds
-	const TIMEOUT_ISCSI_DEVICE = 120;
+	const TIMEOUT_ISCSI_DEVICE = 300;
 
 	// Socket re-connect timeout
 	const TIMEOUT_SOCKET_RETRY = 10;
 
 	// Control protocol version
-	const PROTOCOL_VERSION = '2.1';
+	const PROTOCOL_VERSION = '2.2';
 
 	// Control command: hello
 	const CTRL_CMD_HELLO = 100;
@@ -728,6 +729,9 @@ class RemoteBackupService extends WebconfigScript
 
 	// Control command: make snapshot directories, prepare backup plan
 	const CTRL_CMD_RETENTION_PREPARE = 220;
+
+	// Control command: delete any failed snapshots
+	const CTRL_CMD_CLEANUP = 230;
 
 	// Control command: ping
 	const CTRL_CMD_PING = 999;
@@ -2029,6 +2033,21 @@ class RemoteBackupService extends WebconfigScript
 		$this->session_state &= ~self::STATE_ISCSI;
 	}
 
+	// Touch snapshot stamp file
+	public final function TouchBackupStamp()
+	{
+		if ($this->state['is_local_fs']) {
+			$stamp = sprintf('%s/.%s', $this->vol_mount, $this->session_timestamp);
+			touch($stamp);
+		}
+	}
+
+	// Delete snapshot stamp file
+	public final function DeleteBackupStamp()
+	{
+		unlink(sprintf('%s/.%s', $this->vol_mount, $this->session_timestamp));
+	}
+
 	// Restore mail server(s)
 	public final function RestoreMailServers($restore_to)
 	{
@@ -2293,7 +2312,8 @@ class RemoteBackupService extends WebconfigScript
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
 
 		// Send request
-		$this->ControlSocketWrite(self::CTRL_CMD_SESSION, $this->state['mode']);
+		$this->ControlSocketWrite(self::CTRL_CMD_SESSION,
+			sprintf('%d:%d', $this->state['mode'], $this->state['is_local_fs']));
 
 		// Read reply
 		$this->ControlSocketRead($code, $data);
@@ -2509,6 +2529,52 @@ class RemoteBackupService extends WebconfigScript
 
 		// Send request
 		$this->ControlSocketWrite(self::CTRL_CMD_BACKUP_START, 'Backup starting...');
+		$this->TouchBackupStamp();
+	}
+
+	// Purge previous failed snapshots (if any)
+	public final function ControlPurgeFailedSnapshots()
+	{
+		if (!is_resource($this->socket_control))
+			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
+
+		if (!$this->state['is_local_fs']) {
+			$this->ControlSocketWrite(self::CTRL_CMD_CLEANUP);
+			$this->ControlSocketRead($code, $data);
+			if ($code == self::CTRL_REPLY_OK) return;
+			throw new ProtocolException(
+				ProtocolException::CODE_ERROR, "$code:$data");
+		}
+		else {
+			$stamps = array();
+			$dh = opendir($this->vol_mount);
+			if (!is_resource($dh)) 
+				throw new ServiceException(ServiceException::CODE_OPENDIR);
+			while (($entry = readdir($dh)) !== false) {
+				if (!preg_match('/^\.[0-9]/', $entry)) continue;
+				$stamp = trim(str_replace('.', '', $entry));
+				if (strlen($stamp)) $stamps[] = $stamp;
+			}
+			closedir($dh);
+
+			clearstatcache();
+			$folders = array(Retention::DAILY, Retention::WEEKLY,
+				Retention::MONTHLY, Retention::YEARLY);
+			foreach ($stamps as $stamp) {
+				foreach ($folders as $folder) {
+					$path = sprintf('%s/%s/%s',
+						$this->vol_mount, $folder, $stamp);
+					if (!file_exists($path)) continue;
+					$this->LogMessage('Deleting failed snapshot: ' . $path, LOG_DEBUG);
+					$ph = popen('rm -rf ' . $path, 'r');
+					if (is_resource($ph)) {
+						$output = stream_get_contents($ph);
+						pclose($ph);
+					}
+				}
+				unlink(sprintf('%s/.%s', $this->vol_mount, $stamp));
+			}
+		}
 	}
 
 	// Send file-system stats
@@ -2539,6 +2605,7 @@ class RemoteBackupService extends WebconfigScript
 		$usage = sprintf('%u:%u:%d', $stats['used'], $stats['size'], $exitcode);
 		$this->ControlSocketWrite(self::CTRL_CMD_VOL_STATS, $usage);
 		$this->SetFilesystemStats($usage);
+		if ($exitcode == 0) $this->DeleteBackupStamp();
 	}
 
 	// Create snapshot directories, prepare backup plan
