@@ -69,11 +69,11 @@ logger -p local6.notice -t installer "app-remote-backup - installing"
 /usr/sbin/addsudo /var/webconfig/scripts/rbs-schedule.php app-remote-backup
  
 if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
-    logger -p local6.notice -t installer "app-remote-backup - enabling iSCSI on boot"
+	logger -p local6.notice -t installer "app-remote-backup - enabling iSCSI on boot"
 	/sbin/chkconfig --add iscsid
 	/sbin/chkconfig --add iscsi
 
-    logger -p local6.notice -t installer "app-remote-backup - initializing iSCSI"
+	logger -p local6.notice -t installer "app-remote-backup - initializing iSCSI"
 
 	# Enable and start iSCSI initiator daemon
 	if [ ! -f "/etc/iscsi/initiatorname.iscsi" ]; then
@@ -97,6 +97,11 @@ sed -i \
 
 /sbin/service suvad condrestart >/dev/null 2>&1
 /usr/share/system/modules/rbs/rbs-upgrade.php
+
+# TODO: Remove this for version 6.x
+# Switch rbs.conf mode to 1 (traditional rsync)
+sed -i \
+	-e "/^mode = 0/mode = 1/" /etc/rbs/rbs.conf
 
 exit 0
 
