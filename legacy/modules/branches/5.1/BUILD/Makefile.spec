@@ -2,7 +2,7 @@
 vendor := clearfoundation
 product := enterprise
 version := 5.1
-release := 30
+release := 31
 cwd := $(shell pwd)
 module := $(notdir $(shell pwd))
 

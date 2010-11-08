@@ -103,6 +103,11 @@ sed -i \
 sed -i \
 	-e "s/^mode = 0/mode = 1/" /etc/rbs/rbs.conf
 
+# Add attempts value to old configs
+if ! grep -q attempts /etc/rbs/rbs.conf; then
+	echo "attempts = 3" >> /etc/rbs/rbs.conf
+fi
+
 exit 0
 
 
