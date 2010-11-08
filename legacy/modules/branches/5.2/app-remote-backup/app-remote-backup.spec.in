@@ -101,7 +101,7 @@ sed -i \
 # TODO: Remove this for version 6.x
 # Switch rbs.conf mode to 1 (traditional rsync)
 sed -i \
-	-e "/^mode = 0/mode = 1/" /etc/rbs/rbs.conf
+	-e "s/^mode = 0/mode = 1/" /etc/rbs/rbs.conf
 
 exit 0
 
