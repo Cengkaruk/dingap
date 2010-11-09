@@ -2539,7 +2539,7 @@ class RemoteBackupService extends WebconfigScript
 			throw new ControlSocketException(ControlSocketException::CODE_INVALID_RESOURCE);
 
 		if (!$this->state['is_local_fs']) {
-			$this->ControlSocketWrite(self::CTRL_CMD_CLEANUP);
+			$this->ControlSocketWrite(self::CTRL_CMD_CLEANUP, 'Clean-up');
 			$this->ControlSocketRead($code, $data);
 			if ($code == self::CTRL_REPLY_OK) return;
 			throw new ProtocolException(
@@ -2552,7 +2552,7 @@ class RemoteBackupService extends WebconfigScript
 				throw new ServiceException(ServiceException::CODE_OPENDIR);
 			while (($entry = readdir($dh)) !== false) {
 				if (!preg_match('/^\.[0-9]/', $entry)) continue;
-				$stamp = trim(str_replace('.', '', $entry));
+				$stamp = preg_replace('/[^0-9]*/', '', $entry);
 				if (strlen($stamp)) $stamps[] = $stamp;
 			}
 			closedir($dh);
@@ -2565,15 +2565,13 @@ class RemoteBackupService extends WebconfigScript
 					$path = sprintf('%s/%s/%s',
 						$this->vol_mount, $folder, $stamp);
 					if (!file_exists($path)) continue;
-					$this->LogMessage('Deleting failed snapshot: ' . $path, LOG_DEBUG);
-					$ph = popen('rm -rf ' . $path, 'r');
-					if (is_resource($ph)) {
-						$output = stream_get_contents($ph);
-						pclose($ph);
-					}
+					$this->SetStatusCode(self::STATUS_DELETE_SNAPSHOT);
+					$this->ExecProcess('purge snapshot',
+						sprintf('/bin/rm -rf %s', $path), null, true);
 				}
 				unlink(sprintf('%s/.%s', $this->vol_mount, $stamp));
 			}
+			$this->ControlSocketWrite(self::CTRL_REPLY_OK, 'Ok');
 		}
 	}
 
