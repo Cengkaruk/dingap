@@ -1318,6 +1318,11 @@ sub CheckUpgrade() {
 			system("/usr/sbin/postmap /etc/postfix/transport") 
 		}
 	}
+
+	if ((-e "/usr/sbin/eziod") && (! -e "/etc/rc1.d/K60eziod")) {
+		LogMsg("info", "system", "enabling eziod\n");
+		system("/sbin/chkconfig --add eziod");
+	}
 }
 
 
