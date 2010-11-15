@@ -1169,25 +1169,17 @@ class RemoteBackupService extends WebconfigScript
 	{
 		$loop_id = -1;
 
-		try {
-			for ($id = 0; $id < self::MAX_LOOP_DEV; $id++) {
-				if ($this->ExecProcess('loop status', sprintf(self::FORMAT_LOOP_STATUS, $id)) == 0)
-					continue;
-				$loop_id = $id;
-				break;
-			}
-		} catch (Exception $e) {
-			throw new ServiceException(ServiceException::CODE_LOOP_STATUS);
+		for ($id = 0; $id < self::MAX_LOOP_DEV; $id++) {
+			if ($this->ExecProcess('loop status', sprintf(self::FORMAT_LOOP_STATUS, $id)) == 0)
+				continue;
+			if ($this->ExecProcess('loop attach', sprintf(self::FORMAT_LOOP_ATTACH, $id, $device)) != 0)
+				continue;
+			$loop_id = $id;
+			break;
 		}
 
 		if ($loop_id == -1)
 			throw new ServiceException(ServiceException::CODE_NO_FREE_LOOP_DEVICE);
-
-		try {
-			$this->ExecProcess('loop attach', sprintf(self::FORMAT_LOOP_ATTACH, $loop_id, $device));
-		} catch (Exception $e) {
-			throw new ServiceException(ServiceException::CODE_LOOP_ATTACH);
-		}
 
 		$this->loop_id = $loop_id;
 		return $loop_id;
