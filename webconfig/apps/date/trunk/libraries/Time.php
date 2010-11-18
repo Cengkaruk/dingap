@@ -20,13 +20,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //  
 ///////////////////////////////////////////////////////////////////////////////
-    
+
 /** 
  * System time manager.
  *  
  * @package ClearOS
  * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2003-2010 ClearFoundation
  */
@@ -39,11 +39,16 @@ $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/
 require_once($bootstrap . '/bootstrap.php');
 
 ///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('date');
+clearos_load_language('base');
+
+///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('date/date');
-clearos_load_language('base/base');
 clearos_load_library('base/Folder');
 clearos_load_library('base/File');
 clearos_load_library('base/ConfigurationFile');
@@ -57,7 +62,7 @@ clearos_load_library('base/ConfigurationFile');
  *
  * @package ClearOS
  * @subpackage Exception
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2003-2010 ClearFoundation
  */
@@ -85,7 +90,7 @@ class TimezoneNotSetException extends EngineException
  *  
  * @package ClearOS
  * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2003-2010 ClearFoundation
  */
@@ -93,7 +98,7 @@ class TimezoneNotSetException extends EngineException
 class Time extends Engine
 {
 	///////////////////////////////////////////////////////////////////////////////
-	// M E M B E R S
+	// C O N S T A N T S
 	///////////////////////////////////////////////////////////////////////////////
 
 	const CMD_HWCLOCK = "/sbin/hwclock";
@@ -101,6 +106,10 @@ class Time extends Engine
 	const FILE_TIMEZONE = "/etc/localtime";
 	const FILE_TIMEZONE_INFO = "/etc/localtime.info";
 	const PATH_ZONEINFO = "/usr/share/zoneinfo/posix";
+
+	///////////////////////////////////////////////////////////////////////////////
+	// M E T H O D S
+	///////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Time constructor.
@@ -111,8 +120,6 @@ class Time extends Engine
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		parent::__construct();
-
-//		require_once(GlobalGetLanguageTemplate(__FILE__));
 	}
 
 	/**
@@ -223,7 +230,7 @@ class Time extends Engine
 	}
 
 	/**
-	 * Sets the Hardware Clock to the current system time.
+	 * Sets the hardware clock to the current system time.
 	 * 
 	 * @return void
 	 * @throws EngineException
@@ -245,12 +252,6 @@ class Time extends Engine
 	/**
 	 * Sets the current timzeone.
 	 *
-	 * The /etc/localtime file is just a copy of the appropriate file in
-	 * the time zones directory.  This ends up giving us a one to many
-	 * relationship (the localtime file could correspond to many time zone
-	 * files).  We keep time zone information in /etc/localtime.info just to
-	 * make it a one-to-one relationship.
-	 * 
 	 * @param string $timezone time zone
 	 * @return void
 	 * @throws EngineException, ValidationException
@@ -267,7 +268,7 @@ class Time extends Engine
 		//-------------------
 
 		try {
-      		$file = new File(self::PATH_ZONEINFO . "/" . $timezone);
+	  		$file = new File(self::PATH_ZONEINFO . "/" . $timezone);
 			$file->CopyTo(self::FILE_TIMEZONE);
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
@@ -334,7 +335,6 @@ class Time extends Engine
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
 		}
-
 	}
 }
 

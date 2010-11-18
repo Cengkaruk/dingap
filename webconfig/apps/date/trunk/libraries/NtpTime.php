@@ -20,13 +20,13 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //  
 ///////////////////////////////////////////////////////////////////////////////
-    
+
 /** 
  * NTP time class.
  *  
  * @package ClearOS
  * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2003-2010 ClearFoundation
  */
@@ -48,10 +48,6 @@ clearos_load_library('base/ShellExec');
 clearos_load_library('cron/Cron');
 clearos_load_library('date/Time');
 
-// clearos_load_language('date'); // should be automatic
-// clearos_load_language('core'); // should be automatic
-// clearos_load_language('squid'); // should be allowed
-
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,7 +57,7 @@ clearos_load_library('date/Time');
  *  
  * @package ClearOS
  * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2003-2010 ClearFoundation
  */
@@ -88,10 +84,6 @@ class NtpTime extends Time
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		parent::__construct();
-
-// CodeIgniter
-//		require_once(GlobalGetLanguageTemplate(__FILE__));
-//		require_once("/home/peter/clearos/6.0/modules/date/language/english/date_lang.php");
 	}
 
 	/**
@@ -142,21 +134,22 @@ class NtpTime extends Time
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (empty($timeserver)){
+		if (empty($timeserver))
 			$timeserver = NtpTime::DEFAULT_SERVER;
-		}
-		if ($timeserver == $this->GetAutoSyncServer()){
+		
+		if ($timeserver == $this->GetAutoSyncServer())
 			return false;
-		}
-		if (! $this->IsValidTimeServer($timeserver)){
+
+		if (! $this->IsValidTimeServer($timeserver))
 			throw new EngineException(NTPTIME_LANG_ERRMSG_TIMESERVER_INVALID, ClearOsError::CODE_WARNING);
-		}
+
 		try {
 			$config = new File(self::FILE_CONFIG);
 			$config->ReplaceLines("/^ntp_syncserver\s*=\s*/","ntp_syncserver = {$timeserver}\n");
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
 		}
+
 		return true;
 	}
 
@@ -202,6 +195,7 @@ class NtpTime extends Time
 		}
 
 		$lines = explode("\n", $contents);
+
 		foreach ($lines as $line) {
 			$matches = array();
 
@@ -231,7 +225,6 @@ class NtpTime extends Time
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
 		}
 	}
-
 
 	/**
 	 * Creates a cron file for auto-synchronizng the system clock.
