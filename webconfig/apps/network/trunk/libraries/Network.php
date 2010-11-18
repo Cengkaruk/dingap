@@ -41,10 +41,17 @@ $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/
 require_once($bootstrap . '/bootstrap.php');
 
 ///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+clearos_load_language('network');
+
+///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_library('base/Engine');
+clearos_load_library('network/Hosts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -57,7 +64,7 @@ clearos_load_library('base/Engine');
  *
  * @package ClearOS
  * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2003-2010 ClearFoundation
  */
@@ -141,7 +148,7 @@ class Network extends Engine
 		if (isset($this->prefixlist[$prefix]))
 			return $this->prefixlist[$prefix];
 		else 
-			throw new ValidationException(NETWORK_LANG_NETMASK . " - " . LOCALE_LANG_INVALID);
+			throw new ValidationException(lang('network_netmask') . " - " . lang('base_invalid'));
 	}
 
 	/**
@@ -160,7 +167,7 @@ class Network extends Engine
 		if (isset($netmasklist[$netmask]))
 			return $netmasklist[$netmask];
 		else 
-			throw new ValidationException(NETWORK_LANG_NETMASK . " - " . LOCALE_LANG_INVALID);
+			throw new ValidationException(lang('network_netmask') . " - " . lang('base_invalid'));
 	}
 
 	/**
@@ -179,12 +186,12 @@ class Network extends Engine
 		$nm = ip2long($netmask);
 
 		if ($ip_long == -1) {
-			$errmsg = NETWORK_LANG_IP . ": ($ip) - " . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_IP . ": ($ip) - " . strtolower(lang('base_invalid'));
 			throw new EngineException($errmsg, COMMON_ERROR);
 		}
 
 		if ($nm == -1) {
-			$errmsg = NETWORK_LANG_NETMASK . ": ($netmask) - " . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = lang('network_netmask') . ": ($netmask) - " . strtolower(lang('base_invalid'));
 			throw new EngineException($errmsg, COMMON_ERROR);
 		}
 
@@ -208,12 +215,12 @@ class Network extends Engine
 		$nm = ip2long($netmask);
 
 		if ($ip_long == -1) {
-			$errmsg = NETWORK_LANG_IP . ": ($ip) - " . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_IP . ": ($ip) - " . strtolower(lang('base_invalid'));
 			throw new EngineException($errmsg, COMMON_ERROR);
 		}
 
 		if ($nm == -1) {
-			$errmsg = NETWORK_LANG_NETMASK . ": ($netmask) - " . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = lang('network_netmask') . ": ($netmask) - " . strtolower(lang('base_invalid'));
 			throw new EngineException($errmsg, COMMON_ERROR);
 		}
 
@@ -234,7 +241,7 @@ class Network extends Engine
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		if (! $this->IsValidIp($ip)) {
-			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(lang('base_invalid'));
 			throw new ValidationException($errmsg);
 		}
 
@@ -265,15 +272,10 @@ class Network extends Engine
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$state = preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $alias);
-
-		if (! $state) {
-			$errmsg = NETWORK_LANG_HOSTNAME . ' (' . $alias . ') - ' . strtolower(LOCALE_LANG_INVALID);
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-			return false;
-		}
-
-		return true;
+		if (preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $alias))
+			return '';
+		else 
+			return lang('network_hostname') .  ' - ' . lang('base_invalid');
 	}
 
 	/**
@@ -290,7 +292,7 @@ class Network extends Engine
 		$state = preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $hostname);
 
 		if (! $state) {
-			$errmsg = NETWORK_LANG_HOSTNAME . " - " . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = lang('network_hostname') . " - " . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		}
@@ -326,7 +328,7 @@ class Network extends Engine
 				return true;
 			}
 		} else {
-			$errmsg = NETWORK_LANG_DOMAIN . ' - ' . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_DOMAIN . ' - ' . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		}
@@ -345,7 +347,7 @@ class Network extends Engine
 
 		$ip_long = ip2long($ip);
 		if ($ip_long == -1 || $ip_long === FALSE || $ip == $ip_long) {
-			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		} else {
@@ -369,7 +371,7 @@ class Network extends Engine
 		$bin_ip = ip2long($ip);
 
 		if ($bin_ip == false) {
-			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		}
@@ -380,7 +382,7 @@ class Network extends Engine
 		$bin_gateway = ip2long($testip);
 
 		if ($bin_gateway == false) {
-			$errmsg = NETWORK_LANG_GATEWAY . ': (' . $testip . ') - ' . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_GATEWAY . ': (' . $testip . ') - ' . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		}
@@ -389,7 +391,7 @@ class Network extends Engine
 		$broadcast = $network | (~$bin_netmask);
 
 		if ($bin_ip == $bin_gateway || $bin_gateway <= $network || $bin_gateway >= $broadcast) {
-			$errmsg = NETWORK_LANG_GATEWAY . ': (' . $testip . ') - ' . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_GATEWAY . ': (' . $testip . ') - ' . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		}
@@ -413,7 +415,7 @@ class Network extends Engine
 		if(eregi("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$", $mac)) {
 			return true;
 		} else {
-			$errmsg = NETWORK_LANG_MAC_ADDRESS . ": ($mac) - " . strtolower(LOCALE_LANG_INVALID);
+			$errmsg = NETWORK_LANG_MAC_ADDRESS . ": ($mac) - " . strtolower(lang('base_invalid'));
 			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 			return false;
 		}
@@ -448,7 +450,7 @@ class Network extends Engine
 			$todec = ($parts[0] << 24) + ($parts[1] << 16) + ($parts[2] << 8) + $parts[3];
 
 			if($fromdec >= $todec) {
-				$errmsg = NETWORK_LANG_IP_RANGE . " - " . strtolower(LOCALE_LANG_INVALID);
+				$errmsg = NETWORK_LANG_IP_RANGE . " - " . strtolower(lang('base_invalid'));
 				$this->AddValidationError($errmsg, __METHOD__, __LINE__);
 				return false;
 			}
