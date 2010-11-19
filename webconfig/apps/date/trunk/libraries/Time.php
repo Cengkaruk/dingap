@@ -17,13 +17,13 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-/** 
+/**
  * System time manager.
- *  
+ *
  * @package ClearOS
  * @subpackage API
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
@@ -49,6 +49,7 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/File');
 clearos_load_library('base/ConfigurationFile');
@@ -85,9 +86,9 @@ class TimezoneNotSetException extends EngineException
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
-/** 
+/**
  * System time manager.
- *  
+ *
  * @package ClearOS
  * @subpackage API
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
@@ -115,7 +116,7 @@ class Time extends Engine
 	 * Time constructor.
 	 */
 
-	function __construct()
+	public function __construct()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 

@@ -17,13 +17,13 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
-/** 
+/**
  * NTP time class.
- *  
+ *
  * @package ClearOS
  * @subpackage API
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
@@ -39,22 +39,28 @@ $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/
 require_once($bootstrap . '/bootstrap.php');
 
 ///////////////////////////////////////////////////////////////////////////////
-// D E P E N D E N C I E S  
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_library('base/File');
-clearos_load_library('base/Network');
 clearos_load_library('base/ShellExec');
 clearos_load_library('cron/Cron');
 clearos_load_library('date/Time');
+clearos_load_library('network/Network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
-/** 
+/**
  * NTP time class.
- *  
+ *
  * @package ClearOS
  * @subpackage API
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
@@ -79,7 +85,7 @@ class NtpTime extends Time
 	 * NtpTime constructor.
 	 */
 
-	function __construct()
+	public function __construct()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -96,7 +102,7 @@ class NtpTime extends Time
 	 * @throws EngineException
 	 */
 
-	function GetAutoSyncServer()
+	public function GetAutoSyncServer()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -130,7 +136,7 @@ class NtpTime extends Time
 	 * @throws EngineException
 	 */
 
-	function SetAutoSyncServer($timeserver=null)
+	public function SetAutoSyncServer($timeserver=null)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -160,7 +166,7 @@ class NtpTime extends Time
 	 * @throws EngineException
 	 */
 
-	function GetAutoSyncStatus()
+	public function GetAutoSyncStatus()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -181,7 +187,7 @@ class NtpTime extends Time
 	 * @throws EngineException
 	 */
 
-	function GetAutoSyncTime()
+	public function GetAutoSyncTime()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -213,7 +219,7 @@ class NtpTime extends Time
 	 * @throws EngineException
 	 */
 
-	function DeleteAutoSync()
+	public function DeleteAutoSync()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -237,7 +243,7 @@ class NtpTime extends Time
 	 * @throws EngineException, ValidationException
 	 */
 
-	function SetAutoSync($crontime = self::DEFAULT_CRONTAB_TIME)
+	public function SetAutoSync($crontime = self::DEFAULT_CRONTAB_TIME)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -287,7 +293,7 @@ class NtpTime extends Time
 	 * @throws EngineException, ValidationException
 	 */
 
-	function Synchronize($timeserver = null)
+	public function Synchronize($timeserver = null)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -344,7 +350,7 @@ class NtpTime extends Time
 	 * @return boolean true if time server is valid
 	 */
 
-	function IsValidTimeServer($timeserver)
+	public function IsValidTimeServer($timeserver)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
