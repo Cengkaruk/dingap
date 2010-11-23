@@ -30,22 +30,15 @@ $this->lang->load('network');
 // Loop through subnet info and display it in HTML table
 //------------------------------------------------------
 
-$headers = array(
-	lang('network_interface'),
-	lang('network_network'),
-	lang('base_status'),
-	''
-);
-
 foreach ($subnets as $interface => $subnetinfo) {
 
 	if (! $subnetinfo["isvalid"]) {
 		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
-		$short_action = anchor_edit('dhcp/edit/' . $interface); 
+		$short_action = "<a href='/app/dhcp/edit/" . $interface . "'>$interface - $status</a>";
 		$full_actions = anchor_delete('dhcp/delete/' . $interface);
 	} else if ($subnetinfo["isconfigured"]) {
 		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
-		$short_action = anchor_edit('dhcp/edit/' . $interface); 
+		$short_action = "<a href='/app/dhcp/edit/" . $interface . "'>$interface - $status</a>";
 		$full_actions = 
 			button_set_open() .
 			anchor_edit('dhcp/edit/' . $interface) . " " .
@@ -53,7 +46,7 @@ foreach ($subnets as $interface => $subnetinfo) {
 			button_set_close();
 	} else {
 		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
-		$short_action = anchor_edit('dhcp/add/' . $interface); 
+		$short_action = "<a href='/app/dhcp/add/" . $interface . "'>$interface - $status</a>";
 		$full_actions = 
 			button_set_open() .
 			anchor_add('dhcp/add/' . $interface) .
@@ -61,32 +54,35 @@ foreach ($subnets as $interface => $subnetinfo) {
 	}
 
 	// Short summary table
-	$items[$interface]['title'] = "$interface / " .  $subnetinfo['network'];
-	$items[$interface]['link'] =  anchor_custom('dhcp/edit/' . $interface);
+	$details['simple_title'] = "$interface / " .  $subnetinfo['network'];
+	$details['simple_link'] = $short_action;
 
 	// Long summary table
-	$items[$interface]['items'] = $interface;
+	$details['details'] = array(
+		$interface,
+		$subnetinfo['network'],
+		$status,
+		$full_actions
+	);
 
-	$thelist[] = "
-		<tr>
-			<td>" . $interface . "</td>
-			<td>" . $subnetinfo['network'] . "</td>
-			<td>$status</td>
-			<td>$full_actions</td>
-		</tr>
-	";
-/*
-	$thelist[] = "<li>" . anchor_custom('dhcp/edit/' . $interface, $interface, $interface . "/" . $subnetinfo['network']) . "</li>";  
-*/
+	$items[] = $details;
 }
 
-sort($thelist);
-$thelist_output = implode("\n", $thelist);
+// Main view
+//------------------------------------------------------
 
-echo summary_table_start($title);
+$headers = array(
+	lang('network_interface'),
+	lang('network_network'),
+	lang('base_status'),
+	''
+);
+
+sort($items);
+
+echo summary_table_start(lang('dhcp_subnets'));
 echo summary_table_header($headers);
-// echo summary_table_items($items, $actions);
-echo $thelist_output;
+echo summary_table_items($items);
 echo summary_table_end();
 
 // vim: ts=4
