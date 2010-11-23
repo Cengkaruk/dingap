@@ -28,5 +28,7 @@ $lang['network_service'] = 'Service';
 $lang['network_source'] = 'Source';
 $lang['network_waiting_for_connection'] = 'Internet connection is offline';
 $lang['network_wins_server'] = 'WINS Server';
+
+$lang['network_interface'] = 'Interface';
 // vi: syntax=php ts=4
 ?>
