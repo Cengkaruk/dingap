@@ -22,6 +22,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 // NOTES: what to do with read-only form values?
+// FIXME: what to do with validating IP ranges and its ilk
 
 $this->load->helper('form');
 $this->load->helper('url');
@@ -56,18 +57,18 @@ echo "
 		form_label(lang('dhcp_ip_range_end'), 'end') .
 		form_input('end', set_value('end', $end)) . " " . form_error('end') . "
 	</div>
-";
-for ($i = 0; $i < 3; $i++) {
-	$server = isset($dns[$i]) ? $dns[$i] : "";
-	$form_id = 'dns' . $i;
-	echo "
-		<div>" .
-			form_label(lang('dhcp_dns') . " #" . sprintf("%d", $i + 1), "$form_id") .
-			form_input("dns[]", set_value("dns[]", $dns[$i])) . " " . form_error("dns[]") . "
-		</div>
-	";
-}
-echo "	
+    <div> " .
+        form_label(lang('dhcp_dns') . "#1", 'dns1') .
+        form_input('dns1', set_value("dns1", $dns[0])) . " " . form_error("dns1") . "
+    </div>
+    <div> " .
+        form_label(lang('dhcp_dns') . "#2", 'dns2') .
+        form_input('dns2', set_value("dns2", $dns[1])) . " " . form_error("dns2") . "
+    </div>
+    <div> " .
+        form_label(lang('dhcp_dns') . "#3", 'dns3') .
+        form_input('dns3', set_value("dns3", $dns[2])) . " " . form_error("dns3") . "
+    </div>
 	<div>" .
 		form_label(lang('dhcp_wins'), 'wins') .
 		form_input('wins', set_value('wins', $wins)) . " " . form_error('wins') . "
