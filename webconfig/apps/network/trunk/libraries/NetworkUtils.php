@@ -22,9 +22,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Network tools.
+ * Network utilities.
  *
- * General tools used in dealing with the network.
+ * General utilities used in dealing with the network.
  *
  * @package ClearOS
  * @subpackage API
@@ -58,9 +58,9 @@ clearos_load_library('network/Hosts');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Network tools.
+ * Network utilities.
  *
- * General tools used in dealing with the network.
+ * General utilities used in dealing with the network.
  *
  * @package ClearOS
  * @subpackage API
@@ -69,7 +69,7 @@ clearos_load_library('network/Hosts');
  * @copyright Copyright 2003-2010 ClearFoundation
  */
 
-class Network extends Engine
+class NetworkUtils extends Engine
 {
 	///////////////////////////////////////////////////////////////////////////////
 	// V A R I A B L E S
@@ -240,7 +240,7 @@ class Network extends Engine
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (! $this->IsValidIp($ip)) {
+		if (! $this->ValidateIp($ip)) {
 			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(lang('base_invalid'));
 			throw new ValidationException($errmsg);
 		}
@@ -313,25 +313,20 @@ class Network extends Engine
 	 * @return  boolean  true if domain is valid
 	 */
 
-	function IsValidDomain($domain)
+	function ValidateDomain($domain)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		// Allow underscores
-
 		if (preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $domain)) {
-			if (substr_count($domain, ".") == 0) {
-				$errmsg = NETWORK_LANG_ERRMSG_DOMAIN_MUST_HAVE_A_PERIOD;
-				$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-				return false;
-			} else {
-				return true;
-			}
+			if (substr_count($domain, ".") == 0)
+				$errmsg = "FIXME: " . NETWORK_LANG_ERRMSG_DOMAIN_MUST_HAVE_A_PERIOD;
+			else
+				$errmsg = '';
 		} else {
-			$errmsg = NETWORK_LANG_DOMAIN . ' - ' . strtolower(lang('base_invalid'));
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-			return false;
+			$errmsg = lang('network_domain') . ' - ' . lang('base_invalid');
 		}
+
+		return $errmsg;
 	}
 
 	/**
@@ -341,18 +336,18 @@ class Network extends Engine
 	 * @return  boolean  true if IP is valid
 	 */
 
-	function IsValidIp($ip)
+	function ValidateIp($ip)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		$ip_long = ip2long($ip);
-		if ($ip_long == -1 || $ip_long === FALSE || $ip == $ip_long) {
-			$errmsg = NETWORK_LANG_IP . ': (' . $ip . ') - ' . strtolower(lang('base_invalid'));
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-			return false;
-		} else {
-			return true;
-		}
+
+		if ($ip_long == -1 || $ip_long === FALSE || $ip == $ip_long)
+			$errmsg = lang('network_ip') . ' - ' . lang('base_invalid');
+		else
+			$errmsg = '';
+
+		return $errmsg;
 	}
 
 	/**
@@ -406,19 +401,18 @@ class Network extends Engine
 	 * @return  boolean  true if MAC address is valid
 	 */
 
-	function IsValidMac($mac)
+	function ValidateMac($mac)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		$mac = strtoupper($mac);
 
-		if(eregi("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$", $mac)) {
-			return true;
-		} else {
-			$errmsg = NETWORK_LANG_MAC_ADDRESS . ": ($mac) - " . strtolower(lang('base_invalid'));
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-			return false;
-		}
+		if (eregi("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$", $mac))
+			$errmsg = '';
+		else
+			$errmsg = lang('network_mac_address') . ' - ' . lang('base_invalid');
+
+		return $errmsg;
 	}
 
 	/**
@@ -433,10 +427,10 @@ class Network extends Engine
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if(!$this->IsValidIp($from))
+		if(!$this->ValidateIp($from))
 			return false;
 
-		if(!$this->IsValidIp($to))
+		if(!$this->ValidateIp($to))
 			return false;
 
 		try {
