@@ -43,6 +43,7 @@ require_once($bootstrap . '/bootstrap.php');
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('network');
 // clearos_load_language('dhcp');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,7 +57,7 @@ clearos_load_library('network/Ethers');
 clearos_load_library('network/Iface');
 clearos_load_library('network/IfaceManager');
 clearos_load_library('network/Routes');
-clearos_load_library('network/Network');
+clearos_load_library('network/NetworkUtils');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -126,17 +127,13 @@ class DnsMasq extends Daemon
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		$isvalid = true;
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		if (! $network->IsValidMac($mac)) {
-			$this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
+		if ($network->ValidateMac($mac))
 			$isvalid = false;
-		}
 
-		if (! $network->IsValidIp($ip)) {
-			$this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
+		if ($network->ValidateIp($ip))
 			$isvalid = false;
-		}
 
 		if (! $isvalid)
 			throw new ValidationException(LOCALE_LANG_INVALID);
@@ -175,8 +172,10 @@ class DnsMasq extends Daemon
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (! $this->IsValidSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp))
-			throw new ValidationException(LOCALE_LANG_INVALID);
+		$errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp);
+
+		if ($errmsg)
+			throw new ValidationException($errmsg);
 
 		if (! $this->is_loaded)
 			$this->_LoadConfig();
@@ -194,7 +193,7 @@ class DnsMasq extends Daemon
 		}
 
 		try {
-			$network = new Network();
+			$network = new NetworkUtils();
 			$ethinfo = new Iface($interface);
 			$ip = $ethinfo->GetLiveIp();
 			$netmask = $ethinfo->GetLiveNetmask();
@@ -328,7 +327,7 @@ class DnsMasq extends Daemon
 			}
 		}
 
-		$netcheck = new Network();
+		$netcheck = new NetworkUtils();
 
 		foreach ($dhcpifs as $interface) {
 			try {
@@ -498,8 +497,8 @@ class DnsMasq extends Daemon
 		 * administrator could later add a static entry for future use.
 		 *
 		 * For this reason, the list of leases is keyed on the MAC/IP pairing.
-		 * There is a little trickery going on to handle the key.  First, the
-		 * ip2long function is used so that 192.168.1.20 comes before
+		 * There is a little trickery going on to handle the key.  First,
+		 * ip2long is used so that 192.168.1.20 comes before
 		 * 192.168.1.100.  In addition, the MAC address becomes a decimal,
 		 * e.g. 11:22:33:44:55:66 becomes 0.112233445566.  The unique keys
 		 * would look similar to 3232236157.112233445566.
@@ -600,7 +599,7 @@ class DnsMasq extends Daemon
 		if (! isset($this->config['read-ethers']))
 			return array();
 
-		$network = new Network();
+		$network = new NetworkUtils();
 		$ethers = new Ethers();
 		$mac_ip_pairs = $ethers->GetEthers();
 
@@ -609,7 +608,7 @@ class DnsMasq extends Daemon
 			// Find a hostname for IP address entries
 			// Find an IP for hostname entries
 
-			if ($network->IsValidIp($host_or_ip)) {
+			if (! $network->ValidateIp($host_or_ip)) {
 				$ip = $host_or_ip;
 				$hostname = gethostbyaddr($host_or_ip);
 				if ($hostname == $host_or_ip)	
@@ -656,15 +655,15 @@ class DnsMasq extends Daemon
 		$subnets = $this->GetSubnets();
 
 		$subnet['interface'] = $iface;
-		$subnet['network'] = $subnets[$iface]['network'];
-		$subnet['gateway'] = $subnets[$iface]['gateway'];
-		$subnet['start'] = $subnets[$iface]['start'];
-		$subnet['end'] = $subnets[$iface]['end'];
-		$subnet['dns'] = $subnets[$iface]['dns'];
-		$subnet['wins'] = $subnets[$iface]['wins'];
-		$subnet['tftp'] = $subnets[$iface]['tftp'];
-		$subnet['ntp'] = $subnets[$iface]['ntp'];
-		$subnet['leasetime'] = $subnets[$iface]['leasetime'];
+		$subnet['network'] = isset($subnets[$iface]['network']) ? $subnets[$iface]['network'] : '';
+		$subnet['gateway'] = isset($subnets[$iface]['gateway']) ? $subnets[$iface]['gateway'] : '';
+		$subnet['start'] = isset($subnets[$iface]['start']) ? $subnets[$iface]['start'] : '';
+		$subnet['end'] = isset($subnets[$iface]['end']) ? $subnets[$iface]['end'] : '';
+		$subnet['dns'] = isset($subnets[$iface]['dns']) ? $subnets[$iface]['dns'] : '';
+		$subnet['wins'] = isset($subnets[$iface]['wins']) ? $subnets[$iface]['wins'] : '';
+		$subnet['tftp'] = isset($subnets[$iface]['tftp']) ? $subnets[$iface]['tftp'] : '';
+		$subnet['ntp'] = isset($subnets[$iface]['ntp']) ? $subnets[$iface]['ntp'] : '';
+		$subnet['leasetime'] = isset($subnets[$iface]['leasetime']) ? $subnets[$iface]['leasetime'] : '';
 
 		return $subnet;
 	}
@@ -684,7 +683,7 @@ class DnsMasq extends Daemon
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		try {
-			$netcheck = new Network();
+			$netcheck = new NetworkUtils();
 			$ethinfo = new Iface($iface);
 			$firewall = new Firewall();
 			$routes = new Routes();
@@ -749,7 +748,7 @@ class DnsMasq extends Daemon
 					// Bail on interface if no IP exists
 					if (! $ethip)
 						continue;
-					$netcheck = new Network();
+					$netcheck = new NetworkUtils();
 					$ethnetmask = $ethinfo->GetLiveNetmask();
 					$ethnetwork = $netcheck->GetNetworkAddress($ethip, $ethnetmask);
 				} catch (Exception $e) {
@@ -862,8 +861,10 @@ class DnsMasq extends Daemon
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (! $this->IsValidSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp))
-			throw new ValidationException(LOCALE_LANG_INVALID);
+		$errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp);
+
+		if ($errmsg)
+			throw new ValidationException($errmsg);
 			
 		if (! $this->is_loaded)
 			$this->_LoadConfig();
@@ -884,81 +885,69 @@ class DnsMasq extends Daemon
 	 * @return boolean true if subnet is valid
 	 */
 
-	public function IsValidSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
+	public function ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$isvalid = true;
-		$network = new Network();
+		$errmsg = '';
+		$network = new NetworkUtils();
 
-		if (isset($this->subnets[$interface]['network'])) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_ERRMSG_SUBNETEXISTS;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if (isset($this->subnets[$interface]['network']))
+			$errmsg .= DNSMASQ_LANG_ERRMSG_SUBNETEXISTS;
 
-		if (! $network->IsValidIp($gateway)) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_ROUTER . " ($gateway) - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if ($network->ValidateIp($gateway))
+			$errmsg .= DNSMASQ_LANG_ROUTER . " ($gateway) - " . LOCALE_LANG_INVALID;
 
-		if ($wins && (! $network->IsValidIp($wins))) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_NETBIOS . " ($wins) - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if ($wins && ($network->ValidateIp($wins)))
+			$errmsg .= DNSMASQ_LANG_NETBIOS . " ($wins) - " . LOCALE_LANG_INVALID;
 
-		if (! $network->IsValidIp($start)) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_LOW_IP . " - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if ($network->ValidateIp($start))
+			$errmsg .= DNSMASQ_LANG_LOW_IP . " - " . LOCALE_LANG_INVALID;
 		
-		if (! $network->IsValidIp($end)) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_HIGH_IP . " - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if ($network->ValidateIp($end))
+			$errmsg .= DNSMASQ_LANG_HIGH_IP . " - " . LOCALE_LANG_INVALID;
 
-		if (! (preg_match("/^\d+$/", $leasetime) || ($leasetime == self::CONSTANT_UNLIMITED_LEASE))) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_LEASE_TIME . " ($leasetime) - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if (! (preg_match("/^\d+$/", $leasetime) || ($leasetime == self::CONSTANT_UNLIMITED_LEASE)))
+			$errmsg .= DNSMASQ_LANG_LEASE_TIME . " ($leasetime) - " . LOCALE_LANG_INVALID;
 		
-		if (! is_array($dns)) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_DNS . " - " . LOCALE_LANG_ERRMSG_INVALID_TYPE;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if (! is_array($dns))
+			$errmsg .= DNSMASQ_LANG_DNS . " - " . LOCALE_LANG_ERRMSG_INVALID_TYPE;
 
-		if ($tftp && (! $network->IsValidIp($tftp))) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_TFTP . " ($tftp) - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if ($tftp && ($network->ValidateIp($tftp)))
+			$errmsg .= DNSMASQ_LANG_TFTP . " ($tftp) - " . LOCALE_LANG_INVALID;
 
-		if ($ntp && (! $network->IsValidIp($ntp))) {
-			$isvalid = false;
-			$errmsg = DNSMASQ_LANG_NTP . " ($ntp) - " . LOCALE_LANG_INVALID;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-		}
+		if ($ntp && ($network->ValidateIp($ntp)))
+			$errmsg .= DNSMASQ_LANG_NTP . " ($ntp) - " . LOCALE_LANG_INVALID;
 		
 		if (count($dns) > 0) {
 			foreach ($dns as $server) {
 				if (empty($server))
 					continue;
 
-				if (! $network->IsValidIp($server)) {
-					$isvalid = false;
-					$errmsg = DNSMASQ_LANG_DNS . " ($server) - " . LOCALE_LANG_INVALID;
-					$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-				}
+				if ($network->ValidateIp($server))
+					$errmsg .= DNSMASQ_LANG_DNS . " ($server) - " . LOCALE_LANG_INVALID;
 			}
 		}
 
-		return $isvalid;
+		return $errmsg;
+	}
+
+	/**
+	 * Validates DNS server
+	 *
+	 * @param string $dns DNS server
+	 * @return string error message if DNS is invalid
+	 */
+
+	public function ValidateDns($dns)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$network = new NetworkUtils();
+
+		$errmsg = ($network->ValidateIp($dns)) ? "DNS server is invalid, eh" : ''; // FIXME: localize
+
+		return $errmsg;
 	}
 
 	/**
@@ -972,11 +961,9 @@ class DnsMasq extends Daemon
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidDomain($domain)) ? "" : "Domain is invalid, eh"; // FIXME: localize
-
-		return $retval;
+		return $network->ValidateDomain($domain);
 	}
 
 	/**
@@ -986,15 +973,15 @@ class DnsMasq extends Daemon
 	 * @return boolean true if start IP is valid
 	 */
 
-	public function IsValidStartIp($start)
+	public function ValidateStartIp($start)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidIp($start)) ? "" : "DHCP range start is invalid, eh"; // FIXME: localize
+		$errmsg = ($network->ValidateIp($start)) ? "DHCP range start is invalid, eh" : ''; // FIXME: localize
 
-		return $retval;
+		return $errmsg;
 	}
 
 	/**
@@ -1004,33 +991,33 @@ class DnsMasq extends Daemon
 	 * @return boolean true if end IP is valid
 	 */
 
-	public function IsValidEndIp($end)
+	public function ValidateEndIp($end)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidIp($end)) ? "" : "DHCP range end is invalid, eh"; // FIXME: localize
+		$errmsg = ($network->ValidateIp($end)) ? "DHCP range end is invalid, eh" : ''; // FIXME: localize
 
-		return $retval;
+		return $errmsg;
 	}
 
 	/**
 	 * Validates gateway server setting.
 	 *
 	 * @param string $gateway gateway server
-	 * @return boolean true if gateway server is valid
+	 * @return string error message if invalid
 	 */
 
-	public function IsValidGateway($gateway)
+	public function ValidateGateway($gateway)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidIp($gateway)) ? "" : "Gateway is invalid, eh"; // FIXME: localize
+		$errmsg = ($network->ValidateIp($gateway)) ? lang('network_gateway') . ' - ' . lang('base_invalid') : '';
 
-		return $retval;
+		return $errmsg;
 	}
 
 	/**
@@ -1040,15 +1027,15 @@ class DnsMasq extends Daemon
 	 * @return boolean true if NTP server is valid
 	 */
 
-	public function IsValidNtp($ntp)
+	public function ValidateNtp($ntp)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidIp($ntp)) ? "" : "NTP server is invalid, eh"; // FIXME: localize
+		$errmsg = ($network->ValidateIp($ntp)) ? "NTP server is invalid, eh" : ''; // FIXME: localize
 
-		return $retval;
+		return $errmsg;
 	}
 
 	/**
@@ -1058,15 +1045,15 @@ class DnsMasq extends Daemon
 	 * @return boolean true if TFTP server is valid
 	 */
 
-	public function IsValidTftp($tftp)
+	public function ValidateTftp($tftp)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidIp($tftp)) ? "" : "TFTP is invalid, eh"; // FIXME: localize
+		$errmsg = ($network->ValidateIp($tftp)) ? "TFTP is invalid, eh" : ''; // FIXME: localize
 
-		return $retval;
+		return $errmsg;
 	}
 
 	/**
@@ -1076,15 +1063,15 @@ class DnsMasq extends Daemon
 	 * @return boolean true if WINS server is valid
 	 */
 
-	public function IsValidWins($wins)
+	public function ValidateWins($wins)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$network = new Network();
+		$network = new NetworkUtils();
 
-		$retval = ($network->IsValidIp($wins)) ? "" : "WINS is invalid, eh"; // FIXME: localize
+		$errmsg = ($network->ValidateIp($wins)) ? "WINS is invalid, eh" : ''; // FIXME: localize
 
-		return $retval;
+		return $errmsg;
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -1240,7 +1227,7 @@ class DnsMasq extends Daemon
 		 * $subnet[interface][isvalid]
 		 */
 
-		$netcheck = new Network();
+		$netcheck = new NetworkUtils();
 
 		foreach ($this->subnets as $eth => $subnetinfo) {
 			if (isset($this->subnets[$eth]['start']) && isset($this->subnets[$eth]['netmask'])) {
