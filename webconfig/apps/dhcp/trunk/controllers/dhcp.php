@@ -170,15 +170,17 @@ redirect('/dhcp');
 		$this->load->library('form_validation');
 		$this->load->helper('url');
 
-		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_DnsMasq_IsValidGateway');
+		// TODO: Review the messy dns1/2/3 handling
+		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_DnsMasq_ValidateGateway');
 		$this->form_validation->set_rules('leasetime', lang('dhcp_lease_time'), 'required');
-		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_DnsMasq_IsValidStartIp');
-		$this->form_validation->set_rules('end', lang('dhcp_ip_range_end'), 'required|api_dns_DnsMasq_IsValidEndIp');
-		// Bug?
-		// $this->form_validation->set_rules('dns[]', lang('dhcp_dns'), 'valid_ip'); // FIXME
-		$this->form_validation->set_rules('wins', lang('dhcp_wins'), 'api_dns_DnsMasq_IsValidWins');
-		$this->form_validation->set_rules('tftp', lang('dhcp_tftp'), 'api_dns_DnsMasq_IsValidTftp');
-		$this->form_validation->set_rules('ntp', lang('dhcp_ntp'), 'api_dns_DnsMasq_IsValidNtp');
+		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_DnsMasq_ValidateStartIp');
+		$this->form_validation->set_rules('end', lang('dhcp_ip_range_end'), 'required|api_dns_DnsMasq_ValidateEndIp');
+		$this->form_validation->set_rules('dns1', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
+		$this->form_validation->set_rules('dns2', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
+		$this->form_validation->set_rules('dns3', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
+		$this->form_validation->set_rules('wins', lang('dhcp_wins'), 'api_dns_DnsMasq_ValidateWins');
+		$this->form_validation->set_rules('tftp', lang('dhcp_tftp'), 'api_dns_DnsMasq_ValidateTftp');
+		$this->form_validation->set_rules('ntp', lang('dhcp_ntp'), 'api_dns_DnsMasq_ValidateNtp');
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
@@ -190,11 +192,15 @@ redirect('/dhcp');
 			$subnet['gateway'] = $this->input->post('gateway');
 			$subnet['start'] = $this->input->post('start');
 			$subnet['end'] = $this->input->post('end');
-			$subnet['dns'] = $this->input->post('dns');
 			$subnet['wins'] = $this->input->post('wins');
 			$subnet['tftp'] = $this->input->post('tftp');
 			$subnet['ntp'] = $this->input->post('ntp');
 			$subnet['leasetime'] = $this->input->post('leasetime');
+			$subnet['dns'] = array(
+				$this->input->post('dns1'),
+				$this->input->post('dns2'),
+				$this->input->post('dns3'),
+			);
 
 			try {
 				$this->dnsmasq->UpdateSubnet(
