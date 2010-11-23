@@ -30,7 +30,7 @@ $this->load->library('form_validation');
 
 $this->lang->load('dhcp');
 
-echo form_open('/dhcp/edit/' . $interface);
+echo form_open('/dhcp/subnets/edit/' . $interface);
 echo form_fieldset(lang('dhcp_subnet'));
 echo "
 	<div>" .
@@ -88,8 +88,8 @@ if ($formtype === 'edit') {
 		<div>" .
 			button_set_open() .
 			form_submit_update('submit') .
-			anchor_cancel('/app/dhcp') .
-			anchor_delete('/app/dhcp/delete/' . $interface) .
+			anchor_cancel('/app/dhcp/subnets/') .
+			anchor_delete('/app/dhcp/subnets/delete/' . $interface) .
 			button_set_close() . "
 		</div>
 	";
@@ -98,7 +98,7 @@ if ($formtype === 'edit') {
 		<div>" .
 			button_set_open() .
 			form_submit_add('submit') .
-			anchor_cancel('/app/dhcp') .
+			anchor_cancel('/app/dhcp/subnets/') .
 			button_set_close() . "
 		</div>
 	";

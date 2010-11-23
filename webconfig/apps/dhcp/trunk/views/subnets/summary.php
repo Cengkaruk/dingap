@@ -26,6 +26,7 @@ $this->load->helper('form');
 $this->load->helper('url');
 $this->load->library('form_validation');
 $this->lang->load('network');
+$this->lang->load('dhcp');
 
 // Loop through subnet info and display it in HTML table
 //------------------------------------------------------
@@ -34,22 +35,22 @@ foreach ($subnets as $interface => $subnetinfo) {
 
 	if (! $subnetinfo["isvalid"]) {
 		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
-		$short_action = "<a href='/app/dhcp/edit/" . $interface . "'>$interface - $status</a>";
-		$full_actions = anchor_delete('dhcp/delete/' . $interface);
+		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
+		$full_actions = anchor_delete('/app/dhcp/subnets/delete/' . $interface);
 	} else if ($subnetinfo["isconfigured"]) {
 		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
-		$short_action = "<a href='/app/dhcp/edit/" . $interface . "'>$interface - $status</a>";
+		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
 		$full_actions = 
 			button_set_open() .
-			anchor_edit('dhcp/edit/' . $interface) . " " .
-			anchor_delete('dhcp/delete/' . $interface) . " " .
+			anchor_edit('/app/dhcp/subnets/edit/' . $interface) . " " .
+			anchor_delete('/app/dhcp/subnets/delete/' . $interface) . " " .
 			button_set_close();
 	} else {
 		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
-		$short_action = "<a href='/app/dhcp/add/" . $interface . "'>$interface - $status</a>";
+		$short_action = "<a href='/app/dhcp/subnets/add/" . $interface . "'>$interface - $status</a>";
 		$full_actions = 
 			button_set_open() .
-			anchor_add('dhcp/add/' . $interface) .
+			anchor_add('/app/dhcp/subnets/add/' . $interface) .
 			button_set_close();
 	}
 
