@@ -31,27 +31,24 @@
  * @copyright Copyright 2010, ClearFoundation
  */
 
-class Dhcp extends ClearOS_Controller
+class General extends ClearOS_Controller
 {
 	/**
 	 * DHCP server overview.
-	 *
-	 * @return string
 	 */
 
 	function index()
 	{
-		$this->full_index();
-// FIXME: mobile
-		//$this->mobile_index();
-	}
+        // if (mode == mobile)
+            $this->load->helper('url');
+            redirect('/dhcp/general/edit');
 
-	function full_index()
-	{
 		// Load libraries
 		//---------------
 
 		$this->load->library('dns/DnsMasq');
+		$this->lang->load('base');
+		$this->lang->load('dhcp');
 
 		// Load view data
 		//---------------
@@ -59,9 +56,6 @@ class Dhcp extends ClearOS_Controller
 		try {
 			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
 			$data['domain'] = $this->dnsmasq->GetDomainName();
-			$data['subnets'] = $this->dnsmasq->GetSubnets();
-			$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
-			$data['leases'] = $this->dnsmasq->GetLeases();
 		} catch (Exception $e) {
 			// FIXME: fatal error handling
 			$header['fatal_error'] = $e->GetMessage();
@@ -70,35 +64,73 @@ class Dhcp extends ClearOS_Controller
 		// Load views
 		//-----------
 
-		$header['title'] = lang('dhcp_dhcp');
+		$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');
 
 		$this->load->view('theme/header', $header);
 		$this->load->view('dhcp/general/summary', $data);
-		$this->load->view('dhcp/subnets/summary', $data);
-		$this->load->view('dhcp/leases/summary', $data);
 		$this->load->view('theme/footer');
 	}
 
-	function mobile_index()
+	/**
+	 * Edit DHCP general settings
+	 */
+
+	function edit()
 	{
 		// Load libraries
 		//---------------
 
+		$this->load->library('dns/DnsMasq');
 		$this->lang->load('base');
 		$this->lang->load('dhcp');
 
+		// Set validation rules
+		//---------------------
+
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules('domain', lang('dhcp_domain'), 'required|api_dns_DnsMasq_ValidateDomain');
+		$this->form_validation->set_rules('authoritative', lang('dhcp_authoritative'), '');
+		$form_ok = $this->form_validation->run();
+
+		// Handle form submit
+		//-------------------
+
+		if ($this->input->post('submit') && ($form_ok)) {
+			try {
+				// Update
+				$this->dnsmasq->SetDomainName($this->input->post('domain'));
+				$this->dnsmasq->SetAuthoritativeState((bool)$this->input->post('authoritative'));
+				$this->dnsmasq->Reset();
+
+				// Redirect to main page
+				// FIXME: consider auto-loading url helper
+				// FIXME: add flash session thing for "update preformed"
+				$this->load->helper('url');
+                redirect('/dhcp');
+			} catch (Exception $e) {
+				// FIXME: review exception handling
+				$header['fatal_error'] = $e->GetMessage();
+			}
+		}
+
+		// Load view data
+		//---------------
+
+		try {
+			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
+			$data['domain'] = $this->dnsmasq->GetDomainName();
+		} catch (Exception $e) {
+			// FIXME: review exception handling
+			$header['fatal_error'] = $e->GetMessage();
+		}
+ 
 		// Load views
 		//-----------
 
-// FIXME: add icons and help blurb for control panel view
-		$summary['links']['/app/dhcp/general'] = lang('base_general_settings');
-		$summary['links']['/app/dhcp/subnets'] = lang('dhcp_subnets');
-		$summary['links']['/app/dhcp/leases'] = lang('dhcp_leases');
-
-		$header['title'] = lang('dhcp_dhcp');
+		$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');
 
 		$this->load->view('theme/header', $header);
-		$this->load->view('theme/summary', $summary);
+		$this->load->view('dhcp/general/edit', $data);
 		$this->load->view('theme/footer');
 	}
 }
