@@ -1,6 +1,6 @@
 <?php
 
-//////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //
 // Copyright 2010 ClearFoundation
 //
@@ -31,41 +31,46 @@
  * @copyright Copyright 2010, ClearFoundation
  */
 
+///////////////////////////////////////////////////////////////////////////////
+// C O N T R O L L E R
+///////////////////////////////////////////////////////////////////////////////
+ 
+/**
+ * DHCP server configuration.
+ *
+ * @package Frontend
+ * @author {@link http://www.clearfoundation.com ClearFoundation}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+ * @copyright Copyright 2010, ClearFoundation
+ */
+
 class Dhcp extends ClearOS_Controller
 {
 	/**
 	 * DHCP server overview.
-	 *
-	 * @return string
 	 */
 
 	function index()
 	{
-		$this->full_index();
-// FIXME: mobile
-		//$this->mobile_index();
+		if ($this->session->userdata['theme_mode'] === CLEAROS_MOBILE)
+			$this->mobile_index();
+		else
+			$this->desktop_index();
 	}
 
-	function full_index()
+	/**
+	 * DHCP server summary view for desktops.
+	 */
+
+	function desktop_index()
 	{
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
-
-		// Load view data
-		//---------------
-
-		try {
-			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
-			$data['domain'] = $this->dnsmasq->GetDomainName();
-			$data['subnets'] = $this->dnsmasq->GetSubnets();
-			$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
-			$data['leases'] = $this->dnsmasq->GetLeases();
-		} catch (Exception $e) {
-			// FIXME: fatal error handling
-			$header['fatal_error'] = $e->GetMessage();
-		}
+		$this->lang->load('dhcp');
+		$this->load->module('dhcp/general');
+		$this->load->module('dhcp/subnets');
+		$this->load->module('dhcp/leases');
 
 		// Load views
 		//-----------
@@ -73,11 +78,15 @@ class Dhcp extends ClearOS_Controller
 		$header['title'] = lang('dhcp_dhcp');
 
 		$this->load->view('theme/header', $header);
-		$this->load->view('dhcp/general/summary', $data);
-		$this->load->view('dhcp/subnets/summary', $data);
-		$this->load->view('dhcp/leases/summary', $data);
+		$this->general->index('form');
+		$this->subnets->index('form');
+		$this->leases->index('form');
 		$this->load->view('theme/footer');
 	}
+
+	/**
+	 * DHCP server summary view for mobile/control panel.
+	 */
 
 	function mobile_index()
 	{

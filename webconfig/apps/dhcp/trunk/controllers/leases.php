@@ -44,7 +44,7 @@
  * @copyright Copyright 2010, ClearFoundation
  */
 
-class Subnets extends ClearOS_Controller
+class Leases extends ClearOS_Controller
 {
 	/**
 	 * DHCP server overview.
@@ -69,22 +69,21 @@ class Subnets extends ClearOS_Controller
 		// Load view data
 		//---------------
 
-		$data['subnets'] = $this->dnsmasq->GetSubnets();
-		$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
+		$data['leases'] = $this->dnsmasq->GetLeases();
  
 		// Load views
 		//-----------
 
 		if ($view == 'form') {
 
-			$this->load->view('dhcp/subnets/summary', $data);
+			$this->load->view('dhcp/leases/summary', $data);
 
 		} else if ($view == 'page') {
 			
-			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
+			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_leases');
 
 			$this->load->view('theme/header', $header);
-			$this->load->view('dhcp/subnets/summary', $data);
+			$this->load->view('dhcp/leases/summary', $data);
 			$this->load->view('theme/footer');
 		}
 	}
@@ -114,7 +113,7 @@ class Subnets extends ClearOS_Controller
 		// For this case it's not a big deal, but what about deleting a doz
 
 		if (!$confirm) {
-			$data['message'] = 'Are you sure you want to delete the subnet ...';
+			$data['message'] = 'Are you sure you want to delete the lease ...';
 			$data['ok_anchor'] = '/app/dhcp/subnets/delete/' . $iface . '/confirm';
 			$data['cancel_anchor'] = '/app/dhcp/subnets';
 		

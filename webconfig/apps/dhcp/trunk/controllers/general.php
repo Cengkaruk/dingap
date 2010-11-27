@@ -1,6 +1,6 @@
 <?php
 
-//////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //
 // Copyright 2010 ClearFoundation
 //
@@ -23,7 +23,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * DHCP server configuration.
+ * DHCP server general configuration.
+ *
+ * @package Frontend
+ * @author {@link http://www.clearfoundation.com ClearFoundation}
+ * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+ * @copyright Copyright 2010, ClearFoundation
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+// C O N T R O L L E R
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * DHCP server general configuration.
  *
  * @package Frontend
  * @author {@link http://www.clearfoundation.com ClearFoundation}
@@ -37,45 +50,7 @@ class General extends ClearOS_Controller
 	 * DHCP server overview.
 	 */
 
-	function index()
-	{
-        // if (mode == mobile)
-            $this->load->helper('url');
-            redirect('/dhcp/general/edit');
-
-		// Load libraries
-		//---------------
-
-		$this->load->library('dns/DnsMasq');
-		$this->lang->load('base');
-		$this->lang->load('dhcp');
-
-		// Load view data
-		//---------------
-
-		try {
-			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
-			$data['domain'] = $this->dnsmasq->GetDomainName();
-		} catch (Exception $e) {
-			// FIXME: fatal error handling
-			$header['fatal_error'] = $e->GetMessage();
-		}
-
-		// Load views
-		//-----------
-
-		$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');
-
-		$this->load->view('theme/header', $header);
-		$this->load->view('dhcp/general/summary', $data);
-		$this->load->view('theme/footer');
-	}
-
-	/**
-	 * Edit DHCP general settings
-	 */
-
-	function edit()
+	function index($view = 'page')
 	{
 		// Load libraries
 		//---------------
@@ -109,7 +84,6 @@ class General extends ClearOS_Controller
                 redirect('/dhcp');
 			} catch (Exception $e) {
 				// FIXME: review exception handling
-				$header['fatal_error'] = $e->GetMessage();
 			}
 		}
 
@@ -121,17 +95,25 @@ class General extends ClearOS_Controller
 			$data['domain'] = $this->dnsmasq->GetDomainName();
 		} catch (Exception $e) {
 			// FIXME: review exception handling
-			$header['fatal_error'] = $e->GetMessage();
 		}
  
 		// Load views
 		//-----------
 
-		$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');
+		if ($view == 'form') {
+			$data['formtype'] = 'view';
 
-		$this->load->view('theme/header', $header);
-		$this->load->view('dhcp/general/edit', $data);
-		$this->load->view('theme/footer');
+			$this->load->view('dhcp/general/view_edit', $data);
+
+        } else if ($view == 'page') {
+			$data['formtype'] = 'edit';
+
+			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');
+
+			$this->load->view('theme/header', $header);
+			$this->load->view('dhcp/general/view_edit', $data);
+			$this->load->view('theme/footer');
+		}
 	}
 }
 

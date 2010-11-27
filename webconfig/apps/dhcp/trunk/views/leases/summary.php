@@ -33,13 +33,13 @@ $this->lang->load('dhcp');
 
 foreach ($leases as $key => $details) {
 	// Create a unique ID by merging the MAC and active IP
-	$id = $details['active_mac'] . "|" . $details['active_ip'];
+	$id = $details['active_mac'] . "/" . $details['active_ip'];
 	$name = $details['active_mac'] . " - " . $details['active_ip'];
 	$short_action = "<a href='/app/dhcp/lease/edit/" . $id . "'>" . $name . "</a>";
 	$full_actions = 
 			button_set_open() .
-			anchor_edit('dhcp/edit/' . $interface) . " " .
-			anchor_delete('dhcp/delete/' . $interface) . " " .
+			anchor_edit('dhcp/edit/lease/' . $id) . " " .
+			anchor_delete('dhcp/delete/lease/' . $id) . " " .
 			button_set_close();
 
 	// Short summary table

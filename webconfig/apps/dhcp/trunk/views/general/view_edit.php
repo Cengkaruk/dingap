@@ -22,9 +22,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: what to do with read-only form values?
-// FIXME: what to do with validating IP ranges and its ilk
-
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,39 +33,28 @@ $this->lang->load('dhcp');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($formtype === 'edit') {
-	$buttons =
-		form_submit_update('submit') .
-		anchor_cancel('/app/dhcp/subnets/') .
-		anchor_delete('/app/dhcp/subnets/delete/' . $interface);
+	$readonly = FALSE;
+	$buttons = 
+		form_submit_update('submit') . 
+		anchor_cancel('/app/dhcp');
 } else {
-	$buttons =	
-		form_submit_add('submit') .
-		anchor_cancel('/app/dhcp/subnets/');
+	$readonly = TRUE;
+	$buttons = anchor_edit('/app/dhcp/general');
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('/dhcp/subnets/edit/' . $interface);
-echo form_fieldset(lang('dhcp_subnet'));
+echo form_open('dhcp/general'); 
+echo form_fieldset(lang('dhcp_dhcp') . ' - ' . lang('base_general_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo cos_form_input('interface', $interface, lang('dhcp_network_interface'), TRUE);
-echo cos_form_input('network', $network, lang('dhcp_network'), TRUE);
-echo cos_form_dropdown('lease_time', $lease_times, $lease_time, lang('dhcp_lease_time'));
-echo cos_form_input('gateway', $gateway, lang('dhcp_gateway'));
-echo cos_form_input('start', $start, lang('dhcp_ip_range_start'));
-echo cos_form_input('end', $end, lang('dhcp_ip_range_end'));
-echo cos_form_input('dns1', $dns[0], lang('dhcp_dns') . " #1");
-echo cos_form_input('dns2', $dns[1], lang('dhcp_dns') . " #2");
-echo cos_form_input('dns3', $dns[2], lang('dhcp_dns') . " #3");
-echo cos_form_input('wins', $wins, lang('dhcp_wins'));
-echo cos_form_input('tftp', $tftp, lang('dhcp_tftp'));
-echo cos_form_input('ntp', $ntp, lang('dhcp_ntp'));
+echo cos_form_toggle_enable('authoritative', $authoritative, lang('dhcp_authoritative'), $readonly);
+echo cos_form_input('domain', $domain, lang('dhcp_domain'), $readonly);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons
@@ -80,7 +66,8 @@ echo cos_button_set($buttons);
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset_close();
+echo form_fieldset_close(); 
 echo form_close();
 
-// vim: ts=4 syntax=php
+// vim: ts=4
+?>
