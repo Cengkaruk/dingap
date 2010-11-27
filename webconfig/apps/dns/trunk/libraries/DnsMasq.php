@@ -163,16 +163,16 @@ class DnsMasq extends Daemon
 	 * @param array $dns DNS server list
 	 * @param string $start starting IP for DHCP range
 	 * @param string $start ending IP for DHCP range
-	 * @param int $leasetime lease time in hours
+	 * @param int $lease_time lease time in hours
 	 * @return void
 	 * @throws EngineException, ValidationException
 	 */
 
-	public function AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime = DnsMasq::DEFAULT_LEASETIME, $tftp = "", $ntp = "")
+	public function AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = DnsMasq::DEFAULT_LEASETIME, $tftp = "", $ntp = "")
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp);
+		$errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
 
 		if ($errmsg)
 			throw new ValidationException($errmsg);
@@ -212,10 +212,10 @@ class DnsMasq extends Daemon
 		else
 			$option_count = 1;
 
-		if ($leasetime != self::CONSTANT_UNLIMITED_LEASE)
-			$leasetime = $leasetime . "h";
+		if ($lease_time != self::CONSTANT_UNLIMITED_LEASE)
+			$lease_time = $lease_time . "h";
 
-		$this->config['dhcp-range']['line'][++$range_count] = "$interface,$start,$end,$leasetime";
+		$this->config['dhcp-range']['line'][++$range_count] = "$interface,$start,$end,$lease_time";
 
 		if ($netmask)
 			$this->config['dhcp-option']['line'][++$option_count] = "$interface," . self::OPTION_SUBNET_MASK . ",$netmask";
@@ -663,7 +663,7 @@ class DnsMasq extends Daemon
 		$subnet['wins'] = isset($subnets[$iface]['wins']) ? $subnets[$iface]['wins'] : '';
 		$subnet['tftp'] = isset($subnets[$iface]['tftp']) ? $subnets[$iface]['tftp'] : '';
 		$subnet['ntp'] = isset($subnets[$iface]['ntp']) ? $subnets[$iface]['ntp'] : '';
-		$subnet['leasetime'] = isset($subnets[$iface]['leasetime']) ? $subnets[$iface]['leasetime'] : '';
+		$subnet['lease_time'] = isset($subnets[$iface]['lease_time']) ? $subnets[$iface]['lease_time'] : '';
 
 		return $subnet;
 	}
@@ -712,7 +712,7 @@ class DnsMasq extends Daemon
 		$subnet['network'] = $network;
 		$subnet['start'] = long2ip($long_bc - round(($long_bc - $long_nw )* 3 / 5,0) - 2);
 		$subnet['end'] = long2ip($long_bc - 1);
-		$subnet['leasetime'] = "24";
+		$subnet['lease_time'] = "24";
 		$subnet['dns'] = array($ip);
 
 		// TODO: add WINS and NTP check
@@ -857,11 +857,11 @@ class DnsMasq extends Daemon
 	 * @throws EngineException, ValidationException
 	 */
 
-	public function UpdateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
+	public function UpdateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp);
+		$errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
 
 		if ($errmsg)
 			throw new ValidationException($errmsg);
@@ -872,7 +872,7 @@ class DnsMasq extends Daemon
 		if ($this->SubnetExists($interface))
 			$this->DeleteSubnet($interface);
 
-		$this->AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime, $tftp, $ntp);
+		$this->AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -885,7 +885,7 @@ class DnsMasq extends Daemon
 	 * @return boolean true if subnet is valid
 	 */
 
-	public function ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $leasetime = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
+	public function ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -907,8 +907,8 @@ class DnsMasq extends Daemon
 		if ($network->ValidateIp($end))
 			$errmsg .= DNSMASQ_LANG_HIGH_IP . " - " . LOCALE_LANG_INVALID;
 
-		if (! (preg_match("/^\d+$/", $leasetime) || ($leasetime == self::CONSTANT_UNLIMITED_LEASE)))
-			$errmsg .= DNSMASQ_LANG_LEASE_TIME . " ($leasetime) - " . LOCALE_LANG_INVALID;
+		if (! (preg_match("/^\d+$/", $lease_time) || ($lease_time == self::CONSTANT_UNLIMITED_LEASE)))
+			$errmsg .= DNSMASQ_LANG_LEASE_TIME . " ($lease_time) - " . LOCALE_LANG_INVALID;
 		
 		if (! is_array($dns))
 			$errmsg .= DNSMASQ_LANG_DNS . " - " . LOCALE_LANG_ERRMSG_INVALID_TYPE;
@@ -1165,7 +1165,7 @@ class DnsMasq extends Daemon
 		 * $subnet[interface][netmask]
 		 * $subnet[interface][start]
 		 * $subnet[interface][end]
-		 * $subnet[interface][leasetime]
+		 * $subnet[interface][lease_time]
 		 * $subnet[interface][wins]
 		 * $subnet[interface][broadcast]
 		 * $subnet[interface][gateway]
@@ -1179,7 +1179,7 @@ class DnsMasq extends Daemon
 				$items = preg_split("/,/", $line);
 				$this->subnets[$items[0]]["start"] = $items[1];
 				$this->subnets[$items[0]]["end"] = $items[2];
-				$this->subnets[$items[0]]["leasetime"] = preg_replace("/[hsm]\s*$/", "", $items[3]);
+				$this->subnets[$items[0]]["lease_time"] = preg_replace("/[hsm]\s*$/", "", $items[3]);
 				$this->subnets[$items[0]]["isconfigured"] = true;
 			}
 		}
