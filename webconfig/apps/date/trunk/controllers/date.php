@@ -63,7 +63,7 @@ class Date extends ClearOS_Controller
 		// Handle form submit
 		//-------------------
 
-		if ($this->input->post('submit') && ($form_ok)) {
+		if ($this->input->post('submit')) {
 			try {
 				$this->ntptime->SetTimeZone($this->input->post('timezone'));
 			} catch (Exception $e) {
@@ -88,7 +88,7 @@ class Date extends ClearOS_Controller
 		// Load views
 		//-----------
 
-		$header['title'] = lang('date_time_and_date');
+		$header['title'] = lang('date_date');
 
 		$this->load->view('theme/header', $header);
 		$this->load->view('date', $data);
