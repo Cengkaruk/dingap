@@ -1,0 +1,25 @@
+/* Buttons */
+.ui-icon-form-button-add { background-position: -0 0; }
+.ui-icon-form-button-update { background-position: -0 0; }
+.ui-icon-form-button-delete { background-position: -72px 0; }
+.ui-icon-form-button-next { background-position: -108px 0; }
+.ui-icon-form-button-previous { background-position: -144px 0; }
+
+/* Validation error */
+.validation-error {
+  color: red;
+  font-weight: bold;
+  border: solid 1px red;
+  padding: 3px;
+  margin: 2px;
+}
+
+/* Forms */
+fieldset legend {
+  font-size: 120%;
+  font-weight: bold;
+}
+fieldset label {
+  font-weight: bold;
+}
+
