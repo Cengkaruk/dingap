@@ -1,13 +1,13 @@
 CREATE TABLE archive (
   id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
   sender varchar(255) default NULL,
-  recipient varchar(255) default NULL,
-  cc varchar(255) default NULL,
+  recipient varchar(32768) default NULL,
+  cc varchar(32768) default NULL,
   bcc varchar(255) default NULL,
-  subject varchar(255) default NULL,
+  subject varchar(1024) default NULL,
   size INTEGER UNSIGNED default '0',
   sent datetime NOT NULL,
-  header varchar(4096) default NULL,
+  header varchar(65536) default NULL,
   body mediumtext,
   created datetime NOT NULL,
   PRIMARY KEY (id)
