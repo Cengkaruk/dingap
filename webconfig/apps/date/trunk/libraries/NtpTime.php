@@ -93,6 +93,39 @@ class NtpTime extends Time
 	}
 
 	/**
+	 * NtpTime destructor.
+	 *
+	 * @access private
+	 */
+
+	public function __destruct()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		parent::__destruct();
+	}
+
+	/**
+	 * Deletes the cron entry for auto-synchronizing with an NTP server.
+	 *
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	public function DeleteAutoSync()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		try {
+			$crontab = new Cron();
+			if ($crontab->ExistsCrondConfiglet(self::FILE_CROND))
+				$crontab->DeleteCrondConfiglet(self::FILE_CROND);
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
+		}
+	}
+
+	/**
 	 * Returns the time server to be used on the system.
 	 *
 	 * This will return the default self::DEFAULT_SERVER if a 
@@ -106,57 +139,26 @@ class NtpTime extends Time
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$timeserver = "";
+		$time_server = "";
 
 		try {
 			$config = new File(self::FILE_CONFIG);
-			$timeserver = $config->LookupValue("/^ntp_syncserver\s*=\s*/");
+			$time_server = $config->LookupValue("/^ntp_syncserver\s*=\s*/");
 		} catch (FileNoMatchException $e) {
-			$timeserver = NtpTime::DEFAULT_SERVER;
+			$time_server = NtpTime::DEFAULT_SERVER;
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
 		}
 
-		if (! $timeserver)
-			$timeserver = NtpTime::DEFAULT_SERVER;
+		if (! $time_server)
+			$time_server = NtpTime::DEFAULT_SERVER;
 
 		$network = new Network();
 
-		if (!($network->IsValidHostname($timeserver) || $network->IsValidIp($timeserver)))
+		if (!($network->IsValidHostname($time_server) || $network->IsValidIp($time_server)))
 			throw new EngineException(NTPTIME_LANG_ERRMSG_TIMESERVER_INVALID, ClearOsError::CODE_ERROR);
 
-		return $timeserver;
-	}
-
-	/**
-	 * Sets the time server to be used on the system.
-	 *
-	 * @param string $timeserver (optional) auto-sync NTP server, if empty the default is set
-	 * @return boolean true on successful update
-	 * @throws EngineException
-	 */
-
-	public function SetAutoSyncServer($timeserver=null)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		if (empty($timeserver))
-			$timeserver = NtpTime::DEFAULT_SERVER;
-		
-		if ($timeserver == $this->GetAutoSyncServer())
-			return false;
-
-		if (! $this->IsValidTimeServer($timeserver))
-			throw new EngineException(NTPTIME_LANG_ERRMSG_TIMESERVER_INVALID, ClearOsError::CODE_WARNING);
-
-		try {
-			$config = new File(self::FILE_CONFIG);
-			$config->ReplaceLines("/^ntp_syncserver\s*=\s*/","ntp_syncserver = {$timeserver}\n");
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
-
-		return true;
+		return $time_server;
 	}
 
 	/**
@@ -213,37 +215,17 @@ class NtpTime extends Time
 	}
 
 	/**
-	 * Deletes the cron entry for auto-synchronizing with an NTP server.
-	 *
-	 * @return void
-	 * @throws EngineException
-	 */
-
-	public function DeleteAutoSync()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		try {
-			$crontab = new Cron();
-			if ($crontab->ExistsCrondConfiglet(self::FILE_CROND))
-				$crontab->DeleteCrondConfiglet(self::FILE_CROND);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
-	}
-
-	/**
 	 * Creates a cron file for auto-synchronizng the system clock.
 	 *
-	 * The crontime parameter ist optional -- the system will select
+	 * The cron_time parameter ist optional -- the system will select
 	 * a defaults if non is specified.
 	 *
-	 * @param string $crontime crontab time
+	 * @param string $cron_time crontab time
 	 * @return void
 	 * @throws EngineException, ValidationException
 	 */
 
-	public function SetAutoSync($crontime = self::DEFAULT_CRONTAB_TIME)
+	public function SetAutoSync($cron_time = self::DEFAULT_CRONTAB_TIME)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
@@ -254,7 +236,7 @@ class NtpTime extends Time
 		$crontab = new Cron();
 
 		try {
-			$validtime = $crontab->IsValidTime($crontime);
+			$validtime = $crontab->IsValidTime($cron_time);
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
 		}
@@ -274,7 +256,7 @@ class NtpTime extends Time
 			$payload  = "# Created by API\n";
 
 			if (file_exists(self::CRON_COMMAND))
-				$payload .= "$crontime root " . self::CRON_COMMAND;
+				$payload .= "$cron_time root " . self::CRON_COMMAND;
 			else
 				throw new EngineException(LOCALE_LANG_MISSING . " - " . self::CRON_COMMAND, ClearOsError::CODE_WARNING);
 
@@ -284,27 +266,61 @@ class NtpTime extends Time
 		}
 	}
 
+	/**
+	 * Sets the time server to be used on the system.
+	 *
+	 * @param string $time_server (optional) auto-sync NTP server, if empty the default is set
+	 * @return boolean true on successful update
+	 * @throws EngineException
+	 */
+
+	public function SetAutoSyncServer($time_server = NULL)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (empty($time_server))
+			$time_server = NtpTime::DEFAULT_SERVER;
+		
+		if ($time_server == $this->GetAutoSyncServer())
+			return false;
+
+		$error_message = $this->ValidateTimeServer($time_server);
+
+		if ($error_message)
+			throw new EngineException($error_message, ClearOsError::CODE_WARNING);
+
+		try {
+			$config = new File(self::FILE_CONFIG);
+			$config->ReplaceLines("/^ntp_syncserver\s*=\s*/","ntp_syncserver = {$time_server}\n");
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
+		}
+
+		return true;
+	}
 
 	/**
 	 * Synchronizes the clock. 
 	 *
-	 * @param string $timeserver time server (optional)
+	 * @param string $time_server time server (optional)
 	 * @return string offset time
 	 * @throws EngineException, ValidationException
 	 */
 
-	public function Synchronize($timeserver = null)
+	public function Synchronize($time_server = NULL)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (is_null($timeserver))
-			$timeserver = $this->GetAutoSyncServer();
+		if (is_null($time_server))
+			$time_server = $this->GetAutoSyncServer();
 
 		// Validate
 		//---------
 
-		if (! $this->IsValidTimeServer($timeserver))
-			throw new ValidationException(NTPTIME_LANG_ERRMSG_TIMESERVER_INVALID);
+		$error_message = $this->ValidateTimeServer($time_server);
+
+		if ($error_message)
+			throw new ValidationException($error_message);
 
 		// Synchronize
 		//------------
@@ -316,7 +332,7 @@ class NtpTime extends Time
 
 			$options['env'] = "LANG=fr_FR";
 
-			if ($shell->Execute(self::CMD_NTPDATE, "-u $timeserver", true, $options) != 0)
+			if ($shell->Execute(self::CMD_NTPDATE, "-u $time_server", true, $options) != 0)
 				throw new EngineException(NTPTIME_LANG_ERRMSG_SYNCHRONIZE_FAILED, ClearOsError::CODE_ERROR);
 
 			$output = $shell->GetFirstOutputLine();
@@ -328,17 +344,6 @@ class NtpTime extends Time
 		return $output;
 	}
 
-	/**
-	 * @access private
-	 */
-
-	public function __destruct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		parent::__destruct();
-	}
-
 	///////////////////////////////////////////////////////////////////////////////
 	// V A L I D A T I O N   R O U T I N E S
 	///////////////////////////////////////////////////////////////////////////////
@@ -346,18 +351,18 @@ class NtpTime extends Time
 	/**
 	 * Validation routine for time server.
 	 *
-	 * @param string $timeserver time server
+	 * @param string $time_server time server
 	 * @return boolean true if time server is valid
 	 */
 
-	public function IsValidTimeServer($timeserver)
+	public function ValidateTimeServer($time_server)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (preg_match("/^([\.\-\w]*)$/", $timeserver))
-			return true;
-
-		return false;
+		if (preg_match("/^([\.\-\w]*)$/", $time_server))
+			return '';
+		else
+			return 'Invalid time server'; // FIXME: localize 
 	}
 }
 

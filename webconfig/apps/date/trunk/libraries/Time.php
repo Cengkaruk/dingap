@@ -72,13 +72,11 @@ class TimezoneNotSetException extends EngineException
 {
 	/**
 	 * TimezoneNotSetException constructor.
-	 *
-	 * @param string $message error message
 	 */
 
-	public function __construct($message)
+	public function __construct()
 	{
-		parent::__construct($message, ClearOsError::CODE_ERROR);
+		parent::__construct(lang('date_time_zone_not_set'), ClearOsError::CODE_ERROR);
 	}
 }
 
@@ -124,6 +122,19 @@ class Time extends Engine
 	}
 
 	/**
+	 * Time destructor.
+	 *
+	 * @access private
+	 */
+
+	public function __destruct()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		parent::__destruct();
+	}
+
+	/**
 	 * Returns the system time (in seconds since Jan 1, 1970).
 	 * 
 	 * @return integer system time in seconds since Jan 1, 1970
@@ -160,16 +171,16 @@ class Time extends Engine
 		}
 
 		if (! $fileok)
-			throw new TimezoneNotSetException(TIME_LANG_ERRMSG_TIMEZONE_NOT_SET);
+			throw new TimezoneNotSetException();
 
 		// Check the /etc/sysconfig/clock file for time zone info
 		//-------------------------------------------------------
 
 		try {
 			$metafile = new ConfigurationFile(self::FILE_CONFIG);
-			$timezone = $metafile->Load();
-			if (isset($timezone['ZONE']))
-				return preg_replace("/\"/", "", $timezone['ZONE']);
+			$time_zone = $metafile->Load();
+			if (isset($time_zone['ZONE']))
+				return preg_replace("/\"/", "", $time_zone['ZONE']);
 		} catch (FileNotFoundException $e) {
 			// Not fatal, use methodology below
 		} catch (Exception $e) {
@@ -253,23 +264,28 @@ class Time extends Engine
 	/**
 	 * Sets the current timzeone.
 	 *
-	 * @param string $timezone time zone
+	 * @param string $time_zone time zone
 	 * @return void
 	 * @throws EngineException, ValidationException
 	 */
 
-	public function SetTimeZone($timezone)
+	public function SetTimeZone($time_zone)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (!$this->IsValidTimeZone($timezone))
-			throw new ValidationException(TIME_LANG_ERRMSG_TIMEZONE_INVALID);
+		// Validate
+		//---------
+
+		$error_message = $this->ValidateTimeZone($time_zone);
+
+		if ($error_message)
+			throw new ValidationException($error_message);
 
 		// Set /etc/localtime
 		//-------------------
 
 		try {
-	  		$file = new File(self::PATH_ZONEINFO . "/" . $timezone);
+	  		$file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
 			$file->CopyTo(self::FILE_TIMEZONE);
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
@@ -282,25 +298,14 @@ class Time extends Engine
 			$info = new File(self::FILE_CONFIG);
 
 			if ($info->Exists()) {
-				$info->ReplaceLines("/^ZONE=/", "ZONE=\"$timezone\"\n");
+				$info->ReplaceLines("/^ZONE=/", "ZONE=\"$time_zone\"\n");
 			} else {
 				$info->Create("root", "root", "0644");
-				$info->AddLines("ZONE=\"$timezone\"\n");
+				$info->AddLines("ZONE=\"$time_zone\"\n");
 			}
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
 		}
-	}
-
-	/**
-	 * @access private
-	 */
-
-	public function __destruct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		parent::__destruct();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -310,32 +315,32 @@ class Time extends Engine
 	/**
 	 * Validates time zone.
 	 *
-	 * @param string $timezone time zone
+	 * @param string $time_zone time zone
 	 * @return boolean true if time zone is valid
 	 * @throws EngineException
 	 */
 
-	public function IsValidTimeZone($timezone)
+	public function ValidateTimeZone($time_zone)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (!$timezone) {
-			$this->AddValidationError(TIME_LANG_ERRMSG_TIMEZONE_INVALID, __METHOD__, __LINE__);
-			return false;
-		}
+		$error_message = '';
 
-		try {
-			$file = new File(self::PATH_ZONEINFO . "/" . $timezone);
+		if (!$time_zone) {
+			$error_message = 'Time zone not specified'; // FIXME localize
+		} else {
+			try {
+				$file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
 
-			if ($file->Exists()) {
-				return true;
-			} else {
-				$this->AddValidationError(TIME_LANG_ERRMSG_TIMEZONE_INVALID, __METHOD__, __LINE__);
-				return false;
+				if (! $file->Exists())
+					$error_message = 'Invalid time zone'; // FIXME localize
+			} catch (Exception $e) {
+				// FIXME: what should we do here... exception or error message?
+				throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
 			}
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
 		}
+
+		return $error_message;
 	}
 }
 
