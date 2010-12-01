@@ -60,6 +60,9 @@ class Date extends ClearOS_Controller
 
 		$this->load->library('date/NtpTime');
 
+		$header['exceptions'] = array();
+		$header['warnings'] = array();
+
 		// Handle form submit
 		//-------------------
 
@@ -67,8 +70,7 @@ class Date extends ClearOS_Controller
 			try {
 				$this->ntptime->SetTimeZone($this->input->post('timezone'));
 			} catch (Exception $e) {
-				// FIXME: exception handling
-				echo "ooops: " . $e->GetMessage();
+				$header['exceptions'][] = $e->GetMessage();
 			}
 		}
 
@@ -76,13 +78,21 @@ class Date extends ClearOS_Controller
 		//---------------
 
 		try {
+			$data['timezone'] = $this->ntptime->gettimezone();
+		} catch (TimezoneNotSetException $e) {
+			// Not fatal
+			$data['timezone'] = '';
+			$header['warnings'][] = $e->GetMessage();
+		} catch (Exception $e) {
+			$header['exceptions'][] = $e->GetMessage();
+		}
+
+		try {
 			$data['date'] = strftime("%b %e %Y");
 			$data['time'] = strftime("%T %Z");
-			$data['timezone'] = $this->ntptime->gettimezone();
 			$data['timezones'] = convert_to_hash($this->ntptime->gettimezonelist());
 		} catch (Exception $e) {
-			// FIXME: exception handling 
-			echo "ooops: " . $e->GetMessage();
+			$header['exceptions'][] = $e->GetMessage();
 		}
 
 		// Load views
@@ -101,13 +111,22 @@ class Date extends ClearOS_Controller
 
 	function sync()
 	{
-		sleep(1);
+		sleep(1); // FIXME -- just for viewing the whirlygig.
+
+		// Load libraries
+		//---------------
 
 		$this->load->library('NtpTime');
 
+		// Run synchronize
+		//----------------
+
 		$diff = $this->ntptime->synchronize();
 
-		echo "offset: $diff";
+		// Return status message
+		//----------------------
+
+		echo "offset: $diff"; // FIXME: localize
 	}
 }
 
