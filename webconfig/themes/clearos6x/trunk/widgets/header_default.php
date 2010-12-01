@@ -107,7 +107,7 @@ if (isset($data['status_success']))
 	infobox_highlight($data['status_success']);
 
 
-if (isset($data['exceptions'])) {
+if (! empty($data['exceptions'])) {
 	$message = "<p>" . "Oooops.  That's not good" . "</p>\n"; // FIXME: localize
 	$message .= "<ul>";
 
@@ -120,7 +120,7 @@ if (isset($data['exceptions'])) {
 	infobox_exception($message);
 }
 
-if (isset($data['warnings'])) {
+if (! empty($data['warnings'])) {
 	$message = "<p>" . "Here's something you should know." . "</p>\n"; // FIXME: localize
 	$message .= "<ul>";
 
