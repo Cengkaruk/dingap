@@ -58,17 +58,24 @@ class Date extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('date/NtpTime');
+		$this->load->library('date/Time');
 
 		$header['exceptions'] = array();
 		$header['warnings'] = array();
+
+		// Set validation rules
+		//---------------------
+		 
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules('timezone', lang('date_time_zone'), 'api_date_Time_ValidateTimeZone');
+		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
 		//-------------------
 
 		if ($this->input->post('submit')) {
 			try {
-				$this->ntptime->SetTimeZone($this->input->post('timezone'));
+				$this->time->SetTimeZone($this->input->post('timezone'));
 			} catch (Exception $e) {
 				$header['exceptions'][] = $e->GetMessage();
 			}
@@ -78,7 +85,7 @@ class Date extends ClearOS_Controller
 		//---------------
 
 		try {
-			$data['timezone'] = $this->ntptime->gettimezone();
+			$data['timezone'] = $this->time->gettimezone();
 		} catch (TimezoneNotSetException $e) {
 			// Not fatal
 			$data['timezone'] = '';
@@ -90,7 +97,7 @@ class Date extends ClearOS_Controller
 		try {
 			$data['date'] = strftime("%b %e %Y");
 			$data['time'] = strftime("%T %Z");
-			$data['timezones'] = convert_to_hash($this->ntptime->gettimezonelist());
+			$data['timezones'] = convert_to_hash($this->time->gettimezonelist());
 		} catch (Exception $e) {
 			$header['exceptions'][] = $e->GetMessage();
 		}
@@ -121,12 +128,19 @@ class Date extends ClearOS_Controller
 		// Run synchronize
 		//----------------
 
-		$diff = $this->ntptime->synchronize();
+		try {
+			$diff = $this->ntptime->synchronize();
+		} catch (Exception $e) {
+			// FIXME: should have a standard here?
+			echo "Ooops: " . $e->GetMessage();
+			return;
+		}
 
 		// Return status message
 		//----------------------
 
-		echo "offset: $diff"; // FIXME: localize
+		// FIXME: use a view?  Some other standard function call?
+		echo "offset: $diff\n"; // FIXME: localize
 	}
 }
 
