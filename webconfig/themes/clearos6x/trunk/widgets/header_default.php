@@ -106,4 +106,31 @@ echo "
 if (isset($data['status_success']))
 	infobox_highlight($data['status_success']);
 
+
+if (isset($data['exceptions'])) {
+	$message = "<p>" . "Oooops.  That's not good" . "</p>\n"; // FIXME: localize
+	$message .= "<ul>";
+
+	foreach ($data['exceptions'] as $error_message)
+		$message .= "<li>$error_message</li>\n";
+
+	$message .= "</ul>";
+
+	// FIXME: hook to send report or link to support?
+	infobox_exception($message);
+}
+
+if (isset($data['warnings'])) {
+	$message = "<p>" . "Here's something you should know." . "</p>\n"; // FIXME: localize
+	$message .= "<ul>";
+
+	foreach ($data['warnings'] as $warning_message)
+		$message .= "<li>$warning_message</li>\n";
+
+	$message .= "</ul>";
+
+	// FIXME: hook to send report or link to support?
+	infobox_warning($message);
+}
+
 ?>
