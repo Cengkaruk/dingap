@@ -60,13 +60,9 @@ class Date extends ClearOS_Controller
 
 		$this->load->library('date/Time');
 
-		$header['exceptions'] = array();
-		$header['warnings'] = array();
-
 		// Set validation rules
 		//---------------------
 		 
-		$this->load->library('form_validation');
 		$this->form_validation->set_rules('timezone', lang('date_time_zone'), 'api_date_Time_ValidateTimeZone');
 		$form_ok = $this->form_validation->run();
 
@@ -77,7 +73,8 @@ class Date extends ClearOS_Controller
 			try {
 				$this->time->SetTimeZone($this->input->post('timezone'));
 			} catch (Exception $e) {
-				$header['exceptions'][] = $e->GetMessage();
+				$this->page->handle_exception($e->GetMessage());
+				return;
 			}
 		}
 
@@ -89,9 +86,9 @@ class Date extends ClearOS_Controller
 		} catch (TimezoneNotSetException $e) {
 			// Not fatal
 			$data['timezone'] = '';
-			$header['warnings'][] = $e->GetMessage();
 		} catch (Exception $e) {
-			$header['exceptions'][] = $e->GetMessage();
+			$this->page->handle_exception($e->GetMessage());
+			return;
 		}
 
 		try {
@@ -99,17 +96,18 @@ class Date extends ClearOS_Controller
 			$data['time'] = strftime("%T %Z");
 			$data['timezones'] = convert_to_hash($this->time->gettimezonelist());
 		} catch (Exception $e) {
-			$header['exceptions'][] = $e->GetMessage();
+			$this->page->handle_exception($e->GetMessage());
+			return;
 		}
 
 		// Load views
 		//-----------
 
-		$header['title'] = lang('date_date');
+		$page['title'] = lang('date_date');
 
-		$this->load->view('theme/header', $header);
+		$this->load->view('theme/header', $page);
 		$this->load->view('date', $data);
-		$this->load->view('theme/footer');
+		$this->load->view('theme/footer', $page);
 	}
 
 	/**

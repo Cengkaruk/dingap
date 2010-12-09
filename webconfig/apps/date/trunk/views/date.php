@@ -26,7 +26,6 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->load->library('form_validation');
 $this->lang->load('date');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,18 +39,17 @@ echo form_fieldset(lang('date_time_and_date'));
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo cos_form_input('date_date', $date, lang('date_date'), TRUE);
-echo cos_form_input('date_time', $time, lang('date_time'), TRUE);
-echo cos_form_dropdown('timezone', $timezones, $timezone, lang('date_time_zone'));
+echo field_input('date_date', $date, lang('date_date'), TRUE);
+echo field_input('date_time', $time, lang('date_time'), TRUE);
+echo field_dropdown('timezone', $timezones, $timezone, lang('date_time_zone'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: localize
-echo cos_button_set( 
-	form_submit_update('submit') .
-	form_submit_custom('synchronize', 'sync', 'Synchronize Now')
+echo button_set( 
+	form_submit_update('submit', 'high') .
+	anchor_javascript('sync', lang('date_synchronize_now'), 'high')
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,6 +59,8 @@ echo cos_button_set(
 echo form_fieldset_close();
 echo form_close();
 
+// FIXME: standardize this
 echo " <span id='result'></span>";
 
 // vim: ts=4
+?>
