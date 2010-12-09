@@ -103,7 +103,6 @@ class Time extends Engine
 	const CMD_HWCLOCK = "/sbin/hwclock";
 	const FILE_CONFIG = "/etc/sysconfig/clock";
 	const FILE_TIMEZONE = "/etc/localtime";
-	const FILE_TIMEZONE_INFO = "/etc/localtime.info";
 	const PATH_ZONEINFO = "/usr/share/zoneinfo/posix";
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -119,19 +118,6 @@ class Time extends Engine
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		parent::__construct();
-	}
-
-	/**
-	 * Time destructor.
-	 *
-	 * @access private
-	 */
-
-	public function __destruct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		parent::__destruct();
 	}
 
 	/**

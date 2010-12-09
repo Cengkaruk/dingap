@@ -93,19 +93,6 @@ class NtpTime extends Time
 	}
 
 	/**
-	 * NtpTime destructor.
-	 *
-	 * @access private
-	 */
-
-	public function __destruct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		parent::__destruct();
-	}
-
-	/**
 	 * Deletes the cron entry for auto-synchronizing with an NTP server.
 	 *
 	 * @return void
