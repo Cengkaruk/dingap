@@ -37,10 +37,10 @@ foreach ($leases as $key => $details) {
 	$name = $details['active_mac'] . " - " . $details['active_ip'];
 	$short_action = "<a href='/app/dhcp/lease/edit/" . $id . "'>" . $name . "</a>";
 	$full_actions = 
-			button_set_open() .
-			anchor_edit('dhcp/edit/lease/' . $id) . " " .
-			anchor_delete('dhcp/delete/lease/' . $id) . " " .
-			button_set_close();
+			button_set(
+				anchor_edit('dhcp/edit/lease/' . $id) . " " .
+				anchor_delete('dhcp/delete/lease/' . $id)
+			);
 
 	// Short summary table
 	$rows['simple_title'] = $name;

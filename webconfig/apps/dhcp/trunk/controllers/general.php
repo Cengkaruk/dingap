@@ -78,12 +78,12 @@ class General extends ClearOS_Controller
 				$this->dnsmasq->Reset();
 
 				// Redirect to main page
-				// FIXME: consider auto-loading url helper
-				// FIXME: add flash session thing for "update preformed"
+				// FIXME: add flash session thing for "update performed"
 				$this->load->helper('url');
-                redirect('/dhcp');
+				redirect('/dhcp');
 			} catch (Exception $e) {
-				// FIXME: review exception handling
+				$this->page->exception($e->GetMessage(), $view);
+				return;
 			}
 		}
 
@@ -94,7 +94,8 @@ class General extends ClearOS_Controller
 			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
 			$data['domain'] = $this->dnsmasq->GetDomainName();
 		} catch (Exception $e) {
-			// FIXME: review exception handling
+			$this->page->exception($e->GetMessage() . "huh", $view);
+			return;
 		}
  
 		// Load views
@@ -105,7 +106,7 @@ class General extends ClearOS_Controller
 
 			$this->load->view('dhcp/general/view_edit', $data);
 
-        } else if ($view == 'page') {
+		} else if ($view == 'page') {
 			$data['formtype'] = 'edit';
 
 			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');

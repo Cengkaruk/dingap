@@ -50,8 +50,8 @@ class Subnets extends ClearOS_Controller
 	 * DHCP server overview.
 	 */
 
-    function index($view = 'page')
-    {
+	function index($view = 'page')
+	{
 		// Handle theme mode redirects
 		//----------------------------
 
@@ -69,8 +69,13 @@ class Subnets extends ClearOS_Controller
 		// Load view data
 		//---------------
 
-		$data['subnets'] = $this->dnsmasq->GetSubnets();
-		$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
+		try {
+			$data['subnets'] = $this->dnsmasq->GetSubnets();
+			$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
+		} catch (Exception $e) {
+			$this->page->exception($e->GetMessage(), $view);
+			return;
+		}
  
 		// Load views
 		//-----------
@@ -81,11 +86,11 @@ class Subnets extends ClearOS_Controller
 
 		} else if ($view == 'page') {
 			
-			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
+			$page['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
 
-			$this->load->view('theme/header', $header);
+			$this->load->view('theme/header', $page);
 			$this->load->view('dhcp/subnets/summary', $data);
-			$this->load->view('theme/footer');
+			$this->load->view('theme/footer', $page);
 		}
 	}
 
@@ -114,13 +119,14 @@ class Subnets extends ClearOS_Controller
 		// For this case it's not a big deal, but what about deleting a doz
 
 		if (!$confirm) {
+			$page['title'] = 'Confirm'; // FIXME
 			$data['message'] = 'Are you sure you want to delete the subnet ...';
 			$data['ok_anchor'] = '/app/dhcp/subnets/delete/' . $iface . '/confirm';
 			$data['cancel_anchor'] = '/app/dhcp/subnets';
 		
-			$this->load->view('theme/header', $header);
+			$this->load->view('theme/header', $page);
 			$this->load->view('theme/confirm', $data);
-			$this->load->view('theme/footer');
+			$this->load->view('theme/footer', $page);
 			return;
 		}
 
@@ -137,7 +143,7 @@ class Subnets extends ClearOS_Controller
 		// Redirect
 		//---------
 
-		$this->session->set_userdata('status_success', lang('base_deleted'));
+		$this->page->success(lang('base_deleted'));
 		redirect('/dhcp/subnets');
 	}
 
@@ -175,10 +181,8 @@ class Subnets extends ClearOS_Controller
 		// Set validation rules
 		//---------------------
 
-		$this->load->library('form_validation');
-		$this->load->helper('url');
-
 		// TODO: Review the messy dns1/2/3 handling
+		$this->load->library('form_validation');
 		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_DnsMasq_ValidateGateway');
 		$this->form_validation->set_rules('lease_time', lang('dhcp_lease_time'), 'required');
 		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_DnsMasq_ValidateStartIp');
@@ -226,10 +230,11 @@ class Subnets extends ClearOS_Controller
 				$this->dnsmasq->Reset();
 
 				// Return to summary page with status message
-				$this->session->set_userdata('status_success', lang('base_system_updated'));
+				$this->page->success(lang('base_system_updated'));
 				redirect('/dhcp/subnets');
 			} catch (Exception $e) {
-				$header['fatal_error'] = $e->GetMessage();
+				$this->page->exception($e->GetMessage(), $view);
+				return;
 			}
 		}
 
@@ -242,9 +247,8 @@ class Subnets extends ClearOS_Controller
 			else
 				$subnet = $this->dnsmasq->GetSubnet($iface);
 		} catch (Exception $e) {
-			// FIXME: exception handling
-			// FIXME: multiple fatal exceptions?
-			echo "dude " . $e->GetMessage();
+			$this->page->exception($e->GetMessage(), $view);
+			return;
 		}
 
 		$data['formtype'] = $formtype;
@@ -277,11 +281,11 @@ class Subnets extends ClearOS_Controller
 		// Load the views
 		//---------------
 
-		$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
+		$page['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
 
-		$this->load->view('theme/header', $header);
+		$this->load->view('theme/header', $page);
 		$this->load->view('dhcp/subnets/add_edit', $data);
-		$this->load->view('theme/footer');
+		$this->load->view('theme/footer', $page);
 	}
 }
 

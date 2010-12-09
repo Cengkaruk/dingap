@@ -6,10 +6,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +17,12 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
+//  
+//////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->load->helper('form');
@@ -28,6 +31,10 @@ $this->load->library('form_validation');
 $this->lang->load('network');
 $this->lang->load('dhcp');
 
+///////////////////////////////////////////////////////////////////////////////
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+ 
 // Loop through subnet info and display it in HTML table
 //------------------------------------------------------
 
@@ -41,17 +48,17 @@ foreach ($subnets as $interface => $subnetinfo) {
 		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
 		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
 		$full_actions = 
-			button_set_open() .
-			anchor_edit('/app/dhcp/subnets/edit/' . $interface) . " " .
-			anchor_delete('/app/dhcp/subnets/delete/' . $interface) . " " .
-			button_set_close();
+			button_set(
+				anchor_edit('/app/dhcp/subnets/edit/' . $interface) . " " .
+				anchor_delete('/app/dhcp/subnets/delete/' . $interface)
+			);
 	} else {
 		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
 		$short_action = "<a href='/app/dhcp/subnets/add/" . $interface . "'>$interface - $status</a>";
 		$full_actions = 
-			button_set_open() .
-			anchor_add('/app/dhcp/subnets/add/' . $interface) .
-			button_set_close();
+			button_set(
+				anchor_add('/app/dhcp/subnets/add/' . $interface)
+			);
 	}
 
 	// Short summary table
@@ -69,8 +76,11 @@ foreach ($subnets as $interface => $subnetinfo) {
 	$items[] = $details;
 }
 
-// Main view
-//------------------------------------------------------
+sort($items);
+
+///////////////////////////////////////////////////////////////////////////////
+// Form fields
+///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
 	lang('network_interface'),
@@ -79,11 +89,9 @@ $headers = array(
 	''
 );
 
-sort($items);
-
 echo summary_table_start(lang('dhcp_subnets'));
 echo summary_table_header($headers);
 echo summary_table_items($items);
 echo summary_table_end();
 
-// vim: ts=4
+// vim: ts=4 syntax=php

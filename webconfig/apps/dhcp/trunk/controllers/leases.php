@@ -69,7 +69,13 @@ class Leases extends ClearOS_Controller
 		// Load view data
 		//---------------
 
-		$data['leases'] = $this->dnsmasq->GetLeases();
+		try {
+			$data['leases'] = $this->dnsmasq->GetLeases();
+		} catch (Exception $e) {
+			$this->status->halt($e->GetMessage(), $view);
+			return;
+		}
+
  
 		// Load views
 		//-----------
@@ -136,7 +142,7 @@ class Leases extends ClearOS_Controller
 		// Redirect
 		//---------
 
-		$this->session->set_userdata('status_success', lang('base_deleted'));
+		$this->status->success(lang('base_deleted'));
 		redirect('/dhcp/subnets');
 	}
 
@@ -225,7 +231,7 @@ class Leases extends ClearOS_Controller
 				$this->dnsmasq->Reset();
 
 				// Return to summary page with status message
-				$this->session->set_userdata('status_success', lang('base_system_updated'));
+				$this->status->success(lang('base_system_updated'));
 				redirect('/dhcp/subnets');
 			} catch (Exception $e) {
 				$header['fatal_error'] = $e->GetMessage();

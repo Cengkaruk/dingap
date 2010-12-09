@@ -57,24 +57,24 @@ echo form_fieldset(lang('dhcp_subnet'));
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo cos_form_input('interface', $interface, lang('dhcp_network_interface'), TRUE);
-echo cos_form_input('network', $network, lang('dhcp_network'), TRUE);
-echo cos_form_dropdown('lease_time', $lease_times, $lease_time, lang('dhcp_lease_time'));
-echo cos_form_input('gateway', $gateway, lang('dhcp_gateway'));
-echo cos_form_input('start', $start, lang('dhcp_ip_range_start'));
-echo cos_form_input('end', $end, lang('dhcp_ip_range_end'));
-echo cos_form_input('dns1', $dns[0], lang('dhcp_dns') . " #1");
-echo cos_form_input('dns2', $dns[1], lang('dhcp_dns') . " #2");
-echo cos_form_input('dns3', $dns[2], lang('dhcp_dns') . " #3");
-echo cos_form_input('wins', $wins, lang('dhcp_wins'));
-echo cos_form_input('tftp', $tftp, lang('dhcp_tftp'));
-echo cos_form_input('ntp', $ntp, lang('dhcp_ntp'));
+echo field_input('interface', $interface, lang('dhcp_network_interface'), TRUE);
+echo field_input('network', $network, lang('dhcp_network'), TRUE);
+echo field_dropdown('lease_time', $lease_times, $lease_time, lang('dhcp_lease_time'));
+echo field_input('gateway', $gateway, lang('dhcp_gateway'));
+echo field_input('start', $start, lang('dhcp_ip_range_start'));
+echo field_input('end', $end, lang('dhcp_ip_range_end'));
+echo field_input('dns1', $dns[0], lang('dhcp_dns') . " #1");
+echo field_input('dns2', $dns[1], lang('dhcp_dns') . " #2");
+echo field_input('dns3', $dns[2], lang('dhcp_dns') . " #3");
+echo field_input('wins', $wins, lang('dhcp_wins'));
+echo field_input('tftp', $tftp, lang('dhcp_tftp'));
+echo field_input('ntp', $ntp, lang('dhcp_ntp'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo cos_button_set($buttons);
+echo button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
