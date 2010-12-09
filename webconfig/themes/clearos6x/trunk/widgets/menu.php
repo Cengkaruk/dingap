@@ -9,6 +9,8 @@
 
 $menu_pages = WebMenuFetch();
 
+print_r($menu_pages);
+
 $highlight = array();
 
 $matches = array();

@@ -22,7 +22,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Head handler for the theme.
+ * Footer handler for the theme.
  * 
  * @package Theme
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
@@ -31,36 +31,48 @@
  */
 
 /**
- * Returns required <head> contents for the theme.
- * 
+ * Returns the footer for the theme.
+ *
+ * Two types of footer layouts must be supported in a ClearOS theme.  See 
+ * developer documentation for details.
+ *
+ * @param array $page page data
  * @package Theme
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2010 ClearFoundation
  */
 
-function page_head($theme_path)
+function page_footer($page)
 {
-	return "
-<!-- Theme Favicon -->
-<link href='$theme_path/images/favicon.ico' rel='shortcut icon' >
+	// FIXME: change to constant value
 
-<!-- Theme Style Sheets -->
-<link type='text/css' href='$theme_path/css/jquery-ui-1.8.5.custom.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/jquery.ui.selectmenu.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/ui.jqgrid.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/superfish.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/theme.css' rel='stylesheet'>
-
-<!-- Theme Javascript -->
-<script type='text/javascript' src='$theme_path/js/jquery-ui-1.8.5.custom.min.js'></script>
-<script type='text/javascript' src='$theme_path/js/jquery.ui.selectmenu.js'></script>
-<script type='text/javascript' src='$theme_path/js/grid.locale-en.js'></script>
-<script type='text/javascript' src='$theme_path/js/jquery.jqGrid.min.js'></script>
-<script type='text/javascript' src='$theme_path/js/superfish.js'></script>
-<script type='text/javascript' src='$theme_path/js/theme.js'></script>
-
+	if ($page['layout'] == 'default') {
+		$footer = "
+	</div>
+	<div id='clearos6x-layout-footer'>
+		Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
+		<b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
+	</div>
+</div>
+</body>
+</html>
 ";
+	} else if ($page['layout'] = 'splash') {
+		$footer = "
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+</body>
+</html>
+";
+	}
+
+	// FIXME: what to do on invalid layout?
+
+	return $footer;
 }
 
 // vim: syntax=php ts=4

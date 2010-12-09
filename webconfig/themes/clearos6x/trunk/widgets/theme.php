@@ -31,93 +31,122 @@
  */
 
 ///////////////////////////////////////////////////////////////////////////////
-// S U M M A R Y  V I E W
-///////////////////////////////////////////////////////////////////////////////
-
-function _clearos_summary_page($links)
-{
-	$html = "
-		<div>
-			<ul data-role='listview'>
-	";
-
-	foreach ($links as $link => $title)
-		$html .= "<li><a href='$link'>$title</a></li>\n";
-
-	$html .= "
-			</ul>
-		</div>
-	";
-
-	return $html;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // A N C H O R S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Anchor widget
+ * Anchor widget.
  *
  * @param string $url URL
- * @param string $id object ID (optional)
  * @param string $text text to be shown on the anchor
+ * @param string $importance prominence of the button
  * @param string $class CSS class
+ * @param string $id ID
  */
 
-function _anchor_theme($url, $id = NULL, $text, $class)
+function _anchor($url, $text, $importance, $class, $id)
 {
-	$id = isset($id) ? " id='$id'" : '';
-	
-	return "<a href='$url' $id class='anchor $class'>$text</a>";
+	// FIXME: add importance
+	return "<a href='$url' id='$id' class='anchor $class'>$text</a>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // B U T T O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-function _form_submit_theme($name, $id = NULL, $text, $class)
-{
-	$id = (isset($id)) ? "id='$id'" : "";
+/**
+ * Button widget.
+ *
+ * @param string $name button name,
+ * @param string $text text to be shown on the anchor
+ * @param string $importance prominence of the button
+ * @param string $class CSS class
+ * @param string $id ID
+ */
 
-	return "<input type='submit' name='$name' $id value=\"$text\" class='button $class' />";
+function _form_submit($name, $text, $importance, $class, $id)
+{
+	// FIXME: add importance
+	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='button $class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // A N C H O R  A N D  B U T T O N  S E T S
 ///////////////////////////////////////////////////////////////////////////////
 
-function _button_set_open()
+/**
+ * Button widget.
+ *
+ * @param string $id ID
+ */
+
+function _button_set_open($id)
 {
-	return "<div class='buttonset'>";
+	return "<div class='buttonset' id='$id'>\n";
 }
 
 function _button_set_close()
 {
-	return "</div>";
+	return "</div>\n";
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// F O R M  L A B E L S
+///////////////////////////////////////////////////////////////////////////////
+
+function _form_label($label, $name)
+{
+	return "<label for='$name'>$label</label>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F O R M  I N P U T  B O X E S
+///////////////////////////////////////////////////////////////////////////////
+
+function _form_input($name, $value, $id)
+{
+	return "<input type='text' name='$name' value='$value' id='$id'>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F O R M  V A L U E 
+///////////////////////////////////////////////////////////////////////////////
+
+function _form_value($value, $id)
+{
+	return "<span id='$id'>" . $value . "</span>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// V A L I D A T I O N  W A R N I N G
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 // S E L E C T  B O X E S
 ///////////////////////////////////////////////////////////////////////////////
 
-function _cos_form_dropdown($name, $options, $default, $label)
+function _form_dropdown_start($name, $id)
 {
-	$dropdown = "
-		<div>" . 
-			form_label($label, $name) . 
-			form_dropdown($name, $options, set_value($name, $default)) .
-			form_error('lease_time') . "
-		</div>
-	";
-
-	return $dropdown;
+	return "<select name='$name' id='$id'>\n";
 }
 
-function _cos_form_toggle($name, $options, $selected, $label)
+function _form_dropdown_end()
 {
-	// FIXME - find a nice jqueryui slider (like jquerymobile)
-	return _cos_form_dropdown($name, $options, $selected, $label);
+	return "</select>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// T O G G L E  B O X E S
+///////////////////////////////////////////////////////////////////////////////
+
+function _form_toggle_start($name, $id)
+{
+	return "<select name='$name' id='$id'>\n";
+}
+
+function _form_toggle_end()
+{
+	return "</select>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,6 +167,28 @@ function _dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 			</div>
 		</div>
 	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// S U M M A R Y  V I E W
+///////////////////////////////////////////////////////////////////////////////
+
+function _clearos_summary_page($links)
+{
+	$html = "
+		<div>
+			<ul data-role='listview'>
+	";
+
+	foreach ($links as $link => $title)
+		$html .= "<li><a href='$link'>$title</a></li>\n";
+
+	$html .= "
+			</ul>
+		</div>
+	";
+
+	return $html;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,5 +247,5 @@ function _summary_table_end()
 	return $html;
 }
 
-
+// vim: syntax=php ts=4
 ?>
