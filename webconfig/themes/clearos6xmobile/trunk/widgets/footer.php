@@ -22,7 +22,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Head handler for the theme.
+ * Footer handler for the theme.
  * 
  * @package Theme
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
@@ -31,29 +31,32 @@
  */
 
 /**
- * Returns required <head> contents for the theme.
- * 
+ * Returns the footer for the theme.
+ *
+ * Two types of footer layouts must be supported in a ClearOS theme.  See 
+ * developer documentation for details.
+ *
+ * @param array $page page data
  * @package Theme
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright Copyright 2010 ClearFoundation
  */
 
-function page_head($theme_path)
+function page_footer($page)
 {
-	return "
-<!-- Theme Favicon -->
-<link href='$theme_path/images/favicon.ico' rel='shortcut icon' >
-
-<!-- Theme Style Sheets -->
-<link type='text/css' href='$theme_path/css/theme.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/jquery.mobile-1.0a2.min.css' rel='stylesheet'>
-
-<!-- Theme Javascript -->
-<script type='text/javascript' src='$theme_path/js/jquery.mobile-1.0a1.min.js'></script>
-<!-- script type='text/javascript' src='$theme_path/js/jquery.mobile-1.0a2.min.js'></script -->
-
+	$footer = "
+    </div>
+    <div data-role='footer' class='ui-bar'>
+        <a href='/app/base/theme/set/clearos6x' data-role='button' data-icon='gear' rel='external'>" . lang('base_full_view') . "</a>
+        <a href='/app/base/logout' data-role='button' data-icon='refresh'>" . lang('base_logout') . "</a>
+    </div>
+</div>
+</body>
+</html>
 ";
+
+	return $footer;
 }
 
 // vim: syntax=php ts=4
