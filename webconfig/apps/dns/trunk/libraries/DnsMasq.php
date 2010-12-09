@@ -86,7 +86,7 @@ class DnsMasq extends Daemon
 	const FILE_DHCP = '/etc/dnsmasq/dhcp.conf';
 	const FILE_CONFIG = '/etc/dnsmasq.conf';
 	const FILE_LEASES = '/var/lib/misc/dnsmasq.leases';
-	const DEFAULT_LEASETIME = "12"; // in hours
+	const DEFAULT_LEASETIME = '12'; // in hours
 	const CONSTANT_UNLIMITED_LEASE = "infinite";
 
 	const OPTION_SUBNET_MASK = 1;
@@ -1079,17 +1079,6 @@ class DnsMasq extends Daemon
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * @access private
-	 */
-
-	public function __destruct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		parent::__destruct();
-	}
-
-	/**
 	 * Loads configuration file.
 	 *
 	 * @access private
@@ -1113,7 +1102,8 @@ class DnsMasq extends Daemon
 				$lines = array_merge($lines, $dhcpfile->GetContentsAsArray());
 
 		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+			// FIXME: localize 
+			throw new EngineException("Unable to load configuration file: " . $e->GetMessage(), COMMON_WARNING);
 		}
 
 		/* The Dnsmasq configuration file can have multiple keys with the same
