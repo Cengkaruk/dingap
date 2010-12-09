@@ -38,8 +38,10 @@ foreach ($leases as $key => $details) {
 	$short_action = "<a href='/app/dhcp/lease/edit/" . $id . "'>" . $name . "</a>";
 	$full_actions = 
 			button_set(
-				anchor_edit('dhcp/edit/lease/' . $id) . " " .
-				anchor_delete('dhcp/delete/lease/' . $id)
+				array(
+					anchor_edit('dhcp/edit/lease/' . $id),
+					anchor_delete('dhcp/delete/lease/' . $id)
+				)
 			);
 
 	// Short summary table

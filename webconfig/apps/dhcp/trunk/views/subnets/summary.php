@@ -43,23 +43,21 @@ foreach ($subnets as $interface => $subnetinfo) {
 	if (! $subnetinfo["isvalid"]) {
 		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
 		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
-		$full_actions = anchor_delete('/app/dhcp/subnets/delete/' . $interface);
+		$buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface));
 	} else if ($subnetinfo["isconfigured"]) {
 		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
 		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
-		$full_actions = 
-			button_set(
-				anchor_edit('/app/dhcp/subnets/edit/' . $interface) . " " .
+		$buttons = array(
+				anchor_edit('/app/dhcp/subnets/edit/' . $interface),
 				anchor_delete('/app/dhcp/subnets/delete/' . $interface)
 			);
 	} else {
 		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
 		$short_action = "<a href='/app/dhcp/subnets/add/" . $interface . "'>$interface - $status</a>";
-		$full_actions = 
-			button_set(
-				anchor_add('/app/dhcp/subnets/add/' . $interface)
-			);
+		$buttons = array(anchor_add('/app/dhcp/subnets/add/' . $interface));
 	}
+
+	$full_actions = button_set($buttons);
 
 	// Short summary table
 	$details['simple_title'] = "$interface / " .  $subnetinfo['network'];

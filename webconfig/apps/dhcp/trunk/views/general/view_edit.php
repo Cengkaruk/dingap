@@ -34,12 +34,13 @@ $this->lang->load('dhcp');
 
 if ($formtype === 'edit') {
 	$readonly = FALSE;
-	$buttons = 
-		form_submit_update('submit') . 
-		anchor_cancel('/app/dhcp');
+	$buttons = array(
+		form_submit_update('submit'),
+		anchor_cancel('/app/dhcp')
+	);
 } else {
 	$readonly = TRUE;
-	$buttons = anchor_edit('/app/dhcp/general');
+	$buttons = array(anchor_edit('/app/dhcp/general'));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

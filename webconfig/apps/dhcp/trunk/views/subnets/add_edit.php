@@ -36,14 +36,16 @@ $this->lang->load('dhcp');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($formtype === 'edit') {
-	$buttons =
-		form_submit_update('submit') .
-		anchor_cancel('/app/dhcp/subnets/') .
-		anchor_delete('/app/dhcp/subnets/delete/' . $interface);
+	$buttons = array(
+		form_submit_update('submit'),
+		anchor_cancel('/app/dhcp/subnets/'),
+		anchor_delete('/app/dhcp/subnets/delete/' . $interface)
+	);
 } else {
-	$buttons =	
-		form_submit_add('submit') .
-		anchor_cancel('/app/dhcp/subnets/');
+	$buttons = array(
+		form_submit_add('submit'),
+		anchor_cancel('/app/dhcp/subnets/')
+	);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

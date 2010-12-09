@@ -47,9 +47,11 @@ echo field_dropdown('timezone', $timezones, $timezone, lang('date_time_zone'));
 // Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo button_set( 
-	form_submit_update('submit', 'high') .
-	anchor_javascript('sync', lang('date_synchronize_now'), 'high')
+echo button_set(
+	array( 
+		form_submit_update('submit', 'high'),
+		anchor_javascript('sync', lang('date_synchronize_now'), 'high')
+	)
 );
 
 ///////////////////////////////////////////////////////////////////////////////
