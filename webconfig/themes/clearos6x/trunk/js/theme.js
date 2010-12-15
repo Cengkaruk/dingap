@@ -1,8 +1,8 @@
 $(function(){
     // Buttons and Anchors
-    $(".anchor").button();
-    $(".button").button();
-    $(".buttonset").buttonset();
+    $(".clearos-anchor").button();
+    $(".clearos-form-submit").button();
+    $(".clearos-button-set").buttonset();
 
 	// Progress bar
     $(".progressbar").progressbar({});
