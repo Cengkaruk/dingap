@@ -91,6 +91,53 @@ a:active {
 }
 
 /* ------------------------------------------------------------------------- */
+/* Anchors */
+/* ------------------------------------------------------------------------- */
+
+/* Common anchor classes */
+a.clearos-anchor { }
+a.clearos-anchor-important { color: red !important; }
+a.clearos-anchor-unimportant { font-size: 6pt !important; }
+
+/* Standard anchors */
+a.clearos-anchor-add { }
+a.clearos-anchor-edit { }
+a.clearos-anchor-cancel { }
+a.clearos-anchor-delete { }
+
+/* Custom anchor */
+a.clearos-anchor-custom { }
+
+/* Javascript anchor */
+a.clearos-anchor-javascript { }
+
+/* ------------------------------------------------------------------------- */
+/* Buttons */
+/* ------------------------------------------------------------------------- */
+
+/* Common button class */
+input.clearos-form-submit { }
+input.clearos-form-important { color: red !important; }
+input.clearos-form-unimportant { font-size: 6pt !important; }
+
+/* Standard buttons */
+input.clearos-form-submit-add { }
+input.clearos-form-submit-delete { }
+input.clearos-form-submit-update { }
+
+/* Custom button */
+input.clearos-form-submit-custom { }
+
+/* ------------------------------------------------------------------------- */
+/* Buttons Sets */
+/* ------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------------------------- */
+/* Field View */
+/* ------------------------------------------------------------------------- */
+
+
+/* ------------------------------------------------------------------------- */
 /* Theme Layout */
 /* ------------------------------------------------------------------------- */
 
@@ -376,7 +423,7 @@ fieldset {
 }
 
 fieldset label {
-  color:red;
+  font-weight: bold;
 }
 
 /* ------------------------------------------------------------------------- */
