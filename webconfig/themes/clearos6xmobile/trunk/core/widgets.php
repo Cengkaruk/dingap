@@ -217,20 +217,34 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $options, $
 
 function theme_summary_table($title, $headers, $items)
 {
-	// FIXME: data-filter='true'
+	// Header parsing
+	//---------------
 
 	// Tabs are just for clean indentation HTML output
-	foreach ($items as $item)
-		$item_html .= "\n\t\t\t\t<li><a href='" . $item['edit_anchor'] . "'>" . $item['title'] . "</li>";
+	$header_html = '';
 
-	$html = "
+	foreach ($headers as $header)
+		$header_html .= "\n\t\t" . trim("<th>$header</th>");
+
+	// Item parsing
+	//-------------
+
+	$item_html = '';
+
+	foreach ($items as $details)
+		$item_html .= "\n\t\t\t\t<li><a href='" . $details['edit_anchor'] . "'>" . $details['title'] . "</li>";
+
+	// Summary table
+	//--------------
+
+	$search = (count($items) > 10) ? " data-filter='true'" : "";
+
+	return "
 		<div>
-			<ul data-role='listview'>$item_html
+			<ul data-role='listview'$search>$item_html
 			</ul>
 		</div>
 	";
-
-	return $html;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
