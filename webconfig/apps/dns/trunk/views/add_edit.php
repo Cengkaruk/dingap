@@ -1,0 +1,83 @@
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2010 ClearFoundation
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Load dependencies
+///////////////////////////////////////////////////////////////////////////////
+
+$this->load->language('dns');
+$this->load->language('network');
+
+///////////////////////////////////////////////////////////////////////////////
+// Form modes
+///////////////////////////////////////////////////////////////////////////////
+
+if ($form_type === 'edit') {
+	$read_only = TRUE;
+	$form_path = '/dns/edit';
+	$buttons = array(
+		form_submit_update('submit'),
+		anchor_cancel('/app/dns/'),
+		anchor_delete('/app/dns/delete/' . $ip)
+	);
+} else {
+	$read_only = FALSE;
+	$form_path = '/dns/add';
+	$buttons = array(
+		form_submit_add('submit'),
+		anchor_cancel('/app/dns/')
+	);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_open($form_path . '/' . $ip);
+echo form_fieldset(lang('dns_dns_entry'));
+
+///////////////////////////////////////////////////////////////////////////////
+// Form fields
+///////////////////////////////////////////////////////////////////////////////
+
+echo field_input('ip', $ip, lang('network_ip'), $read_only);
+echo field_input('hostname', $hostname, lang('network_hostname'));
+echo field_input('alias1', $aliases[0], lang('dns_alias') . " #1");
+echo field_input('alias2', $aliases[1], lang('dns_alias') . " #2");
+echo field_input('alias3', $aliases[2], lang('dns_alias') . " #3");
+
+///////////////////////////////////////////////////////////////////////////////
+// Buttons
+///////////////////////////////////////////////////////////////////////////////
+
+echo button_set($buttons);
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_fieldset_close();
+echo form_close();
+
+// vim: ts=4 syntax=php
