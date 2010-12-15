@@ -49,6 +49,9 @@ function page_footer($page)
 
 	if ($page['layout'] == 'default') {
 		$footer = "
+
+
+<!-- Footer -->
 	</div>
 	<div id='clearos6x-layout-footer'>
 		Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
@@ -60,6 +63,9 @@ function page_footer($page)
 ";
 	} else if ($page['layout'] = 'splash') {
 		$footer = "
+
+
+<!-- Footer -->
 				</td>
 			</tr>
 		</table>
