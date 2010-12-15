@@ -42,12 +42,15 @@
  * @param string $importance prominence of the button
  * @param string $class CSS class
  * @param string $id ID
+ * @return HTML for anchor
  */
 
 function _anchor($url, $text, $importance, $class, $id)
 {
-	// FIXME: add importance
-	return "<a href='$url' id='$id' class='anchor $class'>$text</a>\n";
+	// FIXME: revisit importance
+	$importance_class = ($importance === 'high') ? "clearos-anchor-important" : "clearos-anchor-unimportant";
+
+	return "<a href='$url' id='$id' class='clearos-anchor $class $importance_class'>$text</a>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,12 +65,15 @@ function _anchor($url, $text, $importance, $class, $id)
  * @param string $importance prominence of the button
  * @param string $class CSS class
  * @param string $id ID
+ * @return HTML for button
  */
 
 function _form_submit($name, $text, $importance, $class, $id)
 {
-	// FIXME: add importance
-	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='button $class' />\n";
+	$importance_class = ($importance === 'high') ? "clearos-form-important" : "clearos-form-unimportant";
+
+	// FIXME: revisit importance
+	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='clearos-form-submit $class $importance_class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,78 +81,180 @@ function _form_submit($name, $text, $importance, $class, $id)
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Button widget.
+ * Button set.
  *
- * @param string $id ID
+ * @param array $buttons list of buttons in HTML format
+ * @param string $id HTML ID
+ * @return string HTML for button set
  */
 
-function _button_set_open($id)
+function theme_button_set($buttons, $id)
 {
-	return "<div class='buttonset' id='$id'>\n";
-}
+	$button_html = '';
 
-function _button_set_close()
-{
-	return "</div>\n";
-}
+	// Tabs are just for clean indentation HTML output
+	foreach ($buttons as $button)
+		$button_html .= "\n\t\t\t" . trim($button);
 
-///////////////////////////////////////////////////////////////////////////////
-// F O R M  L A B E L S
-///////////////////////////////////////////////////////////////////////////////
+	return "
+		<div class='clearos-button-set' id='$id'>$button_html
+		</div>
+	";
 
-function _form_label($label, $name)
-{
-	return "<label for='$name'>$label</label>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// F O R M  I N P U T  B O X E S
+// F I E L D  V I E W
 ///////////////////////////////////////////////////////////////////////////////
 
-function _form_input($name, $value, $id)
+/**
+ * Text input field.
+ *
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for field view
+ */
+
+function theme_field_view($value, $label, $input_id, $ids = NULL)
 {
-	return "<input type='text' name='$name' value='$value' id='$id'>\n";
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<span id='$input_id'>$value</span>
+		</div>
+	";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// F O R M  V A L U E 
+// F I E L D  I N P U T
 ///////////////////////////////////////////////////////////////////////////////
 
-function _form_value($value, $id)
+/**
+ * Text input field.
+ *
+ * @param string $name HTML name of text input element
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $error validation error message
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for text input field
+ */
+
+function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL)
 {
-	return "<span id='$id'>" . $value . "</span>\n";
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<input type='text' name='$name' value='$value' id='$input_id'> $error_html
+		</div>
+	";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// V A L I D A T I O N  W A R N I N G
+// F I E L D  D R O P D O W N
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// S E L E C T  B O X E S
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * Dropdown field.
+ *
+ * @param string $name HTML name of text input element
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for dropdown
+ */
 
-function _form_dropdown_start($name, $id)
+function theme_field_dropdown($name, $selected, $label, $options, $input_id, $ids)
 {
-	return "<select name='$name' id='$id'>\n";
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			" . form_dropdown($name, $options, $selected, $input_id_html) . " 
+		</div>
+	";
 }
 
-function _form_dropdown_end()
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  T O G G L E
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_field_toggle_enable_disable($name, $selected, $label, $options, $input_id, $ids)
 {
-	return "</select>\n";
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			" . form_dropdown($name, $options, $selected, $input_id_html) . " 
+		</div>
+	";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// T O G G L E  B O X E S
+// S U M M A R Y  T A B L E S
 ///////////////////////////////////////////////////////////////////////////////
 
-function _form_toggle_start($name, $id)
+function theme_summary_table($title, $headers, $items)
 {
-	return "<select name='$name' id='$id'>\n";
-}
+	// Header parsing
+	//---------------
 
-function _form_toggle_end()
-{
-	return "</select>\n";
+	// Tabs are just for clean indentation HTML output
+	$header_html = '';
+
+	foreach ($headers as $header)
+		$header_html .= "\n\t\t" . trim("<th>$header</th>");
+
+	// Item parsing
+	//-------------
+
+	$item_html = '';
+
+	foreach ($items as $details) {
+		$item_html .= "\t<tr>\n";
+
+		foreach ($details['details'] as $value)
+			$item_html .= "\t\t" . "<td>$value</td>\n";
+
+		$item_html .= "\t</tr>\n";
+	}
+
+	// Summary table
+	//--------------
+
+	return "
+<div class='ui-widget clearos-summary-table-container'>
+ <div class='clearos-summary-table-title ui-state-active ui-corner-top'>$title</div>
+ <div class='clearos-summary-table-body ui-state-active ui-corner-bottom'>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0'>
+	<tr>$header_html
+	</tr>
+$item_html
+  </table>
+ </div>
+</div>
+	";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,7 +271,7 @@ function _dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 		<div class='ui-widget'>
 			<div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
 				<p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
-				<p>" . anchor_update($ok_anchor, 'OK') . ' ' . anchor_cancel($cancel_anchor) . "</p>
+				<p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
 			</div>
 		</div>
 	";
@@ -185,62 +293,6 @@ function _clearos_summary_page($links)
 
 	$html .= "
 			</ul>
-		</div>
-	";
-
-	return $html;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// S U M M A R Y  T A B L E S
-///////////////////////////////////////////////////////////////////////////////
-
-function _summary_table_start($title)
-{
-	$html = "
-		<div class='ui-widget clearos-summary-table-container'>
-			<div class='clearos-summary-table-title ui-state-active ui-corner-top'>$title</div>
-			<div class='clearos-summary-table-body ui-state-active ui-corner-bottom'>
-				<table cellspacing='0' cellpadding='2' width='100%' border='0'>
-	";
-
-	return $html;
-}
-
-function _summary_table_header($headers)
-{
-	$html = '<tr>';
-
-	foreach ($headers as $header)
-		$html .= "<th>$header</th>";
-
-	$html .= '</tr>';
-
-	return $html;
-}
-
-function _summary_table_items($items)
-{
-	$html = '';
-
-	foreach ($items as $details) {
-
-		$html .= "<tr>";
-
-		foreach ($details['details'] as $value)
-			$html .= "<td>$value</td>";
-
-		$html .= "</tr>";
-	}
-
-	return $html;
-}
-
-function _summary_table_end()
-{
-	$html = "
-				</table>
-			</div>
 		</div>
 	";
 
