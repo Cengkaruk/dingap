@@ -42,12 +42,15 @@
  * @param string $importance prominence of the button
  * @param string $class CSS class
  * @param string $id ID
+ * @return HTML for anchor
  */
 
 function _anchor($url, $text, $importance, $class, $id)
 {
-	// FIXME: add importance
-	return "<a href='$url' class='anchor $class' $id data-role='button' data-inline='true'>$text</a>";
+	// FIXME: revisit importance
+	$importance_class = ($importance === 'high') ? "clearos-anchor-important" : "clearos-anchor-unimportant";
+
+	return "<a href='$url' id='$id' class='clearos-anchor $class $importance' data-role='button' data-inline='true'>$text</a>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,12 +65,15 @@ function _anchor($url, $text, $importance, $class, $id)
  * @param string $importance prominence of the button
  * @param string $class CSS class
  * @param string $id ID
+ * @return HTML for button
  */
 
 function _form_submit($name, $text, $importance, $class, $id)
 {
-	// FIXME: add importance
-	return "<input type='submit' name='$name' $id value=\"$text\" iiiclass='button $class' />";
+	$importance_class = ($importance === 'high') ? "clearos-form-important" : "clearos-form-unimportant";
+
+	// FIXME: revisit importance
+	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='clearos-form-submit $class $importance_class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,99 +81,157 @@ function _form_submit($name, $text, $importance, $class, $id)
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Button widget.
+ * Button set.
  *
- * @param string $id ID
+ * @param array $buttons list of buttons in HTML format
+ * @param string $id HTML ID
+ * @return string HTML for button set
  */
 
-function _button_set_open($id)
+function theme_button_set($buttons, $id)
 {
-	return "<div data-role='controlgroup' data-type='horizontal' id='$id'>\n";
-}
+	$button_html = '';
 
-function _button_set_close()
-{
-	return "</div>\n";
-}
+	// Tabs are just for clean indentation HTML output
+	foreach ($buttons as $button)
+		$button_html .= "\n\t\t\t" . trim($button);
 
-///////////////////////////////////////////////////////////////////////////////
-// F O R M  L A B E L S
-///////////////////////////////////////////////////////////////////////////////
-
-function _form_label($label, $name)
-{
-	return "<label for='$name'>$label</label>\n";
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// F O R M  I N P U T  B O X E S
-///////////////////////////////////////////////////////////////////////////////
-
-function _form_input($name, $value, $id)
-{
-	return "<input type='text' name='$name' value='$value' id='$id'>\n";
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// F O R M  V A L U E 
-///////////////////////////////////////////////////////////////////////////////
-
-function _form_value($value, $id)
-{
-	return "<span id='$id'>" . $value . "</span>\n";
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// V A L I D A T I O N  W A R N I N G
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// S E L E C T  B O X E S
-///////////////////////////////////////////////////////////////////////////////
-
-function _form_dropdown_start($name, $id)
-{
-    return "<select name='$name' id='$id'>\n";    
-/*
-	return  "
-		<div data-role='fieldcontain'>
-			<label for='$name' class='select'>$label</label>
-			" . form_dropdown($name, $options, $selected) . " 
-		</div>
-	";
-*/
-}
-
-function _form_dropdown_end()
-{
-	return "</select>\n";
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// T O G G L E  B O X E S
-///////////////////////////////////////////////////////////////////////////////
-
-function _form_toggle_start($name, $id)
-{
-	return "<select name='$name' id='$id'>\n";
-}
-
-function _form_toggle_end()
-{
-	return "</select>\n";
-}
-
-/*
-function _cos_form_toggle($name, $options, $selected, $label)
-{
 	return "
-		<div data-role='fieldcontain'>
-			<label for='$name'>$label</label>
-			" . form_dropdown($name, $options, $selected, " data-role='slider'") . " 
+		<div data-role='controlgroup' data-type='horizontal' id='$id'>$button_html
+		</div>
+	";
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  V I E W
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Text input field.
+ *
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for field view
+ */
+
+function theme_field_view($value, $label, $input_id, $ids = NULL)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div data-role='fieldcontain'$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<span id='$input_id'>$value</span>
 		</div>
 	";
 }
-*/
+
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  I N P U T
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Text input field.
+ *
+ * @param string $name HTML name of text input element
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $error validation error message
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for text input field
+ */
+
+function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+
+	return "
+		<div data-role='fieldcontain'$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<input type='text' name='$name' value='$value' id='$input_id'> $error_html
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  D R O P D O W N
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Dropdown field.
+ *
+ * @param string $name HTML name of text input element
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for dropdown
+ */
+
+function theme_field_dropdown($name, $selected, $label, $options, $input_id, $ids)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div data-role='fieldcontain'$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			" . form_dropdown($name, $options, $selected, $input_id_html) . " 
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  T O G G L E
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_field_toggle_enable_disable($name, $selected, $label, $options, $input_id, $ids)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div data-role='fieldcontain'$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			" . form_dropdown($name, $options, $selected, $input_id_html . " data-role='slider'") . " 
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// S U M M A R Y  T A B L E
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_summary_table($title, $headers, $items)
+{
+	// FIXME: data-filter='true'
+
+	// Tabs are just for clean indentation HTML output
+	foreach ($items as $item)
+		$item_html .= "\n\t\t\t\t<li><a href='" . $item['edit_anchor'] . "'>" . $item['title'] . "</li>";
+
+	$html = "
+		<div>
+			<ul data-role='listview'>$item_html
+			</ul>
+		</div>
+	";
+
+	return $html;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // C O N F I R M A T I O N  D I A L O G B O X
@@ -204,54 +268,6 @@ function _clearos_summary_page($links)
 		$html .= "<li><a href='$link'>$title</a></li>\n";
 
 	$html .= "
-			</ul>
-		</div>
-	";
-
-	return $html;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// S U M M A R Y  T A B L E S
-///////////////////////////////////////////////////////////////////////////////
-
-function _summary_table_start($title)
-{
-	// FIXME: data-filter='true'
-	$html = "
-		<div>
-			<ul data-role='listview'>
-	";
-
-	return $html;
-}
-
-function _summary_table_header($headers)
-{
-	// Save real estate
-	return;
-}
-
-function _summary_table_items($items)
-{
-	$html = '';
-
-	foreach ($items as $detail) {
-		$html .= "<li>" . $detail['simple_link'] . "</li>\n";
-/*
-echo "<pre>";
-print_r($detail);
-				<li>" . anchor_custom('dhcp/edit/' . $interface, $interface, $interface . "/" . $subnetinfo['network']) . "</li>";  
-
-*/
-	}
-
-	return $html;
-}
-
-function _summary_table_end()
-{
-	$html = "
 			</ul>
 		</div>
 	";

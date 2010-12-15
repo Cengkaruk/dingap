@@ -84,6 +84,9 @@ function _header_default_layout($page)
 		<a href='/app/dashboard/menu' data-icon='gear' class='ui-btn-right'>" . lang('base_menu') . "</a>
 	</div>
 	<div data-role='content'>
+
+
+<!-- Content -->
 ";
 
 	$header .= $success;
