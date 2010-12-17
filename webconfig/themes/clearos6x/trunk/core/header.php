@@ -69,7 +69,7 @@ function _header_default_layout($page)
 {
 	// FIXME - needs to be splash too
 	if (isset($page['status_success']))
-		$success = infobox_highlight($data['status_success']);
+		$success = infobox_highlight($page['status_success']);
 	else
 		$success = '';
 
