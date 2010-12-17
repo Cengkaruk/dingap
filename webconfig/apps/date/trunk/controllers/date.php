@@ -72,8 +72,9 @@ class Date extends ClearOS_Controller
 		if ($this->input->post('submit')) {
 			try {
 				$this->time->SetTimeZone($this->input->post('timezone'));
+				$this->page->set_success(lang('base_system_updated'));
 			} catch (Exception $e) {
-				$this->page->handle_exception($e->GetMessage());
+				$this->page->view_exception($e->GetMessage());
 				return;
 			}
 		}
@@ -87,7 +88,7 @@ class Date extends ClearOS_Controller
 			// Not fatal
 			$data['timezone'] = '';
 		} catch (Exception $e) {
-			$this->page->handle_exception($e->GetMessage());
+			$this->page->view_exception($e->GetMessage());
 			return;
 		}
 
@@ -96,18 +97,19 @@ class Date extends ClearOS_Controller
 			$data['time'] = strftime("%T %Z");
 			$data['timezones'] = convert_to_hash($this->time->gettimezonelist());
 		} catch (Exception $e) {
-			$this->page->handle_exception($e->GetMessage());
+			$this->page->view_exception($e->GetMessage());
 			return;
 		}
 
 		// Load views
 		//-----------
 
-		$page['title'] = lang('date_date');
+		$this->page->set_title(lang('date_date'));
 
-		$this->load->view('theme/header', $page);
+		$this->load->view('theme/header');
+		$this->load->view('develnote');
 		$this->load->view('date', $data);
-		$this->load->view('theme/footer', $page);
+		$this->load->view('theme/footer');
 	}
 
 	/**
@@ -116,8 +118,6 @@ class Date extends ClearOS_Controller
 
 	function sync()
 	{
-		sleep(1); // FIXME -- just for viewing the whirlygig.
-
 		// Load libraries
 		//---------------
 
@@ -129,7 +129,7 @@ class Date extends ClearOS_Controller
 		try {
 			$diff = $this->ntptime->synchronize();
 		} catch (Exception $e) {
-			// FIXME: should have a standard here?
+			// FIXME: should have a standard here for Ajax errors
 			echo "Ooops: " . $e->GetMessage();
 			return;
 		}
