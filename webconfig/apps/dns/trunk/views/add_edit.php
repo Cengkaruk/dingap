@@ -55,11 +55,12 @@ if ($form_type === 'edit') {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open($form_path . '/' . $ip);
-echo form_fieldset(lang('dns_dns_entry'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
+
+echo form_fieldset(lang('dns_dns_entry'));
 
 echo field_input('ip', $ip, lang('network_ip'), $read_only);
 echo field_input('hostname', $hostname, lang('network_hostname'));
@@ -67,8 +68,10 @@ echo field_input('alias1', $aliases[0], lang('dns_alias') . " #1");
 echo field_input('alias2', $aliases[1], lang('dns_alias') . " #2");
 echo field_input('alias3', $aliases[2], lang('dns_alias') . " #3");
 
+echo form_fieldset_close();
+
 ///////////////////////////////////////////////////////////////////////////////
-// Buttons
+// Form buttons
 ///////////////////////////////////////////////////////////////////////////////
 
 echo button_set($buttons);
@@ -77,7 +80,6 @@ echo button_set($buttons);
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset_close();
 echo form_close();
 
 // vim: ts=4 syntax=php

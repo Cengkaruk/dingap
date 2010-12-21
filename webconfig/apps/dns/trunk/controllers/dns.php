@@ -64,18 +64,19 @@ class Dns extends ClearOS_Controller
 		try {
 			$data['hosts'] = $this->hosts->GetEntries();
 		} catch (Exception $e) {
-			$this->page->exception($e->GetMessage());
+			$this->page->view_exception($e->GetMessage());
 			return;
 		}
  
 		// Load views
 		//-----------
-			
-		$page['title'] = lang('dns_local_dns_server');
 
-		$this->load->view('theme/header', $page);
+		$this->page->set_title(lang('dns_local_dns_server'));
+
+		$this->load->view('theme/header');
+		$this->load->view('dns/develnote');
 		$this->load->view('dns/summary', $data);
-		$this->load->view('theme/footer', $page);
+		$this->load->view('theme/footer');
 	}
 
 	/**
@@ -85,7 +86,7 @@ class Dns extends ClearOS_Controller
 	 * @return view
 	 */
 
-	function add($ip)
+	function add($ip = NULL)
 	{
 		// Use common add/edit form
 		$this->_addedit($ip, 'add');
@@ -98,7 +99,7 @@ class Dns extends ClearOS_Controller
 	 * @return view
 	 */
 
-	function delete($ip)
+	function delete($ip = NULL)
 	{
 		// Load libraries
 		//---------------
@@ -108,15 +109,15 @@ class Dns extends ClearOS_Controller
 		// Load views
 		//-----------
 
-		$page['title'] = lang('dns_dns_entry');
+		$this->page->set_title(lang('dns_dns_entry'));
 
 		$data['message'] = sprintf(lang('dns_confirm_delete'), $ip);
 		$data['ok_anchor'] = '/app/dns/destroy/' . $ip;
 		$data['cancel_anchor'] = '/app/dns';
 	
-		$this->load->view('theme/header', $page);
+		$this->load->view('theme/header');
 		$this->load->view('theme/confirm', $data);
-		$this->load->view('theme/footer', $page);
+		$this->load->view('theme/footer');
 	}
 
 	/**
@@ -126,7 +127,7 @@ class Dns extends ClearOS_Controller
 	 * @return view
 	 */
 
-	function edit($ip)
+	function edit($ip = NULL)
 	{
 		// Use common add/edit form
 		$this->_addedit($ip, 'edit');
@@ -136,11 +137,10 @@ class Dns extends ClearOS_Controller
 	 * Destroys local DNS entry view.
 	 *
 	 * @param string $ip IP address
-	 * @param boolean $confirm confirmation
 	 * @return view
 	 */
 
-	function destroy($ip)
+	function destroy($ip = NULL)
 	{
 		// Load libraries
 		//---------------
@@ -154,15 +154,15 @@ class Dns extends ClearOS_Controller
 		try {
 			$this->hosts->deleteentry($ip);
 			$this->dnsmasq->reset();
+			$this->page->set_success(lang('base_deleted'));
 		} catch (Exception $e) {
-			$this->page->exception($e->GetMessage());
+			$this->page->view_exception($e->GetMessage());
 			return;
 		}
 
 		// Redirect
 		//---------
 
-		$this->page->success(lang('base_deleted'));
 		redirect('/dns');
 	}
 
@@ -192,12 +192,11 @@ class Dns extends ClearOS_Controller
 		//---------------------
 
 		// TODO: Review the messy alias1/2/3 handling
-		$this->load->library('form_validation');
-		$this->form_validation->set_rules('ip', lang('network_ip'), 'required|api_network_Hosts_ValidateIp');
-		$this->form_validation->set_rules('hostname', lang('network_hostname'), 'valid_email|required|api_network_Hosts_ValidateHostname');
-		$this->form_validation->set_rules('alias1', lang('dns_alias'), 'api_network_Hosts_ValidateAlias');
-		$this->form_validation->set_rules('alias2', lang('dns_alias'), 'api_network_Hosts_ValidateAlias');
-		$this->form_validation->set_rules('alias3', lang('dns_alias'), 'api_network_Hosts_ValidateAlias');
+		$this->form_validation->set_policy('ip', 'network_Hosts_ValidateIp', TRUE);
+		$this->form_validation->set_policy('hostname','network_Hosts_ValidateHostname', TRUE);
+		$this->form_validation->set_policy('alias1', 'network_Hosts_ValidateAlias');
+		$this->form_validation->set_policy('alias2', 'network_Hosts_ValidateAlias');
+		$this->form_validation->set_policy('alias3', 'network_Hosts_ValidateAlias');
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
@@ -227,10 +226,10 @@ class Dns extends ClearOS_Controller
 				$this->dnsmasq->Reset();
 
 				// Return to summary page with status message
-				$this->page->success(lang('base_system_updated'));
+				$this->page->set_success(lang('base_system_updated'));
 				redirect('/dns');
 			} catch (Exception $e) {
-				$this->page->exception($e->GetMessage(), $view);
+				$this->page->view_exception($e->GetMessage(), $view);
 				return;
 			}
 		}
@@ -242,7 +241,7 @@ class Dns extends ClearOS_Controller
 			if ($form_type === 'edit') 
 				$entry = $this->hosts->GetEntry($ip);
 		} catch (Exception $e) {
-			$this->page->exception($e->GetMessage(), $view);
+			$this->page->view_exception($e->GetMessage(), $view);
 			return;
 		}
 
@@ -255,12 +254,13 @@ class Dns extends ClearOS_Controller
 		// Load the views
 		//---------------
 
-		$page['title'] = lang('dns_dns_entry');
+		$this->page->set_title(lang('dns_dns_entry'));
 
-		$this->load->view('theme/header', $page);
+		$this->load->view('theme/header');
 		$this->load->view('dns/add_edit', $data);
-		$this->load->view('theme/footer', $page);
+		$this->load->view('theme/footer');
 	}
 }
 
+// vim: ts=4 syntax=php
 ?>
