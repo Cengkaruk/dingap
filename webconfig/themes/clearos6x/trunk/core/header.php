@@ -67,11 +67,17 @@ function page_header($page)
 
 function _header_default_layout($page)
 {
+	// FIXME: just for the developer release
+	$FIXME_developer_note = infobox_highlight("
+	<p>For mobile view, <a href='/app/base/theme/set/clearos6xmobile'>click here</a>.</p>
+	<p>To return to this theme, click on <b>Full View</b> in the mobile footer.</p>
+	");
+
 	// FIXME - needs to be splash too
-	if (isset($page['status_success']))
-		$success = infobox_highlight($page['status_success']);
-	else
+	if (empty($page['status_success']))
 		$success = '';
+	else
+		$success = infobox_highlight($page['status_success']);
 
 	$menus = _get_menu($page['menus']);
 
@@ -93,7 +99,6 @@ function _header_default_layout($page)
 	<div id='clearos6x-header-background'></div>
 	<div id='clearos6x-header-logo'></div>
 	<div id='clearos6x-header-fullname'>" . lang('base_welcome') . "</div>
-	<div id='clearos6x-header-organization'><a href='/app/base/logout'>" . lang('base_logout') . "</a></div>
 </div>
 
 <!-- Top Menu -->
@@ -123,6 +128,7 @@ function _header_default_layout($page)
 	<div id='clearos6x-left-menu'>
 		$left_menu
 	</div>
+	<div style='margin-left: 15px;'>$FIXME_developer_note</div>
 </div>
 
 <!-- Content -->
@@ -241,9 +247,9 @@ function _get_menu($menu_pages) {
 			$top_menu .= "\t\t\t<ul>\n";
 
 			// Left menu block
-			$left_menu .= "    <h3 class='left-menu-header'><a href='#'>{$page['section']}</a></h3>\n";
+			$left_menu .= "    <h3 class='theme-left-menu-header'><a href='#'>{$page['section']}</a></h3>\n";
 			$left_menu .= "    <div>\n";
-			$left_menu .= "        <ul class='ui-accordion-menu-list'>\n";
+			$left_menu .= "        <ul class='theme-left-menu-list'>\n";
 
 			$current_section = $page['section'];
 			$section_count++;
@@ -259,10 +265,10 @@ function _get_menu($menu_pages) {
 
 		if ($sections[$sss] == 1) {
 			$top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-			$left_menu .= "            <li class='ui-accordion-menu-list-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
+			$left_menu .= "            <li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
 		} else {
 			$top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-			$left_menu .= "            <li class='ui-accordion-menu-list-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
+			$left_menu .= "            <li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
 		}
 	}
 
