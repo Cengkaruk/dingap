@@ -49,8 +49,10 @@ function page_head($theme_path)
 <link type='text/css' href='$theme_path/css/jquery-ui-1.8.5.custom.css' rel='stylesheet'>
 <link type='text/css' href='$theme_path/css/superfish.css' rel='stylesheet'>
 <link type='text/css' href='$theme_path/css/theme.css' rel='stylesheet'>
+<link type='text/css' href='$theme_path/css/summary-table.css' rel='stylesheet'>
 
 <!-- Theme Javascript -->
+<script type='text/javascript' src='$theme_path/js/jquery.dataTables.min.js'></script>
 <script type='text/javascript' src='$theme_path/js/jquery-ui-1.8.5.custom.min.js'></script>
 <script type='text/javascript' src='$theme_path/js/superfish.js'></script>
 <script type='text/javascript' src='$theme_path/js/theme.js'></script>
