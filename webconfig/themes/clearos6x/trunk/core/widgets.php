@@ -45,7 +45,7 @@
  * @return HTML for anchor
  */
 
-function _anchor($url, $text, $importance, $class, $id)
+function theme_anchor($url, $text, $importance, $class, $id)
 {
 	// FIXME: revisit importance
 	$importance_class = ($importance === 'high') ? "clearos-anchor-important" : "clearos-anchor-unimportant";
@@ -68,11 +68,11 @@ function _anchor($url, $text, $importance, $class, $id)
  * @return HTML for button
  */
 
-function _form_submit($name, $text, $importance, $class, $id)
+function theme_form_submit($name, $text, $importance, $class, $id)
 {
+	// FIXME: revisit importance
 	$importance_class = ($importance === 'high') ? "clearos-form-important" : "clearos-form-unimportant";
 
-	// FIXME: revisit importance
 	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='clearos-form-submit $class $importance_class' />\n";
 }
 
@@ -100,7 +100,6 @@ function theme_button_set($buttons, $id)
 		<div class='clearos-button-set' id='$id'>$button_html
 		</div>
 	";
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -174,21 +173,25 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
  * @param string $name HTML name of text input element
  * @param string $value value of text input 
  * @param string $label label for text input field
+ * @param string $error validation error message
  * @param string $input_id input ID
  * @param array $ids other optional HTML IDs
  * @return string HTML for dropdown
  */
 
-function theme_field_dropdown($name, $selected, $label, $options, $input_id, $ids)
+function theme_field_dropdown($name, $selected, $label, $error, $options, $input_id, $ids)
 {
 	$input_id_html = " id='" . $input_id . "'";
 	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
 	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
 	return "
 		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
-			" . form_dropdown($name, $options, $selected, $input_id_html) . " 
+			" . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html
 		</div>
 	";
 }
@@ -197,16 +200,19 @@ function theme_field_dropdown($name, $selected, $label, $options, $input_id, $id
 // F I E L D  T O G G L E
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_field_toggle_enable_disable($name, $selected, $label, $options, $input_id, $ids)
+function theme_field_toggle_enable_disable($name, $selected, $label, $error, $options, $input_id, $ids)
 {
 	$input_id_html = " id='" . $input_id . "'";
 	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
 	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
 	return "
 		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
-			" . form_dropdown($name, $options, $selected, $input_id_html) . " 
+			" . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html 
 		</div>
 	";
 }
@@ -215,8 +221,10 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $options, $
 // S U M M A R Y  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_summary_table($title, $headers, $items)
+function theme_summary_table($title, $anchors, $headers, $items, $legend = NULL)
 {
+	$columns = count($headers) + 1;
+
 	// Header parsing
 	//---------------
 
@@ -226,33 +234,56 @@ function theme_summary_table($title, $headers, $items)
 	foreach ($headers as $header)
 		$header_html .= "\n\t\t" . trim("<th>$header</th>");
 
+	// No title in the action header
+	$header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+
+	// Add button
+	//-----------
+
+	$add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+
+	// Legend parsing
+	//---------------
+
+	// FIXME
+	$legend_html = '';
+
+	if ($legend)	
+		$legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-summary-table-legend'>$legend</td></tr></tfoot>";
+
 	// Item parsing
 	//-------------
 
 	$item_html = '';
 
-	foreach ($items as $details) {
+	foreach ($items as $item) {
 		$item_html .= "\t<tr>\n";
 
-		foreach ($details['details'] as $value)
+		foreach ($item['details'] as $value)
 			$item_html .= "\t\t" . "<td>$value</td>\n";
 
+		$item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
 		$item_html .= "\t</tr>\n";
 	}
 
 	// Summary table
 	//--------------
-
 	return "
-<div class='ui-widget clearos-summary-table-container'>
- <div class='clearos-summary-table-title ui-state-active ui-corner-top'>$title</div>
- <div class='clearos-summary-table-body ui-state-active ui-corner-bottom'>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0'>
+
+<div class='theme-summary-table-container ui-widget'>
+  <div class='clearos-summary-table-header ui-state-active ui-corner-top'>
+	<div class='clearos-summary-table-title'>$title</div>
+	<div class='clearos-summary-table-action'>$add_html</div>
+  </div>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table display'>
+   <thead>
 	<tr>$header_html
 	</tr>
+   </thead>
+   <tbody>
 $item_html
+   </tbody>$legend_html
   </table>
- </div>
 </div>
 	";
 }
@@ -261,8 +292,9 @@ $item_html
 // C O N F I R M A T I O N  D I A L O G B O X
 ///////////////////////////////////////////////////////////////////////////////
 
-function _dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
+function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 {
+// FIXME - work in progress
 // FIXME - icons and translate
 	$class = 'ui-state-error';
 	$iconclass = 'ui-icon-alert';
@@ -278,25 +310,26 @@ function _dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// S U M M A R Y  V I E W
+// C O N T R O L  P A N E L
 ///////////////////////////////////////////////////////////////////////////////
 
-function _clearos_summary_page($links)
+// Note: this theme does not use the "control panel" view so this function
+// is here just for sanity checking during development!
+
+function theme_control_panel($links)
 {
-	$html = "
-		<div>
-			<ul data-role='listview'>
-	";
+	$items = '';
 
 	foreach ($links as $link => $title)
-		$html .= "<li><a href='$link'>$title</a></li>\n";
+		$items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
 
-	$html .= "
+	return "
+		<div>
+			<ul>
+				$items
 			</ul>
 		</div>
 	";
-
-	return $html;
 }
 
 // vim: syntax=php ts=4
