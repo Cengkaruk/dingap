@@ -268,14 +268,14 @@ class NetworkUtils extends Engine
 	 * @return boolean true if alias is valid
 	 */
 
-	function IsValidHostnameAlias($alias)
+	function ValidateHostnameAlias($alias)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		if (preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $alias))
 			return '';
 		else 
-			return lang('network_hostname') .  ' - ' . lang('base_invalid');
+			return lang('network_alias') .  ' - ' . lang('base_invalid');
 	}
 
 	/**
@@ -285,25 +285,16 @@ class NetworkUtils extends Engine
 	 * @return  boolean  true if hostname is valid
 	 */
 
-	function IsValidHostname($hostname)
+	function ValidateHostname($hostname)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$state = preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $hostname);
-
-		if (! $state) {
-			$errmsg = lang('network_hostname') . " - " . strtolower(lang('base_invalid'));
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-			return false;
-		}
-
-		if (substr_count($hostname, ".") == 0 && !preg_match("/^localhost$/i", $hostname)) {  
-			$errmsg = NETWORK_LANG_ERRMSG_HOSTNAME_MUST_HAVE_A_PERIOD;
-			$this->AddValidationError($errmsg, __METHOD__, __LINE__);
-			return false;
-		}
-
-		return true;
+		if (! preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $hostname))
+			return lang('network_hostname') . " - " . lang('base_invalid');
+		else if (substr_count($hostname, ".") === 0 && !preg_match("/^localhost$/i", $hostname))
+			return "Hostname must contain a period";
+		else
+			return '';
 	}
 
 	/**
