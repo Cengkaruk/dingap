@@ -42,7 +42,19 @@ img {
 }
 
 form {
-  margin: 0;
+  margin-top: 10px;
+  padding: 5px;
+  border: 1px solid #CCCCCC;
+  -moz-border-radius-topleft: 10px; 
+  -webkit-border-top-left-radius: 10px;
+  -moz-border-radius-topright: 10px; 
+  -webkit-border-top-right-radius: 10px;
+  -moz-border-radius-bottomleft: 10px; 
+  -webkit-border-bottom-left-radius: 10px;
+  -moz-border-radius-bottomright: 10px; 
+  -webkit-border-bottom-right-radius: 10px;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
 }
 
 pre {
@@ -96,8 +108,8 @@ a:active {
 
 /* Common anchor classes */
 a.clearos-anchor { }
-a.clearos-anchor-important { color: red !important; }
-a.clearos-anchor-unimportant { font-size: 6pt !important; }
+a.clearos-anchor-important { color: #333333 !important; }
+a.clearos-anchor-unimportant { color: #666666 !important; }
 
 /* Standard anchors */
 a.clearos-anchor-add { }
@@ -117,8 +129,8 @@ a.clearos-anchor-javascript { }
 
 /* Common button class */
 input.clearos-form-submit { }
-input.clearos-form-important { color: red !important; }
-input.clearos-form-unimportant { font-size: 6pt !important; }
+input.clearos-form-important { color: #333333 !important; }
+input.clearos-form-unimportant { color: #666666 !important; }
 
 /* Standard buttons */
 input.clearos-form-submit-add { }
@@ -131,6 +143,76 @@ input.clearos-form-submit-custom { }
 /* ------------------------------------------------------------------------- */
 /* Buttons Sets */
 /* ------------------------------------------------------------------------- */
+
+/*
+.clearos-button-set {
+  margin-top: 0px;
+  margin-bottom: 6px;
+  margin-left: 10px;
+}
+*/
+
+/* ------------------------------------------------------------------------- */
+/* Summary Table */
+/* ------------------------------------------------------------------------- */
+
+.theme-summary-table-container {
+  margin-top: 6px;
+}
+.theme-summary-table-legend {
+  text-align: center;	
+}
+.theme-summary-table-add {
+  text-align: left;
+}
+.clearos-summary-table-header {
+  background: #FFFFFF url(../images/main-nav-selected.png) repeat-x  50% 50%;
+  padding: 5px;
+  color: #EEEEEE;
+  font-weight: bold;
+}
+.clearos-summary-table-title { 
+  float: left;
+} 
+.clearos-summary-table-action { 
+  text-align: right;
+  padding: 0 !important;
+  font-size: 7pt !important;
+} 
+
+/* ------------------------------------------------------------------------- */
+/* Forms */
+/* ------------------------------------------------------------------------- */
+
+fieldset {
+  margin: 10px;
+}
+
+fieldset label {
+  font-weight: bold;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Helpbox */
+/* ------------------------------------------------------------------------- */
+
+.clearos-view-container {
+  margin: 0 auto;
+  width: 100%;
+  padding: 5px;
+}
+.clearos-view-contents {
+  position: relative;
+  height: auto;
+  float: left;
+  width: 50%;
+}
+.clearos-view-help {
+  clear: right;
+  float: right;
+  width: 50%;  
+  position: relative;
+}
 
 /* ------------------------------------------------------------------------- */
 /* Field View */
@@ -178,7 +260,7 @@ input.clearos-form-submit-custom { }
 
 #clearos6x-layout-left-menu {
   position: relative;
-  width: 208px;  
+  width: 208px;
   height: auto;
   float: left;
   margin-top: 98px !important; /*moz*/
@@ -331,6 +413,25 @@ ul#clearos6x-top-menu-list .clearos6x-top-menu-subsection {
   margin-bottom: -97px;
 }
 
+#clearos6x-left-menu.ui-accordion {
+  width: 180px;
+}
+.ui-accordion-content {
+  padding: 5px !important;
+}
+.theme-left-menu-header {
+  margin: 0;
+  padding: 0;
+}
+.theme-left-menu-list {
+  margin: 0;
+  padding: 0;
+}
+.theme-left-menu-item {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 #clearos6x-left-menu
 {
   background-image: url('../images/left-nav-bottom.png');
@@ -343,9 +444,10 @@ ul#clearos6x-top-menu-list .clearos6x-top-menu-subsection {
   list-style: none;
   padding-top: 0px;
   padding-left: 13px;
+  padding-right: 113px;
   padding-bottom: 18px;
   margin-top: -140px !important; /*moz*/
-  margin-top: px; /*IE*/
+  /* margin-top: px; */ /*IE*/
 }
 
 .clearos6x-left-menu-subsection {
@@ -386,67 +488,6 @@ height: 178px;
   -webkit-border-radius: 10px;
 }
 */
-
-/* ------------------------------------------------------------------------- */
-/* Summary Table */
-/* ------------------------------------------------------------------------- */
-
-.clearos-summary-table-container {
-  margin: 6px;
-}
-.clearos-summary-table-title {
-  background: #FFFFFF url(../images/main-nav-selected.png) repeat-x  50% 50%;
-  padding: 5px;
-  color: #EEEEEE;
-  font-weight: bold;
-}
-.clearos-summary-table-body {
-  padding: 3px;
-}
-.clearos-summary-table-body tr {
-  padding: 2px;
-}
-.clearos-summary-table-body th {
-  font-weight: bold;
-  text-align: left;
-  color: #3f5680;
-  background:  #f1f0f0;
-  padding: 2px;
-}
-
-/* ------------------------------------------------------------------------- */
-/* Forms */
-/* ------------------------------------------------------------------------- */
-
-fieldset {
-  margin: 10px;
-}
-
-fieldset label {
-  font-weight: bold;
-}
-
-/* ------------------------------------------------------------------------- */
-/* Helpbox */
-/* ------------------------------------------------------------------------- */
-
-.clearos-view-container {
-  margin: 0 auto;
-  width: 100%;
-  padding: 5px;
-}
-.clearos-view-contents {
-  position: relative;
-  height: auto;
-  float: left;
-  width: 50%;
-}
-.clearos-view-help {
-  clear: right;
-  float: right;
-  width: 50%;  
-  position: relative;
-}
 
 /* ------------------------------------------------------------------------- */
 /* Wizard */
