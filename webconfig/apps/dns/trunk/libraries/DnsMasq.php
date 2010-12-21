@@ -880,6 +880,24 @@ class DnsMasq extends Daemon
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
+	 * Validates authoritative state
+	 *
+	 * @param boolean $state authoritative state
+	 * @return string error message if DNS is invalid
+	 */
+
+	public function ValidateAuthoritative($state)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// FIXME - discuss what to do with string values coming from CodeIgniter
+		// $errmsg = (! is_bool($state)) ? "Authoritative is invalid, eh" : ''; // FIXME: localize
+		$errmsg = '';
+
+		return $errmsg;
+	}
+
+	/**
 	 * Validates subnet information.
 	 *
 	 * @return boolean true if subnet is valid
@@ -964,6 +982,23 @@ class DnsMasq extends Daemon
 		$network = new NetworkUtils();
 
 		return $network->ValidateDomain($domain);
+	}
+
+	/**
+	 * Validates lease time.
+	 *
+	 * @param integer $time lease time
+	 * @return string error message if lease time is invalid
+	 */
+
+	public function ValidateLeaseTime($time)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (! (preg_match("/^\d+$/", $time) || ($time == DnsMasq::CONSTANT_UNLIMITED_LEASE)))
+			$errmsg = 'Lease time is invalid'; // FIXME: translate
+
+		return $errmsg;
 	}
 
 	/**
