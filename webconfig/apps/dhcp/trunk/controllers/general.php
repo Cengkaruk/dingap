@@ -56,15 +56,13 @@ class General extends ClearOS_Controller
 		//---------------
 
 		$this->load->library('dns/DnsMasq');
-		$this->lang->load('base');
 		$this->lang->load('dhcp');
 
 		// Set validation rules
 		//---------------------
 
-		$this->load->library('form_validation');
-		$this->form_validation->set_rules('domain', lang('dhcp_domain'), 'required|api_dns_DnsMasq_ValidateDomain');
-		$this->form_validation->set_rules('authoritative', lang('dhcp_authoritative'), '');
+		$this->form_validation->set_policy('domain', 'dns_DnsMasq_ValidateDomain', TRUE);
+		$this->form_validation->set_policy('authoritative', 'dns_DnsMasq_ValidateAuthoritative', TRUE);
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
@@ -78,11 +76,10 @@ class General extends ClearOS_Controller
 				$this->dnsmasq->Reset();
 
 				// Redirect to main page
-				// FIXME: add flash session thing for "update performed"
-				$this->load->helper('url');
-				redirect('/dhcp');
+				 $this->page->set_success(lang('base_system_updated'));
+				redirect('/dhcp/');
 			} catch (Exception $e) {
-				$this->page->exception($e->GetMessage(), $view);
+				$this->page->view_exception($e->GetMessage(), $view);
 				return;
 			}
 		}
@@ -94,7 +91,7 @@ class General extends ClearOS_Controller
 			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
 			$data['domain'] = $this->dnsmasq->GetDomainName();
 		} catch (Exception $e) {
-			$this->page->exception($e->GetMessage() . "huh", $view);
+			$this->page->view_exception($e->GetMessage() . "huh", $view);
 			return;
 		}
  
@@ -102,16 +99,16 @@ class General extends ClearOS_Controller
 		//-----------
 
 		if ($view == 'form') {
-			$data['formtype'] = 'view';
+			$data['form_type'] = 'view';
 
 			$this->load->view('dhcp/general/view_edit', $data);
 
 		} else if ($view == 'page') {
-			$data['formtype'] = 'edit';
+			$data['form_type'] = 'edit';
 
-			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('base_general_settings');
+			$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('base_general_settings'));
 
-			$this->load->view('theme/header', $header);
+			$this->load->view('theme/header');
 			$this->load->view('dhcp/general/view_edit', $data);
 			$this->load->view('theme/footer');
 		}

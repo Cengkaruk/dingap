@@ -73,7 +73,7 @@ class Subnets extends ClearOS_Controller
 			$data['subnets'] = $this->dnsmasq->GetSubnets();
 			$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
 		} catch (Exception $e) {
-			$this->page->exception($e->GetMessage(), $view);
+			$this->page->view_exception($e->GetMessage(), $view);
 			return;
 		}
  
@@ -86,11 +86,11 @@ class Subnets extends ClearOS_Controller
 
 		} else if ($view == 'page') {
 			
-			$page['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
+			$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets'));
 
-			$this->load->view('theme/header', $page);
+			$this->load->view('theme/header');
 			$this->load->view('dhcp/subnets/summary', $data);
-			$this->load->view('theme/footer', $page);
+			$this->load->view('theme/footer');
 		}
 	}
 
@@ -107,29 +107,41 @@ class Subnets extends ClearOS_Controller
 	}
 
 	/**
-	 * DHCP server delete subnet.
+	 * DHCP server delete subnet view.
 	 *
-	 * @return string
+	 * @param string $iface interface
+	 * @return view
 	 */
 
-	function delete($iface = null, $confirm = FALSE)
+	function delete($iface)
 	{
-		// FIXME: hmmm... should confirmation boxes be configurable?
-		// e.g. should someone be able to click on "never confirm" for a particular session.
-		// For this case it's not a big deal, but what about deleting a doz
+		// Load libraries
+		//---------------
 
-		if (!$confirm) {
-			$page['title'] = 'Confirm'; // FIXME
-			$data['message'] = 'Are you sure you want to delete the subnet ...';
-			$data['ok_anchor'] = '/app/dhcp/subnets/delete/' . $iface . '/confirm';
-			$data['cancel_anchor'] = '/app/dhcp/subnets';
-		
-			$this->load->view('theme/header', $page);
-			$this->load->view('theme/confirm', $data);
-			$this->load->view('theme/footer', $page);
-			return;
-		}
+		$this->lang->load('dhcp');
 
+		// Load views
+		//-----------
+
+		$this->page->set_title(lang('dhcp_subnet'));
+		$data['message'] = sprintf(lang('dhcp_confirm_delete'), $iface);
+		$data['ok_anchor'] = '/app/dhcp/subnets/destroy/' . $iface;
+		$data['cancel_anchor'] = '/app/dhcp/subnets';
+	
+		$this->load->view('theme/header');
+		$this->load->view('theme/confirm', $data);
+		$this->load->view('theme/footer');
+
+	}
+
+	/**
+	 * Destroys DHCP server subnet.
+	 *
+	 * @return view
+	 */
+
+	function destroy($iface)
+	{
 		// Load libraries
 		//---------------
 
@@ -138,12 +150,17 @@ class Subnets extends ClearOS_Controller
 		// Handle form submit
 		//-------------------
 
-		$this->dnsmasq->deletesubnet($iface);
+		try {
+			$this->dnsmasq->deletesubnet($iface);
+			$this->page->set_success(lang('base_deleted'));
+		} catch (Exception $e) {
+			$this->page->view_exception($e->GetMessage());
+			return;
+		}
 
 		// Redirect
 		//---------
 
-		$this->page->success(lang('base_deleted'));
 		redirect('/dhcp/subnets');
 	}
 
@@ -169,36 +186,34 @@ class Subnets extends ClearOS_Controller
 	 * @return string
 	 */
 
-	function _addedit($iface, $formtype)
+	function _addedit($iface, $form_type)
 	{
 		// Load libraries
 		//---------------
 
 		$this->load->library('dns/DnsMasq');
 		$this->lang->load('dhcp');
-		$this->lang->load('base');
 
 		// Set validation rules
 		//---------------------
 
 		// TODO: Review the messy dns1/2/3 handling
 		$this->load->library('form_validation');
-		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_DnsMasq_ValidateGateway');
-		$this->form_validation->set_rules('lease_time', lang('dhcp_lease_time'), 'required');
-		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_DnsMasq_ValidateStartIp');
-		$this->form_validation->set_rules('end', lang('dhcp_ip_range_end'), 'required|api_dns_DnsMasq_ValidateEndIp');
-		$this->form_validation->set_rules('dns1', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_rules('dns2', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_rules('dns3', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_rules('wins', lang('dhcp_wins'), 'api_dns_DnsMasq_ValidateWins');
-		$this->form_validation->set_rules('tftp', lang('dhcp_tftp'), 'api_dns_DnsMasq_ValidateTftp');
-		$this->form_validation->set_rules('ntp', lang('dhcp_ntp'), 'api_dns_DnsMasq_ValidateNtp');
+		$this->form_validation->set_policy('gateway', 'dns_DnsMasq_ValidateGateway', TRUE);
+		$this->form_validation->set_policy('lease_time', 'dns_DnsMasq_ValidateLeaseTime', TRUE);
+		$this->form_validation->set_policy('start', 'dns_DnsMasq_ValidateStartIp', TRUE);
+		$this->form_validation->set_policy('end', 'dns_DnsMasq_ValidateEndIp', TRUE);
+		$this->form_validation->set_policy('dns1', 'dns_DnsMasq_ValidateDns');
+		$this->form_validation->set_policy('dns2', 'dns_DnsMasq_ValidateDns');
+		$this->form_validation->set_policy('dns3', 'dns_DnsMasq_ValidateDns');
+		$this->form_validation->set_policy('wins', 'dns_DnsMasq_ValidateWins');
+		$this->form_validation->set_policy('tftp', 'dns_DnsMasq_ValidateTftp');
+		$this->form_validation->set_policy('ntp', 'dns_DnsMasq_ValidateNtp');
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
 		//-------------------
 
-		// FIXME: should bomb out if already exists (someone hacking URL)
 		if ($this->input->post('submit') && ($form_ok === TRUE)) {
 			$subnet['network'] = $this->input->post('network');
 			$subnet['gateway'] = $this->input->post('gateway');
@@ -230,10 +245,10 @@ class Subnets extends ClearOS_Controller
 				$this->dnsmasq->Reset();
 
 				// Return to summary page with status message
-				$this->page->success(lang('base_system_updated'));
+				$this->page->set_success(lang('base_system_updated'));
 				redirect('/dhcp/subnets');
 			} catch (Exception $e) {
-				$this->page->exception($e->GetMessage(), $view);
+				$this->page->view_exception($e->GetMessage(), $view);
 				return;
 			}
 		}
@@ -242,16 +257,16 @@ class Subnets extends ClearOS_Controller
 		//------------------- 
 
 		try {
-			if ($formtype === 'add') 
+			if ($form_type === 'add') 
 				$subnet = $this->dnsmasq->GetSubnetDefault($iface);
 			else
 				$subnet = $this->dnsmasq->GetSubnet($iface);
 		} catch (Exception $e) {
-			$this->page->exception($e->GetMessage(), $view);
+			$this->page->view_exception($e->GetMessage(), $view);
 			return;
 		}
 
-		$data['formtype'] = $formtype;
+		$data['form_type'] = $form_type;
 
 		$data['interface'] = $iface;
 		$data['network'] = (isset($subnet['network'])) ? $subnet['network'] : '';
@@ -281,11 +296,11 @@ class Subnets extends ClearOS_Controller
 		// Load the views
 		//---------------
 
-		$page['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
+		$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets'));
 
-		$this->load->view('theme/header', $page);
+		$this->load->view('theme/header');
 		$this->load->view('dhcp/subnets/add_edit', $data);
-		$this->load->view('theme/footer', $page);
+		$this->load->view('theme/footer');
 	}
 }
 

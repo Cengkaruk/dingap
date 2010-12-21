@@ -32,64 +32,71 @@ $this->lang->load('network');
 $this->lang->load('dhcp');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form handler
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
- 
-// Loop through subnet info and display it in HTML table
-//------------------------------------------------------
+
+$headers = array(
+	lang('network_interface'),
+	lang('network_network'),
+	lang('base_status')
+);
+
+///////////////////////////////////////////////////////////////////////////////
+// Anchors 
+///////////////////////////////////////////////////////////////////////////////
+
+$anchors = array();
+
+///////////////////////////////////////////////////////////////////////////////
+// Items
+///////////////////////////////////////////////////////////////////////////////
 
 foreach ($subnets as $interface => $subnetinfo) {
 
 	if (! $subnetinfo["isvalid"]) {
 		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
-		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
+		$action = "/app/dhcp/subnets/edit/" . $interface;
 		$buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface));
 	} else if ($subnetinfo["isconfigured"]) {
 		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
-		$short_action = "<a href='/app/dhcp/subnets/edit/" . $interface . "'>$interface - $status</a>";
+		$action = "/app/dhcp/subnets/edit/" . $interface;
 		$buttons = array(
 				anchor_edit('/app/dhcp/subnets/edit/' . $interface),
 				anchor_delete('/app/dhcp/subnets/delete/' . $interface)
 			);
 	} else {
 		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
-		$short_action = "<a href='/app/dhcp/subnets/add/" . $interface . "'>$interface - $status</a>";
+		$action = "/app/dhcp/subnets/add/" . $interface;
 		$buttons = array(anchor_add('/app/dhcp/subnets/add/' . $interface));
 	}
 
-	$full_actions = button_set($buttons);
+    ///////////////////////////////////////////////////////////////////////////
+    // Item details
+    ///////////////////////////////////////////////////////////////////////////
 
-	// Short summary table
-	$details['simple_title'] = "$interface / " .  $subnetinfo['network'];
-	$details['simple_link'] = $short_action;
-
-	// Long summary table
-	$details['details'] = array(
+	$item['title'] = "$interface / " .  $subnetinfo['network'];
+	$item['action'] = $action;
+	$item['anchors'] = button_set($buttons);
+	$item['details'] = array(
 		$interface,
 		$subnetinfo['network'],
-		$status,
-		$full_actions
+		$status
 	);
 
-	$items[] = $details;
+	$items[] = $item;
 }
 
 sort($items);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Summary table
 ///////////////////////////////////////////////////////////////////////////////
 
-$headers = array(
-	lang('network_interface'),
-	lang('network_network'),
-	lang('base_status'),
-	''
+echo summary_table(
+	lang('dhcp_subnets'),
+	$anchors,
+	$headers,
+	$items
 );
-
-echo summary_table_start(lang('dhcp_subnets'));
-echo summary_table_header($headers);
-echo summary_table_items($items);
-echo summary_table_end();
 
 // vim: ts=4 syntax=php

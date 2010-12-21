@@ -35,13 +35,15 @@ $this->lang->load('dhcp');
 // Form modes
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($formtype === 'edit') {
+if ($form_type === 'edit') {
+	$form_path = '/dhcp/subnets/edit';
 	$buttons = array(
 		form_submit_update('submit'),
 		anchor_cancel('/app/dhcp/subnets/'),
 		anchor_delete('/app/dhcp/subnets/delete/' . $interface)
 	);
 } else {
+	$form_path = '/dhcp/subnets/add';
 	$buttons = array(
 		form_submit_add('submit'),
 		anchor_cancel('/app/dhcp/subnets/')
@@ -52,7 +54,7 @@ if ($formtype === 'edit') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('/dhcp/subnets/edit/' . $interface);
+echo form_open($form_path . '/' . $interface);
 echo form_fieldset(lang('dhcp_subnet'));
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -75,9 +75,9 @@ class Dhcp extends ClearOS_Controller
 		// Load views
 		//-----------
 
-		$header['title'] = lang('dhcp_dhcp');
+		$this->page->set_title(lang('dhcp_dhcp'));
 
-		$this->load->view('theme/header', $header);
+		$this->load->view('theme/header');
 		$this->general->index('form');
 		$this->subnets->index('form');
 		$this->leases->index('form');
@@ -104,9 +104,9 @@ class Dhcp extends ClearOS_Controller
 		$summary['links']['/app/dhcp/subnets'] = lang('dhcp_subnets');
 		$summary['links']['/app/dhcp/leases'] = lang('dhcp_leases');
 
-		$header['title'] = lang('dhcp_dhcp');
+		$this->page->set_title(lang('dhcp_dhcp'));
 
-		$this->load->view('theme/header', $header);
+		$this->load->view('theme/header');
 		$this->load->view('theme/summary', $summary);
 		$this->load->view('theme/footer');
 	}

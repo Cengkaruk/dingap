@@ -32,14 +32,14 @@ $this->lang->load('dhcp');
 // Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($formtype === 'edit') {
-	$readonly = FALSE;
+if ($form_type === 'edit') {
+	$read_only = FALSE;
 	$buttons = array(
 		form_submit_update('submit'),
 		anchor_cancel('/app/dhcp')
 	);
 } else {
-	$readonly = TRUE;
+	$read_only = TRUE;
 	$buttons = array(anchor_edit('/app/dhcp/general'));
 }
 
@@ -54,8 +54,8 @@ echo form_fieldset(lang('dhcp_dhcp') . ' - ' . lang('base_general_settings'));
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_toggle_enable_disable('authoritative', $authoritative, lang('dhcp_authoritative'), $readonly);
-echo field_input('domain', $domain, lang('dhcp_domain'), $readonly);
+echo field_toggle_enable_disable('authoritative', $authoritative, lang('dhcp_authoritative'), $read_only);
+echo field_input('domain', $domain, lang('dhcp_domain'), $read_only);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons
