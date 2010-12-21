@@ -63,7 +63,7 @@ class Date extends ClearOS_Controller
 		// Set validation rules
 		//---------------------
 		 
-		$this->form_validation->set_rules('timezone', lang('date_time_zone'), 'api_date_Time_ValidateTimeZone');
+		$this->form_validation->set_policy('timezone', 'date_Time_ValidateTimeZone', TRUE);
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
