@@ -49,7 +49,7 @@ clearos_load_language('base');
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_library('base/File');
-clearos_load_library('network/Network');
+clearos_load_library('network/NetworkUtils');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -69,22 +69,21 @@ clearos_load_library('network/Network');
 
 class Hosts extends Engine
 {
-
 	///////////////////////////////////////////////////////////////////////////////
 	// V A R I A B L E S
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * @var bool isloaded
+	 * @var bool is_loaded
 	 */
 
-	protected $loaded = null;
+	protected $is_loaded = FALSE;
 
 	/**
 	 * @var array hosts_array
 	 */
 
-	protected $hostdata = null;
+	protected $hostdata = array();
 
 	const FILE_CONFIG = '/etc/hosts';
 
@@ -93,215 +92,72 @@ class Hosts extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * Hosts constructor.
-	 *
-	 * @return void
-	 */
-
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		$this->hostdata = array();
-		$this->loaded = false;
-
-		parent::__construct();
-
-	}
-
-	/**
-	 * Returns information in the /etc/hosts file in an array.
-	 * The array is indexed on IP, and contains an array of associated hosts.
-	 *
-	 * @return  array  list of host information
-	 * @throws EngineException
-	 */
-
-	public function GetHosts()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		if (! $this->loaded)
-			$this->_LoadHostList();
-
-		return $this->hostdata;
-	}
-
-	/**
-	 * Returns the IP address for the given hostname.
-	 *
-	 * @param  string $hostname  Hostname
-	 * @return  string ip
-	 * @throws EngineException
-	 */
-
-	public function GetIpByHostname($hostname)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		if (! $this->loaded)
-			$this->_LoadHostList();
-
-		foreach ($this->hostdata as $ip => $hostnames) {
-			foreach ($hostnames as $hst) {
-				if (strcasecmp($hostname, $hst) == 0)
-					return $ip;
-			}
-		}
-
-		return;
-	}
-
-	/**
-	 * Returns the hostname for the given IP address.
+	 * Add an entry to the /etc/hosts file.
 	 *
 	 * @param string $ip IP address
-	 * @return array an array containing hostnames
-	 * @throws EngineException
-	 */
-
-	public function GetHostnamesByIp($ip)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		if (! $this->loaded)
-			$this->_LoadHostList();
-
-		$hostnames = array();
-
-		if (isset($this->hostdata[$ip]))
-			$hostnames = $this->hostdata[$ip];
-
-		return $hostnames;
-	}
-
-	/**
-	 * Add a host to the /etc/hosts file.
-	 *
-	 * @param  string  $ip  IP address
-	 * @param  string  $hostnames  array of hostnames
+	 * @param string $hostname canonical hostname
+	 * @param string $aliases array of aliases
 	 * @returns void
 	 * @throws  ValidationException, EngineException
 	 */
 
-	public function AddHost($ip, $hostnames)
+	public function AddEntry($ip, $hostname, $aliases = array())
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if (! $this->loaded)
-			$this->_LoadHostList();
+		// Validate
+		//---------
 
-		// Validation
-		$network = new Network();
+		if ($error = $this->ValidateIp($ip))
+			throw new ValidationException($error);
 
-		if (! $network->IsValidIp($ip))
-			throw new ValidationException(NETWORK_LANG_IP . ' (' . $ip . ') - ' . LOCALE_LANG_INVALID);
+		if ($error = $this->ValidateHostname($hostname))
+			throw new ValidationException($error);
 
-		// Already exists
-		$existing = $this->GetHostnamesByIp($ip);
+		foreach ($aliases as $alias) {
+			if ($error = $this->ValidateAlias($alias))
+				throw new ValidationException($error);
+		}
 
-		if (count($existing) > 0)
-			throw new ValidationException($ip . " - " . LOCALE_LANG_ALREADY_EXISTS);
+		if ($this->EntryExists($ip))
+			throw new ValidationException('Entry already exists for this IP'); // FIXME: translate
 
 		// Add
-		if (is_array($hostnames)) {
-			foreach ($hostnames as $index => $host) {
-				if ($network->IsValidHostnameAlias($host)) {
-					$duplicate = $this->GetIpByHostname($host);
+		//----
 
-					if ($duplicate)
-						throw new EngineException($duplicate . '/' . $host . ' - ' . LOCALE_LANG_ALREADY_EXISTS, COMMON_ERROR);
-				} else {
-					throw new ValidationException(HOSTS_LANG_HOSTNAME . " ($host) - " . LOCALE_LANG_INVALID);
-				}
-			}
-		} else {
-			// If adding a FQDN, then add the simple hostname also
-			$parts = explode('.', $hostnames);
-
-			if (isset($parts[1])) {
-				$hostnames = array();
-				$hostnames[] = implode('.', $parts);
-				$hostnames[] = $parts[0];
-				// Recusively add both hosts
-				$this->AddHost($ip, $hostnames);
-				return;
-			} else {
-				// Hostnames must have a period.
-				throw new ValidationException(HOSTS_LANG_HOSTNAME . ' (' . $hostnames . ') - ' . LOCALE_LANG_INVALID);
-			}
-		}
+		$this->_LoadEntries();
 
 		try {
 			$file = new File(self::FILE_CONFIG);
-			$file->AddLines($ip . ' ' . trim(implode(' ', $hostnames)) . "\n");
+			$file->AddLines("$ip $hostname " . implode(' ', $aliases) . "\n");
 		} catch (Exception $e) {
 			throw new EngineException($e->GetMessage(), COMMON_ERROR);
 		}
 
 		// Force a re-read of the data
-		$this->loaded = false;
+		$this->is_loaded = FALSE;
 	}
 
 	/**
-	 * Updates hostnames for a given IP address.
-	 *
-	 * @param   string  $ip  IP address
-	 * @param   array  $hostnames  array of hostnames
-	 * @returns void
-	 * @throws  ValidationException, EngineException
-	 */
-
-	public function UpdateHost($ip, $hostnames)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		// Validation
-		$network = new Network();
-
-		if (! $network->IsValidIp($ip))
-			throw new ValidationException(NETWORK_LANG_IP . ' (' . $ip . ') - ' . LOCALE_LANG_INVALID);
-
-		if (! is_array($hostnames))
-			$hostnames = array($hostnames);
-
-		foreach ($hostnames as $host) {
-			if (! $network->IsValidHostnameAlias($host))
-				throw new ValidationException(HOSTS_LANG_HOSTNAME . " ($host) - " . LOCALE_LANG_INVALID);
-		}
-
-		// If there are no hostnames associated w/the ip then delete it
-		if (count(array_filter($hostnames)) == 0)
-			$this->DeleteHost($ip);
-
-		try {
-			$file = new File(self::FILE_CONFIG);
-			$file->ReplaceLines("/^$ip\s+/i", "$ip  " . implode(' ', $hostnames) . "\n");
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
-
-		// Force a reload
-		$this->loaded = false;
-	}
-
-	/**
-	 * Delete a host from the /etc/hosts file.
+	 * Delete an entry from the /etc/hosts file.
 	 *
 	 * @param  string $ip  IP address
 	 * @returns void
 	 * @throws  ValidationException, EngineException
 	 */
 
-	public function DeleteHost($ip)
+	public function DeleteEntry($ip)
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		// Validation
-		$network = new Network();
+		// Validate
+		//---------
 
-		if (! $network->IsValidIp($ip))
-			throw new ValidationException(NETWORK_LANG_IP . ' (' . $ip . ') - ' . LOCALE_LANG_INVALID);
+		if ($error = $this->ValidateIp($ip))
+			throw new ValidationException($error);
+
+		// Delete
+		//-------
 
 		try {
 			$file = new File(self::FILE_CONFIG);
@@ -311,7 +167,220 @@ class Hosts extends Engine
 		}
 
 		// Force a reload
-		$this->loaded = false;
+		$this->is_loaded = FALSE;
+	}
+
+	/**
+	 * Updates hosts entry for given IP address
+	 *
+	 * @param string $ip IP address
+	 * @param string $hostname caononical hostname
+	 * @param array $aliases aliases
+	 * @returns void
+	 * @throws ValidationException, EngineException
+	 */
+
+	public function EditEntry($ip, $hostname, $aliases = array())
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// Validate
+		//---------
+
+		if ($error = $this->ValidateIp($ip))
+			throw new ValidationException($error);
+
+		if ($error = $this->ValidateHostname($hostname))
+			throw new ValidationException($error);
+
+		foreach ($aliases as $alias) {
+			if ($error = $this->ValidateAlias($alias))
+				throw new ValidationException($error);
+		}
+
+		if (! $this->EntryExists($ip))
+			throw new ValidationException('No entry exists for this IP'); // FIXME: translate
+
+		// Update
+		//-------
+
+		try {
+			$file = new File(self::FILE_CONFIG);
+			$file->ReplaceLines("/^$ip\s+/i", "$ip $hostname " . implode(' ', $aliases) . "\n");
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+
+		// Force a reload
+		$this->is_loaded = FALSE;
+	}
+
+	/**
+	 * Returns the hostname and aliases for the given IP address.
+	 *
+	 * @param string $ip IP address
+	 * @return array an array containing the hostname and aliases
+	 * @throws EngineException
+	 */
+
+	public function GetEntry($ip)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// Validate
+		//---------
+
+		if ($error = $this->ValidateIp($ip))
+			throw new ValidationException($error);
+
+		// Get Entry
+		//----------
+
+		$this->_LoadEntries();
+
+		foreach ($this->hostdata as $real_ip => $entry) {
+			if ($entry['ip'] == $ip)
+				return $entry;
+		}
+
+		throw new ValidationException("No entry exists for this IP");  // FIXME: translate
+	}
+
+	/**
+	 * Returns information in the /etc/hosts file in an array.
+	 *
+	 * The array is indexed on IP, and contains an array of associated hosts.
+	 *
+	 * @return  array  list of host information
+	 * @throws EngineException
+	 */
+
+	public function GetEntries()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$this->_LoadEntries();
+
+		return $this->hostdata;
+	}
+
+	/**
+	 * Returns the IP address for the given hostname.
+	 *
+	 * @param string $hostname hostname
+	 * @return string IP address if hostname exists, NULL if it does not
+	 * @throws EngineException
+	 */
+
+	public function GetIpByHostname($hostname)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// Validate
+		//---------
+
+		if ($error = $this->ValidateHostname($hostname))
+			throw new ValidationException($error);
+
+		// Get Entry
+		//----------
+
+		$this->_LoadEntries();
+
+		foreach ($this->hostdata as $real_ip => $entry) {
+			if ($entry['hostname'] === $hostname)
+				return $entry['ip'];
+
+			foreach ($entry['aliases'] as $alias) {
+				if ($alias === $hostname)
+					return $entry['ip'];
+			}
+		}
+
+		return NULL;
+	}
+
+	/**
+	 * Checks to see if entry exists.
+	 *
+	 * @param string $ip IP address
+	 * @return boolean true if entry exists
+	 * @throws EngineException
+	 */
+
+	public function EntryExists($ip)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// Validate
+		//---------
+
+		if ($error = $this->ValidateIp($ip))
+			throw new ValidationException($error);
+
+		// Get Entry
+		//----------
+
+		$this->_LoadEntries();
+
+		foreach ($this->hostdata as $real_ip => $entry) {
+			if ($entry['ip'] == $ip)
+				return TRUE;
+		}
+
+		return FALSE;
+	}
+
+	///////////////////////////////////////////////////////////////////////////////
+	// V A L I D A T I O N   R O U T I N E S
+	///////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Validates a hostname alias.
+	 *
+	 * @param string $alias alias
+	 * @return string error message if alias is invalid
+	 */
+
+	public function ValidateAlias($alias)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$network = new NetworkUtils();
+
+		return $network->ValidateHostnameAlias($alias);
+	}
+
+	/**
+	 * Validates a hostname.
+	 *
+	 * @param string $hostname hostname
+	 * @return string error message if hostname is invalid
+	 */
+
+	public function ValidateHostname($hostname)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$network = new NetworkUtils();
+
+		return $network->ValidateHostname($hostname);
+	}
+
+	/**
+	 * Validates IP address entry.
+	 *
+	 * @param string $hostname hostname
+	 * @return string error message if hostname is invalid
+	 */
+
+	public function ValidateIp($ip)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$network = new NetworkUtils();
+
+		return $network->ValidateIp($ip);
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -319,53 +388,49 @@ class Hosts extends Engine
 	///////////////////////////////////////////////////////////////////////////////
 
 	/**
+	 * Loads host info from /etc/hosts.
+	 *
 	 * @access private
+	 * @throws EngineException
 	 */
 
-	public function __destruct()
+	protected function _LoadEntries()
 	{
 		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		parent::__destruct();
-	}
+		if ($this->is_loaded)
+			return;
 
-	/**
-	 * Load host info from /etc/hosts into array.
-	 * @private
-	 * @throws  EngineException
-	 */
-
-	private function _LoadHostList()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		if (! $this->loaded) {
-			// Get list of descriptions
-
-			try {
-				$file = new File(self::FILE_CONFIG);
-				$contents = $file->GetContentsAsArray();
-				$hostdata = array();
-				foreach($contents as $line) {
-					if (preg_match('/^#/', $line))
-						continue;
-
-					$parts = preg_split('/[\s]+/', $line);
-
-					if ($parts[0]) {
-						$network = new Network;
-						if ($network->isValidIp($parts[0]) && $parts[1] != '')
-							$hostdata[$parts[0]] = array_slice($parts, 1);
-					}
-				}
-
-				ksort($hostdata);
-				$this->hostdata = $hostdata;
-				$this->loaded = true;
-			} catch (Exception $e) {
-				throw new EngineException($e->GetMessage(), COMMON_ERROR);
-			}
+		try {
+			$file = new File(self::FILE_CONFIG);
+			$contents = $file->GetContentsAsArray();
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
 		}
+
+		$hostdata = array();
+
+		foreach($contents as $line) {
+
+			$entries = preg_split('/[\s]+/', $line);
+			$ip = array_shift($entries);
+
+			// TODO: IPv6 won't work with ip2long
+
+			if ($this->ValidateIp($ip))
+				continue;
+
+			// Use long IP for proper sorting
+			$ip_real = ip2long($ip);
+
+			$this->hostdata[$ip_real]['ip'] = $ip;
+			$this->hostdata[$ip_real]['hostname'] = array_shift($entries);
+			$this->hostdata[$ip_real]['aliases'] = $entries;
+		}
+
+		ksort($this->hostdata);
+
+		$this->is_loaded = TRUE;
 	}
 }
 
