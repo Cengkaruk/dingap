@@ -45,12 +45,12 @@
  * @return HTML for anchor
  */
 
-function _anchor($url, $text, $importance, $class, $id)
+function theme_anchor($url, $text, $importance, $class, $id)
 {
 	// FIXME: revisit importance
 	$importance_class = ($importance === 'high') ? "clearos-anchor-important" : "clearos-anchor-unimportant";
 
-	return "<a href='$url' id='$id' class='clearos-anchor $class $importance' data-role='button' data-inline='true'>$text</a>";
+	return "<a rel='external' href='$url' id='$id' class='clearos-anchor $class $importance' data-role='button' data-inline='true'>$text</a>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ function _anchor($url, $text, $importance, $class, $id)
  * @return HTML for button
  */
 
-function _form_submit($name, $text, $importance, $class, $id)
+function theme_form_submit($name, $text, $importance, $class, $id)
 {
 	$importance_class = ($importance === 'high') ? "clearos-form-important" : "clearos-form-unimportant";
 
@@ -97,7 +97,7 @@ function theme_button_set($buttons, $id)
 		$button_html .= "\n\t\t\t" . trim($button);
 
 	return "
-		<div data-role='controlgroup' data-type='horizontal' id='$id'>$button_html
+		<div class='theme-button-group' data-role='controlgroup' data-type='horizontal' id='$id'>$button_html
 		</div>
 	";
 
@@ -124,7 +124,7 @@ function theme_field_view($value, $label, $input_id, $ids = NULL)
 	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
 
 	return "
-		<div data-role='fieldcontain'$field_id_html>
+		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
 			<span id='$input_id'>$value</span>
 		</div>
@@ -157,7 +157,7 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
 	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
 	return "
-		<div data-role='fieldcontain'$field_id_html>
+		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
 			<input type='text' name='$name' value='$value' id='$input_id'> $error_html
 		</div>
@@ -174,21 +174,25 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
  * @param string $name HTML name of text input element
  * @param string $value value of text input 
  * @param string $label label for text input field
+ * @param string $error validation error message
  * @param string $input_id input ID
  * @param array $ids other optional HTML IDs
  * @return string HTML for dropdown
  */
 
-function theme_field_dropdown($name, $selected, $label, $options, $input_id, $ids)
+function theme_field_dropdown($name, $selected, $label, $error, $options, $input_id, $ids)
 {
 	$input_id_html = " id='" . $input_id . "'";
 	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
 	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
 	return "
-		<div data-role='fieldcontain'$field_id_html>
+		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
-			" . form_dropdown($name, $options, $selected, $input_id_html) . " 
+			" . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html
 		</div>
 	";
 }
@@ -197,16 +201,19 @@ function theme_field_dropdown($name, $selected, $label, $options, $input_id, $id
 // F I E L D  T O G G L E
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_field_toggle_enable_disable($name, $selected, $label, $options, $input_id, $ids)
+function theme_field_toggle_enable_disable($name, $selected, $label, $error, $options, $input_id, $ids)
 {
 	$input_id_html = " id='" . $input_id . "'";
 	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
 	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
 	return "
-		<div data-role='fieldcontain'$field_id_html>
+		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
-			" . form_dropdown($name, $options, $selected, $input_id_html . " data-role='slider'") . " 
+			" . form_dropdown($name, $options, $selected, $input_id_html . " data-role='slider'") . " $error_html
 		</div>
 	";
 }
@@ -215,8 +222,10 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $options, $
 // S U M M A R Y  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_summary_table($title, $headers, $items)
+function theme_summary_table($title, $anchors, $headers, $items, $legend = NULL)
 {
+	$columns = count($headers) + 1;
+
 	// Header parsing
 	//---------------
 
@@ -226,13 +235,23 @@ function theme_summary_table($title, $headers, $items)
 	foreach ($headers as $header)
 		$header_html .= "\n\t\t" . trim("<th>$header</th>");
 
+	// Add button
+	//-----------
+
+	//  FIXME $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+
+	// Legend parsing
+	//---------------
+
+	// FIXME
+	$legend_html = '';
 	// Item parsing
 	//-------------
 
 	$item_html = '';
 
-	foreach ($items as $details)
-		$item_html .= "\n\t\t\t\t<li><a href='" . $details['edit_anchor'] . "'>" . $details['title'] . "</li>";
+	foreach ($items as $item)
+		$item_html .= "\n\t\t\t\t<li><a rel='external' href='" . $item['action'] . "'>" . $item['title'] . "</a></li>";
 
 	// Summary table
 	//--------------
@@ -251,42 +270,40 @@ function theme_summary_table($title, $headers, $items)
 // C O N F I R M A T I O N  D I A L O G B O X
 ///////////////////////////////////////////////////////////////////////////////
 
-function _dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
+function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 {
 // FIXME - icons and translate
-    $class = 'ui-state-error';
-    $iconclass = 'ui-icon-alert';
+	$class = 'ui-state-error';
+	$iconclass = 'ui-icon-alert';
 
-    echo "
-        <div class='ui-widget'>
-            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
-                <p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
-                <p>" . anchor_update($ok_anchor, 'OK') . ' ' . anchor_cancel($cancel_anchor) . "</p>
-            </div>
-        </div>
-    ";
+	echo "
+		<div class='ui-widget'>
+			<div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+				<p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
+				<p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
+			</div>
+		</div>
+	";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// S U M M A R Y  V I E W
+// C O N T R O L  P A N E L
 ///////////////////////////////////////////////////////////////////////////////
 
-function _clearos_summary_page($links)
+function theme_control_panel($links)
 {
-	$html = "
-		<div>
-			<ul data-role='listview'>
-	";
+	$items = '';
 
 	foreach ($links as $link => $title)
-		$html .= "<li><a href='$link'>$title</a></li>\n";
+		$items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
 
-	$html .= "
+	return "
+		<div>
+			<ul data-role='listview'>
+				$items
 			</ul>
 		</div>
 	";
-
-	return $html;
 }
 
 // vim: syntax=php ts=4

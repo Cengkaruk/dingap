@@ -45,15 +45,48 @@
 
 function page_footer($page)
 {
+	$menu_items = '';
+
+	foreach ($page['menus'] as $url => $detail) {
+		$menu_items .= "\n\t\t\t<li><a rel='external' href='" . $url . "'>" . $detail['title'] . "</a></li>";
+	}
+/*
+	$menu_items = "
+	<li><a href='acura.html'>Acura</a></li>
+	<li data-role='list-divider'>Audi3</li>
+	<li><a href='bmw.html'>BMW</a></li>
+	";
+*/
+
+	$links = "<a href='/app/base/theme/set/clearos6x' data-role='button' data-icon='gear' rel='external'>" . lang('base_full_view') . "</a>";
+
 	$footer = "
 
 <!-- Footer --> 
 	</div>
 	<div data-role='footer' class='ui-bar'>
-		<a href='/app/base/theme/set/clearos6x' data-role='button' data-icon='gear' rel='external'>" . lang('base_full_view') . "</a>
-		<a href='/app/base/logout' data-role='button' data-icon='refresh'>" . lang('base_logout') . "</a>
+		$links
 	</div>
 </div>
+
+
+<!-- Menu --> 
+<div data-role='page' data-theme='b' id='menu' class='theme-page-container'>
+	<div data-role='header'>
+		<h1>Menu</h1>
+	</div>
+
+	<div data-role='content'>	
+		<ul data-role='listview' data-theme='g'>$menu_items
+		</ul>
+	</div>
+
+	<div data-role='footer' class='ui-bar'>
+		$links
+	</div>
+</div>
+
+
 </body>
 </html>
 ";

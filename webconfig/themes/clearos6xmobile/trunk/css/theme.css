@@ -1,3 +1,41 @@
+/* ------------------------------------------------------------------------- */
+/* Standard HTML Tags */
+/* ------------------------------------------------------------------------- */
+
+.body {
+  font-size: 8pt;
+}
+
+/* FIXME: just a developer hack for a mobile-looking view in a desktop browser */
+.devel-max-width {
+  max-width: 400px !important;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Forms */
+/* ------------------------------------------------------------------------- */
+
+fieldset div {
+  padding: 3px; 
+}
+fieldset legend {
+  font-weight: bold;
+  width: 100%;
+  border-bottom: solid 1px #333333;
+}
+fieldset label {
+  font-weight: bold !important;
+}
+
+
+/* ------------------------------------------------------------------------- */
+/* Buttons */
+/* ------------------------------------------------------------------------- */
+
+.theme-button-group {
+  font-size: 80%;
+}
+
 /* Buttons */
 .ui-icon-form-button-add { background-position: -0 0; }
 .ui-icon-form-button-update { background-position: -0 0; }
@@ -12,14 +50,5 @@
   border: solid 1px red;
   padding: 3px;
   margin: 2px;
-}
-
-/* Forms */
-fieldset legend {
-  font-size: 120%;
-  font-weight: bold;
-}
-fieldset label {
-  font-weight: bold;
 }
 

@@ -69,19 +69,18 @@ function _header_default_layout($page)
 {
 	// FIXME - needs to be splash too
 	if (isset($page['status_success']))
-		$success = infobox_highlight($data['status_success']);
+		$success = infobox_highlight($page['status_success']);
 	else
 		$success = '';
-
 
 	$header = "
 <!-- Body -->
 <body>
 
-<div data-role='page' data-theme='b'> 
+<div data-role='page' data-theme='b' id='theme-page' class='theme-page-container'> 
 	<div data-role='header'>
 		<h1>" . $page['title'] . "</h1>
-		<a href='/app/dashboard/menu' data-icon='gear' class='ui-btn-right'>" . lang('base_menu') . "</a>
+		<a href='#menu' data-icon='gear' class='ui-btn-right'>" . lang('base_menu') . "</a>
 	</div>
 	<div data-role='content'>
 

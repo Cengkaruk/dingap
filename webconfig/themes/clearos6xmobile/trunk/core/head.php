@@ -51,6 +51,7 @@ function page_head($theme_path)
 
 <!-- Theme Javascript -->
 <script type='text/javascript' src='$theme_path/js/jquery.mobile-1.0a2.min.js'></script>
+<script type='text/javascript' src='$theme_path/js/theme.js'></script>
 
 ";
 }
