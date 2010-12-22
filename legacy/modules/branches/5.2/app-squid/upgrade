@@ -53,6 +53,16 @@ if [ -z "$CHECK" ]; then
 	echo "follow_x_forwarded_for allow localhost" >> /etc/squid/squid.conf
 fi
 
+# Explicitly specify access_log
+#------------------------------
+
+CHECK=`grep "^access_log[[:space:]]" /etc/squid/squid.conf 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-squid - adding access_log parameter"
+	echo "" >> /etc/squid/squid.conf
+	echo "access_log /var/log/squid/access.log squid" >> /etc/squid/squid.conf
+fi
+
 # Remove deprecated
 #------------------
 
@@ -88,15 +98,3 @@ if [ "$CHECKOWNERSHIP" != "root.squid" ]; then
 	logger -p local6.notice -t installer "app-squid - updating file ownership of squid.conf"
 	chown root.squid /etc/squid/squid.conf
 fi
-
-# Remove deprecated MAC address support
-#--------------------------------------
-
-IFS=""
-ARPACLS=`grep "^acl pcngroup.* arp .*" /etc/squid/squid.conf 2>/dev/null`
-for ACL in $ARPACLS; do
-	GROUP=`echo $ACL | awk '{ print $2 }'`
-	logger -p local6.notice -t installer "app-squid - removing deprecated ARP configuration: $GROUP"
-	sed -i -e "s/^acl $GROUP arp/# acl $GROUP arp/" /etc/squid/squid.conf
-	sed -i -e "s/^http_access allow $GROUP /# http_access allow $GROUP/" /etc/squid/squid.conf
-done
