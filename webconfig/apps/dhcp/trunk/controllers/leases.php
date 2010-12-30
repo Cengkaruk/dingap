@@ -50,8 +50,8 @@ class Leases extends ClearOS_Controller
 	 * DHCP server overview.
 	 */
 
-    function index($view = 'page')
-    {
+	function index($view = 'page')
+	{
 		// Handle theme mode redirects
 		//----------------------------
 
@@ -72,10 +72,9 @@ class Leases extends ClearOS_Controller
 		try {
 			$data['leases'] = $this->dnsmasq->GetLeases();
 		} catch (Exception $e) {
-			$this->status->halt($e->GetMessage(), $view);
+			$this->page->view_exception($e->GetMessage(), $view);
 			return;
 		}
-
  
 		// Load views
 		//-----------
@@ -86,9 +85,9 @@ class Leases extends ClearOS_Controller
 
 		} else if ($view == 'page') {
 			
-			$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_leases');
+			$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('dhcp_leases'));
 
-			$this->load->view('theme/header', $header);
+			$this->load->view('theme/header');
 			$this->load->view('dhcp/leases/summary', $data);
 			$this->load->view('theme/footer');
 		}
@@ -107,28 +106,26 @@ class Leases extends ClearOS_Controller
 	}
 
 	/**
-	 * DHCP server delete subnet.
+	 * DHCP server delete leases view.
 	 *
+	 * @param string $mac MAC address
+	 * @param string $ip IP address
 	 * @return string
 	 */
 
-	function delete($iface = null, $confirm = FALSE)
+	function delete($mac, $ip)
 	{
-		// FIXME: hmmm... should confirmation boxes be configurable?
-		// e.g. should someone be able to click on "never confirm" for a particular session.
-		// For this case it's not a big deal, but what about deleting a doz
+		echo "not yet implemented";
+	}
 
-		if (!$confirm) {
-			$data['message'] = 'Are you sure you want to delete the lease ...';
-			$data['ok_anchor'] = '/app/dhcp/subnets/delete/' . $iface . '/confirm';
-			$data['cancel_anchor'] = '/app/dhcp/subnets';
-		
-			$this->load->view('theme/header', $header);
-			$this->load->view('theme/confirm', $data);
-			$this->load->view('theme/footer');
-			return;
-		}
+	/**
+	 * Destroys DHCP server subnet.
+	 *
+	 * @return view
+	 */
 
+	function destroy($iface)
+	{
 		// Load libraries
 		//---------------
 
