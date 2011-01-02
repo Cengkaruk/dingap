@@ -83,7 +83,7 @@ function _header_default_layout($page)
 
 	$left_menu = $menus['left_menu'];
 	$top_menu = $menus['top_menu'];
-	$active_section_number = $menus['active'];
+	$active_category_number = $menus['active'];
 
 	$header = "
 <!-- Body -->
@@ -118,7 +118,7 @@ function _header_default_layout($page)
 	});
 
 	$(document).ready(function(){
-		$('#clearos6x-left-menu').accordion({ autoHeight: false, active: $active_section_number });
+		$('#clearos6x-left-menu').accordion({ autoHeight: false, active: $active_category_number });
 	});
 </script>
 
@@ -192,41 +192,41 @@ function _get_menu($menu_pages) {
 	preg_match('/\/app\/[^\/]*/', $_SERVER['PHP_SELF'], $matches);
 	$basepage = $matches[0];
 
-	// Pick out the current pages section and subsection for menu highlighting
+	// Pick out the current pages category and subcategory for menu highlighting
 	foreach ($menu_pages as $url => $pageinfo) {
 		if ($url == $basepage) {
 			$highlight['page'] = $url;
-			$highlight['section'] = $pageinfo['section'];
-			$highlight['subsection'] = $pageinfo['section'] . $pageinfo['subsection'];
+			$highlight['category'] = $pageinfo['category'];
+			$highlight['subcategory'] = $pageinfo['category'] . $pageinfo['subcategory'];
 		}
 	}
 
-	$section = array();
+	$category = array();
 
 	$top_menu = "";
 	$left_menu = "";
-	$current_section = "";
-	$current_subsection = "";
-	$section_count = 0;
-	$active_section_number = 0;
-	$sections = array();
+	$current_category = "";
+	$current_subcategory = "";
+	$category_count = 0;
+	$active_category_number = 0;
+	$categories = array();
 
 	foreach ($menu_pages as $url => $page) {
-		// section + sub-section
-		$sss = $page['section'] . $page['subsection'];
-		if (isset($sections[$sss])) {
-			$sections[$sss]++;
+		// category + subcategory
+		$sss = $page['category'] . $page['subcategory'];
+		if (isset($categories[$sss])) {
+			$categories[$sss]++;
 		} else {
-			$sections[$sss] = 1;
+			$categories[$sss] = 1;
 		}
 	}
 
 	foreach ($menu_pages as $url => $page) {
-		// section + sub-section
-		$sss = $page['section'] . $page['subsection'];
+		// category + subcategory
+		$sss = $page['category'] . $page['subcategory'];
 		
-		if ($page['section'] != $current_section) {
-			// Don't close top menu section on first run
+		if ($page['category'] != $current_category) {
+			// Don't close top menu category on first run
 			if (! empty($top_menu)) {
 				$top_menu .= "\t\t\t</ul>\n";
 				$top_menu .= "\t\t</li>\n";
@@ -235,35 +235,35 @@ function _get_menu($menu_pages) {
 				$left_menu .= "    </div>\n";
 			}
 
-			if ($page['section'] == $highlight['section']) {
-				$active_section_number = $section_count;
+			if ($page['category'] == $highlight['category']) {
+				$active_category_number = $category_count;
 				$top_menu .= "\t\t<li class='sfCurrent'>\n";
-				$top_menu .= "\t\t\t<a class='sf-with-url sfCurrent' href='#' onclick=\"$('#clearos6x-left-menu').accordion('activate', $section_count);\">" . $page['section'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
+				$top_menu .= "\t\t\t<a class='sf-with-url sfCurrent' href='#' onclick=\"$('#clearos6x-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
 			} else {
 				$top_menu .= "\t\t<li>\n";
-				$top_menu .= "\t\t\t<a class='sf-with-url' href='#' onclick=\"$('#clearos6x-left-menu').accordion('activate', $section_count);\">" . $page['section'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
+				$top_menu .= "\t\t\t<a class='sf-with-url' href='#' onclick=\"$('#clearos6x-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
 			}
 
 			$top_menu .= "\t\t\t<ul>\n";
 
 			// Left menu block
-			$left_menu .= "    <h3 class='theme-left-menu-header'><a href='#'>{$page['section']}</a></h3>\n";
+			$left_menu .= "    <h3 class='theme-left-menu-header'><a href='#'>{$page['category']}</a></h3>\n";
 			$left_menu .= "    <div>\n";
 			$left_menu .= "        <ul class='theme-left-menu-list'>\n";
 
-			$current_section = $page['section'];
-			$section_count++;
+			$current_category = $page['category'];
+			$category_count++;
 		}
 		
 		$activeClass = ($url == $highlight['page']) ? 'menu-item-active' : '';
 
-		if ($current_subsection != $page['subsection']) {
-			$current_subsection = $page['subsection'];
-			$left_menu .= "\t\t\t\t<li class='clearos6x-left-menu-subsection'>{$page['subsection']}</li>\n";
-			$top_menu .= "\t\t\t\t<li class='clearos6x-top-menu-subsection'>{$page['subsection']}</li>\n";
+		if ($current_subcategory != $page['subcategory']) {
+			$current_subcategory = $page['subcategory'];
+			$left_menu .= "\t\t\t\t<li class='clearos6x-left-menu-subcategory'>{$page['subcategory']}</li>\n";
+			$top_menu .= "\t\t\t\t<li class='clearos6x-top-menu-subcategory'>{$page['subcategory']}</li>\n";
 		}
 
-		if ($sections[$sss] == 1) {
+		if ($categories[$sss] == 1) {
 			$top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
 			$left_menu .= "            <li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
 		} else {
@@ -280,7 +280,7 @@ function _get_menu($menu_pages) {
 
 	$menus['top_menu'] = $top_menu;
 	$menus['left_menu'] = $left_menu;
-	$menus['active'] = $active_section_number;
+	$menus['active'] = $active_category_number;
 
 	return $menus;
 }
