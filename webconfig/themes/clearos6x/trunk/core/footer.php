@@ -53,7 +53,7 @@ function page_footer($page)
 
 <!-- Footer -->
 	</div>
-	<div id='clearos6x-layout-footer'>
+	<div id='theme-footer-container'>
 		Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
 		<b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
 	</div>
@@ -66,17 +66,12 @@ function page_footer($page)
 
 
 <!-- Footer -->
-				</td>
-			</tr>
-		</table>
 	</div>
 </div>
 </body>
 </html>
 ";
 	}
-
-	// FIXME: what to do on invalid layout?
 
 	return $footer;
 }

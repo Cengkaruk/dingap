@@ -67,12 +67,6 @@ function page_header($page)
 
 function _header_default_layout($page)
 {
-	// FIXME: just for the developer release
-	$FIXME_developer_note = infobox_highlight("
-	<p>For mobile view, <a href='/app/base/theme/set/clearos6xmobile'>click here</a>.</p>
-	<p>To return to this theme, click on <b>Full View</b> in the mobile footer.</p>
-	");
-
 	// FIXME - needs to be splash too
 	if (empty($page['status_success']))
 		$success = '';
@@ -83,7 +77,7 @@ function _header_default_layout($page)
 
 	$left_menu = $menus['left_menu'];
 	$top_menu = $menus['top_menu'];
-	$active_category_number = $menus['active'];
+	$active_category_number = $menus['active_category'];
 
 	$header = "
 <!-- Body -->
@@ -91,49 +85,60 @@ function _header_default_layout($page)
 
 
 <!-- Page Container -->
-<div id='clearos6x-layout-container'>
+<div id='theme-page-container'>
 
-
-<!-- Header -->
-<div id='clearos6x-layout-header'>
-	<div id='clearos6x-header-background'></div>
-	<div id='clearos6x-header-logo'></div>
-	<div id='clearos6x-header-fullname'>" . lang('base_welcome') . "</div>
+<!-- Banner -->
+<div id='theme-banner-container'>
+	<div id='theme-banner-background'></div>
+	<div id='theme-banner-logo'></div>
+	<div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
+	<div id='theme-banner-logout'><a href='/app/base/session/logout'>" . lang('base_logout') . "</a></div>
 </div>
 
-<!-- Top Menu -->
-<div id='clearos6x-layout-top-menu' class=''>
-	<ul id='clearos6x-top-menu-list' class='sf-menu'>
-		$top_menu
-	</ul>		
-</div>
-
-<!-- Left Menu -->
+<!-- Menu Javascript -->
 <script type='text/javascript'> 
 	$(document).ready(function() { 
-		$('#clearos6x-top-menu-list').superfish({
+		$('#theme-top-menu-list').superfish({
 			delay: 800,
 			pathLevels: 0
 		});
 	});
 
 	$(document).ready(function(){
-		$('#clearos6x-left-menu').accordion({ autoHeight: false, active: $active_category_number });
+		$('#theme-left-menu').accordion({ autoHeight: false, active: $active_category_number });
 	});
 </script>
 
+<!-- Top Menu -->
+<div id='theme-top-menu-container'>
+	<ul id='theme-top-menu-list' class='sf-menu'>
+$top_menu
+	</ul>		
+</div>
 
-<div id='clearos6x-layout-left-menu'>
-	<div id='clearos6x-left-menu-top'></div>
-	<div id='clearos6x-left-menu'>
-		$left_menu
+<!-- Left Menu -->
+<div id='theme-left-menu-container'>
+	<div id='theme-left-menu-top'></div>
+	<div id='theme-left-menu'>
+$left_menu
 	</div>
-	<div style='margin-left: 15px;'>$FIXME_developer_note</div>
 </div>
 
 <!-- Content -->
-<div id='clearos6x-layout-content'>
+<div id='theme-content-container'>
 ";
+/*
+
+<!-- Summary Widget -->
+<div class='theme-summary-box-container ui-widget'>
+	<div class='clearos-summary-box-header ui-state-active ui-corner-top'>
+		<div class='clearos-summary-box-title'>DHCP Server Summary</div>
+	</div>
+	<div>Stuff in here.
+	</div>
+</div>
+";
+*/
 
 	$header .= $success;
 
@@ -157,20 +162,14 @@ function _header_splash_layout($page)
 <body>
 
 <!-- Page Container -->
-<div id='clearos_container'>
+<div id='theme-page-container'>
 
-<div id='clearos_splash'>
+<!-- Banner -->
+<div id='theme-banner-splash-container'> </div>
 
-<table cellspacing='0' cellpadding='0' border='0' width='500' align='center'>
-	<tr>
-		<td>
-			<br><br>
-			<p align='center'><img src='" . $page['theme_url'] . "/images/logo2.png' alt='ClearOS'></p>
-			<br>
-		</td>
-	</tr>
-	<tr>
-		<td>
+<!-- Content -->
+<div id='theme-content-splash-container'>
+
 ";
 
 	return $header;
@@ -179,20 +178,18 @@ function _header_splash_layout($page)
 ///////////////////////////////////////////////////////////////////////////////
 // Menu handling
 ///////////////////////////////////////////////////////////////////////////////
-// Woah... this code got out of hand :-)  Cleanup required.
 
 function _get_menu($menu_pages) {
 
-	// Build menu
-	//-----------
+	// Highlight information for given page
+	//-------------------------------------	
 
 	$highlight = array();
-
 	$matches = array();
+
 	preg_match('/\/app\/[^\/]*/', $_SERVER['PHP_SELF'], $matches);
 	$basepage = $matches[0];
 
-	// Pick out the current pages category and subcategory for menu highlighting
 	foreach ($menu_pages as $url => $pageinfo) {
 		if ($url == $basepage) {
 			$highlight['page'] = $url;
@@ -201,7 +198,8 @@ function _get_menu($menu_pages) {
 		}
 	}
 
-	$category = array();
+	// Loop through to build menu
+	//---------------------------
 
 	$top_menu = "";
 	$left_menu = "";
@@ -209,68 +207,77 @@ function _get_menu($menu_pages) {
 	$current_subcategory = "";
 	$category_count = 0;
 	$active_category_number = 0;
-	$categories = array();
 
 	foreach ($menu_pages as $url => $page) {
-		// category + subcategory
-		$sss = $page['category'] . $page['subcategory'];
-		if (isset($categories[$sss])) {
-			$categories[$sss]++;
-		} else {
-			$categories[$sss] = 1;
-		}
-	}
-
-	foreach ($menu_pages as $url => $page) {
-		// category + subcategory
-		$sss = $page['category'] . $page['subcategory'];
 		
+		// Category transition
+		//--------------------
+
 		if ($page['category'] != $current_category) {
+
+			// Detect active category for given page
+			//--------------------------------------
+
+			if ($page['category'] == $highlight['category']) {
+				$active_category_number = $category_count;
+				$class = 'sfCurrent';
+			} else {
+				$class = '';
+			}
+
 			// Don't close top menu category on first run
+			//-------------------------------------------
+
 			if (! empty($top_menu)) {
 				$top_menu .= "\t\t\t</ul>\n";
 				$top_menu .= "\t\t</li>\n";
 
-				$left_menu .= "        </ul>\n";
-				$left_menu .= "    </div>\n";
+				$left_menu .= "\t\t\t</ul>\n";
+				$left_menu .= "\t\t</div>\n";
 			}
 
-			if ($page['category'] == $highlight['category']) {
-				$active_category_number = $category_count;
-				$top_menu .= "\t\t<li class='sfCurrent'>\n";
-				$top_menu .= "\t\t\t<a class='sf-with-url sfCurrent' href='#' onclick=\"$('#clearos6x-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
-			} else {
-				$top_menu .= "\t\t<li>\n";
-				$top_menu .= "\t\t\t<a class='sf-with-url' href='#' onclick=\"$('#clearos6x-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
-			}
+			// Top Menu
+			//---------
+
+			$top_menu .= "\t\t<li class='$class'>\n";
+			$top_menu .= "\t\t\t<a class='sf-with-url $class' href='#' onclick=\"$('#theme-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
 
 			$top_menu .= "\t\t\t<ul>\n";
 
-			// Left menu block
-			$left_menu .= "    <h3 class='theme-left-menu-header'><a href='#'>{$page['category']}</a></h3>\n";
-			$left_menu .= "    <div>\n";
-			$left_menu .= "        <ul class='theme-left-menu-list'>\n";
+			// Left Menu
+			//----------
+
+			$left_menu .= "\t\t<h3 class='theme-left-menu-category'><a href='#'>{$page['category']}</a></h3>\n";
+			$left_menu .= "\t\t<div>\n";
+			$left_menu .= "\t\t\t<ul class='theme-left-menu-list'>\n";
+
+			// Counters
+			//---------
 
 			$current_category = $page['category'];
 			$category_count++;
 		}
 		
-		$activeClass = ($url == $highlight['page']) ? 'menu-item-active' : '';
+		// Subcategory transition
+		//-----------------------
 
 		if ($current_subcategory != $page['subcategory']) {
 			$current_subcategory = $page['subcategory'];
-			$left_menu .= "\t\t\t\t<li class='clearos6x-left-menu-subcategory'>{$page['subcategory']}</li>\n";
-			$top_menu .= "\t\t\t\t<li class='clearos6x-top-menu-subcategory'>{$page['subcategory']}</li>\n";
+			$left_menu .= "\t\t\t\t<li class='theme-left-menu-subcategory'>{$page['subcategory']}</li>\n";
+			$top_menu .= "\t\t\t\t<li class='theme-top-menu-subcategory'>{$page['subcategory']}</li>\n";
 		}
 
-		if ($categories[$sss] == 1) {
-			$top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-			$left_menu .= "            <li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-		} else {
-			$top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-			$left_menu .= "            <li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-		}
+		// Page transition
+		//----------------
+
+		$activeClass = ($url == $highlight['page']) ? 'menu-item-active' : '';
+
+		$top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
+		$left_menu .= "\t\t\t\t<li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
 	}
+
+	// Close out open HTML tags
+	//-------------------------
 
 	$top_menu .= "\t\t\t</ul>\n";
 	$top_menu .= "\t\t</li>\n";
@@ -278,9 +285,12 @@ function _get_menu($menu_pages) {
 	$left_menu .= "\t\t\t</ul>\n";
 	$left_menu .= "\t\t</div>\n";
 
+	// Return HTML formatted menu
+	//---------------------------
+
 	$menus['top_menu'] = $top_menu;
 	$menus['left_menu'] = $left_menu;
-	$menus['active'] = $active_category_number;
+	$menus['active_category'] = $active_category_number;
 
 	return $menus;
 }
