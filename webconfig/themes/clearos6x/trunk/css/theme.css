@@ -1,6 +1,6 @@
-/* ------------------------------------------------------------------------- */
-/* Standard HTML Tags */
-/* ------------------------------------------------------------------------- */
+/* ========================================================================= */
+/* S T A N D A R D  H T M L  T A G S */
+/* ========================================================================= */
 
 html, body {
   color: #686868;
@@ -15,21 +15,22 @@ html, body {
   background-color: #E3E3E3;
 }
 
-td,th {
-  font-size: 8pt;
-  font-family: Arial, Helvetica, sans serif;
-}
-
 h1 {
   font-size: 12pt;
   color: #3f5680;
 }
+
 h2 {
   font-size: 11pt;
   color: #3f5680;
 }
+
 h3 {
   font-size: 10pt;
+}
+
+td,th {
+  font-size: 8pt;
 }
 
 hr {
@@ -63,27 +64,20 @@ pre {
 }
 
 textarea {
-  font-size: 8pt;
-  font-family: Arial, Helvetica, sans serif;
   color: #484848;
   width: 100%;
   background: transparent;
 }
 
 input {
-  font-size: 8pt;
-  font-family: Arial, Helvetica, sans serif;
   color: #484848;
 }
 
 select {
-  font-size: 8pt;
-  font-family: Arial, Helvetica, sans serif;
   vertical-align: middle;
 }
 
 a:link {
-  font-size: 8pt;
   text-decoration: none;
   color: #686868;
 }
@@ -93,14 +87,16 @@ a:visited {
   color: #686868;
 }
 
-a:hover {
-}
-
 a:active {
-  font-size: 8pt;
   color: #7DAE32;
   background-color: #A5A4A4;
 }
+
+
+
+/* ========================================================================= */
+/* W I D G E T S */
+/* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
 /* Anchors */
@@ -193,6 +189,23 @@ fieldset label {
 }
 
 /* ------------------------------------------------------------------------- */
+/* Summary Box */
+/* ------------------------------------------------------------------------- */
+
+.theme-summary-box-container {
+  margin-top: 6px;
+}
+.clearos-summary-box-header {
+  background: #FFFFFF url(../images/main-nav-selected.png) repeat-x  50% 50%;
+  padding: 5px;
+  color: #EEEEEE;
+  font-weight: bold;
+}
+.clearos-summary-box-title { 
+  float: left;
+} 
+
+/* ------------------------------------------------------------------------- */
 /* Helpbox */
 /* ------------------------------------------------------------------------- */
 
@@ -215,15 +228,31 @@ fieldset label {
 }
 
 /* ------------------------------------------------------------------------- */
-/* Field View */
+/* Tabs */
 /* ------------------------------------------------------------------------- */
 
+/* REDO */
+
+#tabs {
+  border:1px solid #AAAAAA;
+  margin-top: 6px;
+  max-width: 717px !important;
+  width: 717px !important;
+  max-width: 725px;
+  width: 725px;
+}
+
+
+
+/* ========================================================================= */
+/* T H E M E  */
+/* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
-/* Theme Layout */
+/* Page Layout */
 /* ------------------------------------------------------------------------- */
 
-#clearos6x-layout-container {
+#theme-page-container {
   margin: 0 auto;
   width: 975px;
   text-align: left; /* IE center page hack  */
@@ -236,7 +265,11 @@ fieldset label {
   height: 750px;
 }
 
-#clearos6x-layout-header {
+/* ------------------------------------------------------------------------- */
+/* Banner */
+/* ------------------------------------------------------------------------- */
+
+#theme-banner-container {
   width: 972px;
   height: 90px;
   padding-left: 0px;
@@ -245,31 +278,50 @@ fieldset label {
   position: relative;
 }
 
-#clearos6x-layout-top-menu {
-  color: #686868;
-  height: 75px;
-  width: 740px;
-  margin-top: 5px;
-  background-image: url('../images/navbar-small.png');
+#theme-banner-background {
+  background-image: url('../images/header-bg.png');
+  background-repeat: repeat-x;
+  width: 950px;
+  height: 95px;
+  z-index: 0;
+  margin-left: 24px; 
+}
+
+#theme-banner-logo {
+  height: 95px;
+  padding: 0;
+  background-image: url('../images/logo.png');
   background-repeat: no-repeat;
-  float: right;
-  position: relative;
-  left: -2px;
-  z-index: 10;
+  margin-top: -95px;
+  margin-left: -26px;
 }
 
-#clearos6x-layout-left-menu {
-  position: relative;
-  width: 208px;
-  height: auto;
-  float: left;
-  margin-top: 98px !important; /*moz*/
-  margin-top: 12px; /*IE*/
-  left: 7px !important; /*moz*/
-  left: 6px; /*IE*/
+#theme-banner-fullname {
+  font-size: 10pt;
+  font-weight: bold;
+  text-align: right;
+  margin: -56px 2px 0px 0px;
+  color: #7dae32;
 }
 
-#clearos6x-layout-content {
+#theme-banner-logout {
+  text-align: right;
+  margin: 10px 2px 0px 0px;
+}
+
+#theme-banner-splash-container {
+  height: 128px;
+  width: 109px;
+  margin: 80px auto;
+  background-image: url('../images/logo2.png');
+  background-repeat: no-repeat;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Content Area */
+/* ------------------------------------------------------------------------- */
+
+#theme-content-container {
   clear: right;
   float: right;
   max-width: 725px;
@@ -282,7 +334,17 @@ fieldset label {
   z-index:0;
 }
 
-#clearos6x-layout-footer {
+#theme-content-splash-container {
+  width: 500px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Footer */
+/* ------------------------------------------------------------------------- */
+
+#theme-footer-container {
   background-image: url('../images/footer.png');
   background-repeat: no-repeat;
   background-position: 0px 0px;
@@ -298,66 +360,23 @@ fieldset label {
 }
 
 /* ------------------------------------------------------------------------- */
-/* Top Header Area */
+/* Top Menu */
 /* ------------------------------------------------------------------------- */
 
-#clearos6x-header-background {
-  background-image: url('../images/header-bg.png');
-  background-repeat:  repeat-x;
-  width: 950px;
-  height: 95px;
-  z-index: 0;
-  margin-left: 24px; 
-}
-
-#clearos6x-header-logo {
-  height: 95px;
-  padding: 0;
-  background-image: url('../images/logo.png');
-  background-repeat: no-repeat;
-  margin-top: -95px;
-  margin-left: -26px;
-}
-
-#clearos6x-header-osname { margin: -19px 0px 0px 78px;
-  font-family: Arial, Helvetica, sans serif;
-  font-size: 10pt;
-  display: none;
-}
-
-#clearos6x-header-fullname {
-  text-align: right;
-  margin: -56px 2px 0px 0px;
-  font-family: Arial, Helvetica, sans serif;
-  font-size: 10pt;
-  font-weight: bold;
-  color: #7dae32;
-}
-
-#clearos6x-header-organization {
-  text-align: right;
-  margin: 10px 2px 0px 0px;
-  font-family: Arial, Helvetica, sans serif;
-  font-size: 8pt;
-}
-
-/* ------------------------------------------------------------------------- */
-/* Top Menu Area */
-/* ------------------------------------------------------------------------- */
-
-#clearos6x-top-menu-list ul li.sfhover a {}
-
-ul#clearos6x-top-menu-list  li.sfhover  a {
-  color: #FFFFFF;
-}
-
-ul#clearos6x-top-menu-list  li.sfhover li a {
+#theme-top-menu-container {
   color: #686868;
+  height: 75px;
+  width: 740px;
+  margin-top: 5px;
+  background-image: url('../images/navbar-small.png');
+  background-repeat: no-repeat;
+  float: right;
+  position: relative;
+  left: -2px;
+  z-index: 10;
 }
 
-ul#clearos6x-top-menu-list {}
-
-#clearos6x-top-menu-list {
+#theme-top-menu-list {
   height: 35px;
   left: -20px;
   padding-left: 20px;
@@ -366,27 +385,35 @@ ul#clearos6x-top-menu-list {}
   padding-top: 8px; 
 }
 
-ul#clearos6x-top-menu-list li {
+ul#theme-top-menu-list li.sfhover a {
+  color: #FFFFFF;
+}
+
+ul#theme-top-menu-list li.sfhover li a {
+  color: #686868;
+}
+
+ul#theme-top-menu-list li {
   border-left: 1px solid #f1f0f0;
   border-right: 1px solid #f1f0f0;
   padding-top: 2px !important; /*moz*/
   padding-top: 1px; /*IE*/
 }
 
-ul#clearos6x-top-menu-list ul {
+ul#theme-top-menu-list ul {
   padding-top: 8px;
   color: #686868;
 }
 
-ul#clearos6x-top-menu-list  li li a:hover {
+ul#theme-top-menu-list li li a:hover {
   color: #7DAE32;
 }
 
-#clearos6x-top-menu-list a:active {
-    background-color: transparent;
+#theme-top-menu-list a:active {
+  background-color: transparent;
 }
 
-ul#clearos6x-top-menu-list .clearos6x-top-menu-subcategory {
+ul#theme-top-menu-list .theme-top-menu-subcategory {
   background-image: url('../images/menu-bg-hover.gif');
   background-repeat: repeat-x;
   font-weight: bold;
@@ -399,10 +426,21 @@ ul#clearos6x-top-menu-list .clearos6x-top-menu-subcategory {
 }
 
 /* ------------------------------------------------------------------------- */
-/* Left Menu Area */
+/* Left Menu */
 /* ------------------------------------------------------------------------- */
 
-#clearos6x-left-menu-top {
+#theme-left-menu-container {
+  position: relative;
+  width: 208px;
+  height: auto;
+  float: left;
+  margin-top: 98px !important; /*moz*/
+  margin-top: 12px; /*IE*/
+  left: 7px !important; /*moz*/
+  left: 6px; /*IE*/
+}
+
+#theme-left-menu-top {
   background-image: url('../images/left-nav-top.png');
   background-repeat: no-repeat;
   position: static;
@@ -413,26 +451,7 @@ ul#clearos6x-top-menu-list .clearos6x-top-menu-subcategory {
   margin-bottom: -97px;
 }
 
-#clearos6x-left-menu.ui-accordion {
-  width: 180px;
-}
-.ui-accordion-content {
-  padding: 5px !important;
-}
-.theme-left-menu-header {
-  margin: 0;
-  padding: 0;
-}
-.theme-left-menu-list {
-  margin: 0;
-  padding: 0;
-}
-.theme-left-menu-item {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-#clearos6x-left-menu
+#theme-left-menu
 {
   background-image: url('../images/left-nav-bottom.png');
   background-repeat: no-repeat;
@@ -450,88 +469,29 @@ ul#clearos6x-top-menu-list .clearos6x-top-menu-subcategory {
   /* margin-top: px; */ /*IE*/
 }
 
-.clearos6x-left-menu-subcategory {
+#theme-left-menu.ui-accordion {
+  width: 180px;
+}
+
+.theme-left-menu-category {
+  margin: 0;
+  padding: 0;
+}
+
+.theme-left-menu-subcategory {
   font-weight: bold;
   color: #686868;
   list-style-image:url('../images/transparent.gif');
   padding: 4px 0 0 0;
 }
 
-/* ------------------------------------------------------------------------- */
-/* Login Box Widget */
-/* ------------------------------------------------------------------------- */
-
-/*
-#clearos_login_header {
-  color: #ffffff;
-  font-size:18px;
-  font-weight: bold;
-  padding: 0px 0px 10px 10px;
-  margin: 3px 0px 10px 12px;
+.theme-left-menu-list {
+  margin: 0;
+  padding: 0;
 }
 
-#clearos_login_box {
-height: 178px;
-  font-size:  8pt;
-  background: url(../images/logo-login-bg.png) ;
-  padding: 4px;
-  border: solid 1px #aaaaaa;
-  -moz-border-radius-topleft: 10px; 
-  -webkit-border-top-left-radius: 10px;
-  -moz-border-radius-topright: 10px; 
-  -webkit-border-top-right-radius: 10px;
-  -moz-border-radius-bottomleft: 10px; 
-  -webkit-border-bottom-left-radius: 10px;
-  -moz-border-radius-bottomright: 10px; 
-  -webkit-border-bottom-right-radius: 10px;
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+.theme-left-menu-item {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-*/
-
-/* ------------------------------------------------------------------------- */
-/* Wizard */
-/* ------------------------------------------------------------------------- */
-
-/* TODO */
-
-/* ------------------------------------------------------------------------- */
-/* Tables */
-/* ------------------------------------------------------------------------- */
-
-/* REDO */
-
-/* ------------------------------------------------------------------------- */
-/* Tabs */
-/* ------------------------------------------------------------------------- */
-
-/* REDO */
-
-#tabs {
-  border:1px solid #AAAAAA;
-  margin-top: 6px;
-  max-width: 717px !important;
-  width: 717px !important;
-  max-width: 725px;
-  width: 725px;
-}
-
-/* ------------------------------------------------------------------------- */
-/* Breadcrumbs */
-/* ------------------------------------------------------------------------- */
-/*
-.clearos-breadcrumb {
-  padding: 0px 0px 0px 0px;
-  margin: 8px 2px 14px 5px;
-  text-align: left;
-  text-decoration: none;
-  font-size: 8pt;
-  font-weight: normal;
-  color: #686868;
-}
-.clearos-breadcrumb-highlight {
-  color: #6b9824;
-  font-weight: bold;
-}
-*/
-
