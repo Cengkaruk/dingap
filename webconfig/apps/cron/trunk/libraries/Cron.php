@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2003-2010 ClearFoundation
+// Copyright 2003-2011 ClearFoundation
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -17,18 +17,18 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
-    
-/** 
+
+/**
  * Cron manager.
- *  
+ *
  * @package ClearOS
  * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @copyright Copyright 2003-2011 ClearFoundation
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,20 +39,59 @@ $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/
 require_once($bootstrap . '/bootstrap.php');
 
 ///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+
+///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 
+///////////////////////////////////////////////////////////////////////////////
+// E X C E P T I O N
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Cron server and crontab configuration.
+ *
+ * @package ClearOS
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright Copyright 2003-2011 ClearFoundation
+ */
+
+class Cron extends Daemon
+{
+	const FILE_CRONTAB = "/etc/crontab";
+	const PATH_CROND = "/etc/cron.d";
+
+	///////////////////////////////////////////////////////////////////////////////
+	// M E T H O D S
+	///////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Cron constructor.
+	 */
+
+	public function __construct()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		parent::__construct("crond");
+	}
+
 /**
  * Cron.d configlet not found exception.
  *
  * @package ClearOS
- * @subpackage Exception
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @subpackage API
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @copyright Copyright 2003-2011 ClearFoundation
  */
 
 class CronConfigletNotFoundException extends EngineException
@@ -74,14 +113,13 @@ class CronConfigletNotFoundException extends EngineException
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
-/** 
- * Cron manager.
- *  
+/**
+ * Cron server and crontab configuration.
+ *
  * @package ClearOS
- * @subpackage API
- * @author {@link http://www.foundation.com/ ClearFoundation}
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @copyright Copyright 2003-2011 ClearFoundation
  */
 
 class Cron extends Daemon
@@ -97,10 +135,9 @@ class Cron extends Daemon
 	 * Cron constructor.
 	 */
 
-	function __construct()
+	public function __construct()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		parent::__construct("crond");
 	}
@@ -114,10 +151,9 @@ class Cron extends Daemon
 	 * @throws EngineException, ValidationException
 	 */
 
-	function AddCrondConfiglet($name, $payload)
+	public function AddCrondConfiglet($name, $payload)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		// TODO -- validate payload
 
@@ -136,7 +172,6 @@ class Cron extends Daemon
 		}
 	}
 
-
 	/**
 	 * Add a configlet to cron.d.
 	 * 
@@ -152,10 +187,9 @@ class Cron extends Daemon
 	 * @throws EngineException, ValidationException
 	 */
 
-	function AddCrondConfigletByParts($name, $minute, $hour, $dayofmonth, $month, $dayofweek, $user, $command)
+	public function AddCrondConfigletByParts($name, $minute, $hour, $dayofmonth, $month, $dayofweek, $user, $command)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		// TODO: validate variables
 
@@ -173,7 +207,6 @@ class Cron extends Daemon
 		}
 	}
 
-
 	/**
 	 * Get contents of a cron.d configlet.
 	 *
@@ -182,10 +215,9 @@ class Cron extends Daemon
 	 * @throws CronConfigletNotFoundException, EngineException, ValidationException
 	 */
 
-	function GetCrondConfiglet($name)
+	public function GetCrondConfiglet($name)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		// TODO: validate filename, do not allow .. or leading /
 
@@ -203,7 +235,6 @@ class Cron extends Daemon
 		return $contents;
 	}
 
-
 	/**
 	 * Deletes cron.d configlet.
 	 *
@@ -212,10 +243,9 @@ class Cron extends Daemon
 	 * @throws EngineException, ValidationException
 	 */
 
-	function DeleteCrondConfiglet($name)
+	public function DeleteCrondConfiglet($name)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		// TODO: validate filename, do not allow .. or leading /
 
@@ -231,7 +261,6 @@ class Cron extends Daemon
 		}
 	}
 
-
 	/**
 	 * Checks to see if cron.d configlet exists.
 	 *
@@ -240,10 +269,9 @@ class Cron extends Daemon
 	 * @throws EngineException, ValidationException
 	 */
 
-	function ExistsCrondConfiglet($name)
+	public function ExistsCrondConfiglet($name)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		try {
 			$file = new File(self::PATH_CROND . "/" . $name, true);
@@ -257,18 +285,6 @@ class Cron extends Daemon
 		}
 	}
 
-	/**
-	 * @access private
-	 */
-
-	function __destruct()
-	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-
-		parent::__destruct();
-	}
-
 	///////////////////////////////////////////////////////////////////////////////
 	// V A L I D A T I O N   R O U T I N E S
 	///////////////////////////////////////////////////////////////////////////////
@@ -280,10 +296,9 @@ class Cron extends Daemon
 	 * @return boolean true if time entry is valid
 	 */
 
-	function IsValidTime($time)
+	public function IsValidTime($time)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
 
 		// Could do more validation here...
 
