@@ -52,37 +52,8 @@ clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 
 ///////////////////////////////////////////////////////////////////////////////
-// E X C E P T I O N
+// E X C E P T I O N S
 ///////////////////////////////////////////////////////////////////////////////
-
-/**
- * Cron server and crontab configuration.
- *
- * @package ClearOS
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
- */
-
-class Cron extends Daemon
-{
-	const FILE_CRONTAB = "/etc/crontab";
-	const PATH_CROND = "/etc/cron.d";
-
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Cron constructor.
-	 */
-
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		parent::__construct("crond");
-	}
 
 /**
  * Cron.d configlet not found exception.
@@ -124,6 +95,10 @@ class CronConfigletNotFoundException extends EngineException
 
 class Cron extends Daemon
 {
+	///////////////////////////////////////////////////////////////////////////////
+	// C O N S T A N T S
+	///////////////////////////////////////////////////////////////////////////////
+
 	const FILE_CRONTAB = "/etc/crontab";
 	const PATH_CROND = "/etc/cron.d";
 
