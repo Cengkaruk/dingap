@@ -45,24 +45,16 @@
 
 function page_header($page)
 {
-	// Common to both layouts
-	//-----------------------
-
-	if ($page['layout'] == 'default') {
+	if ($page['layout'] == 'default')
 		return _header_default_layout($page);
-	} else if ($page['layout'] == 'splash') {
+	else if ($page['layout'] == 'splash')
 		return _header_splash_layout($page);
-	}
+	else if ($page['layout'] == 'wizard')
+		return _header_wizard_layout($page);
 }
 
 /**
  * Template for default layout.
- *
- * @param array $page page data
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
  */
 
 function _header_default_layout($page)
@@ -147,12 +139,6 @@ $left_menu
 
 /**
  * Template for splash layout.
- *
- * @param array $page page data
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
  */
 
 function _header_splash_layout($page)
@@ -174,6 +160,39 @@ function _header_splash_layout($page)
 
 	return $header;
 }
+
+/**
+ * Template for wizard layout.
+ */
+
+function _header_wizard_layout($page)
+{
+	$header = "
+<!-- Body -->
+<body>
+
+<!-- Page Container -->
+<div id='theme-page-container'>
+
+<!-- Banner -->
+<div id='theme-banner-wizard-container'> </div>
+
+<!-- Left Menu -->
+<div id='theme-wizard-menu-container'>
+	<div id='theme-wizard-menu-top'></div>
+	<div id='theme-wizard-menu'>
+$left_menu_FIXME
+	</div>
+</div>
+
+<!-- Content -->
+<div id='theme-content-wizard-container'>
+
+";
+
+	return $header;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Menu handling

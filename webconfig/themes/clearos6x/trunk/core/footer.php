@@ -61,7 +61,7 @@ function page_footer($page)
 </body>
 </html>
 ";
-	} else if ($page['layout'] = 'splash') {
+	} else {
 		$footer = "
 
 
