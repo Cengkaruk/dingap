@@ -312,10 +312,20 @@ fieldset label {
 #theme-banner-splash-container {
   height: 128px;
   width: 109px;
-  margin: 80px auto;
+  margin: 30px auto;
+  padding: 30px;
   background-image: url('../images/logo2.png');
   background-repeat: no-repeat;
 }
+
+#theme-banner-wizard-container {
+  height: 128px;
+  width: 109px;
+  margin: 30px auto;
+  background-image: url('../images/logo2.png');
+  background-repeat: no-repeat;
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* Content Area */
@@ -338,6 +348,19 @@ fieldset label {
   width: 500px;
   margin: 0 auto;
   text-align: left;
+}
+
+#theme-content-wizard-container {
+  clear: right;
+  float: right;
+  max-width: 725px;
+  width: 725px;
+  position: relative;
+  left: -15px !important;
+  left: -15px;
+  top: 12px !important; /*moz*/
+  top: 0px; /*IE*/
+  z-index:0;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -423,6 +446,50 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   padding-left: 5px;
   width: 195px !important; /*moz*/
   width: 200px; /*IE*/
+}
+
+/* ------------------------------------------------------------------------- */
+/* Wizard Menu */
+/* ------------------------------------------------------------------------- */
+
+#theme-wizard-menu-container {
+  position: relative;
+  width: 208px;
+  height: auto;
+  float: left;
+  margin-top: 32px !important; /*moz*/
+  margin-top: 12px; /*IE*/
+  left: 7px !important; /*moz*/
+  left: 6px; /*IE*/
+}
+
+#theme-wizard-menu-top {
+  background-image: url('../images/left-nav-top.png');
+  background-repeat: no-repeat;
+  position: static;
+  width: 208px;
+  height: 150px !important; /*moz*/
+  height: length; /*IE*/
+  margin-left: 8px;
+  margin-bottom: -97px;
+}
+
+#theme-wizard-menu
+{
+  background-image: url('../images/left-nav-bottom.png');
+  background-repeat: no-repeat;
+  background-position: bottom left !important; /*moz*/
+  background-position: 100.5% left; /*IE*/
+  width: 208px;
+  height: auto;
+  margin-left: 8px;
+  list-style: none;
+  padding-top: 0px;
+  padding-left: 13px;
+  padding-right: 113px;
+  padding-bottom: 18px;
+  margin-top: -140px !important; /*moz*/
+  /* margin-top: px; */ /*IE*/
 }
 
 /* ------------------------------------------------------------------------- */
