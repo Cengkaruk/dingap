@@ -164,6 +164,40 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// F I E L D  P A S S W O R D
+///////////////////////////////////////////////////////////////////////////////
+// TODO: merge with theme_field_input
+
+/**
+ * Password input field.
+ *
+ * @param string $name HTML name of text input element
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $error validation error message
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for text input field
+ */
+
+function theme_field_password($name, $value, $label, $error, $input_id, $ids = NULL)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+
+	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<input type='password' name='$name' value='$value' id='$input_id'> $error_html
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // F I E L D  D R O P D O W N
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -213,6 +247,65 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $op
 		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
 			" . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html 
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  C H E C K B O X E S 
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Checkbox field.
+ *
+ * @param string $name HTML name of text input element
+ * @param boolean $selected selected flag
+ * @param string $label label for text input field
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for checkbox
+ */
+
+function theme_field_checkbox($name, $selected, $label, $options, $input_id, $ids)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+	$select_html = ($selected) ? ' checked' : '';
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<input type='checkbox' name='$name' id='$input_id' $select_html>
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F I E L D  P R O G R E S S  B A R
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Progress bar field.
+ *
+ * @param string $value value of text input 
+ * @param string $label label for text input field
+ * @param string $input_id input ID
+ * @param array $ids other optional HTML IDs
+ * @return string HTML for text input field
+ */
+
+function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
+{
+	$input_id_html = " id='" . $input_id . "'";
+	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+
+	return "
+		<div$field_id_html>
+			<label for='$input_id'$label_id_html>$label</label>
+			<span id='$input_id'>$value dude</span>
 		</div>
 	";
 }
