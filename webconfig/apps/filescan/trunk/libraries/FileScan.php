@@ -1,0 +1,691 @@
+<?php
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2006-2010 ClearFoundation
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * FileScan base class.
+ *
+ * @package ClearOS
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright Copyright 2006-2010 ClearFoundation
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
+require_once($bootstrap . '/bootstrap.php');
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_library('base/Engine');
+clearos_load_library('base/File');
+clearos_load_library('base/Folder');
+clearos_load_library('base/Daemon');
+clearos_load_library('cron/Cron');
+
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * FileScan base class.
+ *
+ * @package ClearOS
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright Copyright 2006-2010 ClearFoundation
+ */
+
+class FileScan extends Engine
+{
+	///////////////////////////////////////////////////////////////////////////
+	// C O N S T A N T S
+	///////////////////////////////////////////////////////////////////////////
+
+	const FILE_AVSCAN = 'avscan.php';		// PHP antivirus scanner (wrapper)
+	const CMD_KILLALL = '/usr/bin/killall';	// killall command
+
+    // List of directories to scan for viruses.  This file is managed by the
+    // webconfig antivirus class
+    const FILE_CONFIG = '/etc/avscan.conf';
+
+    // Filename of instance (PID) lock file
+    const FILE_LOCKFILE = '/var/run/avscan.pid';
+
+    // Location of ClamAV scanner
+    const FILE_CLAMSCAN = '/usr/bin/clamscan';
+
+    // Location of scanner state/status file
+    const FILE_STATE = '/tmp/.avscan.state';
+
+    // Locating of quarantine directory
+    const PATH_QUARANTINE = '/var/lib/quarantine';
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+	public $state = array();
+
+	///////////////////////////////////////////////////////////////////////////
+	// M E T H O D S
+	///////////////////////////////////////////////////////////////////////////
+
+	public function __construct() 
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$this->ResetState();
+	}
+
+	/**
+	 * Adds directory to scan list.
+	 *
+	 * @param string $dir Directory to scan
+	 * @throws EngineException
+	 */
+
+	public function AddDirectory($dir)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// TODO: Wrong, should be using File class
+		if (!file_exists($dir)) {
+			throw new EngineException(ANTIVIRUS_LANG_DIR_NOT_FOUND, COMMON_ERROR);
+		}
+
+		$dirs = $this->GetDirectories();
+
+		if (count($dirs) && in_array($dir, $dirs)) {
+			throw new EngineException(ANTIVIRUS_LANG_DIR_EXISTS, COMMON_ERROR);
+		}
+
+		$dirs[] = $dir; sort($dirs);
+
+		$file = new File(FileScan::FILE_CONFIG);
+
+		if(!$file->Exists()) {
+			try {
+				$file->Create('root', 'root', '0644');
+			} catch (Exception $e) {
+				throw new EngineException($e->getMessage(), COMMON_ERROR);
+			}
+		}
+
+		try {
+			$file->DumpContentsFromArray($dirs);
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Removes directory from scan list.
+	 *
+	 * @param string $dir Directory to remove from scan
+	 * @throws EngineException
+	 */
+
+	public function RemoveDirectory($dir)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$dirs = $this->GetDirectories();
+
+		if (!count($dirs) || !in_array($dir, $dirs))
+			throw new EngineException(ANTIVIRUS_LANG_DIR_NOT_FOUND, COMMON_ERROR);
+
+		foreach($dirs as $id => $entry) {
+			if ($entry != $dir) continue;
+			unset($dirs[$id]);
+			sort($dirs);
+			break;
+		}
+
+		$file = new File(FileScan::FILE_CONFIG);
+
+		try {
+			$file->DumpContentsFromArray($dirs);
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Retturns array of directories configured to scan for viruses.
+	 *
+	 * @return array of directory names
+	 * @throws EngineException
+	 */
+
+	public function GetDirectories()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$dirs = array();
+		$fh = @fopen(FileScan::FILE_CONFIG, 'r');
+
+		if(!$fh) return $dirs;
+
+		while (!feof($fh)) {
+			$dir = chop(fgets($fh, 4096));
+			// TODO: Wrong, should be using File class
+			if (strlen($dir) && file_exists($dir)) $dirs[] = $dir;
+		}
+
+		fclose($fh);
+		sort($dirs);
+
+		return $dirs;
+	}
+
+	/**
+	 * Returns array of preset directories.
+	 *
+	 * @return array of human directory names keyed by filessytem directory name
+	 */
+
+	public function GetDirectoryPresets()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$AVDIRS = array();
+		
+		require('FileScan.inc.php');
+
+		$dirs = $AVDIRS;
+
+		foreach ($dirs as $dir => $label) {
+			// TODO: Wrong, should be using File class
+			if (!file_exists($dir)) unset($dirs[$dir]);
+		}
+
+		return $dirs;
+	}
+
+	/**
+	 * Deletes a virus.
+	 *
+	 * @param string $hash MD5 hash of virus filename to delete
+	 * @throws EngineException
+	 */
+
+	public function DeleteVirus($hash)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (!file_exists(FileScan::FILE_STATE)) {
+			throw new EngineException(ANTIVIRUS_LANG_STATE_ERROR, COMMON_ERROR);
+		}
+
+		// XXX: Here we use fopen rather than the File class.  This is because the File
+		// class provides us with no way to do file locking (flock).  The state file
+		// is therefore owned by webconfig so that we can manipulate it's contents.
+		if (!($fh = @fopen(FileScan::FILE_STATE, 'a+'))) {
+			throw new EngineException(ANTIVIRUS_LANG_STATE_ERROR, COMMON_ERROR);
+		}
+
+		if ($this->UnserializeState($fh) === FALSE) {
+			fclose($fh);
+			throw new EngineException(ANTIVIRUS_LANG_STATE_ERROR, COMMON_ERROR);
+		}
+
+		if (!isset($this->state['virus'][$hash])) {
+			throw new EngineException(ANTIVIRUS_LANG_FILE_NOT_FOUND, COMMON_ERROR);
+		}
+
+		try {
+			$virus = new File($this->state['virus'][$hash]['filename'], true);
+			$virus->Delete();
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+
+		// Update state file, delete virus
+		unset($this->state['virus'][$hash]);
+
+		$this->SerializeState($fh);
+	}
+
+	/**
+	 * Quarantines a virus.
+	 *
+	 * @param string $hash MD5 hash of virus filename to quarantine
+	 * @throws EngineException
+	 */
+
+	public function QuarantineVirus($hash)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (!file_exists(FileScan::FILE_STATE)) {
+			throw new EngineException(ANTIVIRUS_LANG_STATE_ERROR, COMMON_ERROR);
+		}
+
+		// XXX: Here we use fopen rather than the File class.  This is because the File
+		// class provides us with no way to do file locking (flock).  The state file
+		// is therefore owned by webconfig so that we can manipulate it's contents.
+		if (!($fh = @fopen(FileScan::FILE_STATE, 'a+'))) {
+			throw new EngineException(ANTIVIRUS_LANG_STATE_ERROR, COMMON_ERROR);
+		}
+
+		if ($this->UnserializeState($fh) === FALSE) {
+			fclose($fh);
+			throw new EngineException(ANTIVIRUS_LANG_STATE_ERROR, COMMON_ERROR);
+		}
+
+		if (!isset($this->state['virus'][$hash])) {
+			throw new EngineException(ANTIVIRUS_LANG_FILE_NOT_FOUND, COMMON_ERROR);
+		}
+
+		try {
+			$virus = new File($this->state['virus'][$hash]['filename'], true);
+			$virus->MoveTo(FileScan::PATH_QUARANTINE . "/$hash.dat");
+			$virus = new File(FileScan::PATH_QUARANTINE . "/$hash.nfo");
+			$virus->Create('webconfig', 'webconfig', '0640');
+			$virus->AddLines(serialize($this->state['virus'][$hash]));
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+
+		// Update state file, delete virus
+		unset($this->state['virus'][$hash]);
+		$this->SerializeState($fh);
+	}
+
+	/**
+	 * Returns array of quarantined viruses.
+	 *
+	 * @returns array Array of viruses in quarantine
+	 * @throws EngineException
+	 */
+
+	public function GetQuarantinedViruses()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		try {
+			$dir = new Folder(FileScan::PATH_QUARANTINE, true);
+			$files = $dir->GetListing();
+		} catch (FolderNotFoundException $e) {
+			return array();
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+
+		$viruses = array();
+
+		foreach ($files as $file) {
+			if (stristr($file, '.nfo') === false) continue;
+
+			try {
+				$nfo = new File(FileScan::PATH_QUARANTINE . "/$file", true);
+				$buffer = unserialize($nfo->GetContents());
+			} catch (Exception $e) {
+				throw new EngineException($e->getMessage(), COMMON_ERROR);
+			}
+
+			$viruses[md5($buffer['filename'])] = $buffer;
+		}
+
+		return $viruses;
+	}
+
+	/**
+	 * Restores a quarantined virus to its orignal location/filename.
+	 *
+	 * @param string $hash MD5 hash of virus filename to restore
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	public function RestoreQuarantinedVirus($hash)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		try {
+			$nfo = new File(FileScan::PATH_QUARANTINE . "/$hash.nfo", true);
+			$virus = unserialize($nfo->GetContents());
+			$dat = new File(FileScan::PATH_QUARANTINE . "/$hash.dat", true);
+			$dat->MoveTo($virus['filename']);
+			$nfo->Delete();
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Deletes a quarantined virus.
+	 *
+	 * @param string $hash MD5 hash of virus filename to delete
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	public function DeleteQuarantinedVirus($hash)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		try {
+			$nfo = new File(FileScan::PATH_QUARANTINE . "/$hash.nfo", true);
+			$nfo->Delete();
+			$dat = new File(FileScan::PATH_QUARANTINE . "/$hash.dat", true);
+			$dat->Delete();
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Starts virus scanner.
+	 *
+	 * @throws EngineException
+	 * @return void
+	 */
+
+	public function StartScan()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if ($this->IsScanRunning())
+			throw new EngineException(ANTIVIRUS_LANG_RUNNING, COMMON_WARNING);
+
+		$this->EnableUpdates();
+
+		try {
+			$options = array();
+			$options['background'] = true;
+			$shell = new ShellExec;
+			$shell->Execute(COMMON_CORE_DIR . '/scripts/' . self::FILE_AVSCAN,
+				'', true, $options);
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Stops virus scanner.
+	 *
+	 * @throws EngineException
+	 * @return void
+	 */
+
+	public function StopScan()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (!$this->IsScanRunning())
+			throw new EngineException(ANTIVIRUS_LANG_NOT_RUNNING, COMMON_WARNING);
+
+		try {
+			$options = array();
+			$options['background'] = true;
+			$shell = new ShellExec;
+			$shell->Execute(self::CMD_KILLALL,
+				self::FILE_AVSCAN . ' ' . basename(AVSCAN_SCANNER), true, $options);
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Sets an antivirus schedule.
+	 *
+	 * @param string $minute cron minute value
+	 * @param string $hour cron hour value
+	 * @param string $dayofmonth cron day-of-month value
+	 * @param string $month cron month value
+	 * @param string $dayofweek cron day-of-week value
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	public function SetScanSchedule($minute, $hour, $dayofmonth, $month, $dayofweek)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$cron = new Cron();
+
+		try {
+			$cron->AddCrondConfigletByParts('app-antivirus',
+				$minute, $hour, $dayofmonth, $month, $dayofweek,
+				'root', COMMON_CORE_DIR . '/scripts/' . self::FILE_AVSCAN . " >/dev/null 2>&1");
+		} catch(Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Removes an antivirus schedule.
+	 *
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	public function RemoveScanSchedule()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$cron = new Cron();
+
+		try {
+			if ($cron->ExistsCrondConfiglet('app-antivirus'))
+				$cron->DeleteCrondConfiglet('app-antivirus');
+		} catch(Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+	}
+
+	/**
+	 * Returns configured antivirus schedule.
+	 *
+	 * @return array of the scanner's configured schedule. 
+	 * @throws EngineException
+	 */
+
+	public function GetScanSchedule()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$hour = '*';
+		$day_of_month = '*';
+		$month = '*';
+		$cron = new Cron();
+
+		if (!$cron->ExistsCrondConfiglet('app-antivirus')) return array('*', '*', '*');
+
+		try {
+			list($minute, $hour, $day_of_month, $month, $day_of_week) = explode(' ',
+				$cron->GetCrondConfiglet('app-antivirus'), 5);
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_ERROR);
+		}
+
+		$schedule['hour'] = $hour;
+		$schedule['day_of_month'] = $day_of_month;
+		$schedule['month'] = $month;
+
+		return $schedule;
+	}
+
+	/**
+	 * Checks for existence of scan schedule.
+	 *
+	 * @return boolean true if a cron configlet exists.
+	 * @throws EngineException
+	 */
+
+	public function ScanScheduleExists()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$cron = new Cron();
+		return $cron->ExistsCrondConfiglet('app-antivirus');
+	}
+
+	/**
+	 * Enables antivirus definition updates.
+	 *
+	 * @return void
+	 * @throws EngineException
+	 */
+
+	public function EnableUpdates()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		try {
+			$freshclam = new Daemon("freshclam");
+			$freshclam->SetBootState(true);
+			$freshclam->SetRunningState(true);
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
+	public function ResetState()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		$this->state['rc'] = 0;
+		$this->state['dir'] = '-';
+		$this->state['filename'] = '-';
+		$this->state['result'] = NULL;
+		$this->state['count'] = 0;
+		$this->state['total'] = 0;
+		$this->state['error'] = array();
+		$this->state['virus'] = array();
+		$this->state['timestamp'] = 0;
+	}
+
+	/**
+	 * Locks state file and writes serialized state.
+	 */
+
+	public function SerializeState($fh)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (flock($fh, LOCK_EX) === FALSE)
+			return FALSE;
+
+		if (ftruncate($fh, 0) === FALSE) {
+			flock($fh, LOCK_UN);
+			return FALSE;
+		}
+
+		if (fseek($fh, SEEK_SET, 0) == -1) {
+			flock($fh, LOCK_UN);
+			return FALSE;
+		}
+
+		if (fwrite($fh, serialize($this->state)) === FALSE) {
+			flock($fh, LOCK_UN);
+			return FALSE;
+		}
+
+		fflush($fh);
+
+		if (flock($fh, LOCK_UN) === FALSE)
+			return FALSE;
+
+		return TRUE;
+	}
+
+	/**
+	 * Locks state file, reads and unserialized status.
+	 */
+
+	public function UnserializeState($fh)
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		clearstatcache();
+		$stats = fstat($fh);
+		
+		if ($stats['size'] == 0) {
+			$this->ResetState();
+			return TRUE;
+		}
+
+		if (flock($fh, LOCK_EX) === FALSE)
+			return FALSE;
+
+		if (fseek($fh, SEEK_SET, 0) == -1) {
+			flock($fh, LOCK_UN);
+			return FALSE;
+		}
+
+		if (($contents = stream_get_contents($fh)) === FALSE) {
+			flock($fh, LOCK_UN);
+			return FALSE;
+		}
+
+		if (($this->state = unserialize($contents)) === FALSE) {
+			flock($fh, LOCK_UN);
+			return FALSE;
+		}
+
+		if (flock($fh, LOCK_UN) === FALSE)
+			return FALSE;
+
+		return TRUE;
+	}
+
+	/**
+	 * Checks status of scanner.
+	 */
+
+	public function IsScanRunning()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		if (!file_exists(self::FILE_LOCKFILE))
+			return FALSE;
+
+		$fh = @fopen(self::FILE_LOCKFILE, 'r');
+		list($pid) = fscanf($fh, '%d');
+		fclose($fh);
+
+		// Perhaps this is a stale lock file?
+		if (!file_exists("/proc/$pid")) {
+			// Yes, the process 'appears' to no longer be running...
+			return FALSE;
+		}
+
+		return TRUE;
+	}
+}
+
+// vi: ts=4
+?>
