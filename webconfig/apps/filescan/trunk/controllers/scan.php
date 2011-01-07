@@ -113,12 +113,25 @@ class Scan extends ClearOS_Controller
 		}
 	}
 
-	function status()
+	// FIXME: standard naming convention?
+	function info()
 	{
-		$status['age'] = '22';
-		$status['hometown'] = 'Toronto';
+		// Load libraries
+		//---------------
 
-		echo json_encode($status); 
+		$this->load->library('filescan/FileScan');
+
+		// Load view data
+		//---------------
+
+		try {
+			$info = $this->filescan->GetInfo();
+		} catch (Exception $e) {
+			// FIXME: what to return here?
+			$info['ajax_error'] = $e->GetMessage();
+		}
+
+		echo json_encode($info); 
 	}
 }
 

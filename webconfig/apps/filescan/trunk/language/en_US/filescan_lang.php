@@ -29,5 +29,13 @@ $lang['filescan_errors'] = 'Errors';
 $lang['filescan_malware_items_found'] = 'Malware Items Found';
 $lang['filescan_last_scan_result'] = 'Last Scan Result';
 $lang['filescan_progress'] = 'Progress';
+$lang['filescan_malware_found'] = 'Malware found!';
+$lang['filescan_no_malware_found'] = 'No malware found.';
+$lang['filescan_idle'] = 'Idle';
+$lang['filescan_interrupted'] = 'Interrupted';
+$lang['filescan_scanning'] = 'Scanning';
+$lang['filescan_scanner'] = 'Scanner';
+$lang['filescan_last_run'] = 'Last scanner run: %s';
+$lang['filescan_currently_scanning'] = 'Currently scanning %s';
 
 ?>

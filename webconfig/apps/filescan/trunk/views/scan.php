@@ -41,14 +41,14 @@ echo form_open('filescan/config');
 // FIXME
 $read_only = TRUE;
 
-echo form_fieldset(lang('base_status'));
+echo form_fieldset(lang('filescan_scanner'));
 
-echo field_input('status', $status, lang('base_status'), $read_only);
-echo field_input('progress', $status, lang('filescan_progress'), $read_only, array('input' => 'progress'));
-echo "<div id='progress_bar'> </div>";
-echo field_input('errors', $errors, lang('filescan_errors'), $read_only);
-echo field_input('items_found', $items_found, lang('filescan_malware_items_found'), $read_only);
-echo field_input('last_result', $last_result, lang('filescan_last_scan_result'), $read_only);
+echo field_input('state', $state, lang('base_state'), $read_only, array('input' => 'state'));
+echo field_input('status', $status, lang('base_status'), $read_only, array('input' => 'status'));
+echo field_progress_bar('progress', $progress, lang('filescan_progress'), array('input' => 'progress'));
+echo field_input('error_count', $errors, lang('filescan_errors'), $read_only, array('input' => 'error_count'));
+echo field_input('malware_count', $items_found, lang('filescan_malware_items_found'), $read_only, array('input' => 'malware_count'));
+echo field_input('last_result', $last_result, lang('filescan_last_scan_result'), $read_only, array('input' => 'last_result'));
 // echo field_input('last_run', $last_run, lang('filescan_last_run'), $read_only, array('input' => 'last_run'));
 
 echo form_fieldset_close(); 

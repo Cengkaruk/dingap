@@ -32,7 +32,7 @@ $(document).ready(function() {
 
 	function getData() {
         $.ajax({
-            url: '/app/filescan/scan/status',
+            url: '/app/filescan/scan/info',
             method: 'GET',
             dataType: 'json',
             success : function(json) {
@@ -46,10 +46,14 @@ $(document).ready(function() {
         });
 	}
 
-	function showData(json) {
-		$("#progress").html('showing data ' + json.age);
+	function showData(info) {
+		$("#state").html(info.state_text);
+		$("#status").html(info.status);
+		$("#progress").html(info.progress);
+		$("#error_count").html(info.error_count);
+		$("#malware_count").html(info.malware_count);
+		$("#last_result").html(info.last_result);
 	}
-
 });
 
 var interval = 1000;

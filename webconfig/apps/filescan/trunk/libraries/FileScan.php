@@ -41,7 +41,7 @@ require_once($bootstrap . '/bootstrap.php');
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
+clearos_load_language('filescan');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -90,6 +90,11 @@ class FileScan extends Engine
 
     // Locating of quarantine directory
     const PATH_QUARANTINE = '/var/lib/quarantine';
+
+	// Status
+	const STATUS_IDLE = 0;	
+	const STATUS_SCANNING = 1;	
+	const STATUS_INTERRUPT = 2;	
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -285,6 +290,151 @@ class FileScan extends Engine
 		}
 
 		return $dirs;
+	}
+
+	/**
+	 * Returns information on the scan.
+	 *
+	 * @return array of the scanner's status and information
+	 * @throws EngineException
+	 */
+
+	public function GetInfo()
+	{
+		ClearOsLogger::Profile(__METHOD__, __LINE__);
+
+		// Unserialize the scanner state file (if it exists)
+		//--------------------------------------------------
+
+		if (file_exists(FileScan::FILE_STATE)) {
+			if (($fh = @fopen(FileScan::FILE_STATE, 'r'))) {
+				$this->UnserializeState($fh);
+				fclose($fh);
+			}
+		}
+
+		// Set the last run timestamp if available
+		//----------------------------------------
+
+		if ($this->state['timestamp'] != 0)
+			$info['last_run'] = strftime('%D %T', $this->state['timestamp']);
+		else
+			$info['last_run'] = lang('base_unknown');
+
+		// Determine the scanner's status
+		//-------------------------------
+
+		$info['state'] = FileScan::STATUS_IDLE;
+		$info['state_text'] = lang('filescan_idle');
+
+		if (file_exists(FileScan::FILE_LOCKFILE)) {
+			if (($fh = @fopen(FileScan::FILE_LOCKFILE, 'r'))) {
+				list($pid) = fscanf($fh, '%d');
+
+				if (!file_exists("/proc/$pid")) {
+					$info['state'] = FileScan::STATUS_INTERRUPT;
+					$info['state_text'] = lang('filescan_interrupted');
+				} else {
+					$info['state'] = FileScan::STATUS_SCANNING;
+					$info['state_text'] = lang('filescan_scanning');
+				}
+
+				fclose($fh);
+			}
+		}
+
+		// Calculate the completed percentage if possible
+		//-----------------------------------------------
+
+		$info['progress'] = 0;
+
+		if ($this->state['count'] != 0 || $this->state['total'] != 0)
+			$info['progress'] = sprintf('%.02f', $this->state['count'] * 100 / $this->state['total']);
+
+		// ClamAV error codes as per clamscan(1) man page.
+		// TODO: Perhaps all possible error strings should be localized?
+		//--------------------------------------------------------------
+
+		switch ($this->state['rc']) {
+			case 0:
+				$info['last_result'] = lang('filescan_no_malware_found');
+				break;
+			case 1:
+				$info['last_result'] = lang('filescan_malware_found');
+				break;
+			case 40:
+				$info['last_result'] = 'Unknown option passed';
+				break;
+			case 50:
+				$info['last_result'] = 'Database initialization error';
+				break;
+			case 52:
+				$info['last_result'] = 'Not supported file type';
+				break;
+			case 53:
+				$info['last_result'] = 'Can\'t open directory';
+				break;
+			case 54:
+				$info['last_result'] = 'Can\'t open file';
+				break;
+			case 55:
+				$info['last_result'] = 'Error reading file';
+				break;
+			case 56:
+				$info['last_result'] = 'Can\'t stat input file / directory';
+				break;
+			case 57:
+				$info['last_result'] = 'Can\'t get absolute path name of current working directory';
+				break;
+			case 58:
+				$info['last_result'] = 'I/O error, please check your file system';
+				break;
+			case 59:
+				$info['last_result'] = 'Can\'t get information about current user from /etc/passwd';
+				break;
+			case 60:
+				$info['last_result'] = 'Can\'t get  information about user (clamav) from /etc/passwd';
+				break;
+			case 61:
+				$info['last_result'] = 'Can\'t fork';
+				break;
+			case 62:
+				$info['last_result'] = 'Can\'t initialize logger';
+				break;
+			case 63:
+				$info['last_result'] = 'Can\'t create temporary files/directories (check permissions)';
+				break;
+			case 64:
+				$info['last_result'] = 'Can\'t write to temporary directory (please specify another one)';
+				break;
+			case 70:
+				$info['last_result'] = 'Can\'t allocate and clear memory (calloc)';
+				break;
+			case 71:
+				$info['last_result'] = 'Can\'t allocate memory (malloc)';
+				break;
+			default:
+				$info['last_result'] = lang('base_unknown');
+		}
+
+		// Other information
+		//------------------
+
+		$info['error_count'] = count($this->state['error']);
+		$info['malware_count'] = count($this->state['virus']);
+		$info['current_scandir'] = $this->state['dir'];
+
+		// Create a generic status message for the state of the scanner
+		//-------------------------------------------------------------
+
+		if ($info['state'] === FileScan::STATUS_IDLE)
+			$info['status'] = sprintf(lang('filescan_last_run'),  $info['last_run']);
+		else if ($info['state'] === FileScan::STATUS_SCANNING)
+			$info['status'] = sprintf(lang('filescan_currently_scanning'),  $info['current_scandir']);
+		else
+			$info['status'] = '...';
+
+		return $info;
 	}
 
 	/**

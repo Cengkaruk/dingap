@@ -68,7 +68,8 @@ class FileScan extends ClearOS_Controller
 		//---------------
 
 		$this->lang->load('filescan');
-		$this->load->module('filescan/config');
+	//	$this->load->module('filescan/config');
+		$this->load->module('filescan/scan');
 		// $this->load->module('dhcp/subnets');
 		// $this->load->module('dhcp/leases');
 
@@ -78,7 +79,8 @@ class FileScan extends ClearOS_Controller
 		$this->page->set_title(lang('filescan_antimalware'));
 
 		$this->load->view('theme/header');
-//		$this->filescan->config('form');
+	//	$this->config->index('form');
+		$this->scan->index('form');
 		// $this->subnets->index('form');
 		// $this->leases->index('form');
 		$this->load->view('theme/footer');
