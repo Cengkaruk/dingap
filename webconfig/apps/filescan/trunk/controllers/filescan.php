@@ -44,7 +44,7 @@
  * @copyright Copyright 2011, ClearFoundation
  */
 
-class File_Scan extends ClearOS_Controller
+class FileScan extends ClearOS_Controller
 {
 	/**
 	 * DHCP server overview.
@@ -67,14 +67,14 @@ class File_Scan extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->lang->load('file_scan');
-//		$this->load->module('file_scan/config');
-		$this->load->module('file_scan/scan');
+		$this->lang->load('filescan');
+//		$this->load->module('filescan/config');
+		$this->load->module('filescan/scan');
 
 		// Load views
 		//-----------
 
-		$this->page->set_title(lang('file_scan_antimalware'));
+		$this->page->set_title(lang('filescan_antimalware'));
 
 		$this->load->view('theme/header');
 //		$this->config->index('form');

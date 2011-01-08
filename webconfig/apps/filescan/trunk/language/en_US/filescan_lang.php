@@ -17,7 +17,7 @@ $lang['antivirus_state_error'] = 'Error accessing scanner state file.';
 // vi: syntax=php ts=4
 
 $lang['filescan_antimalware'] = 'Antimalware';
-$lang['filescan_antimalware_filescanner'] = 'Antimalware File Scanner';
+$lang['filescan_antimalware_file_scanner'] = 'Antimalware File Scanner';
 $lang['filescan_daily_scan'] = 'Daily Scan';
 $lang['filescan_directories'] = 'Directories';
 $lang['filescan_home'] = 'Home';

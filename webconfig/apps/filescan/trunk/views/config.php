@@ -26,7 +26,7 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('file_scan');
+$this->lang->load('filescan');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form handler
@@ -36,11 +36,11 @@ if ($form_type === 'edit') {
 	$read_only = FALSE;
 	$buttons = array(
 		form_submit_update('submit'),
-		anchor_cancel('/app/file_scan')
+		anchor_cancel('/app/filescan')
 	);
 } else {
 	$read_only = TRUE;
-	$buttons = array(anchor_edit('/app/file_scan/config'));
+	$buttons = array(anchor_edit('/app/filescan/config'));
 }
 
 // Daily scan dropdown
@@ -58,7 +58,7 @@ if (! $hour)
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('file_scan/config'); 
+echo form_open('filescan/config'); 
 
 ///////////////////////////////////////////////////////////////////////////////
 // General Settings
@@ -66,7 +66,7 @@ echo form_open('file_scan/config');
 
 echo form_fieldset(lang('base_general_settings'));
 
-echo field_dropdown('hour', $hours, $hour, lang('file_scan_daily_scan'), $read_only);
+echo field_dropdown('hour', $hours, $hour, lang('filescan_daily_scan'), $read_only);
 
 echo form_fieldset_close(); 
 
@@ -74,7 +74,7 @@ echo form_fieldset_close();
 // Directories
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('file_scan_directories'));
+echo form_fieldset(lang('filescan_directories'));
 
 foreach ($presets as $directory => $description) {
 	$selected = in_array($directory, $directories) ? TRUE : FALSE;

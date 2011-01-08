@@ -55,8 +55,8 @@ class Config extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('file_scan/FileScan');
-		$this->lang->load('file_scan');
+		$this->load->library('filescan/FileScan');
+		$this->lang->load('filescan');
 
 		// Handle form submit
 		//-------------------
@@ -122,15 +122,15 @@ class Config extends ClearOS_Controller
 		if ($view == 'form') {
 			$data['form_type'] = 'view';
 
-			$this->load->view('file_scan/config', $data);
+			$this->load->view('filescan/config', $data);
 
 		} else if ($view == 'page') {
 			$data['form_type'] = 'edit';
 
-			$this->page->set_title(lang('file_scan_antimalware') . ' - ' . lang('base_general_settings'));
+			$this->page->set_title(lang('filescan_antimalware') . ' - ' . lang('base_general_settings'));
 
 			$this->load->view('theme/header');
-			$this->load->view('file_scan/config', $data);
+			$this->load->view('filescan/config', $data);
 			$this->load->view('theme/footer');
 		}
 	}
