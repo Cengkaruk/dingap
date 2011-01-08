@@ -26,13 +26,11 @@ header('Content-Type:application/x-javascript');
 
 $(document).ready(function() {
 
-	$("#progress").html("whirylgig...");
-
 	getData();
 
 	function getData() {
         $.ajax({
-            url: '/app/filescan/scan/info',
+            url: '/app/file_scan/scan/info',
             method: 'GET',
             dataType: 'json',
             success : function(json) {
@@ -40,168 +38,22 @@ $(document).ready(function() {
 				window.setTimeout(getData, 2000);
             },
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
-				$("#progress").html('Ooops: ' + textStatus);
+				$("#status").html('Ooops: ' + textStatus);
 				window.setTimeout(getData, 2000);
 			}
         });
 	}
 
 	function showData(info) {
+		$("#progress").progressbar({
+			value: Math.round(info.progress)
+		});
 		$("#state").html(info.state_text);
 		$("#status").html(info.status);
-		$("#progress").html(info.progress);
 		$("#error_count").html(info.error_count);
 		$("#malware_count").html(info.malware_count);
 		$("#last_result").html(info.last_result);
 	}
 });
-
-var interval = 1000;
-var parentObject;
-var last_pos = 0;
-var title = document.title;
-
-function Initialize()
-{
- 	parentObject = document.getElementById('av_progress_bar');
-	setTimeout('TimerTick()', interval);
-}
-
-function GetXmlHttp()
-{
-	if (window.XMLHttpRequest)
-		window.xmlHttp = new XMLHttpRequest();
-	else if (window.ActiveXObject) {
-		// Try ActiveX
-		try { 
-			window.xmlHttp = new ActiveXObject('Msxml2.XMLHTTP');
-		} catch (e1) { 
-			// first method failed 
-			try {
-				window.xmlHttp = new ActiveXObject('Microsoft.XMLHTTP');
-			} catch (e2) {
-				alert('No AJAX support detected.  Upgrade your web browser.');
-			} 
-		}
-	}
-}
-
-function FindObjectPosition(obj)
-{
-	var left = 0;
-	var top = 0;
-	var width = 0;
-	var height = 0;
-
-	if (obj.offsetParent) {
-		left = obj.offsetLeft;
-		top = obj.offsetTop;
-		width = obj.offsetWidth;
-		height = obj.offsetHeight;
-
-		while (obj = obj.offsetParent) {
-			left += obj.offsetLeft;
-			top += obj.offsetTop;
-		}
-	}
-
-	return [left, top, width, height];
-}
-
-function UpdateProgress(percent)
-{
-	var offsetObj = document.getElementById('av_progress_bar');
-	var offsetPos = FindObjectPosition(offsetObj);
-	var pos = Math.floor(percent * offsetPos[2] / 100);
-
-	if (percent == 100)
-		document.title = title;
-	else
-		document.title = title + ' - Scanning ' + percent + '%';
-
-	if (pos - last_pos > 0) {
-		var slice = document.createElement('div');
-
-		slice.className = 'progressbar';
-		slice.style.left = (offsetPos[0] + last_pos) + 'px';
-		slice.style.top = offsetPos[1] + 'px';
-		slice.style.width = (pos - last_pos) + 'px';
-
-		parentObject.appendChild(slice);
-	}
-
-	last_pos = pos;
-
-	document.getElementById('av_progress_percent').firstChild.nodeValue = percent + '%';
-}
-
-function ClearProgress()
-{
-	var childNodes = parentObject.childNodes;;
-	var childCount = childNodes.length;
-
-	document.title = title;
-
-	for (var i = 1; i < childCount; i++)
-		parentObject.removeChild(parentObject.childNodes[1]);
-
-	last_pos = 0;
-	document.getElementById('av_progress_percent').firstChild.nodeValue = '0%';
-}
-
-function TimerTick()
-{
-	var url = 'avscan.php';
-
-	GetXmlHttp();
-
-	xmlHttp.onreadystatechange = LoadData;
-	xmlHttp.open('GET', url, true);
-	xmlHttp.send(null);
-}
-
-function LoadData()
-{
-	if (!window.xmlHttp)
-		setTimeout('TimerTick()', interval);
-	else if (xmlHttp.readyState == 4 || xmlHttp.readyState == 'complete') {
-		eval(xmlHttp.responseText);
-		setTimeout('TimerTick()', interval);
-	}
-}
-
-function InsertVirus(filename, virusname, action)
-{
-	var tr;
-	var td;
-	var tbody = document.getElementById('av_report').getElementsByTagName('TBODY')[1];
-	var i = 1;
-
-	if (!tbody)
-		tbody = document.getElementById('av_report').getElementsByTagName('TBODY')[0];
-
-	for (; i < tbody.childNodes.length; i++) {
-		tr = document.getElementById('av_virus' + i);
-		if (!tr) break;
-		if (tr.firstChild.firstChild.nodeValue == filename) return;
-	}
-
-	tr = document.createElement('TR');
-	tr.id = 'av_virus' + i;
-
-	td = document.createElement('TD');
-	td.appendChild(document.createTextNode(filename));
-	tr.appendChild(td);
-
-	td = document.createElement('TD');
-	td.appendChild(document.createTextNode(virusname));
-	tr.appendChild(td);
-
-	td = document.createElement('TD');
-	td.innerHTML = action;
-	tr.appendChild(td);
-
-	tbody.appendChild(tr);
-}
 
 // vim: ts=4 syntax=javascript

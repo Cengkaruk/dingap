@@ -55,17 +55,17 @@ class Config extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('filescan/FileScan');
-		$this->lang->load('filescan');
+		$this->load->library('file_scan/FileScan');
+		$this->lang->load('file_scan');
 
 		// Handle form submit
 		//-------------------
 
 		if ($this->input->post('submit')) {
 			try {
+				$requested = $this->input->post('directories');
 				$presets = $this->filescan->GetDirectoryPresets();
 				$configured = $this->filescan->GetDirectories();
-				$requested = $this->input->post('directories');
 				$schedule_exists = $this->filescan->ScanScheduleExists();
 
 				// Update directories
@@ -122,15 +122,15 @@ class Config extends ClearOS_Controller
 		if ($view == 'form') {
 			$data['form_type'] = 'view';
 
-			$this->load->view('filescan/config', $data);
+			$this->load->view('file_scan/config', $data);
 
 		} else if ($view == 'page') {
 			$data['form_type'] = 'edit';
 
-			$this->page->set_title(lang('filescan_antimalware') . ' - ' . lang('base_general_settings'));
+			$this->page->set_title(lang('file_scan_antimalware') . ' - ' . lang('base_general_settings'));
 
 			$this->load->view('theme/header');
-			$this->load->view('filescan/config', $data);
+			$this->load->view('file_scan/config', $data);
 			$this->load->view('theme/footer');
 		}
 	}

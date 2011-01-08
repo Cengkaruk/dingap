@@ -41,7 +41,7 @@ require_once($bootstrap . '/bootstrap.php');
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('filescan');
+clearos_load_language('file_scan');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -325,7 +325,7 @@ class FileScan extends Engine
 		//-------------------------------
 
 		$info['state'] = FileScan::STATUS_IDLE;
-		$info['state_text'] = lang('filescan_idle');
+		$info['state_text'] = lang('file_scan_idle');
 
 		if (file_exists(FileScan::FILE_LOCKFILE)) {
 			if (($fh = @fopen(FileScan::FILE_LOCKFILE, 'r'))) {
@@ -333,10 +333,10 @@ class FileScan extends Engine
 
 				if (!file_exists("/proc/$pid")) {
 					$info['state'] = FileScan::STATUS_INTERRUPT;
-					$info['state_text'] = lang('filescan_interrupted');
+					$info['state_text'] = lang('file_scan_interrupted');
 				} else {
 					$info['state'] = FileScan::STATUS_SCANNING;
-					$info['state_text'] = lang('filescan_scanning');
+					$info['state_text'] = lang('file_scan_scanning');
 				}
 
 				fclose($fh);
@@ -357,10 +357,10 @@ class FileScan extends Engine
 
 		switch ($this->state['rc']) {
 			case 0:
-				$info['last_result'] = lang('filescan_no_malware_found');
+				$info['last_result'] = lang('file_scan_no_malware_found');
 				break;
 			case 1:
-				$info['last_result'] = lang('filescan_malware_found');
+				$info['last_result'] = lang('file_scan_malware_found');
 				break;
 			case 40:
 				$info['last_result'] = 'Unknown option passed';
@@ -428,9 +428,9 @@ class FileScan extends Engine
 		//-------------------------------------------------------------
 
 		if ($info['state'] === FileScan::STATUS_IDLE)
-			$info['status'] = sprintf(lang('filescan_last_run'),  $info['last_run']);
+			$info['status'] = sprintf(lang('file_scan_last_run'),  $info['last_run']);
 		else if ($info['state'] === FileScan::STATUS_SCANNING)
-			$info['status'] = sprintf(lang('filescan_currently_scanning'),  $info['current_scandir']);
+			$info['status'] = sprintf(lang('file_scan_currently_scanning'),  $info['current_scandir']);
 		else
 			$info['status'] = '...';
 

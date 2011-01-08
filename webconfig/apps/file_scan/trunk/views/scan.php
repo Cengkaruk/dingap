@@ -26,13 +26,13 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('filescan');
+$this->lang->load('file_scan');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('filescan/config'); 
+echo form_open('file_scan/config'); 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
@@ -41,15 +41,14 @@ echo form_open('filescan/config');
 // FIXME
 $read_only = TRUE;
 
-echo form_fieldset(lang('filescan_scanner'));
+echo form_fieldset(lang('file_scan_scanner'));
 
 echo field_input('state', $state, lang('base_state'), $read_only, array('input' => 'state'));
 echo field_input('status', $status, lang('base_status'), $read_only, array('input' => 'status'));
-echo field_progress_bar('progress', $progress, lang('filescan_progress'), array('input' => 'progress'));
-echo field_input('error_count', $errors, lang('filescan_errors'), $read_only, array('input' => 'error_count'));
-echo field_input('malware_count', $items_found, lang('filescan_malware_items_found'), $read_only, array('input' => 'malware_count'));
-echo field_input('last_result', $last_result, lang('filescan_last_scan_result'), $read_only, array('input' => 'last_result'));
-// echo field_input('last_run', $last_run, lang('filescan_last_run'), $read_only, array('input' => 'last_run'));
+echo field_progress_bar('progress', $progress, lang('file_scan_progress'), array('input' => 'progress'));
+echo field_input('error_count', $errors, lang('file_scan_errors'), $read_only, array('input' => 'error_count'));
+echo field_input('malware_count', $items_found, lang('file_scan_malware_items_found'), $read_only, array('input' => 'malware_count'));
+echo field_input('last_result', $last_result, lang('file_scan_last_scan_result'), $read_only, array('input' => 'last_result'));
 
 echo form_fieldset_close(); 
 

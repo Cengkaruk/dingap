@@ -35,11 +35,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $AVDIRS = array();
-$AVDIRS['/home'] = lang('filescan_home');
-$AVDIRS['/var/flexshare'] = lang('filescan_flexshare');
-$AVDIRS['/var/www'] = lang('filescan_web');
-$AVDIRS['/var/ftp'] = lang('filescan_ftp');
-$AVDIRS['/var/spool/squid'] = lang('filescan_web_proxy_cache');
+$AVDIRS['/home'] = lang('file_scan_home');
+$AVDIRS['/var/flexshare'] = lang('file_scan_flexshare');
+$AVDIRS['/var/www'] = lang('file_scan_web');
+$AVDIRS['/var/ftp'] = lang('file_scan_ftp');
+$AVDIRS['/var/spool/squid'] = lang('file_scan_web_proxy_cache');
 // TODO: Mail spool needs special handling
 // $AVDIRS['/var/spool/imap'] = ...;
 

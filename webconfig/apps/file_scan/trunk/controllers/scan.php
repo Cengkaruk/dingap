@@ -55,20 +55,18 @@ class Scan extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('filescan/FileScan');
-		$this->lang->load('filescan');
+		$this->load->library('file_scan/FileScan');
+		$this->lang->load('file_scan');
 
 		// Handle form submit
 		//-------------------
 
 		if ($this->input->post('submit')) {
 			try {
-/*
+				$requested = $this->input->post('directories');
 				$presets = $this->filescan->GetDirectoryPresets();
 				$configured = $this->filescan->GetDirectories();
-				$requested = $this->input->post('directories');
 				$schedule_exists = $this->filescan->ScanScheduleExists();
-*/
 
 				// Redirect to main page
 //				 $this->page->set_success(lang('base_system_updated'));
@@ -100,15 +98,15 @@ class Scan extends ClearOS_Controller
 		if ($view == 'form') {
 			$data['form_type'] = 'view';
 
-			$this->load->view('filescan/scan', $data);
+			$this->load->view('file_scan/scan', $data);
 
 		} else if ($view == 'page') {
 			$data['form_type'] = 'edit';
 
-			$this->page->set_title(lang('filescan_antimalware') . ' - ' . lang('base_status'));
+			$this->page->set_title(lang('file_scan_antimalware') . ' - ' . lang('base_status'));
 
 			$this->load->view('theme/header');
-			$this->load->view('filescan/scan', $data);
+			$this->load->view('file_scan/scan', $data);
 			$this->load->view('theme/footer');
 		}
 	}
@@ -119,7 +117,7 @@ class Scan extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('filescan/FileScan');
+		$this->load->library('file_scan/FileScan');
 
 		// Load view data
 		//---------------
