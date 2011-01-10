@@ -9,7 +9,7 @@ html, body {
   font-family: Arial, Helvetica, sans serif;
   margin: 0;
   padding: 0;
-  text-align: center; /* IE center page hack, override in clearos_container */
+  text-align: center; /* IE center page hack, override in theme-page-container */
   background-image: url('../images/bg.jpg');
   background-repeat: repeat-x;
   background-color: #E3E3E3;
@@ -103,50 +103,48 @@ a:active {
 /* ------------------------------------------------------------------------- */
 
 /* Common anchor classes */
-a.clearos-anchor { }
-a.clearos-anchor-important { color: #333333 !important; }
-a.clearos-anchor-unimportant { color: #666666 !important; }
+a.theme-anchor { }
+a.theme-anchor-important { color: #333333 !important; }
+a.theme-anchor-unimportant { color: #666666 !important; }
 
 /* Standard anchors */
-a.clearos-anchor-add { }
-a.clearos-anchor-edit { }
-a.clearos-anchor-cancel { }
-a.clearos-anchor-delete { }
+a.theme-anchor-add { }
+a.theme-anchor-edit { }
+a.theme-anchor-cancel { }
+a.theme-anchor-delete { }
 
 /* Custom anchor */
-a.clearos-anchor-custom { }
+a.theme-anchor-custom { }
 
 /* Javascript anchor */
-a.clearos-anchor-javascript { }
+a.theme-anchor-javascript { }
 
 /* ------------------------------------------------------------------------- */
 /* Buttons */
 /* ------------------------------------------------------------------------- */
 
 /* Common button class */
-input.clearos-form-submit { }
-input.clearos-form-important { color: #333333 !important; }
-input.clearos-form-unimportant { color: #666666 !important; }
+input.theme-form-submit { }
+input.theme-form-important { color: #333333 !important; }
+input.theme-form-unimportant { color: #666666 !important; }
 
 /* Standard buttons */
-input.clearos-form-submit-add { }
-input.clearos-form-submit-delete { }
-input.clearos-form-submit-update { }
+input.theme-form-submit-add { }
+input.theme-form-submit-delete { }
+input.theme-form-submit-update { }
 
 /* Custom button */
-input.clearos-form-submit-custom { }
+input.theme-form-submit-custom { }
 
 /* ------------------------------------------------------------------------- */
 /* Buttons Sets */
 /* ------------------------------------------------------------------------- */
 
-/*
-.clearos-button-set {
-  margin-top: 0px;
-  margin-bottom: 6px;
-  margin-left: 10px;
-}
-*/
+div.theme-button-set { color: red; }
+
+/* ------------------------------------------------------------------------- */
+/* Field View */
+/* ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------- */
 /* Summary Table */
@@ -161,16 +159,16 @@ input.clearos-form-submit-custom { }
 .theme-summary-table-add {
   text-align: left;
 }
-.clearos-summary-table-header {
+.theme-summary-table-header {
   background: #FFFFFF url(../images/main-nav-selected.png) repeat-x  50% 50%;
   padding: 5px;
   color: #EEEEEE;
   font-weight: bold;
 }
-.clearos-summary-table-title { 
+.theme-summary-table-title { 
   float: left;
 } 
-.clearos-summary-table-action { 
+.theme-summary-table-action { 
   text-align: right;
   padding: 0 !important;
   font-size: 7pt !important;
@@ -195,13 +193,13 @@ fieldset label {
 .theme-summary-box-container {
   margin-top: 6px;
 }
-.clearos-summary-box-header {
+.theme-summary-box-header {
   background: #FFFFFF url(../images/main-nav-selected.png) repeat-x  50% 50%;
   padding: 5px;
   color: #EEEEEE;
   font-weight: bold;
 }
-.clearos-summary-box-title { 
+.theme-summary-box-title { 
   float: left;
 } 
 
@@ -209,18 +207,18 @@ fieldset label {
 /* Helpbox */
 /* ------------------------------------------------------------------------- */
 
-.clearos-view-container {
+.theme-view-container {
   margin: 0 auto;
   width: 100%;
   padding: 5px;
 }
-.clearos-view-contents {
+.theme-view-contents {
   position: relative;
   height: auto;
   float: left;
   width: 50%;
 }
-.clearos-view-help {
+.theme-view-help {
   clear: right;
   float: right;
   width: 50%;  

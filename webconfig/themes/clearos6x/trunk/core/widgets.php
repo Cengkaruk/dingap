@@ -48,9 +48,9 @@
 function theme_anchor($url, $text, $importance, $class, $id)
 {
 	// FIXME: revisit importance
-	$importance_class = ($importance === 'high') ? "clearos-anchor-important" : "clearos-anchor-unimportant";
+	$importance_class = ($importance === 'high') ? "theme-anchor-important" : "theme-anchor-unimportant";
 
-	return "<a href='$url' id='$id' class='clearos-anchor $class $importance_class'>$text</a>";
+	return "<a href='$url' id='$id' class='theme-anchor $class $importance_class'>$text</a>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,9 +71,9 @@ function theme_anchor($url, $text, $importance, $class, $id)
 function theme_form_submit($name, $text, $importance, $class, $id)
 {
 	// FIXME: revisit importance
-	$importance_class = ($importance === 'high') ? "clearos-form-important" : "clearos-form-unimportant";
+	$importance_class = ($importance === 'high') ? "theme-form-important" : "theme-form-unimportant";
 
-	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='clearos-form-submit $class $importance_class' />\n";
+	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='theme-form-submit $class $importance_class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ function theme_button_set($buttons, $id)
 		$button_html .= "\n\t\t\t" . trim($button);
 
 	return "
-		<div class='clearos-button-set' id='$id'>$button_html
+		<div class='theme-button-set' id='$id'>$button_html
 		</div>
 	";
 }
@@ -305,7 +305,7 @@ function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
 	return "
 		<div$field_id_html>
 			<label for='$input_id'$label_id_html>$label</label>
-			<span id='$input_id'>$value dude</span>
+			<div id='$input_id' class='theme-progress-bar'> </div>
 		</div>
 	";
 }
@@ -364,9 +364,9 @@ function theme_summary_table($title, $anchors, $headers, $items, $legend = NULL)
 	return "
 
 <div class='theme-summary-table-container ui-widget'>
-  <div class='clearos-summary-table-header ui-state-active ui-corner-top'>
-	<div class='clearos-summary-table-title'>$title</div>
-	<div class='clearos-summary-table-action'>$add_html</div>
+  <div class='theme-summary-table-header ui-state-active ui-corner-top'>
+	<div class='theme-summary-table-title'>$title</div>
+	<div class='theme-summary-table-action'>$add_html</div>
   </div>
   <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table display'>
    <thead>

@@ -1,11 +1,20 @@
 $(function(){
-    // Buttons and Anchors
-    $(".clearos-anchor").button();
-    $(".clearos-form-submit").button();
-    $(".clearos-button-set").buttonset();
+	// Anchors
+	$(".theme-anchor").button();
 
-	// Data tables
-    $(".theme-summary-table").dataTable({
+	// Buttons
+	$(".theme-form-submit").button();
+
+	// Anchor and button sets
+	$(".theme-button-set").buttonset();
+
+	// Progress bar
+	$(".theme-progress-bar").progressbar({ 
+		value: 0
+	});
+
+	// Summary tables
+	$(".theme-summary-table").dataTable({
 		"aoColumnDefs": [{ 
 			"bSortable": false, "aTargets": [ -1 ] 
 		}],
@@ -13,11 +22,8 @@ $(function(){
 		"sPaginationType": "full_numbers"
 	});
 
-	// Progress bar
-    $(".progressbar").progressbar({});
-
 	// Forms / FIXME
-    $('fieldset').addClass('ui-widget-content ui-corner-all');
+	$('fieldset').addClass('ui-widget-content ui-corner-all');
 	$('legend').addClass('ui-widget-header ui-corner-all');
 	$('label').addClass('ui-widget ui-corner-all');
 });
