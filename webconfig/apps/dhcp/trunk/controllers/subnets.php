@@ -131,7 +131,6 @@ class Subnets extends ClearOS_Controller
 		$this->load->view('theme/header');
 		$this->load->view('theme/confirm', $data);
 		$this->load->view('theme/footer');
-
 	}
 
 	/**
