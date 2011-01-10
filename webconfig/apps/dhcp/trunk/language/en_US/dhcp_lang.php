@@ -20,6 +20,7 @@ $lang['dhcp_active'] = 'Active';
 $lang['dhcp_dynamic'] = 'Dynamic';
 $lang['dhcp_static'] = 'Static';
 $lang['dhcp_dhcp'] = 'DHCP';
+$lang['dhcp_dhcp_server'] = 'DHCP Server';
 $lang['dhcp_confirm_delete'] = 'Are you sure you want to delete DHCP settings for the %s network interface?';
 
 ?>
