@@ -48,6 +48,10 @@ class Scan extends ClearOS_Controller
 {
 	/**
 	 * File scanner execution.
+	 *
+	 * @param string $view view type
+	 *
+	 * @return view
 	 */
 
 	function index($view = 'page')
@@ -64,13 +68,15 @@ class Scan extends ClearOS_Controller
 		if ($this->input->post('submit')) {
 			try {
 				$requested = $this->input->post('directories');
-				$presets = $this->filescan->GetDirectoryPresets();
-				$configured = $this->filescan->GetDirectories();
-				$schedule_exists = $this->filescan->ScanScheduleExists();
+				$presets = $this->filescan->get_directory_resets();
+				$configured = $this->filescan->get_directories();
+				$schedule_exists = $this->filescan->scan_schedule_exists();
 
 				// Redirect to main page
-//				 $this->page->set_success(lang('base_system_updated'));
-//				redirect('/filescan/');
+				/*
+				$this->page->set_success(lang('base_system_updated'));
+				redirect('/filescan/');
+				*/
 			} catch (Exception $e) {
 				$this->page->view_exception($e->GetMessage(), $view);
 				return;
@@ -81,11 +87,11 @@ class Scan extends ClearOS_Controller
 		//---------------
 
 		try {
-			$data['directories'] = $this->filescan->GetDirectories();
-			$data['presets'] = $this->filescan->GetDirectoryPresets();
-			$data['schedule_exists'] = $this->filescan->ScanScheduleExists();
+			$data['directories'] = $this->filescan->get_directories();
+			$data['presets'] = $this->filescan->get_directory_presets();
+			$data['schedule_exists'] = $this->filescan->scan_schedule_exists();
 
-			$schedule = $this->filescan->GetScanSchedule();
+			$schedule = $this->filescan->get_scan_schedule();
 			$data['hour'] = $schedule['hour'];
 		} catch (Exception $e) {
 			$this->page->view_exception($e->GetMessage(), $view);
@@ -111,7 +117,12 @@ class Scan extends ClearOS_Controller
 		}
 	}
 
-	// FIXME: standard naming convention?
+	/**
+	 * JSON encoded scan information
+	 *
+	 * @return string JSON encoded information
+	 */
+
 	function info()
 	{
 		// Load libraries
@@ -123,7 +134,7 @@ class Scan extends ClearOS_Controller
 		//---------------
 
 		try {
-			$info = $this->filescan->GetInfo();
+			$info = $this->filescan->get_info();
 		} catch (Exception $e) {
 			// FIXME: what to return here?
 			$info['ajax_error'] = $e->GetMessage();
