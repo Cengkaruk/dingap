@@ -1857,8 +1857,6 @@ class DansGuardian extends Daemon
 			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
 		$this->SetConfigurationValue('blockdownloads', $block, $group);
-		$this->SetConfigurationValue('exceptionextensionlist', "'/etc/dansguardian-av/lists/exceptionextensionlist'", $group);
-		$this->SetConfigurationValue('exceptionmimetypelist', "'/etc/dansguardian-av/lists/exceptionmimetypelist'", $group);
 	}
 
 	/**
