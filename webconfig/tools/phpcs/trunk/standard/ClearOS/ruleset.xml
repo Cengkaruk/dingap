@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<ruleset name="ClearOS">
+ <description>The ClearOS coding standard.</description>
+
+ <!-- Include some additional sniffs from the Generic and PEAR standards -->
+ <rule ref="Generic.Functions.FunctionCallArgumentSpacing"/>
+ <rule ref="Generic.Functions.OpeningFunctionBraceBsdAllman"/>
+ <rule ref="Generic.Metrics.NestingLevel"/>
+ <!-- rule ref="Generic.NamingConventions.UpperCaseConstantName"/   False positive with "use" keyword -->
+ <rule ref="Generic.PHP.DeprecatedFunctions"/>
+ <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+ <rule ref="Generic.PHP.UpperCaseConstant"/>
+ <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+ <rule ref="Generic.WhiteSpace.ScopeIndent"/>
+
+ <rule ref="PEAR.Classes.ClassDeclaration"/>
+ <rule ref="PEAR.Commenting.ClassComment"/>
+ <!-- rule ref="PEAR.Commenting.FileComment"/   Using ClearOS class to disable PHP version check  -->
+ <rule ref="PEAR.Commenting.FunctionComment"/>
+ <rule ref="PEAR.Commenting.InlineComment"/>
+ <rule ref="PEAR.ControlStructures.ControlSignature"/>
+ <rule ref="PEAR.ControlStructures.MultiLineCondition"/>
+ <rule ref="PEAR.Files.IncludingFile"/>
+ <rule ref="PEAR.Formatting.MultiLineAssignment"/>
+ <rule ref="PEAR.Functions.FunctionCallSignature"/>
+ <rule ref="PEAR.Functions.FunctionDeclaration"/>
+ <rule ref="PEAR.Functions.ValidDefaultValue"/>
+ <rule ref="PEAR.NamingConventions.ValidClassName"/>
+ <rule ref="PEAR.NamingConventions.ValidVariableName"/>
+ <!-- rule ref="PEAR.NamingConventions.ValidFunctionName"/   Using ClearOS class -->
+ <rule ref="PEAR.WhiteSpace.ObjectOperatorIndent"/>
+ <rule ref="PEAR.WhiteSpace.ScopeClosingBrace"/>
+ <!-- rule ref="PEAR.WhiteSpace.ScopeIndent"/  Using Generic instead -->
+
+ <!-- Lines can be 120 chars long, but never show errors -->
+ <rule ref="Generic.Files.LineLength">
+  <properties>
+   <property name="lineLimit" value="120"/>
+   <property name="absoluteLineLimit" value="0"/>
+  </properties>
+ </rule>
+
+ <!-- Use Unix newlines -->
+ <rule ref="Generic.Files.LineEndings">
+  <properties>
+   <property name="eolChar" value="\n"/>
+  </properties>
+ </rule>
+
+ <!-- This messgae is not required as spaces are allowed for alignment -->
+ <rule ref="Generic.Functions.FunctionCallArgumentSpacing.TooMuchSpaceAfterComma">
+  <severity>0</severity>
+ </rule>
+
+</ruleset>
