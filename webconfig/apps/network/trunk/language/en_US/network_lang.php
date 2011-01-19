@@ -7,12 +7,7 @@ $lang['network_destination'] = 'Destination';
 $lang['network_dns_server'] = 'DNS Server';
 $lang['network_domain'] = 'Domain';
 $lang['network_entire_network'] = 'All Networks';
-$lang['network_errmsg_domain_must_have_a_period'] = 'Domain must have at least one period.';
-$lang['network_errmsg_hostname_must_have_a_period'] = 'Hostname must have at least one period';
-$lang['network_errmsg_port_invalid'] = 'Invalid port number.';
-$lang['network_errmsg_port_range_invalid'] = 'Invalid port range.';
-$lang['network_errmsg_protocol_invalid'] = 'Invalid protocol.';
-$lang['network_errmsg_unusual_gateway_setting'] = 'Your network settings include the following unusual gateway configuration.  Click on help for more information.';
+$lang['network_validate_unusual_gateway_setting'] = 'Your network settings include the following unusual gateway configuration.  Click on help for more information.';
 $lang['network_gateway'] = 'Gateway';
 $lang['network_hostname'] = 'Hostname';
 $lang['network_ip'] = 'IP Address';
@@ -29,7 +24,30 @@ $lang['network_source'] = 'Source';
 $lang['network_waiting_for_connection'] = 'Internet connection is offline';
 $lang['network_wins_server'] = 'WINS Server';
 
+// New or changed
 $lang['network_interface'] = 'Interface';
 $lang['network_alias'] = 'Alias';
+$lang['network_validate_hostname_alias_invalid'] = 'Hostname alias is invalid.';
+$lang['network_validate_hostname_invalid'] = 'Hostname is invalid.';
+$lang['network_validate_hostname_must_have_a_period'] = 'Full hostname must have at least one period.';
+$lang['network_validate_domain_invalid'] = 'Internet domain is invalid.';
+$lang['network_validate_domain_must_have_a_period'] = 'Internet domain must have at least one period.';
+$lang['network_validate_ip_invalid'] = 'IP address is invalid.';
+$lang['network_validate_ip_on_network_invalid'] = 'IP address is not part of the network.';
+$lang['network_validate_mac_address_invalid'] = 'MAC address is invalid.';
+$lang['network_validate_ip_range_invalid'] = 'IP range is invalid.';
+$lang['network_validate_ip_range_reversed'] = 'IP range is reversed.';
+$lang['network_validate_netmask_invalid'] = 'Netmask is invalid.';
+$lang['network_validate_network_invalid'] = 'Network is invalid.';
+$lang['network_validate_network_out_of_range'] = 'Network is out of range.';
+$lang['network_validate_local_ip_invalid'] = 'Network address is not local.';
+$lang['network_validate_protocol_invalid'] = 'Protocol is invalid.';
+$lang['network_validate_prefix_invalid'] = 'Network prefix is invalid.';
+$lang['network_validate_port_range_invalid'] = 'Port range is invalid.';
+$lang['network_validate_port_range_out_of_range'] = 'Port out of range.';
+$lang['network_validate_port_range_reversed'] = 'Port range is reversed.';
+$lang['network_validate_port_invalid'] = 'Port is invalid.';
+$lang['network_validate_port_out_of_range'] = 'Port is out of range.';
+
 // vi: syntax=php ts=4
 ?>
