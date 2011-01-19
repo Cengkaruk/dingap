@@ -3,9 +3,9 @@
 /**
  * DnsMasq class.
  *
- * @category   ClearOS
- * @package    Base
- * @subpackage Dns
+ * @category   Apps
+ * @package    Dns
+ * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\base;
+namespace clearos\apps\dns;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -57,19 +57,19 @@ clearos_load_language('dns');
 // Classes
 //--------
 
-use \clearos\base\Daemon as Daemon;
-use \clearos\base\File as File;
-use \clearos\network\Ethers as Ethers;
-use \clearos\network\Firewall as Firewall;
-use \clearos\network\Iface as Iface;
-use \clearos\network\IfaceManager as IfaceManager;
-use \clearos\network\Network_Utils as Network_Utils;
-use \clearos\network\Routes as Routes;
+use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\File as File;
+use \clearos\apps\firewall\Firewall as Firewall;
+use \clearos\apps\network\Ethers as Ethers;
+use \clearos\apps\network\Iface as Iface;
+use \clearos\apps\network\IfaceManager as IfaceManager;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\network\Routes as Routes;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
+clearos_load_library('firewall/Firewall');
 clearos_load_library('network/Ethers');
-clearos_load_library('network/Firewall');
 clearos_load_library('network/Iface');
 clearos_load_library('network/IfaceManager');
 clearos_load_library('network/Network_Utils');
@@ -78,8 +78,8 @@ clearos_load_library('network/Routes');
 // Exceptions
 //-----------
 
-use \clearos\base\Engine_Exception as Engine_Exception;
-use \clearos\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
@@ -91,9 +91,9 @@ clearos_load_library('base/Validation_Exception');
 /**
  * DnsMasq class.
  *
- * @category   ClearOS
- * @package    Base
- * @subpackage Dns
+ * @category   Apps
+ * @package    Dns
+ * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
