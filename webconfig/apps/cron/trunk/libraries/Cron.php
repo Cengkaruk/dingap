@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2011 ClearFoundation
-//
+/**
+ * Cron class.
+ *
+ * @category   Apps
+ * @package    Cron
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/cron/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,22 +29,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Cron manager.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\cron;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
 $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
@@ -48,245 +52,241 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\File as File;
+
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 
-///////////////////////////////////////////////////////////////////////////////
-// E X C E P T I O N S
-///////////////////////////////////////////////////////////////////////////////
+// Exceptions
+//-----------
 
-/**
- * Cron.d configlet not found exception.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
- */
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\cron\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
 
-class CronConfigletNotFoundException extends EngineException
-{
-	/**
-	 * CronConfigletNotFoundException constructor.
-	 *
-	 * @param string $errmsg error message
-	 * @param int $code error code
-	 */
-
-	public function __construct($errmsg, $code)
-	{
-		parent::__construct($errmsg, $code);
-	}
-}
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/Validation_Exception');
+clearos_load_library('cron/Cron_Configlet_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Cron server and crontab configuration.
+ * Cron class.
  *
- * @package ClearOS
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
+ * @category   Apps
+ * @package    Cron
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/cron/
  */
 
 class Cron extends Daemon
 {
-	///////////////////////////////////////////////////////////////////////////////
-	// C O N S T A N T S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	const FILE_CRONTAB = "/etc/crontab";
-	const PATH_CROND = "/etc/cron.d";
+    const FILE_CRONTAB = "/etc/crontab";
+    const PATH_CROND = "/etc/cron.d";
 
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * Cron constructor.
-	 */
+    /**
+     * Cron constructor.
+     */
 
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		parent::__construct("crond");
-	}
+        parent::__construct("cronie");
+    }
 
-	/**
-	 * Add a configlet to cron.d.
-	 *
-	 * @param string $name configlet name
-	 * @param string $payload valid crond payload
-	 * @returns void
-	 * @throws EngineException, ValidationException
-	 */
+    /**
+     * Add a configlet to cron.d.
+     *
+     * @param string $name    configlet name
+     * @param string $payload valid crond payload
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-	public function AddCrondConfiglet($name, $payload)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function add_configlet($name, $payload)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// TODO -- validate payload
+        // TODO -- validate payload
 
-		try {
-			$file = new File(self::PATH_CROND . "/" . $name, true);
+        try {
+            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
 
-			if ($file->Exists())
-				throw new ValidationException(FILE_LANG_ERRMSG_EXISTS . " - " . $name);
+            if ($file->exists())
+                throw new Validation_Exception(FILE_LANG_ERRMSG_EXISTS . " - " . $name);
 
-			$file->Create("root", "root", "0644");
+            $file->create("root", "root", "0644");
 
-			$file->AddLines("$payload\n");
+            $file->add_lines("$payload\n");
 
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
-	}
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
+    }
 
-	/**
-	 * Add a configlet to cron.d.
-	 * 
-	 * @param string $name configlet name
-	 * @param integer $minute minute of the day
-	 * @param integer $hour hour of the day
-	 * @param integer $dayofmonth day of the month
-	 * @param integer $month month
-	 * @param integer $dayofweek day of week
-	 * @param string $user user that will run cron command
-	 * @param string $command command
-	 * @returns void
-	 * @throws EngineException, ValidationException
-	 */
+    /**
+     * Add a configlet to cron.d.
+     * 
+     * @param string  $name         configlet name
+     * @param integer $minute       minute of the day
+     * @param integer $hour         hour of the day
+     * @param integer $day_of_month day of the month
+     * @param integer $month        month
+     * @param integer $day_of_week  day of week
+     * @param string  $user         user that will run cron command
+     * @param string  $command      command
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-	public function AddCrondConfigletByParts($name, $minute, $hour, $dayofmonth, $month, $dayofweek, $user, $command)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function add_configlet_by_parts($name, $minute, $hour, $day_of_month, $month, $day_of_week, $user, $command)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// TODO: validate variables
+        // TODO: validate variables
 
-		try {
-			$file = new File(self::PATH_CROND . "/" . $name, true);
+        try {
+            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
 
-			if ($file->Exists())
-				throw new ValidationException(FILE_LANG_ERRMSG_EXISTS . " - " . $name);
+            if ($file->exists())
+                throw new Validation_Exception(FILE_LANG_ERRMSG_EXISTS . " - " . $name);
 
-			$file->Create("root", "root", "0644");
+            $file->create("root", "root", "0644");
 
-			$file->AddLines("$minute $hour $dayofmonth $month $dayofweek $user $command\n");
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
-	}
+            $file->add_lines("$minute $hour $day_of_month $month $day_of_week $user $command\n");
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
+    }
 
-	/**
-	 * Get contents of a cron.d configlet.
-	 *
-	 * @param string $name configlet
-	 * @return string contents of a cron.d file
-	 * @throws CronConfigletNotFoundException, EngineException, ValidationException
-	 */
+    /**
+     * Get contents of a cron.d configlet.
+     *
+     * @param string $name configlet
+     *
+     * @return string contents of a cron.d file
+     * @throws Cron_Configlet_Not_Found_Exception, Engine_Exception, Validation_Exception
+     */
 
-	public function GetCrondConfiglet($name)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function get_configlet($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// TODO: validate filename, do not allow .. or leading /
+        // TODO: validate filename, do not allow .. or leading /
 
-		$contents = "";
+        $contents = "";
 
-		try {
-			$file = new File(self::PATH_CROND . "/" . $name, true);
-			$contents = $file->GetContents();
-		} catch (FileNotFoundException $e) {
-			throw new CronConfigletNotFoundException($e->GetMessage(), COMMON_INFO);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
+        try {
+            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
+            $contents = $file->get_contents();
+        } catch (File_Not_Found_Exception $e) {
+            throw new Cron_Configlet_Not_Found_Exception($e->get_message(), CLEAROS_INFO);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-		return $contents;
-	}
+        return $contents;
+    }
 
-	/**
-	 * Deletes cron.d configlet.
-	 *
-	 * @param string $name cron.d configlet
-	 * @returns void
-	 * @throws EngineException, ValidationException
-	 */
+    /**
+     * Deletes cron.d configlet.
+     *
+     * @param string $name cron.d configlet
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-	public function DeleteCrondConfiglet($name)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function delete_configlet($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// TODO: validate filename, do not allow .. or leading /
+        // TODO: validate filename, do not allow .. or leading /
 
-		try {
-			$file = new File(self::PATH_CROND . "/" . $name, true);
+        try {
+            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
 
-			if (! $file->Exists())
-				throw new ValidationException(FILE_LANG_ERRMSG_NOTEXIST . " - " . $name);
+            if (! $file->exists())
+                throw new Validation_Exception(FILE_LANG_ERRMSG_NOTEXIST . " - " . $name);
 
-			$file->Delete();
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
-	}
+            $file->delete();
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
+    }
 
-	/**
-	 * Checks to see if cron.d configlet exists.
-	 *
-	 * @param string $name configlet
-	 * @return boolean true if file exists
-	 * @throws EngineException, ValidationException
-	 */
+    /**
+     * Checks to see if cron.d configlet exists.
+     *
+     * @param string $name configlet
+     *
+     * @return boolean TRUE if file exists
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-	public function ExistsCrondConfiglet($name)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function exists_configlet($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$file = new File(self::PATH_CROND . "/" . $name, true);
+        try {
+            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
 
-			if ($file->Exists())
-				return true;
-			else
-				return false;
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
-	}
+            if ($file->exists())
+                return TRUE;
+            else
+                return FALSE;
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// V A L I D A T I O N   R O U T I N E S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * Validation routine for crontab time.
-	 *
-	 * @param string $time crontab time
-	 * @return boolean true if time entry is valid
-	 */
+    /**
+     * Validation routine for crontab time.
+     *
+     * @param string $time crontab time
+     *
+     * @return boolean TRUE if time entry is valid
+     */
 
-	public function IsValidTime($time)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function validate_time($time)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// Could do more validation here...
+        // Could do more validation here...
 
-		$time = preg_replace("/\s+/", " ", $time);
+        $time = preg_replace("/\s+/", " ", $time);
 
-		$parts = explode(" ", $time);
+        $parts = explode(" ", $time);
 
-		if (sizeof($parts) != 5)
-			return false;
+        if (sizeof($parts) != 5)
+            return FALSE;
 
-		return true;
-	}
+        return TRUE;
+    }
 }
-
-// vim: syntax=php ts=4
-?>
