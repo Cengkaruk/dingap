@@ -55,8 +55,8 @@ class Config extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('filescan/FileScan');
-		$this->lang->load('filescan');
+		$this->load->library('file_scan/File_Scan');
+		$this->lang->load('file_scan');
 
 		// Handle form submit
 		//-------------------
@@ -64,18 +64,18 @@ class Config extends ClearOS_Controller
 		if ($this->input->post('submit')) {
 			try {
 				$requested = $this->input->post('directories');
-				$presets = $this->filescan->GetDirectoryPresets();
-				$configured = $this->filescan->GetDirectories();
-				$schedule_exists = $this->filescan->ScanScheduleExists();
+				$presets = $this->file_scan->get_directory_Presets();
+				$configured = $this->file_scan->get_directories();
+				$schedule_exists = $this->file_scan->scan_schedule_exists();
 
 				// Update directories
 				//-------------------
 
 				foreach ($presets as $preset => $description) {
 					if (array_key_exists($preset, $requested) && (!in_array($preset, $configured)))
-						$this->filescan->AddDirectory($preset);
+						$this->file_scan->add_directory($preset);
 					else if (!array_key_exists($preset, $requested) && (in_array($preset, $configured)))
-						$this->filescan->RemoveDirectory($preset);
+						$this->file_scan->Remove_directory($preset);
 				}
 
 				// Update shedule
@@ -84,9 +84,9 @@ class Config extends ClearOS_Controller
 				$hour = $this->input->post('hour');
 
 				if ($schedule_exists && $hour === 'disabled') {
-					$this->filescan->RemoveScanSchedule();
+					$this->file_scan->remove_scan_schedule();
 				}  else if (!$schedule_exists && $hour !== 'disabled') {
-					$this->filescan->SetScanSchedule('0', $hour, '*', '*', '*');
+					$this->file_scan->set_scan_schedule('0', $hour, '*', '*', '*');
 					// FIXME: move this to scan script
 					// $this->freshclam->SetBootState(TRUE);
 					// $this->freshclam->SetRunningState(TRUE);
@@ -94,7 +94,7 @@ class Config extends ClearOS_Controller
 
 				// Redirect to main page
 //				 $this->page->set_success(lang('base_system_updated'));
-//				redirect('/filescan/');
+//				redirect('/file_scan/');
 			} catch (Exception $e) {
 				$this->page->view_exception($e->GetMessage(), $view);
 				return;
@@ -105,11 +105,11 @@ class Config extends ClearOS_Controller
 		//---------------
 
 		try {
-			$data['directories'] = $this->filescan->GetDirectories();
-			$data['presets'] = $this->filescan->GetDirectoryPresets();
-			$data['schedule_exists'] = $this->filescan->ScanScheduleExists();
+			$data['directories'] = $this->file_scan->get_directories();
+			$data['presets'] = $this->file_scan->get_directory_presets();
+			$data['schedule_exists'] = $this->file_scan->scan_schedule_exists();
 
-			$schedule = $this->filescan->GetScanSchedule();
+			$schedule = $this->file_scan->get_scan_schedule();
 			$data['hour'] = $schedule['hour'];
 		} catch (Exception $e) {
 			$this->page->view_exception($e->GetMessage(), $view);
@@ -122,15 +122,15 @@ class Config extends ClearOS_Controller
 		if ($view == 'form') {
 			$data['form_type'] = 'view';
 
-			$this->load->view('filescan/config', $data);
+			$this->load->view('file_scan/config', $data);
 
 		} else if ($view == 'page') {
 			$data['form_type'] = 'edit';
 
-			$this->page->set_title(lang('filescan_antimalware') . ' - ' . lang('base_general_settings'));
+			$this->page->set_title(lang('file_scan_antimalware') . ' - ' . lang('base_general_settings'));
 
 			$this->load->view('theme/header');
-			$this->load->view('filescan/config', $data);
+			$this->load->view('file_scan/config', $data);
 			$this->load->view('theme/footer');
 		}
 	}
