@@ -60,13 +60,13 @@ use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
-use \clearos\apps\base\ShellExec as ShellExec;
+use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
-clearos_load_library('base/ShellExec');
+clearos_load_library('base/Shell');
 
 // Exceptions
 //-----------
@@ -239,7 +239,7 @@ class Time extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $shell = new ShellExec();
+            $shell = new Shell();
             if ($shell->execute(self::COMMAND_HWCLOCK, "--systohc", TRUE) != 0)
                 throw new Engine_Exception($shell->get_first_output_line(), CLEAROS_ERROR);
         } catch (Engine_Exception $e) {

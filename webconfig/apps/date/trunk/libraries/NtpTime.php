@@ -58,13 +58,13 @@ clearos_load_language('date');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
-use \clearos\apps\base\ShellExec as ShellExec;
+use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\cron\Cron as Cron;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('base/ShellExec');
+clearos_load_library('base/Shell');
 clearos_load_library('cron/Cron');
 clearos_load_library('network/Network_Utils');
 
@@ -351,7 +351,7 @@ class NtpTime extends Engine
         $output = "";
 
         try {
-            $shell = new ShellExec();
+            $shell = new Shell();
 
             $options['env'] = "LANG=fr_FR";
 
