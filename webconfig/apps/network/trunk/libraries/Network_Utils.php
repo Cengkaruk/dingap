@@ -1,11 +1,9 @@
 <?php
 
 /**
- * Network utilities.
+ * Network utilities class.
  *
- * General utilities used in dealing with the network.
- *
- * @category   ClearOS
+ * @category   Apps
  * @package    Network
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
@@ -35,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\network;
+namespace clearos\apps\network;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -58,17 +56,15 @@ clearos_load_language('network');
 // Classes
 //--------
 
-use \clearos\base\Engine as Engine;
+use \clearos\apps\base\Engine as Engine;
 
 clearos_load_library('base/Engine');
 
 // Exceptions
 //-----------
 
-use \clearos\base\Engine_Exception as Engine_Exception;
-use \clearos\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,11 +72,11 @@ clearos_load_library('base/Validation_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Network utilities.
+ * Network utilities class.
  *
  * General utilities used in dealing with the network.
  *
- * @category   ClearOS
+ * @category   Apps
  * @package    Network
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
@@ -111,7 +107,7 @@ class Network_Utils extends Engine
      * @return void
      */
 
-    function __construct()
+    public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -161,7 +157,7 @@ class Network_Utils extends Engine
      * @throws Validation_Exception
      */
 
-    function get_netmask($prefix)
+    public function get_netmask($prefix)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -180,7 +176,7 @@ class Network_Utils extends Engine
      * @throws Validation_Exception
      */
 
-    function get_prefix($netmask)
+    public function get_prefix($netmask)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -202,7 +198,7 @@ class Network_Utils extends Engine
      * @throws Validation_Exception
      */
 
-    function get_network_address($ip, $netmask)
+    public function get_network_address($ip, $netmask)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -230,7 +226,7 @@ class Network_Utils extends Engine
      * @throws Validation_Exception
      */
 
-    function get_broadcast_address($ip, $netmask)
+    public function get_broadcast_address($ip, $netmask)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -258,7 +254,7 @@ class Network_Utils extends Engine
      * @throws Validation_Exception
      */
 
-    function is_private_ip($ip)
+    public function is_private_ip($ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -284,7 +280,7 @@ class Network_Utils extends Engine
      * @return string error message if hostname alias is invalid
      */
 
-    function validate_hostname_alias($alias)
+    public function validate_hostname_alias($alias)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -300,7 +296,7 @@ class Network_Utils extends Engine
      * @return string error message if hostname is invalid
      */
 
-    function validate_hostname($hostname)
+    public function validate_hostname($hostname)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -318,7 +314,7 @@ class Network_Utils extends Engine
      * @return string error message if Internet domain is invalid
      */
 
-    function validate_domain($domain)
+    public function validate_domain($domain)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -338,7 +334,7 @@ class Network_Utils extends Engine
      * @return string error message if IP is invalid
      */
 
-    function validate_ip($ip)
+    public function validate_ip($ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -358,7 +354,7 @@ class Network_Utils extends Engine
      * @return string error message if IP is not on the network
      */
 
-    function validate_ip_on_network($ip, $netmask, $testip)
+    public function validate_ip_on_network($ip, $netmask, $testip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -389,7 +385,7 @@ class Network_Utils extends Engine
      * @return string error message if MAC address is invalid
      */
 
-    function validate_mac($mac)
+    public function validate_mac($mac)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -408,7 +404,7 @@ class Network_Utils extends Engine
      * @return string error message if IP range is invalid
      */
 
-    function validate_ip_range($from, $to)
+    public function validate_ip_range($from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -436,7 +432,7 @@ class Network_Utils extends Engine
      * @return string error message if netmask is invalid
      */
 
-    function validate_netmask($netmask)
+    public function validate_netmask($netmask)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -454,7 +450,7 @@ class Network_Utils extends Engine
      * @return string error message if network is invalid
      */
 
-    function validate_network($network)
+    public function validate_network($network)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -466,10 +462,10 @@ class Network_Utils extends Engine
         $baseip = $matches[1];
         $netmask_or_prefix = $matches[2];
 
-        if (empty($this->validate_prefix($netmask_or_prefix))) {
+        if (! $this->validate_prefix($netmask_or_prefix)) {
             // Convert a prefix (/24) to a netmask (/255.255.255.0)
             $netmask = $this->get_netmask($netmask_or_prefix);
-        } else if (empty($this->validate_netmask($netmask_or_prefix))) {
+        } else if (! $this->validate_netmask($netmask_or_prefix)) {
             $netmask = $netmask_or_prefix;
         } else {
             return lang('network_validate_network_out_of_range');
@@ -490,7 +486,7 @@ class Network_Utils extends Engine
      * @return string error message if port is invalid
      */
 
-    function validate_port($port)
+    public function validate_port($port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -510,7 +506,7 @@ class Network_Utils extends Engine
      * @return string error message if port range is invalid
      */
 
-    function validate_port_range($from, $to)
+    public function validate_port_range($from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -532,7 +528,7 @@ class Network_Utils extends Engine
      * @return string error message if prefix is invalid
      */
 
-    function validate_prefix($prefix)
+    public function validate_prefix($prefix)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -548,7 +544,7 @@ class Network_Utils extends Engine
      * @return string error message if protocol is invalid
      */
 
-    function validate_protocol($protocol)
+    public function validate_protocol($protocol)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -564,7 +560,7 @@ class Network_Utils extends Engine
      * @return string error message if address is not bound to a local interface
      */
 
-    function validate_local_ip($address)
+    public function validate_local_ip($address)
     {
         clearos_profile(__METHOD__, __LINE__);
 
