@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * System time manager class.
+ *
+ * @category   Apps
+ * @package    Date
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,314 +29,305 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * System time manager.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\date;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
 $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('date');
 clearos_load_language('base');
+clearos_load_language('date');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Configuration_File as Configuration_File;
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\ShellExec as ShellExec;
+
+clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Engine');
-clearos_load_library('base/Folder');
 clearos_load_library('base/File');
-clearos_load_library('base/ConfigurationFile');
+clearos_load_library('base/Folder');
+clearos_load_library('base/ShellExec');
 
-///////////////////////////////////////////////////////////////////////////////
-// E X C E P T I O N  C L A S S
-///////////////////////////////////////////////////////////////////////////////
+// Exceptions
+//-----------
 
-/**
- * Timezone not set exception.
- *
- * @package ClearOS
- * @subpackage Exception
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-class TimezoneNotSetException extends EngineException
-{
-	/**
-	 * TimezoneNotSetException constructor.
-	 */
-
-	public function __construct()
-	{
-		parent::__construct(lang('date_time_zone_not_set'), ClearOsError::CODE_ERROR);
-	}
-}
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * System time manager.
+ * System time manager class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @category   Apps
+ * @package    Date
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 class Time extends Engine
 {
-	///////////////////////////////////////////////////////////////////////////////
-	// C O N S T A N T S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	const CMD_HWCLOCK = "/sbin/hwclock";
-	const FILE_CONFIG = "/etc/sysconfig/clock";
-	const FILE_TIMEZONE = "/etc/localtime";
-	const PATH_ZONEINFO = "/usr/share/zoneinfo/posix";
+    const COMMAND_HWCLOCK = "/sbin/hwclock";
+    const FILE_CONFIG = "/etc/sysconfig/clock";
+    const FILE_TIMEZONE = "/etc/localtime";
+    const PATH_ZONEINFO = "/usr/share/zoneinfo/posix";
 
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * Time constructor.
-	 */
+    /**
+     * Time constructor.
+     */
 
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
 
-		parent::__construct();
-	}
+    /**
+     * Returns the system time (in seconds since Jan 1, 1970).
+     *
+     * @return integer system time in seconds since Jan 1, 1970
+     */
 
-	/**
-	 * Returns the system time (in seconds since Jan 1, 1970).
-	 * 
-	 * @return integer system time in seconds since Jan 1, 1970
-	 */
+    public function get_time()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-	public function GetTime()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+        return time();
+    }
 
-		return time();
-	}
+    /**
+     * Returns the current time zone.
+     *
+     * @return string current time zone
+     * @throws Engine_Exception
+     */
 
-	/**
-	 * Returns the current timzeone.
-	 * 
-	 * @return string current time zone
-	 * @throws EngineException, TimezoneNotSetException
-	 */
+    public function get_time_zone()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-	public function GetTimeZone()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+        // Sanity check existence of real time zone file
+        //----------------------------------------------
+        
+        $file = new File(self::FILE_TIMEZONE);
+        $fileok = FALSE;
 
-		// Sanity check existence of real time zone file
-		//----------------------------------------------
-		
-		$file = new File(self::FILE_TIMEZONE);
-		$fileok = false;
+        try {
+            $fileok = $file->exists();
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-		try {
-			$fileok = $file->Exists();
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
+        if (! $fileok)
+            return '';
 
-		if (! $fileok)
-			throw new TimezoneNotSetException();
+        // Check the /etc/sysconfig/clock file for time zone info
+        //-------------------------------------------------------
 
-		// Check the /etc/sysconfig/clock file for time zone info
-		//-------------------------------------------------------
+        try {
+            $metafile = new Configuration_File(self::FILE_CONFIG);
+            $time_zone = $metafile->load();
 
-		try {
-			$metafile = new ConfigurationFile(self::FILE_CONFIG);
-			$time_zone = $metafile->Load();
-			if (isset($time_zone['ZONE']))
-				return preg_replace("/\"/", "", $time_zone['ZONE']);
-		} catch (FileNotFoundException $e) {
-			// Not fatal, use methodology below
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
+            if (isset($time_zone['ZONE']))
+                return preg_replace("/\"/", "", $time_zone['ZONE']);
+        } catch (File_Not_Found_Exception $e) {
+            // Not fatal, use methodology below
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-		// If time zone is not defined in /etc/sysconfig/clock, try to
-		// determine it by comparing /etc/localtime with time zone data
-		//--------------------------------------------------------------
+        // If time zone is not defined in /etc/sysconfig/clock, try to
+        // determine it by comparing /etc/localtime with time zone data
+        //--------------------------------------------------------------
 
-		$currentmd5 = md5_file(self::FILE_TIMEZONE);
+        $currentmd5 = md5_file(self::FILE_TIMEZONE);
 
-		try {
-			$folder = new Folder(self::PATH_ZONEINFO);
-			$zones = $folder->GetRecursiveListing();
+        try {
+            $folder = new Folder(self::PATH_ZONEINFO);
+            $zones = $folder->get_recursive_listing();
 
-			foreach ($zones as $zone) {
-				if ($currentmd5 == md5_file(self::PATH_ZONEINFO . "/$zone"))
-					return "$zone";
-			}
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
+            foreach ($zones as $zone) {
+                if ($currentmd5 == md5_file(self::PATH_ZONEINFO . "/$zone"))
+                    return "$zone";
+            }
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-		// Ugh -- sometimes the time zone files change.
-		try {
-			$currenttz = date_default_timezone_get();
-			$this->SetTimezone($currenttz);
-			return $currenttz;
-		} catch (Exception $e) {
-			throw new EngineException(TIME_LANG_ERRMSG_TIMEZONE_INVALID, ClearOsError::CODE_ERROR);
-		}
-	}
+        // Ugh -- sometimes the time zone files change.
+        try {
+            $currenttz = date_default_timezone_get();
+            $this->set_time_zone($currenttz);
+            return $currenttz;
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception(TIME_LANG_ERRMSG_TIMEZONE_INVALID, CLEAROS_ERROR);
+        }
+    }
 
-	/**
-	 * Returns a list of available time zones on the system.
-	 * 
-	 * @return array a list of available time zones
-	 * @throws EngineException
-	 */
+    /**
+     * Returns a list of available time zones on the system.
+     * 
+     * @return array a list of available time zones
+     * @throws Engine_Exception
+     */
 
-	public function GetTimeZoneList()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function get_time_zone_list()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$folder = new Folder(self::PATH_ZONEINFO);
-			$zones = $folder->GetRecursiveListing();
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
+        try {
+            $folder = new Folder(self::PATH_ZONEINFO);
+            $zones = $folder->get_recursive_listing();
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-		$zonelist = array();
+        $zonelist = array();
 
-		foreach ($zones as $zone)
-			$zonelist[] = $zone;
+        foreach ($zones as $zone)
+            $zonelist[] = $zone;
 
-		return $zonelist;
-	}
+        return $zonelist;
+    }
 
-	/**
-	 * Sets the hardware clock to the current system time.
-	 * 
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Sets the hardware clock to the current system time.
+     * 
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	public function SendSystemToHardware()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function send_system_to_hardware()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$shell = new ShellExec();
-			if ($shell->Execute(self::CMD_HWCLOCK, "--systohc", true) != 0)
-				throw new EngineException($shell->GetFirstOutputLine(), ClearOsError::CODE_ERROR);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
-	}
+        try {
+            $shell = new ShellExec();
+            if ($shell->execute(self::COMMAND_HWCLOCK, "--systohc", TRUE) != 0)
+                throw new Engine_Exception($shell->get_first_output_line(), CLEAROS_ERROR);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
+    }
 
-	/**
-	 * Sets the current timzeone.
-	 *
-	 * @param string $time_zone time zone
-	 * @return void
-	 * @throws EngineException, ValidationException
-	 */
+    /**
+     * Sets the current timzeone.
+     *
+     * @param string $time_zone time zone
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-	public function SetTimeZone($time_zone)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function set_time_zone($time_zone)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// Validate
-		//---------
+        // Validate
+        //---------
 
-		$error_message = $this->ValidateTimeZone($time_zone);
+        $error_message = $this->validate_time_zone($time_zone);
 
-		if ($error_message)
-			throw new ValidationException($error_message);
+        if ($error_message)
+            throw new Validation_Exception($error_message);
 
-		// Set /etc/localtime
-		//-------------------
+        // Set /etc/localtime
+        //-------------------
 
-		try {
-	  		$file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
-			$file->CopyTo(self::FILE_TIMEZONE);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
+        try {
+            $file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
+            $file->copy_to(self::FILE_TIMEZONE);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-		// Set meta information in /etc/sysconfig/clock
-		//---------------------------------------------
+        // Set meta information in /etc/sysconfig/clock
+        //---------------------------------------------
 
-		try {
-			$info = new File(self::FILE_CONFIG);
+        try {
+            $info = new File(self::FILE_CONFIG);
 
-			if ($info->Exists()) {
-				$info->ReplaceLines("/^ZONE=/", "ZONE=\"$time_zone\"\n");
-			} else {
-				$info->Create("root", "root", "0644");
-				$info->AddLines("ZONE=\"$time_zone\"\n");
-			}
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
-	}
+            if ($info->exists()) {
+                $info->replace_lines("/^ZONE=/", "ZONE=\"$time_zone\"\n");
+            } else {
+                $info->create("root", "root", "0644");
+                $info->add_lines("ZONE=\"$time_zone\"\n");
+            }
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// V A L I D A T I O N   R O U T I N E S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * Validates time zone.
-	 *
-	 * @param string $time_zone time zone
-	 * @return boolean true if time zone is valid
-	 * @throws EngineException
-	 */
+    /**
+     * Validates time zone.
+     *
+     * @param string $time_zone time zone
+     *
+     * @return boolean TRUE if time zone is valid
+     * @throws Engine_Exception
+     */
 
-	public function ValidateTimeZone($time_zone)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function validate_time_zone($time_zone)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		$error_message = '';
+        $error_message = '';
 
-		if (!$time_zone) {
-			$error_message = 'Time zone not specified'; // FIXME localize
-		} else {
-			try {
-				$file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
+        if (!$time_zone) {
+            $error_message = 'Time zone not specified'; // FIXME localize
+        } else {
+            try {
+                $file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
 
-				if (! $file->Exists())
-					$error_message = 'Invalid time zone'; // FIXME localize
-			} catch (Exception $e) {
-				// FIXME: what should we do here... exception or error message?
-				throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-			}
-		}
+                if (! $file->exists())
+                    $error_message = 'Invalid time zone'; // FIXME localize
+            } catch (Engine_Exception $e) {
+                // FIXME: what should we do here... exception or error message?
+                throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+            }
+        }
 
-		return $error_message;
-	}
+        return $error_message;
+    }
 }
-
-// vim: syntax=php ts=4
-?>

@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * NTP time class.
+ *
+ * @category   Apps
+ * @package    Date
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,38 +29,57 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * NTP time class.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\date;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
 $bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('date');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\ShellExec as ShellExec;
+use \clearos\apps\cron\Cron as Cron;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/ShellExec');
 clearos_load_library('cron/Cron');
-clearos_load_library('date/Time');
-clearos_load_library('network/Network');
+clearos_load_library('network/Network_Utils');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\cron\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/Validation_Exception');
+clearos_load_library('cron/Cron_Configlet_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -61,297 +88,304 @@ clearos_load_library('network/Network');
 /**
  * NTP time class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @category   Apps
+ * @package    Date
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
-class NtpTime extends Time
+class NtpTime extends Engine
 {
-	const FILE_CROND = "app-ntp";
-	const FILE_CONFIG = "/etc/system/ntpdate";
-	const DEFAULT_SERVER = "time.clearsdn.com";
-	const DEFAULT_CRONTAB_TIME = "2 2 * * *";
-	const CMD_NTPDATE = "/usr/sbin/ntpdate";
-	const CRON_COMMAND = "/usr/sbin/timesync";
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    const FILE_CROND = "app-ntp";
+    const FILE_CONFIG = "/etc/system/ntpdate";
+    const DEFAULT_SERVER = "time.clearsdn.com";
+    const DEFAULT_CRONTAB_TIME = "2 2 * * *";
+    const COMMAND_NTPDATE = "/usr/sbin/ntpdate";
+    const COMMAND_CRON = "/usr/sbin/timesync";
 
-	/**
-	 * NtpTime constructor.
-	 */
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    /**
+     * NtpTime constructor.
+     */
 
-		parent::__construct();
-	}
+    public function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
 
-	/**
-	 * Deletes the cron entry for auto-synchronizing with an NTP server.
-	 *
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Deletes the cron entry for auto-synchronizing with an NTP server.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	public function DeleteAutoSync()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function delete_auto_sync()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$crontab = new Cron();
-			if ($crontab->ExistsCrondConfiglet(self::FILE_CROND))
-				$crontab->DeleteCrondConfiglet(self::FILE_CROND);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
-	}
+        try {
+            $crontab = new Cron();
+            if ($crontab->exists_crond_configlet(self::FILE_CROND))
+                $crontab->DeleteCrondConfiglet(self::FILE_CROND);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
+    }
 
-	/**
-	 * Returns the time server to be used on the system.
-	 *
-	 * This will return the default self::DEFAULT_SERVER if a 
-	 * time server has not been specified.
-	 *
-	 * @return string current auto-sync NTP server
-	 * @throws EngineException
-	 */
+    /**
+     * Returns the time server to be used on the system.
+     *
+     * This will return the default self::DEFAULT_SERVER if a 
+     * time server has not been specified.
+     *
+     * @return string current auto-sync NTP server
+     * @throws Engine_Exception
+     */
 
-	public function GetAutoSyncServer()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function get_auto_sync_server()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		$time_server = "";
+        $time_server = "";
 
-		try {
-			$config = new File(self::FILE_CONFIG);
-			$time_server = $config->LookupValue("/^ntp_syncserver\s*=\s*/");
-		} catch (FileNoMatchException $e) {
-			$time_server = NtpTime::DEFAULT_SERVER;
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
+        try {
+            $config = new File(self::FILE_CONFIG);
+            $time_server = $config->lookup_value("/^ntp_syncserver\s*=\s*/");
+        } catch (File_No_Match_Exception $e) {
+            $time_server = NtpTime::DEFAULT_SERVER;
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
 
-		if (! $time_server)
-			$time_server = NtpTime::DEFAULT_SERVER;
+        if (! $time_server)
+            $time_server = NtpTime::DEFAULT_SERVER;
 
-		$network = new Network();
+        /*
+        // FIXME
+        $network = new Network_Utils();
 
-		if (!($network->IsValidHostname($time_server) || $network->IsValidIp($time_server)))
-			throw new EngineException(NTPTIME_LANG_ERRMSG_TIMESERVER_INVALID, ClearOsError::CODE_ERROR);
+        if (!($network->IsValidHostname($time_server) || $network->IsValidIp($time_server)))
+            throw new Engine_Exception(NTPTIME_LANG_ERRMSG_TIMESERVER_INVALID, CLEAROS_ERROR);
+        */
 
-		return $time_server;
-	}
+        return $time_server;
+    }
 
-	/**
-	 * Returns the status of the auto-sync feature.
-	 *
-	 * @return boolean true if auto-sync is on
-	 * @throws EngineException
-	 */
+    /**
+     * Returns the status of the auto-sync feature.
+     *
+     * @return boolean TRUE if auto-sync is on
+     * @throws Engine_Exception
+     */
 
-	public function GetAutoSyncStatus()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function get_auto_sync_status()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$cron = new Cron();
-			return $cron->ExistsCrondConfiglet(self::FILE_CROND);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
-	}
+        try {
+            $cron = new Cron();
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        }
 
-	/**
-	 * Returns the time configuration in the auto-synchronize cron entry. 
-	 *
-	 * Returns the default if an entry does not exist.
-	 *
-	 * @return string current auto-sync cron time
-	 * @throws EngineException
-	 */
+        return $cron->exists_crond_configlet(self::FILE_CROND);
+    }
 
-	public function GetAutoSyncTime()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    /**
+     * Returns the time configuration in the auto-synchronize cron entry. 
+     *
+     * Returns the default if an entry does not exist.
+     *
+     * @return string current auto-sync cron time
+     * @throws Engine_Exception
+     */
 
-		try {
-			$crontab = new Cron();
-			$contents = $crontab->GetCrondConfiglet(self::FILE_CROND);
-		} catch (CronConfigletNotFoundException $e) {
-			return self::DEFAULT_CRONTAB_TIME;
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
+    public function get_auto_sync_time()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		$lines = explode("\n", $contents);
+        try {
+            $crontab = new Cron();
+            $contents = $crontab->get_crond_configlet(self::FILE_CROND);
+        } catch (Cron_Configlet_Not_Found_Exception $e) {
+            return self::DEFAULT_CRONTAB_TIME;
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
 
-		foreach ($lines as $line) {
-			$matches = array();
+        $lines = explode("\n", $contents);
 
-			if (preg_match("/([\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+)/", $line, $matches))
-				return $matches[0];
-		}
+        foreach ($lines as $line) {
+            $matches = array();
 
-		throw new EngineException(NTPTIME_LANG_ERRMSG_CRONTIME_INVALID, ClearOsError::CODE_WARNING);
-	}
+            if (preg_match("/([\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+)/", $line, $matches))
+                return $matches[0];
+        }
 
-	/**
-	 * Creates a cron file for auto-synchronizng the system clock.
-	 *
-	 * The cron_time parameter ist optional -- the system will select
-	 * a defaults if non is specified.
-	 *
-	 * @param string $cron_time crontab time
-	 * @return void
-	 * @throws EngineException, ValidationException
-	 */
+        throw new Engine_Exception(NTPTIME_LANG_ERRMSG_CRONTIME_INVALID, CLEAROS_WARNING);
+    }
 
-	public function SetAutoSync($cron_time = self::DEFAULT_CRONTAB_TIME)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    /**
+     * Creates a cron file for auto-synchronizng the system clock.
+     *
+     * The cron_time parameter ist optional -- the system will select
+     * a defaults if non is specified.
+     *
+     * @param string $cron_time crontab time
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-		// Validate
-		//---------
+    public function set_auto_sync($cron_time = self::DEFAULT_CRONTAB_TIME)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		$validtime = false;
-		$crontab = new Cron();
+        // Validate
+        //---------
 
-		try {
-			$validtime = $crontab->IsValidTime($cron_time);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
+        $validtime = FALSE;
+        $crontab = new Cron();
 
-		if (! $validtime)
-			throw new ValidationException(NTPTIME_LANG_ERRMSG_CRONTIME_INVALID);
+        try {
+            $validtime = $crontab->validate_time($cron_time);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
 
-		// Set auto sync
-		//--------------
+        if (! $validtime)
+            throw new Validation_Exception(NTPTIME_LANG_ERRMSG_CRONTIME_INVALID);
 
-		try {
-			$cron = new Cron();
+        // Set auto sync
+        //--------------
 
-			if ($cron->ExistsCrondConfiglet(self::FILE_CROND))
-				$this->DeleteAutoSync();
+        try {
+            $cron = new Cron();
 
-			$payload  = "# Created by API\n";
+            if ($cron->exists_crond_configlet(self::FILE_CROND))
+                $this->delete_auto_sync();
 
-			if (file_exists(self::CRON_COMMAND))
-				$payload .= "$cron_time root " . self::CRON_COMMAND;
-			else
-				throw new EngineException(LOCALE_LANG_MISSING . " - " . self::CRON_COMMAND, ClearOsError::CODE_WARNING);
+            $payload  = "# Created by API\n";
 
-			$crontab->AddCrondConfiglet(self::FILE_CROND, $payload);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
-	}
+            if (file_exists(self::COMMAND_CRON))
+                $payload .= "$cron_time root " . self::COMMAND_CRON;
+            else
+                throw new Engine_Exception(LOCALE_LANG_MISSING . " - " . self::COMMAND_CRON, CLEAROS_WARNING);
 
-	/**
-	 * Sets the time server to be used on the system.
-	 *
-	 * @param string $time_server (optional) auto-sync NTP server, if empty the default is set
-	 * @return boolean true on successful update
-	 * @throws EngineException
-	 */
+            $crontab->add_crond_configlet(self::FILE_CROND, $payload);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
+    }
 
-	public function SetAutoSyncServer($time_server = NULL)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    /**
+     * Sets the time server to be used on the system.
+     *
+     * @param string $time_server auto-sync NTP server, if empty the default is set
+     *
+     * @return boolean TRUE on successful update
+     * @throws Engine_Exception
+     */
 
-		if (empty($time_server))
-			$time_server = NtpTime::DEFAULT_SERVER;
-		
-		if ($time_server == $this->GetAutoSyncServer())
-			return false;
+    public function set_auto_sync_server($time_server = NULL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		$error_message = $this->ValidateTimeServer($time_server);
+        if (empty($time_server))
+            $time_server = NtpTime::DEFAULT_SERVER;
+        
+        if ($time_server == $this->get_auto_sync_server())
+            return FALSE;
 
-		if ($error_message)
-			throw new EngineException($error_message, ClearOsError::CODE_WARNING);
+        $error_message = $this->validate_time_server($time_server);
 
-		try {
-			$config = new File(self::FILE_CONFIG);
-			$config->ReplaceLines("/^ntp_syncserver\s*=\s*/","ntp_syncserver = {$time_server}\n");
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
+        if ($error_message)
+            throw new Engine_Exception($error_message, CLEAROS_WARNING);
 
-		return true;
-	}
+        try {
+            $config = new File(self::FILE_CONFIG);
+            $config->replace_lines("/^ntp_syncserver\s*=\s*/", "ntp_syncserver = {$time_server}\n");
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
 
-	/**
-	 * Synchronizes the clock. 
-	 *
-	 * @param string $time_server time server (optional)
-	 * @return string offset time
-	 * @throws EngineException, ValidationException
-	 */
+        return TRUE;
+    }
 
-	public function Synchronize($time_server = NULL)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    /**
+     * Synchronizes the clock. 
+     *
+     * @param string $time_server time server (optional)
+     *
+     * @return string offset time
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-		if (is_null($time_server))
-			$time_server = $this->GetAutoSyncServer();
+    public function synchronize($time_server = NULL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		// Validate
-		//---------
+        if (is_null($time_server))
+            $time_server = $this->get_auto_sync_server();
 
-		$error_message = $this->ValidateTimeServer($time_server);
+        // Validate
+        //---------
 
-		if ($error_message)
-			throw new ValidationException($error_message);
+        if ($error_message = $this->validate_time_server($time_server))
+            throw new Validation_Exception($error_message);
 
-		// Synchronize
-		//------------
+        // Synchronize
+        //------------
 
-		$output = "";
+        $output = "";
 
-		try {
-			$shell = new ShellExec();
+        try {
+            $shell = new ShellExec();
 
-			$options['env'] = "LANG=fr_FR";
+            $options['env'] = "LANG=fr_FR";
 
-			if ($shell->Execute(self::CMD_NTPDATE, "-u $time_server", true, $options) != 0)
-				throw new EngineException(NTPTIME_LANG_ERRMSG_SYNCHRONIZE_FAILED, ClearOsError::CODE_ERROR);
+            if ($shell->execute(self::COMMAND_NTPDATE, "-u $time_server", TRUE, $options) != 0)
+                throw new Engine_Exception(NTPTIME_LANG_ERRMSG_SYNCHRONIZE_FAILED, CLEAROS_ERROR);
 
-			$output = $shell->GetFirstOutputLine();
-			$output = preg_replace("/.*offset/", "", $output);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_WARNING);
-		}
+            $output = $shell->get_first_output_line();
+            $output = preg_replace("/.*offset/", "", $output);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+        }
 
-		return $output;
-	}
+        return $output;
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// V A L I D A T I O N   R O U T I N E S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * Validation routine for time server.
-	 *
-	 * @param string $time_server time server
-	 * @return boolean true if time server is valid
-	 */
+    /**
+     * Validation routine for time server.
+     *
+     * @param string $time_server time server
+     *
+     * @return boolean TRUE if time server is valid
+     */
 
-	public function ValidateTimeServer($time_server)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function validate_time_server($time_server)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		if (preg_match("/^([\.\-\w]*)$/", $time_server))
-			return '';
-		else
-			return 'Invalid time server'; // FIXME: localize 
-	}
+        if (preg_match("/^([\.\-\w]*)$/", $time_server))
+            return '';
+        else
+            return 'Invalid time server'; // FIXME: localize 
+    }
 }
-
-// vim: syntax=php ts=4
-?>
