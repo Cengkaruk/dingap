@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2006-2010 ClearFoundation
+// Copyright 2006-2011 ClearFoundation
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -21,27 +21,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * FileScan preset directory list.
- *
- * @package ClearOS
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2006-2010 ClearFoundation
- */
-
-///////////////////////////////////////////////////////////////////////////////
-// B O O T S T R A P
-///////////////////////////////////////////////////////////////////////////////
-
 $AVDIRS = array();
 $AVDIRS['/home'] = lang('file_scan_home');
 $AVDIRS['/var/flexshare'] = lang('file_scan_flexshare');
 $AVDIRS['/var/www'] = lang('file_scan_web');
 $AVDIRS['/var/ftp'] = lang('file_scan_ftp');
 $AVDIRS['/var/spool/squid'] = lang('file_scan_web_proxy_cache');
-// TODO: Mail spool needs special handling
-// $AVDIRS['/var/spool/imap'] = ...;
-
-// vi: syntax=php ts=4
-?>
