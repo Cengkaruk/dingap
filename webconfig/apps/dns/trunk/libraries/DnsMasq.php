@@ -4,7 +4,7 @@
  * DnsMasq class.
  *
  * @category   Apps
- * @package    Dns
+ * @package    DNS
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
@@ -92,7 +92,7 @@ clearos_load_library('base/Validation_Exception');
  * DnsMasq class.
  *
  * @category   Apps
- * @package    Dns
+ * @package    DNS
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation

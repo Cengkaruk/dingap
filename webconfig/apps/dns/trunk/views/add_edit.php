@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * Local DNS Server add/edit view.
+ *
+ * @category   ClearOS
+ * @package    DNS
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dns/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,9 +25,8 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
+//  
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,20 +41,20 @@ $this->load->language('network');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($form_type === 'edit') {
-	$read_only = TRUE;
-	$form_path = '/dns/edit';
-	$buttons = array(
-		form_submit_update('submit'),
-		anchor_cancel('/app/dns/'),
-		anchor_delete('/app/dns/delete/' . $ip)
-	);
+    $read_only = TRUE;
+    $form_path = '/dns/edit';
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/dns/'),
+        anchor_delete('/app/dns/delete/' . $ip)
+    );
 } else {
-	$read_only = FALSE;
-	$form_path = '/dns/add';
-	$buttons = array(
-		form_submit_add('submit'),
-		anchor_cancel('/app/dns/')
-	);
+    $read_only = FALSE;
+    $form_path = '/dns/add';
+    $buttons = array(
+        form_submit_add('submit'),
+        anchor_cancel('/app/dns/')
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

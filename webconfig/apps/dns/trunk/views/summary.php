@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * Local DNS Server summary view.
+ *
+ * @category   ClearOS
+ * @package    DNS
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dns/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -19,7 +27,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //  
-//////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
@@ -33,9 +41,9 @@ $this->lang->load('network');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('network_ip'),
-	lang('network_hostname'),
-	lang('dns_aliases'),
+    lang('network_ip'),
+    lang('network_hostname'),
+    lang('dns_aliases'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,45 +58,45 @@ $anchors = array(anchor_add('/app/dns/add/'));
 
 foreach ($hosts as $real_ip => $entry) {
 
-	$ip = $entry['ip'];
-	$hostname = $entry['hostname'];
-	$alias = (count($entry['aliases']) > 0) ? $entry['aliases'][0] : '';
-	
-	// Add '...' to indicate more aliases exist
-	if (count($entry['aliases']) > 1)
-		$alias .= " ..."; 
+    $ip = $entry['ip'];
+    $hostname = $entry['hostname'];
+    $alias = (count($entry['aliases']) > 0) ? $entry['aliases'][0] : '';
+    
+    // Add '...' to indicate more aliases exist
+    if (count($entry['aliases']) > 1)
+        $alias .= " ..."; 
 
-	///////////////////////////////////////////////////////////////////////////
-	// Item buttons
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // Item buttons
+    ///////////////////////////////////////////////////////////////////////////
 
-	// Hide 127.0.0.1 entry
+    // Hide 127.0.0.1 entry
 
-	if ($ip === '127.0.0.1') {
-		continue;
-	} else {
-		$detail_buttons = button_set(
-			array(
-				anchor_edit('/app/dns/edit/' . $ip),
-				anchor_delete('/app/dns/delete/' . $ip)
-			)
-		);
-	}
+    if ($ip === '127.0.0.1') {
+        continue;
+    } else {
+        $detail_buttons = button_set(
+            array(
+                anchor_edit('/app/dns/edit/' . $ip),
+                anchor_delete('/app/dns/delete/' . $ip)
+            )
+        );
+    }
 
-	///////////////////////////////////////////////////////////////////////////
-	// Item details
-	///////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+    // Item details
+    ///////////////////////////////////////////////////////////////////////////
 
-	$item['title'] = $ip . " - " . $hostname;
-	$item['action'] = '/app/dns/edit/' . $ip;
-	$item['anchors'] = $detail_buttons;
-	$item['details'] = array(
-		$ip,
-		$hostname,
-		$alias
-	);
+    $item['title'] = $ip . " - " . $hostname;
+    $item['action'] = '/app/dns/edit/' . $ip;
+    $item['anchors'] = $detail_buttons;
+    $item['details'] = array(
+        $ip,
+        $hostname,
+        $alias
+    );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -96,10 +104,8 @@ foreach ($hosts as $real_ip => $entry) {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-	lang('dns_local_dns_server'),
-	$anchors,
-	$headers,
-	$items
+    lang('dns_local_dns_server'),
+    $anchors,
+    $headers,
+    $items
 );
-
-// vim: ts=4 syntax=php
