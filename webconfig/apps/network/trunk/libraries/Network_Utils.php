@@ -149,6 +149,35 @@ class Network_Utils extends Engine
     }
 
     /**
+     * Returns broadcast address for given IP and netmask.
+     *
+     * @param string $ip      IP address
+     * @param string $netmask netmask
+     *
+     * @return string broadcast address
+     * @throws Validation_Exception
+     */
+
+    public function get_broadcast_address($ip, $netmask)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($error = $this->validate_ip($ip))
+            throw new Validation_Exception($error);
+
+        if ($error = $this->validate_netmask($netmask))
+            throw new Validation_Exception($error);
+
+        $ip_long = ip2long($ip);
+        $netmask_long = ip2long($netmask);
+
+        $network = ($ip_long & $netmask_long);
+        $broadcast = $network | (~$netmask_long);
+
+        return long2ip($broadcast);
+    }
+
+    /**
      * Returns netmask for give prefix (bitmask)
      *
      * @param string $prefix prefix
@@ -165,27 +194,6 @@ class Network_Utils extends Engine
             return $this->prefix_list[$prefix];
         else 
             throw new Validation_Exception(lang('network_validate_prefix_invalid'));
-    }
-
-    /**
-     * Returns prefix (bitmask) for given netmask
-     *
-     * @param string $netmask netmask
-     *
-     * @return integer bitmask
-     * @throws Validation_Exception
-     */
-
-    public function get_prefix($netmask)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $netmasklist = array_flip($this->prefix_list);
-
-        if (isset($netmasklist[$netmask]))
-            return $netmasklist[$netmask];
-        else 
-            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
     }
 
     /**
@@ -216,32 +224,24 @@ class Network_Utils extends Engine
     }
 
     /**
-     * Returns broadcast address for given IP and netmask.
+     * Returns prefix (bitmask) for given netmask
      *
-     * @param string $ip      IP address
      * @param string $netmask netmask
      *
-     * @return string broadcast address
+     * @return integer bitmask
      * @throws Validation_Exception
      */
 
-    public function get_broadcast_address($ip, $netmask)
+    public function get_prefix($netmask)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        $netmasklist = array_flip($this->prefix_list);
 
-        if ($error = $this->validate_netmask($netmask))
-            throw new Validation_Exception($error);
-
-        $ip_long = ip2long($ip);
-        $netmask_long = ip2long($netmask);
-
-        $network = ($ip_long & $netmask_long);
-        $broadcast = $network | (~$netmask_long);
-
-        return long2ip($broadcast);
+        if (isset($netmasklist[$netmask]))
+            return $netmasklist[$netmask];
+        else 
+            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
     }
 
     /**
@@ -271,20 +271,28 @@ class Network_Utils extends Engine
             return FALSE;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N
+    ///////////////////////////////////////////////////////////////////////////////
+
     /**
-     * Validates a hostname alias.
+     * Validates an Internet domain name.
      *
-     * @param string $alias alias
+     * @param string $domain Internet domain name
      *
-     * @return string error message if hostname alias is invalid
+     * @return string error message if Internet domain is invalid
      */
 
-    public function validate_hostname_alias($alias)
+    public function validate_domain($domain)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $alias))
-            return lang('network_validate_hostname_alias_invalid');
+        if (preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $domain)) {
+            if (substr_count($domain, ".") == 0)
+                return lang('network_validate_domain_must_have_a_period');
+        } else {
+            return lang('network_validate_domain_invalid');
+        }
     }
 
     /**
@@ -306,23 +314,19 @@ class Network_Utils extends Engine
     }
 
     /**
-     * Validates an Internet domain name.
+     * Validates a hostname alias.
      *
-     * @param string $domain Internet domain name
+     * @param string $alias alias
      *
-     * @return string error message if Internet domain is invalid
+     * @return string error message if hostname alias is invalid
      */
 
-    public function validate_domain($domain)
+    public function validate_hostname_alias($alias)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $domain)) {
-            if (substr_count($domain, ".") == 0)
-                return lang('network_validate_domain_must_have_a_period');
-        } else {
-            return lang('network_validate_domain_invalid');
-        }
+        if (! preg_match('/^([0-9a-zA-Z\.\-_]+)$/', $alias))
+            return lang('network_validate_hostname_alias_invalid');
     }
 
     /**
@@ -377,24 +381,6 @@ class Network_Utils extends Engine
     }
 
     /**
-     * Validates a MAC address.
-     *
-     * @param string $mac MAC address
-     *
-     * @return string error message if MAC address is invalid
-     */
-
-    public function validate_mac($mac)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $mac = strtoupper($mac);
-
-        if (!(eregi("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$", $mac)))
-            return lang('network_validate_mac_address_invalid');
-    }
-
-    /**
      * Validates an IP address range.
      *
      * @param string $from starting IP address
@@ -421,6 +407,57 @@ class Network_Utils extends Engine
 
         if ($fromdec >= $todec)
             return lang('network_validate_ip_range_reversed');
+    }
+
+    /**
+     * Checks if IP address/hostname is bound to a local interface.
+     *
+     * @param string $address IP address or hostname
+     *
+     * @return string error message if address is not bound to a local interface
+     */
+
+    public function validate_local_ip($address)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ip = gethostbyname($address);
+
+        if (ip2long($ip) == -1)
+            return lang('network_validate_local_ip_invalid');
+
+        // TODO: push this through shellexec
+        $ph = popen(
+            "/sbin/ip -o addr list | egrep 'inet [0-9]{1,3}' | " .
+            "sed -e 's/^.*inet \\([0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*\\).*/\\1/g'", "r"
+        );
+
+        while ($ph && !feof($ph)) {
+            if ($ip == chop(fgets($ph, 4096)))
+                return;
+        }
+
+        pclose($ph);
+
+        return lang('network_validate_local_ip_invalid');
+    }
+
+    /**
+     * Validates a MAC address.
+     *
+     * @param string $mac MAC address
+     *
+     * @return string error message if MAC address is invalid
+     */
+
+    public function validate_mac($mac)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mac = strtoupper($mac);
+
+        if (!(eregi("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$", $mac)))
+            return lang('network_validate_mac_address_invalid');
     }
 
     /**
@@ -549,38 +586,5 @@ class Network_Utils extends Engine
 
         if (!preg_match("/^(TCP|UDP)$/", $protocol))
             return lang('network_validate_protocol_invalid');
-    }
-
-    /**
-     * Checks if IP address/hostname is bound to a local interface.
-     *
-     * @param string $address IP address or hostname
-     *
-     * @return string error message if address is not bound to a local interface
-     */
-
-    public function validate_local_ip($address)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $ip = gethostbyname($address);
-
-        if (ip2long($ip) == -1)
-            return lang('network_validate_local_ip_invalid');
-
-        // TODO: push this through shellexec
-        $ph = popen(
-            "/sbin/ip -o addr list | egrep 'inet [0-9]{1,3}' | " .
-            "sed -e 's/^.*inet \\([0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*\\).*/\\1/g'", "r"
-        );
-
-        while ($ph && !feof($ph)) {
-            if ($ip == chop(fgets($ph, 4096)))
-                return;
-        }
-
-        pclose($ph);
-
-        return lang('network_validate_local_ip_invalid');
     }
 }
