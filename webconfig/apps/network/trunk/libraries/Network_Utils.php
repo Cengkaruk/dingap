@@ -39,7 +39,7 @@ namespace clearos\apps\network;
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
 require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -202,18 +202,17 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if ($error = $this->validate_ip($ip))
+            throw new Validation_Exception($error);
+
+        if ($error = $this->validate_netmask($netmask))
+            throw new Validation_Exception($error);
+
         $ip_long = ip2long($ip);
-        $nm = ip2long($netmask);
+        $netmask_long = ip2long($netmask);
+        $network_address = ($ip_long & $netmask_long);
 
-        if ($ip_long == -1)
-            throw new Validation_Exception(lang('network_validate_ip_invalid'));
-
-        if ($nm == -1)
-            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
-
-        $nw = ($ip_long & $nm);
-
-        return long2ip($nw);
+        return long2ip($network_address);
     }
 
     /**
@@ -230,19 +229,19 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if ($error = $this->validate_ip($ip))
+            throw new Validation_Exception($error);
+
+        if ($error = $this->validate_netmask($netmask))
+            throw new Validation_Exception($error);
+
         $ip_long = ip2long($ip);
-        $nm = ip2long($netmask);
+        $netmask_long = ip2long($netmask);
 
-        if ($ip_long == -1)
-            throw new Validation_Exception(lang('network_validate_ip_invalid'));
+        $network = ($ip_long & $netmask_long);
+        $broadcast = $network | (~$netmask_long);
 
-        if ($nm == -1)
-            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
-
-        $nw = ($ip_long & $nm);
-        $bc = $nw | (~$nm);
-
-        return long2ip($bc);
+        return long2ip($broadcast);
     }
 
     /**
@@ -258,7 +257,7 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->validate_ip($ip))
+        if ($this->validate_ip($ip))
             throw new Validation_Exception(lang('network_validate_ip_invalid'));
 
         $ip_long = ip2long($ip);
