@@ -269,6 +269,7 @@ function LoadEnvironment()
 	local f
 	local t
 	local ifn
+	local addr
 	local rule
 	local rules = {}
 
@@ -315,6 +316,7 @@ function LoadEnvironment()
 	SYSWATCH_WANIF = os.getenv("SYSWATCH_WANIF")
 	EGRESS_FILTERING = os.getenv("EGRESS_FILTERING")
 	PROTOCOL_FILTERING = os.getenv("PROTOCOL_FILTERING")
+	EXTRALANS = os.getenv("EXTRALANS")
 
 	-- Validate variables
 	if FW_MODE == nil then error("MODE not defined")
@@ -521,6 +523,16 @@ function LoadEnvironment()
 		end
 	end
 	debug("PROTOCOL_FILTERING=" .. PROTOCOL_FILTERING)
+
+	-- Validate EXTRALANS
+	if EXTRALANS ~= nil and string.len(EXTRALANS) ~= 0 then
+		EXTRALANS = Explode(" ", EXTRALANS)
+		for _, addr in EXTRALANS do
+			debug("EXTRALANS=" .. addr)
+		end
+	else
+		EXTRALANS={}
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -1672,6 +1684,13 @@ function RunOutgoingDenied()
 						string.format("-A FORWARD -s %s/%s -p %d --dport %s -j %s",
 						network, netmask, r_proto, r_port, target))
 				end
+				
+				for _, network in EXTRALANS do
+					iptables("filter",
+						string.format("-A FORWARD -s %s -p %d --dport %s -j %s",
+						network,  r_proto, r_port, target))
+				end
+
 			else
 				echo(action .. " outgoing traffic to: " .. r_addr)
 
@@ -1681,6 +1700,13 @@ function RunOutgoingDenied()
 					iptables("filter",
 						string.format("-A FORWARD -s %s/%s -d %s -j %s",
 						network, netmask, r_addr, target))
+				end
+				if r_port ~= "" then
+					for _, network in EXTRALANS do
+						iptables("filter",
+							string.format("-A FORWARD -s %s -p %d --dport %s -j %s",
+							network,  r_proto, r_port, target))
+					end
 				end
 			end
 		end
@@ -2513,19 +2539,19 @@ function RunBandwidthRules()
 
 	-- Create up/downstream classes 100: 200: 300: (for band 0, 1, 2) sfq
 	for _, ifn in IMQIF_UPSTREAM do
-		execute(string.format("%s qdisc add dev %s parent 10:1 handle 100: sfq",
+		execute(string.format("%s qdisc add dev %s parent 10:1 handle 100: pfifo",
 			TCBIN, ifn));
-		execute(string.format("%s qdisc add dev %s parent 10:2 handle 200: sfq",
+		execute(string.format("%s qdisc add dev %s parent 10:2 handle 200: sfq perturb 10",
 			TCBIN, ifn));
-		execute(string.format("%s qdisc add dev %s parent 10:3 handle 300: sfq",
+		execute(string.format("%s qdisc add dev %s parent 10:3 handle 300: sfq perturb 10",
 			TCBIN, ifn));
 	end
 	for _, ifn in IMQIF_DOWNSTREAM do
-		execute(string.format("%s qdisc add dev %s parent 10:1 handle 100: sfq",
+		execute(string.format("%s qdisc add dev %s parent 10:1 handle 100: pfifo",
 			TCBIN, ifn));
-		execute(string.format("%s qdisc add dev %s parent 10:2 handle 200: sfq",
+		execute(string.format("%s qdisc add dev %s parent 10:2 handle 200: sfq perturb 10",
 			TCBIN, ifn));
-		execute(string.format("%s qdisc add dev %s parent 10:3 handle 300: sfq",
+		execute(string.format("%s qdisc add dev %s parent 10:3 handle 300: sfq perturb 10",
 			TCBIN, ifn));
 	end
 
@@ -3130,6 +3156,18 @@ function RunForwardingDefaults()
 			iptables("filter",
 				string.format("-A FORWARD -s %s/%s -j %s", network, netmask, FW_DROP))
 		end
+	end
+
+	for _, network in EXTRALANS do
+		io.write(string.format("-A FORWARD -p icmp --icmp-type 0 -s %s -j %s", network, FW_ACCEPT))
+		iptables("filter",
+			string.format("-A FORWARD -p icmp --icmp-type 0 -s %s -j %s", network, FW_ACCEPT))
+		iptables("filter",
+			string.format("-A FORWARD -p icmp --icmp-type 8 -s %s -j %s", network, FW_ACCEPT))
+		iptables("filter",
+			string.format("-A FORWARD -p icmp --icmp-type 11 -s %s -j %s", network, FW_ACCEPT))
+		iptables("filter",
+			string.format("-A FORWARD -s %s -j %s", network, FW_DROP))
 	end
 
 	-- Allow VPN interfaces

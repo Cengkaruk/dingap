@@ -95,6 +95,10 @@ source $FW_TYPES || exit 1
 source /etc/sysconfig/network
 export GATEWAYDEV
 
+# Pull in any extra LANs
+source /etc/system/network
+export EXTRALANS
+
 # Pull in syswatch interface list
 source $FW_CONF
 if [ -f "$SYSWATCH_STATE" ]; then
