@@ -67,267 +67,267 @@ clearos_load_library('base/File');
 
 class Ethers extends Engine
 {
-	const FILE_CONFIG = '/etc/ethers';
+    const FILE_CONFIG = '/etc/ethers';
 
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * Ethers constructor.
-	 */
+    /**
+     * Ethers constructor.
+     */
 
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function __construct()
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		parent::__construct();
+        parent::__construct();
 
-		$this->ResetEthers();
-	}
+        $this->ResetEthers();
+    }
 
-	/**
-	 * Create a new /etc/ethers file.
-	 *
-	 * @param boolean $force delete the existing file if true
-	 * @return void
-	 */
+    /**
+     * Create a new /etc/ethers file.
+     *
+     * @param boolean $force delete the existing file if true
+     * @return void
+     */
 
-	public function ResetEthers($force = false)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function ResetEthers($force = false)
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$file = new File(self::FILE_CONFIG);
+        $file = new File(self::FILE_CONFIG);
 
-		if ($force == true) {
-			if ($file->Exists())
-				$file->Delete();
-		}
+        if ($force == true) {
+            if ($file->Exists())
+                $file->Delete();
+        }
 
-		if (! $file->Exists()) {
-			$file->Create('root', 'root', '0644');
+        if (! $file->Exists()) {
+            $file->Create('root', 'root', '0644');
 
-			$default  = "# This is an auto-generated file. Please do NOT edit\n";
-			$default .= "# Comments are used to aid in maintaining your hosts\n";
-			$default .= "# file\n";
+            $default  = "# This is an auto-generated file. Please do NOT edit\n";
+            $default .= "# Comments are used to aid in maintaining your hosts\n";
+            $default .= "# file\n";
 
-			$file->AddLines($default);
-		}
-	}
+            $file->AddLines($default);
+        }
+    }
 
-	/**
-	 * Add a MAC/IP pair to the /etc/ethers file.
-	 *
-	 * @param string $mac MAC address
-	 * @param string $ip IP address
-	 * @return void
-	 * @throws EngineException, ValidationException
-	 */
+    /**
+     * Add a MAC/IP pair to the /etc/ethers file.
+     *
+     * @param string $mac MAC address
+     * @param string $ip IP address
+     * @return void
+     * @throws EngineException, ValidationException
+     */
 
-	public function AddEther($mac, $ip)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function AddEther($mac, $ip)
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$isvalid = true;
-		$network = new Network();
+        $isvalid = true;
+        $network = new Network();
 
-		if (! $network->IsValidMac($mac)) {
-			$this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
-			$isvalid = false;
-		}
+        if (! $network->IsValidMac($mac)) {
+            $this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
+            $isvalid = false;
+        }
 
-		if (! $network->IsValidIp($ip)) {
-			$this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
-			$isvalid = false;
-		}
+        if (! $network->IsValidIp($ip)) {
+            $this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
+            $isvalid = false;
+        }
 
-		if (! $isvalid)
-			throw new ValidationException(LOCALE_LANG_INVALID);
+        if (! $isvalid)
+            throw new ValidationException(LOCALE_LANG_INVALID);
 
-		$file = new File(self::FILE_CONFIG);
+        $file = new File(self::FILE_CONFIG);
 
-		try {
-			$contents = $file->GetContentsAsArray();
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), COMMON_ERROR);
-		}
+        try {
+            $contents = $file->GetContentsAsArray();
+        } catch (Exception $e) {
+            throw new EngineException($e->GetMessage(), COMMON_ERROR);
+        }
 
-		// Already exists?
-		foreach ($contents as $key => $line) {
-			if (preg_match('/' . $mac . '/', $line))
-				throw new EngineException(ETHERS_LANG_MAC_ALREADY_EXISTS, COMMON_ERROR);
-		}
+        // Already exists?
+        foreach ($contents as $key => $line) {
+            if (preg_match('/' . $mac . '/', $line))
+                throw new EngineException(ETHERS_LANG_MAC_ALREADY_EXISTS, COMMON_ERROR);
+        }
 
-		// Add
-		$contents[] = $mac . ' ' . $ip;
-		$file->DumpContentsFromArray($contents);
-	}
+        // Add
+        $contents[] = $mac . ' ' . $ip;
+        $file->DumpContentsFromArray($contents);
+    }
 
-	/**
-	 * Delete a MAC/HOSTNAME pair from the /etc/ethers file.
-	 *
-	 * @param string $mac MAC address
-	 * @return void
-	 */
+    /**
+     * Delete a MAC/HOSTNAME pair from the /etc/ethers file.
+     *
+     * @param string $mac MAC address
+     * @return void
+     */
 
-	public function DeleteEther($mac)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function DeleteEther($mac)
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if ($this->IsValidMac($mac) === false)
-			return;
+        if ($this->IsValidMac($mac) === false)
+            return;
 
-		$file = new File(self::FILE_CONFIG);
-		$contents = $file->GetContentsAsArray();
+        $file = new File(self::FILE_CONFIG);
+        $contents = $file->GetContentsAsArray();
 
-		$write_out = false;
-		foreach ($contents as $key => $line) {
-			if (preg_match('/' . $mac . '/', $line)) {
-				unset($contents[$key]);
-				$write_out = true;
-			}
-		}
+        $write_out = false;
+        foreach ($contents as $key => $line) {
+            if (preg_match('/' . $mac . '/', $line)) {
+                unset($contents[$key]);
+                $write_out = true;
+            }
+        }
 
-		if ($write_out)
-			$file->DumpContentsFromArray($contents);
-	}
+        if ($write_out)
+            $file->DumpContentsFromArray($contents);
+    }
 
-	/**
-	 * Returns the HOSTNAME for the given MAC address.
-	 *
-	 * @param string $mac MAC address
-	 * @return string hostname or null
-	 */
+    /**
+     * Returns the HOSTNAME for the given MAC address.
+     *
+     * @param string $mac MAC address
+     * @return string hostname or null
+     */
 
-	public function GetHostnameByMac($mac)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function GetHostnameByMac($mac)
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if ($this->IsValidMac($mac) === false)
-			return;
+        if ($this->IsValidMac($mac) === false)
+            return;
 
-		$ethers = $this->GetEthers();
+        $ethers = $this->GetEthers();
 
-		if (! isset($ethers[$mac]))
-			$ret = null;
-		else
-			$ret = $ethers[$mac];
+        if (! isset($ethers[$mac]))
+            $ret = null;
+        else
+            $ret = $ethers[$mac];
 
-		if ($this->IsValidHostname($ret) == false)
-			$ret = null;
+        if ($this->IsValidHostname($ret) == false)
+            $ret = null;
 
-		return $ret;
-	}
+        return $ret;
+    }
 
-	/**
-	 * Returns information in the /etc/ethers file in an array.
-	 *
-	 * The array is indexed on MAC with HOSTNAMEs as values.
-	 *
-	 * @return array list of ether information
-	 */
+    /**
+     * Returns information in the /etc/ethers file in an array.
+     *
+     * The array is indexed on MAC with HOSTNAMEs as values.
+     *
+     * @return array list of ether information
+     */
 
-	public function GetEthers()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function GetEthers()
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		$file = new File(self::FILE_CONFIG);
-		$contents = $file->GetContentsAsArray();
+        $file = new File(self::FILE_CONFIG);
+        $contents = $file->GetContentsAsArray();
 
-		if (! is_array($contents)) {
-			$this->ResetEthers(true);
-			$contents = $file->GetContentsAsArray();
-			if (! is_array($contents)) {
-				throw new EngineException(LOCALE_LANG_ERRMSG_PARSE_ERROR, COMMON_ERROR);
-			}
-		}
+        if (! is_array($contents)) {
+            $this->ResetEthers(true);
+            $contents = $file->GetContentsAsArray();
+            if (! is_array($contents)) {
+                throw new EngineException(LOCALE_LANG_ERRMSG_PARSE_ERROR, COMMON_ERROR);
+            }
+        }
 
-		$ethers = array();
-		foreach ($contents as $line) {
-			// skip comment lines
-			if (preg_match('/^[\s]*#/', $line))
-				continue;
-			$parts = preg_split('/[\s]+/', $line);
-			if ($this->isValidMac($parts[0]) && $parts[1] != '')
-				$ethers[$parts[0]] = $parts[1];
-		}
-		return $ethers;
-	}
+        $ethers = array();
+        foreach ($contents as $line) {
+            // skip comment lines
+            if (preg_match('/^[\s]*#/', $line))
+                continue;
+            $parts = preg_split('/[\s]+/', $line);
+            if ($this->isValidMac($parts[0]) && $parts[1] != '')
+                $ethers[$parts[0]] = $parts[1];
+        }
+        return $ethers;
+    }
 
-	/**
-	 * Returns the MAC address for the given HOSTNAME.
-	 *
-	 * @param string $hostname hostname
-	 * @return string MAC address
-	 */
+    /**
+     * Returns the MAC address for the given HOSTNAME.
+     *
+     * @param string $hostname hostname
+     * @return string MAC address
+     */
 
-	public function GetMacByHostname($hostname)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function GetMacByHostname($hostname)
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if ($this->IsValidHostname($hostname) == false) {
-			$errors = $this->GetValidationErrors();
-			throw new EngineException($errors[0], COMMON_ERROR);
-		}
+        if ($this->IsValidHostname($hostname) == false) {
+            $errors = $this->GetValidationErrors();
+            throw new EngineException($errors[0], COMMON_ERROR);
+        }
 
-		$ethers = $this->GetEthers();
-		foreach ($ethers as $mac => $host)
-			if (strcasecmp($hostname, $host) == 0)
-				return $mac;
-		return;
-	}
+        $ethers = $this->GetEthers();
+        foreach ($ethers as $mac => $host)
+            if (strcasecmp($hostname, $host) == 0)
+                return $mac;
+        return;
+    }
 
-	/**
-	 * Updates HOSTNAME for a given MAC address.
-	 *
-	 * @param string $mac MAC address
-	 * @param string $hostname hostname
-	 * @return void
-	 */
-	
-	public function UpdateEther($mac, $hostname)
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    /**
+     * Updates HOSTNAME for a given MAC address.
+     *
+     * @param string $mac MAC address
+     * @param string $hostname hostname
+     * @return void
+     */
+    
+    public function UpdateEther($mac, $hostname)
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		if ($this->IsValidMac($mac) === false)
-			return;
+        if ($this->IsValidMac($mac) === false)
+            return;
 
-		if ($this->IsValidHostname($hostname) == false) {
-			$errors = $this->GetValidationErrors();
-			throw new EngineException($errors[0], COMMON_ERROR);
-		}
+        if ($this->IsValidHostname($hostname) == false) {
+            $errors = $this->GetValidationErrors();
+            throw new EngineException($errors[0], COMMON_ERROR);
+        }
 
 
-		$file = new File(self::FILE_CONFIG);
-		$contents = $file->GetContentsAsArray();
+        $file = new File(self::FILE_CONFIG);
+        $contents = $file->GetContentsAsArray();
 
-		$write_out = false;
-		foreach ($contents as $key => $line) {
-			if (preg_match('/' . $mac . '/', $line)) {
-				$contents[$key] = $mac . ' ' . $hostname;
-				$write_out = true;
-			}
-		}
+        $write_out = false;
+        foreach ($contents as $key => $line) {
+            if (preg_match('/' . $mac . '/', $line)) {
+                $contents[$key] = $mac . ' ' . $hostname;
+                $write_out = true;
+            }
+        }
 
-		// Add
-		if ($write_out)
-			$file->DumpContentsFromArray($contents);
-	}
+        // Add
+        if ($write_out)
+            $file->DumpContentsFromArray($contents);
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// P R I V A T E   M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * @access private
-	 */
+    /**
+     * @access private
+     */
 
-	public function __destruct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+    public function __destruct()
+    {
+        ClearOsLogger::Profile(__METHOD__, __LINE__);
 
-		parent::__destruct();
-	}
+        parent::__destruct();
+    }
 
 }
 
