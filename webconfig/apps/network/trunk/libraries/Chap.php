@@ -2,7 +2,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2002-2010 ClearFoundation
+// Copyright 2002-2011 ClearFoundation
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -22,12 +22,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * CHAP/PAP configuration class.
+ * CHAP/PAP secrets configuration class.
  *
- * @package ClearOS
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2002-2010 ClearFoundation
+ * @package     ClearOS
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright   Copyright 2002-2010 ClearFoundation
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,10 +56,10 @@ clearos_load_library('base/File');
 /**
  * CHAP/PAP configuration class.
  *
- * @package ClearOS
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2002-2010 ClearFoundation
+ * @package     ClearOS
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright   Copyright 2002-2010 ClearFoundation
  */
 
 class Chap extends Engine
@@ -68,16 +68,16 @@ class Chap extends Engine
     // M E M B E R S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $is_loaded = false;
-    protected $secrets = array();
-
-    const FILE_SECRETS = "/etc/ppp/chap-secrets";
-    const FILE_PAP_SECRETS = "/etc/ppp/pap-secrets";
+    const FILE_SECRETS_CHAP = '/etc/ppp/chap-secrets';
+    const FILE_SECRETS_PAP = '/etc/ppp/pap-secrets';
     const LINE_DONE = -3;
     const LINE_DELETE = -2;
     const LINE_ADD = -1;
     const LINE_DEFINED = 0;
     const CONSTANT_ANY = "*";
+
+    protected $is_loaded = false;
+    protected $secrets = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -89,75 +89,121 @@ class Chap extends Engine
 
     public function __construct()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__construct();
-
+        clearos_profile(__METHOD__, __LINE__);
     }
 
     /**
-     * Sets a username/password in the chap/pap secrets file.
+     * Sets a username/password in the CHAP/PAP secrets file.
      *
-     * @param string $username username
-     * @param string $password password
-     * @param string $server server
-     * @param string $ip ip
-     * @return void
-     * @throws EngineException
+     * @param       string $username  username
+     * @param       string $password  password
+     * @param       string $server    server name
+     * @param       string $ip        IP address
+     * @deprecated  deprecated since framework version 6.0, use add_secret() instead.
+     * @return      void
+     * @throws      Engine_Exception
      */
 
-    public function AddUser($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
+    public function add_user($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_deprecated(__METHOD__, __LINE__);
+
+        $this->add_secret($username, $password, $server, $ip);
+    }
+
+    /**
+     * Add a secret to the CHAP/PAP secrets file.
+     *
+     * @param   string $username  username
+     * @param   string $password  password
+     * @param   string $server    server name
+     * @param   string $ip        IP address
+     * @return  void
+     * @throws  Engine_Exception
+     */
+
+    public function add_secret($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
-            $this->_Load();
+            $this->_load();
 
         if (isset($this->secrets[$username]))
-            $this->DeleteUser($username);
+            $this->deleteUser($username);
 
-        $this->secrets[$username]["password"] = $password;
-        $this->secrets[$username]["server"] = $server;
-        $this->secrets[$username]["ip"] = $ip;
-        $this->secrets[$username]["linestate"] = self::LINE_ADD;
+        $this->secrets[$username]['password'] = $password;
+        $this->secrets[$username]['server'] = $server;
+        $this->secrets[$username]['ip'] = $ip;
+        $this->secrets[$username]['linestate'] = self::LINE_ADD;
 
-        $this->_Save();
+        $this->_save();
     }
 
     /**
-     * Deletes a username from the chap/pap secrets file. 
+     * Deletes a username from the CHAP/PAP secrets file. 
      * 
-     * @param string $username username
-     * @return void
+     * @param       string $username username
+     * @deprecated  deprecated since framework version 6.0, use delete_secret() instead.
+     * @return      void
      */
 
-    public function DeleteUser($username)
+    public function delete_user($username)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_deprecated(__METHOD__, __LINE__);
+
+        $this->delete_secret($username);
+    }
+
+    /**
+     * Deletes a secret from the CHAP/PAP secrets file. 
+     * 
+     * @param   string $username username
+     * @return  void
+     */
+
+    public function delete_secret($username)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
-            $this->_Load();
+            $this->_load();
 
         if (! isset($this->secrets[$username]))
             return;
 
-        $this->secrets[$username]["linestate"] = self::LINE_DELETE;
-        $this->_Save();
+        $this->secrets[$username]['linestate'] = self::LINE_DELETE;
+        $this->_save();
     }
 
     /**
-     * Returns user list.
+     * Returns a list of usernames from the CHAP/PAP secrets file.
      *
-     * @return array information on users
-     * @throws EngineException
+     * @deprecated  deprecated since framework version 6.0, use get_secrets() instead.
+     * @return      array list of secrets.
+     * @throws      Engine_Exception
      */
 
-    public function GetUsers() 
+    public function get_users() 
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->get_secrets();
+    }
+
+    /**
+     * Returns an array of secrets from the CHAP/PAP secrets file.
+     *
+     * @return array list of secrets.
+     * @throws Engine_Exception
+     */
+
+    public function get_secrets() 
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->secrets;
     }
@@ -167,49 +213,44 @@ class Chap extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Loads configuration file.
+     * Load CHAP/PAP secrets file in to local array.
      *
      * @access private
      * @return void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function _Load()
+    private public function _load()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        // Reset our data structures
-        //--------------------------
+        clearos_profile(__METHOD__, __LINE__);
 
         $this->loaded = false;
         $this->secrets = array();
 
-        // Create chap secrets
-        // Load data structures
-        //---------------------
-
         try {
-            $file = new File(self::FILE_SECRETS);
-            if (!$file->Exists())
-                $file->Create("root", "root", "600");
+            $file = new File(self::FILE_SECRETS_CHAP);
+            if (!$file->exists())
+                $file->create('root', 'root', '600');
             else
-                $file->Chown("root", "root");
+                $file->chown('root', 'root');
 
-            $lines = $file->GetContentsAsArray();
+            $lines = $file->get_contents_as_array();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception(
+                clearos_exception_message($e), COMMON_WARNING
+            );
         }
 
         $linecount = 0;
 
         foreach ($lines as $line) {
             if (! preg_match("/^#/", $line)) {
-                $linedata = preg_split("/[\s]+/", $line, 4);
-                $username = preg_replace("/\"/", "", $linedata[0]);
-                $this->secrets[$username]["linestate"] = self::LINE_DEFINED;
-                $this->secrets[$username]["server"] = preg_replace("/\"/", "", $linedata[1]);
-                $this->secrets[$username]["password"] = preg_replace("/\"/", "", $linedata[2]);
-                $this->secrets[$username]["ip"] = preg_replace("/\"/", "", $linedata[3]);
+                $linedata = preg_split('/[\s]+/', $line, 4);
+                $username = preg_replace('/"/', '', $linedata[0]);
+                $this->secrets[$username]['linestate'] = self::LINE_DEFINED;
+                $this->secrets[$username]['server'] = preg_replace('/"/', '', $linedata[1]);
+                $this->secrets[$username]['password'] = preg_replace('/"/', '', $linedata[2]);
+                $this->secrets[$username]['ip'] = preg_replace('/"/', '', $linedata[3]);
             }
 
             $linecount++;
@@ -219,97 +260,82 @@ class Chap extends Engine
     }
 
     /**
-     * Saves configuration file.
+     * Saves local array to CHAP/PAP secrets file.
      *
-     * @private
+     * @access  private
      * @returns void
+     * @throws  Engine_Exception
      */
 
-    public function _Save()
+    private public function _save()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
+        $filedata = '';
         $this->loaded = false;
 
-        $filedata = "";
-
         foreach ($this->secrets as $username => $value) {
-            if ( isset($this->secrets[$username]["linestate"]) &&
-                ($this->secrets[$username]["linestate"] == self::LINE_DELETE) ) {
+            if (isset($this->secrets[$username]['linestate'])
+                && ($this->secrets[$username]['linestate'] == self::LINE_DELETE))
                 continue;
-
-            } else {
-                $filedata .= $this->_WriteLineEntry(
+            else {
+                $filedata .= $this->_format_line(
                     $username, 
-                    $this->secrets[$username]["password"],
-                    $this->secrets[$username]["server"],
-                    $this->secrets[$username]["ip"]
+                    $this->secrets[$username]['password'],
+                    $this->secrets[$username]['server'],
+                    $this->secrets[$username]['ip']
                 );
             } 
         }
 
         try {
-            $chapfile = new File(self::FILE_SECRETS . ".cctmp");
-            if ($chapfile->Exists())
-                $chapfile->Delete();
+            $file_chap = new File(self::FILE_SECRETS_CHAP . '.cctmp');
+            if ($file_chap->exists())
+                $file_chap->delete();
 
-            $papfile = new File(self::FILE_PAP_SECRETS . ".cctmp");
-            if ($papfile->Exists())
-                $papfile->Delete();
+            $file_pap = new File(self::FILE_SECRETS_PAP . '.cctmp');
+            if ($file_pap->exists())
+                $file_pap->delete();
 
-            $chapfile->Create("root", "root", "0600");
-            $papfile->Create("root", "root", "0600");
+            $file_chap->create('root', 'root', '0600');
+            $file_pap->create('root', 'root', '0600');
 
-            $chapfile->AddLines($filedata);
-            $papfile->AddLines($filedata);
+            $file_chap->add_lines($filedata);
+            $file_pap->add_lines($filedata);
 
-            $chapfile->MoveTo(self::FILE_SECRETS);
-            $papfile->MoveTo(self::FILE_PAP_SECRETS);
+            $file_chap->move_to(self::FILE_SECRETS_CHAP);
+            $file_pap->move_to(self::FILE_SECRETS_PAP);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception(
+                clearos_exception_message($e), COMMON_WARNING
+            );
         }
     }
 
     /**
      * Returns the line entry with the proper formatting.
      *
-     * @access private
-     * @param string $username username
-     * @param string $password password
-     * @param string $server server
-     * @param string $ip ip
-     * @return string line entry
+     * @access  private
+     * @param   string $username    username
+     * @param   string $password    password
+     * @param   string $server      server name
+     * @param   string $ip          IP address
+     * @return  string              formatted CHAP/PAP line
      */
 
-    public function _WriteLineEntry($username, $password, $server, $ip)
+    private function _format_line($username, $password, $server, $ip)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $username = "\"$username\"";
         $password = "\"$password\"";
 
-        if ($server != "*")
+        if ($server != self::CONSTANT_ANY)
             $server = "\"$server\"";
 
-        if ($ip != "*")
+        if ($ip != self::CONSTANT_ANY)
             $server = "\"$server\"";
 
-        $line = sprintf("%s %s %s %s\n", $username, $server, $password, $ip);
-
-        return $line;
-    }
-
-    /**
-     * @access private
-     */
-
-    public function __destruct()
-    {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
+        return sprintf("%s %s %s %s\n", $username, $server, $password, $ip);
     }
 }
-
-// vim: syntax=php ts=4
-?>
