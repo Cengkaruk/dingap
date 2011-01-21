@@ -3159,7 +3159,6 @@ function RunForwardingDefaults()
 	end
 
 	for _, network in EXTRALANS do
-		io.write(string.format("-A FORWARD -p icmp --icmp-type 0 -s %s -j %s", network, FW_ACCEPT))
 		iptables("filter",
 			string.format("-A FORWARD -p icmp --icmp-type 0 -s %s -j %s", network, FW_ACCEPT))
 		iptables("filter",
