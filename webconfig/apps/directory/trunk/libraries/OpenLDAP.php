@@ -99,8 +99,8 @@ class OpenLDAP extends Daemon
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const CONSTANT_LOCALHOST = 'localhost';
-    const CONSTANT_LAN = 'lan';
+    const POLICY_LAN = 'lan';
+    const POLICY_LOCALHOST = 'localhost';
     const FILE_SLAPD_SYSCONFIG = '/etc/sysconfig/ldap';
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ class OpenLDAP extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! ldap_delete($this->connection, $dn))
-            throw new Engine_Exception(LDAP_LANG_ERRMSG_FUNCTION_FAILED, CLEAROS_ERROR);
+            throw new Engine_Exception(lang('directory_errmsg_function_failed'), CLEAROS_ERROR);
     }
 
     /**
@@ -245,7 +245,7 @@ class OpenLDAP extends Daemon
         $attributes = ldap_get_attributes($this->connection, $entry);
 
         if (! $attributes)
-            throw new Engine_Exception(LDAP_LANG_ERRMSG_FUNCTION_FAILED, CLEAROS_ERROR);
+            throw new Engine_Exception(lang('directory_errmsg_function_failed'), CLEAROS_ERROR);
 
         return $attributes;
     }
@@ -302,13 +302,14 @@ class OpenLDAP extends Daemon
     }
 
     /** 
-     * Returns bind policy.
+     * Returns security policy.
      * 
-     * @return int policy constant
+     * @return integer security policy constant
      * @throws Engine_Exception
+     * @see set_security_policy
      */
 
-    public function get_bind_policy()
+    public function get_security_policy()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -318,14 +319,14 @@ class OpenLDAP extends Daemon
             $sysconfig = $file->load();
 
             if (empty($sysconfig['BIND_POLICY']))
-                return self::CONSTANT_LOCALHOST;
-            else if ($sysconfig['BIND_POLICY'] == self::CONSTANT_LAN)
-                return self::CONSTANT_LAN;
+                return self::POLICY_LOCALHOST;
+            else if ($sysconfig['BIND_POLICY'] == self::POLICY_LAN)
+                return self::POLICY_LAN;
             else
-                return self::CONSTANT_LOCALHOST;
+                return self::POLICY_LOCALHOST;
 
         } catch (File_Not_Found_Exception $e) {
-            return self::CONSTANT_LOCALHOST;
+            return self::POLICY_LOCALHOST;
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -412,7 +413,7 @@ class OpenLDAP extends Daemon
     /** 
      * Checks LDAP availability.
      *
-     * return boolean TRUE if OpenLDAP connection was successful
+     * @return boolean TRUE if OpenLDAP connection was successful
      * @throws Engine_Exception
      */
 
@@ -588,10 +589,11 @@ class OpenLDAP extends Daemon
     }
 
     /** 
-     * Sets bind policy.
+     * Sets security policy.
      *
-     * The LDAP server can be configured to listen on localhost only 
-     * CONSTANT_LOCALHOST, or localhost and all LAN interfaces (CONSTANT_LAN).
+     * The LDAP server can be configured to listen on:
+     * -  localhost only: OpenLDAP::POLICY_LOCALHOST
+     * -  localhost and all LAN interfaces: OpenLDAP::POLICY_LAN
      *
      * @param boolean $policy policy setting
      *
@@ -599,18 +601,18 @@ class OpenLDAP extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_bind_policy($policy)
+    public function set_security_policy($policy)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! (($policy == self::CONSTANT_LOCALHOST) || ($policy == self::CONSTANT_LAN)))
-            throw new Validation_Exception(LDAP_LANG_BIND_POLICY . " - " . LOCALE_LANG_INVALID);
+        if ($errmsg = $this->validate_security_policy($policy))
+            throw new Validation_Exception($errmsg);
 
         try {
             $file = new File(self::FILE_SLAPD_SYSCONFIG);
 
             if ($file->exists()) {
-                $matches = $file->ReplaceLines("/^BIND_POLICY=.*/", "BIND_POLICY=$policy\n");
+                $matches = $file->replace_lines("/^BIND_POLICY=.*/", "BIND_POLICY=$policy\n");
                 if ($matches === 0)
                     $file->add_lines("BIND_POLICY=$policy\n");
             } else {
@@ -783,6 +785,25 @@ class OpenLDAP extends Daemon
         $this->config['bind_host'] = '192.168.2.248';
 
         $this->is_loaded = TRUE;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates security policy.
+     *
+     * @param string $policy policy
+     * @retrun string error message if security is invalid
+     */
+
+    public function validate_security_policy($policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (($policy !== self::POLICY_LOCALHOST) && ($policy !== self::POLICY_LAN))
+            return lang('directory_validate_security_policy_invalid');
     }
 }
 
