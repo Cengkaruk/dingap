@@ -1,9 +1,15 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * Ethers class.
+ *
+ * @package ClearOS
+ * @subpackage API
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright Copyright 2003-2011 ClearFoundation
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,15 +27,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Ethers class.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\network;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -48,6 +50,9 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 
@@ -62,7 +67,7 @@ clearos_load_library('base/File');
  * @subpackage API
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @copyright Copyright 2003-2011 ClearFoundation
  */
 
 class Ethers extends Engine

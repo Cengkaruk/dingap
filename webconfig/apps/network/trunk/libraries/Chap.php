@@ -47,7 +47,21 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+
+clearos_load_library('base/Engine_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
