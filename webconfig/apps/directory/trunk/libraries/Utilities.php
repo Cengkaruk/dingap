@@ -113,7 +113,7 @@ class Utilities extends Engine
      * @throws Engine_Exception
      */
 
-    public function generate_password()
+    public static function generate_password()
     {
         clearos_profile(__METHOD__, __LINE__);
 
