@@ -110,7 +110,6 @@ class OpenLDAP extends Daemon
     protected $bound = FALSE;
     protected $connection = NULL;
     protected $search_result = FALSE;
-    protected $is_loaded = FALSE;
     protected $config = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -118,12 +117,22 @@ class OpenLDAP extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Ldap constructor.
+     * OpenLDAP constructor.
+     *
+     * @param string $base_dn   Base DN
+     * @param string $bind_dn   Bind DN
+     * @param string $bind_pw   Bind password
+     * @param string $bind_host Bind host
      */
 
-    public function __construct()
+    public function __construct($base_dn, $bind_dn, $bind_pw, $bind_host = 'localhost')
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $this->config['base_dn'] = $base_dn;
+        $this->config['bind_dn'] = $bind_dn;
+        $this->config['bind_pw'] = $bind_pw;
+        $this->config['bind_host'] = $bind_host;
 
         parent::__construct('slapd');
     }
@@ -261,9 +270,6 @@ class OpenLDAP extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->is_loaded)
-            $this->_load_config();
-
         return $this->config['base_dn'];
     }
 
@@ -278,9 +284,6 @@ class OpenLDAP extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->is_loaded)
-            $this->_load_config();
-
         return $this->config['bind_dn'];
     }
 
@@ -294,9 +297,6 @@ class OpenLDAP extends Daemon
     public function get_bind_password()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
 
         return $this->config['bind_pw'];
     }
@@ -403,9 +403,6 @@ class OpenLDAP extends Daemon
     public function get_ldap_uri()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
 
         return $this->config['ldap_uri'];
     }
@@ -719,9 +716,6 @@ class OpenLDAP extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->is_loaded)
-            $this->_load_config();
-
         $this->connection = ldap_connect($this->config['bind_host']);
 
         if (! ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3))
@@ -755,38 +749,6 @@ class OpenLDAP extends Daemon
         }
     }
 
-    /**
-     * Loads configuration file.
-     *
-     * @access private
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _load_config()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        /*
-        FIXME
-        $configfile = new Configuration_File(self::FILE_KOLAB_CONFIG, 'split', ':', 2);
-
-        try {
-            $this->config = $configfile->Load();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        */
-        $this->config['base_dn'] = 'dc=clearos5x,dc=lan';
-        $this->config['bind_dn'] = 'cn=manager,cn=internal,dc=clearos5x,dc=lan';
-        $this->config['bind_pw'] = 'clearos';
-        $this->config['bind_host'] = '192.168.2.248';
-
-        $this->is_loaded = TRUE;
-    }
-
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N
     ///////////////////////////////////////////////////////////////////////////////
@@ -795,7 +757,8 @@ class OpenLDAP extends Daemon
      * Validates security policy.
      *
      * @param string $policy policy
-     * @retrun string error message if security is invalid
+     *
+     * @return string error message if security is invalid
      */
 
     public function validate_security_policy($policy)
