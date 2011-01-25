@@ -194,7 +194,7 @@ class OpenLDAP extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! ldap_delete($this->connection, $dn))
-            throw new Engine_Exception(lang('directory_errmsg_function_failed'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('directory_exception_function_failed'), CLEAROS_ERROR);
     }
 
     /**
@@ -254,7 +254,7 @@ class OpenLDAP extends Daemon
         $attributes = ldap_get_attributes($this->connection, $entry);
 
         if (! $attributes)
-            throw new Engine_Exception(lang('directory_errmsg_function_failed'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('directory_exception_function_failed'), CLEAROS_ERROR);
 
         return $attributes;
     }
@@ -719,7 +719,7 @@ class OpenLDAP extends Daemon
         $this->connection = ldap_connect($this->config['bind_host']);
 
         if (! ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3))
-            throw new Engine_Exception(lang('directory_errmsg_function_failed'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('directory_exception_function_failed'), CLEAROS_ERROR);
 
         if (! @ldap_bind($this->connection, $this->config['bind_dn'], $this->config['bind_pw'])) {
             if (ldap_errno($this->connection) === -1)
