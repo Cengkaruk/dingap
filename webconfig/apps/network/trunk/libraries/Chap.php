@@ -1,9 +1,17 @@
 <?php
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2002-2011 ClearFoundation
-//
+/**
+ * CHAP/PAP secrets configuration class.
+ *
+ * @category    Apps
+ * @package     Date
+ * @subpackage  Libraries
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/date/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,15 +28,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
-/**
- * CHAP/PAP secrets configuration class.
- *
- * @package     ClearOS
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright   Copyright 2002-2010 ClearFoundation
- */
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -68,12 +67,15 @@ clearos_load_library('base/Engine_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * CHAP/PAP configuration class.
+ * CHAP/PAP secrets configuration class.
  *
- * @package     ClearOS
+ * @category    Apps
+ * @package     Network
+ * @subpackage  Libraries
  * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 class Chap extends Engine

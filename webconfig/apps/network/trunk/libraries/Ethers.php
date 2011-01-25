@@ -3,11 +3,13 @@
 /**
  * Ethers class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
+ * @category    Apps
+ * @package     Network
+ * @subpackage  Libraries
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,15 +65,21 @@ clearos_load_library('base/File');
 /**
  * Ethers class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
+ * @category    Apps
+ * @package     Network
+ * @subpackage  Libraries
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 class Ethers extends Engine
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E M B E R S
+    ///////////////////////////////////////////////////////////////////////////////
+
     const FILE_CONFIG = '/etc/ethers';
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -84,134 +92,129 @@ class Ethers extends Engine
 
     public function __construct()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        parent::__construct();
-
-        $this->ResetEthers();
+        $this->reset_ethers();
     }
 
     /**
      * Create a new /etc/ethers file.
      *
-     * @param boolean $force delete the existing file if true
-     * @return void
+     * @param   boolean $force delete the existing file if true
+     * @return  void
      */
 
-    public function ResetEthers($force = false)
+    public function reset_ethers($force = false)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
 
         if ($force == true) {
-            if ($file->Exists())
-                $file->Delete();
+            if ($file->exists())
+                $file->delete();
         }
 
-        if (! $file->Exists()) {
-            $file->Create('root', 'root', '0644');
+        if (! $file->exists()) {
+            $file->create('root', 'root', '0644');
 
             $default  = "# This is an auto-generated file. Please do NOT edit\n";
             $default .= "# Comments are used to aid in maintaining your hosts\n";
             $default .= "# file\n";
 
-            $file->AddLines($default);
+            $file->add_lines($default);
         }
     }
 
     /**
      * Add a MAC/IP pair to the /etc/ethers file.
      *
-     * @param string $mac MAC address
-     * @param string $ip IP address
-     * @return void
-     * @throws EngineException, ValidationException
+     * @param   string $mac   MAC address
+     * @param   string $ip    IP address
+     * @return  void
+     * @throws  Engine_Exception, Validation_Exception
      */
 
-    public function AddEther($mac, $ip)
+    public function add_ether($mac, $ip)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $isvalid = true;
-        $network = new Network();
+        $network = new Network_Utils();
 
-        if (! $network->IsValidMac($mac)) {
-            $this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
-            $isvalid = false;
-        }
-
-        if (! $network->IsValidIp($ip)) {
-            $this->AddValidationError(implode($network->GetValidationErrors(true)), __METHOD__, __LINE__);
-            $isvalid = false;
-        }
-
-        if (! $isvalid)
-            throw new ValidationException(LOCALE_LANG_INVALID);
+        Validation_Exception::is_valid($network->validate_mac($mac));
+        Validation_Exception::is_valid($network->validate_ip($ip));
 
         $file = new File(self::FILE_CONFIG);
 
         try {
-            $contents = $file->GetContentsAsArray();
+            $contents = $file->get_contents_as_array();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_ERROR);
+            throw new Engine_Exception($e->get_message(), COMMON_ERROR);
         }
 
         // Already exists?
         foreach ($contents as $key => $line) {
-            if (preg_match('/' . $mac . '/', $line))
-                throw new EngineException(ETHERS_LANG_MAC_ALREADY_EXISTS, COMMON_ERROR);
+            if (preg_match("/$mac/", $line))
+                throw new Engine_Exception(ETHERS_LANG_MAC_ALREADY_EXISTS, COMMON_ERROR);
         }
 
         // Add
-        $contents[] = $mac . ' ' . $ip;
-        $file->DumpContentsFromArray($contents);
+        $contents[] = "$mac $ip";
+        $file->dump_contents_from_array($contents);
     }
 
     /**
      * Delete a MAC/HOSTNAME pair from the /etc/ethers file.
      *
-     * @param string $mac MAC address
-     * @return void
+     * @param   string $mac MAC address
+     * @return  void
+     * @throws  Engine_Exception
      */
 
-    public function DeleteEther($mac)
+    public function delete_ether($mac)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->IsValidMac($mac) === false)
+        try {
+            $network = new Network_Utils();
+
+            Validation_Exception::is_valid($network->validate_mac($mac));
+        } catch (Validation_Exception $e) {
             return;
+        }
 
         $file = new File(self::FILE_CONFIG);
-        $contents = $file->GetContentsAsArray();
+        $contents = $file->get_contents_as_array();
 
         $write_out = false;
         foreach ($contents as $key => $line) {
-            if (preg_match('/' . $mac . '/', $line)) {
+            if (preg_match("/$mac/", $line)) {
                 unset($contents[$key]);
                 $write_out = true;
             }
         }
 
         if ($write_out)
-            $file->DumpContentsFromArray($contents);
+            $file->dump_contents_from_array($contents);
     }
 
     /**
-     * Returns the HOSTNAME for the given MAC address.
+     * Returns the hostname for the given MAC address.
      *
-     * @param string $mac MAC address
-     * @return string hostname or null
+     * @param   string $mac MAC address
+     * @return  string hostname or null
      */
 
-    public function GetHostnameByMac($mac)
+    public function get_hostname_by_mac($mac)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
+
+        $network = new Network_Utils;
 
         if ($this->IsValidMac($mac) === false)
             return;
 
-        $ethers = $this->GetEthers();
+        $ethers = $this->get_ethers();
 
         if (! isset($ethers[$mac]))
             $ret = null;
@@ -232,18 +235,18 @@ class Ethers extends Engine
      * @return array list of ether information
      */
 
-    public function GetEthers()
+    public function get_ethers()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
         $contents = $file->GetContentsAsArray();
 
         if (! is_array($contents)) {
-            $this->ResetEthers(true);
+            $this->reset_ethers(true);
             $contents = $file->GetContentsAsArray();
             if (! is_array($contents)) {
-                throw new EngineException(LOCALE_LANG_ERRMSG_PARSE_ERROR, COMMON_ERROR);
+                throw new Engine_Exception(LOCALE_LANG_ERRMSG_PARSE_ERROR, COMMON_ERROR);
             }
         }
 
@@ -266,16 +269,16 @@ class Ethers extends Engine
      * @return string MAC address
      */
 
-    public function GetMacByHostname($hostname)
+    public function get_mac_by_hostname($hostname)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if ($this->IsValidHostname($hostname) == false) {
             $errors = $this->GetValidationErrors();
-            throw new EngineException($errors[0], COMMON_ERROR);
+            throw new Engine_Exception($errors[0], COMMON_ERROR);
         }
 
-        $ethers = $this->GetEthers();
+        $ethers = $this->get_ethers();
         foreach ($ethers as $mac => $host)
             if (strcasecmp($hostname, $host) == 0)
                 return $mac;
@@ -290,16 +293,16 @@ class Ethers extends Engine
      * @return void
      */
     
-    public function UpdateEther($mac, $hostname)
+    public function update_ether($mac, $hostname)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if ($this->IsValidMac($mac) === false)
             return;
 
         if ($this->IsValidHostname($hostname) == false) {
             $errors = $this->GetValidationErrors();
-            throw new EngineException($errors[0], COMMON_ERROR);
+            throw new Engine_Exception($errors[0], COMMON_ERROR);
         }
 
 
@@ -323,18 +326,4 @@ class Ethers extends Engine
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @access private
-     */
-
-    public function __destruct()
-    {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
-
 }
-
-// vim: syntax=php ts=4
-?>
