@@ -213,7 +213,7 @@ class OpenLDAP extends Daemon
         if (! $this->bound)
             $this->_bind();
 
-        $result = @ldap_read($this->connection, $dn, "(objectclass=*)");
+        $result = @ldap_read($this->connection, $dn, '(objectclass=*)');
 
         if (empty($result))
             return FALSE;
@@ -504,7 +504,7 @@ class OpenLDAP extends Daemon
         if (! $this->bound)
             $this->_bind();
 
-        $result = @ldap_read($this->connection, $dn, "(objectclass=*)");
+        $result = @ldap_read($this->connection, $dn, '(objectclass=*)');
 
         if (!$result)
             throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
@@ -609,11 +609,11 @@ class OpenLDAP extends Daemon
             $file = new File(self::FILE_SLAPD_SYSCONFIG);
 
             if ($file->exists()) {
-                $matches = $file->replace_lines("/^BIND_POLICY=.*/", "BIND_POLICY=$policy\n");
+                $matches = $file->replace_lines('/^BIND_POLICY=.*/', "BIND_POLICY=$policy\n");
                 if ($matches === 0)
                     $file->add_lines("BIND_POLICY=$policy\n");
             } else {
-                $file->create("root", "root", "0644");
+                $file->create('root', 'root', '0644');
                 $file->add_lines("BIND_POLICY=$policy\n");
             }
         } catch (Exception $e) {
