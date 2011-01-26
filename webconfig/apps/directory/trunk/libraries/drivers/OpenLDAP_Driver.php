@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ClearOS LDAP directory class.
+ * ClearOS OpenLDAP directory driver.
  *
  * @category   Apps
  * @package    Directory
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\directory;
+namespace clearos\apps\directory\drivers;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -98,7 +98,7 @@ clearos_load_library('base/Validation_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS LDAP directory class.
+ * ClearOS OpenLDAP directory driver.
  *
  * @category   Apps
  * @package    Directory
@@ -109,7 +109,7 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/directory/
  */
 
-class Directory extends Engine
+class OpenLDAP_Driver extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -206,7 +206,7 @@ class Directory extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Directory constructor.
+     * OpenLDAP_Driver constructor.
      */
 
     public function __construct()
@@ -216,16 +216,16 @@ class Directory extends Engine
 /*
 FIXME: what uses this?
         $this->status_codes = array(
-            Directory::STATUS_ALIAS_EXISTS => CLEARDIRECTORY_LANG_ALIAS_ALREADY_EXISTS,
-            Directory::STATUS_GROUP_EXISTS => CLEARDIRECTORY_LANG_GROUP_ALREADY_EXISTS,
-            Directory::STATUS_USERNAME_EXISTS => CLEARDIRECTORY_LANG_USERNAME_ALREADY_EXISTS
+            self::STATUS_ALIAS_EXISTS => CLEARDIRECTORY_LANG_ALIAS_ALREADY_EXISTS,
+            self::STATUS_GROUP_EXISTS => CLEARDIRECTORY_LANG_GROUP_ALREADY_EXISTS,
+            self::STATUS_USERNAME_EXISTS => CLEARDIRECTORY_LANG_USERNAME_ALREADY_EXISTS
         );
 */
 
         $this->modes = array(
-            Directory::MODE_MASTER => lang('directory_master'),
-            Directory::MODE_SLAVE => lang('directory_slave'),
-            Directory::MODE_STANDALONE => lang('directory_standalone')
+            self::MODE_MASTER => lang('directory_master'),
+            self::MODE_SLAVE => lang('directory_slave'),
+            self::MODE_STANDALONE => lang('directory_standalone')
         );
     }
 
@@ -328,7 +328,7 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return Directory::SUFFIX_COMPUTERS . ',' . $this->get_base_dn();
+        return self::SUFFIX_COMPUTERS . ',' . $this->get_base_dn();
     }
 
     /** 
@@ -342,7 +342,7 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return Directory::SUFFIX_GROUPS . ',' . $this->get_base_dn();
+        return self::SUFFIX_GROUPS . ',' . $this->get_base_dn();
     }
 
     /**
@@ -358,31 +358,31 @@ FIXME: what uses this?
 
         // FIXME: extension auto-load
         if (file_exists("/etc/system/initialized/sambalocal"))
-            $services[] = Directory::SERVICE_TYPE_SAMBA;
+            $services[] = self::SERVICE_TYPE_SAMBA;
 
         if (file_exists(COMMON_CORE_DIR . "/api/Cyrus.class.php"))
-            $services[] = Directory::SERVICE_TYPE_EMAIL;
+            $services[] = self::SERVICE_TYPE_EMAIL;
 
         if (file_exists(COMMON_CORE_DIR . "/api/GoogleApps.class.php"))
-            $services[] = Directory::SERVICE_TYPE_GOOGLE_APPS;
+            $services[] = self::SERVICE_TYPE_GOOGLE_APPS;
 
         if (file_exists(COMMON_CORE_DIR . "/api/Pptpd.class.php"))
-            $services[] = Directory::SERVICE_TYPE_PPTP;
+            $services[] = self::SERVICE_TYPE_PPTP;
 
         if (file_exists(COMMON_CORE_DIR . "/api/OpenVpn.class.php"))
-            $services[] = Directory::SERVICE_TYPE_OPENVPN;
+            $services[] = self::SERVICE_TYPE_OPENVPN;
 
         if (file_exists(COMMON_CORE_DIR . "/api/Squid.class.php"))
-            $services[] = Directory::SERVICE_TYPE_PROXY;
+            $services[] = self::SERVICE_TYPE_PROXY;
 
         if (file_exists(COMMON_CORE_DIR . "/api/Proftpd.class.php"))
-            $services[] = Directory::SERVICE_TYPE_FTP;
+            $services[] = self::SERVICE_TYPE_FTP;
 
         if (file_exists(COMMON_CORE_DIR . "/api/Httpd.class.php"))
-            $services[] = Directory::SERVICE_TYPE_WEB;
+            $services[] = self::SERVICE_TYPE_WEB;
 
         if (file_exists(COMMON_CORE_DIR . "/iplex/Users.class.php"))
-            $services[] = Directory::SERVICE_TYPE_PBX;
+            $services[] = self::SERVICE_TYPE_PBX;
 
         return $services;
     }
@@ -403,7 +403,7 @@ FIXME: what uses this?
 
         $mode = $this->get_mode();
 
-        if (($mode === Directory::MODE_STANDALONE) || ($mode === Directory::MODE_SLAVE))
+        if (($mode === self::MODE_STANDALONE) || ($mode === self::MODE_SLAVE))
             return $this->GetInstalledServices();
 
         // Master nodes should show all services
@@ -415,15 +415,15 @@ FIXME: what uses this?
         // TODO: For now, Samba has to be initialized first...
 
         if (file_exists("/etc/system/initialized/sambalocal"))
-            $services[] = Directory::SERVICE_TYPE_SAMBA;
+            $services[] = self::SERVICE_TYPE_SAMBA;
 
-        $services[] = Directory::SERVICE_TYPE_EMAIL;
-        $services[] = Directory::SERVICE_TYPE_GOOGLE_APPS;
-        $services[] = Directory::SERVICE_TYPE_PPTP;
-        $services[] = Directory::SERVICE_TYPE_OPENVPN;
-        $services[] = Directory::SERVICE_TYPE_PROXY;
-        $services[] = Directory::SERVICE_TYPE_FTP;
-        $services[] = Directory::SERVICE_TYPE_WEB;
+        $services[] = self::SERVICE_TYPE_EMAIL;
+        $services[] = self::SERVICE_TYPE_GOOGLE_APPS;
+        $services[] = self::SERVICE_TYPE_PPTP;
+        $services[] = self::SERVICE_TYPE_OPENVPN;
+        $services[] = self::SERVICE_TYPE_PROXY;
+        $services[] = self::SERVICE_TYPE_FTP;
+        $services[] = self::SERVICE_TYPE_WEB;
 
         return $services;
     }
@@ -432,9 +432,9 @@ FIXME: what uses this?
      * Returns the mode of directory.
      *
      * The return values are:
-     * - Directory::MODE_STANDALONE
-     * - Directory::MODE_MASTER
-     * - Directory::MODE_SLAVE
+     * - self::MODE_STANDALONE
+     * - self::MODE_MASTER
+     * - self::MODE_SLAVE
      *
      * @return string mode of the directory
      * @throws Engine_Exception
@@ -455,16 +455,16 @@ FIXME: what uses this?
         }
         
         if (isset($config['mode'])) {
-            if ($config['mode'] === Directory::MODE_MASTER)
-                $mode = Directory::MODE_MASTER;
-            else if ($config['mode'] === Directory::MODE_SLAVE)
-                $mode = Directory::MODE_SLAVE;
-            else if ($config['mode'] === Directory::MODE_STANDALONE)
-                $mode = Directory::MODE_STANDALONE;
+            if ($config['mode'] === self::MODE_MASTER)
+                $mode = self::MODE_MASTER;
+            else if ($config['mode'] === self::MODE_SLAVE)
+                $mode = self::MODE_SLAVE;
+            else if ($config['mode'] === self::MODE_STANDALONE)
+                $mode = self::MODE_STANDALONE;
             else 
-                $mode = Directory::MODE_STANDALONE;
+                $mode = self::MODE_STANDALONE;
         } else {
-            $mode = Directory::MODE_STANDALONE;
+            $mode = self::MODE_STANDALONE;
         }
 
         return $mode;
@@ -481,7 +481,7 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return Directory::SUFFIX_PASSWORD_POLICIES . ',' . $this->get_base_dn();
+        return self::SUFFIX_PASSWORD_POLICIES . ',' . $this->get_base_dn();
     }
 
     /** 
@@ -495,7 +495,7 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return Directory::SUFFIX_SERVERS . ',' . $this->get_base_dn();
+        return self::SUFFIX_SERVERS . ',' . $this->get_base_dn();
     }
 
     /** 
@@ -509,7 +509,7 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return Directory::SUFFIX_USERS . ',' . $this->get_base_dn();
+        return self::SUFFIX_USERS . ',' . $this->get_base_dn();
     }
 
     /**
@@ -593,11 +593,11 @@ FIXME: what uses this?
         // Run our initialization subroutines
         //-----------------------------------
 
-        if ($mode == Directory::MODE_SLAVE) {
+        if ($mode == self::MODE_SLAVE) {
             $this->_initialize_slave_configuration($domain, $password, $hostname, $master_hostname);
         } else {
             $this->_initialize_master_configuration($domain, $password, $hostname);
-            $this->_import_ldif(Directory::FILE_DATA, $background);
+            $this->_import_ldif(self::FILE_DATA, $background);
         }
 
         $this->_initialize_authconfig();
@@ -711,7 +711,7 @@ FIXME: what uses this?
             $password = Utilities::generate_password();
 
             $shell = new Shell();
-            $shell->Execute(Directory::COMMAND_LDAPSETUP, "-r $mode -d $domain -p $password", TRUE, $options);
+            $shell->Execute(self::COMMAND_LDAPSETUP, "-r $mode -d $domain -p $password", TRUE, $options);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -946,7 +946,7 @@ FIXME: what uses this?
      * @param string $id username, group or alias
      * @access private
      *
-     * @return integer Directory::STATUS_UNIQUE if unique
+     * @return integer self::STATUS_UNIQUE if unique
      */
 
     public function validate_id($id)
@@ -962,14 +962,14 @@ FIXME: what uses this?
         try {
             $result = $this->ldaph->Search(
                 "(&(objectclass=inetOrgPerson)(uid=$id))",
-                Directory::GetUsersOu(),
+                self::GetUsersOu(),
                 array('dn')
             );
 
             $entry = $this->ldaph->GetFirstEntry($result);
 
             if ($entry)
-                return Directory::STATUS_USERNAME_EXISTS;
+                return self::STATUS_USERNAME_EXISTS;
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -980,14 +980,14 @@ FIXME: what uses this?
         try {
             $result = $this->ldaph->Search(
                 "(&(objectclass=inetOrgPerson)(pcnMailAliases=$id))",
-                Directory::GetUsersOu(),
+                self::GetUsersOu(),
                 array('dn')
             );
 
             $entry = $this->ldaph->GetFirstEntry($result);
 
             if ($entry)
-                return Directory::STATUS_ALIAS_EXISTS;
+                return self::STATUS_ALIAS_EXISTS;
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -1001,19 +1001,19 @@ FIXME: what uses this?
         try {
             $result = $this->ldaph->Search(
                 "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
-                Directory::GetGroupsOu(),
+                self::GetGroupsOu(),
                 array('dn')
             );
 
             $entry = $this->ldaph->GetFirstEntry($result);
 
             if ($entry)
-                return Directory::STATUS_GROUP_EXISTS;
+                return self::STATUS_GROUP_EXISTS;
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
-        return Directory::STATUS_UNIQUE;
+        return self::STATUS_UNIQUE;
     }
 
     /**
@@ -1094,7 +1094,7 @@ FIXME: what uses this?
 
         try {
             $shell = new Shell();
-            $shell->execute(Directory::COMMAND_AUTHCONFIG, '--enableshadow --enablemd5 --enableldap --enableldapauth --update', TRUE);
+            $shell->execute(self::COMMAND_AUTHCONFIG, '--enableshadow --enablemd5 --enableldap --enableldapauth --update', TRUE);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
