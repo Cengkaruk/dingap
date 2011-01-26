@@ -301,37 +301,6 @@ class OpenLDAP extends Daemon
         return $this->config['bind_pw'];
     }
 
-    /** 
-     * Returns security policy.
-     * 
-     * @return integer security policy constant
-     * @throws Engine_Exception
-     * @see set_security_policy
-     */
-
-    public function get_security_policy()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new Configuration_File(self::FILE_SLAPD_SYSCONFIG);
-
-        try {
-            $sysconfig = $file->load();
-
-            if (empty($sysconfig['BIND_POLICY']))
-                return self::POLICY_LOCALHOST;
-            else if ($sysconfig['BIND_POLICY'] == self::POLICY_LAN)
-                return self::POLICY_LAN;
-            else
-                return self::POLICY_LOCALHOST;
-
-        } catch (File_Not_Found_Exception $e) {
-            return self::POLICY_LOCALHOST;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-    }
-
     /**
      * Returns DN of a result entry.
      *
@@ -405,6 +374,37 @@ class OpenLDAP extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         return $this->config['ldap_uri'];
+    }
+
+    /** 
+     * Returns security policy.
+     * 
+     * @return integer security policy constant
+     * @throws Engine_Exception
+     * @see set_security_policy
+     */
+
+    public function get_security_policy()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new Configuration_File(self::FILE_SLAPD_SYSCONFIG);
+
+        try {
+            $sysconfig = $file->load();
+
+            if (empty($sysconfig['BIND_POLICY']))
+                return self::POLICY_LOCALHOST;
+            else if ($sysconfig['BIND_POLICY'] == self::POLICY_LAN)
+                return self::POLICY_LAN;
+            else
+                return self::POLICY_LOCALHOST;
+
+        } catch (File_Not_Found_Exception $e) {
+            return self::POLICY_LOCALHOST;
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
     }
 
     /** 
