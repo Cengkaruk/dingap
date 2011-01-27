@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * Hostname class.
+ *
+ * @category    Apps
+ * @package     Network
+ * @subpackage  Libraries
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,14 +29,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Hostname class.
- *
- * @package ClearOS
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\network;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -40,6 +45,9 @@ require_once($bootstrap . '/bootstrap.php');
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -56,20 +64,22 @@ clearos_load_library('network/Network');
 /**
  * Hostname exception.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @category    Apps
+ * @package     Network
+ * @subpackage  Exception
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
-class HostnameException extends EngineException
+class Hostname_Exception extends Engine_Exception
 {
     /**
-     * HostnameException constructor.
+     * Hostname_Exception constructor.
      *
-     * @param string $message error message
-     * @param int $code error code
+     * @param string    $message    error message
+     * @param int       $code       error code
      */
 
     public function __construct($message, $code)
@@ -85,15 +95,21 @@ class HostnameException extends EngineException
 /**
  * Hostname class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @category    Apps
+ * @package     Network
+ * @subpackage  Libraries
+ * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @copyright   Copyright 2002-2010 ClearFoundation
+ * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Hostname extends Engine
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E M B E R S
+    ///////////////////////////////////////////////////////////////////////////////
+
     const FILE_CONFIG = "/etc/sysconfig/network";
     const CMD_HOSTNAME = "/bin/hostname";
 
@@ -102,67 +118,69 @@ class Hostname extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Locale constructor.
+     * Hostname constructor.
      */
 
     public function __construct()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__construct();
-
+        clearos_profile(__METHOD__, __LINE__);
     }
 
     /**
      * Returns host name from the gethostname system call.
      *
      * @return string host name
-     * @throws HostnameException
+     * @throws Hostname_Exception
      */
 
-    public function GetActual()
+    public function get_actual()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $shell = new ShellExec();
+        $shell = new Shell_Exec();
 
         try {
-            $exitcode = $shell->Execute(self::CMD_HOSTNAME, "", false);
+            $exitcode = $shell->execute(self::CMD_HOSTNAME, '', false);
         } catch (Exception $e) {
-            throw new HostnameException($e->GetMessage(), COMMON_ERROR);
+            throw new Hostname_Exception(
+                clearos_exception_message($e), CLEAROS_ERROR
+            );
         }
 
-        $output = $shell->GetOutput();
+        $output = $shell->get_output();
 
+        // TODO: locale fixes... ask Pete.
         if (! isset($output[0]))
-            throw new HostnameException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_ERROR);
+            throw new Hostname_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_ERROR);
         else if ($exitcode != 0)
-            throw new HostnameException($output[0], COMMON_ERROR);
+            throw new Hostname_Exception($output[0], CLEAROS_ERROR);
             
         return $output[0];
     }
 
 
     /**
-     * Returns host name for configuration file.
+     * Returns host name from configuration file.
      *
-     * @return string host name
-     * @throws HostnameException
+     * @return string hostname
+     * @throws Hostname_Exception
      */
 
-    public function Get()
+    public function get()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
 
         try {
-            $hostname = $file->LookupValue("/^HOSTNAME=/");
+            $hostname = $file->lookup_value("/^HOSTNAME=/");
         } catch (Exception $e) {
-            throw new HostnameException($e->GetMessage(), COMMON_ERROR);
+            throw new Hostname_Exception(
+                clearos_exception_message($e), CLEAROS_ERROR
+            );
         }
 
-        $hostname = preg_replace("/\"/", "", $hostname);
+        $hostname = preg_replace('/"/', '', $hostname);
 
         return $hostname;
     }
@@ -177,66 +195,63 @@ class Hostname extends Engine
      * strips the first part.
      *
      * @return string domain name
-     * @throws HostnameException
+     * @throws Hostname_Exception
      */
 
-    public function GetDomain()
+    public function get_domain()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $hostname = $this->Get();
+        $hostname = $this->get();
 
-        if (substr_count($hostname, ".") < 2)
+        if (substr_count($hostname, '.') < 2)
             return $hostname;
 
-        $domain = preg_replace("/^([\w\-]*)\./", "", $hostname);
+        $domain = preg_replace('/^([\w\-]*)\./', '', $hostname);
 
         return $domain;
     }
 
-
     /**
-     * Returns true of hostname can resolve.
+     * Returns true if configured hostname can be resolved.
      *
-     * @return boolean true if look host can resolve itself
+     * @return boolean true if configured hostname is resolvable
      */
 
-    public function IsLookupable()
+    public function is_resolvable()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $hostname = $this->GetActual() . ".";
+        $hostname = $this->get_actual() . '.';
 
         $retval = gethostbyname($hostname);
 
         if ($retval == $hostname)
             return false;
-        else
-            return true;
-    }
 
+        return true;
+    }
 
     /**
      * Sets host name.
      *
      * Hostname must have at least one period.
      *
-     * @param string $hostname host name
-     * @return void
-     * @throws HostnameException, ValidationException
+     * @param   string $hostname hostname
+     * @return  void
+     * @throws  Hostname_Exception, Validation_Exception
      */
 
-    public function Set($hostname)
+    public function set($hostname)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         // Validate
         //---------
 
-        $network = new Network();
+        $network = new Network_Utils();
 
-        if (! $network->IsValidHostname($hostname))
-            throw new ValidationException(implode($network->GetValidationErrors(true)));
+        Validation_Exception::is_valid($network->validate_hostname($hostname));
 
         // Update tag if it exists
         //------------------------
@@ -244,52 +259,48 @@ class Hostname extends Engine
         $file = new File(self::FILE_CONFIG);
 
         try {
-            $match = $file->ReplaceLines("/^HOSTNAME=/", "HOSTNAME=\"$hostname\"\n");
+            $match = $file->replace_lines('/^HOSTNAME=/', "HOSTNAME=\"$hostname\"\n");
         } catch (Exception $e) {
-            throw new HostnameException($e->GetMessage(), COMMON_ERROR);
+            throw new Hostname_Exception(
+                clearos_exception_message($e), CLEAROS_ERROR
+            );
         }
 
         // If tag does not exist, add it
         //------------------------------
 
-        if (!$match) {
+        if (! $match) {
             try {
-                $file->AddLines("HOSTNAME=\"$hostname\"\n");
+                $file->add_lines("HOSTNAME=\"$hostname\"\n");
             } catch (Exception $e) {
-                throw new HostnameException($e->GetMessage(), COMMON_ERROR);
+                throw new Hostname_Exception(
+                    clearos_exception_message($e), CLEAROS_ERROR
+                );
             }
         }
 
         // Run hostname command...
         //------------------------
 
-        $shell = new ShellExec();
+        $shell = new Shell_Exec();
 
         try {
-            $exitcode = $shell->Execute(self::CMD_HOSTNAME, "$hostname", true);
+            $exitcode = $shell->execute(self::CMD_HOSTNAME, $hostname, true);
         } catch (Exception $e) {
-            throw new HostnameException($e->GetMessage(), COMMON_ERROR);
+            throw new Hostname_Exception(
+                clearos_exception_message($e), CLEAROS_ERROR
+            );
         }
 
-        if ($exitcode != 0)
-            throw new HostnameException($shell->GetFirstOutputLine(), COMMON_ERROR);
+        // TODO: what about this -- get_first_output_line as an exception's message?
+        if ($exitcode != 0) {
+            throw new Hostname_Exception(
+                $shell->get_first_output_line(), CLEAROS_ERROR
+            );
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @access private
-     */
-
-    public function __destruct()
-    {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
 }
-
-// vim: syntax=php ts=4
-?>

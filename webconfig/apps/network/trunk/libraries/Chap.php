@@ -9,7 +9,7 @@
  * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
  * @copyright   Copyright 2002-2010 ClearFoundation
  * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\network;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -75,7 +81,7 @@ clearos_load_library('base/Engine_Exception');
  * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
  * @copyright   Copyright 2002-2010 ClearFoundation
  * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Chap extends Engine
@@ -90,10 +96,17 @@ class Chap extends Engine
     const LINE_DELETE = -2;
     const LINE_ADD = -1;
     const LINE_DEFINED = 0;
-    const CONSTANT_ANY = "*";
+    const CONSTANT_ANY = '*';
 
-    protected $is_loaded = false;
+    /**
+     * @var configuration array
+     */
     protected $secrets = array();
+
+    /**
+     * @var configuration loaded flag
+     */
+    protected $is_loaded = false;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -122,7 +135,7 @@ class Chap extends Engine
 
     public function add_user($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
     {
-        clearos_deprecated(__METHOD__, __LINE__);
+        clearos_deprecated(__METHOD__, __LINE__, 'deprecated; use add_secret()');
 
         $this->add_secret($username, $password, $server, $ip);
     }
@@ -166,7 +179,7 @@ class Chap extends Engine
 
     public function delete_user($username)
     {
-        clearos_deprecated(__METHOD__, __LINE__);
+        clearos_deprecated(__METHOD__, __LINE__, 'deprecated; use delete_secret()');
 
         $this->delete_secret($username);
     }
@@ -202,7 +215,7 @@ class Chap extends Engine
 
     public function get_users() 
     {
-        clearos_profile(__METHOD__, __LINE__);
+        clearos_deprecated(__METHOD__, __LINE__, 'deprecated; use get_secrets()');
 
         return $this->get_secrets();
     }
@@ -236,7 +249,7 @@ class Chap extends Engine
      * @throws Engine_Exception
      */
 
-    private public function _load()
+    private function _load()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -253,7 +266,7 @@ class Chap extends Engine
             $lines = $file->get_contents_as_array();
         } catch (Exception $e) {
             throw new Engine_Exception(
-                clearos_exception_message($e), COMMON_WARNING
+                clearos_exception_message($e), CLEAROS_WARNING
             );
         }
 
@@ -283,7 +296,7 @@ class Chap extends Engine
      * @throws  Engine_Exception
      */
 
-    private public function _save()
+    private function _save()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -321,9 +334,10 @@ class Chap extends Engine
 
             $file_chap->move_to(self::FILE_SECRETS_CHAP);
             $file_pap->move_to(self::FILE_SECRETS_PAP);
+
         } catch (Exception $e) {
             throw new Engine_Exception(
-                clearos_exception_message($e), COMMON_WARNING
+                clearos_exception_message($e), CLEAROS_WARNING
             );
         }
     }

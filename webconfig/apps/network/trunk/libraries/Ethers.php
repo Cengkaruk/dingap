@@ -9,7 +9,7 @@
  * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
  * @copyright   Copyright 2002-2010 ClearFoundation
  * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,16 +47,28 @@ require_once($bootstrap . '/bootstrap.php');
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('network/ethers');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+clearos_load_library('network/Network_Utils');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -71,7 +83,7 @@ clearos_load_library('base/File');
  * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
  * @copyright   Copyright 2002-2010 ClearFoundation
  * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link        http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Ethers extends Engine
@@ -149,13 +161,18 @@ class Ethers extends Engine
         try {
             $contents = $file->get_contents_as_array();
         } catch (Exception $e) {
-            throw new Engine_Exception($e->get_message(), COMMON_ERROR);
+            throw new Engine_Exception(
+                clearos_exception_message($e), CLEAROS_ERROR
+            );
         }
 
         // Already exists?
         foreach ($contents as $key => $line) {
-            if (preg_match("/$mac/", $line))
-                throw new Engine_Exception(ETHERS_LANG_MAC_ALREADY_EXISTS, COMMON_ERROR);
+            if (preg_match("/$mac/", $line)) {
+                throw new Engine_Exception(
+                    lang('ethers_mac_already_exists'), CLEAROS_ERROR
+                );
+            }
         }
 
         // Add
@@ -180,7 +197,7 @@ class Ethers extends Engine
 
             Validation_Exception::is_valid($network->validate_mac($mac));
         } catch (Validation_Exception $e) {
-            return;
+            return NULL;
         }
 
         $file = new File(self::FILE_CONFIG);
@@ -202,37 +219,44 @@ class Ethers extends Engine
      * Returns the hostname for the given MAC address.
      *
      * @param   string $mac MAC address
-     * @return  string hostname or null
+     * @return  string hostname or NULL
      */
 
     public function get_hostname_by_mac($mac)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils;
+        $network = new Network_Utils();
 
-        if ($this->IsValidMac($mac) === false)
-            return;
+        try {
+            Validation_Exception::is_valid($network->validate_mac($mac));
+        } catch (Validation_Exception $e) {
+            return NULL;
+        }
 
         $ethers = $this->get_ethers();
 
         if (! isset($ethers[$mac]))
-            $ret = null;
+            $ret = NULL;
         else
             $ret = $ethers[$mac];
 
-        if ($this->IsValidHostname($ret) == false)
-            $ret = null;
+        try {
+            Validation_Exception::is_valid($network->validate_hostname($ret));
+        } catch (Validation_Exception $e) {
+            $ret = NULL;
+        }
 
         return $ret;
     }
 
     /**
-     * Returns information in the /etc/ethers file in an array.
+     * Returns information from the /etc/ethers file as an array.
      *
-     * The array is indexed on MAC with HOSTNAMEs as values.
+     * The array is keyed on MAC address with hostname values.
      *
      * @return array list of ether information
+     * @throws Engine_Exception
      */
 
     public function get_ethers()
@@ -240,15 +264,17 @@ class Ethers extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
-        $contents = $file->GetContentsAsArray();
+        $contents = $file->get_contents_as_array();
 
         if (! is_array($contents)) {
             $this->reset_ethers(true);
-            $contents = $file->GetContentsAsArray();
+            $contents = $file->get_contents_as_array();
             if (! is_array($contents)) {
-                throw new Engine_Exception(LOCALE_LANG_ERRMSG_PARSE_ERROR, COMMON_ERROR);
+                throw new Engine_Exception(LOCALE_LANG_ERRMSG_PARSE_ERROR, CLEAROS_ERROR);
             }
         }
+
+        $network = new Network_Utils();
 
         $ethers = array();
         foreach ($contents as $line) {
@@ -256,74 +282,75 @@ class Ethers extends Engine
             if (preg_match('/^[\s]*#/', $line))
                 continue;
             $parts = preg_split('/[\s]+/', $line);
-            if ($this->isValidMac($parts[0]) && $parts[1] != '')
-                $ethers[$parts[0]] = $parts[1];
+            try {
+                Validation_Exception::is_valid($network->validate_mac($parts[0]));
+                if ($parts[1] != '')
+                    $ethers[$parts[0]] = $parts[1];
+            } catch (Validation_Exception $e) {
+            }
         }
+
         return $ethers;
     }
 
     /**
-     * Returns the MAC address for the given HOSTNAME.
+     * Returns the MAC address for the given hostname.
      *
-     * @param string $hostname hostname
-     * @return string MAC address
+     * @param   string $hostname hostname
+     * @return  string MAC address if found, NULL otherwise
+     * @throws  Validation_Exception
      */
 
     public function get_mac_by_hostname($hostname)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->IsValidHostname($hostname) == false) {
-            $errors = $this->GetValidationErrors();
-            throw new Engine_Exception($errors[0], COMMON_ERROR);
-        }
+        $network = new Network_Utils();
+
+        Validation_Exception::is_valid($network->validate_hostname($hostname));
 
         $ethers = $this->get_ethers();
-        foreach ($ethers as $mac => $host)
-            if (strcasecmp($hostname, $host) == 0)
-                return $mac;
-        return;
+        foreach ($ethers as $mac => $host) {
+            if (strcasecmp($hostname, $host) != 0) continue;
+            return $mac;
+        }
+        return NULL;
     }
 
     /**
-     * Updates HOSTNAME for a given MAC address.
+     * Updates hostname for a given MAC address.
      *
-     * @param string $mac MAC address
-     * @param string $hostname hostname
-     * @return void
+     * @param   string $mac MAC address
+     * @param   string $hostname hostname
+     * @return  void
+     * @throws  Engine_Exception, Validation_Exception
      */
     
     public function update_ether($mac, $hostname)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->IsValidMac($mac) === false)
-            return;
+        $network = new Network_Utils();
 
-        if ($this->IsValidHostname($hostname) == false) {
-            $errors = $this->GetValidationErrors();
-            throw new Engine_Exception($errors[0], COMMON_ERROR);
-        }
-
+        Validation_Exception::is_valid($network->validate_mac($mac));
+        Validation_Exception::is_valid($network->validate_hostname($hostname));
 
         $file = new File(self::FILE_CONFIG);
-        $contents = $file->GetContentsAsArray();
+        $contents = $file->get_contents_as_array();
 
         $write_out = false;
         foreach ($contents as $key => $line) {
-            if (preg_match('/' . $mac . '/', $line)) {
-                $contents[$key] = $mac . ' ' . $hostname;
+            if (preg_match("/$mac/", $line)) {
+                $contents[$key] = "$mac $hostname";
                 $write_out = true;
             }
         }
 
-        // Add
         if ($write_out)
-            $file->DumpContentsFromArray($contents);
+            $file->dump_contents_from_array($contents);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
 }
