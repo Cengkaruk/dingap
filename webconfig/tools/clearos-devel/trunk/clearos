@@ -58,6 +58,7 @@ sub build();
 sub deps($);
 sub docs(@);
 sub lint(@);
+sub newapp($);
 
 #-----------------------------------------------------------------------------
 #
@@ -136,10 +137,13 @@ sub deps($) {
             $detected_class =~ s/.*\s+extends\s+//;
             $detected_class =~ s/\(.*//;
             %detected_classes->{$detected_class} = 1;
-        } elsif (/\s*catch\s*\(/) {
+        } elsif ((/\s*catch\s*\(/) && (!(/\s*catch\s*\(Exception\s+/))) {
             $detected_class = $_;
             $detected_class =~ s/.*catch\s*\(//;
             $detected_class =~ s/\s+.*//;
+            %detected_classes->{$detected_class} = 1;
+        } elsif (/Validation_Exception/) {
+            $detected_class = 'Validation_Exception';
             %detected_classes->{$detected_class} = 1;
         }
     }
@@ -263,6 +267,41 @@ sub lint(@) {
     system("$PHPCS --standard=$PHPCS_STANDARD $file_list");
 }
 
+#-----------------------------------------------------------------------------
+#
+# New app 
+# see "rails new blog" @ http://guides.rubyonrails.org/getting_started.html
+#
+#-----------------------------------------------------------------------------
+
+sub newapp($) { 
+    my $app = $_[0];
+
+    print "dude $app\n";
+
+    if (-d "$app") {
+        print "App directory already exists... buh-bye.\n";
+        exit(1);
+    } 
+
+    mkdir "$app";
+
+    mkdir "$app/branches";
+    mkdir "$app/tags";
+    mkdir "$app/trunk";
+
+    mkdir "$app/trunk/";
+    mkdir "$app/trunk/controllers";
+    mkdir "$app/trunk/deploy";
+    mkdir "$app/trunk/htdocs";
+    mkdir "$app/trunk/language";
+    mkdir "$app/trunk/language/en_US";
+    mkdir "$app/trunk/libraries";
+    mkdir "$app/trunk/packaging";
+    mkdir "$app/trunk/tests";
+    mkdir "$app/trunk/views";
+}
+
 #-------------------------------------------------------------------------
 # Main
 #-------------------------------------------------------------------------
@@ -272,4 +311,5 @@ switch ($ARGV[0]) {
   case "deps"     { deps($ARGV[1]); }
   case "docs"     { docs(@ARGV); }
   case "lint"     { lint(@ARGV); }
+  case "newapp"   { newapp($ARGV[1]); }
 }
