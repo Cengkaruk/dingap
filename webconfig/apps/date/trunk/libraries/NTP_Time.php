@@ -159,11 +159,11 @@ class NTP_Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $time_server = "";
+        $time_server = '';
 
         try {
             $config = new File(self::FILE_CONFIG);
-            $time_server = $config->lookup_value("/^ntp_syncserver\s*=\s*/");
+            $time_server = $config->lookup_value('/^ntp_syncserver\s*=\s*/');
         } catch (File_Not_Found_Exception $e) {
             // Not fatal
         } catch (File_No_Match_Exception $e) {
@@ -224,7 +224,7 @@ class NTP_Time extends Engine
         foreach ($lines as $line) {
             $matches = array();
 
-            if (preg_match("/([\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+)/", $line, $matches))
+            if (preg_match('/([\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+[\d\*]+\s+)/', $line, $matches))
                 return $matches[0];
         }
 
@@ -311,7 +311,7 @@ class NTP_Time extends Engine
 
         Validation_Exception::is_valid($this->validate_time_server($time_server));
 
-        $output = "";
+        $output = '';
 
         try {
             $shell = new Shell();

@@ -50,7 +50,7 @@ class Date extends ClearOS_Controller
     /**
      * Date default controller
      *
-     * @return string
+     * @return view
      */
 
     function index()
@@ -69,7 +69,7 @@ class Date extends ClearOS_Controller
         // Handle form submit
         //-------------------
 
-        if ($this->input->post('submit')) {
+        if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->time->set_time_zone($this->input->post('timezone'));
                 $this->page->set_success(lang('base_system_updated'));
@@ -86,10 +86,9 @@ class Date extends ClearOS_Controller
             $data['date'] = strftime("%b %e %Y");
             $data['time'] = strftime("%T %Z");
             $data['timezone'] = $this->time->get_time_zone();
-            // FIXME: remove convert_to_hash
-            $data['timezones'] = convert_to_hash($this->time->get_time_zone_list());
-        } catch (Engine_Exception $e) {
-            $this->page->view_exception($e->get_message());
+            $data['timezones'] = $this->time->get_time_zone_list();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
             return;
         }
 
@@ -114,23 +113,24 @@ class Date extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('NtpTime');
+        $this->load->library('date/NTP_Time');
 
         // Run synchronize
         //----------------
 
         try {
-            $diff = $this->ntptime->synchronize();
-        } catch (Engine_Exception $e) {
-            // FIXME: should have a standard here for Ajax errors
-            echo "Ooops: " . $e->get_message();
+            $diff = $this->ntp_time->synchronize();
+        } catch (Exception $e) {
+            // FIXME: discuss standard for Ajax errors
+            // e.g. $this->page->view_rest_exception($e);
+            echo "Ooops: " . $e->getMessage();
             return;
         }
 
         // Return status message
         //----------------------
 
-        // FIXME: use a view?  Some other standard function call?
+        // FIXME: discuss standard for Ajax data - JSON?
         echo "offset: $diff\n"; // FIXME: localize
     }
 }

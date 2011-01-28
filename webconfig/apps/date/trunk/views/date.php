@@ -70,5 +70,5 @@ echo button_set(
 
 echo form_close();
 
-// FIXME: standardize this
+// FIXME: Discuss how to standardize this
 echo " <span id='result'></span>";
