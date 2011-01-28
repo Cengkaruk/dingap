@@ -46,7 +46,6 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
 clearos_load_language('date');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -101,10 +100,10 @@ class Time extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const COMMAND_HWCLOCK = "/sbin/hwclock";
-    const FILE_CONFIG = "/etc/sysconfig/clock";
-    const FILE_TIMEZONE = "/etc/localtime";
-    const PATH_ZONEINFO = "/usr/share/zoneinfo/posix";
+    const COMMAND_HWCLOCK = '/sbin/hwclock';
+    const FILE_CONFIG = '/etc/sysconfig/clock';
+    const FILE_TIMEZONE = '/etc/localtime';
+    const PATH_ZONEINFO = '/usr/share/zoneinfo/posix';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -146,16 +145,14 @@ class Time extends Engine
         // Sanity check existence of real time zone file
         //----------------------------------------------
         
-        $file = new File(self::FILE_TIMEZONE);
-        $fileok = FALSE;
-
         try {
-            $fileok = $file->exists();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+            $file = new File(self::FILE_TIMEZONE);
+            $file_exists = $file->exists();
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
-        if (! $fileok)
+        if (! $file_exists)
             return '';
 
         // Check the /etc/sysconfig/clock file for time zone info
@@ -166,11 +163,11 @@ class Time extends Engine
             $time_zone = $metafile->load();
 
             if (isset($time_zone['ZONE']))
-                return preg_replace("/\"/", "", $time_zone['ZONE']);
+                return preg_replace('/\"/', '', $time_zone['ZONE']);
         } catch (File_Not_Found_Exception $e) {
             // Not fatal, use methodology below
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         // If time zone is not defined in /etc/sysconfig/clock, try to
@@ -184,20 +181,11 @@ class Time extends Engine
             $zones = $folder->get_recursive_listing();
 
             foreach ($zones as $zone) {
-                if ($currentmd5 == md5_file(self::PATH_ZONEINFO . "/$zone"))
-                    return "$zone";
+                if ($currentmd5 == md5_file(self::PATH_ZONEINFO . '/' . $zone))
+                    return $zone;
             }
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
-
-        // Ugh -- sometimes the time zone files change.
-        try {
-            $currenttz = date_default_timezone_get();
-            $this->set_time_zone($currenttz);
-            return $currenttz;
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception(TIME_LANG_ERRMSG_TIMEZONE_INVALID, CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
@@ -215,8 +203,8 @@ class Time extends Engine
         try {
             $folder = new Folder(self::PATH_ZONEINFO);
             $zones = $folder->get_recursive_listing();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         $zonelist = array();
@@ -240,10 +228,11 @@ class Time extends Engine
 
         try {
             $shell = new Shell();
-            if ($shell->execute(self::COMMAND_HWCLOCK, "--systohc", TRUE) != 0)
+
+            if ($shell->execute(self::COMMAND_HWCLOCK, '--systohc', TRUE) != 0)
                 throw new Engine_Exception($shell->get_first_output_line(), CLEAROS_ERROR);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
@@ -260,22 +249,16 @@ class Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate
-        //---------
-
-        $error_message = $this->validate_time_zone($time_zone);
-
-        if ($error_message)
-            throw new Validation_Exception($error_message);
+        Validation_Exception::is_valid($this->validate_time_zone($time_zone));
 
         // Set /etc/localtime
         //-------------------
 
         try {
-            $file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
+            $file = new File(self::PATH_ZONEINFO . '/' . $time_zone);
             $file->copy_to(self::FILE_TIMEZONE);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         // Set meta information in /etc/sysconfig/clock
@@ -285,13 +268,13 @@ class Time extends Engine
             $info = new File(self::FILE_CONFIG);
 
             if ($info->exists()) {
-                $info->replace_lines("/^ZONE=/", "ZONE=\"$time_zone\"\n");
+                $info->replace_lines('/^ZONE=/', "ZONE=\"$time_zone\"\n");
             } else {
-                $info->create("root", "root", "0644");
+                $info->create('root', 'root', '0644');
                 $info->add_lines("ZONE=\"$time_zone\"\n");
             }
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
@@ -304,7 +287,7 @@ class Time extends Engine
      *
      * @param string $time_zone time zone
      *
-     * @return boolean TRUE if time zone is valid
+     * @return string error message if time zone is invalid
      * @throws Engine_Exception
      */
 
@@ -312,22 +295,9 @@ class Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $error_message = '';
+        $list = $this->get_time_zone_list();
 
-        if (!$time_zone) {
-            $error_message = 'Time zone not specified'; // FIXME localize
-        } else {
-            try {
-                $file = new File(self::PATH_ZONEINFO . "/" . $time_zone);
-
-                if (! $file->exists())
-                    $error_message = 'Invalid time zone'; // FIXME localize
-            } catch (Engine_Exception $e) {
-                // FIXME: what should we do here... exception or error message?
-                throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-            }
-        }
-
-        return $error_message;
+        if (! in_array($time_zone, $list))
+            return lang('date_validate_time_zone_invalid');
     }
 }
