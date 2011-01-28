@@ -135,14 +135,10 @@ class NTP_Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $cron = new Cron();
+        $cron = new Cron();
 
-            if ($cron->exists_configlet(self::FILE_CROND))
-                $cron->delete_configlet(self::FILE_CROND);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if ($cron->exists_configlet(self::FILE_CROND))
+            $cron->delete_configlet(self::FILE_CROND);
     }
 
     /**
@@ -189,12 +185,8 @@ class NTP_Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $cron = new Cron();
-            $exists = $cron->exists_configlet(self::FILE_CROND);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $cron = new Cron();
+        $exists = $cron->exists_configlet(self::FILE_CROND);
 
         return $exists;
     }
@@ -245,19 +237,14 @@ class NTP_Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $payload = self::DEFAULT_CRONTAB_TIME . ' root ' . self::COMMAND_CRON;
+        $payload = self::DEFAULT_CRONTAB_TIME . ' root ' . self::COMMAND_CRON;
 
-            $cron = new Cron();
+        $cron = new Cron();
 
-            if ($cron->exists_configlet(self::FILE_CROND))
-                $cron->delete_configlet(self::FILE_CROND);
+        if ($cron->exists_configlet(self::FILE_CROND))
+            $cron->delete_configlet(self::FILE_CROND);
 
-            $cron->add_configlet(self::FILE_CROND, $payload);
-
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $cron->add_configlet(self::FILE_CROND, $payload);
     }
 
     /**
@@ -278,18 +265,14 @@ class NTP_Time extends Engine
         
         Validation_Exception::is_valid($this->validate_time_server($time_server));
 
-        try {
-            $config = new File(self::FILE_CONFIG);
+        $config = new File(self::FILE_CONFIG);
 
-            if ($config->exists()) {
-                if ($config->replace_lines("/^ntp_syncserver\s*=\s*/", "ntp_syncserver = {$time_server}\n") === 0)
-                    $config->add_lines("ntp_syncserver = $time_server\n");
-            } else {
-                $config->create('root', 'root', '0644');
+        if ($config->exists()) {
+            if ($config->replace_lines("/^ntp_syncserver\s*=\s*/", "ntp_syncserver = {$time_server}\n") === 0)
                 $config->add_lines("ntp_syncserver = $time_server\n");
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        } else {
+            $config->create('root', 'root', '0644');
+            $config->add_lines("ntp_syncserver = $time_server\n");
         }
     }
 
@@ -311,22 +294,15 @@ class NTP_Time extends Engine
 
         Validation_Exception::is_valid($this->validate_time_server($time_server));
 
-        $output = '';
+        $options['env'] = 'LANG=en_US';
 
-        try {
-            $shell = new Shell();
+        $shell = new Shell();
 
-            $options['env'] = 'LANG=en_US';
+        $shell->execute(self::COMMAND_NTPDATE, "-u $time_server", TRUE, $options);
 
-            if ($shell->execute(self::COMMAND_NTPDATE, "-u $time_server", TRUE, $options) != 0)
-                throw new Engine_Exception(lang('date_exception_synchronization_failed'), CLEAROS_ERROR);
-
-            $output = $shell->get_first_output_line();
-            $output = preg_replace('/.*offset/', '', $output);
-            $output = preg_replace('/\s*sec/', '', $output);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $output = $shell->get_first_output_line();
+        $output = preg_replace('/.*offset/', '', $output);
+        $output = preg_replace('/\s*sec/', '', $output);
 
         return trim($output);
     }
