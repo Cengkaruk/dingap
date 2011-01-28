@@ -92,8 +92,10 @@ clearos_load_library('base/Validation_Exception');
 class Hosts extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // M E M B E R S
     ///////////////////////////////////////////////////////////////////////////////
+
+    const FILE_CONFIG = '/etc/hosts';
 
     /**
      * @var bool is_loaded
@@ -107,8 +109,6 @@ class Hosts extends Engine
 
     protected $hostdata = array();
 
-    const FILE_CONFIG = '/etc/hosts';
-
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ class Hosts extends Engine
      * @param string $aliases  array of aliases
      *
      * @return void
-     * @throws Validation_Exception, Engine_Exception
+     * @throws Exception, Validation_Exception
      */
 
     public function add_entry($ip, $hostname, $aliases = array())
@@ -131,31 +131,24 @@ class Hosts extends Engine
         // Validate
         //---------
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        Validation_Exception::is_valid($this->validate_ip($ip));
+        Validation_Exception::is_valid($this->validate_hostname($hostname));
+        foreach ($aliases as $alias)
+            Validation_Exception::is_valid($this->validate_alias($alias));
 
-        if ($error = $this->validate_hostname($hostname))
-            throw new Validation_Exception($error);
-
-        foreach ($aliases as $alias) {
-            if ($error = $this->validate_alias($alias))
-                throw new Validation_Exception($error);
+        if ($this->entry_exists($ip)) {
+            throw new Validation_Exception(
+                sprintf(lang('network_exception_hosts_already_exists'), $ip)
+            );
         }
-
-        if ($this->entry_exists($ip))
-            throw new Validation_Exception('Entry already exists for this IP'); // FIXME: translate
 
         // Add
         //----
 
         $this->_load_entries();
 
-        try {
-            $file = new File(self::FILE_CONFIG);
-            $file->add_lines("$ip $hostname " . implode(' ', $aliases) . "\n");
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), COMMON_ERROR);
-        }
+        $file = new File(self::FILE_CONFIG);
+        $file->add_lines("$ip $hostname " . implode(' ', $aliases) . "\n");
 
         // Force a re-read of the data
         $this->is_loaded = FALSE;
@@ -164,10 +157,9 @@ class Hosts extends Engine
     /**
      * Delete an entry from the /etc/hosts file.
      *
-     * @param string $ip IP address
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
+     * @param   string $ip IP address
+     * @return  void
+     * @throws  Exception, Validation_Exception
      */
 
     public function delete_entry($ip)
@@ -177,18 +169,13 @@ class Hosts extends Engine
         // Validate
         //---------
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        Validation_Exception::is_valid($this->validate_ip($ip));
 
         // Delete
         //-------
 
-        try {
-            $file = new File(self::FILE_CONFIG);
-            $hosts = $file->delete_lines('/^' . $ip . '\s/i');
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), COMMON_ERROR);
-        }
+        $file = new File(self::FILE_CONFIG);
+        $hosts = $file->delete_lines("/^$ip\s/i");
 
         // Force a reload
         $this->is_loaded = FALSE;
@@ -197,12 +184,11 @@ class Hosts extends Engine
     /**
      * Updates hosts entry for given IP address
      *
-     * @param string $ip       IP address
-     * @param string $hostname caononical hostname
-     * @param array  $aliases  aliases
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
+     * @param   string $ip       IP address
+     * @param   string $hostname caononical hostname
+     * @param   array  $aliases  aliases
+     * @return  void
+     * @throws  Exception, Validation_Exception
      */
 
     public function edit_entry($ip, $hostname, $aliases = array())
@@ -212,29 +198,22 @@ class Hosts extends Engine
         // Validate
         //---------
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        Validation_Exception::is_valid($this->validate_ip($ip));
+        Validation_Exception::is_valid($this->validate_hostname($hostname));
+        foreach ($aliases as $alias)
+            Validation_Exception::is_valid($this->validate_alias($alias));
 
-        if ($error = $this->validate_hostname($hostname))
-            throw new Validation_Exception($error);
-
-        foreach ($aliases as $alias) {
-            if ($error = $this->validate_alias($alias))
-                throw new Validation_Exception($error);
+        if (! $this->entry_exists($ip)) {
+            throw new Validation_Exception(
+                sprintf(lang('network_exception_hosts_not_found'), $ip)
+            );
         }
-
-        if (! $this->entry_exists($ip))
-            throw new Validation_Exception('No entry exists for this IP'); // FIXME: translate
 
         // Update
         //-------
 
-        try {
-            $file = new File(self::FILE_CONFIG);
-            $file->replace_lines("/^$ip\s+/i", "$ip $hostname " . implode(' ', $aliases) . "\n");
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), COMMON_ERROR);
-        }
+        $file = new File(self::FILE_CONFIG);
+        $file->replace_lines("/^$ip\s+/i", "$ip $hostname " . implode(' ', $aliases) . "\n");
 
         // Force a reload
         $this->is_loaded = FALSE;
@@ -243,10 +222,9 @@ class Hosts extends Engine
     /**
      * Returns the hostname and aliases for the given IP address.
      *
-     * @param string $ip IP address
-     *
-     * @return array an array containing the hostname and aliases
-     * @throws Engine_Exception
+     * @param   string $ip IP address
+     * @return  array an array containing the hostname and aliases
+     * @throws  Exception, Validation_Exception
      */
 
     public function get_entry($ip)
@@ -256,8 +234,7 @@ class Hosts extends Engine
         // Validate
         //---------
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        Validation_Exception::is_valid($this->validate_ip($ip));
 
         // Get Entry
         //----------
@@ -269,7 +246,9 @@ class Hosts extends Engine
                 return $entry;
         }
 
-        throw new Validation_Exception("No entry exists for this IP");  // FIXME: translate
+        throw new Validation_Exception(
+            sprintf(lang('network_exception_hosts_not_found'), $ip)
+        );
     }
 
     /**
@@ -278,8 +257,7 @@ class Hosts extends Engine
      * The array is indexed on IP, and contains an array of associated hosts.
      *
      * @return array list of host information
-     *
-     * @throws Engine_Exception
+     * @throws Exception
      */
 
     public function get_entries()
@@ -294,10 +272,9 @@ class Hosts extends Engine
     /**
      * Returns the IP address for the given hostname.
      *
-     * @param string $hostname hostname
-     *
-     * @return string IP address if hostname exists, NULL if it does not
-     * @throws Engine_Exception
+     * @param   string $hostname hostname
+     * @return  string IP address if hostname exists, NULL if it does not
+     * @throws  Exception, Validation_Exception
      */
 
     public function get_ip_by_hostname($hostname)
@@ -307,8 +284,7 @@ class Hosts extends Engine
         // Validate
         //---------
 
-        if ($error = $this->validate_hostname($hostname))
-            throw new Validation_Exception($error);
+        Validation_Exception::is_valid($this->validate_hostname($hostname));
 
         // Get Entry
         //----------
@@ -316,11 +292,11 @@ class Hosts extends Engine
         $this->_load_entries();
 
         foreach ($this->hostdata as $real_ip => $entry) {
-            if ($entry['hostname'] === $hostname)
+            if (strncasecmp($entry['hostname'], $hostname) == 0)
                 return $entry['ip'];
 
             foreach ($entry['aliases'] as $alias) {
-                if ($alias === $hostname)
+                if (strncasecmp($alias, $hostname) == 0)
                     return $entry['ip'];
             }
         }
@@ -331,10 +307,9 @@ class Hosts extends Engine
     /**
      * Checks to see if entry exists.
      *
-     * @param string $ip IP address
-     *
-     * @return boolean true if entry exists
-     * @throws Engine_Exception
+     * @param   string  $ip IP address
+     * @return  boolean true if entry exists
+     * @throws  Exception, Validation_Exception
      */
 
     public function entry_exists($ip)
@@ -344,8 +319,7 @@ class Hosts extends Engine
         // Validate
         //---------
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        Validation_Exception::is_valid($this->validate_ip($ip));
 
         // Get Entry
         //----------
@@ -353,7 +327,7 @@ class Hosts extends Engine
         $this->_load_entries();
 
         foreach ($this->hostdata as $real_ip => $entry) {
-            if ($entry['ip'] == $ip)
+            if (strncasecmp($entry['ip'], $ip) == 0)
                 return TRUE;
         }
 
@@ -367,9 +341,8 @@ class Hosts extends Engine
     /**
      * Validates a hostname alias.
      *
-     * @param string $alias alias
-     *
-     * @return string error message if alias is invalid
+     * @param   string $alias alias
+     * @return  string error message if alias is invalid
      */
 
     public function validate_alias($alias)
@@ -384,9 +357,8 @@ class Hosts extends Engine
     /**
      * Validates a hostname.
      *
-     * @param string $hostname hostname
-     *
-     * @return string error message if hostname is invalid
+     * @param   string $hostname hostname
+     * @return  string error message if hostname is invalid
      */
 
     public function validate_hostname($hostname)
@@ -401,9 +373,8 @@ class Hosts extends Engine
     /**
      * Validates IP address entry.
      *
-     * @param string $ip IP address
-     *
-     * @return string error message if IP is invalid
+     * @param   string $ip IP address
+     * @return  string error message if IP is invalid
      */
 
     public function validate_ip($ip)
@@ -424,7 +395,7 @@ class Hosts extends Engine
      *
      * @access private
      * @return void
-     * @throws Engine_Exception
+     * @throws Exception
      */
 
     protected function _load_entries()
@@ -434,26 +405,25 @@ class Hosts extends Engine
         if ($this->is_loaded)
             return;
 
-        try {
-            $file = new File(self::FILE_CONFIG);
-            $contents = $file->get_contents_as_array();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), COMMON_ERROR);
-        }
+        $this->is_loaded = FALSE;
+        $this->hostdata = array();
 
-        $hostdata = array();
+        $file = new File(self::FILE_CONFIG);
+        $contents = $file->get_contents_as_array();
 
         foreach ($contents as $line) {
 
             $entries = preg_split('/[\s]+/', $line);
             $ip = array_shift($entries);
 
-            // TODO: IPv6 won't work with ip2long
-
-            if ($this->validate_ip($ip))
+            try {
+                Validation_Exception::is_valid($this->validate_ip($ip));
+            } catch (Exception $e) {
                 continue;
+            }
 
             // Use long IP for proper sorting
+            // TODO: IPv6 won't work with ip2long
             $ip_real = ip2long($ip);
 
             $this->hostdata[$ip_real]['ip'] = $ip;
