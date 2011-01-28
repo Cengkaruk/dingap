@@ -1,0 +1,323 @@
+<?php
+
+/**
+ * Snort intrusion detection class.
+ *
+ * @category   Apps
+ * @package    Intrusion_Detection
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2005-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_detection/
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\intrusion_detection;
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('intrusion_detection');
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Classes
+//--------
+
+use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
+
+clearos_load_library('base/Daemon');
+clearos_load_library('base/File');
+clearos_load_library('base/Folder');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/Validation_Exception');
+
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Snort intrusion detection class.
+ *
+ * @category   Apps
+ * @package    Intrusion_Detection
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2005-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_detection/
+ */
+
+class Snort extends Daemon
+{
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const FILE_CONFIG = "/etc/snort.conf";
+    const PATH_RULES =  "/etc/snort"; // Should really check snort.conf
+    const TYPE_SECURITY = "security";
+    const TYPE_POLICY = "policy";
+    const TYPE_IGNORE = "ignore";
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $is_loaded = FALSE;
+    protected $config = array();
+    protected $rules = array();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Snort constructor.
+     */
+
+    function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        parent::__construct("snort");
+
+        require_once('Snort.inc.php');
+
+        $this->rules = $rules;
+    }
+
+    /**
+     * Returns list of active snort rules sets.
+     *
+     * @return array list of active rules files
+     * @throws Engine_Exception
+     */
+
+    public function get_active_rule_sets()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['active_rules'];
+    }
+
+    /**
+     * Returns information on installed rule sets.
+     *
+     * @return array rules files information
+     * @throws Engine_Exception
+     */
+
+    public function get_available_rule_sets()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $files = array();
+        $list = array();
+        $info = array();
+
+        $folder = new Folder(self::PATH_RULES);
+        $files = $folder->get_listing();
+
+        foreach ($files as $file) {
+            if (!preg_match('/\.rules$/', $file))
+                continue;
+
+            $rule_file = new File(self::PATH_RULES . '/' . $file);
+            $rule_lines = $rule_file->get_contents_as_array();
+
+            $count = 0;
+
+            foreach ($rule_lines as $line) {
+                if (preg_match("/^alert/", $line))
+                    $count++;
+            }
+
+            $info["filename"] = $file;
+            $info["count"] = $count;
+            $list[$file] = $info;
+        }
+
+        return $list;
+    }
+
+    /**
+     * Returns information about rule sets.
+     *
+     * @return array information about rule sets
+     * @throws Engine_Exception
+     */
+
+    public function get_rule_details()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->rules;
+    }
+
+    /**
+     * Returns list of rule types.
+     *
+     *
+     * @returns array list of rule types
+     * @throws Engine_Exception
+     */
+
+    public function get_rule_types()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return array(
+            self::TYPE_SECURITY,
+            self::TYPE_POLICY,
+            self::TYPE_IGNORE
+        );
+    }
+
+    /**
+     * Sets the list of active snort rules files.
+     *
+     * @param array $rules rules files
+     *
+     * @returns void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function set_active_rules($rules)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // TODO: validate
+        $this->config['active_rules'] = $rules;
+
+        $this->_SaveConfig();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Loads the snort.conf configuration file
+     *
+     * @access private
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _load_config()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $lines = array();
+
+        $file = new File(self::FILE_CONFIG);
+        $lines = $file->get_contents_as_array();
+
+        $matches = array();
+
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)/', $line, $matches))
+                $this->config['active_rules'][] = $matches[1];
+        }
+    }
+
+    /**
+     * Saves the current configuration.
+     *
+     * @access private
+     *
+     * @returns void
+     * @throws Engine_Exception
+     */
+
+    private function _save_config()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->is_loaded = FALSE;
+
+        $file = new File(self::FILE_CONFIG);
+
+        try {
+            $lines = $file->get_contents_as_array();
+        } catch (Exception $e) {
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+        }
+
+        // Try to add the rules in the same spot in the config file.
+
+        $newlines = array();
+        $rules_added = FALSE;
+        $matches = array();
+        
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)/', $line, $matches)) {
+                if (!$rules_added) {
+                    $rules_added = TRUE;
+                    foreach ($this->config['active_rules'] as $rule)
+                        $newlines[] = 'include $RULE_PATH/' . $rule;
+                }
+
+                continue;
+            } else {
+                $newlines[] = $line;
+            }
+        }
+
+
+        if (!$rules_added) {
+            foreach ($this->config['active_rules'] as $rule)
+                $newlines[]    = 'include $RULE_PATH/' . $rule;
+        }
+
+        try {
+            $file->DumpContentsFromArray($newlines);
+        } catch (Exception $e) {
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+        }
+    }
+}
