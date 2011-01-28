@@ -58,37 +58,6 @@ clearos_load_library('base/File');
 clearos_load_library('network/Network');
 
 ///////////////////////////////////////////////////////////////////////////////
-// E X C E P T I O N  C L A S S
-///////////////////////////////////////////////////////////////////////////////
-
-/**
- * Hostname exception.
- *
- * @category    Apps
- * @package     Network
- * @subpackage  Exception
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
- */
-
-class Hostname_Exception extends Engine_Exception
-{
-    /**
-     * Hostname_Exception constructor.
-     *
-     * @param string    $message    error message
-     * @param int       $code       error code
-     */
-
-    public function __construct($message, $code)
-    {
-        parent::__construct($message, $code);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -110,8 +79,8 @@ class Hostname extends Engine
     // M E M B E R S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_CONFIG = "/etc/sysconfig/network";
-    const CMD_HOSTNAME = "/bin/hostname";
+    const FILE_CONFIG = '/etc/sysconfig/network';
+    const CMD_HOSTNAME = '/bin/hostname';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -127,43 +96,30 @@ class Hostname extends Engine
     }
 
     /**
-     * Returns host name from the gethostname system call.
+     * Returns hostname from the gethostname system call.
      *
-     * @return string host name
-     * @throws Hostname_Exception
+     * @return string hostname
+     * @throws Exception
      */
 
     public function get_actual()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $shell = new Shell_Exec();
+        $shell = new Shell();
 
-        try {
-            $exitcode = $shell->execute(self::CMD_HOSTNAME, '', false);
-        } catch (Exception $e) {
-            throw new Hostname_Exception(
-                clearos_exception_message($e), CLEAROS_ERROR
-            );
-        }
+        $options['validate_output'] = TRUE;
+        $shell->execute(self::CMD_HOSTNAME, '', false, $options);
 
-        $output = $shell->get_output();
-
-        // TODO: locale fixes... ask Pete.
-        if (! isset($output[0]))
-            throw new Hostname_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_ERROR);
-        else if ($exitcode != 0)
-            throw new Hostname_Exception($output[0], CLEAROS_ERROR);
-            
-        return $output[0];
+        return $shell->get_first_output_line();
     }
 
 
     /**
-     * Returns host name from configuration file.
+     * Returns hostname from configuration file.
      *
      * @return string hostname
-     * @throws Hostname_Exception
+     * @throws Exception
      */
 
     public function get()
@@ -172,14 +128,7 @@ class Hostname extends Engine
 
         $file = new File(self::FILE_CONFIG);
 
-        try {
-            $hostname = $file->lookup_value("/^HOSTNAME=/");
-        } catch (Exception $e) {
-            throw new Hostname_Exception(
-                clearos_exception_message($e), CLEAROS_ERROR
-            );
-        }
-
+        $hostname = $file->lookup_value('/^HOSTNAME=/');
         $hostname = preg_replace('/"/', '', $hostname);
 
         return $hostname;
@@ -195,7 +144,7 @@ class Hostname extends Engine
      * strips the first part.
      *
      * @return string domain name
-     * @throws Hostname_Exception
+     * @throws Exception
      */
 
     public function get_domain()
@@ -227,19 +176,19 @@ class Hostname extends Engine
         $retval = gethostbyname($hostname);
 
         if ($retval == $hostname)
-            return false;
+            return FALSE;
 
-        return true;
+        return TRUE;
     }
 
     /**
-     * Sets host name.
+     * Sets hostname.
      *
      * Hostname must have at least one period.
      *
      * @param   string $hostname hostname
      * @return  void
-     * @throws  Hostname_Exception, Validation_Exception
+     * @throws  Exception, Validation_Exception
      */
 
     public function set($hostname)
@@ -258,46 +207,19 @@ class Hostname extends Engine
 
         $file = new File(self::FILE_CONFIG);
 
-        try {
-            $match = $file->replace_lines('/^HOSTNAME=/', "HOSTNAME=\"$hostname\"\n");
-        } catch (Exception $e) {
-            throw new Hostname_Exception(
-                clearos_exception_message($e), CLEAROS_ERROR
-            );
-        }
+        $match = $file->replace_lines('/^HOSTNAME=/', "HOSTNAME=\"$hostname\"\n");
 
         // If tag does not exist, add it
         //------------------------------
 
-        if (! $match) {
-            try {
-                $file->add_lines("HOSTNAME=\"$hostname\"\n");
-            } catch (Exception $e) {
-                throw new Hostname_Exception(
-                    clearos_exception_message($e), CLEAROS_ERROR
-                );
-            }
-        }
+        if (! $match)
+            $file->add_lines("HOSTNAME=\"$hostname\"\n");
 
         // Run hostname command...
         //------------------------
 
-        $shell = new Shell_Exec();
-
-        try {
-            $exitcode = $shell->execute(self::CMD_HOSTNAME, $hostname, true);
-        } catch (Exception $e) {
-            throw new Hostname_Exception(
-                clearos_exception_message($e), CLEAROS_ERROR
-            );
-        }
-
-        // TODO: what about this -- get_first_output_line as an exception's message?
-        if ($exitcode != 0) {
-            throw new Hostname_Exception(
-                $shell->get_first_output_line(), CLEAROS_ERROR
-            );
-        }
+        $shell = new Shell();
+        $shell->execute(self::CMD_HOSTNAME, $hostname, true);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

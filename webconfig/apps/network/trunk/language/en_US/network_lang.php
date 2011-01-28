@@ -47,3 +47,5 @@ $lang['network_validate_port_range_out_of_range'] = 'Port out of range.';
 $lang['network_validate_port_range_reversed'] = 'Port range is reversed.';
 $lang['network_validate_port_invalid'] = 'Port is invalid.';
 $lang['network_validate_port_out_of_range'] = 'Port is out of range.';
+$lang['network_exception_ethers_not_found'] = 'Ethers entry not found: %s';
+$lang['network_exception_ethers_already_exists'] = 'Ethers entry already exists: %s';

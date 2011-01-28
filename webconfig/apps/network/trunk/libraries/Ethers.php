@@ -47,7 +47,7 @@ require_once($bootstrap . '/bootstrap.php');
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('network/ethers');
+clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -69,6 +69,13 @@ clearos_load_library('network/Network_Utils');
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\network\Ethers_Not_Found_Exception as Ethers_Not_Found_Exception;
+use \clearos\apps\network\Ethers_Already_Exists_Exception as Ethers_Already_exists_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/Validation_Exception');
+clearos_load_library('network/Ethers_Not_Found_Exception');
+clearos_load_library('network/Ethers_Already_Exists_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -114,6 +121,7 @@ class Ethers extends Engine
      *
      * @param   boolean $force delete the existing file if true
      * @return  void
+     * @throws  Exception
      */
 
     public function reset_ethers($force = false)
@@ -144,7 +152,7 @@ class Ethers extends Engine
      * @param   string $mac   MAC address
      * @param   string $ip    IP address
      * @return  void
-     * @throws  Engine_Exception, Validation_Exception
+     * @throws  Exception, Validation_Exception, Ethers_Already_Exists_Exception
      */
 
     public function add_ether($mac, $ip)
@@ -157,22 +165,12 @@ class Ethers extends Engine
         Validation_Exception::is_valid($network->validate_ip($ip));
 
         $file = new File(self::FILE_CONFIG);
-
-        try {
-            $contents = $file->get_contents_as_array();
-        } catch (Exception $e) {
-            throw new Engine_Exception(
-                clearos_exception_message($e), CLEAROS_ERROR
-            );
-        }
+        $contents = $file->get_contents_as_array();
 
         // Already exists?
         foreach ($contents as $key => $line) {
-            if (preg_match("/$mac/", $line)) {
-                throw new Engine_Exception(
-                    lang('ethers_mac_already_exists'), CLEAROS_ERROR
-                );
-            }
+            if (preg_match("/$mac/", $line))
+                throw new Ethers_Already_Exists_Exception($mac, CLEAROS_ERROR);
         }
 
         // Add
@@ -185,20 +183,15 @@ class Ethers extends Engine
      *
      * @param   string $mac MAC address
      * @return  void
-     * @throws  Engine_Exception
+     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
 
     public function delete_ether($mac)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $network = new Network_Utils();
-
-            Validation_Exception::is_valid($network->validate_mac($mac));
-        } catch (Validation_Exception $e) {
-            return NULL;
-        }
+        $network = new Network_Utils();
+        Validation_Exception::is_valid($network->validate_mac($mac));
 
         $file = new File(self::FILE_CONFIG);
         $contents = $file->get_contents_as_array();
@@ -208,18 +201,22 @@ class Ethers extends Engine
             if (preg_match("/$mac/", $line)) {
                 unset($contents[$key]);
                 $write_out = true;
+                break;
             }
         }
 
         if ($write_out)
             $file->dump_contents_from_array($contents);
+        else
+            throw new Ethers_Not_Found_Exception($mac, CLEAROS_ERROR);
     }
 
     /**
      * Returns the hostname for the given MAC address.
      *
      * @param   string $mac MAC address
-     * @return  string hostname or NULL
+     * @return  string hostname
+     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
 
     public function get_hostname_by_mac($mac)
@@ -228,26 +225,44 @@ class Ethers extends Engine
 
         $network = new Network_Utils();
 
-        try {
-            Validation_Exception::is_valid($network->validate_mac($mac));
-        } catch (Validation_Exception $e) {
-            return NULL;
-        }
+        Validation_Exception::is_valid($network->validate_mac($mac));
 
         $ethers = $this->get_ethers();
 
         if (! isset($ethers[$mac]))
-            $ret = NULL;
-        else
-            $ret = $ethers[$mac];
+            throw new Ethers_Not_Found_Exception($mac, CLEAROS_ERROR);
 
-        try {
-            Validation_Exception::is_valid($network->validate_hostname($ret));
-        } catch (Validation_Exception $e) {
-            $ret = NULL;
+        Validation_Exception::is_valid($network->validate_hostname($ethers[$mac]));
+
+        return $ethers[$mac];
+    }
+
+    /**
+     * Returns the MAC address for the given hostname.
+     *
+     * @param   string $hostname hostname
+     * @return  string MAC address if found
+     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
+     */
+
+    public function get_mac_by_hostname($hostname)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $network = new Network_Utils();
+
+        Validation_Exception::is_valid($network->validate_hostname($hostname));
+
+        $mac = NULL;
+        $ethers = $this->get_ethers();
+        foreach ($ethers as $key => $value) {
+            if (strcasecmp($hostname, $value) != 0) continue;
+            Validation_Exception::is_valid($network->validate_mac($key));
+            $mac = $key;
+            break;
         }
-
-        return $ret;
+        if ($mac === NULL)
+            throw new Ethers_Not_Found_Exception($hostname, CLEAROS_ERROR);
     }
 
     /**
@@ -256,7 +271,7 @@ class Ethers extends Engine
      * The array is keyed on MAC address with hostname values.
      *
      * @return array list of ether information
-     * @throws Engine_Exception
+     * @throws Exception
      */
 
     public function get_ethers()
@@ -269,9 +284,8 @@ class Ethers extends Engine
         if (! is_array($contents)) {
             $this->reset_ethers(true);
             $contents = $file->get_contents_as_array();
-            if (! is_array($contents)) {
-                throw new Engine_Exception(LOCALE_LANG_ERRMSG_PARSE_ERROR, CLEAROS_ERROR);
-            }
+            if (! is_array($contents))
+                $contents = array();
         }
 
         $network = new Network_Utils();
@@ -284,8 +298,8 @@ class Ethers extends Engine
             $parts = preg_split('/[\s]+/', $line);
             try {
                 Validation_Exception::is_valid($network->validate_mac($parts[0]));
-                if ($parts[1] != '')
-                    $ethers[$parts[0]] = $parts[1];
+                Validation_Exception::is_valid($network->validate_hostname($parts[1]));
+                $ethers[$parts[0]] = $parts[1];
             } catch (Validation_Exception $e) {
             }
         }
@@ -294,36 +308,12 @@ class Ethers extends Engine
     }
 
     /**
-     * Returns the MAC address for the given hostname.
-     *
-     * @param   string $hostname hostname
-     * @return  string MAC address if found, NULL otherwise
-     * @throws  Validation_Exception
-     */
-
-    public function get_mac_by_hostname($hostname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $network = new Network_Utils();
-
-        Validation_Exception::is_valid($network->validate_hostname($hostname));
-
-        $ethers = $this->get_ethers();
-        foreach ($ethers as $mac => $host) {
-            if (strcasecmp($hostname, $host) != 0) continue;
-            return $mac;
-        }
-        return NULL;
-    }
-
-    /**
      * Updates hostname for a given MAC address.
      *
      * @param   string $mac MAC address
      * @param   string $hostname hostname
      * @return  void
-     * @throws  Engine_Exception, Validation_Exception
+     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
     
     public function update_ether($mac, $hostname)
@@ -343,11 +333,14 @@ class Ethers extends Engine
             if (preg_match("/$mac/", $line)) {
                 $contents[$key] = "$mac $hostname";
                 $write_out = true;
+                break;
             }
         }
 
         if ($write_out)
             $file->dump_contents_from_array($contents);
+        else
+            throw new Ethers_Not_Found_Exception($mac, CLEAROS_ERROR);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

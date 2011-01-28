@@ -130,7 +130,7 @@ class Chap extends Engine
      * @param       string $ip        IP address
      * @deprecated  deprecated since framework version 6.0, use add_secret() instead.
      * @return      void
-     * @throws      Engine_Exception
+     * @throws      Exception
      */
 
     public function add_user($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
@@ -148,7 +148,7 @@ class Chap extends Engine
      * @param   string $server    server name
      * @param   string $ip        IP address
      * @return  void
-     * @throws  Engine_Exception
+     * @throws  Exception
      */
 
     public function add_secret($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
@@ -159,7 +159,7 @@ class Chap extends Engine
             $this->_load();
 
         if (isset($this->secrets[$username]))
-            $this->deleteUser($username);
+            unset($this->secrets[$username]);
 
         $this->secrets[$username]['password'] = $password;
         $this->secrets[$username]['server'] = $server;
@@ -210,7 +210,7 @@ class Chap extends Engine
      *
      * @deprecated  deprecated since framework version 6.0, use get_secrets() instead.
      * @return      array list of secrets.
-     * @throws      Engine_Exception
+     * @throws      Exception
      */
 
     public function get_users() 
@@ -224,7 +224,7 @@ class Chap extends Engine
      * Returns an array of secrets from the CHAP/PAP secrets file.
      *
      * @return array list of secrets.
-     * @throws Engine_Exception
+     * @throws Exception
      */
 
     public function get_secrets() 
@@ -246,7 +246,7 @@ class Chap extends Engine
      *
      * @access private
      * @return void
-     * @throws Engine_Exception
+     * @throws Exception
      */
 
     private function _load()
@@ -256,21 +256,14 @@ class Chap extends Engine
         $this->loaded = false;
         $this->secrets = array();
 
-        try {
-            $file = new File(self::FILE_SECRETS_CHAP);
-            if (!$file->exists())
-                $file->create('root', 'root', '600');
-            else
-                $file->chown('root', 'root');
-
-            $lines = $file->get_contents_as_array();
-        } catch (Exception $e) {
-            throw new Engine_Exception(
-                clearos_exception_message($e), CLEAROS_WARNING
-            );
-        }
+        $file = new File(self::FILE_SECRETS_CHAP);
+        if (!$file->exists())
+            $file->create('root', 'root', '600');
+        else
+            $file->chown('root', 'root');
 
         $linecount = 0;
+        $lines = $file->get_contents_as_array();
 
         foreach ($lines as $line) {
             if (! preg_match("/^#/", $line)) {
@@ -293,7 +286,7 @@ class Chap extends Engine
      *
      * @access  private
      * @returns void
-     * @throws  Engine_Exception
+     * @throws  Exception
      */
 
     private function _save()
@@ -317,29 +310,22 @@ class Chap extends Engine
             } 
         }
 
-        try {
-            $file_chap = new File(self::FILE_SECRETS_CHAP . '.cctmp');
-            if ($file_chap->exists())
-                $file_chap->delete();
+        $file_chap = new File(self::FILE_SECRETS_CHAP . '.cctmp');
+        if ($file_chap->exists())
+            $file_chap->delete();
 
-            $file_pap = new File(self::FILE_SECRETS_PAP . '.cctmp');
-            if ($file_pap->exists())
-                $file_pap->delete();
+        $file_pap = new File(self::FILE_SECRETS_PAP . '.cctmp');
+        if ($file_pap->exists())
+            $file_pap->delete();
 
-            $file_chap->create('root', 'root', '0600');
-            $file_pap->create('root', 'root', '0600');
+        $file_chap->create('root', 'root', '0600');
+        $file_pap->create('root', 'root', '0600');
 
-            $file_chap->add_lines($filedata);
-            $file_pap->add_lines($filedata);
+        $file_chap->add_lines($filedata);
+        $file_pap->add_lines($filedata);
 
-            $file_chap->move_to(self::FILE_SECRETS_CHAP);
-            $file_pap->move_to(self::FILE_SECRETS_PAP);
-
-        } catch (Exception $e) {
-            throw new Engine_Exception(
-                clearos_exception_message($e), CLEAROS_WARNING
-            );
-        }
+        $file_chap->move_to(self::FILE_SECRETS_CHAP);
+        $file_pap->move_to(self::FILE_SECRETS_PAP);
     }
 
     /**
