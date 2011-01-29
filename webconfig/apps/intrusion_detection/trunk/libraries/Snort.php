@@ -98,18 +98,17 @@ class Snort extends Daemon
 
     const FILE_CONFIG = '/etc/snort.conf';
     const PATH_RULES =  '/etc/snort';
-    const TYPE_SECURITY = 'security';
     const TYPE_POLICY = 'policy';
-    const TYPE_CRUFT = 'cruft';
+    const TYPE_SECURITY = 'security';
+    const TYPE_UNSUPPORTED = 'unsupported';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $is_loaded = FALSE;
+    protected $rule_sets_loaded = FALSE;
     protected $config = array();
-    protected $rule_sets = array();
-    protected $types = array();
+    protected $metadata = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -127,12 +126,12 @@ class Snort extends Daemon
 
         require_once('Snort.inc.php');
 
-        $this->rule_sets = $rule_sets;
+        $this->metadata = $rule_sets;
 
         $this->types = array(
-            self::TYPE_SECURITY,
-            self::TYPE_POLICY,
-            self::TYPE_CRUFT
+            self::TYPE_POLICY => lang('intrusion_detection_rule_set_type_policy'),
+            self::TYPE_SECURITY => lang('intrusion_detection_rule_set_type_security'),
+            self::TYPE_UNSUPPORTED => lang('intrusion_detection_rule_set_type_unsupported')
         );
     }
 
@@ -147,10 +146,17 @@ class Snort extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->is_loaded)
-            $this->_load_config();
+        if (! $this->rule_sets_loaded)
+            $this->_load_rule_sets();
 
-        return $this->config['active_rule_sets'];
+        $active = array();
+
+        foreach ($this->rule_sets as $rule_set => $details) {
+            if ($details['active'] === TRUE)
+                $active[] = $rule_set;
+        }
+
+        return $active;
     }
 
     /**
@@ -160,23 +166,27 @@ class Snort extends Daemon
      * @throws Engine_Exception
      */
 
-    public function get_rule_sets()
+    public function get_installed_rule_sets()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $list = array();
+        if (! $this->rule_sets_loaded)
+            $this->_load_rule_sets();
+
+        $installed = array();
 
         foreach ($this->rule_sets as $rule_set => $details) {
-            $list[] = $rule_set;
+            if ($details['installed'] = TRUE)
+                $installed[] = $rule_set;
         }
 
-        return $list;
+        return $installed;
     }
 
     /**
-     * Returns detail information on all supported rule sets.
+     * Returns detailed list of rule sets.
      *
-     * @return array information on all supported rule sets
+     * @return array detailed list of rule sets
      * @throws Engine_Exception
      */
 
@@ -184,39 +194,10 @@ class Snort extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $info = array();
-        $list = array();
+        if (! $this->rule_sets_loaded)
+            $this->_load_rule_sets();
 
-        foreach ($this->rule_sets as $rule_set => $detail) {
-
-            $info['rule_set'] = $rule_set;
-            $info['description'] = $detail['description'];
-            $info['type'] = $detail['type'];
-
-            try {
-                $file = new File(self::PATH_RULES . '/' . $rule_set);
-                $lines = $file->get_contents_as_array();
-            } catch (File_Not_Found_Exception $e) {
-                $info['installed'] = FALSE;
-                $info['count'] = 0;
-                $list[$rule_set] = $info;
-                continue;
-            }
-
-            $count = 0;
-
-            foreach ($lines as $line) {
-                if (preg_match('/^alert/', $line))
-                    $count++;
-            }
-
-            $info['count'] = $count;
-            $info['installed'] = TRUE;
-
-            $list[$rule_set] = $info;
-        }
-
-        return $list;
+        return $this->rule_sets;
     }
 
     /**
@@ -234,7 +215,7 @@ class Snort extends Daemon
     }
 
     /**
-     * Sets the list of active rule sets.
+     * Sets the status for the given list of rule sets.
      *
      * @param array $list list of rule sets
      *
@@ -242,15 +223,13 @@ class Snort extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_active_rule_sets($list)
+    public function set_rule_sets($list)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_rule_set_list($list));
 
-        $this->config['active_rule_sets'] = $list;
-
-        $this->_save_config();
+        $this->_save_rule_sets($list);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -261,9 +240,9 @@ class Snort extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $rule_sets = $this->get_rule_sets();
+        $rule_sets = $this->get_installed_rule_sets();
 
-        foreach ($list as $rule_set) {
+        foreach ($list as $rule_set => $state) {
             if (! in_array($rule_set, $rule_sets))
                 return lang('intrusion_detection_validate_rule_set_does_not_exist');
         }
@@ -274,73 +253,125 @@ class Snort extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Loads the snort.conf configuration file
+     * Loads the rule set information.
      *
      * @access private
      * @return void
      * @throws Engine_Exception
      */
 
-    protected function _load_config()
+    protected function _load_rule_sets()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $lines = array();
+        // Gather information from scanning the files in rules directory
+        //--------------------------------------------------------------
 
-        $file = new File(self::FILE_CONFIG);
-        $lines = $file->get_contents_as_array();
+        $folder = new Folder(self::PATH_RULES);
+        $installed = $folder->get_listing();
 
-        $matches = array();
-
-        foreach ($lines as $line) {
-            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)/', $line, $matches))
-                $this->config['active_rule_sets'][] = $matches[1];
-        }
-    }
-
-    /**
-     * Saves the current configuration.
-     *
-     * @access private
-     *
-     * @returns void
-     * @throws Engine_Exception
-     */
-
-    private function _save_config()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->is_loaded = FALSE;
-
-        $file = new File(self::FILE_CONFIG);
-        $lines = $file->get_contents_as_array();
-
-        // Try to add the rules in the same spot in the config file.
-
-        $new_lines = array();
-        $rules_added = FALSE;
-        $matches = array();
-        
-        foreach ($lines as $line) {
-            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)/', $line, $matches)) {
-                if (!$rules_added) {
-                    $rules_added = TRUE;
-                    foreach ($this->config['active_rule_sets'] as $rule)
-                        $new_lines[] = 'include $RULE_PATH/' . $rule;
-                }
-
+        foreach ($installed as $rule_set_file) {
+            if (! preg_match('/\.rules$/', $rule_set_file))
                 continue;
+
+            $file = new File(self::PATH_RULES . '/' . $rule_set_file);
+            $lines = $file->get_contents_as_array();
+
+            $count = 0;
+
+            foreach ($lines as $line) {
+                if (preg_match('/^alert/', $line))
+                    $count++;
+            }
+            
+            $rule_set = preg_replace('/\.rules$/', '', $rule_set_file);
+
+            $info['rule_set'] = $rule_set;
+            $info['filename'] = $rule_set_file;
+            $info['count'] = $count;
+            $info['installed'] = TRUE;
+            $info['active'] = FALSE;
+
+            if (empty($this->metadata[$rule_set]['description']))
+                $info['description'] = lang('intrusion_detection_rulelist_unsupported');
+            else
+                $info['description'] = $this->metadata[$rule_set]['description'];
+
+            if (empty($this->metadata[$rule_set]['type'])) {
+                $info['type'] = self::TYPE_UNSUPPORTED;
+                $info['type_description'] = lang('instrusion_detection_type_unsupported');
             } else {
-                $new_lines[] = $line;
+                $info['type'] = $this->metadata[$rule_set]['type'];
+                $info['type_description'] = $this->types[$this->metadata[$rule_set]['type']];
+            }
+
+            $this->rule_sets[$rule_set] = $info;
+        }
+
+        // Gather information from configuration file
+        //-------------------------------------------
+
+        $file = new File(self::FILE_CONFIG);
+        $lines = $file->get_contents_as_array();
+
+        $matches = array();
+
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)\.rules/', $line, $matches)) {
+                $this->rule_sets[$matches[1]]['active'] = TRUE;
             }
         }
 
+        $this->rule_sets_loaded = TRUE;
+    }
 
-        if (!$rules_added) {
-            foreach ($this->config['active_rule_sets'] as $rule)
-                $new_lines[]    = 'include $RULE_PATH/' . $rule;
+    /**
+     * Saves the current rule set lists.
+     *
+     * @param $list list of rule sets
+     *
+     * @access private
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    private function _save_rule_sets($list)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->rule_sets_loaded)
+            $this->_load_rule_sets();
+
+        // Grab current rules and set the new state
+        //-----------------------------------------
+
+        $new_list = $this->get_rule_set_details();
+
+        foreach ($list as $rule_set => $state)
+            $new_list[$rule_set]['active'] = $state;
+
+        // Add the rule sets to the bottom of the configuration
+        //-----------------------------------------------------
+
+        $matches = array();
+        $new_lines = array();
+
+        $file = new File(self::FILE_CONFIG);
+        $lines = $file->get_contents_as_array();
+
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)/', $line, $matches))
+                continue;
+            else
+                $new_lines[] = $line;
         }
+
+        foreach ($new_list as $rule => $details) {
+            if ($details['active'])
+                $new_lines[] = 'include $RULE_PATH/' . $rule . '.rules';
+        }
+
+        $this->rule_sets_loaded = FALSE;
 
         $file->dump_contents_from_array($new_lines);
     }

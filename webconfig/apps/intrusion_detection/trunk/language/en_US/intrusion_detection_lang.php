@@ -1,21 +1,32 @@
 <?php
+
 $lang['intrusion_detection_security'] = 'Security';
 $lang['intrusion_detection_cache_notice'] = 'The report data will be used for the next 5 minutes.';
 $lang['intrusion_detection_events'] = 'Events ';
 $lang['intrusion_detection_events_by'] = 'Events by ';
-$lang['intrusion_detection_group_name'] = 'Group Name';
 $lang['intrusion_detection_hits'] = 'Hits';
 $lang['intrusion_detection_id'] = 'ID';
 $lang['intrusion_detection_intrusion_detection_updates'] = 'Intrusion Detection Updates';
 $lang['intrusion_detection_policy'] = 'Policy';
 
+// Deleted
+// $lang['intrusion_detection_group_name'] = 'Group Name';
+
 // New
+$lang['intrusion_detection'] = 'Intrusion Detection';
+$lang['intrusion_detection_rules'] = 'Rules';
+$lang['intrusion_detection_rule_set'] = 'Rule Set';
+$lang['intrusion_detection_rule_set_type'] = 'Type';
+$lang['intrusion_detection_rule_set_type_policy'] = 'Policy';
+$lang['intrusion_detection_rule_set_type_security'] = 'Security';
+$lang['intrusion_detection_rule_set_type_unsupported'] = 'Unsupported';
 $lang['intrusion_detection_rulelist_deleted'] = 'Deleted';
 $lang['intrusion_detection_rulelist_experimental'] = 'Experimental';
 $lang['intrusion_detection_rulelist_icmp_detection'] = 'Ping detection'; 
 $lang['intrusion_detection_rulelist_local'] = 'Custom'; 
 $lang['intrusion_detection_rulelist_other'] = 'Other'; 
 $lang['intrusion_detection_rulelist_virus'] = 'Virus'; 
+$lang['intrusion_detection_rulelist_unsupported'] = 'Unsupported';
 $lang['intrusion_detection_validate_rule_set_does_not_exist'] = 'Rule set does not exist';
 
 // Keep
