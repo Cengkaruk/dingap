@@ -13,6 +13,15 @@ $(function(){
 		value: 0
 	});
 
+	// List tables
+	$(".theme-list-table").dataTable({
+		"aoColumnDefs": [{ 
+			"bSortable": false, "aTargets": [ -1 ] 
+		}],
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers"
+	});
+
 	// Summary tables
 	$(".theme-summary-table").dataTable({
 		"aoColumnDefs": [{ 

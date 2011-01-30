@@ -147,6 +147,34 @@ div.theme-button-set { color: red; }
 /* ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------- */
+/* List Table */
+/* ------------------------------------------------------------------------- */
+
+.theme-list-table-container {
+  margin-top: 6px;
+}
+.theme-list-table-legend {
+  text-align: center;	
+}
+.theme-list-table-add {
+  text-align: left;
+}
+.theme-list-table-header {
+  background: #FFFFFF url(../images/main-nav-selected.png) repeat-x  50% 50%;
+  padding: 5px;
+  color: #EEEEEE;
+  font-weight: bold;
+}
+.theme-list-table-title { 
+  float: left;
+} 
+.theme-list-table-action { 
+  text-align: right;
+  padding: 0 !important;
+  font-size: 7pt !important;
+} 
+
+/* ------------------------------------------------------------------------- */
 /* Summary Table */
 /* ------------------------------------------------------------------------- */
 

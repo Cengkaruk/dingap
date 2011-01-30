@@ -311,6 +311,110 @@ function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// L I S T  T A B L E
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
+{
+	$columns = count($headers) + 1;
+
+	// Header parsing
+	//---------------
+
+	// Tabs are just for clean indentation HTML output
+	$header_html = '';
+
+	foreach ($headers as $header)
+		$header_html .= "\n\t\t" . trim("<th>$header</th>");
+
+	// No title in the action header
+	$header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+
+	// Add button
+	//-----------
+
+	$add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+
+	// Legend parsing
+	//---------------
+
+	// FIXME
+	$legend_html = '';
+
+	if ($legend)	
+		$legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-list-table-legend'>$legend</td></tr></tfoot>";
+
+	// Item parsing
+	//-------------
+
+    // FIXME: clean up enabled/disabled toggle widget
+    $options = array(
+        '0' => lang('base_disabled'),
+        '1' => lang('base_enabled')
+    );
+
+	$item_html = '';
+
+	foreach ($items as $item) {
+		$item_html .= "\t<tr>\n";
+
+		foreach ($item['details'] as $value)
+			$item_html .= "\t\t" . "<td>$value</td>\n";
+
+// pete
+// FIXME: experimenting with checkboxes
+//        $select_html = ($item['state']) ? 'checked' : ''; 
+//		$item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
+// FIXME: or use toggle switch?
+		$item_html .= "\t\t<td>" . form_dropdown($item['name'], $options, $item['state']) ."</td>";
+		$item_html .= "\t</tr>\n";
+	}
+
+	// List table
+	//-----------
+
+	return "
+
+<div class='theme-list-table-container ui-widget'>
+  <div class='theme-list-table-header ui-state-active ui-corner-top'>
+	<div class='theme-list-table-title'>$title</div>
+	<div class='theme-list-table-action'>$add_html</div>
+  </div>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-list-table display'>
+   <thead>
+	<tr>$header_html
+	</tr>
+   </thead>
+   <tbody>
+$item_html
+   </tbody>$legend_html
+  </table>
+</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// C O N F I R M A T I O N  D I A L O G B O X
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
+{
+// FIXME - work in progress
+// FIXME - icons and translate
+	$class = 'ui-state-error';
+	$iconclass = 'ui-icon-alert';
+
+	echo "
+		<div class='ui-widget'>
+			<div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+				<p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
+				<p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
+			</div>
+		</div>
+	";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // S U M M A R Y  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -382,27 +486,6 @@ $item_html
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// C O N F I R M A T I O N  D I A L O G B O X
-///////////////////////////////////////////////////////////////////////////////
-
-function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
-{
-// FIXME - work in progress
-// FIXME - icons and translate
-	$class = 'ui-state-error';
-	$iconclass = 'ui-icon-alert';
-
-	echo "
-		<div class='ui-widget'>
-			<div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
-				<p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
-				<p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
-			</div>
-		</div>
-	";
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // C O N T R O L  P A N E L
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -424,6 +507,3 @@ function theme_control_panel($links)
 		</div>
 	";
 }
-
-// vim: syntax=php ts=4
-?>
