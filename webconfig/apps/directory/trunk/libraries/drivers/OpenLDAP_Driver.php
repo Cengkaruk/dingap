@@ -62,7 +62,7 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\date\NtpTime as NtpTime;
+use \clearos\apps\date\NTP_Time as NTP_Time;
 use \clearos\apps\directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\directory\Utilities as Utilities;
 //use \clearos\apps\network\Hostname as Hostname;
@@ -74,7 +74,7 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
-clearos_load_library('date/NtpTime');
+clearos_load_library('date/NTP_Time');
 clearos_load_library('directory/OpenLDAP');
 clearos_load_library('directory/Utilities');
 // clearos_load_library('network/Hostname');
@@ -134,8 +134,7 @@ class OpenLDAP_Driver extends Engine
     const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
     const PATH_LDAP_BACKUP = '/usr/share/system/modules/ldap';
 
-//    const FILE_CONFIG = '/usr/clearos/apps/directory/config/config.php';
-    const FILE_CONFIG = '../config/config.php';
+    const FILE_OPENLDAP_CONFIG = '../config/openldap.php';
     const FILE_DATA = '/etc/openldap/provision.ldif';
     const FILE_DATA_PROVISION = '../config/provision/provision.ldif.template';
     const FILE_SLAPD = '/etc/openldap/slapd.conf';
@@ -173,6 +172,7 @@ class OpenLDAP_Driver extends Engine
     const CN_MASTER = 'cn=Master';
 
     // Status codes for username/group/alias uniqueness
+// FIXME: might return just strings instead
     const STATUS_ALIAS_EXISTS = 'alias';
     const STATUS_GROUP_EXISTS = 'group';
     const STATUS_USERNAME_EXISTS = 'user';
@@ -200,6 +200,7 @@ class OpenLDAP_Driver extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     protected $ldaph = NULL;
+    protected $config = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -213,20 +214,86 @@ class OpenLDAP_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-/*
-FIXME: what uses this?
-        $this->status_codes = array(
-            self::STATUS_ALIAS_EXISTS => CLEARDIRECTORY_LANG_ALIAS_ALREADY_EXISTS,
-            self::STATUS_GROUP_EXISTS => CLEARDIRECTORY_LANG_GROUP_ALREADY_EXISTS,
-            self::STATUS_USERNAME_EXISTS => CLEARDIRECTORY_LANG_USERNAME_ALREADY_EXISTS
-        );
-*/
-
         $this->modes = array(
             self::MODE_MASTER => lang('directory_master'),
             self::MODE_SLAVE => lang('directory_slave'),
             self::MODE_STANDALONE => lang('directory_standalone')
         );
+    }
+
+    /**
+     * Check for overlapping usernames, groups and aliases in the directory.
+     *
+     * @param string $id username, group or alias
+     *
+     * @return string warning message if ID is not unique
+     */
+
+    public function check_uniqueness($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph == NULL)
+            $this->_get_ldap_handle();
+
+        // Check for duplicate user
+        //-------------------------
+
+        try {
+            $result = $this->ldaph->search(
+                "(&(objectclass=inetOrgPerson)(uid=$id))",
+                self::get_users_ou(),
+                array('dn')
+            );
+
+            $entry = $this->ldaph->get_first_entry($result);
+
+            if ($entry)
+                return "Username already exists."; // FIXME self::STATUS_USERNAME_EXISTS;
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+
+        // Check for duplicate alias
+        //--------------------------
+
+        try {
+            $result = $this->ldaph->Search(
+                "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
+                self::get_users_ou(),
+                array('dn')
+            );
+
+            $entry = $this->ldaph->get_first_entry($result);
+
+            if ($entry)
+                return "Mail alias already exists."; // FIXME self::STATUS_ALIAS_EXISTS;
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+
+        // Check for duplicate group
+        //--------------------------
+    
+        // The "displayName" is used in Samba group mapping.  In other words,
+        // the "displayName" is what is used by Windows networking (not the cn).
+
+        try {
+            $result = $this->ldaph->Search(
+                "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
+                self::get_groups_ou(),
+                array('dn')
+            );
+
+            $entry = $this->ldaph->get_first_entry($result);
+
+            if ($entry)
+                return "Group already exists."; // self::STATUS_GROUP_EXISTS;
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+
+        // FIXME: Flexshares?  How do we deal with this in master/replica mode?
     }
 
     /**
@@ -278,6 +345,9 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if ($this->config['base_dn'] !== NULL) 
+            return $this->config['base_dn'];
+
         if ($this->ldaph == NULL)
             $this->_get_ldap_handle();
 
@@ -286,6 +356,8 @@ FIXME: what uses this?
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
+
+        $this->config['base_dn'] = $base_dn;
 
         return $base_dn;
     }
@@ -301,14 +373,7 @@ FIXME: what uses this?
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        try {
-            $base_dn = $this->ldaph->get_base_dn();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $base_dn = $this->get_base_dn();
 
         $domain = preg_replace("/(,dc=)/", ".", $base_dn);
         $domain = preg_replace("/dc=/", "", $domain);
@@ -445,8 +510,7 @@ FIXME: what uses this?
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-// FIXME: FILE_CONFIG is different now
-            $file = new Configuration_File(self::FILE_CONFIG);
+            $file = new Configuration_File(self::FILE_OPENLDAP_CONFIG);
             $config = $file->load();
         } catch (File_Not_Found_Exception $e) {
             // Not fatal
@@ -491,6 +555,7 @@ FIXME: what uses this?
      * @throws Engine_Exception
      */
 
+    // FIXME: might remove this
     public function get_servers_ou()
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -941,82 +1006,6 @@ FIXME: what uses this?
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Check for overlapping usernames, groups and aliases in the directory.
-     *
-     * @param string $id username, group or alias
-     * @access private
-     *
-     * @return integer self::STATUS_UNIQUE if unique
-     */
-
-    public function validate_id($id)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        // Check for duplicate user
-        //-------------------------
-
-        try {
-            $result = $this->ldaph->Search(
-                "(&(objectclass=inetOrgPerson)(uid=$id))",
-                self::GetUsersOu(),
-                array('dn')
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            if ($entry)
-                return self::STATUS_USERNAME_EXISTS;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        // Check for duplicate alias
-        //--------------------------
-
-        try {
-            $result = $this->ldaph->Search(
-                "(&(objectclass=inetOrgPerson)(pcnMailAliases=$id))",
-                self::GetUsersOu(),
-                array('dn')
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            if ($entry)
-                return self::STATUS_ALIAS_EXISTS;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        // Check for duplicate group
-        //--------------------------
-    
-        // The "displayName" is used in Samba group mapping.  In other words,
-        // the "displayName" is what is used by Windows networking (not the cn).
-
-        try {
-            $result = $this->ldaph->Search(
-                "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
-                self::GetGroupsOu(),
-                array('dn')
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            if ($entry)
-                return self::STATUS_GROUP_EXISTS;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        return self::STATUS_UNIQUE;
-    }
-
-    /**
      * Validates LDAP mode.
      *
      * @param string $mode LDAP mode
@@ -1069,10 +1058,10 @@ FIXME: what uses this?
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $config_file = new Configuration_File(self::FILE_CONFIG, 'split', '=', 2);
+            $config_file = new Configuration_File(self::FILE_OPENLDAP_CONFIG, 'split', '=', 2);
             $config = $config_file->load();
         } catch (Exception $e) {
-            throw new EngineException($e->getMessage(),COMMON_ERROR);
+            throw new EngineException(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         try {
@@ -1144,7 +1133,7 @@ FIXME: what uses this?
         $config .= "bind_pw_hash = $bind_pw_hash\n";
 
         try {
-            $file = new File(self::FILE_CONFIG);
+            $file = new File(self::FILE_OPENLDAP_CONFIG);
 
             if ($file->exists())
                 $file->delete();
@@ -1421,17 +1410,10 @@ FIXME: what uses this?
             //----------------
 
 /*
-FIXME: is this necessary?  Set in globals.php?
-            $ntptime = new NtpTime();
-            date_default_timezone_set($ntptime->GetTimeZone());
-*/
-
-/*
 FIXME: re-enable backup
             $filename = self::PATH_LDAP_BACKUP . '/' . "backup-" . strftime("%m-%d-%Y-%H-%M-%S", time()) . ".ldif";
             $this->export($filename);
 */
-
             // Clear out old database
             //-----------------------
 
