@@ -4,7 +4,7 @@
  * CHAP/PAP secrets configuration class.
  *
  * @category    Apps
- * @package     Date
+ * @package     Network
  * @subpackage  Libraries
  * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
  * @copyright   Copyright 2002-2010 ClearFoundation
