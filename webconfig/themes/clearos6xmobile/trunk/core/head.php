@@ -1,9 +1,16 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Head tags handler for the ClearOS Enterprise mobile theme.
+ *
+ * @category  Theme
+ * @package   ClearOS_Enterprise_Mobile
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/theming/
+ */
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -22,26 +29,16 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Head handler for the theme.
- * 
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
+ * Returns additional <head> data required for the theme.
+ *
+ * @param string $theme_path them path
+ *
+ * @return string HTML output
  */
 
-/**
- * Returns required <head> contents for the theme.
- * 
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
- */
-
-function page_head($theme_path)
+function theme_page_head($theme_path)
 {
-	return "
+    return "
 <!-- Theme Favicon -->
 <link href='$theme_path/images/favicon.ico' rel='shortcut icon' >
 
@@ -55,6 +52,3 @@ function page_head($theme_path)
 
 ";
 }
-
-// vim: syntax=php ts=4
-?>
