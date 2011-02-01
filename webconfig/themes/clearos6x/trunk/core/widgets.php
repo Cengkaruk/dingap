@@ -1,9 +1,16 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Widgets handler for the ClearOS Enterprise theme.
+ *
+ * @category  Theme
+ * @package   ClearOS_Enterprise
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/theming/
+ */
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -20,15 +27,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
-
-/**
- * ClearOS 6.x default theme.
- *
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
- */
 
 ///////////////////////////////////////////////////////////////////////////////
 // A N C H O R S

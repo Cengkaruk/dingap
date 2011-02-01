@@ -1,9 +1,16 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Doctype handler for the ClearOS Enterprise theme.
+ *
+ * @category  Theme
+ * @package   ClearOS_Enterprise
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/theming/
+ */
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -22,27 +29,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Doctype handler for the theme.
- * 
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
+ * Returns the doctype string.
+ *
+ * @return string doctype
  */
 
-/**
- * Returns the required  DOCTYPE line for the theme.
- * 
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
- */
-
-function page_doctype()
+function theme_page_doctype()
 {
-	return "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>\n";
+    return "<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'>\n";
 }
-
-// vim: syntax=php ts=4
-?>

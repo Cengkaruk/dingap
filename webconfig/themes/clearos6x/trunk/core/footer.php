@@ -1,9 +1,16 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Footer handler for the ClearOS Enterprise theme.
+ *
+ * @category  Theme
+ * @package   ClearOS_Enterprise
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/theming/
+ */
+
 //////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -22,59 +29,43 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Footer handler for the theme.
- * 
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
- */
-
-/**
  * Returns the footer for the theme.
  *
  * Two types of footer layouts must be supported in a ClearOS theme.  See 
  * developer documentation for details.
  *
  * @param array $page page data
- * @package Theme
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
  */
 
-function page_footer($page)
+function theme_page_footer($page)
 {
-	// FIXME: change to constant value
+    // FIXME: change to constant value
 
-	if ($page['layout'] == 'default') {
-		$footer = "
+    if ($page['layout'] == 'default') {
+        $footer = "
 
 
 <!-- Footer -->
-	</div>
-	<div id='theme-footer-container'>
-		Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
-		<b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
-	</div>
+    </div>
+    <div id='theme-footer-container'>
+        Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
+        <b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
+    </div>
 </div>
 </body>
 </html>
 ";
-	} else {
-		$footer = "
+    } else {
+        $footer = "
 
 
 <!-- Footer -->
-	</div>
+    </div>
 </div>
 </body>
 </html>
 ";
-	}
+    }
 
-	return $footer;
+    return $footer;
 }
-
-// vim: syntax=php ts=4
-?>
