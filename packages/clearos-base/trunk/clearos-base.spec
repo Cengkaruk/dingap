@@ -210,11 +210,6 @@ if [ -e /etc/rc.d/init.d/avahi-daemon ]; then
 	chkconfig --level 2345 avahi-daemon off
 fi
 
-# Update grub titles
-#-------------------
-
-# /usr/share/system/scripts/updategrub
-
 # Sudo policies
 #--------------
 

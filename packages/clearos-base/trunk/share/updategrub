@@ -1,5 +1,0 @@
-#!/bin/sh
-
-if [ ! -e /boot/grub/grub.conf ]; then
-	exit 0
-fi
