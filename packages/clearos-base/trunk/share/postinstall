@@ -25,9 +25,7 @@ use lib '/usr/share/system/scripts';
 use File::Find;
 require 'functions';
 
-sub UpdateRunLevels();
 sub MiscStuff();
-
 
 # Usual security measures... see "perlsec" manual page for details.
 #------------------------------------------------------------------
@@ -45,34 +43,13 @@ if ($< != 0) {
 # Main
 #-----
 
-UpdateRunLevels();
 MiscStuff();
 
 exit;
 
-
-
 ###############################################################################
 # F U N C T I O N S
 ###############################################################################
-
-###############################################################################
-#
-# UpdateRunLevels: Set our default run levels (mostly off)
-#
-###############################################################################
-
-sub UpdateRunLevels() {
-	print("Updating runlevels\n");
-
-	if ( -f "/etc/init.d/mdmonitor" ) { system("chkconfig --level 2345 mdmonitor off"); }
-	if ( -f "/etc/init.d/mdmpd" ) { system("chkconfig --level 2345 mdmpd off"); }
-	if ( -f "/etc/init.d/pcmcia" ) { system("chkconfig --level 2345 pcmcia off"); }
-	if ( -f "/etc/init.d/xfs" ) { system("chkconfig --level 2345 xfs off"); }
-	if ( -f "/etc/init.d/kudzu" ) { system("chkconfig --level 345 kudzu on"); }
-	if ( -f "/etc/init.d/suvad" ) { system("chkconfig --level 2345 suvad on"); }
-}
-
 
 ################################################################################
 #
@@ -81,6 +58,9 @@ sub UpdateRunLevels() {
 ################################################################################
 
 sub MiscStuff() {
+	print("Updating runlevels\n");
+	if ( -f "/etc/init.d/xfs" ) { system("chkconfig --level 2345 xfs off"); }
+
 	# Make sure sudoers has the proper permissions
 	# chmod 0440, "/etc/sudoers";
 
