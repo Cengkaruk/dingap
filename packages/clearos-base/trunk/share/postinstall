@@ -81,16 +81,6 @@ sub UpdateRunLevels() {
 ################################################################################
 
 sub MiscStuff() {
-	my $f_lilo = "/etc/lilo.conf";
-
-	# The kickstart LILO install is a bit broken...  Fix it here
-	if ( -e $f_lilo) {
-		print("Fixing LILO boot message entry\n");
-		system("grep -v 'message=' /etc/lilo.conf > /etc/lilo.conf.new");
-		system("mv /etc/lilo.conf.new /etc/lilo.conf");
-		system("/sbin/lilo");
-	}
-
 	# Some syslog options...
 	print("Updating logging options\n");
 	KeyReplace("/etc/sysconfig/syslog", "KLOGD_OPTIONS", "=", "\"-c 1 -2\"");
