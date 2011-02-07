@@ -7,7 +7,7 @@ Version: 6.0
 Release: 0.4%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
-Group: Applications/Modules
+Group: ClearOS/Core
 Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
