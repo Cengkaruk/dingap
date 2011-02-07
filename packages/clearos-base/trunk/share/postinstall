@@ -81,10 +81,6 @@ sub UpdateRunLevels() {
 ################################################################################
 
 sub MiscStuff() {
-	# Some syslog options...
-	print("Updating logging options\n");
-	KeyReplace("/etc/sysconfig/syslog", "KLOGD_OPTIONS", "=", "\"-c 1 -2\"");
-
 	# Privoxy RPM is borked
 	system("rpm -e privoxy --noscripts >/dev/null 2>&1");
 
