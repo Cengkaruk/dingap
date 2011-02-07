@@ -1,13 +1,12 @@
-[base-updates]
-name=ClearOS Enterprise 6.0 - Updates
-baseurl=http://192.168.2.16/clearos/enterprise/6.0/updates
+[base-os]
+name=ClearOS Enterprise 6.0.x - OS
+baseurl=http://download.clearfoundation.com/clearos/enterprise/6.0/os/$basearch
 enabled=1
 gpgcheck=0
 
 [rhel-beta]
 name=Red Hat Enterprise Linux $releasever Beta - $basearch
 baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/5.90Server/$basearch/os/
-#mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=rhel-$releasever-beta&arch=$basearch
 enabled=1
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta
