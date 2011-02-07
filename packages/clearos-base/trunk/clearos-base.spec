@@ -4,9 +4,9 @@
 
 Name: clearos-base
 Version: 6.0
-Release: 0.3%{dist}
+Release: 0.4%{dist}
 Summary: Initializes the system environment
-License: Affero GPLv3 or later
+License: GPLv3 or later
 Group: Applications/Modules
 Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
@@ -22,6 +22,7 @@ Requires: mdadm
 Requires: mlocate
 Requires: ntpdate
 Requires: openssh-server
+Requires: openssh-clients
 Requires: perl
 Requires: selinux-policy-targeted
 Requires: sudo
@@ -70,25 +71,18 @@ Initializes the system environment
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/modules/setup/cleanup
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/settings
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/system/scripts
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/init.d
-mkdir -p -m 755 $RPM_BUILD_ROOT/etc/system/initialized
 
 install -m 644 etc/cron.d/app-servicewatch $RPM_BUILD_ROOT/etc/cron.d/app-servicewatch
 install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
-install -m 644 etc/system/fileextensions $RPM_BUILD_ROOT/etc/system/
-install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/system/scripts/
 install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
-
-install -m 644 custom/organization $RPM_BUILD_ROOT/etc/system/
-install -m 644 custom/locale $RPM_BUILD_ROOT/usr/share/system/settings/
-install -m 644 custom/vendor $RPM_BUILD_ROOT/usr/share/system/settings/
+install share/* $RPM_BUILD_ROOT/usr/share/clearos/base/
 
 #------------------------------------------------------------------------------
 # I N S T A L L  S C R I P T
@@ -96,10 +90,6 @@ install -m 644 custom/vendor $RPM_BUILD_ROOT/usr/share/system/settings/
 
 %post
 logger -p local6.notice -t installer "clearos-base - installing"
-
-if ( [ $1 == 1 ] && [ ! -e /etc/system/pre5x ] ); then
-	touch /etc/system/initialized/setup
-fi
 
 # Add our own logs to rsyslog
 #----------------------------
@@ -192,10 +182,10 @@ fi
 # Chap/pap secrets format
 #------------------------
 
-CHECKCHAP=`grep Webconfig /etc/ppp/chap-secrets 2>/dev/null`
-if [ -z "$CHECKCHAP" ]; then
-	/usr/share/system/scripts/chap-convert
-fi
+# CHECKCHAP=`grep Webconfig /etc/ppp/chap-secrets 2>/dev/null`
+# if [ -z "$CHECKCHAP" ]; then
+#	/usr/share/system/scripts/chap-convert
+#fi
 
 # Turn off daemons that always want to start at boot on upgrades
 #---------------------------------------------------------------
@@ -213,9 +203,9 @@ fi
 if [ -e /etc/rc.d/init.d/mcstrans ]; then
 	chkconfig --level 2345 mcstrans off
 fi
-if [ -e /etc/rc.d/init.d/auditd ]; then
-	chkconfig --level 2345 auditd off
-fi
+#if [ -e /etc/rc.d/init.d/auditd ]; then
+#	chkconfig --level 2345 auditd off
+#fi
 if [ -e /etc/rc.d/init.d/avahi-daemon ]; then
 	chkconfig --level 2345 avahi-daemon off
 fi
@@ -232,21 +222,21 @@ CHECKSUDO=`grep '^Defaults:webconfig !syslog' /etc/sudoers 2>/dev/null`
 if [ -z "$CHECKSUDO" ]; then
     logger -p local6.notice -t installer "clearos-base - adding syslog policy for webconfig"
     echo 'Defaults:webconfig !syslog' >> /etc/sudoers
-    chmod 0400 /etc/sudoers
+    chmod 0440 /etc/sudoers
 fi
 
 CHECKSUDO=`grep '^Defaults:root !syslog' /etc/sudoers 2>/dev/null`
 if [ -z "$CHECKSUDO" ]; then
     logger -p local6.notice -t installer "clearos-base - adding syslog policy for root"
     echo 'Defaults:root !syslog' >> /etc/sudoers
-    chmod 0400 /etc/sudoers
+    chmod 0440 /etc/sudoers
 fi
 
 CHECKTTY=`grep '^Defaults.*requiretty' /etc/sudoers 2>/dev/null`
 if [ -n "$CHECKTTY" ]; then
     logger -p local6.notice -t installer "clearos-base - removing requiretty from sudoers"
 	sed -i -e 's/^Defaults.*requiretty/# Defaults    requiretty/' /etc/sudoers
-    chmod 0400 /etc/sudoers
+    chmod 0440 /etc/sudoers
 fi
 
 # slocate/mlocate upgrade
@@ -265,31 +255,16 @@ if [ -n "$CHECK" ]; then
 	fi
 fi
 
-
-# Miscellaneous clean up
-#-----------------------
-
-# TODO: move to syswatch
-rm -f /etc/init.d/*rpmsave /etc/init.d/*rpmnew 2>/dev/null
-rm -f /etc/cron.d/*rpmsave /etc/cron.d/*rpmnew 2>/dev/null
+exit 0
 
 #------------------------------------------------------------------------------
 # U N I N S T A L L  S C R I P T
 #------------------------------------------------------------------------------
 
 %preun
-if [ "$1" = 0 ]; then
+if [ $1 -eq 0 ]; then
 	logger -p local6.notice -t installer "clearos-base - uninstalling"
 fi
-
-
-#------------------------------------------------------------------------------
-# C L E A N  U P
-#------------------------------------------------------------------------------
-
-%clean
-[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
-
 
 #------------------------------------------------------------------------------
 # F I L E S
@@ -297,17 +272,12 @@ fi
 
 %files
 %defattr(-,root,root)
-%dir /etc/system
+%dir /etc/clearos
 %dir /usr/clearos
 /etc/cron.d/app-servicewatch
 /etc/logrotate.d/compliance
 /etc/logrotate.d/system
 /etc/init.d/functions-automagic
-%dir /etc/system/initialized
-%config(noreplace) /etc/system/organization
-/etc/system/fileextensions
 /usr/sbin/addsudo
-/usr/share/system/scripts
-/usr/share/system/modules/setup/
-/usr/share/system/settings/locale
-/usr/share/system/settings/vendor
+%dir /usr/share/clearos/base
+/usr/share/clearos/base
