@@ -1,6 +1,7 @@
 # Product details
 name = ClearOS Enterprise
-version = 6.0
+version = 6.0.0.alpha2
+vendor = clear
 
 # Registration
 free_trial = 1
