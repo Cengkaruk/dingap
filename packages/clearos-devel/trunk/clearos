@@ -43,7 +43,7 @@ my $BASEPATH = $ENV{'CLEAROS_BOOTSTRAP'};
 $BASEPATH =~ s/\/framework.*//;
 
 my $PHPCS = '/usr/bin/phpcs';
-my $PHPCS_STANDARD = $BASEPATH . '/tools/phpcs-clearos/trunk/ClearOS';
+my $PHPCS_STANDARD = '/usr/share/clearos/devel/code_sniffer/ClearOS';
 
 my $PHPDOC = '/usr/bin/phpdoc';
 my $PHPDOC_DEST = $BASEPATH . '/framework/trunk/htdocs/phpdocs';
