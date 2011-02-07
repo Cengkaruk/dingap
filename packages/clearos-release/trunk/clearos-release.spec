@@ -7,7 +7,7 @@ Version: 6.0
 Release: 0.4%{dist}
 Summary: ClearOS product release information
 License: Copyright ClearFoundation
-Group: Applications/Modules
+Group: ClearOS/Core
 Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
