@@ -64,11 +64,6 @@ sub MiscStuff() {
 	# Make sure sudoers has the proper permissions
 	# chmod 0440, "/etc/sudoers";
 
-	# Add MAC addresses to network configuration
-	if ( -x "/usr/share/system/modules/network/upgrade" ) {
-		system("/usr/share/system/modules/network/upgrade");
-	}
-
 	# Custom postinstall
 	if ( -e "/usr/share/system/modules/setup/postinstall" ) {
 		system("/usr/share/system/modules/setup/postinstall");
