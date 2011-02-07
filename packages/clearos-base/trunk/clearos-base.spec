@@ -96,14 +96,14 @@ logger -p local6.notice -t installer "clearos-base - installing"
 # Syslog customizations
 #----------------------
 
-if [ -z "`grep "^local6" /etc/rsyslog.conf 2>/dev/null`" ]; then
+if [ -z "`grep ^local6 /etc/rsyslog.conf`" ]; then
 	logger -p local6.notice -t installer "clearos-base - adding system log file to rsyslog"
 	echo "local6.*  /var/log/system" >> /etc/rsyslog.conf
 	sed -i -e 's/[[:space:]]*\/var\/log\/messages/;local6.none \/var\/log\/messages/' /etc/rsyslog.conf
 	/sbin/service rsyslog restart >/dev/null 2>&1
 fi
 
-if [ -z "`grep "^local5" /etc/rsyslog.conf 2>/dev/null`" ]; then
+if [ -z "`grep ^local5 /etc/rsyslog.conf`" ]; then
 	logger -p local5.notice -t installer "clearos-base - adding compliance log file to rsyslog"
 	echo "local5.*  /var/log/compliance" >> /etc/rsyslog.conf
 	sed -i -e 's/[[:space:]]*\/var\/log\/messages/;local5.none \/var\/log\/messages/' /etc/rsyslog.conf
@@ -123,29 +123,6 @@ fi
 #		sed -i -e 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
 #	fi
 #fi
-
-# Allow only version 2 on SSH server
-#-----------------------------------
-
-if [ -e /etc/ssh/sshd_config ]; then
-	CHECKPROTOVER=`grep "^Protocol.*1" /etc/ssh/sshd_config 2>/dev/null`
-	if [ -n "$CHECKPROTOVER" ]; then
-		logger -p local6.notice -t installer "clearos-base - upgrading to protocol 2 in SSHD configuration"
-		sed -i -e 's/^Protocol.*/Protocol 2/' /etc/ssh/sshd_config
-	fi
-
-	CHECKPROTO=`grep "^Protocol" /etc/ssh/sshd_config 2>/dev/null`
-	if [ -z "$CHECKPROTO" ]; then
-		logger -p local6.notice -t installer "clearos-base - adding protocol 2 to SSHD configuration"
-		echo "Protocol 2" >> /etc/ssh/sshd_config
-	fi
-
-	CHECKPERMS=`stat --format=%a /etc/ssh/sshd_config`
-	if [ "$CHECKPERMS" != "600" ]; then
-		logger -p local6.notice -t installer "clearos-base - changing file permission policy on sshd_config"
-		chmod 0600 /etc/ssh/sshd_config
-	fi
-fi
 
 # Changed default group on useradd
 #---------------------------------
