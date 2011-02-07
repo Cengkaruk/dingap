@@ -134,14 +134,6 @@ fi
 #	sed -i -e 's/^GROUP=100$/GROUP=63000/' /etc/default/useradd
 #fi
 
-# Chap/pap secrets format
-#------------------------
-
-# CHECKCHAP=`grep Webconfig /etc/ppp/chap-secrets 2>/dev/null`
-# if [ -z "$CHECKCHAP" ]; then
-#	/usr/share/system/scripts/chap-convert
-#fi
-
 # Sudo policies
 #--------------
 
