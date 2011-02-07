@@ -71,7 +71,8 @@ Initializes the system environment
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base/config
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base/scripts
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
@@ -82,7 +83,8 @@ install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
-install share/* $RPM_BUILD_ROOT/usr/share/clearos/base/
+install -m 644 config/openssl.cnf $RPM_BUILD_ROOT/usr/share/clearos/base/config/
+install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/clearos/base/scripts/
 
 #------------------------------------------------------------------------------
 # I N S T A L L  S C R I P T
@@ -187,29 +189,6 @@ fi
 #	/usr/share/system/scripts/chap-convert
 #fi
 
-# Turn off daemons that always want to start at boot on upgrades
-#---------------------------------------------------------------
-
-# TODO
-if [ -e /etc/init.d/gpm ]; then
-	chkconfig --level 2345 gpm off
-fi  
-if [ -e /etc/rc.d/init.d/mdmpd ]; then
-	chkconfig --level 2345 mdmpd off
-fi
-if [ -e /etc/rc.d/init.d/xfs ]; then
-	chkconfig --level 2345 xfs off
-fi
-if [ -e /etc/rc.d/init.d/mcstrans ]; then
-	chkconfig --level 2345 mcstrans off
-fi
-#if [ -e /etc/rc.d/init.d/auditd ]; then
-#	chkconfig --level 2345 auditd off
-#fi
-if [ -e /etc/rc.d/init.d/avahi-daemon ]; then
-	chkconfig --level 2345 avahi-daemon off
-fi
-
 # Sudo policies
 #--------------
 
@@ -275,4 +254,7 @@ fi
 /etc/init.d/functions-automagic
 /usr/sbin/addsudo
 %dir /usr/share/clearos/base
-/usr/share/clearos/base
+%dir /usr/share/clearos/base/scripts
+%dir /usr/share/clearos/base/config
+/usr/share/clearos/base/scripts/*
+/usr/share/clearos/base/config/openssl.cnf
