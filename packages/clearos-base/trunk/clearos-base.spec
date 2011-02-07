@@ -71,7 +71,6 @@ Initializes the system environment
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base/config
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base/scripts
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/logrotate.d
@@ -83,7 +82,6 @@ install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
-install -m 644 config/openssl.cnf $RPM_BUILD_ROOT/usr/share/clearos/base/config/
 install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/clearos/base/scripts/
 
 #------------------------------------------------------------------------------
@@ -200,6 +198,4 @@ fi
 /usr/sbin/addsudo
 %dir /usr/share/clearos/base
 %dir /usr/share/clearos/base/scripts
-%dir /usr/share/clearos/base/config
 /usr/share/clearos/base/scripts/*
-/usr/share/clearos/base/config/openssl.cnf
