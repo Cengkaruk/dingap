@@ -134,16 +134,6 @@ fi
 #	sed -i -e 's/^GROUP=100$/GROUP=63000/' /etc/default/useradd
 #fi
 
-# Remove old service watch crontab entry
-#---------------------------------------
-
-#OLDWATCH=`grep "servicewatch" /etc/crontab 2>/dev/null`
-#if [ ! -z "$OLDWATCH" ]; then
-#	logger -p local6.notice -t installer "clearos-base - removing old servicewatch from crontab"
-#	grep -v 'servicewatch' /etc/crontab > /etc/crontab.new
-#	mv /etc/crontab.new /etc/crontab
-#fi
-
 # Chap/pap secrets format
 #------------------------
 
