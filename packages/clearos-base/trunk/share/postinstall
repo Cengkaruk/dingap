@@ -81,9 +81,6 @@ sub UpdateRunLevels() {
 ################################################################################
 
 sub MiscStuff() {
-	# Privoxy RPM is borked
-	system("rpm -e privoxy --noscripts >/dev/null 2>&1");
-
 	# Make sure sudoers has the proper permissions
 	chmod 0440, "/etc/sudoers";
 
