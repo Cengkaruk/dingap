@@ -95,7 +95,7 @@ sub MiscStuff() {
 	}
 
 	# Weird kudzu issue as described @ http://www.firstpr.com.au/web-mail/kudzu-mods/
-	system("/sbin/kudzu -t 1 >/dev/null 2>&1");
+	# system("/sbin/kudzu -t 1 >/dev/null 2>&1");
 
 	# File cleanup
 	my $cleanupinit = `ls /etc/init.d/*rpmsave /etc/init.d/*rpmnew 2>/dev/null`;
