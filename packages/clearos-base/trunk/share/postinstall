@@ -101,11 +101,6 @@ sub MiscStuff() {
 	# Make sure sudoers has the proper permissions
 	chmod 0440, "/etc/sudoers";
 
-	# Update grub 
-	if ( -e "/usr/share/system/scripts/updategrub" ) {
-		system("/usr/share/system/scripts/updategrub");
-	}
-
 	# Remove zeroconf
 	if ( -e "/etc/sysconfig/network" ) {
 		system("echo \"NOZEROCONF=yes\" >> /etc/sysconfig/network");
