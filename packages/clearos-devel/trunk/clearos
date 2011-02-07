@@ -1,0 +1,315 @@
+#!/usr/bin/perl
+
+#-----------------------------------------------------------------------------
+#
+# Copyright 2011 ClearFoundation
+#
+#-----------------------------------------------------------------------------
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#-----------------------------------------------------------------------------
+
+use strict;
+use Switch;
+use Cwd;
+
+$ENV {'PATH'}  = '/sbin:/usr/bin:/bin';
+$ENV {'SHELL'} = '/bin/sh';
+delete @ENV {'ENV', 'BASH_ENV'};  # Perl security stuff - see "man perlsec"
+
+#-----------------------------------------------------------------------------
+#
+# Constants
+#
+#-----------------------------------------------------------------------------
+
+# FIXME - fix paths
+# For now, hack the ClearOS Bootstrap path.  When we're in packaging mode
+# This will all be packaged up properly (e.g. in app-devel-tools)
+
+my $BASEPATH = $ENV{'CLEAROS_BOOTSTRAP'};
+$BASEPATH =~ s/\/framework.*//;
+
+my $PHPCS = '/usr/bin/phpcs';
+my $PHPCS_STANDARD = $BASEPATH . '/tools/phpcs-clearos/trunk/ClearOS';
+
+my $PHPDOC = '/usr/bin/phpdoc';
+my $PHPDOC_DEST = $BASEPATH . '/framework/trunk/htdocs/phpdocs';
+
+#-----------------------------------------------------------------------------
+#
+# Function Definitions
+#
+#-----------------------------------------------------------------------------
+
+sub build();
+sub deps($);
+sub docs(@);
+sub lint(@);
+sub newapp($);
+
+#-----------------------------------------------------------------------------
+#
+# Build
+#
+#-----------------------------------------------------------------------------
+
+sub build() {
+    print "TODO\n";
+}
+
+#-----------------------------------------------------------------------------
+#
+# Dependencies
+#
+#-----------------------------------------------------------------------------
+
+sub deps($) { 
+    my $source = $_[0];
+
+    # Quick hack to map classes to app names
+    #---------------------------------------
+
+    my %all_classes;
+    my $class;
+    my $full_path;
+    my $raw_data = `find $BASEPATH -type f`;
+
+    open(FIND, "find $BASEPATH -type f|");
+
+    while (<FIND>){
+
+        s/.*clearos\/webconfig\///;
+
+        next if /\.svn/;
+        next if (!/^apps/);
+        next if (!/\/libraries\//);
+
+        s/trunk\/libraries\///;
+        s/\.php$//;
+
+        next if (/\./); # No include files, e.g. Firewall.inc.php
+
+        $full_path = $_;
+        chomp($full_path);
+
+        s/.*\///;
+    
+        $class = $_;
+        chomp($class);
+
+        %all_classes->{$class} = $full_path;
+    }
+
+    # Parse file looking for dependencies
+    #------------------------------------
+
+    my $detected_class;
+    my %detected_classes;
+
+    die("uh-oh - open file issues on $source - $!") if (!open(FILE, $source));
+
+    while (<FILE>) {
+        if (/\s+throw new\s+/) {
+            $detected_class = $_;
+            $detected_class =~ s/.*\s+new\s+//;
+            $detected_class =~ s/\(.*//;
+            %detected_classes->{$detected_class} = 1;
+        } elsif (/\s*=\s*new\s+/) {
+            $detected_class = $_;
+            $detected_class =~ s/.*\s*=\s*new\s*//;
+            $detected_class =~ s/\(.*//;
+            %detected_classes->{$detected_class} = 1;
+        } elsif (/\s+extends\s+/) {
+            $detected_class = $_;
+            $detected_class =~ s/.*\s+extends\s+//;
+            $detected_class =~ s/\(.*//;
+            %detected_classes->{$detected_class} = 1;
+        } elsif ((/\s*catch\s*\(/) && (!(/\s*catch\s*\(Exception\s+/))) {
+            $detected_class = $_;
+            $detected_class =~ s/.*catch\s*\(//;
+            $detected_class =~ s/\s+.*//;
+            %detected_classes->{$detected_class} = 1;
+        } elsif (/Validation_Exception/) {
+            $detected_class = 'Validation_Exception';
+            %detected_classes->{$detected_class} = 1;
+        }
+    }
+
+    my @classes_namespace;
+    my @classes_load;
+    my @exceptions_namespace;
+    my @exceptions_load;
+    my $path;
+    my $use_path;
+    my $lib_path;
+
+    foreach my $class (sort keys %detected_classes) {
+        chomp($class);
+        $_ = $class;
+        $path = %all_classes->{$class};
+
+        $use_path = $path;
+        $use_path =~ s/\//\\/g;
+
+        $lib_path = $path;
+        $lib_path =~ s/apps\///g;
+
+        if (/Exception/) {
+            push(@exceptions_namespace, "use \\clearos\\$use_path as $class;");
+            push(@exceptions_load, "clearos_load_library('$lib_path');");
+        } else {
+            push(@classes_namespace, "use \\clearos\\$use_path as $class;");
+            push(@classes_load, "clearos_load_library('$lib_path');");
+        }
+    }
+
+    print "// Classes\n";
+    print "//--------\n\n";
+
+    foreach my $line (sort @classes_namespace) {
+        print $line . "\n";
+    }
+
+    print "\n";
+
+    foreach my $line (sort @classes_load) {
+        print $line . "\n";
+    }
+
+    print "\n";
+
+
+    print "// Exceptions\n";
+    print "//-----------\n\n";
+
+    foreach my $line (sort @exceptions_namespace) {
+        print $line . "\n";
+    }
+
+    print "\n";
+
+    foreach my $line (sort @exceptions_load) {
+        print $line . "\n";
+    }
+}
+
+#-----------------------------------------------------------------------------
+#
+# Docs
+#
+#-----------------------------------------------------------------------------
+
+sub docs(@) {
+    my @source_files = @_;
+    my $file_list;
+    my $dir_list;
+    my $filename_target;
+    my $directory_target;
+
+    if ($#source_files eq 0) {
+        $directory_target = "--directory \"" . cwd() . "\" ";
+    } else {
+        foreach my $file (@source_files) {
+            if (/php$/) {
+                $file_list .= "$file,";
+            } else {
+                $dir_list .= "$file,";
+            }
+        }
+
+        $file_list =~ s/,$//;
+        $dir_list =~ s/,$//;
+
+        $filename_target = "--filename \"$file_list\"";
+        $directory_target = "--directory \"$dir_list\"";
+    }
+
+    my $command = "$PHPDOC " .
+        "--output HTML:frames:phphtmllib " .
+        "--title \"ClearOS API\" "  .
+        "--target $PHPDOC_DEST " .
+        "--ignore .svn/,htdocs/,deploy/,language/ " .
+        "--undocumentedelements " .
+        $directory_target . " " . 
+        $filename_target;
+
+    system("$command");
+}
+
+#-----------------------------------------------------------------------------
+#
+# Lint (Code Sniffer)
+#
+#-----------------------------------------------------------------------------
+
+sub lint(@) {
+    shift(@_);
+    my @source_files = @_;
+    my $file_list = '';
+
+    foreach my $file (@source_files) {
+        $file_list .= "$file ";
+    }
+
+    system("$PHPCS --standard=$PHPCS_STANDARD $file_list");
+}
+
+#-----------------------------------------------------------------------------
+#
+# New app 
+# see "rails new blog" @ http://guides.rubyonrails.org/getting_started.html
+#
+#-----------------------------------------------------------------------------
+
+sub newapp($) { 
+    my $app = $_[0];
+
+    print "dude $app\n";
+
+    if (-d "$app") {
+        print "App directory already exists... buh-bye.\n";
+        exit(1);
+    } 
+
+    mkdir "$app";
+
+    mkdir "$app/branches";
+    mkdir "$app/tags";
+    mkdir "$app/trunk";
+
+    mkdir "$app/trunk/";
+    mkdir "$app/trunk/controllers";
+    mkdir "$app/trunk/deploy";
+    mkdir "$app/trunk/htdocs";
+    mkdir "$app/trunk/language";
+    mkdir "$app/trunk/language/en_US";
+    mkdir "$app/trunk/libraries";
+    mkdir "$app/trunk/packaging";
+    mkdir "$app/trunk/tests";
+    mkdir "$app/trunk/views";
+}
+
+#-------------------------------------------------------------------------
+# Main
+#-------------------------------------------------------------------------
+
+switch ($ARGV[0]) {
+  case "build"    { build(); }
+  case "deps"     { deps($ARGV[1]); }
+  case "docs"     { docs(@ARGV); }
+  case "lint"     { lint(@ARGV); }
+  case "newapp"   { newapp($ARGV[1]); }
+}
