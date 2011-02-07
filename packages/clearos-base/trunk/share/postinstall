@@ -21,7 +21,7 @@
 ###############################################################################
 
 use strict;
-use lib '/usr/share/system/scripts';
+use lib '/usr/share/clearos/base/scripts';
 use File::Find;
 require 'functions';
 
@@ -65,8 +65,8 @@ sub MiscStuff() {
 	# chmod 0440, "/etc/sudoers";
 
 	# Custom postinstall
-	if ( -e "/usr/share/system/modules/setup/postinstall" ) {
-		system("/usr/share/system/modules/setup/postinstall");
+	if ( -e "/usr/share/clearos/base/scripts/postinstall" ) {
+		system("/usr/share/clearos/base/scripts/postinstall");
 	}
 
 	# Weird kudzu issue as described @ http://www.firstpr.com.au/web-mail/kudzu-mods/
@@ -97,7 +97,7 @@ sub MiscStuff() {
 
 	foreach my $file (@cleanuplist) {
 		if (-e $file) {
-			system("mv -v $file /usr/share/system/modules/setup/cleanup/ >> /root/upgrade.log");
+			system("rm -f $file");
 		}
 	}
 }
