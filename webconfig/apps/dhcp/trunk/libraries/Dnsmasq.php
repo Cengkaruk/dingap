@@ -99,7 +99,7 @@ clearos_load_library('base/Validation_Exception');
  */
 
 
-class Dnsmasq_DHCP extends Daemon
+class Dnsmasq extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
