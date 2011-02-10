@@ -1,7 +1,7 @@
 <?php
 
 /**
- * DnsMasq class.
+ * Dnsmasq class.
  *
  * @category   Apps
  * @package    DNS
@@ -62,18 +62,18 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\firewall\Firewall as Firewall;
 use \clearos\apps\network\Ethers as Ethers;
 use \clearos\apps\network\Iface as Iface;
-use \clearos\apps\network\IfaceManager as IfaceManager;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\network\Routes as Routes;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
-clearos_load_library('firewall/Firewall');
-clearos_load_library('network/Ethers');
-clearos_load_library('network/Iface');
-clearos_load_library('network/IfaceManager');
+// clearos_load_library('firewall/Firewall');
+// clearos_load_library('network/Ethers');
+// clearos_load_library('network/Iface');
+// clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network_Utils');
-clearos_load_library('network/Routes');
+// clearos_load_library('network/Routes');
 
 // Exceptions
 //-----------
@@ -89,7 +89,7 @@ clearos_load_library('base/Validation_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * DnsMasq class.
+ * Dnsmasq class.
  *
  * @category   Apps
  * @package    DNS
@@ -101,15 +101,11 @@ clearos_load_library('base/Validation_Exception');
  */
 
 
-class DnsMasq extends Daemon
+class Dnsmasq extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
-
-    protected $is_loaded = FALSE;
-    protected $config = array();
-    protected $subnets = array();
 
     const FILE_DHCP = '/etc/dnsmasq/dhcp.conf';
     const FILE_CONFIG = '/etc/dnsmasq.conf';
@@ -127,11 +123,19 @@ class DnsMasq extends Daemon
     const OPTION_NTP = 42;
 
     ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $is_loaded = FALSE;
+    protected $config = array();
+    protected $subnets = array();
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * DnsMasq constructor.
+     * Dnsmasq constructor.
      */
 
     public function __construct()
@@ -146,11 +150,12 @@ class DnsMasq extends Daemon
      *
      * @param string $mac MAC address
      * @param string $ip IP address
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function AddStaticLease($mac, $ip)
+    public function add_static_lease($mac, $ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -196,7 +201,7 @@ class DnsMasq extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = DnsMasq::DEFAULT_LEASETIME, $tftp = "", $ntp = "")
+    public function AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $tftp = "", $ntp = "")
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -444,7 +449,7 @@ class DnsMasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $interfaces = new IfaceManager();
+        $interfaces = new Iface_Manager();
 
         $ethlist = $interfaces->GetInterfaces(TRUE, TRUE);
         $validlist = array();
@@ -885,7 +890,7 @@ class DnsMasq extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function UpdateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
+    public function UpdateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -911,18 +916,16 @@ class DnsMasq extends Daemon
      * Validates authoritative state
      *
      * @param boolean $state authoritative state
+     *
      * @return string error message if DNS is invalid
      */
 
-    public function ValidateAuthoritative($state)
+    public function validate_authoritative($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME - discuss what to do with string values coming from CodeIgniter
-        // $errmsg = (! is_bool($state)) ? "Authoritative is invalid, eh" : ''; // FIXME: localize
-        $errmsg = '';
-
-        return $errmsg;
+        if (!is_bool($state))
+            return lang('dns_validate_authoritative_invalid');
     }
 
     /**
@@ -931,7 +934,7 @@ class DnsMasq extends Daemon
      * @return boolean TRUE if subnet is valid
      */
 
-    public function ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = DnsMasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
+    public function ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1000,16 +1003,17 @@ class DnsMasq extends Daemon
      * Validates DHCP domain name.
      *
      * @param string $domain domain
+     *
      * @return string error message if domain is invalid
      */
 
-    public function ValidateDomain($domain)
+    public function validate_domain($domain)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        return $network->ValidateDomain($domain);
+        return $network->validate_domain($domain);
     }
 
     /**
@@ -1023,7 +1027,7 @@ class DnsMasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! (preg_match("/^\d+$/", $time) || ($time == DnsMasq::CONSTANT_UNLIMITED_LEASE)))
+        if (! (preg_match("/^\d+$/", $time) || ($time == Dnsmasq::CONSTANT_UNLIMITED_LEASE)))
             $errmsg = 'Lease time is invalid'; // FIXME: translate
 
         return $errmsg;
