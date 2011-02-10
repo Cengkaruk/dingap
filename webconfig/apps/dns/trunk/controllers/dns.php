@@ -152,7 +152,7 @@ class Dns extends ClearOS_Controller
         //---------------
 
         $this->load->library('network/Hosts');
-        $this->load->library('dns/DnsMasq');
+        $this->load->library('dns/Dnsmasq');
 
         // Handle form submit
         //-------------------
@@ -191,7 +191,7 @@ class Dns extends ClearOS_Controller
         //---------------
 
         $this->load->library('network/Hosts');
-        $this->load->library('dns/DnsMasq');
+        $this->load->library('dns/Dnsmasq');
         $this->lang->load('dns');
         $this->lang->load('network');
 
@@ -226,9 +226,9 @@ class Dns extends ClearOS_Controller
 
             try {
                 if ($form_type === 'edit') 
-                    $this->hosts->EditEntry($ip, $hostname, $aliases);
+                    $this->hosts->edit_entry($ip, $hostname, $aliases);
                 else
-                    $this->hosts->AddEntry($ip, $hostname, $aliases);
+                    $this->hosts->add_entry($ip, $hostname, $aliases);
 
                 $this->dnsmasq->Reset();
 
