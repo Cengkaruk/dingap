@@ -99,7 +99,7 @@ clearos_load_library('base/Validation_Exception');
  */
 
 
-class Dnsmasq extends Daemon
+class Dnsmasq_DHCP extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -107,7 +107,7 @@ class Dnsmasq extends Daemon
 
     const FILE_DHCP = '/etc/dnsmasq.d/dhcp.conf';
     const FILE_CONFIG = '/etc/dnsmasq.conf';
-    const FILE_LEASES = '/var/lib/misc/dnsmasq.leases';
+    const FILE_LEASES = '/var/lib/misc/dnsmasq.leases'; // FIXME: moved 
     const DEFAULT_LEASETIME = '12'; // in hours
     const CONSTANT_UNLIMITED_LEASE = 'infinite';
 
