@@ -133,6 +133,7 @@ class Hosts extends Engine
 
         Validation_Exception::is_valid($this->validate_ip($ip));
         Validation_Exception::is_valid($this->validate_hostname($hostname));
+
         foreach ($aliases as $alias)
             Validation_Exception::is_valid($this->validate_alias($alias));
 
@@ -157,9 +158,10 @@ class Hosts extends Engine
     /**
      * Delete an entry from the /etc/hosts file.
      *
-     * @param   string $ip IP address
-     * @return  void
-     * @throws  Exception, Validation_Exception
+     * @param string $ip IP address
+     *
+     * @return void
+     * @throws Exception, Validation_Exception
      */
 
     public function delete_entry($ip)
@@ -182,13 +184,14 @@ class Hosts extends Engine
     }
 
     /**
-     * Updates hosts entry for given IP address
+     * Updates hosts entry for given IP address.
      *
-     * @param   string $ip       IP address
-     * @param   string $hostname caononical hostname
-     * @param   array  $aliases  aliases
-     * @return  void
-     * @throws  Exception, Validation_Exception
+     * @param string $ip       IP address
+     * @param string $hostname canonical hostname
+     * @param array  $aliases  aliases
+     *
+     * @return void
+     * @throws Exception, Validation_Exception
      */
 
     public function edit_entry($ip, $hostname, $aliases = array())
@@ -200,6 +203,7 @@ class Hosts extends Engine
 
         Validation_Exception::is_valid($this->validate_ip($ip));
         Validation_Exception::is_valid($this->validate_hostname($hostname));
+
         foreach ($aliases as $alias)
             Validation_Exception::is_valid($this->validate_alias($alias));
 
@@ -222,8 +226,9 @@ class Hosts extends Engine
     /**
      * Returns the hostname and aliases for the given IP address.
      *
-     * @param   string $ip IP address
-     * @return  array an array containing the hostname and aliases
+     * @param string $ip IP address
+     *
+     * @return array an array containing the hostname and aliases
      * @throws  Exception, Validation_Exception
      */
 
@@ -272,8 +277,9 @@ class Hosts extends Engine
     /**
      * Returns the IP address for the given hostname.
      *
-     * @param   string $hostname hostname
-     * @return  string IP address if hostname exists, NULL if it does not
+     * @param string $hostname hostname
+     *
+     * @return string IP address if hostname exists, NULL if it does not
      * @throws  Exception, Validation_Exception
      */
 
@@ -307,9 +313,10 @@ class Hosts extends Engine
     /**
      * Checks to see if entry exists.
      *
-     * @param   string  $ip IP address
-     * @return  boolean true if entry exists
-     * @throws  Exception, Validation_Exception
+     * @param string $ip IP address
+     *
+     * @return boolean true if entry exists
+     * @throws Exception, Validation_Exception
      */
 
     public function entry_exists($ip)
@@ -341,8 +348,9 @@ class Hosts extends Engine
     /**
      * Validates a hostname alias.
      *
-     * @param   string $alias alias
-     * @return  string error message if alias is invalid
+     * @param string $alias alias
+     *
+     * @return string error message if alias is invalid
      */
 
     public function validate_alias($alias)
@@ -357,8 +365,9 @@ class Hosts extends Engine
     /**
      * Validates a hostname.
      *
-     * @param   string $hostname hostname
-     * @return  string error message if hostname is invalid
+     * @param string $hostname hostname
+     *
+     * @return string error message if hostname is invalid
      */
 
     public function validate_hostname($hostname)
@@ -373,11 +382,13 @@ class Hosts extends Engine
     /**
      * Validates IP address entry.
      *
-     * @param   string $ip IP address
-     * @return  string error message if IP is invalid
+     * @param string $ip IP address
+     * @param boolean $is_edit set to TRUE if validation is an edit
+     *
+     * @return string error message if IP is invalid
      */
 
-    public function validate_ip($ip)
+    public function validate_ip($ip, $is_edit = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -416,11 +427,9 @@ class Hosts extends Engine
             $entries = preg_split('/[\s]+/', $line);
             $ip = array_shift($entries);
 
-            try {
-                Validation_Exception::is_valid($this->validate_ip($ip));
-            } catch (Exception $e) {
+            $error_message = $this->validate_ip($ip);
+            if (! empty($error_message))
                 continue;
-            }
 
             // Use long IP for proper sorting
             // TODO: IPv6 won't work with ip2long
