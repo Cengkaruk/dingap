@@ -4,12 +4,12 @@
  * Dnsmasq class.
  *
  * @category   Apps
- * @package    DNS
+ * @package    DHCP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/dns/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\dns;
+namespace clearos\apps\dhcp;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,9 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
-clearos_load_language('network');
-clearos_load_language('dns');
+clearos_load_language('dhcp');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -92,7 +90,7 @@ clearos_load_library('base/Validation_Exception');
  * Dnsmasq class.
  *
  * @category   Apps
- * @package    DNS
+ * @package    DHCP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
@@ -107,11 +105,11 @@ class Dnsmasq extends Daemon
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_DHCP = '/etc/dnsmasq/dhcp.conf';
+    const FILE_DHCP = '/etc/dnsmasq.d/dhcp.conf';
     const FILE_CONFIG = '/etc/dnsmasq.conf';
     const FILE_LEASES = '/var/lib/misc/dnsmasq.leases';
     const DEFAULT_LEASETIME = '12'; // in hours
-    const CONSTANT_UNLIMITED_LEASE = "infinite";
+    const CONSTANT_UNLIMITED_LEASE = 'infinite';
 
     const OPTION_SUBNET_MASK = 1;
     const OPTION_GATEWAY = 3;
@@ -192,37 +190,45 @@ class Dnsmasq extends Daemon
      * Adds info for specific network subnet.
      *
      * @param string $interface network interface
-     * @param string $gateway gateway IP address
-     * @param array $dns DNS server list
      * @param string $start starting IP for DHCP range
-     * @param string $start ending IP for DHCP range
+     * @param string $end ending IP for DHCP range
      * @param int $lease_time lease time in hours
+     * @param string $gateway gateway IP address
+     * @param array $dns_list DNS server list
+     * @param string $wins WINS server
+     * @param string $tftp TFTP server
+     * @param string $ntp NTP server
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $tftp = "", $ntp = "")
+    public function add_subnet($interface, $start, $end, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $gateway = NULL, $dns_list = NULL, $wins = NULL, $tftp = NULL, $ntp = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
-
-        if ($errmsg)
-            throw new Validation_Exception($errmsg);
+        Validation_Exception::is_valid($this->validate_ip_range($interface, $start, $end));
+        Validation_Exception::is_valid($this->validate_lease_time($lease_time));
+        Validation_Exception::is_valid($this->validate_gateway($gateway));
+        Validation_Exception::is_valid($this->validate_wins_server($wins));
+        Validation_Exception::is_valid($this->validate_tftp_server($tftp));
+        Validation_Exception::is_valid($this->validate_ntp_server($ntp));
+        Validation_Exception::is_valid($this->validate_dns_server_list($dns_list));
 
         if (! $this->is_loaded)
             $this->_load_config();
 
-        $dnsarray = array();
-        $dnslist = "";
+        $dns_array = array();
+        $dns_line = '';
 
-        if (count($dns) > 0) {
-            foreach ($dns as $server) {
+        if (count($dns_list) > 0) {
+            // FIXME: purges empty array elements.  Move to controller.
+            foreach ($dns_list as $server) {
                 if (!empty($server))
-                    $dnsarray[] = $server;
+                    $dns_array[] = $server;
             }
 
-            $dnslist = implode(",", $dnsarray);
+            $dns_line = implode(",", $dns_array);
         }
 
         try {
@@ -256,8 +262,8 @@ class Dnsmasq extends Daemon
         if ($gateway)
             $this->config['dhcp-option']['line'][++$option_count] = "$interface," . self::OPTION_GATEWAY . ",$gateway";
 
-        if (! empty($dnslist))
-            $this->config['dhcp-option']['line'][++$option_count] = "$interface," . self::OPTION_DNS . ",$dnslist";
+        if (! empty($dns_line))
+            $this->config['dhcp-option']['line'][++$option_count] = "$interface," . self::OPTION_DNS . ",$dns_line";
 
         if ($broadcast)
             $this->config['dhcp-option']['line'][++$option_count] = "$interface," . self::OPTION_BROADCAST . ",$broadcast";
@@ -917,7 +923,7 @@ class Dnsmasq extends Daemon
      *
      * @param boolean $state authoritative state
      *
-     * @return string error message if DNS is invalid
+     * @return string error message if authoritative state is invalid
      */
 
     public function validate_authoritative($state)
@@ -925,78 +931,46 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (!is_bool($state))
-            return lang('dns_validate_authoritative_invalid');
+            return lang('dhcp_authoritative_state_invalid');
     }
 
     /**
-     * Validates subnet information.
-     *
-     * @return boolean TRUE if subnet is valid
-     */
-
-    public function ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $errmsg = '';
-        $network = new Network_Utils();
-
-        if (isset($this->subnets[$interface]['network']))
-            $errmsg .= DNSMASQ_LANG_ERRMSG_SUBNETEXISTS;
-
-        if ($network->ValidateIp($gateway))
-            $errmsg .= DNSMASQ_LANG_ROUTER . " ($gateway) - " . LOCALE_LANG_INVALID;
-
-        if ($wins && ($network->ValidateIp($wins)))
-            $errmsg .= DNSMASQ_LANG_NETBIOS . " ($wins) - " . LOCALE_LANG_INVALID;
-
-        if ($network->ValidateIp($start))
-            $errmsg .= DNSMASQ_LANG_LOW_IP . " - " . LOCALE_LANG_INVALID;
-        
-        if ($network->ValidateIp($end))
-            $errmsg .= DNSMASQ_LANG_HIGH_IP . " - " . LOCALE_LANG_INVALID;
-
-        if (! (preg_match("/^\d+$/", $lease_time) || ($lease_time == self::CONSTANT_UNLIMITED_LEASE)))
-            $errmsg .= DNSMASQ_LANG_LEASE_TIME . " ($lease_time) - " . LOCALE_LANG_INVALID;
-        
-        if (! is_array($dns))
-            $errmsg .= DNSMASQ_LANG_DNS . " - " . LOCALE_LANG_ERRMSG_INVALID_TYPE;
-
-        if ($tftp && ($network->ValidateIp($tftp)))
-            $errmsg .= DNSMASQ_LANG_TFTP . " ($tftp) - " . LOCALE_LANG_INVALID;
-
-        if ($ntp && ($network->ValidateIp($ntp)))
-            $errmsg .= DNSMASQ_LANG_NTP . " ($ntp) - " . LOCALE_LANG_INVALID;
-        
-        if (count($dns) > 0) {
-            foreach ($dns as $server) {
-                if (empty($server))
-                    continue;
-
-                if ($network->ValidateIp($server))
-                    $errmsg .= DNSMASQ_LANG_DNS . " ($server) - " . LOCALE_LANG_INVALID;
-            }
-        }
-
-        return $errmsg;
-    }
-
-    /**
-     * Validates DNS server
+     * Validates DNS server.
      *
      * @param string $dns DNS server
-     * @return string error message if DNS is invalid
+     *
+     * @return string error message if DNS server is invalid
      */
 
-    public function ValidateDns($dns)
+    public function validate_dns_server($dns)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($dns)) ? "DNS server is invalid, eh" : ''; // FIXME: localize
+        if ($network->validate_ip($dns))
+            return lang('dhcp_dns_server_invalid');
+    }
 
-        return $errmsg;
+    /**
+     * Validates DNS server list.
+     *
+     * @param string $dns_list list of DNS servers
+     *
+     * @return string error message if DNS server list is invalid
+     */
+
+    public function validate_dns_server_list($dns_list)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! is_array($dns_list))
+            return lang('dhcp_dns_server_list_invalid');
+
+        foreach ($dns_list as $dns) {
+           if ($this->validate_dns_server($dns))
+                return lang('dhcp_dns_server_list_invalid');
+        }
     }
 
     /**
@@ -1013,132 +987,175 @@ class Dnsmasq extends Daemon
 
         $network = new Network_Utils();
 
-        return $network->validate_domain($domain);
+        if ($network->validate_domain($domain))
+            return lang('dhcp_domain_invalid');
+    }
+
+    /**
+     * Validates network interface.
+     *
+     * @param string $interface network interface
+     *
+     * @return string error message if network interface is invalid
+     */
+
+    public function validate_interface($interface)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // FIXME: call IFace class 
+        // return lang('dhcp_network_interface_invalid');
+        return '';
+    }
+
+    /**
+     * Validates DHCP IP range.
+     *
+     * @param string $interface network interface
+     * @param string $start start IP
+     * @param string $end end IP
+     *
+     * @return string error message if IP range is invalid
+     */
+
+    public function validate_ip_range($interface, $start, $end)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $network = new Network_Utils();
+
+        // TODO: should we make sure range is valid for given interface?
+        // Or, are there real world scenarios where out-of-range is used?
+
+        if ($this->validate_interface($interface))
+            return lang('dhcp_network_interface_invalid');
+
+        if ($network->validate_ip_range($start, $end))
+            return lang('dhcp_ip_range_invalid');
     }
 
     /**
      * Validates lease time.
      *
      * @param integer $time lease time
+     *
      * @return string error message if lease time is invalid
      */
 
-    public function ValidateLeaseTime($time)
+    public function validate_lease_time($time)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! (preg_match("/^\d+$/", $time) || ($time == Dnsmasq::CONSTANT_UNLIMITED_LEASE)))
-            $errmsg = 'Lease time is invalid'; // FIXME: translate
-
-        return $errmsg;
+        if (! (preg_match("/^\d+$/", $time) || ($time === Dnsmasq::CONSTANT_UNLIMITED_LEASE)))
+            return lang('dhcp_lease_time_invalid');
     }
 
     /**
      * Validates start IP in DHCP range.
      *
      * @param string $start start IP
-     * @return boolean TRUE if start IP is valid
+     *
+     * @return string error message if start IP is invalid
      */
 
-    public function ValidateStartIp($start)
+    public function validate_start_ip($start)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($start)) ? "DHCP range start is invalid, eh" : ''; // FIXME: localize
-
-        return $errmsg;
+        if ($network->validate_ip($start))
+            return lang('dhcp_start_ip_invalid');
     }
 
     /**
      * Validates end IP in DHCP range.
      *
      * @param string $end end IP
-     * @return boolean TRUE if end IP is valid
+     *
+     * @return string error message if end IP is invalid
      */
 
-    public function ValidateEndIp($end)
+    public function validate_end_ip($end)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($end)) ? "DHCP range end is invalid, eh" : ''; // FIXME: localize
-
-        return $errmsg;
+        if ($network->validate_ip($end))
+            return lang('dhcp_end_ip_invalid');
     }
 
     /**
      * Validates gateway server setting.
      *
      * @param string $gateway gateway server
-     * @return string error message if invalid
+     *
+     * @return string error message if gateway is invalid
      */
 
-    public function ValidateGateway($gateway)
+    public function validate_gateway($gateway)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($gateway)) ? lang('network_gateway') . ' - ' . lang('base_invalid') : '';
-
-        return $errmsg;
+        if ($network->validate_ip($gateway))
+            return lang('dhcp_gateway_invalid');
     }
 
     /**
      * Validates NTP server setting.
      *
      * @param string $ntp NTP server
-     * @return boolean TRUE if NTP server is valid
+     *
+     * @return string error message if NTP server is invalid
      */
 
-    public function ValidateNtp($ntp)
+    public function validate_ntp_server($ntp)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($ntp)) ? "NTP server is invalid, eh" : ''; // FIXME: localize
-
-        return $errmsg;
+        if ($network->validate_ip($ntp))
+            return lang('dhcp_ntp_server_invalid');
     }
 
     /**
      * Validates TFTP server setting.
      *
      * @param string $tftp TFTP server
-     * @return boolean TRUE if TFTP server is valid
+     *
+     * @return string error message if TFTP server is invalid
      */
 
-    public function ValidateTftp($tftp)
+    public function validate_tftp_server($tftp)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($tftp)) ? "TFTP is invalid, eh" : ''; // FIXME: localize
-
-        return $errmsg;
+        if ($network->validate_ip($tftp))
+            return lang('dhcp_tftp_server_invalid');
     }
 
     /**
      * Validates a WINS server.
      *
      * @param string $wins WINS server
-     * @return boolean TRUE if WINS server is valid
+     *
+     * @return string error message if WINS server is invalid
      */
 
-    public function ValidateWins($wins)
+    public function validate_wins_server($wins)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network_Utils();
 
-        $errmsg = ($network->ValidateIp($wins)) ? "WINS is invalid, eh" : ''; // FIXME: localize
-
-        return $errmsg;
+        if ($network->validate_ip($wins))
+            return lang('dhcp_wins_server_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
