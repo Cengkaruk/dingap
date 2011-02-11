@@ -99,29 +99,29 @@ class Iface extends Engine
     // M E M B E R S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const PROC_DEV = '/proc/net/dev';
-    const PATH_SYSCONF = '/etc/sysconfig';
-    const CMD_IFUP = '/sbin/ifup ';
-    const CMD_IFDOWN = '/sbin/ifdown ';
-    const CMD_IFCONFIG = '/sbin/ifconfig ';
-    const CMD_IWCONFIG = '/sbin/iwconfig';
+    const BOOTPROTO_BOOTP = 'bootp';
+    const BOOTPROTO_DHCP = 'dhcp';
+    const BOOTPROTO_DIALUP = 'dialup';
+    const BOOTPROTO_PPPOE = 'pppoe';
+    const BOOTPROTO_STATIC = 'static';
     const CMD_ETHTOOL = '/sbin/ethtool ';
+    const CMD_IFCONFIG = '/sbin/ifconfig ';
+    const CMD_IFDOWN = '/sbin/ifdown ';
+    const CMD_IFUP = '/sbin/ifup ';
+    const CMD_IWCONFIG = '/sbin/iwconfig';
     const FILE_LOG = '/var/log/messages';
+    const PATH_SYSCONF = '/etc/sysconfig';
+    const PROC_DEV = '/proc/net/dev';
     const TYPE_BONDED = 'Bonded';
     const TYPE_BONDED_SLAVE = 'BondedChild';
     const TYPE_BRIDGED = 'Bridge';
     const TYPE_BRIDGED_SLAVE = 'BridgeChild';
     const TYPE_ETHERNET = 'Ethernet';
     const TYPE_PPPOE = 'xDSL';
+    const TYPE_UNKNOWN = 'Unknown';
     const TYPE_VIRTUAL = 'Virtual';
     const TYPE_VLAN = 'VLAN';
     const TYPE_WIRELESS = 'Wireless';
-    const TYPE_UNKNOWN = 'Unknown';
-    const BOOTPROTO_BOOTP = 'bootp';
-    const BOOTPROTO_DHCP = 'dhcp';
-    const BOOTPROTO_STATIC = 'static';
-    const BOOTPROTO_PPPOE = 'pppoe';
-    const BOOTPROTO_DIALUP = 'dialup';
 
     /**
      * @var network interface name
@@ -140,7 +140,7 @@ class Iface extends Engine
 
     public function __construct($iface = NULL)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $this->iface = $iface;
     }
@@ -148,56 +148,56 @@ class Iface extends Engine
     /**
      * Pseudo-constructor, for SOAP callers
      *
-     * @param string $iface Interface name
-     * @return void
+     * @param   string $iface Interface name
+     * @return  void
      */
 
-    public function SetInterface($iface)
+    public function set_interface($iface)
     {
         $this->iface = $iface;
-        if (! $this->IsValid())
-            throw new EngineException(IFACE_LANG_ERRMSG_INVALID . " - " . $this->iface, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . " - " . $this->iface, COMMON_ERROR);
     }
 
     /**
      * Deletes interface configuration.
      *
-     * @param string $iface Interface name (optional)
+     * @param   string $iface Interface name (optional)
      * @return  void
-     * @throws EngineException
+     * @throws  Exception
      */
 
-    public function DeleteConfig($iface = NULL)
+    public function delete_config($iface = NULL)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if($iface != NULL) $this->iface = $iface;
 
         // More PPPoE crap
 
         try {
-            $info = $this->GetInterfaceInfo();
+            $info = $this->get_interface_info();
 
             if (isset($info['ifcfg']['user'])) {
                 $chap = new Chap();
-                $chap->DeleteUser($info['ifcfg']['user']);
+                $chap->delete_secret($info['ifcfg']['user']);
             }
 
-            if (isset($info["ifcfg"]["eth"])) {
-                $pppoedev = new Iface($info["ifcfg"]["eth"]);
-                $pppoedev->DeleteConfig();
+            if (isset($info['ifcfg']['eth'])) {
+                $pppoedev = new Iface($info['ifcfg']['eth']);
+                $pppoedev->delete_config();
             }
 
-            $this->Disable();
+            $this->disable();
 
             sleep(2); // Give it a chance to disappear
 
             $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if ($file->Exists())
-                $file->Delete();
+            if ($file->exists())
+                $file->delete();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -205,30 +205,30 @@ class Iface extends Engine
      * Deletes virtual interface.
      *
      * @return void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function DeleteVirtual()
+    public function delete_virtual()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         list($device, $metric) = split(':', $this->iface, 5);
 
         if (!strlen($metric))
             return;
 
-        $shell = new ShellExec();
-        $retval = $shell->Execute(self::CMD_IFDOWN, $this->iface, TRUE);
+        $shell = new Shell();
+        $retval = $shell->execute(self::CMD_IFDOWN, $this->iface, TRUE);
 
         if ($retval != 0) {
             // Really force it down if ifdown fails.  Don't bother logging errors...
-            $retval = $shell->Execute(self::CMD_IFCONFIG, $this->iface . ' down', TRUE);
+            $retval = $shell->execute(self::CMD_IFCONFIG, $this->iface . ' down', TRUE);
         }
 
         $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-        if ($file->Exists())
-            $file->Delete();
+        if ($file->exists())
+            $file->delete();
     }
 
     /**
@@ -236,25 +236,25 @@ class Iface extends Engine
      *
      * @param string $iface Interface name (optional)
      * @return  void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function Disable($iface = NULL)
+    public function disable($iface = NULL)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if($iface != NULL) $this->iface = $iface;
 
         try {
-            $shell = new ShellExec();
-            $retval = $shell->Execute(self::CMD_IFDOWN, $this->iface, TRUE);
+            $shell = new Shell();
+            $retval = $shell->execute(self::CMD_IFDOWN, $this->iface, TRUE);
 
             if ($retval != 0) {
                 // Really force it down if ifdown fails.  Don't bother logging errors...
-                $retval = $shell->Execute(self::CMD_IFCONFIG, $this->iface . ' down', TRUE);
+                $retval = $shell->execute(self::CMD_IFCONFIG, $this->iface . ' down', TRUE);
             }
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -263,12 +263,12 @@ class Iface extends Engine
      *
      * @param boolean $background perform enable in the background
      * @return void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function Enable($background = FALSE)
+    public function enable($background = FALSE)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $options = array();
@@ -276,13 +276,13 @@ class Iface extends Engine
             if ($background)
                     $options['background'] = TRUE;
 
-            $shell = new ShellExec();
-            $retval = $shell->Execute(self::CMD_IFUP, $this->iface, TRUE, $options);
+            $shell = new Shell();
+            $retval = $shell->execute(self::CMD_IFUP, $this->iface, TRUE, $options);
 
             if ($retval != 0)
-                throw new EngineException($shell->GetFirstOutputLine(), COMMON_WARNING);
+                throw new Engine_Exception($shell->get_first_output_line(), COMMON_WARNING);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -290,21 +290,21 @@ class Iface extends Engine
      * Returns the boot protocol of interface as a readable string for end users.
      *
      * @return string boot protocol of interface
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetBootProtocol()
+    public function get_boot_protocol()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $bootproto = "";
+        $bootproto = '';
 
-        if ($this->IsConfigured()) {
-            $info = $this->ReadConfig();
-            $bootproto = $info["bootproto"];
+        if ($this->is_configured()) {
+            $info = $this->read_config();
+            $bootproto = $info['bootproto'];
 
             // PPPOEKLUDGE - set the boot protocol on PPPoE interfaces
-            if ($this->GetType() == self::TYPE_PPPOE)
+            if ($this->get_type() == self::TYPE_PPPOE)
                 $bootproto = self::BOOTPROTO_PPPOE;
         }
 
@@ -315,15 +315,15 @@ class Iface extends Engine
      * Returns the boot protocol of interface as a readable string for end users.
      *
      * @return string boot protocol of interface
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetBootProtocolText()
+    public function get_boot_protocol_text()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $bootproto = $this->GetBootProtocol();
-        $text = "";
+        $bootproto = $this->get_boot_protocol();
+        $text = '';
 
         if ($bootproto == self::BOOTPROTO_DHCP)
             $text = IFACE_LANG_DHCP;
@@ -339,22 +339,22 @@ class Iface extends Engine
      * Returns interface information as an associative array.
      *
      * @return  array  interface information
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function GetInterfaceInfo()
+    public function get_interface_info()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (! $this->IsValid())
-                throw new EngineException(IFACE_LANG_ERRMSG_INVALID, COMMON_NOTICE);
+            if (! $this->is_valid())
+                throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_NOTICE);
 
             // Using ioctl(2) calls (from custom extension ifconfig.so).
 
             if (! extension_loaded('ifconfig')) {
                 if (!@dl('ifconfig.so')) {
-                    throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_ERROR);
+                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_ERROR);
                 }
             }
 
@@ -379,28 +379,28 @@ class Iface extends Engine
             // (even if it fails).  This should be added to the state flag?
 
             try {
-                $info['link'] = $this->GetLinkStatus();
+                $info['link'] = $this->get_link_status();
             } catch (Exception $e) {
                 // Keep going?
             }
 
             try {
-                $info['speed'] = $this->GetSpeed();
+                $info['speed'] = $this->get_speed();
             } catch (Exception $e) {
                 // Keep going?
             }
 
             try {
-                $info['type'] = $this->GetType();
-                $info['typetext'] = $this->GetTypeText();
+                $info['type'] = $this->get_type();
+                $info['typetext'] = $this->get_type_text();
             } catch (Exception $e) {
                 // Keep going?
             }
 
-            if (preg_match("/^[a-z]+\d+:/", $this->iface)) {
+            if (preg_match('/^[a-z]+\d+:/', $this->iface)) {
                 $info['virtual'] = TRUE;
 
-                $virtualnum = preg_replace("/[a-z]+\d+:/", "", $this->iface);
+                $virtualnum = preg_replace('/[a-z]+\d+:/', '', $this->iface);
 
                 if ($virtualnum >= Firewall::CONSTANT_ONE_TO_ONE_NAT_START)
                     $info['one-to-one-nat'] = TRUE;
@@ -411,15 +411,15 @@ class Iface extends Engine
                 $info['one-to-one-nat'] = FALSE;
             }
 
-            if ($this->IsConfigurable())
+            if ($this->is_configurable())
                 $info['configurable'] = TRUE;
             else
                 $info['configurable'] = FALSE;
 
-            if ($this->IsConfigured()) {
+            if ($this->is_configured()) {
                 try {
                     $info['configured'] = TRUE;
-                    $info['ifcfg'] = $this->ReadConfig();
+                    $info['ifcfg'] = $this->read_config();
                 } catch (Exception $e) {
                     // Keep going?
                 }
@@ -429,7 +429,7 @@ class Iface extends Engine
 
             return $info;
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -437,67 +437,67 @@ class Iface extends Engine
      * Returns the last connection status in the logs.
      *
      * @return string
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetIpConnectionLog()
+    public function get_ip_connection_log()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $config = $this->ReadConfig();
-            $bootproto = $this->GetBootProtocol();
+            $config = $this->read_config();
+            $bootproto = $this->get_boot_protocol();
         
             if ($bootproto == self::BOOTPROTO_PPPOE) {
 
                 $file = new File(self::FILE_LOG, TRUE);
-                $results = $file->GetSearchResults(" (pppd|pppoe)\[\d+\]: ");
+                $results = $file->get_search_results(' (pppd|pppoe)\[\d+\]: ');
 
                 for ($inx = count($results); $inx > (count($results) - 15); $inx--) {
-                    if (preg_match("/Timeout waiting for/", $results[$inx]))
+                    if (preg_match('/Timeout waiting for/', $results[$inx]))
                         return IFACE_LANG_ERRMSG_NO_PPPOE_SERVER;
-                    else if (preg_match("/LCP: timeout/", $results[$inx]))
+                    else if (preg_match('/LCP: timeout/', $results[$inx]))
                         return IFACE_LANG_ERRMSG_NO_PPPOE_SERVER;
-                    else if (preg_match("/PAP authentication failed/", $results[$inx]))
+                    else if (preg_match('/PAP authentication failed/', $results[$inx]))
                         return IFACE_LANG_ERRMSG_AUTHENTICATION_FAILED;
                 }
 
             } else if ($bootproto == self::BOOTPROTO_DHCP) {
 
                 $file = new File(self::FILE_LOG, TRUE);
-                $results = $file->GetSearchResults("dhclient\[\d+\]: ");
+                $results = $file->get_search_results('dhclient\[\d+\]: ');
 
                 for ($inx = count($results); $inx > (count($results) - 10); $inx--) {
-                    if (preg_match("/No DHCPOFFERS received/", $results[$inx]))
+                    if (preg_match('/No DHCPOFFERS received/', $results[$inx]))
                         return IFACE_LANG_ERRMSG_NO_DHCP_SERVER;
-                    else if (preg_match("/DHCPDISCOVER/", $results[$inx]))
+                    else if (preg_match('/DHCPDISCOVER/', $results[$inx]))
                         return IFACE_LANG_ERRMSG_WAITING_FOR_DHCP;
                 }
             }
 
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
 
-        return "";
+        return '';
     }
 
     /**
      * Returns the link status.
      *
      * @return  int FALSE (0) if link is down, TRUE (1) if link present, -1 if not supported by driver.
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function GetLinkStatus()
+    public function get_link_status()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValid())
-            throw new EngineException(IFACE_LANG_ERRMSG_INVALID . " - " . $this->iface, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . ' - ' . $this->iface, COMMON_ERROR);
 
         try {
-            $type = $this->GetType();
+            $type = $this->get_type();
 
             // Wireless interfaces always have link.
             // PPPOEKLUDGE -- get link status from underlying PPPoE interface.  Sigh.
@@ -505,30 +505,30 @@ class Iface extends Engine
             if ($type == self::TYPE_WIRELESS) {
                 return 1;
             } else if ($type == self::TYPE_PPPOE) {
-                $ifaceconfig = $this->ReadConfig();
+                $ifaceconfig = $this->read_config();
                 $realiface = $ifaceconfig['eth'];
             } else {
                 $realiface = $this->iface;
             }
 
-            $shell = new ShellExec();
-            $retval = $shell->Execute(self::CMD_ETHTOOL, $realiface, TRUE);
+            $shell = new Shell();
+            $retval = $shell->execute(self::CMD_ETHTOOL, $realiface, TRUE);
 
             if ($retval != 0)
                 return -1;
 
-            $output = $shell->GetOutput();
+            $output = $shell->get_output();
 
             $match = array();
             
             for ($i = 0; $i < sizeof($output); $i++) {
-                if (eregi("Link detected: ([A-z]*)", $output[$i], $match)) {
-                    $link = ($match[1] == "yes") ? 1 : 0;
+                if (eregi('Link detected: ([A-z]*)', $output[$i], $match)) {
+                    $link = ($match[1] == 'yes') ? 1 : 0;
                     break;
                 }
             }
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
 
         return $link;
@@ -536,29 +536,29 @@ class Iface extends Engine
 
     /**
      * @return  string  IP of interface
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function GetLiveIp()
+    public function get_live_ip()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValid())
-            throw new EngineException(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
 
         // Using ioctl(2) calls (from custom extension ifconfig.so).
 
         try {
             if (! extension_loaded('ifconfig')) {
                 if (!@dl('ifconfig.so'))
-                    throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
+                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
             }
 
             // This method is from: /var/webconfig/lib/ifconfig.so
             $handle = @ifconfig_init();
             $ip = @ifconfig_address($handle, $this->iface);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
 
         return $ip;
@@ -568,29 +568,29 @@ class Iface extends Engine
      * Returns the MAC address.
      *
      * @return string MAC address
-     * @throws EngineException, EngineException
+     * @throws Engine_Exception, Engine_Exception
      */
 
-    public function GetLiveMac()
+    public function get_live_mac()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValid())
-            throw new EngineException(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
 
         try {
             // Using ioctl(2) calls (from custom extension ifconfig.so).
 
             if (! extension_loaded('ifconfig')) {
                 if (!@dl('ifconfig.so'))
-                    throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
+                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
             }
 
             // This method is from: /var/webconfig/lib/ifconfig.so
             $handle = @ifconfig_init();
             $mac = @ifconfig_hwaddress($handle, $this->iface);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
 
         return $mac;
@@ -600,31 +600,31 @@ class Iface extends Engine
      * Returns the netmask.
      *
      * @return  string  netmask of interface
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function GetLiveNetmask()
+    public function get_live_netmask()
     {
         // Using ioctl(2) calls (from custom extension ifconfig.so).
 
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValid())
-            throw new EngineException(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
 
         try {
             // Using ioctl(2) calls (from custom extension ifconfig.so).
 
             if (! extension_loaded('ifconfig')) {
                 if (!@dl('ifconfig.so'))
-                    throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
+                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
             }
 
             // This method is from: /var/webconfig/lib/ifconfig.so
             $handle = @ifconfig_init();
             $netmask = @ifconfig_netmask($handle, $this->iface);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
 
         return $netmask;
@@ -634,16 +634,16 @@ class Iface extends Engine
      * Gets an interface's MTU.
      *
      * @return int mtu Interface MTU
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetMtu()
+    public function get_mtu()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
+                throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
         }
 
         $handle = @ifconfig_init();
@@ -651,14 +651,14 @@ class Iface extends Engine
         try {
             $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if (! $file->Exists())
+            if (! $file->exists())
                 return @ifconfig_mtu($handle, $this->iface);
 
-            return preg_replace("/\"/", "", $file->LookupValue("/^MTU\s*=\s*/"));
-        } catch (FileNoMatchException $e) {
+            return preg_replace('/"/', '', $file->lookup_value('/^MTU\s*=\s*/'));
+        } catch (File_No_Match_Exception $e) {
             return @ifconfig_mtu($handle, $this->iface);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -668,32 +668,32 @@ class Iface extends Engine
      * This method may not be supported in all network card drivers.
      *
      * @return  int  speed in megabits per second
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function GetSpeed()
+    public function get_speed()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValid())
-            throw new EngineException(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
 
         $speed = -1;
 
         try {
-            $type = $this->GetType();
+            $type = $this->get_type();
 
             // Wireless interfaces
             //--------------------
 
             if ($type == self::TYPE_WIRELESS) {
-                $shell = new ShellExec();
-                $shell->Execute(self::CMD_IWCONFIG, $this->iface, FALSE);
-                $output = $shell->GetOutput();
+                $shell = new Shell();
+                $shell->execute(self::CMD_IWCONFIG, $this->iface, FALSE);
+                $output = $shell->get_output();
                 $matches = array();
                 
                 foreach ($output as $line) {
-                    if (preg_match("/Bit Rate:\s*([0-9]*)/", $line, $matches)) {
+                    if (preg_match('/Bit Rate:\s*([0-9]*)/', $line, $matches)) {
                         $speed = $matches[1];
                         break;
                     }
@@ -705,19 +705,19 @@ class Iface extends Engine
             } else {
                 // PPPOEKLUDGE -- get speed from underlying PPPoE interface.  Sigh.
                 if ($type == self::TYPE_PPPOE) {
-                    $ifaceconfig = $this->ReadConfig();
+                    $ifaceconfig = $this->read_config();
                     $realiface = $ifaceconfig['eth'];
                 } else {
                     $realiface = $this->iface;
                 }
 
-                $shell = new ShellExec();
-                $retval = $shell->Execute(self::CMD_ETHTOOL, $realiface, TRUE);
-                $output = $shell->GetOutput();
+                $shell = new Shell();
+                $retval = $shell->execute(self::CMD_ETHTOOL, $realiface, TRUE);
+                $output = $shell->get_output();
                 $matches = array();
 
                 foreach ($output as $line) {
-                    if (preg_match("/^\s*Speed: ([0-9]*)/", $line, $matches)) {
+                    if (preg_match('/^\s*Speed: ([0-9]*)/', $line, $matches)) {
                         $speed = $matches[1];
                         break;
                     }
@@ -725,7 +725,7 @@ class Iface extends Engine
             }
 
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
 
         return $speed;
@@ -747,36 +747,36 @@ class Iface extends Engine
      *  - TYPE_UNKOWN
      *
      * @return  string  type of interface
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function GetType()
+    public function get_type()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $isconfigured = $this->IsConfigured();
+        $isconfigured = $this->is_configured();
 
         // Not configured?  We can still detect a wireless type
         //-----------------------------------------------------
 
         if (! $isconfigured) {
             try {
-                $shell = new ShellExec();
-                $shell->Execute(self::CMD_IWCONFIG, $this->iface, FALSE);
-                $output = $shell->GetOutput();
+                $shell = new Shell();
+                $shell->execute(self::CMD_IWCONFIG, $this->iface, FALSE);
+                $output = $shell->get_output();
             } catch (Exception $e) {
-                throw new EngineException($e->GetMessage(), COMMON_WARNING);
+                throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
             }
 
             foreach ($output as $line) {
-                if (preg_match("/ESSID/", $line))
+                if (preg_match('/ESSID/', $line))
                     return self::TYPE_WIRELESS;
             }
 
             return self::TYPE_ETHERNET;
         }
 
-        $netinfo = $this->ReadConfig();
+        $netinfo = $this->read_config();
 
         // Trust the "type" in the configuration file (if available)
         //----------------------------------------------------------
@@ -815,28 +815,28 @@ class Iface extends Engine
 
     /**
      * @deprecated
-     * @see GetTypeText
+     * @see get_type_text
      */
 
-    public function GetTypeName()
+    public function get_type_name()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        return $this->GetTypeText();
+        return $this->get_type_text();
     }
 
     /**
      * Returns the type of interface as a readable string for end users.
      *
      * @return  string  type of interface
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function GetTypeText()
+    public function get_type_text()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $type = $this->GetType();
+        $type = $this->get_type();
 
         if ($type == self::TYPE_BONDED)
             return IFACE_LANG_BONDED;
@@ -867,30 +867,30 @@ class Iface extends Engine
      *
      * @param string $mac MAC address
      * @return void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function SetMac($mac = NULL)
+    public function set_mac($mac = NULL)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if (! $file->Exists())
+            if (! $file->exists())
                 return;
 
             if (is_null($mac))
-                $mac = $this->GetLiveMac();
+                $mac = $this->get_live_mac();
 
             try {
-                $file->LookupValue("/^HWADDR\s*=\s*/");
-                $file->ReplaceLines("/^HWADDR\s*=.*$/", "HWADDR=\"$mac\"", 1);
-            } catch (FileNoMatchException $e) {
-                $file->AddLines("HWADDR=\"$mac\"\n");
+                $file->lookup_value('/^HWADDR\s*=\s*/');
+                $file->replace_lines('/^HWADDR\s*=.*$/', "HWADDR=\"$mac\"", 1);
+            } catch (File_No_Match_Exception $e) {
+                $file->add_lines("HWADDR=\"$mac\"\n");
             }
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -899,27 +899,27 @@ class Iface extends Engine
      *
      * @param int mtu Interface MTU
      * @return void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function SetMtu($mtu)
+    public function set_mtu($mtu)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if (! $file->Exists())
+            if (! $file->exists())
                 return;
 
             try {
-                $file->LookupValue("/^MTU\s*=\s*/");
-                $file->ReplaceLines("/^MTU\s*=.*$/", "MTU=\"$mtu\"", 1);
-            } catch (FileNoMatchException $e) {
-                $file->AddLines("MTU=\"$mtu\"\n");
+                $file->lookup_value('/^MTU\s*=\s*/');
+                $file->replace_lines('/^MTU\s*=.*$/', "MTU=\"$mtu\"", 1);
+            } catch (File_No_Match_Exception $e) {
+                $file->add_lines("MTU=\"$mtu\"\n");
             }
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -927,23 +927,23 @@ class Iface extends Engine
      * Reads interface configuration file.
      *
      * @return  array  network configuration settings
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function ReadConfig()
+    public function read_config()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if (! $file->Exists())
+            if (! $file->exists())
                 return NULL;
 
             $lines = $file->GetContentsAsArray();
 
             foreach ($lines as $line) {
-                $line = eregi_replace('\"', '', $line);
+                $line = eregi_replace('"', '', $line);
 
                 if (ereg('^[[:space:]]*#', $line) || !strlen($line))
                     continue;
@@ -974,7 +974,7 @@ class Iface extends Engine
             return $netinfo;
 
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -982,32 +982,32 @@ class Iface extends Engine
      * Writes interface configuration file.
      *
      * @return  boolean TRUE if write succeeds
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function WriteConfig($netinfo)
+    public function write_config($netinfo)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if ($file->Exists())
-                $file->Delete();
+            if ($file->exists())
+                $file->delete();
 
             $file->Create('root', 'root', '0600');
 
             foreach($netinfo as $key => $value) {
                 // The underlying network scripts do not like quotes on DEVICE
-                if ($key == "DEVICE")
-                    $file->AddLines(strtoupper($key) . '=' . $value . "\n");
+                if ($key == 'DEVICE')
+                    $file->add_lines(strtoupper($key) . '=' . $value . "\n");
                 else
-                    $file->AddLines(strtoupper($key) . '="' . $value . "\"\n");
+                    $file->add_lines(strtoupper($key) . '="' . $value . "\"\n");
             }
 
             return TRUE;
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -1020,12 +1020,12 @@ class Iface extends Engine
      * @param  string  $password  password
      * @param  integer  $mtu  MTU
      * @returns string New/current PPPoE interface name
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function SavePppoeConfig($eth, $username, $password, $mtu = NULL, $peerdns = TRUE)
+    public function save_pppoe_config($eth, $username, $password, $mtu = NULL, $peerdns = TRUE)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             // PPPoE hacking... again.
@@ -1035,20 +1035,20 @@ class Iface extends Engine
 
             $chap = new Chap();
             $oldiface = new Iface($eth);
-            $oldinfo = $oldiface->GetInterfaceInfo();
+            $oldinfo = $oldiface->get_interface_info();
 
             if (isset($oldinfo['ifcfg']['user']))
-                $chap->DeleteUser($oldinfo['ifcfg']['user']);
+                $chap->delete_secret($oldinfo['ifcfg']['user']);
 
             $physdev = $eth;
             if (substr($eth, 0, 3) == 'ppp') {
                 $pppoe = new Iface($eth);
-                $ifcfg = $pppoe->GetInterfaceInfo();
+                $ifcfg = $pppoe->get_interface_info();
                 $physdev = $ifcfg['ifcfg']['eth'];
             } else {
                 for ($i = 0; $i < 64; $i++) {
                     $pppoe = new Iface('ppp' . $i);
-                    if (! $pppoe->IsConfigured()) {
+                    if (! $pppoe->is_configured()) {
                         $eth = 'ppp' . $i;
                         break;
                     }
@@ -1059,7 +1059,7 @@ class Iface extends Engine
             //------------------------------------------------
 
             $ethernet = new Iface($physdev);
-            $liveinfo = $ethernet->GetInterfaceInfo();
+            $liveinfo = $ethernet->get_interface_info();
 
             $ethinfo = array();
             $ethinfo['DEVICE'] = $physdev;
@@ -1067,8 +1067,8 @@ class Iface extends Engine
             $ethinfo['ONBOOT'] = 'no';
             $ethinfo['HWADDR'] = $liveinfo['hwaddress'];
 
-            $ethernet->Disable(); // See maintenance note
-            $ethernet->WriteConfig($ethinfo);
+            $ethernet->disable(); // See maintenance note
+            $ethernet->write_config($ethinfo);
 
             // Write PPPoE config
             //-------------------
@@ -1102,8 +1102,8 @@ class Iface extends Engine
                 $info['MTU'] = $mtu;
 
             $pppoe = new Iface($eth);
-            $pppoe->Disable(); // See maintenance note
-            $pppoe->WriteConfig($info);
+            $pppoe->disable(); // See maintenance note
+            $pppoe->write_config($info);
 
             // Add password to chap-secrets
             //-----------------------------
@@ -1112,7 +1112,7 @@ class Iface extends Engine
 
             return $eth;
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -1126,36 +1126,36 @@ class Iface extends Engine
      * @param  string  $netmask  netmask (for static only)
      * @param  string  $gateway  gate (for static only)
      * @param  string  $hostname optional DHCP hostname (for DHCP only)
-     * @param  boolean $gatewayrequired flag if gateway setting is required
+     * @param  boolean $gateway_required flag if gateway setting is required
      * @returns void
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function SaveEthernetConfig($isdhcp, $ip, $netmask, $gateway, $hostname, $peerdns, $gatewayrequired = FALSE)
+    public function save_ethernet_config($isdhcp, $ip, $netmask, $gateway, $hostname, $peerdns, $gateway_required = FALSE)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $isvalid = TRUE;
-        $network = new Network();
+        $network = new Network_Utils();
 
         if (! $isdhcp) {
-            if (! $network->IsValidIp($ip)) {
+            if (! $network->is_validIp($ip)) {
                 $this->AddValidationError(NETWORK_LANG_IP . ' - ' . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
                 $isvalid = FALSE;
             }
 
-            if (! $network->IsValidNetmask($netmask)) {
+            if (! $network->is_validNetmask($netmask)) {
                 $this->AddValidationError(NETWORK_LANG_NETMASK . ' - ' . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
                 $isvalid = FALSE;
             }
 
             if ($gateway) {
-                if (! $network->IsValidIp($gateway)) {
+                if (! $network->is_validIp($gateway)) {
                     $this->AddValidationError(NETWORK_LANG_GATEWAY . ' - ' . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
                     $isvalid = FALSE;
                 }
             } else {
-                if ($gatewayrequired) {
+                if ($gateway_required) {
                     $this->AddValidationError(NETWORK_LANG_GATEWAY . ' - ' . LOCALE_LANG_MISSING, __METHOD__, __LINE__);
                         $isvalid = FALSE;
                     }
@@ -1166,10 +1166,10 @@ class Iface extends Engine
             throw new ValidationException(LOCALE_LANG_INVALID);
 
         try {
-            $liveinfo = $this->GetInterfaceInfo();
+            $liveinfo = $this->get_interface_info();
             $hwaddress = $liveinfo['hwaddress'];
 
-            $this->Disable(); // See maintenance note
+            $this->disable(); // See maintenance note
 
             $info = array();
             $info['DEVICE'] = $this->iface;
@@ -1182,7 +1182,7 @@ class Iface extends Engine
                 $info['BOOTPROTO'] = 'dhcp';
                 if (strlen($hostname))
                     $info['DHCP_HOSTNAME'] = $hostname;
-                $info['PEERDNS'] = ($peerdns) ? "yes" : "no";
+                $info['PEERDNS'] = ($peerdns) ? 'yes' : 'no';
             } else {
                 $info['BOOTPROTO'] = 'static';
                 $info['IPADDR'] = $ip;
@@ -1192,10 +1192,10 @@ class Iface extends Engine
                     $info['GATEWAY'] = $gateway;
             }
 
-            $this->WriteConfig($info);
+            $this->write_config($info);
 
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -1205,22 +1205,22 @@ class Iface extends Engine
      * @param  string  $ip  IP address
      * @param  string  $ip  IP address
      * @returns  string  name of virtual interface
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function SaveVirtualConfig($ip, $netmask)
+    public function save_virtual_config($ip, $netmask)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $isvalid = TRUE;
-        $network = new Network();
+        $network = new Network_Utils();
 
-        if (! $network->IsValidIp($ip)) {
+        if (! $network->is_validIp($ip)) {
             $this->AddValidationError(NETWORK_LANG_IP . ' - ' . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
             $isvalid = FALSE;
         }
 
-        if (! $network->IsValidNetmask($netmask)) {
+        if (! $network->is_validNetmask($netmask)) {
             $this->AddValidationError(NETWORK_LANG_NETMASK . ' - ' . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
             $isvalid = FALSE;
         }
@@ -1229,7 +1229,7 @@ class Iface extends Engine
             throw new ValidationException(LOCALE_LANG_INVALID);
 
         try {
-            list($device, $metric) = split("\:", $this->iface, 5);
+            list($device, $metric) = split('\:', $this->iface, 5);
 
             if (! strlen($metric)) {
                 // Find next free virtual metric
@@ -1243,7 +1243,7 @@ class Iface extends Engine
                 $this->iface = $this->iface . ':' . $metric;
             }
 
-            $this->Disable(); // See maintenance note
+            $this->disable(); // See maintenance note
 
             $info = array();
             $info['DEVICE'] = $this->iface;
@@ -1254,11 +1254,11 @@ class Iface extends Engine
             $info['NO_ALIASROUTING'] = 'yes';
             $info['IPADDR'] = $ip;
             $info['NETMASK'] = $netmask;
-            $this->WriteConfig($info);
+            $this->write_config($info);
 
             return $this->iface;
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -1276,20 +1276,20 @@ class Iface extends Engine
      * @param  string  $rate  rate
      * @param  boolean $peerdns set to TRUE if you want to use the DHCP peer DNS settings
      * @returns void
-     * @throws  EngineException, EngineException
+     * @throws  Engine_Exception, Engine_Exception
      */
 
-    public function SaveWirelessConfig($isdhcp, $ip, $netmask, $gateway, $essid, $channel, $mode, $key, $rate, $peerdns)
+    public function save_wireless_config($isdhcp, $ip, $netmask, $gateway, $essid, $channel, $mode, $key, $rate, $peerdns)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (!$isdhcp && (! $this->IsValidIp($ip))) {
+            if (!$isdhcp && (! $this->is_validIp($ip))) {
                 $errors = $this->GetValidationErrors();
-                throw new EngineException($errors[0], COMMON_ERROR);
+                throw new Engine_Exception($errors[0], COMMON_ERROR);
             }
 
-            $this->Disable(); // See maintenance note
+            $this->disable(); // See maintenance note
 
             $info = array();
             $info['DEVICE'] = $this->iface;
@@ -1304,7 +1304,7 @@ class Iface extends Engine
 
             if ($isdhcp) {
                 $info['BOOTPROTO'] = 'dhcp';
-                $info['PEERDNS'] = ($peerdns) ? "yes" : "no";
+                $info['PEERDNS'] = ($peerdns) ? 'yes' : 'no';
             } else {
                 $info['BOOTPROTO'] = 'static';
                 $info['IPADDR'] = $ip;
@@ -1314,9 +1314,9 @@ class Iface extends Engine
                     $info['GATEWAY'] = $gateway;
             }
 
-            $this->WriteConfig($info);
+            $this->write_config($info);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -1324,22 +1324,22 @@ class Iface extends Engine
      * Checks to see if interface has an associated configuration file.
      *
      * @return  boolean TRUE if configuration file exists
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function IsConfigured()
+    public function is_configured()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $file = new File(self::PATH_SYSCONF . "/network-scripts/ifcfg-" . $this->iface);
+            $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
 
-            if ($file->Exists())
+            if ($file->exists())
                 return TRUE;
             else
                 return FALSE;
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
 
@@ -1347,26 +1347,22 @@ class Iface extends Engine
      * Checks to see if interface name is available on the system.
      *
      * @return  boolean TRUE if interface is valid
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function IsValid()
+    public function is_valid()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $iface_manager = new IfaceManager();
-            $interfaces = $iface_manager->GetInterfaces(FALSE, FALSE);
+        $iface_manager = new Iface_Manager();
+        $interfaces = $iface_manager->get_interfaces(FALSE, FALSE);
 
-            foreach ($interfaces as $int) {
-                if (! strcasecmp($this->iface, $int))
-                    return TRUE;
-            }
-
-            return FALSE;
-        } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+        foreach ($interfaces as $iface) {
+            if (! strcasecmp($this->iface, $iface))
+                return TRUE;
         }
+
+        return FALSE;
     }
 
 
@@ -1374,34 +1370,27 @@ class Iface extends Engine
      * Returns state of interface.
      *
      * @return  boolean TRUE if active
-     * @throws  EngineException
+     * @throws  Engine_Exception
      */
 
-    public function IsActive()
+    public function is_active()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            if (! $this->IsValid())
-                throw new EngineException(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
 
-            $shell = new ShellExec();
-            $retval = $shell->Execute(self::CMD_IFCONFIG, $this->iface, TRUE);
+        $shell = new Shell();
+        $shell->execute(self::CMD_IFCONFIG, $this->iface, TRUE);
 
-            if ($retval != 0)
-                return FALSE;
+        $output = $shell->get_output();
 
-            $output = $shell->GetOutput();
-
-            foreach ($output as $line) {
-                if (preg_match('/^' .$this->iface . '/', $line))
-                    return TRUE;
-            }
-
-            return FALSE;
-        } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+        foreach ($output as $line) {
+            if (preg_match('/^' .$this->iface . '/', $line))
+                return TRUE;
         }
+
+        return FALSE;
     }
 
 
@@ -1414,9 +1403,9 @@ class Iface extends Engine
      * @return  boolean TRUE if configurable
      */
 
-    public function IsConfigurable()
+    public function is_configurable()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         // PPPoE interfaces are configurable, bug only if they already configured.
 
@@ -1426,7 +1415,7 @@ class Iface extends Engine
             preg_match('/^ath/', $this->iface) ||
             preg_match('/^br/', $this->iface) ||
             preg_match('/^bond/', $this->iface) ||
-            (preg_match('/^ppp/', $this->iface) && $this->IsConfigured())
+            (preg_match('/^ppp/', $this->iface) && $this->is_configured())
             ) {
             return TRUE;
         } else {
@@ -1437,19 +1426,4 @@ class Iface extends Engine
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @ignore
-     */
-
-    public function __destruct()
-    {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
-
 }
-
-// vim: syntax=php ts=4
-?>
