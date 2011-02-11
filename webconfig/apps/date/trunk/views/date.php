@@ -1,7 +1,7 @@
 <?php
 
 /**
- * System time manager controller.
+ * System time manager view.
  *
  * @category   ClearOS
  * @package    Date
