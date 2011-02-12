@@ -45,10 +45,10 @@
 
 function theme_anchor($url, $text, $importance, $class, $id)
 {
-	// FIXME: revisit importance
-	$importance_class = ($importance === 'high') ? "theme-anchor-important" : "theme-anchor-unimportant";
+    // FIXME: revisit importance
+    $importance_class = ($importance === 'high') ? "theme-anchor-important" : "theme-anchor-unimportant";
 
-	return "<a href='$url' id='$id' class='theme-anchor $class $importance_class'>$text</a>";
+    return "<a href='$url' id='$id' class='theme-anchor $class $importance_class'>$text</a>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,10 +68,10 @@ function theme_anchor($url, $text, $importance, $class, $id)
 
 function theme_form_submit($name, $text, $importance, $class, $id)
 {
-	// FIXME: revisit importance
-	$importance_class = ($importance === 'high') ? "theme-form-important" : "theme-form-unimportant";
+    // FIXME: revisit importance
+    $importance_class = ($importance === 'high') ? "theme-form-important" : "theme-form-unimportant";
 
-	return "<input type='submit' name='$name' id='$id' value=\"$text\" class='theme-form-submit $class $importance_class' />\n";
+    return "<input type='submit' name='$name' id='$id' value=\"$text\" class='theme-form-submit $class $importance_class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,16 +88,16 @@ function theme_form_submit($name, $text, $importance, $class, $id)
 
 function theme_button_set($buttons, $id)
 {
-	$button_html = '';
+    $button_html = '';
 
-	// Tabs are just for clean indentation HTML output
-	foreach ($buttons as $button)
-		$button_html .= "\n\t\t\t" . trim($button);
+    // Tabs are just for clean indentation HTML output
+    foreach ($buttons as $button)
+        $button_html .= "\n\t\t\t" . trim($button);
 
-	return "
-		<div class='theme-button-set' id='$id'>$button_html
-		</div>
-	";
+    return "
+        <div class='theme-button-set' id='$id'>$button_html
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,16 +116,16 @@ function theme_button_set($buttons, $id)
 
 function theme_field_view($value, $label, $input_id, $ids = NULL)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			<span id='$input_id'>$value</span>
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            <span id='$input_id'>$value</span>
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,19 +146,19 @@ function theme_field_view($value, $label, $input_id, $ids = NULL)
 
 function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			<input type='text' name='$name' value='$value' id='$input_id'> $error_html
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            <input type='text' name='$name' value='$value' id='$input_id'> $error_html
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,19 +180,19 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
 
 function theme_field_password($name, $value, $label, $error, $input_id, $ids = NULL)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			<input type='password' name='$name' value='$value' id='$input_id'> $error_html
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            <input type='password' name='$name' value='$value' id='$input_id'> $error_html
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -213,19 +213,19 @@ function theme_field_password($name, $value, $label, $error, $input_id, $ids = N
 
 function theme_field_dropdown($name, $selected, $label, $error, $options, $input_id, $ids)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			" . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            " . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,19 +234,19 @@ function theme_field_dropdown($name, $selected, $label, $error, $options, $input
 
 function theme_field_toggle_enable_disable($name, $selected, $label, $error, $options, $input_id, $ids)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-	$error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			" . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html 
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            " . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html 
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -266,18 +266,18 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $op
 
 function theme_field_checkbox($name, $selected, $label, $options, $input_id, $ids)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-	$error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
-	$select_html = ($selected) ? ' checked' : '';
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $select_html = ($selected) ? ' checked' : '';
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			<input type='checkbox' name='$name' id='$input_id' $select_html>
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            <input type='checkbox' name='$name' id='$input_id' $select_html>
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -296,16 +296,16 @@ function theme_field_checkbox($name, $selected, $label, $options, $input_id, $id
 
 function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
 {
-	$input_id_html = " id='" . $input_id . "'";
-	$field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-	$label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
+    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
 
-	return "
-		<div$field_id_html>
-			<label for='$input_id'$label_id_html>$label</label>
-			<div id='$input_id' class='theme-progress-bar'> </div>
-		</div>
-	";
+    return "
+        <div$field_id_html>
+            <label for='$input_id'$label_id_html>$label</label>
+            <div id='$input_id' class='theme-progress-bar'> </div>
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -314,36 +314,36 @@ function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
 
 function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
 {
-	$columns = count($headers) + 1;
+    $columns = count($headers) + 1;
 
-	// Header parsing
-	//---------------
+    // Header parsing
+    //---------------
 
-	// Tabs are just for clean indentation HTML output
-	$header_html = '';
+    // Tabs are just for clean indentation HTML output
+    $header_html = '';
 
-	foreach ($headers as $header)
-		$header_html .= "\n\t\t" . trim("<th>$header</th>");
+    foreach ($headers as $header)
+        $header_html .= "\n\t\t" . trim("<th>$header</th>");
 
-	// No title in the action header
-	$header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+    // No title in the action header
+    $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
 
-	// Add button
-	//-----------
+    // Add button
+    //-----------
 
-	$add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+    $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
-	// Legend parsing
-	//---------------
+    // Legend parsing
+    //---------------
 
-	// FIXME
-	$legend_html = '';
+    // FIXME
+    $legend_html = '';
 
-	if ($legend)	
-		$legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-list-table-legend'>$legend</td></tr></tfoot>";
+    if ($legend)    
+        $legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-list-table-legend'>$legend</td></tr></tfoot>";
 
-	// Item parsing
-	//-------------
+    // Item parsing
+    //-------------
 
     // FIXME: clean up enabled/disabled toggle widget
     $options = array(
@@ -351,44 +351,44 @@ function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
         '1' => lang('base_enabled')
     );
 
-	$item_html = '';
+    $item_html = '';
 
-	foreach ($items as $item) {
-		$item_html .= "\t<tr>\n";
+    foreach ($items as $item) {
+        $item_html .= "\t<tr>\n";
 
-		foreach ($item['details'] as $value)
-			$item_html .= "\t\t" . "<td>$value</td>\n";
+        foreach ($item['details'] as $value)
+            $item_html .= "\t\t" . "<td>$value</td>\n";
 
 // pete
 // FIXME: experimenting with checkboxes
 //        $select_html = ($item['state']) ? 'checked' : ''; 
-//		$item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
+//        $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
 // FIXME: or use toggle switch?
-		$item_html .= "\t\t<td>" . form_dropdown($item['name'], $options, $item['state']) ."</td>";
-		$item_html .= "\t</tr>\n";
-	}
+        $item_html .= "\t\t<td>" . form_dropdown($item['name'], $options, $item['state']) ."</td>";
+        $item_html .= "\t</tr>\n";
+    }
 
-	// List table
-	//-----------
+    // List table
+    //-----------
 
-	return "
+    return "
 
 <div class='theme-list-table-container ui-widget'>
   <div class='theme-list-table-header ui-state-active ui-corner-top'>
-	<div class='theme-list-table-title'>$title</div>
-	<div class='theme-list-table-action'>$add_html</div>
+    <div class='theme-list-table-title'>$title</div>
+    <div class='theme-list-table-action'>$add_html</div>
   </div>
   <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-list-table display'>
    <thead>
-	<tr>$header_html
-	</tr>
+    <tr>$header_html
+    </tr>
    </thead>
    <tbody>
 $item_html
    </tbody>$legend_html
   </table>
 </div>
-	";
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -399,17 +399,17 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 {
 // FIXME - work in progress
 // FIXME - icons and translate
-	$class = 'ui-state-error';
-	$iconclass = 'ui-icon-alert';
+    $class = 'ui-state-error';
+    $iconclass = 'ui-icon-alert';
 
-	echo "
-		<div class='ui-widget'>
-			<div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
-				<p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
-				<p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
-			</div>
-		</div>
-	";
+    echo "
+        <div class='ui-widget'>
+            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+                <p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
+                <p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
+            </div>
+        </div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -418,69 +418,69 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 
 function theme_summary_table($title, $anchors, $headers, $items, $legend = NULL)
 {
-	$columns = count($headers) + 1;
+    $columns = count($headers) + 1;
 
-	// Header parsing
-	//---------------
+    // Header parsing
+    //---------------
 
-	// Tabs are just for clean indentation HTML output
-	$header_html = '';
+    // Tabs are just for clean indentation HTML output
+    $header_html = '';
 
-	foreach ($headers as $header)
-		$header_html .= "\n\t\t" . trim("<th>$header</th>");
+    foreach ($headers as $header)
+        $header_html .= "\n\t\t" . trim("<th>$header</th>");
 
-	// No title in the action header
-	$header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+    // No title in the action header
+    $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
 
-	// Add button
-	//-----------
+    // Add button
+    //-----------
 
-	$add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+    $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
-	// Legend parsing
-	//---------------
+    // Legend parsing
+    //---------------
 
-	// FIXME
-	$legend_html = '';
+    // FIXME
+    $legend_html = '';
 
-	if ($legend)	
-		$legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-summary-table-legend'>$legend</td></tr></tfoot>";
+    if ($legend)    
+        $legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-summary-table-legend'>$legend</td></tr></tfoot>";
 
-	// Item parsing
-	//-------------
+    // Item parsing
+    //-------------
 
-	$item_html = '';
+    $item_html = '';
 
-	foreach ($items as $item) {
-		$item_html .= "\t<tr>\n";
+    foreach ($items as $item) {
+        $item_html .= "\t<tr>\n";
 
-		foreach ($item['details'] as $value)
-			$item_html .= "\t\t" . "<td>$value</td>\n";
+        foreach ($item['details'] as $value)
+            $item_html .= "\t\t" . "<td>$value</td>\n";
 
-		$item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
-		$item_html .= "\t</tr>\n";
-	}
+        $item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
+        $item_html .= "\t</tr>\n";
+    }
 
-	// Summary table
-	//--------------
-	return "
+    // Summary table
+    //--------------
+    return "
 
 <div class='theme-summary-table-container ui-widget'>
   <div class='theme-summary-table-header ui-state-active ui-corner-top'>
-	<div class='theme-summary-table-title'>$title</div>
-	<div class='theme-summary-table-action'>$add_html</div>
+    <div class='theme-summary-table-title'>$title</div>
+    <div class='theme-summary-table-action'>$add_html</div>
   </div>
   <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table display'>
    <thead>
-	<tr>$header_html
-	</tr>
+    <tr>$header_html
+    </tr>
    </thead>
    <tbody>
 $item_html
    </tbody>$legend_html
   </table>
 </div>
-	";
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -492,16 +492,16 @@ $item_html
 
 function theme_control_panel($links)
 {
-	$items = '';
+    $items = '';
 
-	foreach ($links as $link => $title)
-		$items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
+    foreach ($links as $link => $title)
+        $items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
 
-	return "
-		<div>
-			<ul>
-				$items
-			</ul>
-		</div>
-	";
+    return "
+        <div>
+            <ul>
+                $items
+            </ul>
+        </div>
+    ";
 }

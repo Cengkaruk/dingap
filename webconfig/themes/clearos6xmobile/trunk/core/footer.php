@@ -31,25 +31,90 @@
 /**
  * Returns the footer for the theme.
  *
- * Two types of footer layouts must be supported in a ClearOS theme.  See 
- * developer documentation for details.
+ * Three types of footer layouts must be supported in a ClearOS theme.  Please
+ * see the developer documentation for details:
+ * http://www.clearfoundation.com/docs/developer/theming/header
  *
+ * @param array $page_data page data
+ *
+ * @return HTML for the footer
  */
 
-function theme_page_footer($page)
+function theme_page_footer($page_data)
 {
     $menu_items = '';
 
-    foreach ($page['menus'] as $url => $detail) {
-        $menu_items .= "\n\t\t\t<li><a rel='external' href='" . $url . "'>" . $detail['title'] . "</a></li>";
+    // Loop through to build menu
+    //---------------------------
+
+    $top_menu = '';
+    $category_first_item = TRUE;
+    $subcategory_first_item = TRUE;
+    $current_category = '';
+    $current_subcategory = '';
+    $category_count = 0;
+
+    foreach ($page_data['menus'] as $url => $page) {
+
+        // Category transition
+        //--------------------
+
+        if ($page['category'] != $current_category) {
+
+            // Don't close top menu category on first run
+            //-------------------------------------------
+
+            if (! $category_first_item) {
+                $top_menu .= "\t\t\t\t\t</ul>\n";
+                $top_menu .= "\t\t\t\t</li>\n";
+                $top_menu .= "\t\t\t</ul>\n";
+                $top_menu .= "\t\t</li>\n";
+            }
+
+            // Top Menu
+            //---------
+
+            $top_menu .= "\t\t<li>" . $page['category'] . "\n";
+            $top_menu .= "\t\t\t<ul>\n";
+
+            $current_category = $page['category'];
+            $category_first_item = FALSE;
+            $subcategory_first_item = TRUE;
+        }
+
+        // Subcategory transition
+        //-----------------------
+
+        if ($current_subcategory != $page['subcategory']) {
+
+            if (! $subcategory_first_item) {
+                $top_menu .= "\t\t\t\t\t</ul>\n";
+                $top_menu .= "\t\t\t\t</li>\n";
+            }
+
+            $top_menu .= "\t\t\t\t<li>" . $page['subcategory'] . "\n";
+            $top_menu .= "\t\t\t\t\t<ul>\n";
+
+            $current_subcategory = $page['subcategory'];
+            $subcategory_first_item = FALSE;
+        }
+
+        // Page transition
+        //----------------
+
+        $top_menu .= "\t\t\t\t\t\t<li><a href='" . $url . "'>" . $page['title'] . "</a><li>\n";
     }
-/*
-    $menu_items = "
-    <li><a href='acura.html'>Acura</a></li>
-    <li data-role='list-divider'>Audi3</li>
-    <li><a href='bmw.html'>BMW</a></li>
-    ";
-*/
+
+    // Close out open HTML tags
+    //-------------------------
+
+    $top_menu .= "\t\t\t\t\t</ul>\n";
+    $top_menu .= "\t\t\t\t</li>\n";
+    $top_menu .= "\t\t\t</ul>\n";
+    $top_menu .= "\t\t</li>\n";
+
+    // Footer links
+    //-------------
 
     $links = "<a href='/app/base/theme/set/clearos6x' data-role='button' data-icon='gear' rel='external'>" . lang('base_full_view') . "</a>";
 
@@ -70,7 +135,8 @@ function theme_page_footer($page)
     </div>
 
     <div data-role='content'>    
-        <ul data-role='listview' data-theme='g'>$menu_items
+        <ul data-role='listview' data-theme='g'>
+$top_menu
         </ul>
     </div>
 

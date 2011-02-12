@@ -309,6 +309,55 @@ function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// L I S T  T A B L E
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
+{
+    $columns = count($headers) + 1;
+
+    // Header parsing
+    //---------------
+
+    // Tabs are just for clean indentation HTML output
+    $header_html = '';
+
+    foreach ($headers as $header)
+        $header_html .= "\n\t\t" . trim("<th>$header</th>");
+
+    // Add button
+    //-----------
+
+    //  FIXME $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+
+    // Legend parsing
+    //---------------
+
+    // FIXME
+    $legend_html = '';
+
+    // Item parsing
+    //-------------
+
+    $item_html = '';
+
+    foreach ($items as $item)
+        $item_html .= "\n\t\t\t\t<li><a rel='external' href='" . $item['action'] . "'>" . $item['title'] . "</a></li>";
+
+    // Summary table
+    //--------------
+
+    $search = (count($items) > 10) ? " data-filter='true'" : "";
+
+    return "
+        <div>
+            <ul data-role='listview'$search>$item_html
+            </ul>
+        </div>
+    ";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // S U M M A R Y  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
