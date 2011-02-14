@@ -97,7 +97,7 @@ class Snort extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CONFIG = '/etc/snort.conf';
-    const PATH_RULES =  '/etc/snort';
+    const PATH_RULES =  '/etc/snort.d/rules/clearcenter';
     const TYPE_POLICY = 'policy';
     const TYPE_SECURITY = 'security';
     const TYPE_UNSUPPORTED = 'unsupported';
