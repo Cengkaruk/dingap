@@ -361,10 +361,10 @@ function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
 
 // pete
 // FIXME: experimenting with checkboxes
-//        $select_html = ($item['state']) ? 'checked' : ''; 
-//        $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
+        $select_html = ($item['state']) ? 'checked' : ''; 
+        $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
 // FIXME: or use toggle switch?
-        $item_html .= "\t\t<td>" . form_dropdown($item['name'], $options, $item['state']) ."</td>";
+//        $item_html .= "\t\t<td>" . form_dropdown($item['name'], $options, $item['state']) ."</td>";
         $item_html .= "\t</tr>\n";
     }
 
