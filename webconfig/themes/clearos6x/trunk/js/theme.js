@@ -19,6 +19,7 @@ $(function(){
 			"bSortable": false, "aTargets": [ -1 ] 
 		}],
 		"bJQueryUI": true,
+		"bPaginate": false,
 		"sPaginationType": "full_numbers"
 	});
 
