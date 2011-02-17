@@ -162,12 +162,13 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        if ($this->is_valid_ip($ip) === FALSE)
+            throw new Validation_Exception(lang('network_validate_ip_invalid'));
 
-        if ($error = $this->validate_netmask($netmask))
-            throw new Validation_Exception($error);
+        if ($this->is_valid_netmask($netmask) === FALSE)
+            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
 
+        // TODO: IPv6 support (replace ip2long with inet_pton)
         $ip_long = ip2long($ip);
         $netmask_long = ip2long($netmask);
 
@@ -210,12 +211,13 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($error = $this->validate_ip($ip))
-            throw new Validation_Exception($error);
+        if ($this->is_valid_ip($ip) === FALSE)
+            throw new Validation_Exception(lang('network_validate_ip_invalid'));
 
-        if ($error = $this->validate_netmask($netmask))
-            throw new Validation_Exception($error);
+        if ($this->is_valid_netmask($netmask) === FALSE)
+            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
 
+        // TODO: IPv6 support (replace ip2long with inet_pton)
         $ip_long = ip2long($ip);
         $netmask_long = ip2long($netmask);
         $network_address = ($ip_long & $netmask_long);
@@ -257,7 +259,7 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->validate_ip($ip))
+        if ($this->is_valid_ip($ip) === FALSE)
             throw new Validation_Exception(lang('network_validate_ip_invalid'));
 
         $ip_long = ip2long($ip);
@@ -267,8 +269,8 @@ class Network_Utils extends Engine
             || ( ($ip_long >= ip2long("192.168.0.0")) && ($ip_long <= ip2long("192.168.255.255")) )
         )
             return TRUE;
-        else
-            return FALSE;
+
+        return FALSE;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -472,7 +474,7 @@ class Network_Utils extends Engine
             return lang('network_validate_ip_range_reversed');
     }
 */
-    public function validate_ip_range($from, $to)
+    public function is_valid_ip_range($from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 

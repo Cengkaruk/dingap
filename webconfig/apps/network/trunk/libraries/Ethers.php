@@ -161,8 +161,14 @@ class Ethers extends Engine
 
         $network = new Network_Utils();
 
-        Validation_Exception::is_valid($network->validate_mac($mac));
-        Validation_Exception::is_valid($network->validate_ip($ip));
+        if ($network->is_valid_mac($mac) === FALSE) {
+            throw new Validation_Exception(
+                lang('network_validate_mac_address_invalid'), CLEAROS_ERROR);
+        }
+        if ($network->is_valid_mac($ip) === FALSE) {
+            throw new Validation_Exception(
+                lang('network_validate_ip_invalid'), CLEAROS_ERROR);
+        }
 
         $file = new File(self::FILE_CONFIG);
         $contents = $file->get_contents_as_array();
