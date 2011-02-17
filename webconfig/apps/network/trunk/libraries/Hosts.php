@@ -431,13 +431,12 @@ class Hosts extends Engine
             if (! empty($error_message))
                 continue;
 
-            // Use long IP for proper sorting
-            // TODO: IPv6 won't work with ip2long
-            $ip_real = ip2long($ip);
+            // Use inet_pton for proper key sorting
+            $addr_key = bin2hex(inet_pton($ip));
 
-            $this->hostdata[$ip_real]['ip'] = $ip;
-            $this->hostdata[$ip_real]['hostname'] = array_shift($entries);
-            $this->hostdata[$ip_real]['aliases'] = $entries;
+            $this->hostdata[$addr_key]['ip'] = $ip;
+            $this->hostdata[$addr_key]['hostname'] = array_shift($entries);
+            $this->hostdata[$addr_key]['aliases'] = $entries;
         }
 
         ksort($this->hostdata);
