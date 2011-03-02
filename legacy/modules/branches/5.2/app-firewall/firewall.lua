@@ -308,6 +308,7 @@ function LoadEnvironment()
 	FW_ACCEPT = os.getenv("FW_ACCEPT")
 	IPBIN = os.getenv("IPBIN")
 	TCBIN = os.getenv("TCBIN")
+	EBTABLESBIN = os.getenv("EBTABLES")
 	MODPROBE = os.getenv("MODPROBE")
 	RMMOD = os.getenv("RMMOD")
 	SYSCTL = os.getenv("SYSCTL")
@@ -487,6 +488,9 @@ function LoadEnvironment()
 
 	if TCBIN == nil then TCBIN = "/sbin/tc" end
 	debug("TCBIN=" .. TCBIN)
+
+	if EBTABLESBIN == nil then EBTABLESBIN = "/sbin/ebtables" end
+	debug("EBTABLESBIN=" .. EBTABLESBIN)
 
 	if MODPROBE == nil then MODPROBE = "/sbin/modprobe" end
 	debug("MODPROBE=" .. MODPROBE)
@@ -1897,6 +1901,10 @@ function RunProxyPorts()
 				iptables("nat", "-A PREROUTING -p tcp -d " .. r_addr .. " --dport 80 -j " .. FW_ACCEPT)
 			end
 		end
+
+		execute(
+			string.format("%s -t broute -A BROUTING -p IPv4 --ip-protocol 6 " ..
+				"--ip-destination-port 80 -j redirect --redirect-target ACCEPT", EBTABLESBIN))
 
 		if string.len(SQUID_FILTER_PORT) ~= 0 then
 			echo("Enabled proxy+filter transparent mode for filter port: " ..
@@ -3501,6 +3509,27 @@ end
 
 -------------------------------------------------------------------------------
 --
+-- B R I D G E
+--
+-- Bridge mode.  This is an extension of "trusted standalone" which a few
+-- bridge specific exetensions related to proxy (squid) and the content filter
+-- (dansguardian).
+--
+-------------------------------------------------------------------------------
+
+function Bridge()
+	echo("Using bridge mode (no firewall)")
+
+	UnloadNatKernelModules()
+	LoadKernelModules()
+	SetPolicyToAccept()
+	DefineChains()
+	RunCustomRules()
+	RunProxyPorts()
+end
+
+-------------------------------------------------------------------------------
+--
 -- S T A N D A L O N E
 --
 -- A "standalone" firewall is designed for a server that sits on the Internet
@@ -3689,6 +3718,7 @@ if FW_MODE == "gateway" then Gateway()
 elseif FW_MODE == "trustedgateway" then TrustedGateway()
 elseif FW_MODE == "standalone" then StandAlone()
 elseif FW_MODE == "trustedstandalone" then TrustedStandAlone()
+elseif FW_MODE == "bridge" then Bridge()
 elseif FW_MODE == "dmz" then Dmz()
 else error("Invalid firewall mode: " .. FW_MODE) end
 
