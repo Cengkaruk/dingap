@@ -3,13 +3,13 @@
 /**
  * Hostname class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,23 +39,38 @@ namespace clearos\apps\network;
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
 clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('network/Network');
+clearos_load_library('base/Shell');
+clearos_load_library('network/Network_Utils');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -64,13 +79,13 @@ clearos_load_library('network/Network');
 /**
  * Hostname class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Hostname extends Engine
@@ -109,7 +124,7 @@ class Hostname extends Engine
         $shell = new Shell();
 
         $options['validate_output'] = TRUE;
-        $shell->execute(self::CMD_HOSTNAME, '', false, $options);
+        $shell->execute(self::CMD_HOSTNAME, '', FALSE, $options);
 
         return $shell->get_first_output_line();
     }
@@ -133,7 +148,6 @@ class Hostname extends Engine
 
         return $hostname;
     }
-
 
     /**
      * Returns configured domain name.
@@ -186,7 +200,8 @@ class Hostname extends Engine
      *
      * Hostname must have at least one period.
      *
-     * @param   string $hostname hostname
+     * @param string $hostname hostname
+     *
      * @return  void
      * @throws  Exception, Validation_Exception
      */
@@ -219,10 +234,6 @@ class Hostname extends Engine
         //------------------------
 
         $shell = new Shell();
-        $shell->execute(self::CMD_HOSTNAME, $hostname, true);
+        $shell->execute(self::CMD_HOSTNAME, $hostname, TRUE);
     }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
 }
