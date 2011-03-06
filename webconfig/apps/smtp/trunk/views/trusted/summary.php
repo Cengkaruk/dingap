@@ -1,7 +1,7 @@
 <?php
 
 /**
- * SMTP general settings view.
+ * SMTP trusted networks summary view.
  *
  * @category   ClearOS
  * @package    SMTP
@@ -33,64 +33,48 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+$this->lang->load('network');
 $this->lang->load('smtp');
-$this->lang->load('base');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form handler
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/smtp')
-    );
-} else {
-    $read_only = TRUE;
-    $buttons = array(anchor_edit('/app/smtp/general'));
+$headers = array(
+	lang('network_network')
+);
+
+///////////////////////////////////////////////////////////////////////////////
+// Anchors 
+///////////////////////////////////////////////////////////////////////////////
+
+$anchors = array();
+
+///////////////////////////////////////////////////////////////////////////////
+// Items
+///////////////////////////////////////////////////////////////////////////////
+
+foreach ($networks as $network) {
+
+    $no_slash_network = preg_replace('/\//', '_', $network);
+
+	$item['title'] = $network;
+	$item['action'] = '/app/smtp/trusted/delete/' . $no_slash_network;
+	$item['anchors'] = button_set(array(anchor_delete('/app/smtp/trusted/delete/' . $no_slash_network)));
+	$item['details'] = array($network);
+
+	$items[] = $item;
 }
 
-$max_message_sizes = array();
-$max_message_sizes['1024000'] = '1 ' . lang('base_megabytes');
-$max_message_sizes['2048000'] = '2 ' . lang('base_megabytes');
-$max_message_sizes['5120000'] = '5 ' . lang('base_megabytes');
-$max_message_sizes['10240000'] = '10 ' . lang('base_megabytes');
-$max_message_sizes['20480000'] = '20 ' . lang('base_megabytes');
-$max_message_sizes['30720000'] = '30 ' . lang('base_megabytes');
-$max_message_sizes['40960000'] = '40 ' . lang('base_megabytes');
-$max_message_sizes['51200000'] = '50 ' . lang('base_megabytes');
-$max_message_sizes['102400000'] = '100 ' . lang('base_megabytes');
+sort($items);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Summary table
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('smtp');
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_fieldset(lang('base_general_settings'));
-
-echo field_input('domain', $domain, lang('smtp_domain'), TRUE);
-echo field_input('hostname', $domain, lang('smtp_hostname'), $read_only);
-echo field_toggle_enable_disable('smtp_authentication', $smtp_authentication, lang('smtp_smtp_authentication'), $read_only);
-echo field_dropdown('max_message_size', $max_message_sizes, $max_message_size, lang('smtp_maximum_message_size'), $read_only);
-// FIXME: implement user list
-echo field_dropdown('catch_all', $catch_all, $catch_alls, lang('smtp_catch_all'), $read_only);
-
-echo form_fieldset_close();
-
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
-
-echo button_set($buttons);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_close();
+echo summary_table(
+	lang('smtp_trusted_networks'),
+	$anchors,
+	$headers,
+	$items
+);

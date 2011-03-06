@@ -70,7 +70,7 @@ class SMTP extends ClearOS_Controller
 
 		$this->lang->load('smtp');
 		$this->load->module('smtp/general');
-//		$this->load->module('smtp/subnets');
+		$this->load->module('smtp/trusted');
 
 		// Load views
 		//-----------
@@ -79,7 +79,7 @@ class SMTP extends ClearOS_Controller
 
 		$this->load->view('theme/header');
 		$this->general->index('form');
-//		$this->subnets->index('form');
+		$this->trusted->index('form');
 		$this->load->view('theme/footer');
 	}
 
@@ -100,8 +100,8 @@ class SMTP extends ClearOS_Controller
 
 // FIXME: add icons and help blurb for control panel view
 		$summary['links']['/app/smtp/general'] = lang('base_general_settings');
-		$summary['links']['/app/smtp/networks'] = lang('smtp_trusted_networks');
-		$summary['links']['/app/smtp/domains'] = lang('smtp_destination_domains');
+		$summary['links']['/app/smtp/trusted'] = lang('smtp_trusted_networks');
+		$summary['links']['/app/smtp/destinations'] = lang('smtp_destination_domains');
 		$summary['links']['/app/smtp/forwarders'] = lang('smtp_forward_domains');
 
 		$this->page->set_title(lang('smtp_smtp_server'));

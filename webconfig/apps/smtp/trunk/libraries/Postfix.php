@@ -623,7 +623,7 @@ class Postfix extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_GetMailRestriction(
+        return $this->_get_mail_restriction(
             "smtpd_recipient_restrictions", 
             "check_policy_service",
             $service
@@ -1553,7 +1553,7 @@ class Postfix extends Daemon
         $right_side = empty($value) ? $type : "$type $value";
         $right_side = preg_replace("/\//", '\/', $right_side);
 
-        if (preg_match("/$rightside/", $this->config[$parameter]))
+        if (preg_match("/$right_side/", $this->config[$parameter]))
             return TRUE;
         else
             return FALSE;
