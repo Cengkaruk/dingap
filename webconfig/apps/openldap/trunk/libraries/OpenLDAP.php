@@ -132,7 +132,7 @@ class OpenLDAP extends Daemon
      * @param array  $attributes attributes
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function add($dn, $attributes)
@@ -174,12 +174,15 @@ class OpenLDAP extends Daemon
      * @param string $dn distinguished name
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function delete($dn)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->bound)
+            $this->_bind();
 
         if (! ldap_delete($this->connection, $dn))
             throw new Engine_Exception(lang('openldap_operation_failed'), CLEAROS_ERROR);
@@ -239,6 +242,9 @@ class OpenLDAP extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if (! $this->bound)
+            $this->_bind();
+
         $attributes = ldap_get_attributes($this->connection, $entry);
 
         if (! $attributes)
@@ -295,7 +301,7 @@ class OpenLDAP extends Daemon
      * @param string $entry LDAP entry
      *
      * @return string DN
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function get_dn($entry)
@@ -317,12 +323,15 @@ class OpenLDAP extends Daemon
      * Returns LDAP entries.
      *
      * @return array complete result information in a multi-dimensional array
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function get_entries()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->bound)
+            $this->_bind();
 
         $entries = ldap_get_entries($this->connection, $this->search_result);
 
@@ -336,6 +345,7 @@ class OpenLDAP extends Daemon
      * Returns first LDAP entry.
      *
      * @return resource result entry identifier for the first entry.
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function get_first_entry()
@@ -368,7 +378,7 @@ class OpenLDAP extends Daemon
      * Checks LDAP availability.
      *
      * @return boolean TRUE if OpenLDAP connection was successful
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function is_available()
@@ -394,7 +404,7 @@ class OpenLDAP extends Daemon
      * @param string $entry entry
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function modify($dn, $entry)
@@ -424,6 +434,9 @@ class OpenLDAP extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if (! $this->bound)
+            $this->_bind();
+
         $ok = ldap_modify($this->connection, $dn, $entry);
 
         if (!$ok)
@@ -436,11 +449,15 @@ class OpenLDAP extends Daemon
      * @param string $entry LDAP entry
      *
      * @return resource next result entry
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function next_entry($entry)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->bound)
+            $this->_bind();
 
         return ldap_next_entry($this->connection, $entry);
     }
@@ -451,7 +468,7 @@ class OpenLDAP extends Daemon
      * @param string $dn distinguished name
      *
      * @return array complete entry information
-     * @throws Engine_Exception
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function read($dn)
@@ -549,11 +566,15 @@ class OpenLDAP extends Daemon
      * @param string $sort_filter attribute used for sorting
      *
      * @return void
+     * @throws Engine_Exception, OpenLDAP_Unavailable_Exception
      */
 
     public function sort(&$result, $sort_filter)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->bound)
+            $this->_bind();
 
         // FIXME: remove pass by reference
         ldap_sort($this->connection, $result, $sort_filter);
@@ -620,26 +641,6 @@ class OpenLDAP extends Daemon
         $string = str_replace('\0', '\\00', $string);
 
         return $string;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // V A L I D A T I O N
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validates security policy.
-     *
-     * @param string $policy policy
-     *
-     * @return string error message if security is invalid
-     */
-
-    public function validate_security_policy($policy)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (($policy !== self::POLICY_LOCALHOST) && ($policy !== self::POLICY_LAN))
-            return lang('openldap_security_policy_is_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
