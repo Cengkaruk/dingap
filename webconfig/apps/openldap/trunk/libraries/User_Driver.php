@@ -362,7 +362,6 @@ class User_Driver extends Engine
 
             'aliases'        => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidAlias', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
             'forwarders'    => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidForwarder', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
-            'pbxState'        => array( 'type' => 'integer', 'required' => FALSE, 'validator' => 'validate_room_number', 'objectclass' => 'pcnPbxAccount', 'attribute' => 'pcnPbxState' ),
             'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
             'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
             'googleAppsFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA1 ),
@@ -394,7 +393,7 @@ class User_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
+        if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
         // Validate user_info
@@ -412,8 +411,8 @@ class User_Driver extends Engine
         //------------------------------------
 
         foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_Extension';
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
             $extension = new $class();
 
             $attributes = $extension->add_attributes_hook($user_info);
@@ -450,8 +449,8 @@ print_r($ldap_object);
         //-----------------------------------
 
         foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_Extension';
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
             $extension = new $class();
 
             if (method_exists($extension, 'add_post_processing_hook'))
@@ -707,8 +706,8 @@ print_r($ldap_object);
         //------------------------------
 
         foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_Extension';
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
             $extension = new $class();
 
             $info[$extension_name] = $extension->get_info_hook($attributes);
