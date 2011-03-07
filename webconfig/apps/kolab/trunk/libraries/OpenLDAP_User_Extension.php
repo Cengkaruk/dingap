@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Kolab OpenLDAP directory extension.
+ * Kolab OpenLDAP user extension.
  *
  * @category   Apps
  * @package    OpenLDAP
@@ -66,7 +66,7 @@ clearos_load_library('openldap/Utilities');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Kolab OpenLDAP directory extension.
+ * Kolab OpenLDAP user extension.
  *
  * @category   Apps
  * @package    Directory
@@ -77,7 +77,7 @@ clearos_load_library('openldap/Utilities');
  * @link       http://www.clearfoundation.com/docs/developer/apps/kolab/
  */
 
-class OpenLDAP_Extension extends Engine
+class OpenLDAP_User_Extension extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
