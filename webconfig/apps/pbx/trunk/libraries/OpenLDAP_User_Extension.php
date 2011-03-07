@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PBX OpenLDAP directory extension.
+ * PBX OpenLDAP user extension.
  *
  * @category   Apps
  * @package    PBX
@@ -66,7 +66,7 @@ clearos_load_library('openldap/Utilities');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * PBX OpenLDAP directory extension.
+ * PBX OpenLDAP user extension.
  *
  * @category   Apps
  * @package    PBX
@@ -77,7 +77,7 @@ clearos_load_library('openldap/Utilities');
  * @link       http://www.clearfoundation.com/docs/developer/apps/pbx/
  */
 
-class OpenLDAP_Extension extends Engine
+class OpenLDAP_User_Extension extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
