@@ -4,7 +4,7 @@
  * PBX OpenLDAP directory extension.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    PBX
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -69,7 +69,7 @@ clearos_load_library('openldap/Utilities');
  * PBX OpenLDAP directory extension.
  *
  * @category   Apps
- * @package    Directory
+ * @package    PBX
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -97,7 +97,7 @@ class OpenLDAP_Extension extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * PBX constructor.
+     * PBX OpenLDAP_Extension constructor.
      */
 
     public function __construct()
@@ -198,11 +198,11 @@ FIXME
     }
 
     /** 
-     * Returns user info for passwd in raw LDAP attributes.
+     * Returns user info hash array.
      *
      * @param array $attributes LDAP attributes
      *
-     * @return string default home server
+     * @return array user info array
      * @throws Engine_Exception
      */
 
