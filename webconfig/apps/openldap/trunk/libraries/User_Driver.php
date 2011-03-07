@@ -59,14 +59,18 @@ clearos_load_language('users');
 
 use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
 use \clearos\apps\openldap\Utilities as Utilities;
 
 clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
+clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
-clearos_load_library('openldap/Utilities');
+clearos_load_library('openldap/Directory_Driver');
 clearos_load_library('openldap/OpenLDAP');
+clearos_load_library('openldap/Utilities');
 
 // Exceptions
 //-----------
@@ -102,14 +106,19 @@ class User_Driver extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const LOG_TAG = 'user';
+
+    const PATH_EXTENSIONS = 'config/extensions';
+
     const DEFAULT_HOMEDIR_PATH = '/home';
     const DEFAULT_HOMEDIR_PERMS = '0755';
     const DEFAULT_LOGIN = '/sbin/nologin';
     const DEFAULT_USER_GROUP = 'allusers';
     const DEFAULT_USER_GROUP_ID = '63000';
+
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
     const COMMAND_SYNCMAILBOX = '/usr/sbin/syncmailboxes';
     const COMMAND_SYNCUSERS = '/usr/sbin/syncusers';
+
     const CONSTANT_TYPE_SHA = 'sha';
     const CONSTANT_TYPE_SHA1 = 'sha1';
     const CONSTANT_TYPE_LANMAN = 'lanman';
@@ -130,8 +139,9 @@ class User_Driver extends Engine
     protected $attribute_map;
     protected $info_map;
     protected $reserved_usernames = array('root', 'manager');
-    protected $extensions = array();
-    protected $plugins = array();
+    protected $plugins = NULL;
+    protected $extensions = NULL;
+    protected $path_extensions = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -152,14 +162,10 @@ class User_Driver extends Engine
             'posixAccount',
             'shadowAccount',
             'inetOrgPerson',
-            'clearAccount',
+            'clearAccount'
         );
 
-        // FIXME: auto-detect this of course
-        $this->extensions = array('Samba');
-
-        // FIXME: auto-detect this of course
-        $this->plugins = array();
+        $this->path_extensions = clearos_app_base('openldap') . '/config/extensions';
 
         // The info_map array maps user_info to LDAP attributes and object classes.
         // In the future, the object class might need to be an array... a simple
@@ -354,10 +360,8 @@ class User_Driver extends Engine
         );
 /*
 
-            'mailquota'        => array( 'type' => 'string',  'required' => FALSE, 'validator' => 'validate_mail_quota', 'objectclass' => 'kolabInetOrgPerson', 'attribute' => 'cyrus-userquota' ),
             'aliases'        => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidAlias', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
             'forwarders'    => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidForwarder', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
-            'deleteMailbox'    => array( 'type' => 'string',  'required' => FALSE, 'objectclass' => 'kolabInetOrgPerson', 'attribute' => 'kolabDeleteflag' ),
             'pbxState'        => array( 'type' => 'integer', 'required' => FALSE, 'validator' => 'validate_room_number', 'objectclass' => 'pcnPbxAccount', 'attribute' => 'pcnPbxState' ),
             'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
             'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
@@ -402,7 +406,20 @@ class User_Driver extends Engine
         // Convert user_info into LDAP attributes
         //---------------------------------------
 
-        $ldap_object = $this->convert_array_to_attributes($user_info, FALSE);
+        $ldap_object = $this->convert_user_array_to_attributes($user_info, FALSE);
+
+        // Add LDAP attributes from extensions
+        //------------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_Extension';
+            $extension = new $class();
+
+            $attributes = $extension->add_attributes_hook($user_info);
+
+            $ldap_object = array_merge($attributes, $ldap_object);
+        }
 
         // Validation revisited - check for DN uniqueness
         //-----------------------------------------------
@@ -411,7 +428,7 @@ class User_Driver extends Engine
         // and it is used for the DN (distinguished name) as a unique identifier.
         // That means two people with the same name cannot exist in the directory.
 
-        $directory = Directory::create();
+        $directory = new Directory_Driver();
         $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_ou();
 
         Validation_Exception::is_valid($this->validate_dn($dn));
@@ -419,39 +436,30 @@ class User_Driver extends Engine
         // Add the LDAP user object
         //-------------------------
 
-        try {
-            // TODO: PBX plugin
-/*
-            if (isset($ldap_object['pcnPbxState']) && file_exists(CLEAROS_CORE_DIR . "/iplex/Users.class.php")) {
-                require_once(CLEAROS_CORE_DIR . "/iplex/Users.class.php");
-
-                $iplex_user = new IPlexUser();
-                // if user data already exists in PBX module, delete it and readd
-                if ($iplex_user->Exists())
-                    $iplex_user->DeleteIPlexPBXUser($this->username);
-
-                if ($iplex_user->CCAddUser($user_info, $this->username) === 0) {
-                    // CCAddUser failed to add PBX user, clear pbx settings so they aren't saved
-                    unset($ldap_object['pcnPbxExtension']);
-                    $ldap_object['pcnPbxState'] = 0;
-                    $ldap_object['pcnPbxPresenceState'] = 0;
-                }
-            }
-*/
-
-            // Add to LDAP
 print_r($ldap_object);
-            //$this->ldaph->add($dn, $ldap_object);
+        //$this->ldaph->add($dn, $ldap_object);
 
-            // Initialize default group memberships
-            /*
-            // FIXME: revisit
-            $groupmanager = new GroupManager();
-            $groupmanager->InitalizeGroupMemberships($this->username);
-            */
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
+        // Initialize default group memberships
+        /*
+        // FIXME: revisit
+        $groupmanager = new GroupManager();
+        $groupmanager->InitalizeGroupMemberships($this->username);
+        */
+
+        // Run post-add methods in extensions
+        //-----------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'add_post_processing_hook'))
+                $attributes = $extension->add_post_processing_hook();
         }
+
+        // Ping the synchronizer
+        //----------------------
 
         $this->_synchronize();
     }
@@ -463,7 +471,7 @@ print_r($ldap_object);
      * @param string $attribute LDAP attribute
      *
      * @return boolean TRUE if password is correct
-     * @throws Engine_Exception
+     * @throws Engine_Exception, User_Not_Found_Exception
      */
 
     public function check_password($password, $attribute)
@@ -481,7 +489,7 @@ print_r($ldap_object);
         if ($this->ldaph == NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $attrs = $this->_get_user_info();
+        $attrs = $this->_get_user_attributes();
 
         if (isset($attrs[$attribute][0]) && ($shapassword == $attrs[$attribute][0]))
             return TRUE;
@@ -525,7 +533,7 @@ print_r($ldap_object);
             $ldap_object['kolabDeleteflag'] = $this->ldaph->GetDefaultHomeServer();
             */
 
-            foreach ($this->extensions as $extension_name) {
+            foreach ($this->_get_extensions() as $extension_name) {
                 // FIXME: removed hard-coded paths
                 clearos_load_library('directory/extensions/' . $extension_name . '_OpenLDAP');
                 $class = '\clearos\apps\directory\extensions\\' . $extension_name . '_OpenLDAP';
@@ -563,7 +571,7 @@ print_r($ldap_object);
      * @param array $acl access control list
      *
      * @return void
-     * @throws Validation_Exception, Engine_Exception
+     * @throws Validation_Exception, Engine_Exception, User_Not_Found_Exception
      */
 
     public function update($user_info, $acl = NULL)
@@ -586,7 +594,7 @@ print_r($ldap_object);
         // User does not exist error
         //--------------------------
 
-        $attrs = $this->_get_user_info();
+        $attrs = $this->_get_user_attributes();
 
         if (!isset($attrs['uid'][0]))
             throw new User_Not_Found_Exception();
@@ -600,7 +608,7 @@ print_r($ldap_object);
         // Convert user info to LDAP object
         //---------------------------------
 
-        $ldap_object = $this->convert_array_to_attributes($user_info, TRUE);
+        $ldap_object = $this->convert_user_array_to_attributes($user_info, TRUE);
 
         // TODO: Update PBX user via plugin
         //---------------------------------
@@ -660,7 +668,11 @@ print_r($ldap_object);
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $attrs = $this->_get_user_info();
+        try {
+            $attrs = $this->_get_user_attributes();
+        } catch (User_Not_Found_Exception $e) {
+            // Expected
+        }
 
         if (isset($attrs['uid'][0]))
             return TRUE;
@@ -680,25 +692,26 @@ print_r($ldap_object);
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $attributes = $this->_get_user_info();
+        // Get user info
+        //--------------
 
-        if (!isset($attributes['uid'][0]))
-            throw new User_Not_Found_Exception();
+        $attributes = $this->_get_user_attributes();
 
-        $info['core'] = Utilities::convert_user_attributes_to_array($attributes, $this->info_map);
+        $info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
         // TODO: should uid be put into the info_map?
         // TODO: should uid be returned given that it's already known (passed in to constructor)
         $info['core']['uid'] = $attributes['uid'][0];
 
-        foreach ($this->extensions as $extension_name) {
-            // FIXME: removed hard-coded paths
-            clearos_load_library('directory/extensions/' . $extension_name . '_OpenLDAP');
-            $class = '\clearos\apps\directory\extensions\\' . $extension_name . '_OpenLDAP';
-            $extension = new $class($attributes['dn']);
+        // Add user info from extensions
+        //------------------------------
 
-            $extension_nickname = strtolower($extension_name);
-            $info[$extension_nickname] = $extension->convert_attributes_to_array($attributes);
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_Extension';
+            $extension = new $class();
+
+            $info[$extension_name] = $extension->get_info_hook($attributes);
         }
 
         return $info;
@@ -1447,13 +1460,13 @@ return '';
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match("/^([a-z0-9_\-\.\$]+)$/", $username))
-            return lang('directory_validate_username_invalid');
+            return lang('users_username_is_invalid');
 
         if ($check_reserved && in_array($username, $this->reserved_usernames))
-            return lang('directory_validate_username_reserved');
+            return lang('users_username_is_reserved');
 
         if ($check_uniqueness) {
-            $directory = Directory::create();
+            $directory = new Directory_Driver();
             $message = $directory->check_uniqueness($username);
 
             if ($message)
@@ -1552,7 +1565,7 @@ return '';
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function convert_array_to_attributes($user_info, $is_modify)
+    public function convert_user_array_to_attributes($user_info, $is_modify)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1563,19 +1576,23 @@ return '';
          */
 
         $ldap_object = array();
-        $old_attributes = $this->_get_user_info();
-        $directory = Directory::create();
+        $old_attributes = array();
+        $directory = new Directory_Driver();
+
+        try {
+            $old_attributes = $this->_get_user_attributes();
+        } catch (User_Not_Found_Exception $e) {
+            // Not fatal
+        }
 
         /**
          * Step 1 - convert user_info fields to LDAP fields
          *
-         * Gotcha: in order to delete an attribute on an update, the LDAP object item
-         * must be set to an empty array.  See http://ca.php.net/ldap_modify for
-         * more information.  However, the empty array on a new user causes
-         * an error.  In this case, leaving the LDAP object item undefined
-         * is the correct behavior.
+         * Use the utility class for this job.
          */
 
+        $ldap_object = Utilities::convert_array_to_attributes($user_info['core'], $this->info_map);
+/*
         foreach ($user_info as $info => $value) {
             if (isset($this->info_map[$info]['attribute'])) {
                 $attribute = $this->info_map[$info]['attribute'];
@@ -1595,6 +1612,7 @@ return '';
                 }
             }
         }
+*/
 
         /**
          * Step 2 - handle derived fields
@@ -1605,16 +1623,16 @@ return '';
          *
          * For some built-in accounts (e.g. Flexshare) it is more desirable
          * to explicitly set the 'cn' to something other than 
-         * "first name + last name" , so we allow it.
+         * "first name + last name" , so we (quietly) allow it.
          */
 
         $ldap_object['uid'] = $this->username;
 
-        if (isset($user_info['cn'])) {
-            $ldap_object['cn'] = $user_info['cn'];
+        if (isset($user_info['core']['cn'])) {
+            $ldap_object['cn'] = $user_info['core']['cn'];
         } else {
-            if (isset($user_info['first_name']) || isset($user_info['last_name']))
-                $ldap_object['cn'] = $user_info['first_name'] . ' ' . $user_info['last_name'];
+            if (isset($user_info['core']['first_name']) || isset($user_info['core']['last_name']))
+                $ldap_object['cn'] = $user_info['core']['first_name'] . ' ' . $user_info['core']['last_name'];
             else
                 $ldap_object['cn'] = $old_attributes['cn'][0];
         }
@@ -1629,45 +1647,36 @@ return '';
          */
 
         if (! $is_modify) {
-            if (isset($user_info['uid_number']))
-                $ldap_object['nidNumber'] = $user_info['uid_number'];
+            if (isset($user_info['core']['uid_number']))
+                $ldap_object['nidNumber'] = $user_info['core']['uid_number'];
             else
                 $ldap_object['uidNumber'] = $this->_get_next_uid_number();
 
-            if (isset($user_info['gid_number']))
-                $ldap_object['gidNumber'] = $user_info['gid_number'];
+            if (isset($user_info['core']['gid_number']))
+                $ldap_object['gidNumber'] = $user_info['core']['gid_number'];
             else
                 $ldap_object['gidNumber'] = self::DEFAULT_USER_GROUP_ID;
 
-            if (isset($user_info['login_shell']))
-                $ldap_object['loginShell'] = $user_info['login_shell'];
+            if (isset($user_info['core']['login_shell']))
+                $ldap_object['loginShell'] = $user_info['core']['login_shell'];
             else
                 $ldap_object['loginShell'] = self::DEFAULT_LOGIN;
         
-            if (isset($user_info['home_directory'])) 
-                $ldap_object['homeDirectory'] = $user_info['home_directory'];
+            if (isset($user_info['core']['home_directory'])) 
+                $ldap_object['homeDirectory'] = $user_info['core']['home_directory'];
             else
                 $ldap_object['homeDirectory'] = self::DEFAULT_HOMEDIR_PATH . '/' . $this->username;
 
-            if (isset($user_info['mail'])) 
-                $ldap_object['mail'] = $user_info['mail'];
+            if (isset($user_info['core']['mail'])) 
+                $ldap_object['mail'] = $user_info['core']['mail'];
             else
                 $ldap_object['mail'] = $this->username . "@" . $directory->get_base_internet_domain();
 
-            if (isset($user_info['status'])) 
-                $ldap_object['clearAccountStatus'] = $user_info['status'];
+            if (isset($user_info['core']['status'])) 
+                $ldap_object['clearAccountStatus'] = $user_info['core']['status'];
             else
                 $ldap_object['clearAccountStatus'] = self::STATUS_ENABLED;
         }
-
-        /*
-        FIXME: move to Kolab extension
-        if (! isset($old_attributes['kolabHomeServer'][0]))
-            $ldap_object['kolabHomeServer'] = $this->ldaph->GetDefaultHomeServer();
-
-        if (! isset($old_attributes['kolabInvitationPolicy'][0]))
-            $ldap_object['kolabInvitationPolicy'] = "ACT_MANUAL";
-        */
 
         /**
          * Step 4 - manage all the passwords
@@ -1677,12 +1686,12 @@ return '';
          */
 
         // TODO: move this to SetPassword?
-        if (! empty($user_info['password'])) {
-            $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($user_info['password']);
+        if (! empty($user_info['core']['password'])) {
+            $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($user_info['core']['password']);
             $ldap_object['clearSHAPassword'] = $ldap_object['userPassword'];
             $ldap_object['clearSHA1Password'] = $this->_convert_sha_to_sha1($ldap_object['clearSHAPassword']);
-            $ldap_object['clearMicrosoftNTPassword'] = $this->_calculate_nt_password($user_info['password']);
-            $ldap_object['clearMicrosoftLanmanPassword'] = $this->_calculate_lanman_password($user_info['password']);
+            $ldap_object['clearMicrosoftNTPassword'] = $this->_calculate_nt_password($user_info['core']['password']);
+            $ldap_object['clearMicrosoftLanmanPassword'] = $this->_calculate_lanman_password($user_info['core']['password']);
         }
 
         /**
@@ -1707,6 +1716,7 @@ return '';
             }
         }
 
+// FIXME
         foreach ($user_info as $info => $detail) {
             if (isset($this->info_map[$info]['objectclass']) && ($this->info_map[$info]['objectclass'] != 'core'))
                 $classes[] = $this->info_map[$info]['objectclass'];
@@ -1895,7 +1905,7 @@ return $ldap_object;
     }
 
     /**
-     * Return DN for given user ID (username).
+     * Returns DN for given user ID (username).
      *
      * @param string $uid user ID
      *
@@ -1907,7 +1917,7 @@ return $ldap_object;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
+        if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
         // FIXME: re-enable escape method
@@ -1924,10 +1934,30 @@ return $ldap_object;
     }
 
     /**
+     * Returns extension list.
+     *
+     * @access private
+     * @return array extension list
+     */
+
+    protected function _get_extensions()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->extensions !== NULL)
+            return $this->extensions;
+
+        $folder = new Folder($this->path_extensions);
+
+        $this->extensions = $folder->get_listing();
+
+        return $this->extensions;
+    }
+
+    /**
      * Returns the next available user ID.
      *
      * @access private
-     *
      * @return integer next available user ID
      * @throws Engine_Exception
      */
@@ -1940,7 +1970,7 @@ return $ldap_object;
             $this->ldaph = Utilities::get_ldap_handle();
 
         try {
-            $directory = Directory::create();
+            $directory = new Directory_Driver();
 
             // FIXME: discuss with David -- move "Master" node?
             $dn = 'cn=Master,' . $directory->get_servers_ou();
@@ -1964,25 +1994,21 @@ return $ldap_object;
      * @access private
      *
      * @return array hash array of user information
-     * @throws Engine_Exception
+     * @throws Engine_Exception, User_Not_Found_Exception
      */
 
-    protected function _get_user_info()
+    protected function _get_user_attributes()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->ldaph == NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        try {
-            $dn = $this->_get_dn_for_uid($this->username);
-            $attributes = $this->ldaph->read($dn);
-            $attributes['dn'] = $dn;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-        }
+        $dn = $this->_get_dn_for_uid($this->username);
+        $attributes = $this->ldaph->read($dn);
+        $attributes['dn'] = $dn;
 
-        if (! $attributes)
+        if (!isset($attributes['uid'][0]))
             throw new User_Not_Found_Exception();
 
         return $attributes;
@@ -2011,7 +2037,7 @@ return $ldap_object;
         $ldap_object['pcnMicrosoftNTPassword'] = $this->_calculate_nt_password($password);
         $ldap_object['pcnMicrosoftLanmanPassword'] = $this->_calculate_lanman_password($password);
 
-        $old_attributes = $this->_get_user_info();
+        $old_attributes = $this->_get_user_attributes();
 
         // If necessary, add pcnAccount object class for the above passwords
         if (! in_array('pcnAccount', $old_attributes['objectClass'])) {

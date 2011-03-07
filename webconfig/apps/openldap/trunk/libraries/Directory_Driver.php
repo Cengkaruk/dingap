@@ -66,7 +66,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\date\NTP_Time as NTP_Time;
 use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
-use \clearos\apps\directory\Utilities as Utilities;
+use \clearos\apps\openldap\Utilities as Utilities;
 //use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 
@@ -77,8 +77,9 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('date/NTP_Time');
+clearos_load_library('directory/Directory');
 clearos_load_library('openldap/OpenLDAP');
-clearos_load_library('directory/Utilities');
+clearos_load_library('openldap/Utilities');
 // clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
 
@@ -246,8 +247,8 @@ class Directory_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
         // Check for duplicate user
         //-------------------------
@@ -329,8 +330,8 @@ class Directory_Driver extends Engine
             if ($export->exists())
                 $export->delete();
 
-            if ($this->ldaph == NULL)
-                $this->_get_ldap_handle();
+            if ($this->ldaph === NULL)
+                $this->ldaph = Utilities::get_ldap_handle();
 
             $wasrunning = $this->ldaph->get_running_state();
 
@@ -361,8 +362,8 @@ class Directory_Driver extends Engine
         if ($this->config['base_dn'] !== NULL) 
             return $this->config['base_dn'];
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
         $base_dn = $this->ldaph->get_base_dn();
 
@@ -711,8 +712,8 @@ class Directory_Driver extends Engine
         //---------------------------------
 
         try {
-            if ($this->ldaph == NULL)
-                $this->_get_ldap_handle();
+            if ($this->ldaph === NULL)
+                $this->ldaph = Utilities::get_ldap_handle();
 
             $this->ldaph->set_boot_state(TRUE);
 
@@ -748,8 +749,8 @@ class Directory_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
         $available = $this->ldaph->is_available();
 
@@ -835,8 +836,8 @@ class Directory_Driver extends Engine
             return;
         }
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
         $wasrunning = FALSE;
 
@@ -1117,25 +1118,6 @@ class Directory_Driver extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Creates an LDAP handle.
-     *
-     * @access private
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _get_ldap_handle()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // FIXME: add security context
-        $config_file = new Configuration_File($this->file_config, 'split', '=', 2);
-        $config = $config_file->load();
-
-        $this->ldaph = new OpenLDAP($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
-    }
-
-    /**
      * Initializes authconfig.
      *
      * This method will update the nsswitch.conf and pam configuration.
@@ -1412,8 +1394,8 @@ class Directory_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
         // FIXME
         // Logger::Syslog(self::LOG_TAG, "preparing LDAP import");
@@ -1498,13 +1480,9 @@ FIXME: re-enable backup
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $file = new File("/etc/group");
-            $file->replace_lines("/^users:/", "");
-            $file->replace_lines("/^domain_users:/", "");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $file = new File("/etc/group");
+        $file->replace_lines("/^users:/", "");
+        $file->replace_lines("/^domain_users:/", "");
     }
 
     /**
@@ -1519,12 +1497,8 @@ FIXME: re-enable backup
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $options['background'] = $background;
-            $shell = new Shell();
-            $shell->Execute(self::COMMAND_LDAPSYNC, "full", TRUE, $options);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $options['background'] = $background;
+        $shell = new Shell();
+        $shell->Execute(self::COMMAND_LDAPSYNC, "full", TRUE, $options);
     }
 }

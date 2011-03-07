@@ -103,10 +103,10 @@ class Utilities extends Engine
     }
 
     /**
-     * Converts LDAP attributes into a userinfo array.
+     * Converts LDAP attributes into a hash array.
      *
      * The attributes array that comes from an ldap_read is not what we want to
-     * send back to the API call.  Instead, a basic "userinfo" PHP array is created
+     * send back to the API call.  Instead, a basic hash array is created
      * by mapping LDAP attributes like: 
      *
      *    [facsimileTelephoneNumber] => Array
@@ -123,36 +123,80 @@ class Utilities extends Engine
      * @param string $attributes LDAP attributes
      * @param string $mapping    attribute to array mapping information
      *
-     * @return array attributes in a PHP friendly array
+     * @return array attributes in a hash array
      */
 
-    public static function convert_user_attributes_to_array($attributes, $mapping)
+    public static function convert_attributes_to_array($attributes, $mapping)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $userinfo = array();
+        $info = array();
 
         foreach ($mapping as $infoname => $detail) {
             if (empty($attributes[$detail['attribute']])) {
                 if ($detail['type'] == 'boolean')
-                    $userinfo[$infoname] = FALSE;
+                    $info[$infoname] = FALSE;
                 else
-                    $userinfo[$infoname] = NULL;
+                    $info[$infoname] = NULL;
             } else {
                 if ($infoname != 'password') {
                     if ($detail['type'] == 'boolean') {
-                        $userinfo[$infoname] = ($attributes[$detail['attribute']][0] == 'TRUE') ? TRUE : FALSE;
+                        $info[$infoname] = ($attributes[$detail['attribute']][0] == 'TRUE') ? TRUE : FALSE;
                     } elseif ($detail['type'] == 'stringarray') {
                         array_shift($attributes[$detail['attribute']]);
-                        $userinfo[$infoname] = $attributes[$detail['attribute']];
+                        $info[$infoname] = $attributes[$detail['attribute']];
                     } else {
-                        $userinfo[$infoname] = $attributes[$detail['attribute']][0];
+                        $info[$infoname] = $attributes[$detail['attribute']][0];
                     }
                 }
             }
         }
 
-        return $userinfo;
+        return $info;
+    }
+
+    /**
+     * Converts hash array into LDAP attributes.
+     *
+     * Gotcha: in order to delete an attribute on an update, the LDAP object item
+     * must be set to an empty array.  See http://ca.php.net/ldap_modify for
+     * more information.  However, the empty array on a new user causes
+     * an error.  In this case, leaving the LDAP object item undefined
+     * is the correct behavior.
+     *
+     * @param string $array   hash array
+     * @param string $mapping attribute to array mapping information
+     *
+     * @return array LDAP attributes
+     */
+
+    public static function convert_array_to_attributes($array, $mapping)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ldap_object = array();
+
+        foreach ($array as $info => $value) {
+            if (isset($mapping[$info]['attribute'])) {
+                $attribute = $mapping[$info]['attribute'];
+
+                // Delete
+                if ($value === NULL) {
+                    if ($is_modify)
+                        $ldap_object[$attribute] = array();
+
+                // Add/modify
+                } else {
+                    if ($mapping[$info]['type'] == 'boolean') {
+                        $ldap_object[$attribute] = ($value) ? 'TRUE' : 'FALSE';
+                    } else {
+                        $ldap_object[$attribute] = $array[$info];
+                    }
+                }
+            }
+        }
+
+        return $ldap_object;
     }
 
     /**
