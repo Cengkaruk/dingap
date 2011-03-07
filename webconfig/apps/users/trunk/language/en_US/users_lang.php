@@ -50,3 +50,9 @@ $lang['users_verify'] = 'Verify';
 $lang['users_web'] = 'Web';
 
 $lang['users_users'] = 'Users';
+$lang['users_user_not_found'] = 'User not found.';
+$lang['users_user_already_exists'] = 'Username already exists.';
+$lang['users_full_name_already_exists'] = 'A user with the same full name already exists.';
+
+$lang['users_username_is_invalid'] = 'Username is invalid.';
+$lang['users_username_is_reserved'] = 'Username is reserved.';
