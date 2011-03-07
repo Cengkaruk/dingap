@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Samba OpenLDAP directory extension.
+ * Samba OpenLDAP user extension.
  *
  * @category   Apps
  * @package    Samba
@@ -66,7 +66,7 @@ clearos_load_library('openldap/Utilities');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Samba OpenLDAP directory extension.
+ * Samba OpenLDAP user extension.
  *
  * @category   Apps
  * @package    Samba
@@ -77,7 +77,7 @@ clearos_load_library('openldap/Utilities');
  * @link       http://www.clearfoundation.com/docs/developer/apps/samba/
  */
 
-class OpenLDAP_Extension extends Engine
+class OpenLDAP_User_Extension extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
