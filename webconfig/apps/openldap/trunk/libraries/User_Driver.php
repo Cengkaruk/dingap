@@ -161,38 +161,37 @@ class User_Driver extends Engine
             'top',
             'posixAccount',
             'shadowAccount',
-            'inetOrgPerson',
-            'clearAccount'
+            'inetOrgPerson'
         );
 
         $this->path_extensions = clearos_app_base('openldap') . '/config/extensions';
 
         // The info_map array maps user_info to LDAP attributes and object classes.
         // In the future, the object class might need to be an array... a simple
-        // one-to-one ratio will do for now.  The "core" objects are: 
-        //
-        // - top
-        // - posixAccount
-        // - shadowAccount
-        // - inetOrgPerson
-        // - pcnAccount
-
-        // FIXME: no mobile phone attribute?
+        // one-to-one ratio will do for now.
 
         $this->info_map = array(
             'city' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_city',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'l' 
+            ),
+
+            'certificate' => array(
+                'type' => 'string',
+                'required' => FALSE,
+                'validator' => 'validate_certificate',
+                'object_class' => 'clearAccount',
+                'attribute' => 'userCertificate'
             ),
 
             'country' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_country',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'c'
             ),
 
@@ -200,7 +199,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_description',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'description'
             ),
 
@@ -208,7 +207,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_display_name',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'displayName' 
             ),
 
@@ -216,7 +215,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_fax_number',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'facsimileTelephoneNumber' 
             ),
 
@@ -224,7 +223,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_first_name',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'givenName'
             ),
 
@@ -232,7 +231,7 @@ class User_Driver extends Engine
                 'type' => 'integer',
                 'required' => FALSE,
                 'validator' => 'validate_gid_number',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'gidNumber'
             ),
 
@@ -240,7 +239,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_home_directory',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'homeDirectory'
             ),
 
@@ -248,7 +247,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => TRUE,
                 'validator' => 'validate_last_name',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'sn',
                 'locale' => lang('directory_last_name')
             ),
@@ -257,7 +256,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_login_shell',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'loginShell'
             ),
 
@@ -265,15 +264,23 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_mail',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'mail'
+            ),
+
+            'mobile' => array(
+                'type' => 'string',
+                'required' => FALSE,
+                'validator' => 'validate_mobile',
+                'object_class' => 'clearAccount',
+                'attribute' => 'mobile'
             ),
 
             'organization' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_organization',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'o'
             ),
 
@@ -281,16 +288,24 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_password',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'userPassword',
                 'locale' => lang('base_password')
+            ),
+
+            'pkcs12' => array(
+                'type' => 'string',
+                'required' => FALSE,
+                'validator' => 'validate_pkcs12',
+                'object_class' => 'clearAccount',
+                'attribute' => 'userPKCS12'
             ),
 
             'postal_code' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_postal_code',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'postalCode'
             ),
 
@@ -298,7 +313,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_post_office_box',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'postOfficeBox'
             ),
 
@@ -306,7 +321,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_region',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'st'
             ),
 
@@ -314,7 +329,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_room_number',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'roomNumber'
             ),
 
@@ -322,7 +337,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_street',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'street'
             ),
 
@@ -330,7 +345,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_telephone_number',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'telephoneNumber'
             ),
 
@@ -338,7 +353,7 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_title',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'title'
             ),
 
@@ -346,7 +361,7 @@ class User_Driver extends Engine
                 'type' => 'integer',
                 'required' => FALSE,
                 'validator' => 'IsValidUidNumber',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'uidNumber'
             ),
 
@@ -354,22 +369,22 @@ class User_Driver extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_organization_unit',
-                'objectclass' => 'core',
+                'object_class' => 'clearAccount',
                 'attribute' => 'ou'
             ),
         );
 /*
 
-            'aliases'        => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidAlias', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
-            'forwarders'    => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidForwarder', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
-            'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'googleAppsFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA1 ),
-            'openvpnFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnOpenVPNAccount', 'attribute' => 'pcnOpenVPNFlag' , 'passwordfield' => 'pcnOpenVPNPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'pptpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnPPTPAccount', 'attribute' => 'pcnPPTPFlag' , 'passwordfield' => 'pcnPPTPPassword', 'passwordtype' => self::CONSTANT_TYPE_NT ),
-            'proxyFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnProxyAccount', 'attribute' => 'pcnProxyFlag' , 'passwordfield' => 'pcnProxyPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'webconfigFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnWebconfigAccount', 'attribute' => 'pcnWebconfigFlag' , 'passwordfield' => 'pcnWebconfigPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'webFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'objectclass' => 'pcnWebAccount', 'attribute' => 'pcnWebFlag' , 'passwordfield' => 'pcnWebPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'aliases'        => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidAlias', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
+            'forwarders'    => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidForwarder', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
+            'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'googleAppsFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA1 ),
+            'openvpnFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnOpenVPNAccount', 'attribute' => 'pcnOpenVPNFlag' , 'passwordfield' => 'pcnOpenVPNPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'pptpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnPPTPAccount', 'attribute' => 'pcnPPTPFlag' , 'passwordfield' => 'pcnPPTPPassword', 'passwordtype' => self::CONSTANT_TYPE_NT ),
+            'proxyFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnProxyAccount', 'attribute' => 'pcnProxyFlag' , 'passwordfield' => 'pcnProxyPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'webconfigFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebconfigAccount', 'attribute' => 'pcnWebconfigFlag' , 'passwordfield' => 'pcnWebconfigPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'webFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebAccount', 'attribute' => 'pcnWebFlag' , 'passwordfield' => 'pcnWebPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
 */
 
         // The attribute_map contains the reverse mapping of the above info_map.
@@ -377,11 +392,15 @@ class User_Driver extends Engine
         $this->attribute_map = array();
     
         foreach ($this->info_map as $info => $details)
-            $this->attribute_map[$details['attribute']] = array( 'objectclass' => $details['objectclass'], 'info' => $info );
+            $this->attribute_map[$details['attribute']] = array( 'object_class' => $details['object_class'], 'info' => $info );
     }
 
     /**
      * Adds a user to the system.
+     *
+     * The "common name" is usually a derived field (first name + last name)
+     * and it is used for the DN (distinguished name) as a unique identifier.
+     * That means two people with the same name cannot exist in the directory.
      *
      * @param array $user_info user information
      *
@@ -415,17 +434,14 @@ class User_Driver extends Engine
             $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
             $extension = new $class();
 
-            $attributes = $extension->add_attributes_hook($user_info);
-
-            $ldap_object = array_merge($attributes, $ldap_object);
+            if (method_exists($extension, 'add_attributes_hook')) {
+                $hook_object = $extension->add_attributes_hook($user_info);
+                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+            }
         }
 
         // Validation revisited - check for DN uniqueness
         //-----------------------------------------------
-
-        // The "common name" is usually a derived field (first name + last name)
-        // and it is used for the DN (distinguished name) as a unique identifier.
-        // That means two people with the same name cannot exist in the directory.
 
         $directory = new Directory_Driver();
         $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_ou();
@@ -435,15 +451,9 @@ class User_Driver extends Engine
         // Add the LDAP user object
         //-------------------------
 
+$ldap_object['objectClass'] = array_merge($this->core_classes, $ldap_object['objectClass']);
 print_r($ldap_object);
-        //$this->ldaph->add($dn, $ldap_object);
-
-        // Initialize default group memberships
-        /*
-        // FIXME: revisit
-        $groupmanager = new GroupManager();
-        $groupmanager->InitalizeGroupMemberships($this->username);
-        */
+        $this->ldaph->add($dn, $ldap_object);
 
         // Run post-add methods in extensions
         //-----------------------------------
@@ -538,6 +548,7 @@ print_r($ldap_object);
                 $class = '\clearos\apps\directory\extensions\\' . $extension_name . '_OpenLDAP';
                 $extension = new $class($dn);
 
+                // if (method_exists($extension, 'add_post_processing_hook'))
                 // $extension->delete();
             }
 
@@ -710,7 +721,8 @@ print_r($ldap_object);
             $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
             $extension = new $class();
 
-            $info[$extension_name] = $extension->get_info_hook($attributes);
+            if (method_exists($extension, 'get_info_hook'))
+                $info[$extension_name] = $extension->get_info_hook($attributes);
         }
 
         return $info;
@@ -1478,32 +1490,6 @@ return '';
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Calculates Lanman password.
-     *
-     * @access private
-     *
-     * @return string Lanman password
-     */
-
-    public function _calculate_lanman_password($password)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // FIXME: need to build mcrypt into webconfig-php
-        // FIXME: can we remove LanMan?
-        return 'FIXME';
-
-        $password = substr(strtoupper($password), 0, 14);
-
-        while (strlen($password) < 14)
-             $password .= "\0";
-
-        $deshash = $this->_generate_des_hash(substr($password, 0, 7)) . $this->_generate_des_hash(substr($password, 7, 7));
-
-        return strtoupper(bin2hex($deshash));
-    }
-
-    /**
      * Calculates NT password.
      *
      * @access private
@@ -1591,27 +1577,6 @@ return '';
          */
 
         $ldap_object = Utilities::convert_array_to_attributes($user_info['core'], $this->info_map);
-/*
-        foreach ($user_info as $info => $value) {
-            if (isset($this->info_map[$info]['attribute'])) {
-                $attribute = $this->info_map[$info]['attribute'];
-
-                // Delete
-                if ($value === NULL) {
-                    if ($is_modify)
-                        $ldap_object[$attribute] = array();
-
-                // Add/modify
-                } else {
-                    if ($this->info_map[$info]['type'] == 'boolean') {
-                        $ldap_object[$attribute] = ($value) ? 'TRUE' : 'FALSE';
-                    } else {
-                        $ldap_object[$attribute] = $user_info[$info];
-                    }
-                }
-            }
-        }
-*/
 
         /**
          * Step 2 - handle derived fields
@@ -1690,7 +1655,6 @@ return '';
             $ldap_object['clearSHAPassword'] = $ldap_object['userPassword'];
             $ldap_object['clearSHA1Password'] = $this->_convert_sha_to_sha1($ldap_object['clearSHAPassword']);
             $ldap_object['clearMicrosoftNTPassword'] = $this->_calculate_nt_password($user_info['core']['password']);
-            $ldap_object['clearMicrosoftLanmanPassword'] = $this->_calculate_lanman_password($user_info['core']['password']);
         }
 
         /**
@@ -1699,6 +1663,7 @@ return '';
          * To keep things tidy, we only add the object classes that we need.
          */
 
+/*
         $classes = array();
 
         foreach ($old_attributes as $attribute => $detail) {
@@ -1708,17 +1673,16 @@ return '';
             if (
                 (!(isset($ldap_object[$attribute]) && ($ldap_object[$attribute] == array()))) &&
                 isset($this->attribute_map[$attribute]) &&
-                isset($this->attribute_map[$attribute]['objectclass']) &&
-                ($this->attribute_map[$attribute]['objectclass'] != 'core')
+                isset($this->attribute_map[$attribute]['object_class']) &&
+                ($this->attribute_map[$attribute]['object_class'] != 'core')
                 ) {
-                $classes[] = $this->attribute_map[$attribute]['objectclass'];
+                $classes[] = $this->attribute_map[$attribute]['object_class'];
             }
         }
 
-// FIXME
         foreach ($user_info as $info => $detail) {
-            if (isset($this->info_map[$info]['objectclass']) && ($this->info_map[$info]['objectclass'] != 'core'))
-                $classes[] = $this->info_map[$info]['objectclass'];
+            if (isset($this->info_map[$info]['object_class']) && ($this->info_map[$info]['object_class'] != 'core'))
+                $classes[] = $this->info_map[$info]['object_class'];
         }
 
         // PHPism.  Merged arrays have gaps in the keys of the array;
@@ -1728,6 +1692,7 @@ return '';
 
         foreach ($merged as $class)
             $ldap_object['objectClass'][] = $class;
+*/
 
 // FIXME
 return $ldap_object;
@@ -1774,10 +1739,6 @@ return $ldap_object;
                         $samba_ntpassword = isset($old_attributes['pcnMicrosoftNTPassword'][0]) ? $old_attributes['pcnMicrosoftNTPassword'][0] : "";
 
 
-                    $samba_lmpassword = isset($ldap_object['pcnMicrosoftLanmanPassword']) ? $ldap_object['pcnMicrosoftLanmanPassword'] : "";
-                    if (empty($samba_lmpassword))
-                        $samba_lmpassword = isset($old_attributes['pcnMicrosoftLanmanPassword'][0]) ? $old_attributes['pcnMicrosoftLanmanPassword'][0] : "";
-
                     try {
                         $samba = new Samba();
                         $samba_object = $samba->AddLdapUserAttributes(
@@ -1821,28 +1782,6 @@ return $ldap_object;
             $ldap_object['pcnPbxState'] = 0;
 
         return $ldap_object;
-    }
-
-    /**
-     * Generates an irreversible hash.
-     *
-     * @access private
-     * @return string
-     */
-
-    protected function _generate_des_hash($plain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $key = $this->_add_parity_to_des($plain);
-        $td = mcrypt_module_open(MCRYPT_DES, '', MCRYPT_MODE_ECB, '');
-        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_RAND);
-        mcrypt_generic_init($td, $key, $iv);
-        $hash = mcrypt_generic($td, 'KGS!@#$%');
-        mcrypt_generic_deinit($td);
-        mcrypt_module_close($td);
-
-        return $hash;
     }
 
    /**
@@ -2014,6 +1953,28 @@ return $ldap_object;
     }
 
     /**
+     * Merges two LDAP object arrays.
+     *
+     * @param array $array1 LDAP object array
+     * @param array $array2 LDAP object array
+     *
+     * @return array LDAP object array
+     */
+
+    protected function _merge_ldap_objects($array1, $array2)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Handle object class array
+        $object_classes = array_merge($array1['objectClass'], $array2['objectClass']);
+
+        $ldap_object = array_merge($array1, $array2);
+        $ldap_object['objectClass'] = $object_classes;
+
+        return $ldap_object;
+    }
+
+    /**
      * Sets the password using ClearDirectory conventions.
      *
      * @access private
@@ -2034,7 +1995,6 @@ return $ldap_object;
         $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($password);
         $ldap_object['pcnSHAPassword'] = $ldap_object['userPassword'];
         $ldap_object['pcnMicrosoftNTPassword'] = $this->_calculate_nt_password($password);
-        $ldap_object['pcnMicrosoftLanmanPassword'] = $this->_calculate_lanman_password($password);
 
         $old_attributes = $this->_get_user_attributes();
 
@@ -2053,8 +2013,6 @@ return $ldap_object;
                         $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnSHAPassword'];
                     elseif ($this->info_map[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA1)
                         $ldap_object[$this->info_map[$key]['passwordfield']] = $this->_convert_sha_to_sha1($ldap_object['pcnSHAPassword']);
-                    elseif ($this->info_map[$key]['passwordtype'] == self::CONSTANT_TYPE_LANMAN)
-                        $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnMicrosoftLanmanPassword'];
                     elseif ($this->info_map[$key]['passwordtype'] == self::CONSTANT_TYPE_NT)
                         $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnMicrosoftNTPassword'];
                 }
@@ -2064,7 +2022,6 @@ return $ldap_object;
         // TODO / Samba hook should be removed if possible
         if ($includesamba) {
             if (isset($old_attributes['sambaSID'])) {
-                $ldap_object['sambaLMPassword'] = $ldap_object['pcnMicrosoftLanmanPassword'] ;
                 $ldap_object['sambaNTPassword'] = $ldap_object['pcnMicrosoftNTPassword'];
                 $ldap_object['sambaPwdLastSet'] = time();
             }
