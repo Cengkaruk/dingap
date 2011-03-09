@@ -333,15 +333,15 @@ class Directory_Driver extends Engine
             if ($this->ldaph === NULL)
                 $this->ldaph = Utilities::get_ldap_handle();
 
-            $wasrunning = $this->ldaph->get_running_state();
+            $was_running = $this->ldaph->get_running_state();
 
-            if ($wasrunning)
+            if ($was_running)
                 $this->ldaph->set_running_state(FALSE);
 
             $shell = new Shell();
             $shell->execute(self::COMMAND_SLAPCAT, "-n$dbnum -l " . $ldif, TRUE);
 
-            if ($wasrunning)
+            if ($was_running)
                 $this->ldaph->set_running_state(TRUE);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -839,7 +839,7 @@ class Directory_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $wasrunning = FALSE;
+        $was_running = FALSE;
 
         try {
             // Grab hostname
@@ -851,7 +851,7 @@ class Directory_Driver extends Engine
             // Dump LDAP database to export file
             //----------------------------------
 
-            $wasrunning = $this->ldaph->get_running_state();
+            $was_running = $this->ldaph->get_running_state();
             $this->Export(self::FILE_LDIF_OLD_DOMAIN, self::CONSTANT_BASE_DB_NUM);
 
             // Load LDAP export file
@@ -879,7 +879,7 @@ class Directory_Driver extends Engine
             $basedn = $this->ldaph->GetBaseDn();
 
         } catch (Exception $e) {
-            if ($wasrunning)
+            if ($was_running)
                 $this->ldaph->set_running_state(TRUE);
 
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -1017,7 +1017,7 @@ class Directory_Driver extends Engine
 
             // Tell other LDAP dependent apps to grab latest configuration
             // TODO: move this to a daemon
-            if ($wasrunning)
+            if ($was_running)
                 $this->_synchronize(FALSE);
 
         } catch (Exception $e) {
@@ -1457,7 +1457,7 @@ FIXME: re-enable backup
 
         $folder->chown("ldap", "ldap", TRUE);
 
-        if ($wasrunning) {
+        if ($was_running) {
             // FIXME
             // Logger::Syslog(self::LOG_TAG, "restarting LDAP server");
             $this->ldaph->set_running_state(TRUE);

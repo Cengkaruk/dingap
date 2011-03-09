@@ -63,6 +63,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
 use \clearos\apps\openldap\Utilities as Utilities;
+use \clearos\apps\users\User as User;
 
 clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
@@ -71,8 +72,8 @@ clearos_load_library('base/Shell');
 clearos_load_library('openldap/Directory_Driver');
 clearos_load_library('openldap/OpenLDAP');
 clearos_load_library('openldap/Utilities');
+clearos_load_library('users/User');
 
-// Exceptions
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
@@ -116,18 +117,6 @@ class User_Driver extends Engine
     const DEFAULT_USER_GROUP_ID = '63000';
 
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
-    const COMMAND_SYNCMAILBOX = '/usr/sbin/syncmailboxes';
-    const COMMAND_SYNCUSERS = '/usr/sbin/syncusers';
-
-    const CONSTANT_TYPE_SHA = 'sha';
-    const CONSTANT_TYPE_SHA1 = 'sha1';
-    const CONSTANT_TYPE_LANMAN = 'lanman';
-    const CONSTANT_TYPE_NT = 'nt';
-
-    const STATUS_LOCKED = 'locked';
-    const STATUS_UNLOCKED = 'unlocked';
-    const STATUS_ENABLED = 'enabled';
-    const STATUS_DISABLED = 'disabled';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -161,7 +150,8 @@ class User_Driver extends Engine
             'top',
             'posixAccount',
             'shadowAccount',
-            'inetOrgPerson'
+            'inetOrgPerson',
+            'clearAccount'
         );
 
         $this->path_extensions = clearos_app_base('openldap') . '/config/extensions';
@@ -357,6 +347,14 @@ class User_Driver extends Engine
                 'attribute' => 'title'
             ),
 
+            'uid' => array(
+                'type' => 'integer',
+                'required' => FALSE,
+                'validator' => 'IsValidUsername',
+                'object_class' => 'clearAccount',
+                'attribute' => 'uid'
+            ),
+
             'uid_number' => array(
                 'type' => 'integer',
                 'required' => FALSE,
@@ -377,14 +375,14 @@ class User_Driver extends Engine
 
             'aliases'        => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidAlias', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
             'forwarders'    => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidForwarder', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
-            'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'googleAppsFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA1 ),
-            'openvpnFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnOpenVPNAccount', 'attribute' => 'pcnOpenVPNFlag' , 'passwordfield' => 'pcnOpenVPNPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'pptpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnPPTPAccount', 'attribute' => 'pcnPPTPFlag' , 'passwordfield' => 'pcnPPTPPassword', 'passwordtype' => self::CONSTANT_TYPE_NT ),
-            'proxyFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnProxyAccount', 'attribute' => 'pcnProxyFlag' , 'passwordfield' => 'pcnProxyPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'webconfigFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebconfigAccount', 'attribute' => 'pcnWebconfigFlag' , 'passwordfield' => 'pcnWebconfigPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
-            'webFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebAccount', 'attribute' => 'pcnWebFlag' , 'passwordfield' => 'pcnWebPassword', 'passwordtype' => self::CONSTANT_TYPE_SHA ),
+            'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
+            'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
+            'googleAppsFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA1 ),
+            'openvpnFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnOpenVPNAccount', 'attribute' => 'pcnOpenVPNFlag' , 'passwordfield' => 'pcnOpenVPNPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
+            'pptpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnPPTPAccount', 'attribute' => 'pcnPPTPFlag' , 'passwordfield' => 'pcnPPTPPassword', 'passwordtype' => User::PASSWORD_TYPE_NT ),
+            'proxyFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnProxyAccount', 'attribute' => 'pcnProxyFlag' , 'passwordfield' => 'pcnProxyPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
+            'webconfigFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebconfigAccount', 'attribute' => 'pcnWebconfigFlag' , 'passwordfield' => 'pcnWebconfigPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
+            'webFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebAccount', 'attribute' => 'pcnWebFlag' , 'passwordfield' => 'pcnWebPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
 */
 
         // The attribute_map contains the reverse mapping of the above info_map.
@@ -397,10 +395,6 @@ class User_Driver extends Engine
 
     /**
      * Adds a user to the system.
-     *
-     * The "common name" is usually a derived field (first name + last name)
-     * and it is used for the DN (distinguished name) as a unique identifier.
-     * That means two people with the same name cannot exist in the directory.
      *
      * @param array $user_info user information
      *
@@ -415,8 +409,8 @@ class User_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        // Validate user_info
-        //-------------------
+        // Validate
+        //---------
 
         Validation_Exception::is_valid($this->validate_username($this->username));
         Validation_Exception::is_valid($this->validate_user_info($user_info));
@@ -435,13 +429,17 @@ class User_Driver extends Engine
             $extension = new $class();
 
             if (method_exists($extension, 'add_attributes_hook')) {
-                $hook_object = $extension->add_attributes_hook($user_info);
+                $hook_object = $extension->add_attributes_hook($user_info, $ldap_object);
                 $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
             }
         }
 
         // Validation revisited - check for DN uniqueness
         //-----------------------------------------------
+        // 
+        // The "common name" is usually a derived field (first name + last name)
+        // and it is used for the DN (distinguished name) as a unique identifier.
+        // That means two people with the same name cannot exist in the directory.
 
         $directory = new Directory_Driver();
         $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_ou();
@@ -451,9 +449,8 @@ class User_Driver extends Engine
         // Add the LDAP user object
         //-------------------------
 
-$ldap_object['objectClass'] = array_merge($this->core_classes, $ldap_object['objectClass']);
 print_r($ldap_object);
-        $this->ldaph->add($dn, $ldap_object);
+//        $this->ldaph->add($dn, $ldap_object);
 
         // Run post-add methods in extensions
         //-----------------------------------
@@ -509,6 +506,10 @@ print_r($ldap_object);
     /**
      * Deletes a user from the system.
      *
+     * The actual delete from LDAP is done asynchronously.  This gives all
+     * slave systems a chance to clean up before the object is completely 
+     * deleted from LDAP.
+     *
      * @return void
      */
 
@@ -516,60 +517,53 @@ print_r($ldap_object);
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
+        // Disable the user and set random password for apps without disable
+        //------------------------------------------------------------------
+
+        $ldap_object = array();
+
+        $ldap_object['clearAccountStatus'] = User::STATUS_DISABLED;
+        $ldap_object['userPassword'] = '{sha}' . base64_encode(pack('H*', sha1(mt_rand())));
+
+        // Update LDAP attributes from extensions
+        //---------------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'delete_attributes_hook')) {
+                $hook_object = $extension->delete_attributes_hook();
+                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+            }
+        }
+
+        // Run delete hook
+        //----------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'delete_hook'))
+                $extension->delete_hook();
+        }
+
+        // Modify LDAP object
+        //-------------------
+
+        if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        try {
-            $dn = $this->_get_dn_for_uid($this->username);
+        $dn = $this->_get_dn_for_uid($this->username);
 
-            // Delete the user from all the groups
-            /*
-            FIXME: revisit
-            $groupmanager = new GroupManager();
-            $groupmanager->DeleteGroupMemberships($this->username);
-            */
+print_r($ldap_object);
+        $this->ldaph->modify($dn, $ldap_object);
 
-            // Delete the IPlex PBX user
-            /* FIXME: move to extension
-            if (file_exists(CLEAROS_CORE_DIR . "/iplex/Users.class.php")) {
-                require_once(CLEAROS_CORE_DIR . "/iplex/Users.class.php");
-                $iplex_user = new IPlexUser();
-                if($iplex_user->Exists($this->username))
-                    $iplex_user->DeleteIPlexPBXUser($this->username);
-            }
-
-            // TODO: only set this if mailbox exists
-            $ldap_object['kolabDeleteflag'] = $this->ldaph->GetDefaultHomeServer();
-            */
-
-            foreach ($this->_get_extensions() as $extension_name) {
-                // FIXME: removed hard-coded paths
-                clearos_load_library('directory/extensions/' . $extension_name . '_OpenLDAP');
-                $class = '\clearos\apps\directory\extensions\\' . $extension_name . '_OpenLDAP';
-                $extension = new $class($dn);
-
-                // if (method_exists($extension, 'add_post_processing_hook'))
-                // $extension->delete();
-            }
-
-            // FIXME: talk to David about this one.  In practice, every slave node
-            // should signal a "delete complete" status.  When all the slave nodes
-            // have checked in, the user object can be deleted.
-            //
-            // That won't work well if a box is offline
-
-            // Disable the user now - delete asynchronously
-            //---------------------------------------------
-            // Write random garbage into passwd field to lock the user out
-
-            $ldap_object = array();
-            $ldap_object['userPassword'] = '{sha}' . base64_encode(pack('H*', sha1(mt_rand())));
-            $ldap_object['clearAccountStatus'] = self::STATUS_DISABLED;
-
-            $this->ldaph->modify($dn, $ldap_object);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-        }
+        // Ping the synchronizer
+        //----------------------
 
         $this->_synchronize();
     }
@@ -594,81 +588,60 @@ print_r($ldap_object);
         // Validate
         //---------
 
-        if (isset($acl)) {
-            foreach ($user_info as $key => $value) {
-                if (! in_array($key, $acl))
-                    throw new Engine_Exception(USER_LANG_ERRMSG_ACCESS_CONTROL_VIOLATION, CLEAROS_WARNING);
-            }
-        }
+        // Validation_Exception::is_valid($this->validate_username($this->username));
+        Validation_Exception::is_valid($this->validate_user_info($user_info));
 
         // User does not exist error
         //--------------------------
 
-        $attrs = $this->_get_user_attributes();
-
-        if (!isset($attrs['uid'][0]))
+        if (! $this->exists()) 
             throw new User_Not_Found_Exception();
-
-        // Input validation errors
-        //------------------------
-
-        if (! $this->validate_user_info($user_info, TRUE))
-            throw new Validation_Exception(LOCALE_LANG_INVALID);
 
         // Convert user info to LDAP object
         //---------------------------------
 
         $ldap_object = $this->convert_user_array_to_attributes($user_info, TRUE);
 
-        // TODO: Update PBX user via plugin
-        //---------------------------------
+        // Update LDAP attributes from extensions
+        //---------------------------------------
 
-        if (file_exists(CLEAROS_CORE_DIR . "/iplex/Users.class.php")) {
-            require_once(CLEAROS_CORE_DIR . "/iplex/Users.class.php");
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
 
-            try {
-                $iplex_user = new IPlexUser();
-
-                if (array_key_exists('pbxFlag', $user_info)) {
-                    // Delete PBX user
-                    if (($user_info['pbxFlag'] != 1) && $iplex_user->Exists($this->username)) {
-                        $iplex_user->DeleteIPlexPBXUser($this->username);
-                    // Update PBX user
-                    } else if (($user_info['pbxFlag'] == 1) && $iplex_user->Exists($this->username)) {
-                        $iplex_user->UpdateIPlexPBXUser($user_info, $this->username);
-                    // Add PBX user
-                    } else if ($user_info['pbxFlag'] == 1) {
-                        if ($iplex_user->CCAddUser($user_info, $this->username) == 0) {
-                            // CCAddUser failed to add PBX user, clear pbx settings so they aren't saved
-                            unset($ldap_object['pcnPbxExtension']);
-                            unset($ldap_object['pcnPbxState']);
-                            unset($ldap_object['pcnPbxPresenceState']);
-                        }
-                    }
-                }
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
+            if (method_exists($extension, 'update_attributes_hook')) {
+                $hook_object = $extension->update_attributes_hook($user_info, $ldap_object);
+                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
             }
         }
 
-        // Handle LDAP
-        //------------
+        // Handle name change (which changes DN)
+        //--------------------------------------
 
-        $new_dn = "cn=" . Ldap::DnEscape($ldap_object['cn']) . "," . ClearDirectory::GetUsersOu();
+        $directory = new Directory_Driver();
+        $old_attributes = $this->_get_user_attributes();
 
-        if ($new_dn != $attrs['dn']) {
-            $rdn = "cn=" . Ldap::DnEscape($ldap_object['cn']);
-            $this->ldaph->Rename($attrs['dn'], $rdn, ClearDirectory::GetUsersOu());
-        }
+        $rdn = 'cn=' . OpenLDAP::dn_escape($ldap_object['cn']);
+        $new_dn = $rdn . ',' . $directory->get_users_ou();
 
+        if ($new_dn !== $old_attributes['dn'])
+            $this->ldaph->rename($old_attributes['dn'], $rdn, $directory->get_users_ou());
+
+        // Modify LDAP object
+        //-------------------
+
+print_r($ldap_object);
         $this->ldaph->modify($new_dn, $ldap_object);
+
+        // Ping the synchronizer
+        //----------------------
 
         $this->_synchronize();
     }
 
     /**
      * Checks if given user exists.
-     *
      *
      * @return boolean TRUE if user exists
      * @throws Engine_Exception
@@ -708,10 +681,6 @@ print_r($ldap_object);
         $attributes = $this->_get_user_attributes();
 
         $info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
-
-        // TODO: should uid be put into the info_map?
-        // TODO: should uid be returned given that it's already known (passed in to constructor)
-        $info['core']['uid'] = $attributes['uid'][0];
 
         // Add user info from extensions
         //------------------------------
@@ -865,7 +834,6 @@ print_r($ldap_object);
 
     /**
      * Unlocks a user account.
-     *
      *
      * @return void
      * @throws Engine_Exception
@@ -1639,7 +1607,7 @@ return '';
             if (isset($user_info['core']['status'])) 
                 $ldap_object['clearAccountStatus'] = $user_info['core']['status'];
             else
-                $ldap_object['clearAccountStatus'] = self::STATUS_ENABLED;
+                $ldap_object['clearAccountStatus'] = User::STATUS_ENABLED;
         }
 
         /**
@@ -1658,128 +1626,19 @@ return '';
         }
 
         /**
-         * Step 5 - determine which object classes are necessary
+         * Step 5 - set core object classes.
          *
-         * To keep things tidy, we only add the object classes that we need.
+         * If this is an update, we need to make sure the objectclass list
+         * includes pre-existing classes.
          */
 
-/*
-        $classes = array();
-
-        foreach ($old_attributes as $attribute => $detail) {
-            // If attribute has not been erased
-            // and attribute is in the attribute map
-            // and attribute is not part of the core attributes
-            if (
-                (!(isset($ldap_object[$attribute]) && ($ldap_object[$attribute] == array()))) &&
-                isset($this->attribute_map[$attribute]) &&
-                isset($this->attribute_map[$attribute]['object_class']) &&
-                ($this->attribute_map[$attribute]['object_class'] != 'core')
-                ) {
-                $classes[] = $this->attribute_map[$attribute]['object_class'];
-            }
+        if (isset($old_attributes['objectClass'])) {
+            $old_classes = $old_attributes['objectClass'];
+            array_shift($old_classes);
+            $ldap_object['objectClass'] = $this->_merge_ldap_object_classes($this->core_classes, $old_classes);
+        } else {
+            $ldap_object['objectClass'] = $this->core_classes;
         }
-
-        foreach ($user_info as $info => $detail) {
-            if (isset($this->info_map[$info]['object_class']) && ($this->info_map[$info]['object_class'] != 'core'))
-                $classes[] = $this->info_map[$info]['object_class'];
-        }
-
-        // PHPism.  Merged arrays have gaps in the keys of the array;
-        // LDAP does not like this, so we need to rekey:
-        $merged = array_merge($this->core_classes, $classes);
-        $merged = array_unique($merged);
-
-        foreach ($merged as $class)
-            $ldap_object['objectClass'][] = $class;
-*/
-
-// FIXME
-return $ldap_object;
-
-        /**
-         * Step 6 - handle external user_info fields.
-         *
-         * Samba and other user extensions.
-         * TODO: create a plugin architecture in 6.0, lots of temporary hardcoding and hacks in here!
-         */
-
-        if (file_exists(CLEAROS_CORE_DIR . "/api/PasswordPolicy.class.php")) {
-            require_once("PasswordPolicy.class.php");
-            $policy = new PasswordPolicy();
-            $policy->Initialize();
-            $ldap_object['pwdPolicySubentry'] = "cn=" . LdapPasswordPolicy::DEFAULT_DIRECTORY_OBJECT . "," . ClearDirectory::GetPasswordPoliciesOu();
-        }
-
-        if (file_exists(CLEAROS_CORE_DIR . "/api/Samba.class.php")) {
-            if (isset($user_info['sambaFlag'])) {
-                require_once("Samba.class.php");
-
-                try {
-                    $samba = new Samba();
-                    $initialized = $samba->IsDirectoryInitialized();
-                } catch (Exception $e) {
-                    throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-                }
-
-                $samba_enabled = (isset($user_info['sambaFlag']) && $user_info['sambaFlag'] && $initialized) ? TRUE : FALSE;
-                $oldclasses = isset($old_attributes['objectClass']) ? $old_attributes['objectClass'] : array();
-
-                // Only change Samba attributes if enabled, or they already exist
-                if ($samba_enabled || in_array("sambaSamAccount", $oldclasses)) {
-                    // TODO: cleanup this logic
-                    $samba_uid = isset($ldap_object['uidNumber']) ? $ldap_object['uidNumber'] : "";
-
-                    if (empty($samba_uid))
-                        $samba_uid = isset($old_attributes['uidNumber'][0]) ? $old_attributes['uidNumber'][0] : "";
-
-                    $samba_ntpassword = isset($ldap_object['pcnMicrosoftNTPassword']) ? $ldap_object['pcnMicrosoftNTPassword'] : "";
-
-                    if (empty($samba_ntpassword))
-                        $samba_ntpassword = isset($old_attributes['pcnMicrosoftNTPassword'][0]) ? $old_attributes['pcnMicrosoftNTPassword'][0] : "";
-
-
-                    try {
-                        $samba = new Samba();
-                        $samba_object = $samba->AddLdapUserAttributes(
-                            $this->username,
-                            $samba_enabled,
-                            $samba_uid,
-                            $samba_ntpassword,
-                            $samba_lmpassword
-                        );
-
-                        $ldap_object = array_merge($ldap_object, $samba_object);
-                        $ldap_object['objectClass'][] = 'sambaSamAccount';
-                    } catch (Exception $e) {
-                        throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-                    }
-                }
-            // TODO: when updating non-Samba info, this is necessary.  This whole
-            // block of code and the Samba hooks need to be redone!
-            } else {
-                if (isset($old_attributes['sambaAcctFlags']))
-                    $ldap_object['objectClass'][] = 'sambaSamAccount';
-            }
-        }
-
-        // tODO: last minute 5.0 addition. Remove old pcnSambaPassword:
-        if (isset($old_attributes['pcnSambaPassword']))
-            $ldap_object['pcnSambaPassword'] = array();
-
-        // TODO: PBX plugin
-        if (file_exists(CLEAROS_CORE_DIR . "/iplex/Users.class.php")) {
-            if (! in_array("pcnPbxAccount", $ldap_object['objectClass']))
-                $ldap_object['objectClass'][] = "pcnPbxAccount";
-
-            $ldap_object['pcnPbxState'] = (isset($user_info['pbxFlag']) && $user_info['pbxFlag']) ? '1' : '0';
-            $ldap_object['pcnPbxPresenceState'] = (isset($user_info['pbxPresenceFlag']) && $user_info['pbxPresenceFlag']) ? '1' : '0';
-            $ldap_object['pcnPbxExtension'] = (empty($user_info['pbxExtension'])) ? 'none' : $user_info['pbxExtension'];
-        }
-
-        // TODO: Legacy 4.x PBX LDAP cruft
-        if (isset($ldap_object['pcnPbxState']) && empty($ldap_object['pcnPbxState']))
-            $ldap_object['pcnPbxState'] = 0;
 
         return $ldap_object;
     }
@@ -1952,6 +1811,34 @@ return $ldap_object;
         return $attributes;
     }
 
+
+    /**
+     * Merges two LDAP object class lists.
+     *
+     * @param array $array1 LDAP object class list
+     * @param array $array2 LDAP object class list
+     *
+     * @return array object class list
+     */
+
+    protected function _merge_ldap_object_classes($array1, $array2)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $raw_merged = array_merge($array1, $array2);
+        $raw_merged = array_unique($raw_merged);
+
+        // PHPism.  Merged arrays have gaps in the keys of the array.
+        // The LDAP object barfs on this, so we need to re-key.
+
+        $merged = array();
+
+        foreach ($raw_merged as $class)
+            $merged[] = $class;
+
+        return $merged;
+    }
+
     /**
      * Merges two LDAP object arrays.
      *
@@ -1966,10 +1853,18 @@ return $ldap_object;
         clearos_profile(__METHOD__, __LINE__);
 
         // Handle object class array
-        $object_classes = array_merge($array1['objectClass'], $array2['objectClass']);
+
+        if (isset($array1['objectClass']) && isset($array2['objectClass']))
+            $object_classes = $this->_merge_ldap_object_classes($array1['objectClass'], $array2['objectClass']);
+        else if (isset($array1['objectClass']))
+            $object_classes = $array1['objectClass'];
+        else if (isset($array2['objectClass']))
+            $object_classes = $array2['objectClass'];
 
         $ldap_object = array_merge($array1, $array2);
-        $ldap_object['objectClass'] = $object_classes;
+
+        if (isset($object_classes))
+            $ldap_object['objectClass'] = $object_classes;
 
         return $ldap_object;
     }
@@ -2009,11 +1904,11 @@ return $ldap_object;
         foreach ($this->info_map as $key => $value) {
             if (isset($this->info_map[$key]['passwordtype'])) {
                 if (isset($old_attributes[$this->info_map[$key]['passwordfield']])) {
-                    if ($this->info_map[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA)
+                    if ($this->info_map[$key]['passwordtype'] == User::PASSWORD_TYPE_SHA)
                         $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnSHAPassword'];
-                    elseif ($this->info_map[$key]['passwordtype'] == self::CONSTANT_TYPE_SHA1)
+                    elseif ($this->info_map[$key]['passwordtype'] == User::PASSWORD_TYPE_SHA1)
                         $ldap_object[$this->info_map[$key]['passwordfield']] = $this->_convert_sha_to_sha1($ldap_object['pcnSHAPassword']);
-                    elseif ($this->info_map[$key]['passwordtype'] == self::CONSTANT_TYPE_NT)
+                    elseif ($this->info_map[$key]['passwordtype'] == User::PASSWORD_TYPE_NT)
                         $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnMicrosoftNTPassword'];
                 }
             }
@@ -2069,6 +1964,9 @@ return $ldap_object;
 
         // FIXME: move this to an external daemon... just a hack for now
         /*
+        const COMMAND_SYNCMAILBOX = '/usr/sbin/syncmailboxes';
+        const COMMAND_SYNCUSERS = '/usr/sbin/syncusers';
+
         try {
             $options['background'] = TRUE;
             $shell = new Shell();

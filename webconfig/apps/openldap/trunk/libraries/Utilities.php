@@ -175,6 +175,7 @@ class Utilities extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $ldap_object = array();
+        $object_classes = array();
 
         foreach ($array as $info => $value) {
             if (isset($mapping[$info]['attribute'])) {
@@ -187,14 +188,17 @@ class Utilities extends Engine
 
                 // Add/modify
                 } else {
-                    if ($mapping[$info]['type'] == 'boolean') {
+                    if ($mapping[$info]['type'] == 'boolean')
                         $ldap_object[$attribute] = ($value) ? 'TRUE' : 'FALSE';
-                    } else {
+                    else
                         $ldap_object[$attribute] = $array[$info];
-                    }
+
+                    $object_classes[] = $mapping[$info]['object_class'];
                 }
             }
         }
+
+        $ldap_object['objectClass'] = array_unique($object_classes);
 
         return $ldap_object;
     }
@@ -208,7 +212,7 @@ class Utilities extends Engine
      * - connect to LDAP
      * - perform a bunch of LDAP acctions (search, read, etc)
      *
-     * This method provides a common function for doing the firt two steps.
+     * This method provides a common method for doing the firt two steps.
      *
      * @return LDAP handle
      * @throws Engine_Exception
