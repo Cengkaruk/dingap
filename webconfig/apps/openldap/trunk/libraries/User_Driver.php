@@ -397,12 +397,13 @@ class User_Driver extends Engine
      * Adds a user to the system.
      *
      * @param array $user_info user information
+     * @param array $password  password
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add($user_info)
+    public function add($user_info, $password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -413,26 +414,21 @@ class User_Driver extends Engine
         //---------
 
         Validation_Exception::is_valid($this->validate_username($this->username));
+        Validation_Exception::is_valid($this->validate_password($password));
         Validation_Exception::is_valid($this->validate_user_info($user_info));
 
-        // Convert user_info into LDAP attributes
-        //---------------------------------------
+        // Convert user_info and password into LDAP attributes
+        //----------------------------------------------------
 
-        $ldap_object = $this->convert_user_array_to_attributes($user_info, FALSE);
+        $user_object = $this->_convert_user_array_to_attributes($user_info, FALSE);
+        $password_object = $this->_convert_password_to_attributes($password);
+
+        $ldap_object = array_merge($user_object, $password_object);
 
         // Add LDAP attributes from extensions
         //------------------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
-
-            if (method_exists($extension, 'add_attributes_hook')) {
-                $hook_object = $extension->add_attributes_hook($user_info, $ldap_object);
-                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
-            }
-        }
+        $ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
 
         // Validation revisited - check for DN uniqueness
         //-----------------------------------------------
@@ -444,7 +440,8 @@ class User_Driver extends Engine
         $directory = new Directory_Driver();
         $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_ou();
 
-        Validation_Exception::is_valid($this->validate_dn($dn));
+        if ($this->_dn_exists($dn))
+            throw new Validation_Exception(lang('users_full_name_already_exists')); 
 
         // Add the LDAP user object
         //-------------------------
@@ -452,17 +449,10 @@ class User_Driver extends Engine
 print_r($ldap_object);
 //        $this->ldaph->add($dn, $ldap_object);
 
-        // Run post-add methods in extensions
-        //-----------------------------------
+        // Run post-add processing hook
+        //-----------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
-
-            if (method_exists($extension, 'add_post_processing_hook'))
-                $attributes = $extension->add_post_processing_hook();
-        }
+        $this->_add_post_processing_hook();
 
         // Ping the synchronizer
         //----------------------
@@ -474,30 +464,31 @@ print_r($ldap_object);
      * Checks the password for the user.
      *
      * @param string $password password for the user
-     * @param string $attribute LDAP attribute
      *
      * @return boolean TRUE if password is correct
      * @throws Engine_Exception, User_Not_Found_Exception
      */
 
-    public function check_password($password, $attribute)
+    public function check_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        sleep(2); // a small delay
+        // Validate
+        //---------
 
-        if ($attribute == 'pcnWebconfigPassword') {
-            $shapassword = '{sha}' . $this->_calculate_sha_password($password);
-        } else {
-            return FALSE;
-        }
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
+        Validation_Exception::is_valid($this->validate_password($password));
 
-        if ($this->ldaph == NULL)
+        // Compare passwords
+        //------------------
+
+        if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $attrs = $this->_get_user_attributes();
+        $sha_password = '{sha}' . $this->_calculate_sha_password($password);
+        $attributes = $this->_get_user_attributes();
 
-        if (isset($attrs[$attribute][0]) && ($shapassword == $attrs[$attribute][0]))
+        if (isset($attributes['userPassword'][0]) && ($sha_password === $attributes['userPassword'][0]))
             return TRUE;
         else
             return FALSE;
@@ -516,6 +507,11 @@ print_r($ldap_object);
     public function delete()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        // Validate
+        //---------
+
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
 
         // Disable the user and set random password for apps without disable
         //------------------------------------------------------------------
@@ -559,80 +555,7 @@ print_r($ldap_object);
 
         $dn = $this->_get_dn_for_uid($this->username);
 
-print_r($ldap_object);
         $this->ldaph->modify($dn, $ldap_object);
-
-        // Ping the synchronizer
-        //----------------------
-
-        $this->_synchronize();
-    }
-
-    /**
-     * Updates a user on the system.
-     *
-     * @param array $user_info user information
-     * @param array $acl access control list
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception, User_Not_Found_Exception
-     */
-
-    public function update($user_info, $acl = NULL)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        // Validate
-        //---------
-
-        // Validation_Exception::is_valid($this->validate_username($this->username));
-        Validation_Exception::is_valid($this->validate_user_info($user_info));
-
-        // User does not exist error
-        //--------------------------
-
-        if (! $this->exists()) 
-            throw new User_Not_Found_Exception();
-
-        // Convert user info to LDAP object
-        //---------------------------------
-
-        $ldap_object = $this->convert_user_array_to_attributes($user_info, TRUE);
-
-        // Update LDAP attributes from extensions
-        //---------------------------------------
-
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
-
-            if (method_exists($extension, 'update_attributes_hook')) {
-                $hook_object = $extension->update_attributes_hook($user_info, $ldap_object);
-                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
-            }
-        }
-
-        // Handle name change (which changes DN)
-        //--------------------------------------
-
-        $directory = new Directory_Driver();
-        $old_attributes = $this->_get_user_attributes();
-
-        $rdn = 'cn=' . OpenLDAP::dn_escape($ldap_object['cn']);
-        $new_dn = $rdn . ',' . $directory->get_users_ou();
-
-        if ($new_dn !== $old_attributes['dn'])
-            $this->ldaph->rename($old_attributes['dn'], $rdn, $directory->get_users_ou());
-
-        // Modify LDAP object
-        //-------------------
-
-print_r($ldap_object);
-        $this->ldaph->modify($new_dn, $ldap_object);
 
         // Ping the synchronizer
         //----------------------
@@ -700,61 +623,65 @@ print_r($ldap_object);
     /**
      * Reset the passwords for the user.
      *
-     * Similar to SetPassword, but it uses administrative privileges.  This is
+     * Similar to set_password, but it uses administrative privileges.  This is
      * typically used for resetting a password while bypassing password
      * policies.  For example, an administrator may need to set a password
      * even when the password policy dictates that the password is not allowed
      * to change (minimum password age).
      *
-     * @param string $password password
-     * @param string $verify password verify
-     * @param string $requested_by username requesting the password change
-     * @param boolean $includesamba workaround for Samba password changes
+     * @param string  $password       password
+     * @param string  $verify         password verify
+     * @param string  $requested_by   username requesting the password change
+     * @param boolean $include_samba  workaround for Samba password changes
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function reset_password($password, $verify, $requested_by, $includesamba = TRUE)
+    public function reset_password($password, $verify, $requested_by, $include_samba = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Validate
         //---------
 
-        if (! $this->validate_username($requested_by, FALSE, FALSE))
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . LOCALE_LANG_USERNAME);
-
-        if (! $this->validate_password_and_verify($password, $verify)) {
-            $errors = $this->GetValidationErrors();
-            throw new Validation_Exception($errors[0]);
-        }
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
+        Validation_Exception::is_valid($this->validate_username($requested_by, FALSE, FALSE));
+        // FIXME: Validate password/verify
 
         // Set passwords in LDAP
         //----------------------
 
-        $this->_SetPassword($password, $includesamba);
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
-        Logger::Syslog(self::LOG_TAG, "password reset for user - " . $this->username . " / by - " . $requested_by);
+        $dn = $this->_get_dn_for_uid($this->username);
+
+        $ldap_object = $this->_convert_password_to_attributes($password);
+
+        $this->ldaph->modify($dn, $ldap_object);
+
+        // FIXME: logger
+        // Logger::Syslog(self::LOG_TAG, "password reset for user - " . $this->username . " / by - " . $requested_by);
     }
 
     /**
      * Sets the password for the user.
      *
-     * Ignore the includesamba flag,  It is a workaround required for password
+     * Ignore the include_samba flag,  It is a workaround required for password
      * changes using the change password tool from Windows desktops.
      *
-     * @param string $oldpassword old password
-     * @param string $password password
-     * @param string $verify password verify
-     * @param string $requested_by username requesting the password change
-     * @param boolean $includesamba workaround for Samba password changes
+     * @param string  $oldpassword   old password
+     * @param string  $password      password
+     * @param string  $verify        password verify
+     * @param string  $requested_by  username requesting the password change
+     * @param boolean $include_samba workaround for Samba password changes
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_password($oldpassword, $password, $verify, $requested_by, $includesamba = TRUE)
+    public function set_password($oldpassword, $password, $verify, $requested_by, $include_samba = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -770,66 +697,80 @@ print_r($ldap_object);
         // Validate
         //---------
 
-        if (! $this->validate_username($requested_by, FALSE, FALSE))
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . LOCALE_LANG_USERNAME);
-
-        if (! $this->validate_password_and_verify($password, $verify)) {
-            $errors = $this->GetValidationErrors();
-            throw new Validation_Exception($errors[0]);
-        }
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
+        Validation_Exception::is_valid($this->validate_username($requested_by, FALSE, FALSE));
+        // FIXME: Validate password/verify
 
         // Sanity check the password using the ldappasswd command
         //-------------------------------------------------------
 
-        if ($this->ldaph == NULL)
+        if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        try {
-            $dn = $this->_get_dn_for_uid($this->username);
+        $dn = $this->_get_dn_for_uid($this->username);
 
-            sleep(2); // see comment above
+        $options['validate_exit_code'] = FALSE;
 
-            $shell = new Shell();
-            $intval = $shell->Execute(User::COMMAND_LDAPPASSWD, 
-                '-x ' .
-                '-D "' . $dn . '" ' .
-                '-w "' . $oldpassword . '" ' .
-                '-s "' . $password . '" ' .
-                '"' . $dn . '"', 
-                FALSE);
-        
-            if ($intval != 0)
-                $output = $shell->GetOutput();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-        }
+        $shell = new Shell();
+        $intval = $shell->Execute(self::COMMAND_LDAPPASSWD, 
+            '-x ' .
+            '-D "' . $dn . '" ' .
+            '-w "' . $oldpassword . '" ' .
+            '-s "' . $password . '" ' .
+            '"' . $dn . '"', 
+            FALSE, $options);
+    
+        if ($intval != 0)
+            $output = $shell->get_output();
 
         if (! empty($output)) {
             // Dirty.  Try to catch common error strings so that we can translate.
-            $errormessage = isset($output[1]) ? $output[1] : $output[0]; // Default if our matching fails
+            $error_message = isset($output[1]) ? $output[1] : $output[0]; // Default if our matching fails
 
             foreach ($output as $line) {
                 if (preg_match("/Invalid credentials/", $line))
-                    $errormessage = USER_LANG_OLD_PASSWORD_INVALID;
+                    $error_message = lang('users_old_password_is_invalid');
                 else if (preg_match("/Password is in history of old passwords/", $line))
-                    $errormessage = USER_LANG_PASSWORD_IN_HISTORY;
+                    $error_message = lang('users_password_in_history');
                 else if (preg_match("/Password is not being changed from existing value/", $line))
-                    $errormessage = USER_LANG_PASSWORD_NOT_CHANGED;
+                    $error_message = lang('users_password_not_changed');
                 else if (preg_match("/Password fails quality checking policy/", $line))
-                    $errormessage = USER_LANG_PASSWORD_VIOLATES_QUALITY_CHECK;
+                    $error_message = lang('users_password_violates_quality_check');
                 else if (preg_match("/Password is too young to change/", $line))
-                    $errormessage = USER_LANG_PASSWORD_TOO_YOUNG;
+                    $error_message = lang('users_password_is_too_young');
             }
 
-            throw new Validation_Exception($errormessage);
+            throw new Validation_Exception($error_message);
+        }
+
+        // Convert password into LDAP attributes
+        //--------------------------------------
+
+        $ldap_object = $this->_convert_password_to_attributes($password);
+
+        // Add LDAP attributes from extensions
+        //------------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'set_password_attributes_hook')) {
+                $hook_object = $extension->set_password_attributes_hook($password, $ldap_object);
+                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+            }
         }
 
         // Set passwords in LDAP
         //----------------------
 
-        $this->_SetPassword($password, $includesamba);
+        sleep(2); // see comment
 
-        Logger::Syslog(self::LOG_TAG, "password updated for user - " . $this->username . " / by - " . $requested_by);
+        $this->ldaph->modify($dn, $ldap_object);
+
+        // FIXME - logger
+        // Logger::Syslog(self::LOG_TAG, "password updated for user - " . $this->username . " / by - " . $requested_by);
     }
 
     /**
@@ -843,13 +784,89 @@ print_r($ldap_object);
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // This only applies to Samba right now
-        if (file_exists(CLEAROS_CORE_DIR . "/api/Samba.class.php")) {
-            require_once("Samba.class.php");
+        // Run unlock hook
+        //----------------
 
-            $samba = new Samba();
-            $samba->UnlockAccount($this->username);
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'unlock_hook'))
+                $extension->unlock_hook($this->username);
         }
+    }
+
+    /**
+     * Updates a user on the system.
+     *
+     * @param array $user_info user information
+     * @param array $acl access control list
+     *
+     * @return void
+     * @throws Validation_Exception, Engine_Exception, User_Not_Found_Exception
+     */
+
+    public function update($user_info, $acl = NULL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph == NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
+
+        // Validate
+        //---------
+
+        Validation_Exception::is_valid($this->validate_username($this->username));
+        Validation_Exception::is_valid($this->validate_user_info($user_info));
+        // FIXME: acl
+
+        // User does not exist error
+        //--------------------------
+
+        if (! $this->exists()) 
+            throw new User_Not_Found_Exception();
+
+        // Convert user info to LDAP object
+        //---------------------------------
+
+        $ldap_object = $this->_convert_user_array_to_attributes($user_info, TRUE);
+
+        // Update LDAP attributes from extensions
+        //---------------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'update_attributes_hook')) {
+                $hook_object = $extension->update_attributes_hook($user_info, $ldap_object);
+                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+            }
+        }
+
+        // Handle name change (which changes DN)
+        //--------------------------------------
+
+        $directory = new Directory_Driver();
+        $old_attributes = $this->_get_user_attributes();
+
+        $rdn = 'cn=' . OpenLDAP::dn_escape($ldap_object['cn']);
+        $new_dn = $rdn . ',' . $directory->get_users_ou();
+
+        if ($new_dn !== $old_attributes['dn'])
+            $this->ldaph->rename($old_attributes['dn'], $rdn, $directory->get_users_ou());
+
+        // Modify LDAP object
+        //-------------------
+
+        $this->ldaph->modify($new_dn, $ldap_object);
+
+        // Ping the synchronizer
+        //----------------------
+
+        $this->_synchronize();
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -947,26 +964,6 @@ print_r($ldap_object);
 
         if (preg_match("/([:;\/#!@])/", $display_name))
             return lang('directory_validate_display_name_invalid');
-    }
-
-    /**
-     * Validation routine for DN (distinguised name).
-     *
-     * @param string $dn distinguised name
-     *
-     * @return string error message if DN is invalid
-     * @throws Engine_Exception
-     */
-
-    protected function validate_dn($dn)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        if ($this->ldaph->exists($dn))
-            return "FIXME: full name already exists";
     }
 
     /**
@@ -1181,12 +1178,17 @@ return '';
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // FIXME
+        // return lang('users_password_is_invalid');
+
+        /*
         if (preg_match("/[\|;\*]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password)) {
             $this->AddValidationError(LOCALE_LANG_ERRMSG_PASSWORD_INVALID, __METHOD__, __LINE__);
             return FALSE;
         } else {
             return TRUE;
         }
+        */
     }
 
     /**
@@ -1453,9 +1455,162 @@ return '';
         }
     }
 
+    /**
+     * Validates a user_info array.
+     *
+     * @param array $user_info user information array
+     * @param boolean $is_modify set to TRUE if using results on LDAP modif
+     *
+     * @return boolean TRUE if user_info is valid
+     * @throws Engine_Exception
+     */
+
+    public function validate_user_info($user_info, $is_modify = FALSE)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $is_valid = TRUE;
+        $invalid_attrs = array();
+
+        // Check user_info type
+        //---------------------
+
+        if (!is_array($user_info))
+            throw new Validation_Exception(lang('directory_validate_user_info_invalid'));
+
+        // Validate user information using validator defined in $this->info_map
+        //--------------------------------------------------------------------
+
+        foreach ($user_info as $attribute => $detail) {
+            if (isset($this->info_map[$attribute]) && isset($this->info_map[$attribute]['validator'])) {
+                // TODO: afterthought -- password/verify check is done below
+                if ($attribute == 'password')
+                    continue;
+
+                $validator = $this->info_map[$attribute]['validator'];
+
+                Validation_Exception::is_valid($this->$validator($detail));
+            }
+        }
+//pete
+return;
+
+        // Validate passwords
+        //-------------------
+
+        if (!empty($user_info['password']) || !empty($user_info['verify'])) {
+            if (!($this->validate_password_and_verify($user_info['password'], $user_info['verify']))) {
+                $is_valid = FALSE;
+                $invalid_attrs[] = 'password';
+            }
+        }
+
+        // When adding a new user, check for missing attributes
+        //-----------------------------------------------------
+
+        if (! $is_modify) {
+            foreach ($this->info_map as $attribute => $details) {
+                if (empty($user_info[$attribute]) && 
+                    ($details['required'] == TRUE) &&
+                    (!in_array($attribute, $invalid_attrs))
+                    ) {
+                        $is_valid = FALSE;
+                        $this->AddValidationError(
+                            LOCALE_LANG_ERRMSG_REQUIRED_PARAMETER_IS_MISSING . " - " . $details['locale'], __METHOD__, __LINE__
+                        );
+                } 
+            }
+        }
+
+        if ($is_valid)
+            return TRUE;
+        else
+            return FALSE;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Runs add_attributes hook in extensions.
+     */
+
+    protected function _add_attributes_hook($user_info, $ldap_object)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'add_attributes_hook')) {
+                $hook_object = $extension->add_attributes_hook($user_info, $ldap_object);
+                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+            }
+        }
+
+        return $ldap_object;
+    }
+
+    protected function _add_post_processing_hook()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension = new $class();
+
+            if (method_exists($extension, 'add_post_processing_hook'))
+                $extension->add_post_processing_hook();
+        }
+    }
+
+    /**
+     * Adds the parity bit to the given DES key.
+     *
+     * @access private
+     * @param  string  $key 7-Bytes Key without parity
+     *
+     * @return string
+     */
+
+    protected function _add_parity_to_des($key)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        static $odd_parity = array(
+                1,  1,  2,  2,  4,  4,  7,  7,  8,  8, 11, 11, 13, 13, 14, 14,
+                16, 16, 19, 19, 21, 21, 22, 22, 25, 25, 26, 26, 28, 28, 31, 31,
+                32, 32, 35, 35, 37, 37, 38, 38, 41, 41, 42, 42, 44, 44, 47, 47,
+                49, 49, 50, 50, 52, 52, 55, 55, 56, 56, 59, 59, 61, 61, 62, 62,
+                64, 64, 67, 67, 69, 69, 70, 70, 73, 73, 74, 74, 76, 76, 79, 79,
+                81, 81, 82, 82, 84, 84, 87, 87, 88, 88, 91, 91, 93, 93, 94, 94,
+                97, 97, 98, 98,100,100,103,103,104,104,107,107,109,109,110,110,
+                112,112,115,115,117,117,118,118,121,121,122,122,124,124,127,127,
+                128,128,131,131,133,133,134,134,137,137,138,138,140,140,143,143,
+                145,145,146,146,148,148,151,151,152,152,155,155,157,157,158,158,
+                161,161,162,162,164,164,167,167,168,168,171,171,173,173,174,174,
+                176,176,179,179,181,181,182,182,185,185,186,186,188,188,191,191,
+                193,193,194,194,196,196,199,199,200,200,203,203,205,205,206,206,
+                208,208,211,211,213,213,214,214,217,217,218,218,220,220,223,223,
+                224,224,227,227,229,229,230,230,233,233,234,234,236,236,239,239,
+                241,241,242,242,244,244,247,247,248,248,251,251,253,253,254,254);
+
+        $bin = '';
+        for ($i = 0; $i < strlen($key); $i++)
+            $bin .= sprintf('%08s', decbin(ord($key{$i})));
+
+        $str1 = explode('-', substr(chunk_split($bin, 7, '-'), 0, -1));
+        $x = '';
+
+        foreach($str1 as $s)
+            $x .= sprintf('%02s', dechex($odd_parity[bindec($s . '0')]));
+
+        return pack('H*', $x);
+    }
 
     /**
      * Calculates NT password.
@@ -1465,11 +1620,20 @@ return '';
      * @return string NT password
      */
 
-    public function _calculate_nt_password($password)
+    protected function _calculate_nt_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return strtoupper(bin2hex(hash('md4', self::_string_to_unicode($password))));
+        $unicode = '';
+
+        for ($i = 0; $i < strlen($password); $i++) {
+            $a = ord($password{$i}) << 8;
+            $unicode .= sprintf("%X", $a);
+        }
+
+        $packed_unicode = pack('H*', $unicode);
+
+        return strtoupper(bin2hex(hash('md4', $packed_unicode)));
     }
 
     /**
@@ -1480,7 +1644,7 @@ return '';
      * @return string SHA password
      */
 
-    public function _calculate_sha_password($password)
+    protected function _calculate_sha_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1495,7 +1659,7 @@ return '';
      * @return string SHA1 password
      */
 
-    public function _convert_sha_to_sha1($shapassword)
+    protected function _convert_sha_to_sha1($shapassword)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1505,6 +1669,30 @@ return '';
         $sha1 = unpack("H*", base64_decode($shapassword));
 
         return $sha1[1];
+    }
+
+    /**
+     * Converts a password into LDAP attributes.
+     *
+     * @param string $password password
+     *
+     * @access private
+     * @return array LDAP attribute array
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    protected function _convert_password_to_attributes($password)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ldap_object = array();
+
+        $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($password);
+        $ldap_object['clearSHAPassword'] = $ldap_object['userPassword'];
+        $ldap_object['clearSHA1Password'] = $this->_convert_sha_to_sha1($ldap_object['clearSHAPassword']);
+        $ldap_object['clearMicrosoftNTPassword'] = $this->_calculate_nt_password($password);
+
+        return $ldap_object;
     }
 
     /**
@@ -1518,7 +1706,7 @@ return '';
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function convert_user_array_to_attributes($user_info, $is_modify)
+    protected function _convert_user_array_to_attributes($user_info, $is_modify)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1611,22 +1799,7 @@ return '';
         }
 
         /**
-         * Step 4 - manage all the passwords
-         *
-         * Some services require different password encryption types, so we
-         * keep track of common types.
-         */
-
-        // TODO: move this to SetPassword?
-        if (! empty($user_info['core']['password'])) {
-            $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($user_info['core']['password']);
-            $ldap_object['clearSHAPassword'] = $ldap_object['userPassword'];
-            $ldap_object['clearSHA1Password'] = $this->_convert_sha_to_sha1($ldap_object['clearSHAPassword']);
-            $ldap_object['clearMicrosoftNTPassword'] = $this->_calculate_nt_password($user_info['core']['password']);
-        }
-
-        /**
-         * Step 5 - set core object classes.
+         * Step 4 - set core object classes.
          *
          * If this is an update, we need to make sure the objectclass list
          * includes pre-existing classes.
@@ -1643,62 +1816,26 @@ return '';
         return $ldap_object;
     }
 
-   /**
-     * Adds the parity bit to the given DES key.
-     *
-     * @access private
-     * @param  string  $key 7-Bytes Key without parity
-     *
-     * @return string
-     */
-
-    protected function _add_parity_to_des($key)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        static $odd_parity = array(
-                1,  1,  2,  2,  4,  4,  7,  7,  8,  8, 11, 11, 13, 13, 14, 14,
-                16, 16, 19, 19, 21, 21, 22, 22, 25, 25, 26, 26, 28, 28, 31, 31,
-                32, 32, 35, 35, 37, 37, 38, 38, 41, 41, 42, 42, 44, 44, 47, 47,
-                49, 49, 50, 50, 52, 52, 55, 55, 56, 56, 59, 59, 61, 61, 62, 62,
-                64, 64, 67, 67, 69, 69, 70, 70, 73, 73, 74, 74, 76, 76, 79, 79,
-                81, 81, 82, 82, 84, 84, 87, 87, 88, 88, 91, 91, 93, 93, 94, 94,
-                97, 97, 98, 98,100,100,103,103,104,104,107,107,109,109,110,110,
-                112,112,115,115,117,117,118,118,121,121,122,122,124,124,127,127,
-                128,128,131,131,133,133,134,134,137,137,138,138,140,140,143,143,
-                145,145,146,146,148,148,151,151,152,152,155,155,157,157,158,158,
-                161,161,162,162,164,164,167,167,168,168,171,171,173,173,174,174,
-                176,176,179,179,181,181,182,182,185,185,186,186,188,188,191,191,
-                193,193,194,194,196,196,199,199,200,200,203,203,205,205,206,206,
-                208,208,211,211,213,213,214,214,217,217,218,218,220,220,223,223,
-                224,224,227,227,229,229,230,230,233,233,234,234,236,236,239,239,
-                241,241,242,242,244,244,247,247,248,248,251,251,253,253,254,254);
-
-        $bin = '';
-        for ($i = 0; $i < strlen($key); $i++)
-            $bin .= sprintf('%08s', decbin(ord($key{$i})));
-
-        $str1 = explode('-', substr(chunk_split($bin, 7, '-'), 0, -1));
-        $x = '';
-
-        foreach($str1 as $s)
-            $x .= sprintf('%02s', dechex($odd_parity[bindec($s . '0')]));
-
-        return pack('H*', $x);
-    }
-
     /**
-     * Returns the default group information details for new users.
+     * Validation routine for DN (distinguised name).
      *
+     * @param string $dn distinguised name
+     *
+     * @return string error message if DN is invalid
      * @throws Engine_Exception
-     * @return void
      */
 
-    public function get_directory_default_group_id()
+    protected function _dn_exists($dn)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::DEFAULT_USER_GROUP_ID;
+        if ($this->ldaph == NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
+
+        if ($this->ldaph->exists($dn))
+            return TRUE;
+        else
+            return FALSE;
     }
 
     /**
@@ -1710,16 +1847,14 @@ return '';
      * @throws Engine_Exception
      */
 
-    public function _get_dn_for_uid($uid)
+    protected function _get_dn_for_uid($uid)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        // FIXME: re-enable escape method
-        //  $this->ldaph->search('(&(objectclass=posixAccount)(uid=' . $this->Escape($uid) . '))');
-        $this->ldaph->search('(&(objectclass=posixAccount)(uid=' . $uid . '))');
+        $this->ldaph->search('(&(objectclass=clearAccount)(uid=' . $this->ldaph->escape($uid) . '))');
         $entry = $this->ldaph->get_first_entry();
 
         $dn = '';
@@ -1759,28 +1894,24 @@ return '';
      * @throws Engine_Exception
      */
 
-    public function _get_next_uid_number()
+    protected function _get_next_uid_number()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->ldaph == NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        try {
-            $directory = new Directory_Driver();
+        $directory = new Directory_Driver();
 
-            // FIXME: discuss with David -- move "Master" node?
-            $dn = 'cn=Master,' . $directory->get_servers_ou();
+        // FIXME: discuss with David -- move "Master" node?
+        $dn = 'cn=Master,' . $directory->get_servers_ou();
 
-            $attributes = $this->ldaph->read($dn);
+        $attributes = $this->ldaph->read($dn);
 
-            // TODO: should have some kind of semaphore to prevent duplicate IDs
-            $next['uidNumber'] = $attributes['uidNumber'][0] + 1;
+        // TODO: should have some kind of semaphore to prevent duplicate IDs
+        $next['uidNumber'] = $attributes['uidNumber'][0] + 1;
 
-            $this->ldaph->modify($dn, $next);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-        }
+        $this->ldaph->modify($dn, $next);
 
         return $attributes['uidNumber'][0];
     }
@@ -1810,7 +1941,6 @@ return '';
 
         return $attributes;
     }
-
 
     /**
      * Merges two LDAP object class lists.
@@ -1870,88 +2000,6 @@ return '';
     }
 
     /**
-     * Sets the password using ClearDirectory conventions.
-     *
-     * @access private
-     * @param string $password password
-     * @param boolean $includesamba workaround for Samba password changes
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    protected function _set_password($password, $includesamba = TRUE)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Already validated by SetPassword and ResetPassword
-
-        // TODO: merge this with section in convert_array_to_attributes
-        $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($password);
-        $ldap_object['pcnSHAPassword'] = $ldap_object['userPassword'];
-        $ldap_object['pcnMicrosoftNTPassword'] = $this->_calculate_nt_password($password);
-
-        $old_attributes = $this->_get_user_attributes();
-
-        // If necessary, add pcnAccount object class for the above passwords
-        if (! in_array('pcnAccount', $old_attributes['objectClass'])) {
-            $classes = $old_attributes['objectClass'];
-            array_shift($classes);
-            $classes[] = 'pcnAccount';
-            $ldap_object['objectClass']= $classes;
-        }
-
-        foreach ($this->info_map as $key => $value) {
-            if (isset($this->info_map[$key]['passwordtype'])) {
-                if (isset($old_attributes[$this->info_map[$key]['passwordfield']])) {
-                    if ($this->info_map[$key]['passwordtype'] == User::PASSWORD_TYPE_SHA)
-                        $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnSHAPassword'];
-                    elseif ($this->info_map[$key]['passwordtype'] == User::PASSWORD_TYPE_SHA1)
-                        $ldap_object[$this->info_map[$key]['passwordfield']] = $this->_convert_sha_to_sha1($ldap_object['pcnSHAPassword']);
-                    elseif ($this->info_map[$key]['passwordtype'] == User::PASSWORD_TYPE_NT)
-                        $ldap_object[$this->info_map[$key]['passwordfield']] = $ldap_object['pcnMicrosoftNTPassword'];
-                }
-            }
-        }
-
-        // TODO / Samba hook should be removed if possible
-        if ($includesamba) {
-            if (isset($old_attributes['sambaSID'])) {
-                $ldap_object['sambaNTPassword'] = $ldap_object['pcnMicrosoftNTPassword'];
-                $ldap_object['sambaPwdLastSet'] = time();
-            }
-        }
-
-        sleep(2); // see comment in SetPassword
-
-        $this->ldaph->Modify($old_attributes['dn'], $ldap_object);
-    }
-
-    /**
-     * Converts string to unicode.
-     *
-     * This will be a native PHP method in the not too distant future.
-     *
-     * @access private
-     *
-     * @return void
-     */
-
-    protected function _string_to_unicode($string)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $unicode = "";
-
-        for ($i = 0; $i < strlen($string); $i++) {
-            $a = ord($string{$i}) << 8;
-            $unicode .= sprintf("%X", $a);
-        }
-
-        return pack('H*', $unicode);
-    }
-
-    /**
      * Signals LDAP synchronize daemon.
      *
      * @access private
@@ -1977,78 +2025,5 @@ return '';
             // Not fatal
         }
         */
-    }
-
-    /**
-     * Validates a user_info array.
-     *
-     * @param array $user_info user information array
-     * @param boolean $is_modify set to TRUE if using results on LDAP modif
-     *
-     * @return boolean TRUE if user_info is valid
-     * @throws Engine_Exception
-     */
-
-    protected function validate_user_info($user_info, $is_modify = FALSE)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $is_valid = TRUE;
-        $invalid_attrs = array();
-
-        // Check user_info type
-        //---------------------
-
-        if (!is_array($user_info))
-            throw new Validation_Exception(lang('directory_validate_user_info_invalid'));
-
-        // Validate user information using validator defined in $this->info_map
-        //--------------------------------------------------------------------
-
-        foreach ($user_info as $attribute => $detail) {
-            if (isset($this->info_map[$attribute]) && isset($this->info_map[$attribute]['validator'])) {
-                // TODO: afterthought -- password/verify check is done below
-                if ($attribute == 'password')
-                    continue;
-
-                $validator = $this->info_map[$attribute]['validator'];
-
-                Validation_Exception::is_valid($this->$validator($detail));
-            }
-        }
-//pete
-return;
-
-        // Validate passwords
-        //-------------------
-
-        if (!empty($user_info['password']) || !empty($user_info['verify'])) {
-            if (!($this->validate_password_and_verify($user_info['password'], $user_info['verify']))) {
-                $is_valid = FALSE;
-                $invalid_attrs[] = 'password';
-            }
-        }
-
-        // When adding a new user, check for missing attributes
-        //-----------------------------------------------------
-
-        if (! $is_modify) {
-            foreach ($this->info_map as $attribute => $details) {
-                if (empty($user_info[$attribute]) && 
-                    ($details['required'] == TRUE) &&
-                    (!in_array($attribute, $invalid_attrs))
-                    ) {
-                        $is_valid = FALSE;
-                        $this->AddValidationError(
-                            LOCALE_LANG_ERRMSG_REQUIRED_PARAMETER_IS_MISSING . " - " . $details['locale'], __METHOD__, __LINE__
-                        );
-                } 
-            }
-        }
-
-        if ($is_valid)
-            return TRUE;
-        else
-            return FALSE;
     }
 }
