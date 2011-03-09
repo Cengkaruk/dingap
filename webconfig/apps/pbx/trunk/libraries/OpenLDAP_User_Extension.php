@@ -109,28 +109,28 @@ class OpenLDAP_User_Extension extends Engine
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_FIXME',
-                'objectclass' => 'clearPbxAccount',
+                'object_class' => 'clearPbxAccount',
                 'attribute' => 'clearPbxExtension'
             ),
             'password' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_FIXME',
-                'objectclass' => 'clearPbxAccount',
+                'object_class' => 'clearPbxAccount',
                 'attribute' => 'clearPbxPassword'
             ),
             'presence_state' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_FIXME',
-                'objectclass' => 'clearPbxAccount',
+                'object_class' => 'clearPbxAccount',
                 'attribute' => 'clearPbxPresenceState'
             ),
             'state' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_FIXME',
-                'objectclass' => 'clearPbxAccount',
+                'object_class' => 'clearPbxAccount',
                 'attribute' => 'clearPbxState'
             ),
         );
@@ -197,6 +197,25 @@ FIXME
 */
     }
 
+    /**
+     * Runs delete procedure.
+     */
+
+    public function delete_hook()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Delete the IPlex PBX user
+        /* FIXME: move to extension
+        if (file_exists(CLEAROS_CORE_DIR . "/iplex/Users.class.php")) {
+            require_once(CLEAROS_CORE_DIR . "/iplex/Users.class.php");
+            $iplex_user = new IPlexUser();
+            if($iplex_user->Exists($this->username))
+                $iplex_user->DeleteIPlexPBXUser($this->username);
+        }
+        */
+    }
+
     /** 
      * Returns user info hash array.
      *
@@ -213,5 +232,53 @@ FIXME
         $info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
         return $info;
+    }
+
+    /** 
+     * Update LDAP attributes hook.
+     *
+     * @param array $user_info user information in hash array
+     * @param array $ldap_object LDAP object
+     *
+     * @return array LDAP attributes
+     * @throws Engine_Exception
+     */
+
+    public function update_attributes_hook($user_info, $ldap_object)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $attributes = array();
+
+/*
+            require_once(CLEAROS_CORE_DIR . "/iplex/Users.class.php");
+
+            try {
+                $iplex_user = new IPlexUser();
+
+                if (array_key_exists('pbxFlag', $user_info)) {
+                    // Delete PBX user
+                    if (($user_info['pbxFlag'] != 1) && $iplex_user->Exists($this->username)) {
+                        $iplex_user->DeleteIPlexPBXUser($this->username);
+                    // Update PBX user
+                    } else if (($user_info['pbxFlag'] == 1) && $iplex_user->Exists($this->username)) {
+                        $iplex_user->UpdateIPlexPBXUser($user_info, $this->username);
+                    // Add PBX user
+                    } else if ($user_info['pbxFlag'] == 1) {
+                        if ($iplex_user->CCAddUser($user_info, $this->username) == 0) {
+                            // CCAddUser failed to add PBX user, clear pbx settings so they aren't saved
+                            unset($ldap_object['pcnPbxExtension']);
+                            unset($ldap_object['pcnPbxState']);
+                            unset($ldap_object['pcnPbxPresenceState']);
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
+            }
+*/
+
+        
+        return $attributes;
     }
 }
