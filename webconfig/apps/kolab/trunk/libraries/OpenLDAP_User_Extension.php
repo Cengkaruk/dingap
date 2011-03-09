@@ -98,7 +98,7 @@ class OpenLDAP_User_Extension extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Kolab constructor.
+     * Kolab OpenLDAP_User_Extension constructor.
      */
 
     public function __construct()
@@ -109,36 +109,36 @@ class OpenLDAP_User_Extension extends Engine
             'alias' => array(
                 'type' => 'string',
                 'required' => FALSE,
-                'validator' => 'validate_FIXME',
-                'objectclass' => 'kolabInetOrgPerson',
+                'validator' => 'validate_alias',
+                'object_class' => 'kolabInetOrgPerson',
                 'attribute' => 'alias'
             ),
             'delete_mailbox' => array(
                 'type' => 'string',
                 'required' => FALSE,
-                'validator' => 'validate_FIXME',
-                'objectclass' => 'kolabInetOrgPerson',
+                'validator' => 'validate_mailbox',
+                'object_class' => 'kolabInetOrgPerson',
                 'attribute' => 'kolabDeleteflag'
             ),
             'home_server' => array(
                 'type' => 'string',
                 'required' => FALSE,
-                'validator' => 'validate_FIXME',
-                'objectclass' => 'kolabInetOrgPerson',
+                'validator' => 'validate_home_server',
+                'object_class' => 'kolabInetOrgPerson',
                 'attribute' => 'kolabHomeServer'
             ),
             'invitation_policy' => array(
                 'type' => 'string',
                 'required' => FALSE,
-                'validator' => 'validate_FIXME',
-                'objectclass' => 'kolabInetOrgPerson',
+                'validator' => 'validate_invitation_policy',
+                'object_class' => 'kolabInetOrgPerson',
                 'attribute' => 'kolabInvitationPolicy'
             ),
             'mail_quota' => array(
                 'type' => 'string',
                 'required' => FALSE,
                 'validator' => 'validate_mail_quota',
-                'objectclass' => 'kolabInetOrgPerson',
+                'object_class' => 'kolabInetOrgPerson',
                 'attribute' => 'cyrus-userquota'
             ),
         );
@@ -169,21 +169,22 @@ class OpenLDAP_User_Extension extends Engine
         // Convert to LDAP attributes
         //---------------------------
 
-        // FIXME: objectclass
         $attributes = Utilities::convert_array_to_attributes($user_info['kolab'], $this->info_map);
 
         return $attributes;
     }
 
     /**
-     * Runs after adding a user.
-     *
-     * @return void
+     * Runs delete procedure.
      */
 
-    public function add_post_processing()
+    public function delete_attributes_hook()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $ldap_object['kolabDeleteflag'] = 'any';
+
+        return $ldap_object;
     }
 
     /** 
