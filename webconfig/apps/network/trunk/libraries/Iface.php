@@ -71,11 +71,11 @@ clearos_load_language('network');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_library('network/Chap');
 clearos_load_library('base/File');
-clearos_load_library('network/Iface_Manager');
-clearos_load_library('network/Network');
 clearos_load_library('base/Shell');
+clearos_load_library('network/Chap');
+clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Network_Utils');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -123,6 +123,25 @@ class Iface extends Engine
     const TYPE_VLAN = 'VLAN';
     const TYPE_WIRELESS = 'Wireless';
 
+    const IFF_UP = 0x1;
+    const IFF_BROADCAST = 0x2;
+    const IFF_DEBUG = 0x4;
+    const IFF_LOOPBACK = 0x8;
+    const IFF_POINTOPOINT = 0x10;
+    const IFF_NOTRAILERS = 0x20;
+    const IFF_RUNNING = 0x40;
+    const IFF_NOARP = 0x80;
+    const IFF_PROMISC = 0x100;
+    const IFF_ALLMULTI = 0x200;
+    const IFF_MASTER = 0x400;
+    const IFF_SLAVE = 0x800;
+    const IFF_MULTICAST = 0x1000;
+    const IFF_PORTSEL = 0x2000;
+    const IFF_AUTOMEDIA = 0x4000;
+    const IFF_DYNAMIC = 0x8000;
+    const IFF_LOWER_UP = 0x10000;
+    const IFF_DORMANT = 0x20000;
+
     /**
      * @var network interface name
      */
@@ -150,6 +169,7 @@ class Iface extends Engine
      *
      * @param   string $iface Interface name
      * @return  void
+     * @throws  Exception
      */
 
     public function set_interface($iface)
