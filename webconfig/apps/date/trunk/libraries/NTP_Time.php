@@ -325,7 +325,7 @@ class NTP_Time extends Engine
 
         $network_utils = new Network_Utils();
 
-        if ($network_utils->validate_hostname($time_server))
+        if (! $network_utils->is_valid_hostname($time_server))
             return lang('date_validate_time_server_invalid');
     }
 }
