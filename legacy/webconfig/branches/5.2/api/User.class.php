@@ -1749,7 +1749,7 @@ class User extends Engine
 			$ldap_object['gidNumber'] = isset($userinfo['gidNumber']) ? $userinfo['gidNumber'] : $gidinfo['id'];
 
 			// Login shell
-			$ldap_object['loginShell'] = User::DEFAULT_LOGIN;
+			$ldap_object['loginShell'] = isset($userinfo['loginShell']) ? $userinfo['loginShell'] : User::DEFAULT_LOGIN;
 		}
 
 		if (! isset($oldattributes['kolabHomeServer'][0]))
