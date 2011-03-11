@@ -33,6 +33,7 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+$this->lang->load('base');
 $this->lang->load('imap');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,12 +41,13 @@ $this->lang->load('imap');
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('imap');
+echo form_header(lang('imap_imap_and_pop_server'));
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Form Fields and Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('imap_imap_and_pop_server'));
+echo form_fieldset(lang('base_general_settings'));
 echo field_toggle_enable_disable('imaps', $imaps, lang('imap_imaps'));
 echo field_toggle_enable_disable('pop3s', $pop3s, lang('imap_pop3s'));
 echo field_toggle_enable_disable('imap', $imap, lang('imap_imap'));
@@ -56,10 +58,6 @@ echo form_fieldset(lang('imap_advanced_settings'));
 echo field_toggle_enable_disable('idled', $idled, lang('imap_push_email'));
 echo form_fieldset_close();
 
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
-
 echo button_set(array(
     form_submit_update('submit', 'high')
 ));
@@ -68,4 +66,5 @@ echo button_set(array(
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
+echo form_footer();
 echo form_close();
