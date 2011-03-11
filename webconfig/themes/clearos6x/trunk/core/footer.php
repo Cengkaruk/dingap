@@ -52,6 +52,7 @@ function theme_page_footer($page)
         <b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
     </div>
 </div>
+</div>
 </body>
 </html>
 ";
@@ -61,6 +62,7 @@ function theme_page_footer($page)
 
 <!-- Footer -->
     </div>
+</div>
 </div>
 </body>
 </html>
