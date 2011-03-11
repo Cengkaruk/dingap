@@ -79,10 +79,11 @@ function _header_default_layout($page)
 <div id='theme-banner-container'>
     <div id='theme-banner-background'></div>
     <div id='theme-banner-logo'></div>
+	<div class='name-holder'>
+	<a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
     <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
-    <div id='theme-banner-logout'><a href='/app/base/session/logout'>" . lang('base_logout') . "</a></div>
-</div>
-
+    </div>
+	
 <!-- Menu Javascript -->
 <script type='text/javascript'> 
     $(document).ready(function() { 
@@ -95,6 +96,8 @@ function _header_default_layout($page)
     $(document).ready(function(){
         $('#theme-left-menu').accordion({ autoHeight: false, active: $active_category_number });
     });
+	
+	
 </script>
 
 <!-- Top Menu -->
@@ -103,7 +106,16 @@ function _header_default_layout($page)
 $top_menu
     </ul>        
 </div>
+	
+</div>
 
+
+
+<!-- Main Content -->
+
+
+<div id='maincontent'>
+<div class='maincontent-top'></div>
 <!-- Left Menu -->
 <div id='theme-left-menu-container'>
     <div id='theme-left-menu-top'></div>
@@ -112,8 +124,12 @@ $left_menu
     </div>
 </div>
 
+
+
 <!-- Content -->
 <div id='theme-content-container'>
+	
+
 ";
 /*
 
@@ -140,6 +156,10 @@ $left_menu
 function _header_splash_layout($page)
 {
     $header = "
+	
+	</div>
+
+
 <!-- Body -->
 <body>
 
@@ -149,8 +169,17 @@ function _header_splash_layout($page)
 <!-- Banner -->
 <div id='theme-banner-splash-container'> </div>
 
+
+
+<!-- Main Content -->
+
+<div class='maincontent-top'></div>
+<div id='maincontent'>
+
 <!-- Content -->
 <div id='theme-content-splash-container'>
+
+<div style='clear: both'>
 
 ";
 
@@ -167,11 +196,19 @@ function _header_wizard_layout($page)
 <!-- Body -->
 <body>
 
+
 <!-- Page Container -->
 <div id='theme-page-container'>
 
 <!-- Banner -->
 <div id='theme-banner-wizard-container'> </div>
+
+
+
+<!-- Main Content -->
+
+<div class='maincontent-top'></div>
+<div id='maincontent'>
 
 <!-- Left Menu -->
 <div id='theme-wizard-menu-container'>
@@ -183,6 +220,7 @@ $left_menu_FIXME
 
 <!-- Content -->
 <div id='theme-content-wizard-container'>
+<div style='clear: both'>
 
 ";
 
@@ -255,7 +293,7 @@ function _get_menu($menu_pages) {
             //---------
 
             $top_menu .= "\t\t<li class='$class'>\n";
-            $top_menu .= "\t\t\t<a class='sf-with-url $class' href='#' onclick=\"$('#theme-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "<span class='sf-sub-indicator'> &#187;</span></a>\n";
+            $top_menu .= "\t\t\t<a class='sf-with-url $class' href='#' onclick=\"$('#theme-left-menu').accordion('activate', $category_count);\">" . $page['category'] . "</a>\n";
 
             $top_menu .= "\t\t\t<ul>\n";
 

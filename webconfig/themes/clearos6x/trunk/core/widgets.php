@@ -121,7 +121,7 @@ function theme_field_view($value, $label, $input_id, $ids = NULL)
     $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-fieldview'>
             <label for='$input_id'$label_id_html>$label</label>
             <span id='$input_id'>$value</span>
         </div>
@@ -154,7 +154,7 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
     $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-field-input'>
             <label for='$input_id'$label_id_html>$label</label>
             <input type='text' name='$name' value='$value' id='$input_id'> $error_html
         </div>
@@ -188,7 +188,7 @@ function theme_field_password($name, $value, $label, $error, $input_id, $ids = N
     $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-password'>
             <label for='$input_id'$label_id_html>$label</label>
             <input type='password' name='$name' value='$value' id='$input_id'> $error_html
         </div>
@@ -221,7 +221,7 @@ function theme_field_dropdown($name, $selected, $label, $error, $options, $input
     $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-dropdown'>
             <label for='$input_id'$label_id_html>$label</label>
             " . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html
         </div>
@@ -242,7 +242,7 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $op
     $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-field-toggle'>
             <label for='$input_id'$label_id_html>$label</label>
             " . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html 
         </div>
@@ -273,7 +273,7 @@ function theme_field_checkbox($name, $selected, $label, $options, $input_id, $id
     $select_html = ($selected) ? ' checked' : '';
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-field-checkboxes'>
             <label for='$input_id'$label_id_html>$label</label>
             <input type='checkbox' name='$name' id='$input_id' $select_html>
         </div>
@@ -301,7 +301,7 @@ function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
     $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
 
     return "
-        <div$field_id_html>
+        <div$field_id_html class='theme-field-progress-bar'>
             <label for='$input_id'$label_id_html>$label</label>
             <div id='$input_id' class='theme-progress-bar'> </div>
         </div>
@@ -373,7 +373,7 @@ function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
 
     return "
 
-<div class='theme-list-table-container ui-widget'>
+<div class='theme-list-table-container ui-widget theme-list-table'>
   <div class='theme-list-table-header ui-state-active ui-corner-top'>
     <div class='theme-list-table-title'>$title</div>
     <div class='theme-list-table-action'>$add_html</div>
@@ -404,7 +404,7 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 
     echo "
         <div class='ui-widget'>
-            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class='ui-corner-all theme-confirmation-dialogbox $class' style='margin-top: 20px; padding: 0 .7em;'>
                 <p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
                 <p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
             </div>
@@ -498,7 +498,7 @@ function theme_control_panel($links)
         $items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
 
     return "
-        <div>
+        <div class='theme-control-panel'>
             <ul>
                 $items
             </ul>
