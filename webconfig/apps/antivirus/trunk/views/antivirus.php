@@ -36,18 +36,6 @@
 $this->lang->load('antivirus');
 $this->lang->load('base');
 
-///////////////////////////////////////////////////////////////////////////////
-// Form open
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_open('antivirus');
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_fieldset(lang('antivirus_antivirus'));
-
 $max_files_options[100] = 100;
 $max_files_options[200] = 200;
 $max_files_options[300] = 300;
@@ -95,17 +83,24 @@ $checks_options = array(
     '24' => lang('base_hourly'),
 );
 
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_open('antivirus');
+echo form_header('antivirus_antivius');
+
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_fieldset(lang('base_general_settings'));
 echo field_toggle_enable_disable('block_encrypted', $block_encrypted, lang('antivirus_block_encrypted_files'));
 echo field_dropdown('max_files', $max_files_options, $max_files, lang('antivirus_maximum_files'));
 echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lang('antivirus_maximum_file_size'));
 echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antivirus_maximum_recursion'));
 echo field_dropdown('checks', $checks_options, $checks, lang('antivirus_update_interval'));
-
 echo form_fieldset_close();
-
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
 
 echo button_set( array( form_submit_update('submit', 'high') ));
 
@@ -113,4 +108,5 @@ echo button_set( array( form_submit_update('submit', 'high') ));
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
+echo form_footer();
 echo form_close();
