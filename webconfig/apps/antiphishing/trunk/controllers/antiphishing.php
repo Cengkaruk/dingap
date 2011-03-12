@@ -4,12 +4,12 @@
  * Antiphishing controller.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antiphishing
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antiphishing/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,12 +37,12 @@
  * Antiphishing controller.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antiphishing
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antiphishing/
  */
 
 class Antiphishing extends ClearOS_Controller
@@ -58,15 +58,16 @@ class Antiphishing extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('antimalware/ClamAV');
+        $this->load->library('antivirus/ClamAV');
+        $this->lang->load('antiphishing');
 
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('signatures', 'antimalware/ClamAV', 'validate_phishing_signatures_state', TRUE);
-        $this->form_validation->set_policy('scan_urls', 'antimalware/ClamAV', 'validate_phishing_scan_urls_state', TRUE);
-        $this->form_validation->set_policy('block_ssl_mismatch', 'antimalware/ClamAV', 'validate_phishing_always_block_ssl_mismatch', TRUE);
-        $this->form_validation->set_policy('block_cloak', 'antimalware/ClamAV', 'validate_phishing_always_block_cloak', TRUE);
+        $this->form_validation->set_policy('signatures', 'antivirus/ClamAV', 'validate_phishing_signatures_state', TRUE);
+        $this->form_validation->set_policy('scan_urls', 'antivirus/ClamAV', 'validate_phishing_scan_urls_state', TRUE);
+        $this->form_validation->set_policy('block_ssl_mismatch', 'antivirus/ClamAV', 'validate_phishing_always_block_ssl_mismatch', TRUE);
+        $this->form_validation->set_policy('block_cloak', 'antivirus/ClamAV', 'validate_phishing_always_block_cloak', TRUE);
 
         $form_ok = $this->form_validation->run();
 
@@ -105,7 +106,7 @@ class Antiphishing extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('antimalware_antiphishing'));
+        $this->page->set_title(lang('antiphishing_antiphishing'));
 
         $this->load->view('theme/header');
         $this->load->view('antiphishing', $data);

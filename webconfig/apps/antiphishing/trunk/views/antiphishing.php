@@ -4,12 +4,12 @@
  * Antiphishing view.
  *
  * @category   ClearOS
- * @package    Antimalware
+ * @package    Antiphishing
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antiphishing/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,25 +33,26 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('antimalware');
+$this->lang->load('antiphishing');
+$this->lang->load('antivirus');
 $this->lang->load('base');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('antimalware/antiphishing');
+echo form_open('antiphishing');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('antimalware_antiphishing'));
+echo form_fieldset(lang('antiphishing_antiphishing'));
 
-echo field_toggle_enable_disable('signatures', $signatures, lang('antimalware_signature_engine'));
-echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antimalware_heuristics_engine'));
-echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antimalware_block_ssl_mismatch'));
-echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antimalware_block_cloaked'));
+echo field_toggle_enable_disable('signatures', $signatures, lang('antivirus_signature_engine'));
+echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antivirus_heuristics_engine'));
+echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antivirus_block_ssl_mismatch'));
+echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antivirus_block_cloaked'));
 
 echo form_fieldset_close();
 
