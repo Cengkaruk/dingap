@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Local DNS server controller.
+ * DNS server controller.
  *
  * @category   Apps
  * @package    DNS
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Local DNS server controller.
+ * DNS server controller.
  *
  * @category   Apps
  * @package    DNS
@@ -48,9 +48,9 @@
 class Dns extends ClearOS_Controller
 {
     /**
-     * Local DNS summary view.
+     * DNS server summary view.
      *
-     * @return view   
+     * @return view
      */
 
     function index()
@@ -74,7 +74,7 @@ class Dns extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('dns_local_dns_server'));
+        $this->page->set_title(lang('dns_dns_server'));
 
         $this->load->view('theme/header');
         $this->load->view('dns/summary', $data);
@@ -82,7 +82,7 @@ class Dns extends ClearOS_Controller
     }
 
     /**
-     * Add local DNS entry view.
+     * Add DNS entry view.
      *
      * @param string $ip IP address
      *
@@ -91,12 +91,11 @@ class Dns extends ClearOS_Controller
 
     function add($ip = NULL)
     {
-        // Use common add/edit form
         $this->_addedit($ip, 'add');
     }
 
     /**
-     * Delete local DNS entry view.
+     * Delete DNS entry view.
      *
      * @param string $ip IP address
      *
@@ -134,12 +133,11 @@ class Dns extends ClearOS_Controller
 
     function edit($ip = NULL)
     {
-        // Use common add/edit form
         $this->_addedit($ip, 'edit');
     }
 
     /**
-     * Destroys local DNS entry view.
+     * Destroys DNS entry view.
      *
      * @param string $ip IP address
      *
@@ -198,12 +196,16 @@ class Dns extends ClearOS_Controller
         // Set validation rules
         //---------------------
 
+        // FIXME: discuss best approach
+        $key_validator = ($form_type === 'edit') ? 'validate_ip' : 'validate_unique_ip';
+
         // TODO: Review the messy alias1/2/3 handling
-        $this->form_validation->set_policy('ip', 'network/Hosts', 'validate_ip', TRUE);
+        $this->form_validation->set_policy('ip', 'network/Hosts', $key_validator, TRUE);
         $this->form_validation->set_policy('hostname', 'network/Hosts', 'validate_hostname', TRUE);
         $this->form_validation->set_policy('alias1', 'network/Hosts', 'validate_alias');
         $this->form_validation->set_policy('alias2', 'network/Hosts', 'validate_alias');
         $this->form_validation->set_policy('alias3', 'network/Hosts', 'validate_alias');
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
