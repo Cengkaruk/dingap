@@ -104,7 +104,7 @@ foreach ($hosts as $real_ip => $entry) {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-    lang('dns_local_dns_server'),
+    lang('dns_dns_server'),
     $anchors,
     $headers,
     $items
