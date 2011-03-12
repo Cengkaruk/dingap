@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,6 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
 clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,16 +85,20 @@ clearos_load_library('base/Validation_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Hosts extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // M E M B E R S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CONFIG = '/etc/hosts';
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
 
     /**
      * @var bool is_loaded
@@ -137,11 +140,8 @@ class Hosts extends Engine
         foreach ($aliases as $alias)
             Validation_Exception::is_valid($this->validate_alias($alias));
 
-        if ($this->entry_exists($ip)) {
-            throw new Validation_Exception(
-                sprintf(lang('network_exception_hosts_already_exists'), $ip)
-            );
-        }
+        if ($this->entry_exists($ip))
+            throw new Validation_Exception(lang('network_host_entry_already_exists'));
 
         // Add
         //----
@@ -179,7 +179,6 @@ class Hosts extends Engine
         $file = new File(self::FILE_CONFIG);
         $hosts = $file->delete_lines("/^$ip\s/i");
 
-        // Force a reload
         $this->is_loaded = FALSE;
     }
 
@@ -209,7 +208,7 @@ class Hosts extends Engine
 
         if (! $this->entry_exists($ip)) {
             throw new Validation_Exception(
-                sprintf(lang('network_exception_hosts_not_found'), $ip)
+                sprintf(lang('network_host_entry_not_found'), $ip)
             );
         }
 
@@ -219,7 +218,6 @@ class Hosts extends Engine
         $file = new File(self::FILE_CONFIG);
         $file->replace_lines("/^$ip\s+/i", "$ip $hostname " . implode(' ', $aliases) . "\n");
 
-        // Force a reload
         $this->is_loaded = FALSE;
     }
 
@@ -251,9 +249,7 @@ class Hosts extends Engine
                 return $entry;
         }
 
-        throw new Validation_Exception(
-            sprintf(lang('network_exception_hosts_not_found'), $ip)
-        );
+        throw new Validation_Exception(lang('network_host_entry_not_found'));
     }
 
     /**
@@ -298,11 +294,11 @@ class Hosts extends Engine
         $this->_load_entries();
 
         foreach ($this->hostdata as $real_ip => $entry) {
-            if (strncasecmp($entry['hostname'], $hostname) == 0)
+            if (strcasecmp($entry['hostname'], $hostname) == 0)
                 return $entry['ip'];
 
             foreach ($entry['aliases'] as $alias) {
-                if (strncasecmp($alias, $hostname) == 0)
+                if (strcasecmp($alias, $hostname) == 0)
                     return $entry['ip'];
             }
         }
@@ -357,9 +353,8 @@ class Hosts extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        return $network->validate_hostname_alias($alias);
+        if (! Network_Utils::is_valid_hostname_alias($alias))
+            return lang('network_hostname_alias_is_invalid');
     }
 
     /**
@@ -374,15 +369,14 @@ class Hosts extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        return $network->validate_hostname($hostname);
+        if (! Network_Utils::is_valid_hostname($hostname))
+            return lang('network_hostname_is_invalid');
     }
 
     /**
      * Validates IP address entry.
      *
-     * @param string $ip IP address
+     * @param string  $ip      IP address
      * @param boolean $is_edit set to TRUE if validation is an edit
      *
      * @return string error message if IP is invalid
@@ -392,9 +386,8 @@ class Hosts extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        return $network->validate_ip($ip);
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('network_ip_is_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
