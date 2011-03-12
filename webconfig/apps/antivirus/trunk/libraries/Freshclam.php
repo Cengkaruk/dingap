@@ -4,12 +4,12 @@
  * Freshclam class.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2007-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\antimalware;
+namespace clearos\apps\antivirus;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('antimalware');
+clearos_load_language('antivirus');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -82,12 +82,12 @@ clearos_load_library('base/Validation_Exception');
  * Freshclam class.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2007-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 class Freshclam extends Daemon
@@ -275,7 +275,7 @@ class Freshclam extends Daemon
         $count = (int)$count;
 
         if (!is_int($count) || ($count < 1) || ($count > 24))
-            return lang('antimalware_updates_per_day_invalid');
+            return lang('antivirus_updates_per_day_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

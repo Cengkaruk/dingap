@@ -4,12 +4,12 @@
  * ClamAV class.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\antimalware;
+namespace clearos\apps\antivirus;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('antimalware');
+clearos_load_language('antivirus');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -78,12 +78,12 @@ clearos_load_library('base/Validation_Exception');
  * ClamAV class.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 class ClamAV extends Daemon
@@ -454,7 +454,7 @@ class ClamAV extends Daemon
         $flag = (bool)$flag;
 
         if (! is_bool($flag))
-            return lang('antimalware_block_encrypted_archive_flag_invalid');
+            return lang('antivirus_block_encrypted_archive_flag_invalid');
     }
 
     /**
@@ -472,7 +472,7 @@ class ClamAV extends Daemon
         $max = (int)$max;
 
         if ((!is_int($max)) || ($max <= 0) || ($max > self::CONSTANT_MAX_FILES))
-            return lang('antimalware_max_files_invalid');
+            return lang('antivirus_max_files_invalid');
     }
 
     /**
@@ -490,7 +490,7 @@ class ClamAV extends Daemon
         $max = (int)$max;
 
         if ((!is_int($max)) || ($max <= 0) || ($max > self::CONSTANT_MAX_FILE_SIZE))
-            return lang('antimalware_max_file_size_invalid');
+            return lang('antivirus_max_file_size_invalid');
     }
 
     /**
@@ -508,7 +508,7 @@ class ClamAV extends Daemon
         $max = (int)$max;
 
         if ((!is_int($max)) || ($max < 0) || ($max > self::CONSTANT_MAX_RECURSION))
-            return lang('antimalware_max_recursion_invalid');
+            return lang('antivirus_max_recursion_invalid');
     }
 
     /**
@@ -526,7 +526,7 @@ class ClamAV extends Daemon
         $flag = (bool)$flag;
 
         if (! is_bool($flag))
-            return lang('antimalware_phishing_signatures_state_invalid');
+            return lang('antivirus_phishing_signatures_state_invalid');
     }
 
     /**
@@ -544,7 +544,7 @@ class ClamAV extends Daemon
         $flag = (bool)$flag;
 
         if (! is_bool($flag))
-            return lang('antimalware_phishing_scan_urls_state');
+            return lang('antivirus_phishing_scan_urls_state');
     }
 
     /**
@@ -562,7 +562,7 @@ class ClamAV extends Daemon
         $flag = (bool)$flag;
 
         if (! is_bool($flag))
-            return lang('antimalware_phishing_always_block_ssl_mismatch');
+            return lang('antivirus_phishing_always_block_ssl_mismatch');
     }
 
     /**
@@ -580,7 +580,7 @@ class ClamAV extends Daemon
         $flag = (bool)$flag;
 
         if (! is_bool($flag))
-            return lang('antimalware_phishing_always_block_cloak');
+            return lang('antivirus_phishing_always_block_cloak');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

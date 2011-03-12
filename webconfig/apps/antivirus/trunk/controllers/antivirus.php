@@ -4,12 +4,12 @@
  * Antivirus controller.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,12 +37,12 @@
  * Antivirus controller.
  *
  * @category   Apps
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 class Antivirus extends ClearOS_Controller
@@ -58,17 +58,17 @@ class Antivirus extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('antimalware/ClamAV');
-        $this->load->library('antimalware/Freshclam');
+        $this->load->library('antivirus/ClamAV');
+        $this->load->library('antivirus/Freshclam');
 
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('checks', 'antimalware/Freshclam', 'validate_checks_per_day', TRUE);
-        $this->form_validation->set_policy('max_files', 'antimalware/ClamAV', 'validate_max_files', TRUE);
-        $this->form_validation->set_policy('max_file_size', 'antimalware/ClamAV', 'validate_max_file_size', TRUE);
-        $this->form_validation->set_policy('max_recursion', 'antimalware/ClamAV', 'validate_max_recursion', TRUE);
-        $this->form_validation->set_policy('block_encrypted', 'antimalware/ClamAV', 'validate_block_encrypted', TRUE);
+        $this->form_validation->set_policy('checks', 'antivirus/Freshclam', 'validate_checks_per_day', TRUE);
+        $this->form_validation->set_policy('max_files', 'antivirus/ClamAV', 'validate_max_files', TRUE);
+        $this->form_validation->set_policy('max_file_size', 'antivirus/ClamAV', 'validate_max_file_size', TRUE);
+        $this->form_validation->set_policy('max_recursion', 'antivirus/ClamAV', 'validate_max_recursion', TRUE);
+        $this->form_validation->set_policy('block_encrypted', 'antivirus/ClamAV', 'validate_block_encrypted', TRUE);
 
         $form_ok = $this->form_validation->run();
 
@@ -110,7 +110,7 @@ class Antivirus extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('antimalware_antivirus'));
+        $this->page->set_title(lang('antivirus_antivirus'));
 
         $this->load->view('theme/header');
         $this->load->view('antivirus', $data);

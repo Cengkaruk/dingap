@@ -20,9 +20,8 @@ $lang['antivirus_signature_engine'] = 'Signature Engine';
 $lang['antivirus_block_cloaked'] = 'Block Cloaked URLs';
 $lang['antivirus_update_interval'] = 'Update Interval';
 
-// From ClamAV
 $lang['antivirus_antimalware'] = 'Antimalware';
-$lang['antivirus_antivirus_updates'] = 'Antimalware Updates';
+$lang['antivirus_antimalware_updates'] = 'Antimalware Updates';
 $lang['antivirus_last_update'] = 'Last Update';
 $lang['antivirus_maximum_files'] = 'Maximum Files in Zip Files';
 $lang['antivirus_maximum_file_size'] = 'Maximum File Size in Zip Files';

@@ -4,12 +4,12 @@
  * Antivirus view.
  *
  * @category   ClearOS
- * @package    Antimalware
+ * @package    Antivirus
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/antimalware/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,20 +33,20 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('antimalware');
+$this->lang->load('antivirus');
 $this->lang->load('base');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('antimalware/antivirus');
+echo form_open('antivirus');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('antimalware_antivirus'));
+echo form_fieldset(lang('antivirus_antivirus'));
 
 $max_files_options[100] = 100;
 $max_files_options[200] = 200;
@@ -90,16 +90,16 @@ $max_recursion_options[25] = 25;
 
 $checks_options = array(
     '1' => lang('base_daily'),
-    '2' => lang('antimalware_twice_a_day'),
-    '12' => lang('antimalware_every_two_hours'),
+    '2' => lang('antivirus_twice_a_day'),
+    '12' => lang('antivirus_every_two_hours'),
     '24' => lang('base_hourly'),
 );
 
-echo field_toggle_enable_disable('block_encrypted', $block_encrypted, lang('antimalware_block_encrypted_files'));
-echo field_dropdown('max_files', $max_files_options, $max_files, lang('antimalware_maximum_files'));
-echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lang('antimalware_maximum_file_size'));
-echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antimalware_maximum_recursion'));
-echo field_dropdown('checks', $checks_options, $checks, lang('antimalware_update_interval'));
+echo field_toggle_enable_disable('block_encrypted', $block_encrypted, lang('antivirus_block_encrypted_files'));
+echo field_dropdown('max_files', $max_files_options, $max_files, lang('antivirus_maximum_files'));
+echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lang('antivirus_maximum_file_size'));
+echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antivirus_maximum_recursion'));
+echo field_dropdown('checks', $checks_options, $checks, lang('antivirus_update_interval'));
 
 echo form_fieldset_close();
 
