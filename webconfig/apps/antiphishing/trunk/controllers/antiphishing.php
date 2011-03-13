@@ -64,10 +64,10 @@ class Antiphishing extends ClearOS_Controller
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('signatures', 'antivirus/ClamAV', 'validate_phishing_signatures_state', TRUE);
         $this->form_validation->set_policy('scan_urls', 'antivirus/ClamAV', 'validate_phishing_scan_urls_state', TRUE);
-        $this->form_validation->set_policy('block_ssl_mismatch', 'antivirus/ClamAV', 'validate_phishing_always_block_ssl_mismatch', TRUE);
+        $this->form_validation->set_policy('signatures', 'antivirus/ClamAV', 'validate_phishing_signatures_state', TRUE);
         $this->form_validation->set_policy('block_cloak', 'antivirus/ClamAV', 'validate_phishing_always_block_cloak', TRUE);
+        $this->form_validation->set_policy('block_ssl_mismatch', 'antivirus/ClamAV', 'validate_phishing_always_block_ssl_mismatch', TRUE);
 
         $form_ok = $this->form_validation->run();
 
@@ -76,16 +76,16 @@ class Antiphishing extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->clamav->set_phishing_signatures_state($this->input->post('signatures'));
                 $this->clamav->set_phishing_scan_urls_state($this->input->post('scan_urls'));
-                $this->clamav->set_phishing_always_block_ssl_mismatch($this->input->post('block_ssl_mismatch'));
+                $this->clamav->set_phishing_signatures_state($this->input->post('signatures'));
                 $this->clamav->set_phishing_always_block_cloak($this->input->post('block_cloak'));
+                $this->clamav->set_phishing_always_block_ssl_mismatch($this->input->post('block_ssl_mismatch'));
 
                 $this->clamav->reset();
 
-                $this->page->set_success(lang('base_system_updated'));
-            } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message());
+                $this->page->set_success();
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -94,10 +94,10 @@ class Antiphishing extends ClearOS_Controller
         //---------------
 
         try {
-            $data['signatures'] = $this->clamav->get_phishing_signatures_state();
             $data['scan_urls'] = $this->clamav->get_phishing_scan_urls_state();
-            $data['block_ssl_mismatch'] = $this->clamav->get_phishing_always_block_ssl_mismatch();
+            $data['signatures'] = $this->clamav->get_phishing_signatures_state();
             $data['block_cloak'] = $this->clamav->get_phishing_always_block_cloak();
+            $data['block_ssl_mismatch'] = $this->clamav->get_phishing_always_block_ssl_mismatch();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -106,10 +106,6 @@ class Antiphishing extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('antiphishing_antiphishing'));
-
-        $this->load->view('theme/header');
-        $this->load->view('antiphishing', $data);
-        $this->load->view('theme/footer');
+        $this->page->view('antiphishing', $data, lang('antiphishing_antiphishing'));
     }
 }
