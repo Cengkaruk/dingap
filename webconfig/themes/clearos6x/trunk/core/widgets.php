@@ -406,8 +406,28 @@ $item_html
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// C O N F I R M A T I O N  D I A L O G B O X
+// C O N F I R M A T I O N  D I A L O G B O X E S
 ///////////////////////////////////////////////////////////////////////////////
+
+function theme_dialogbox_confirm_delete($message, $items, $ok_anchor, $cancel_anchor)
+{
+    $items_html = '';
+
+    foreach ($items as $item)
+        $items_html = '<li>' . $item . '</li>';
+
+    echo "
+        <div class='ui-widget'>
+            <div class='ui-corner-all theme-confirmation-dialogbox ui-state-error' style='margin-top: 20px; padding: 0 .7em;'>
+                <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>$message</p>
+                <ul>
+                    $items_html
+                </ul>
+                <p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
+            </div>
+        </div>
+    ";
+}
 
 function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
 {
@@ -504,10 +524,13 @@ $item_html
 // Note: this theme does not use the "control panel" view so this function
 // is here just for sanity checking during development!
 
-function theme_control_panel($links)
+function theme_summary($form_data)
 {
     $items = '';
 
+echo "<pre>";
+print_r($form_data);
+return;
     foreach ($links as $link => $title)
         $items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
 
