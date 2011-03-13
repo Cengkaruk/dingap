@@ -1,7 +1,7 @@
 <?php
 
 /**
- * SMTP controller.
+ * SMTP general settings controller.
  *
  * @category   Apps
  * @package    SMTP
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * SMTP controller.
+ * SMTP general settings controller.
  *
  * @category   Apps
  * @package    SMTP
@@ -53,7 +53,9 @@ class General extends ClearOS_Controller
      * @return view
      */
 
-    function index($view = 'page')
+    // FIXME: probably could lose the layout?
+
+    function index($mode = 'edit')
     {
         // Load libraries
         //---------------
@@ -85,6 +87,7 @@ class General extends ClearOS_Controller
         //---------------
 
         try {
+            $data['mode'] = $mode;
             $data['domain'] = $this->postfix->get_domain();
             $data['hostname'] = $this->postfix->get_hostname();
             $data['relay_hosts'] = $this->postfix->get_relay_hosts();
@@ -99,21 +102,6 @@ class General extends ClearOS_Controller
         // Load views
         //-----------
 
-
-
-        if ($view == 'form') {
-            $data['form_type'] = 'view';
-
-            $this->load->view('general/view_edit', $data);
-
-        } else if ($view == 'page') {
-            $data['form_type'] = 'edit';
-
-            $this->page->set_title(lang('smtp_smtp_server') . ' - ' . lang('base_general_settings'));
-
-            $this->load->view('theme/header');
-            $this->load->view('general/view_edit', $data);
-            $this->load->view('theme/footer');
-        }
+        $this->page->view_form('general/view_edit', lang('base_general_settings'), $data);
     }
 }

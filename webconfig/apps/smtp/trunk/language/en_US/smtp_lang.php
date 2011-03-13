@@ -1,7 +1,6 @@
 <?php
 $lang['smtp_antispam'] = 'Antispam';
 $lang['smtp_bounced'] = 'Bounced';
-$lang['smtp_confirmation'] = 'Confirm Delete...';
 $lang['smtp_deferred'] = 'Deferred';
 $lang['smtp_delivered'] = 'Delivered';
 $lang['smtp_delivery_failures'] = 'Delivery Failures';

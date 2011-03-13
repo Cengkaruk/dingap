@@ -22,31 +22,31 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: what to do with read-only form values?
-// FIXME: what to do with validating IP ranges and its ilk
-
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('dhcp');
+$this->lang->load('smtp');
+$this->lang->load('network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form modes
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'edit') {
-	$form_path = '/dhcp/subnets/edit';
+// FIXME: should we have edit mode for simple values?  Discuss.
+
+if ($mode === 'edit') {
+	$form_path = '/smtp/trusted/edit';
 	$buttons = array(
 		form_submit_update('submit'),
-		anchor_cancel('/app/dhcp/subnets/'),
-		anchor_delete('/app/dhcp/subnets/delete/' . $interface)
+		anchor_cancel('/app/smtp/trusted/'),
+		anchor_delete('/app/smtp/trusted/delete/' . $network)
 	);
 } else {
-	$form_path = '/dhcp/subnets/add';
+	$form_path = '/smtp/trusted/add';
 	$buttons = array(
 		form_submit_add('submit'),
-		anchor_cancel('/app/dhcp/subnets/')
+		anchor_cancel('/app/smtp/trusted/')
 	);
 }
 
@@ -54,29 +54,16 @@ if ($form_type === 'edit') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open($form_path . '/' . $interface);
-echo form_fieldset(lang('dhcp_subnet'));
+echo form_open($form_path . '/' . $network);
+echo form_header(lang('smtp_trusted_networks'));
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('interface', $interface, lang('dhcp_network_interface'), TRUE);
-echo field_input('network', $network, lang('dhcp_network'), TRUE);
-echo field_dropdown('lease_time', $lease_times, $lease_time, lang('dhcp_lease_time'));
-echo field_input('gateway', $gateway, lang('dhcp_gateway'));
-echo field_input('start', $start, lang('dhcp_ip_range_start'));
-echo field_input('end', $end, lang('dhcp_ip_range_end'));
-echo field_input('dns1', $dns[0], lang('dhcp_dns') . " #1");
-echo field_input('dns2', $dns[1], lang('dhcp_dns') . " #2");
-echo field_input('dns3', $dns[2], lang('dhcp_dns') . " #3");
-echo field_input('wins', $wins, lang('dhcp_wins'));
-echo field_input('tftp', $tftp, lang('dhcp_tftp'));
-echo field_input('ntp', $ntp, lang('dhcp_ntp'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
+echo form_fieldset(lang('smtp_trusted_networks'));
+echo field_input('network', $network, lang('network_network'));
+echo form_fieldset_close();
 
 echo button_set($buttons);
 
@@ -84,7 +71,5 @@ echo button_set($buttons);
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset_close();
+echo form_footer();
 echo form_close();
-
-// vim: ts=4 syntax=php

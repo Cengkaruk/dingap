@@ -348,14 +348,13 @@ class Postfix extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        Validation_Exception::is_valid($this->validate_trusted_network($network));
+
         // Prevent deletion of localhost
         //------------------------------
 
-        if ($trustednetwork == self::LOCALHOST)
-            throw new Validation_Exception(POSTFIX_LANG_ERRMSG_LOCALHOST);
-
-        // Delete trusted network
-        //-----------------------
+        // if ($trustednetwork == self::LOCALHOST)
+        //   throw new Validation_Exception(POSTFIX_LANG_ERRMSG_LOCALHOST);
 
         $this->_delete_list_item('mynetworks', ',', $trustednetwork);
     }

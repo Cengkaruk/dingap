@@ -48,7 +48,7 @@ $headers = array(
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array();
+$anchors = array(anchor_add('/app/smtp/trusted/add/'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -60,7 +60,10 @@ foreach ($networks as $network) {
 
 	$item['title'] = $network;
 	$item['action'] = '/app/smtp/trusted/delete/' . $no_slash_network;
-	$item['anchors'] = button_set(array(anchor_delete('/app/smtp/trusted/delete/' . $no_slash_network)));
+	$item['anchors'] = button_set(array(
+        anchor_edit('/app/smtp/trusted/edit/' . $no_slash_network),
+        anchor_delete('/app/smtp/trusted/delete/' . $no_slash_network)
+    ));
 	$item['details'] = array($network);
 
 	$items[] = $item;

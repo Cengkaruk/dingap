@@ -53,63 +53,16 @@ class SMTP extends ClearOS_Controller
 
 	function index()
 	{
-		if ($this->session->userdata['theme_mode'] === CLEAROS_MOBILE)
-			$this->mobile_index();
-		else
-			$this->desktop_index();
-	}
-
-	/**
-	 * SMTP server summary view for desktops.
-	 */
-
-	function desktop_index()
-	{
 		// Load libraries
 		//---------------
 
-		$this->lang->load('smtp');
-		$this->load->module('smtp/general');
-		$this->load->module('smtp/trusted');
-
-		// Load views
-		//-----------
-
-		$this->page->set_title(lang('smtp_smtp_server'));
-
-		$this->load->view('theme/header');
-		$this->general->index('form');
-		$this->trusted->index('form');
-		$this->load->view('theme/footer');
-	}
-
-	/**
-	 * SMTP server summary view for mobile/control panel.
-	 */
-
-	function mobile_index()
-	{
-		// Load libraries
-		//---------------
-
-		$this->lang->load('base');
 		$this->lang->load('smtp');
 
 		// Load views
 		//-----------
 
-// FIXME: add icons and help blurb for control panel view
-		$summary['links']['/app/smtp/general'] = lang('base_general_settings');
-		$summary['links']['/app/smtp/trusted'] = lang('smtp_trusted_networks');
-		$summary['links']['/app/smtp/destinations'] = lang('smtp_destination_domains');
-		$summary['links']['/app/smtp/forwarders'] = lang('smtp_forward_domains');
+        $views = array('smtp/general', 'smtp/trusted');
 
-		$this->page->set_title(lang('smtp_smtp_server'));
-
-		$this->load->view('theme/header');
-		$this->load->view('theme/summary', $summary);
-		$this->load->view('theme/footer');
+        $this->page->view_forms($views, lang('smtp_smtp_server'));
 	}
 }
-
-?>
