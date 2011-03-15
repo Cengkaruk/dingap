@@ -406,7 +406,7 @@ $item_html
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// C O N F I R M A T I O N  D I A L O G B O X E S
+// D I A L O G  B O X E S
 ///////////////////////////////////////////////////////////////////////////////
 
 function theme_dialogbox_confirm_delete($message, $items, $ok_anchor, $cancel_anchor)
@@ -416,7 +416,7 @@ function theme_dialogbox_confirm_delete($message, $items, $ok_anchor, $cancel_an
     foreach ($items as $item)
         $items_html = '<li>' . $item . '</li>';
 
-    echo "
+    return "
         <div class='ui-widget'>
             <div class='ui-corner-all theme-confirmation-dialogbox ui-state-error' style='margin-top: 20px; padding: 0 .7em;'>
                 <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>$message</p>
@@ -436,7 +436,7 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
     $class = 'ui-state-error';
     $iconclass = 'ui-icon-alert';
 
-    echo "
+    return "
         <div class='ui-widget'>
             <div class='ui-corner-all theme-confirmation-dialogbox $class' style='margin-top: 20px; padding: 0 .7em;'>
                 <p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
@@ -445,6 +445,39 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
         </div>
     ";
 }
+
+function theme_dialogbox_info($message)
+{
+// FIXME - work in progress
+// FIXME - icons and translate
+    $class = 'ui-state-highlight';
+    $iconclass = 'ui-icon-info';
+
+    return "
+        <div class='ui-widget' style='margin: 10px'>
+            <div class='ui-corner-all theme-dialogbox-info $class'>
+               <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message
+            </div>
+        </div>
+    ";
+}
+
+function theme_dialog_warning($message)
+{
+// FIXME - work in progress
+// FIXME - icons and translate
+    $class = 'ui-state-error';
+    $iconclass = 'ui-icon-alert';
+
+    return "
+        <div class='ui-widget' style='margin: 10px'>
+            <div class='ui-corner-all theme-dialogbox-info $class'>
+               <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message
+            </div>
+        </div>
+    ";
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // S U M M A R Y  T A B L E
@@ -524,15 +557,13 @@ $item_html
 // Note: this theme does not use the "control panel" view so this function
 // is here just for sanity checking during development!
 
-function theme_summary($form_data)
+function theme_control_panel($form_data)
 {
     $items = '';
 
-echo "<pre>";
-print_r($form_data);
-return;
-    foreach ($links as $link => $title)
-        $items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
+
+    foreach ($form_data as $form => $details)
+        $items .= "<li><a rel='external' href='$form'>" . $details['title'] . "</a></li>\n";
 
     return "
         <div class='theme-control-panel'>
