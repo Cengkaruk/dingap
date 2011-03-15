@@ -59,6 +59,7 @@ class Date extends ClearOS_Controller
         //---------------
 
         $this->load->library('date/Time');
+        $this->lang->load('date');
 
         // Set validation rules
         //---------------------
@@ -72,9 +73,9 @@ class Date extends ClearOS_Controller
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->time->set_time_zone($this->input->post('timezone'));
-                $this->page->set_success(lang('base_system_updated'));
-            } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message());
+                $this->page->set_status_updated();
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -95,11 +96,7 @@ class Date extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('date_date'));
-
-        $this->load->view('theme/header');
-        $this->load->view('date', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('date', lang('date_date'), $data);
     }
 
     /**
