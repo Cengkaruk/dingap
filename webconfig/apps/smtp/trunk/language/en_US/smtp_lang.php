@@ -55,3 +55,5 @@ $lang['smtp_maximum_message_size'] = 'Maximum Message Size';
 $lang['smtp_catch_all'] = 'Catch All';
 $lang['smtp_mail_disclaimer_is_invalid'] = 'Mail disclaimer is invalid.';
 $lang['smtp_mail_disclaimer_state_is_invalid'] = 'Mail disclaimer state is invalid.';
+$lang['smtp_mail_forwarding'] = 'Mail Forwarding';
+$lang['smtp_additional_domains'] = 'Additional Domains';

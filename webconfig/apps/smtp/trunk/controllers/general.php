@@ -75,7 +75,7 @@ class General extends ClearOS_Controller
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->time->set_time_zone($this->input->post('timezone'));
-                $this->page->set_success(lang('base_system_updated'));
+                $this->page->set_status_updated();
             } catch (Engine_Exception $e) {
                 $this->page->view_exception($e->get_message());
                 return;
@@ -102,6 +102,6 @@ class General extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('general/view_edit', lang('base_general_settings'), $data);
+        $this->page->view_form('general/view_edit', $data);
     }
 }

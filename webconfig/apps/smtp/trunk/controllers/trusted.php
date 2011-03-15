@@ -48,7 +48,7 @@
 class Trusted extends ClearOS_Controller
 {
 	/**
-	 * trusted networks overview.
+	 * Trusted networks overview.
 	 */
 
     function index($mode = 'edit')
@@ -186,7 +186,7 @@ class Trusted extends ClearOS_Controller
 				$this->postfix->add_trusted_network($this->input->post('network'));
 				$this->postfix->reset();
 
-				$this->page->set_success();
+				$this->page->set_status_added();
 				redirect('/smtp/trusted');
 			} catch (Exception $e) {
 				$this->page->view_exception($e);
