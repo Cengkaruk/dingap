@@ -57,7 +57,6 @@ clearos_load_language('dhcp');
 
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
-use \clearos\apps\firewall\Firewall as Firewall;
 use \clearos\apps\network\Ethers as Ethers;
 use \clearos\apps\network\Iface as Iface;
 use \clearos\apps\network\Iface_Manager as Iface_Manager;
@@ -66,9 +65,8 @@ use \clearos\apps\network\Routes as Routes;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
-// clearos_load_library('firewall/Firewall');
-// clearos_load_library('network/Ethers');
-// clearos_load_library('network/Iface');
+clearos_load_library('network/Ethers');
+clearos_load_library('network/Iface');
 // clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network_Utils');
 // clearos_load_library('network/Routes');
@@ -328,80 +326,6 @@ class Dnsmasq extends Daemon
         }
 
         $this->_save_config();
-    }
-
-    /**
-     * Enables a default DHCP range on all LAN interfaces.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function EnableDhcpAutomagically()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        try {
-            $firewall = new Firewall();
-            $mode = $firewall->GetMode();
-            $interfaces = $this->GetDhcpInterfaces();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
-
-        // This logic should really go into the firewall class.
-        // Enable DHCP if:
-        // - role is LAN
-        // - role is External and mode is standalone
-
-        $dhcpifs = array();
-
-        foreach ($interfaces as $interface) {
-            if (
-                ($firewall->GetInterfaceRole($interface) == Firewall::CONSTANT_LAN) ||
-                ($mode == Firewall::CONSTANT_STANDALONE) || 
-                ($mode == Firewall::CONSTANT_TRUSTEDSTANDALONE)
-                ) { 
-                $dhcpifs[] = $interface;
-            }
-        }
-
-        $netcheck = new Network_Utils();
-
-        foreach ($dhcpifs as $interface) {
-            try {
-                $ethinfo = new Iface($interface);
-                $ip = $ethinfo->GetLiveIp();
-                $netmask = $ethinfo->GetLiveNetmask();
-                $network = $netcheck->GetNetworkAddress($ip, $netmask);
-                $broadcast = $netcheck->GetBroadcastAddress($ip, $netmask);
-
-                // Add some intelligent defaults
-                $long_nw = ip2long($network);
-                $long_bc = ip2long($broadcast);
-                $start = long2ip($long_bc - round(($long_bc - $long_nw )* 3 / 5,0) - 2);
-                $end = long2ip($long_bc - 1);
-                $dns = array($ip);
-                $dns[] = $ip;
-
-                $this->AddSubnet($interface, $ip, $start, $end, $dns, "");
-            } catch (Validation_Exception $e) {
-                // Not fatal, keep going
-            } catch (Engine_Exception $e) {
-                throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-            }
-        }
-
-        try {
-            $this->SetDhcpState(TRUE);
-            $this->SetBootState(TRUE);
-            $this->Restart();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
     }
 
     /**
@@ -727,14 +651,14 @@ class Dnsmasq extends Daemon
         try {
             $netcheck = new Network_Utils();
             $ethinfo = new Iface($iface);
-            $firewall = new Firewall();
+            $network = new Network();
             $routes = new Routes();
 
             $ip = $ethinfo->GetLiveIp();
             $netmask = $ethinfo->GetLiveNetmask();
             $network = $netcheck->GetNetworkAddress($ip, $netmask);
             $broadcast = $netcheck->GetBroadcastAddress($ip, $netmask);
-            $mode = $firewall->GetMode();
+            $mode = $network->get_mode();
             $defroute = $routes->GetDefault();
         } catch (Engine_Exception $e) {
             throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
@@ -746,7 +670,7 @@ class Dnsmasq extends Daemon
         $long_nw = ip2long($network);
         $long_bc = ip2long($broadcast);
 
-        if (($mode === Firewall::CONSTANT_STANDALONE) || ($mode === Firewall::CONSTANT_TRUSTEDSTANDALONE))
+        if (($mode === Network::MODE_STANDALONE) || ($mode === Network::MODE_TRUSTED_STANDALONE))
             $subnet['gateway'] = $defroute;
         else
             $subnet['gateway'] = $ip;
