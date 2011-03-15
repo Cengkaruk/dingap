@@ -32,6 +32,9 @@ $(function(){
 		"sPaginationType": "full_numbers"
 	});
 
+    // Charts
+    $.jqplot.config.enablePlugins = true;
+   
 	// Forms / FIXME
 	$('fieldset').addClass('ui-widget-content ui-corner-all');
 	$('legend').addClass('ui-widget-header ui-corner-all');
