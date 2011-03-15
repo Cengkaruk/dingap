@@ -66,19 +66,15 @@ class Dns extends ClearOS_Controller
 
         try {
             $data['hosts'] = $this->hosts->get_entries();
-        } catch (Engine_Exception $e) {
-            $this->page->view_exception($e->get_message());
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
             return;
         }
  
         // Load views
         //-----------
 
-        $this->page->set_title(lang('dns_dns_server'));
-
-        $this->load->view('theme/header');
-        $this->load->view('dns/summary', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('dns/summary', $data);
     }
 
     /**
@@ -112,15 +108,11 @@ class Dns extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('dns_dns_entry'));
-
         $data['message'] = sprintf(lang('dns_confirm_delete'), $ip);
         $data['ok_anchor'] = '/app/dns/destroy/' . $ip;
         $data['cancel_anchor'] = '/app/dns';
     
-        $this->load->view('theme/header');
-        $this->load->view('theme/confirm', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('theme/confirm', $data);
     }
 
     /**
@@ -152,22 +144,19 @@ class Dns extends ClearOS_Controller
         $this->load->library('network/Hosts');
         $this->load->library('dns/Dnsmasq');
 
-        // Handle form submit
-        //-------------------
+        // Handle delete
+        //--------------
 
         try {
             $this->hosts->delete_entry($ip);
             $this->dnsmasq->reset();
-            $this->page->set_success(lang('base_deleted'));
-        } catch (Engine_Exception $e) {
-            $this->page->view_exception($e->get_message());
+
+            $this->page->set_status_deleted();
+            redirect('/dns');
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
             return;
         }
-
-        // Redirect
-        //---------
-
-        redirect('/dns');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -263,10 +252,6 @@ class Dns extends ClearOS_Controller
         // Load the views
         //---------------
 
-        $this->page->set_title(lang('dns_dns_entry'));
-
-        $this->load->view('theme/header');
-        $this->load->view('dns/add_edit', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('dns/add_edit', $data);
     }
 }
