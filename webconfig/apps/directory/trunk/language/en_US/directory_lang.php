@@ -32,6 +32,8 @@ $lang['directory_exception_username_already_exists'] = 'Username already exists.
 $lang['directory_exception_full_name_already_exists'] = 'A user with the same full name already exists.';
 $lang['directory_exception_user_not_found'] = 'User not found.';
 
+$lang['directory_directory_manager'] = 'Directory Manager';
+
 ///////////////////////////////////////
 // From ClearDirectory class
 ///////////////////////////////////////
