@@ -211,120 +211,117 @@ div.theme-button-set { color: red; background-image: url(); }
 /* Forms */
 /* ------------------------------------------------------------------------- */
 
-.theme-form {
-  ^z-index: 0;
-}
-
-.theme-form .theme-fieldset {
+.theme-form-header {
   background: #FFFFFF url(../images/header-grad2.png);
   background-repeat: no-repeat;
-  background-position: -1 0;
+  background-position: 2 0;
   ^background-position: 0 0;
-  padding-left: 15px;
-  padding-right: 15px;
-  font-family: arial;
-  color: #a5a4a4;
-  padding-top: 10px;
-  ^padding-top: 29px;
-  ^position: relative;
-  ^top: -36px;
 /* Peter: reduced width/max-width by 250 */
-  ^width: 476px;
+  ^width: 460px;
+	
 }
 
+.theme-form-header .theme-fieldset {
+  border-left: 1px solid #e1e1e1;
+  border-right: 1px solid #e1e1e1;
+  border-top: none;
+  border-bottom: none;
+}
 
+.theme-form-header .theme-fieldset .theme-fieldset-legend {
+  border-bottom: none;
+  padding-left: 10px;
+  margin-left: 0px;
+  ^margin-left: -8px;
+  padding-top: 0px;
+  ^padding-top: 26px;
+  ^padding-bottom: 0px;
+/* Peter: reduced width by 250 */
+/*
+  width: 714px;
+  ^width: 718px;
+*/
+  width: 414px;
+  ^width: 468px;
+  color: #98bb60;
+  font-size: 14px;
+  height: 0px;
+  line-height: 5px;
+  ^line-height: 16px;
+  ^position: relative;
+  ^top: -30px;
+
+}
 
 .theme-fieldset {
-  border-left: 1px solid #e1e1e1;
-  border-right: 1px solid #e1e1e1;
-  ^border-left: none;
-  ^border-right: none;
-  border-top: none;
-  border-bottom: none;	
-  -moz-border-radius-topleft: 9px; 
-  -webkit-border-top-left-radius: 9px;
-  -moz-border-radius-topright: 9px; 
-  -webkit-border-top-right-radius: 9px;
-/* Peter: reduced width/max-width by 250 */
-  width: 444px;
+  position: relative;
+  top: 15px;
+  padding-bottom: 40px;
 }
 
-.theme-form {
-  ^border-left: 1px solid #e1e1e1;
-  ^border-right: 1px solid #e1e1e1;	
-  ^max-width: 720px;
-  ^margin-top: 36px;
-}
-
-.theme-form :first-child + fieldset {
-  background-image: none;
-  -moz-border-radius-topleft: 0px; 
-  -webkit-border-top-left-radius: 0px;
-  -moz-border-radius-topright: 0px; 
-  -webkit-border-top-right-radius: 0px;
-}
-
-.theme-form :first-child + fieldset {
-  background-image: none;
-  padding-top: 40px;
-  border-left: 1px solid #e1e1e1;
-  border-right: 1px solid #e1e1e1;	
-  padding-bottom: 70px;
-}
-
-.theme-form :first-child + fieldset, x:-moz-any-link, x:default {
-  background-image: none;
-  padding-top: 0px;
-  border-left: 1px solid #e1e1e1;
-  border-right: 1px solid #e1e1e1;
-  padding-bottom: 30px;
-}
-
-.theme-fieldset-legend{
-  font-size: 14px;
-  color: #98bb60;
-  position: absolute;
- 
+.theme-fieldset, x:-moz-any-link, x:default {
+  position: relative;
+  top: 15px;
+  padding-bottom: 10px;
 }
 
 .theme-fieldset :first-child + div {
-  position: relative;
-  top: 40px;
+  padding-top: 30px;
 }
 
-.theme-fieldset :first-child + div, x:-moz-any-link, x:default {
-  margin-top: 40px;
-  position: static;
-  top: 0px;
+
+.theme-form-header .theme-fieldset .theme-field-toggle {
+  border: none;
+  height: 0px;
+/* Peter: reduced width/max-width by 250 */
+  ^width: 460px;
 }
 
-.theme-field-toggle {
-  width: inherit;
+.theme-form-header .theme-fieldset .theme-field-toggle, x:-moz-any-link, x:default  {
+  border: none;
   height: 30px;
+
 }
 
-.theme-field-toggle label {
-  position: relative;
+.theme-form-header .theme-fieldset .theme-field-toggle label {
+  position: absolute;
+  left: 15px;
 }
 
-.theme-field-toggle select {
+.theme-form-header .theme-fieldset .theme-field-toggle select {
   position: absolute;
   right: 15px;
 }
 
-.theme-form> div> input {
-	left: 15px;
-	
+.theme-form-header .theme-button-set {
+  background-image: url(../images/widget-bottom2.png);
+  background-position: 0 3px;
+  background-repeat: no-repeat;
+  border-top: none;
+  border-bottom: none;
+  padding-left: 10px;
+  padding-top: 0px;
+  ^padding-top: 5px;
+  padding-bottom: 15px;
+  margin-left: 2px;
+  ^margin-left: 0px;
+/* Peter: reduced width by 250 */
+/*
+  width: 716px;
+  ^width: 727px;
+*/
+  width: 466px;
+  ^width: 477px;
 }
 
-.theme-form> div> input, x:-moz-any-link, x:default  {
-	left: 15px;
-	
+.theme-form-header .theme-button-set, x:-moz-any-link, x:default {
+	background-position: 0 -5px;
+	padding-bottom: 10px;
+	^background-position: 0 12px;
+	^padding-bottom: 15px;
 }
 
-fieldset label {
-  font-weight: bold;
-}
+
 
 /* ------------------------------------------------------------------------- */
 /* Summary Box */
@@ -444,7 +441,7 @@ fieldset label {
 }
 
 #theme-banner-logout {
-  background-image: url('../images/login-arrow.png');
+  Background-image: url('../images/login-arrow.png');
   background-position: right 3px;
   background-repeat: no-repeat;
   padding-left: 10px;
@@ -473,13 +470,11 @@ fieldset label {
   background-repeat: no-repeat;
 }
 
-
 /* ------------------------------------------------------------------------- */
 /* Content Area */
 /* ------------------------------------------------------------------------- */
 
-/* Peter: renamed maincontent to theme-main-content */
-#theme-main-content-container {
+#theme-main-content {
 	background-image: url(../images/maincontent-bg.png);
 	background-repeat: repeat-y;
 	float: left;
@@ -496,9 +491,12 @@ fieldset label {
 	clear: both;
 }
 
-
 #theme-content-container {
 /* Peter: reduced width/max-width by 250 */
+/*
+  max-width: 728px;
+  width: 728px;
+*/
   max-width: 478px;
   width: 478px;
   float: left;
@@ -535,10 +533,10 @@ fieldset label {
   padding-right: 10px;
   margin-top: -20px;
 /*
-  position: absolute;
-  top: 5px;
-  left: 500px;
-*/
+ *   position: absolute;
+ *     top: 5px;
+ *       left: 500px;
+ *       */
   float: right;
 }
 
@@ -716,17 +714,14 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
  
 }
 
-#theme-left-menu h3 {
-  margin-top: 0px;	
+#theme-left-menu {
+  margin-top: -4px;	
 }
 
-#theme-left-menu h3 :first-child {
-  top: 5px;	
+#theme-left-menu, x:-moz-any-link, x:default {
+  margin-top: -6px;	
 }
 
-#theme-left-menu h3 :first-child + a {
-  padding-top: 0px;	
-}
 
 
 #theme-left-menu.ui-accordion {
