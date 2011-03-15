@@ -83,7 +83,7 @@ class Antiphishing extends ClearOS_Controller
 
                 $this->clamav->reset();
 
-                $this->page->set_success();
+                $this->page->set_status_updated();
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -106,6 +106,17 @@ class Antiphishing extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view('antiphishing', $data, lang('antiphishing_antiphishing'));
+        $this->page->view_form('antiphishing', $data);
+    }
+
+    /**
+     * Report widget.
+     *
+     * @return view
+     */
+
+    function report()
+    {
+        echo "<b>Report widget here...maybe</b>";
     }
 }
