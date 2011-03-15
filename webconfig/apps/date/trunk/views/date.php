@@ -50,7 +50,7 @@ echo form_header(lang('date_time_and_date'));
 echo form_fieldset(lang('base_general_settings'));
 echo field_input('date_date', $date, lang('date_date'), TRUE);
 echo field_input('date_time', $time, lang('date_time'), TRUE);
-echo field_dropdown('timezone', $timezones, $timezone, lang('date_time_zone'));
+echo field_simple_dropdown('timezone', $timezones, $timezone, lang('date_time_zone'));
 echo form_fieldset_close();
 
 echo button_set(
