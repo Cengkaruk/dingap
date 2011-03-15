@@ -77,7 +77,7 @@ class Network extends ClearOS_Controller
 
 		$this->load->view('theme/header');
 
-		//$this->general->index('form');
+		$this->load->view('general/view_edit');
 
 		$this->load->view('theme/footer');
 	}
@@ -100,7 +100,7 @@ class Network extends ClearOS_Controller
 		$this->page->set_title(lang('network_network'));
 
 		$this->load->view('theme/header');
-		//$this->load->view('theme/summary', $summary);
+		$this->load->view('theme/summary', $summary);
 		$this->load->view('theme/footer');
 	}
 }
