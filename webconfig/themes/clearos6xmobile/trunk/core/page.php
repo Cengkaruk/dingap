@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Footer handler for the ClearOS Enterprise mobile theme.
+ * Header handler for the ClearOS Enterprise mobile theme.
  *
  * @category  Theme
  * @package   ClearOS_Enterprise_Mobile
@@ -28,20 +28,47 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
+// P A G E  L A Y O U T
+//////////////////////////////////////////////////////////////////////////////
+
+function theme_page($page)
+{
+    if ($page['layout'] == 'default')
+        return _page_default_layout($page);
+    else if ($page['layout'] == 'splash')
+        return _page_splash_layout($page);
+    else if ($page['layout'] == 'wizard')
+        return _page_wizard_layout($page);
+}
+
 /**
- * Returns the footer for the theme.
+ * Template for default layout.
  *
- * Three types of footer layouts must be supported in a ClearOS theme.  Please
- * see the developer documentation for details:
- * http://www.clearfoundation.com/docs/developer/theming/header
- *
- * @param array $page_data page data
- *
- * @return HTML for the footer
+ * @param array $page page data
+ * @author {@link http://www.clearfoundation.com/ ClearFoundation}
+ * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @copyright Copyright 2010 ClearFoundation
  */
 
-function theme_page_footer($page_data)
+function _page_default_layout($page)
 {
+    $html = "
+<!-- Body -->
+<body>
+
+<div data-role='page' data-theme='b' id='theme-page' class='theme-page-container'> 
+    <div data-role='header'>
+        <h1>" . $page['title'] . "</h1>
+        <a href='#menu' data-icon='gear' class='ui-btn-right'>" . lang('base_menu') . "</a>
+    </div>
+    <div data-role='content'>
+
+
+<!-- Content --> 
+";
+    $html .= $page['app_view'];
+
     $menu_items = '';
 
     // Loop through to build menu
@@ -54,12 +81,12 @@ function theme_page_footer($page_data)
     $current_subcategory = '';
     $category_count = 0;
 
-    foreach ($page_data['menus'] as $url => $page) {
+    foreach ($page['menus'] as $url => $page_info) {
 
         // Category transition
         //--------------------
 
-        if ($page['category'] != $current_category) {
+        if ($page_info['category'] != $current_category) {
 
             // Don't close top menu category on first run
             //-------------------------------------------
@@ -74,10 +101,10 @@ function theme_page_footer($page_data)
             // Top Menu
             //---------
 
-            $top_menu .= "\t\t<li>" . $page['category'] . "\n";
+            $top_menu .= "\t\t<li>" . $page_info['category'] . "\n";
             $top_menu .= "\t\t\t<ul>\n";
 
-            $current_category = $page['category'];
+            $current_category = $page_info['category'];
             $category_first_item = FALSE;
             $subcategory_first_item = TRUE;
         }
@@ -85,24 +112,24 @@ function theme_page_footer($page_data)
         // Subcategory transition
         //-----------------------
 
-        if ($current_subcategory != $page['subcategory']) {
+        if ($current_subcategory != $page_info['subcategory']) {
 
             if (! $subcategory_first_item) {
                 $top_menu .= "\t\t\t\t\t</ul>\n";
                 $top_menu .= "\t\t\t\t</li>\n";
             }
 
-            $top_menu .= "\t\t\t\t<li>" . $page['subcategory'] . "\n";
+            $top_menu .= "\t\t\t\t<li>" . $page_info['subcategory'] . "\n";
             $top_menu .= "\t\t\t\t\t<ul>\n";
 
-            $current_subcategory = $page['subcategory'];
+            $current_subcategory = $page_info['subcategory'];
             $subcategory_first_item = FALSE;
         }
 
         // Page transition
         //----------------
 
-        $top_menu .= "\t\t\t\t\t\t<li><a href='" . $url . "'>" . $page['title'] . "</a><li>\n";
+        $top_menu .= "\t\t\t\t\t\t<li><a href='" . $url . "'>" . $page_info['title'] . "</a><li>\n";
     }
 
     // Close out open HTML tags
@@ -118,7 +145,7 @@ function theme_page_footer($page_data)
 
     $links = "<a href='/app/base/theme/set/clearos6x' data-role='button' data-icon='gear' rel='external'>" . lang('base_full_view') . "</a>";
 
-    $footer = "
+    $html .= "
 
 <!-- Footer --> 
     </div>
@@ -150,5 +177,5 @@ $top_menu
 </html>
 ";
 
-    return $footer;
+    return $html;
 }

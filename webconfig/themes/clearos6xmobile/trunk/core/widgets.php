@@ -420,7 +420,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $legend = NULL)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// C O N F I R M A T I O N  D I A L O G B O X
+// D I A L O G  B O X E S
 ///////////////////////////////////////////////////////////////////////////////
 
 function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
@@ -439,16 +439,32 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
     ";
 }
 
+function theme_dialogbox_info($message)
+{
+// FIXME - work in progress
+// FIXME - icons and translate
+    $class = 'ui-state-highlight';
+    $iconclass = 'ui-icon-info';
+
+    return "
+        <div class='ui-widget' style='margin: 10px'>
+            <div class='ui-corner-all theme-dialogbox-info $class'>
+               <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message
+            </div>
+        </div>
+    ";
+}
+
 ///////////////////////////////////////////////////////////////////////////////
-// C O N T R O L  P A N E L
+// C O N T R O L  P A N E L  S T Y L E  S U M M A R Y
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_control_panel($links)
+function theme_control_panel($forms)
 {
     $items = '';
 
-    foreach ($links as $link => $title)
-        $items .= "<li><a rel='external' href='$link'>$title</a></li>\n";
+    foreach ($forms as $form => $details)
+        $items .= "<li><a rel='external' href='/app/$form'>" . $details['title'] . "</a></li>\n";
 
     return "
         <div>
