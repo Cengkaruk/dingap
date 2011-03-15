@@ -65,7 +65,7 @@ class IMAP extends ClearOS_Controller
         //---------------
 
         $this->load->library('imap/Cyrus');
-        $this->load->library('date/Time');
+        $this->lang->load('imap');
 
         // Handle form submit
         //-------------------
@@ -77,11 +77,12 @@ class IMAP extends ClearOS_Controller
                 $this->cyrus->set_service_state(Cyrus::SERVICE_IMAP, $this->input->post('imap'));
                 $this->cyrus->set_service_state(Cyrus::SERVICE_IMAPS, $this->input->post('imaps'));
                 $this->cyrus->set_idled_state($this->input->post('idled'));
+
                 $this->cyrus->reset();
 
-                $this->page->set_success(lang('base_system_updated'));
-            } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message());
+                $this->page->set_status_updated();
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -103,10 +104,6 @@ class IMAP extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('imap_imap_and_pop_server'));
-
-        $this->load->view('theme/header');
-        $this->load->view('imap', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('imap', $data);
     }
 }
