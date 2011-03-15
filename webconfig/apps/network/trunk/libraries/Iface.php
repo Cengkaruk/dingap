@@ -176,7 +176,7 @@ class Iface extends Engine
     {
         $this->iface = $iface;
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . " - " . $this->iface, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . " - " . $this->iface, CLEAROS_ERROR);
     }
 
     /**
@@ -374,7 +374,7 @@ class Iface extends Engine
 
             if (! extension_loaded('ifconfig')) {
                 if (!@dl('ifconfig.so')) {
-                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_ERROR);
+                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_ERROR);
                 }
             }
 
@@ -514,7 +514,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . ' - ' . $this->iface, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . ' - ' . $this->iface, CLEAROS_ERROR);
 
         try {
             $type = $this->get_type();
@@ -564,7 +564,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, CLEAROS_ERROR);
 
         // Using ioctl(2) calls (from custom extension ifconfig.so).
 
@@ -596,7 +596,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, CLEAROS_ERROR);
 
         try {
             // Using ioctl(2) calls (from custom extension ifconfig.so).
@@ -630,7 +630,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, CLEAROS_ERROR);
 
         try {
             // Using ioctl(2) calls (from custom extension ifconfig.so).
@@ -696,7 +696,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, CLEAROS_ERROR);
 
         $speed = -1;
 
@@ -1306,7 +1306,7 @@ class Iface extends Engine
         try {
             if (!$isdhcp && (! $this->is_validIp($ip))) {
                 $errors = $this->GetValidationErrors();
-                throw new Engine_Exception($errors[0], COMMON_ERROR);
+                throw new Engine_Exception($errors[0], CLEAROS_ERROR);
             }
 
             $this->disable(); // See maintenance note
@@ -1398,7 +1398,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_ERROR);
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, CLEAROS_ERROR);
 
         $shell = new Shell();
         $shell->execute(self::CMD_IFCONFIG, $this->iface, TRUE);

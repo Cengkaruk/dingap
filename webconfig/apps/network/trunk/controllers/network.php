@@ -52,18 +52,6 @@ class Network extends ClearOS_Controller
 
 	function index()
 	{
-		if ($this->session->userdata['theme_mode'] === CLEAROS_MOBILE)
-			$this->mobile_index();
-		else
-			$this->desktop_index();
-	}
-
-	/**
-	 * Network summary view for desktops.
-	 */
-
-	function desktop_index()
-	{
 		// Load libraries
 		//---------------
 
@@ -73,34 +61,9 @@ class Network extends ClearOS_Controller
 		// Load views
 		//-----------
 
-		$this->page->set_title(lang('network_network'));
+        $views = array('general');
 
-		$this->load->view('theme/header');
-
-		$this->load->view('general/view_edit');
-
-		$this->load->view('theme/footer');
-	}
-
-	/**
-	 * Network summary view for mobile/control panel.
-	 */
-
-	function mobile_index()
-	{
-		// Load libraries
-		//---------------
-
-		$this->lang->load('base');
-		$this->lang->load('network');
-
-		// Load views
-		//-----------
-
-		$this->page->set_title(lang('network_network'));
-
-		$this->load->view('theme/header');
-		$this->load->view('theme/summary', $summary);
-		$this->load->view('theme/footer');
+        //$this->page->view_forms($views, 'w000');
+        $this->page->view_form('general/view_edit');
 	}
 }

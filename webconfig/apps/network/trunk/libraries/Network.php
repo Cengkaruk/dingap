@@ -79,9 +79,13 @@ class Network extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CONFIG = '/etc/network';
+    const MODE_AUTO = 'auto';
     const MODE_GATEWAY = 'gateway';
+    const MODE_TRUSTEDGATEWAY = 'trustedgateway';
     const MODE_STANDALONE = 'standalone';
     const MODE_TRUSTED_STANDALONE = 'trustedstandalone';
+    const MODE_DMZ = 'dmz';
+    const MODE_BRIDGE = 'bridge';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -109,6 +113,79 @@ class Network extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::MODE_TRUSTED_STANDALONE;
+		try {
+			$config = new File(self::FILE_CONFIG);
+			$retval = $config->lookup_value('/^MODE=/');
+		} catch (File_Not_Found_Exception $e) {
+            return self::MODE_TRUSTEDSTANDALONE;
+		} catch (Exception $e) {
+			throw new Engine_Exception($e->get_message(), COMMON_WARNING);
+		}
+
+		$retval = preg_replace('/"/', '', $retval);
+		$retval = preg_replace('/\s.*/', '', $retval);
+
+        try {
+            Validation_Exception::is_valid($this->validate_mode($mode));
+        } catch (Exception $e) {
+		    $retval = self::MODE_TRUSTEDSTANDALONE;
+        }
+
+        return $retval;
+    }
+
+	/**
+	 * Set network mode.
+	 *
+	 * @param string mode Network mode
+	 * @return void
+	 * @throws Exception, Validation_Exception
+	 */
+
+	public function set_mode($mode)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_mode($mode));
+
+		try {
+		    $config = new File(self::FILE_CONFIG);
+			$match = $config->replace_lines("/^MODE=/", "MODE=\"$mode\"\n");
+			if (! $match)
+				$config->add_lines_after("MODE=\"$mode\"\n", '/^[^#]/');
+		} catch (Exception $e) {
+			throw new Engine_Exception($e->get_message(), COMMON_WARNING);
+		}
+	}
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates a network mode.
+     *
+     * @param string $mode Network mode
+     *
+     * @return string error message if mode is invalid
+     */
+
+    public function validate_mode($mode)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+		switch ($mode)
+		{
+		case self::MODE_AUTO:
+		case self::MODE_GATEWAY:
+		case self::MODE_TRUSTEDGATEWAY:
+		case self::MODE_STANDALONE:
+		case self::MODE_TRUSTEDSTANDALONE:
+		case self::MODE_DMZ:
+		case self::MODE_BRIDGE:
+            return '';
+		}
+
+        return lang('network_mode_is_invalid');
     }
 }

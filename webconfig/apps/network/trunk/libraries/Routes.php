@@ -50,7 +50,7 @@ clearos_load_language('base');
 
 clearos_load_library('base/File');
 clearos_load_library('firewall/Firewall');
-clearos_load_library('network/IfaceManager');
+clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network');
 clearos_load_library('base/ShellExec');
 
@@ -68,7 +68,7 @@ clearos_load_library('base/ShellExec');
  * @copyright Copyright 2003-2010 ClearFoundation
  */
 
-class Routes extends Network
+class Routes extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -92,7 +92,7 @@ class Routes extends Network
 
     function __construct()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct();
     }
@@ -104,12 +104,12 @@ class Routes extends Network
      * This method returns a hash array keyed on interface names.
      *
      * @return  array  default route information
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetDefaultInfo()
+    public function get_default_info()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $routeinfo = array();
         $shell = new ShellExec();
@@ -118,10 +118,10 @@ class Routes extends Network
         //--------------------------
 
         try {
-            $shell->Execute(self::CMD_IP, 'route show table 250', false);
-            $output = $shell->GetOutput();
+            $shell->execute(self::CMD_IP, 'route show table 250', false);
+            $output = $shell->get_output();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_ERROR);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_ERROR);
         }
 
         if (! empty($output)) {
@@ -140,10 +140,10 @@ class Routes extends Network
         //-----------------------
 
         try {
-            $shell->Execute(self::CMD_IP, 'route', false);
-            $output = $shell->GetOutput();
+            $shell->execute(self::CMD_IP, 'route', false);
+            $output = $shell->get_output();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_ERROR);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_ERROR);
         }
 
         if (! empty($output)) {
@@ -163,18 +163,18 @@ class Routes extends Network
     /**
      * Get default route.
      *
-     * @see  Routes::GetDefaultInfo()
+     * @see  Routes::get_default_info()
      * @return  string  default route
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetDefault()
+    public function get_default()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::FILE_ACTIVE);
-            $contents = $file->GetContentsAsArray();
+            $contents = $file->get_contents_as_array();
 
             // Grab the last line in the route table
             $lastline = array_pop($contents);
@@ -188,7 +188,7 @@ class Routes extends Network
 
             return hexdec($ip[3]) . '.' . hexdec($ip[2]) . '.' . hexdec($ip[1]) . '.' . hexdec($ip[0]);
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
     }
 
@@ -196,23 +196,23 @@ class Routes extends Network
      * Returns extra LAN networks configured on the system.
      *
      * @return array list of extra LAN networks
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetExtraLans()
+    public function get_extra_lans()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_SYSTEM_NETWORK);
 
         try {
-            $lans = $file->LookupValue('/^EXTRALANS=/');
-        } catch (FileNotFoundException $e) {
+            $lans = $file->lookup_value('/^EXTRALANS=/');
+        } catch (File_Not_Found_Exception $e) {
             return array();
-        } catch (FileNoMatchException $e) {
+        } catch (File_No_Match_Exception $e) {
             return array();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         } 
 
         $lans = preg_replace('/\"/', '', $lans);
@@ -226,20 +226,20 @@ class Routes extends Network
     /**
      * Gets the network device (eg eth0) doing the default route.
      *
-     * @see  Routes::GetDefaultInfo()
+     * @see  Routes::get_default_info()
      * @return  string  default route device
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetGatewayDevice()
+    public function get_gateway_device()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::FILE_NETWORK);
             try {
-                $device = $file->LookupValue('/^GATEWAYDEV=/');
-            } catch (FileNoMatchException $e) {
+                $device = $file->lookup_value('/^GATEWAYDEV=/');
+            } catch (File_No_Match_Exception $e) {
                 return 'eth0'; // Default to eth0
             } 
 
@@ -247,7 +247,7 @@ class Routes extends Network
 
             return $device;
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
     }
 
@@ -256,12 +256,12 @@ class Routes extends Network
      *
      * @param  string  $device  the default route device
      * @return  void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function SetGatewayDevice($device)
+    public function set_gateway_device($device)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         // Validate
         //---------
@@ -272,16 +272,16 @@ class Routes extends Network
 
         try {
             $file = new File(self::FILE_NETWORK);
-            $match = $file->ReplaceLines('/^GATEWAYDEV=/', "GATEWAYDEV=\"$device\"\n");
+            $match = $file->replace_lines('/^GATEWAYDEV=/', "GATEWAYDEV=\"$device\"\n");
 
             // If tag does not exist, add it
             //------------------------------
 
             if (! $match)
-                $file->AddLines("GATEWAYDEV=\"" . $device . "\"\n");
+                $file->add_lines("GATEWAYDEV=\"" . $device . "\"\n");
 
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
     }
 
@@ -289,22 +289,22 @@ class Routes extends Network
      * Deletes the network device (eg eth0) doing the default route.
      *
      * @return  void
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function DeleteGatewayDevice()
+    public function delete_gateway_device()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         // Delete default route
         //---------------------
 
         try {
             $file = new File(self::FILE_NETWORK);
-            $file->DeleteLines('/GATEWAYDEV=\".*\"/i');
+            $file->delete_lines('/GATEWAYDEV=\".*\"/i');
 
-            $interfaces = new IfaceManager();
-            $ethlist = $interfaces->GetInterfaceDetails();
+            $interfaces = new Iface_Manager();
+            $ethlist = $interfaces->get_interface_details();
             $wanif = "";
 
             foreach ($ethlist as $eth => $info) {
@@ -315,27 +315,14 @@ class Routes extends Network
             }
 
             if ($wanif)
-                $this->SetGatewayDevice($wanif);
+                $this->set_gateway_device($wanif);
 
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @access private
-     */
-
-    function __destruct()
-    {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
 }
-// vim: syntax=php ts=4
-?>
