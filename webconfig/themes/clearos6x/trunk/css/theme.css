@@ -85,28 +85,6 @@ a:active {
 /* ========================================================================= */
 
 /* ------------------------------------------------------------------------- */
-/* Main Content */
-/* ------------------------------------------------------------------------- */
-
-#maincontent {
-	background-image: url(../images/maincontent-bg.png);
-	background-repeat: repeat-y;
-	float: left;
-	width: 975px;
-	height: auto;
-	^z-index: -1;
-	}
-	
-.maincontent-top {
-	background-image: url(../images/maincontent-top.png);
-	background-repeat: no-repeat;
-	height: 14px; 
-	width: 972px;
-	clear: both;
-}
-
-
-/* ------------------------------------------------------------------------- */
 /* Anchors */
 /* ------------------------------------------------------------------------- */
 
@@ -250,8 +228,8 @@ div.theme-button-set { color: red; background-image: url(); }
   ^padding-top: 29px;
   ^position: relative;
   ^top: -36px;
-  ^width: 726px;
-  
+/* Peter: reduced width/max-width by 250 */
+  ^width: 476px;
 }
 
 
@@ -267,7 +245,8 @@ div.theme-button-set { color: red; background-image: url(); }
   -webkit-border-top-left-radius: 9px;
   -moz-border-radius-topright: 9px; 
   -webkit-border-top-right-radius: 9px;
-  width: 694px;
+/* Peter: reduced width/max-width by 250 */
+  width: 444px;
 }
 
 .theme-form {
@@ -465,7 +444,7 @@ fieldset label {
 }
 
 #theme-banner-logout {
-  Background-image: url('../images/login-arrow.png');
+  background-image: url('../images/login-arrow.png');
   background-position: right 3px;
   background-repeat: no-repeat;
   padding-left: 10px;
@@ -499,9 +478,29 @@ fieldset label {
 /* Content Area */
 /* ------------------------------------------------------------------------- */
 
+/* Peter: renamed maincontent to theme-main-content */
+#theme-main-content-container {
+	background-image: url(../images/maincontent-bg.png);
+	background-repeat: repeat-y;
+	float: left;
+	width: 975px;
+	height: auto;
+	^z-index: -1;
+	}
+	
+.theme-main-content-top {
+	background-image: url(../images/maincontent-top.png);
+	background-repeat: no-repeat;
+	height: 14px; 
+	width: 972px;
+	clear: both;
+}
+
+
 #theme-content-container {
-  max-width: 728px;
-  width: 728px;
+/* Peter: reduced width/max-width by 250 */
+  max-width: 478px;
+  width: 478px;
   float: left;
   z-index:5;
   margin-left: 9px;
@@ -528,6 +527,19 @@ fieldset label {
   top: 12px !important; /*moz*/
   top: 0px; /*IE*/
   z-index:0;
+}
+
+/* Peter: added sidebar ... used absolute positioning instead of spending cycles on figuring this stuff out! */
+#theme-sidebar-container {
+  width: 240px;
+  padding-right: 10px;
+  margin-top: -20px;
+/*
+  position: absolute;
+  top: 5px;
+  left: 500px;
+*/
+  float: right;
 }
 
 /* ------------------------------------------------------------------------- */
