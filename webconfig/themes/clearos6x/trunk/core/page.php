@@ -31,37 +31,34 @@
 /** 
  * Returns the webconfig page.
  *
- * This class provides the mechanism for managing the layout and look & feel
- * of a webconfig page.  The view of a given ClearOS App is managed by the app 
- * developer, while the view of the following is managed by this class:
+ * This class provides the mechanism for managing the type and look & feel
+ * and layout of a webconfig page.  The following elements need to be handled:
  *
- * - Menu
- * - Report box
- * - Summary box
- * - Marketplace box
- * - Status messages
- *
- * Of course, most themes will also include a common:
- *
- * - Header
+ * - Content
+ * - Banner
  * - Footer
+ * - Status Area
+ * - Menu
+ * - Help Box
+ * - Summary Box 
+ * - Report Box
+ * 
+ * We don't want a menu system showing up on something like the login page!
+ * The app developer can specify one of four different page types.  It's up
+ * to you how to lay them out of course.
  *
- * - login (if logged in)
- * - full name (if logged in)
- * - hostname
- * - registration status
- * - locale
- * - OS name
- * - OS version
- * - theme
- * - theme mode
- * - app 16x16 icon
- * - app 32x32 icon
- * - success message (e.g. firewall rule has been deleted)
- * - warning message (e.g. OpenVPN is running, but the firewall is not allowing connections)
- * - page layout (default, splash, wizard(?))
- * - page title
- *    
+ * - Configuration - this contains all elements
+ *   - content, banner, footer, status, menu, help, summary, report
+ *
+ * - Report - reports need more real estate, so summary and report elements are omitted
+ *   - content, banner, footer, status, menu, help    
+ *
+ * - Splash - minimalist page (e.g. login)
+ *    - content, status
+ * 
+ * - Wizard 
+ *    - content, status, help, summary (?)
+ *
  * @return string HTML output
  */
 
@@ -71,23 +68,25 @@
 
 function theme_page($page)
 {
-    if ($page['layout'] == 'default')
-        return _page_default_layout($page);
-    else if ($page['layout'] == 'splash')
-        return _page_splash_layout($page);
-    else if ($page['layout'] == 'wizard')
-        return _page_wizard_layout($page);
+    if ($page['type'] == MY_Page::TYPE_CONFIGURATION)
+        return _configuration_page($page);
+    else if ($page['type'] == MY_Page::TYPE_REPORT)
+        return _report_page($page);
+    else if ($page['type'] == MY_Page::TYPE_SPLASH)
+        return _splash_page($page);
+    else if ($page['type'] == MY_Page::TYPE_WIZARD)
+        return _wizard_page($page);
 }
 
 /**
- * Default page layout.
+ * Returns the configuration page.
  *
  * @param array $page page data   
  *
  * @return string HTML output
  */   
 
-function _page_default_layout($page)
+function _configuration_page($page)
 {
     $menus = _get_menu($page['menus']);
 
@@ -116,14 +115,76 @@ function _page_default_layout($page)
 }
 
 /**
- * Wizard page layout.
+ * Returns the report page.
  *
  * @param array $page page data   
  *
  * @return string HTML output
  */   
 
-function _page_wizard_layout($page)
+function _report_page($page)
+{
+    $menus = _get_menu($page['menus']);
+
+    return "
+<!-- Body -->
+<body>
+
+<!-- Page Container -->
+<div id='theme-page-container'>" .
+
+    _get_banner($page, $menus) . "
+
+    <!-- Main Content Container -->
+    <div id='theme-main-content-container'>
+        <div class='theme-main-content-top'></div>" .
+            _get_left_menu($page, $menus) .
+            _get_app($page) .
+        "
+    </div>
+</div>
+</body>
+</html>
+";
+}
+
+/**
+ * Returns the splash page.
+ *
+ * @param array $page page data   
+ *
+ * @return string HTML output
+ */   
+
+function _splash_page($page)
+{
+    return "
+<!-- Body -->
+<body>
+
+<!-- Page Container -->
+<div id='theme-page-container'>
+    <!-- Main Content Container -->
+    <div id='theme-main-content-container'>
+        <div class='theme-main-content-top'></div>" .
+            _get_app($page) .
+        "
+    </div>
+</div>
+</body>
+</html>
+";
+}
+
+/**
+ * Returns the wizard page.
+ *
+ * @param array $page page data   
+ *
+ * @return string HTML output
+ */   
+
+function _wizard_page($page)
 {
     return "
 <!-- Body -->
@@ -140,34 +201,6 @@ function _page_wizard_layout($page)
             _get_wizard_menu($page) .
             _get_app($page) .
             _get_footer($page) .
-        "
-    </div>
-</div>
-</body>
-</html>
-";
-}
-
-/**
- * Splash page layout.
- *
- * @param array $page page data   
- *
- * @return string HTML output
- */   
-
-function _page_splash_layout($page)
-{
-    return "
-<!-- Body -->
-<body>
-
-<!-- Page Container -->
-<div id='theme-page-container'>
-    <!-- Main Content Container -->
-    <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'></div>" .
-            _get_app($page) .
         "
     </div>
 </div>
