@@ -77,6 +77,21 @@ clearos_load_library('base/Engine');
 class User extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // Password types
+    const PASSWORD_TYPE_SHA = 'sha';
+    const PASSWORD_TYPE_SHA1 = 'sha1';
+    const PASSWORD_TYPE_NT = 'nt';
+
+    // Account status codes
+    const STATUS_LOCKED = 'locked';
+    const STATUS_UNLOCKED = 'unlocked';
+    const STATUS_ENABLED = 'enabled';
+    const STATUS_DISABLED = 'disabled';
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -110,5 +125,22 @@ class User extends Engine
         $class = '\clearos\apps\\' . $driver . '\\User_Driver';
 
         return new $class($username);
+    }
+
+    /**
+     * Returns the driver name.
+     *
+     * @return string driver name
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public static function get_driver()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // TODO: move this to a config file of course
+        $driver = 'openldap';
+
+       return $driver . '/User_Driver';
     }
 }
