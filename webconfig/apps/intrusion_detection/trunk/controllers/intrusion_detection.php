@@ -77,7 +77,10 @@ class Intrusion_Detection extends ClearOS_Controller
         //---------------
 
         try {
-            $data['rule_sets'] = $this->snort->get_rule_set_details();
+            // $data['rule_sets'] = $this->snort->get_rule_set_details();
+            $rule_sets = $this->snort->get_rule_set_details();
+            $gpl['rule_sets'] = $rule_sets['gpl'];
+            $clearcenter['rule_sets'] = $rule_sets['clearcenter'];
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -89,7 +92,8 @@ class Intrusion_Detection extends ClearOS_Controller
         $this->page->set_title(lang('intrusion_detection'));
 
         $this->load->view('theme/header');
-        $this->load->view('intrusion_detection', $data);
+        $this->load->view('intrusion_detection', $gpl);
+        $this->load->view('intrusion_detection', $clearcenter);
         $this->load->view('theme/footer');
     }
 }

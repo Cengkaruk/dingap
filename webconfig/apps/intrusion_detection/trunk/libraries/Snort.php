@@ -97,7 +97,7 @@ class Snort extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CONFIG = '/etc/snort.conf';
-    const PATH_RULES =  '/etc/snort.d/rules/clearcenter';
+    const PATH_RULES =  '/etc/snort.d/rules';
     const TYPE_POLICY = 'policy';
     const TYPE_SECURITY = 'security';
     const TYPE_UNSUPPORTED = 'unsupported';
@@ -264,48 +264,57 @@ class Snort extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Gather vendor information
+        //--------------------------
+
+        $vendor_folder = new Folder(self::PATH_RULES);
+        $vendors = $vendor_folder->get_listing();
+
         // Gather information from scanning the files in rules directory
         //--------------------------------------------------------------
 
-        $folder = new Folder(self::PATH_RULES);
-        $installed = $folder->get_listing();
+        foreach ($vendors as $vendor) {
 
-        foreach ($installed as $rule_set_file) {
-            if (! preg_match('/\.rules$/', $rule_set_file))
-                continue;
+            $folder = new Folder(self::PATH_RULES . '/' . $vendor);
+            $installed = $folder->get_listing();
 
-            $file = new File(self::PATH_RULES . '/' . $rule_set_file);
-            $lines = $file->get_contents_as_array();
+            foreach ($installed as $rule_set_file) {
+                if (! preg_match('/\.rules$/', $rule_set_file))
+                    continue;
 
-            $count = 0;
+                $file = new File(self::PATH_RULES . '/' . $vendor . '/' . $rule_set_file);
+                $lines = $file->get_contents_as_array();
 
-            foreach ($lines as $line) {
-                if (preg_match('/^alert/', $line))
-                    $count++;
+                $count = 0;
+
+                foreach ($lines as $line) {
+                    if (preg_match('/^alert/', $line))
+                        $count++;
+                }
+                
+                $rule_set = preg_replace('/\.rules$/', '', $rule_set_file);
+
+                $info['rule_set'] = $rule_set;
+                $info['filename'] = $rule_set_file;
+                $info['count'] = $count;
+                $info['installed'] = TRUE;
+                $info['active'] = FALSE;
+
+                if (empty($this->metadata[$rule_set]['description']))
+                    $info['description'] = lang('intrusion_detection_rulelist_unsupported');
+                else
+                    $info['description'] = $this->metadata[$rule_set]['description'];
+
+                if (empty($this->metadata[$rule_set]['type'])) {
+                    $info['type'] = self::TYPE_UNSUPPORTED;
+                    $info['type_description'] = lang('instrusion_detection_type_unsupported');
+                } else {
+                    $info['type'] = $this->metadata[$rule_set]['type'];
+                    $info['type_description'] = $this->types[$this->metadata[$rule_set]['type']];
+                }
+
+                $this->rule_sets[$vendor][$rule_set] = $info;
             }
-            
-            $rule_set = preg_replace('/\.rules$/', '', $rule_set_file);
-
-            $info['rule_set'] = $rule_set;
-            $info['filename'] = $rule_set_file;
-            $info['count'] = $count;
-            $info['installed'] = TRUE;
-            $info['active'] = FALSE;
-
-            if (empty($this->metadata[$rule_set]['description']))
-                $info['description'] = lang('intrusion_detection_rulelist_unsupported');
-            else
-                $info['description'] = $this->metadata[$rule_set]['description'];
-
-            if (empty($this->metadata[$rule_set]['type'])) {
-                $info['type'] = self::TYPE_UNSUPPORTED;
-                $info['type_description'] = lang('instrusion_detection_type_unsupported');
-            } else {
-                $info['type'] = $this->metadata[$rule_set]['type'];
-                $info['type_description'] = $this->types[$this->metadata[$rule_set]['type']];
-            }
-
-            $this->rule_sets[$rule_set] = $info;
         }
 
         // Gather information from configuration file
