@@ -610,11 +610,50 @@ print_r($ldap_object);
 
         foreach ($this->_get_extensions() as $extension_name) {
             clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+
             $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension_nickname = preg_replace('/_directory_extension/', '', $extension_name);
             $extension = new $class();
 
             if (method_exists($extension, 'get_info_hook'))
-                $info[$extension_name] = $extension->get_info_hook($attributes);
+                $info[$extension_nickname] = $extension->get_info_hook($attributes);
+        }
+
+        return $info;
+    }
+
+    /**
+     * Retrieves full information map for user.
+     *
+     * @throws Engine_Exception
+     *
+     * @return array user details
+     */
+
+    public function get_info_map()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Get user info
+        //--------------
+
+        $attributes = $this->_get_user_attributes();
+
+        // FIXME: add core to info_map
+        // $info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+
+        // Add user info from extensions
+        //------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name) {
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension_nickname = preg_replace('/_directory_extension/', '', $extension_name);
+            $extension = new $class();
+
+            if (method_exists($extension, 'get_info_map_hook'))
+                $info[$extension_nickname] = $extension->get_info_map_hook($attributes);
         }
 
         return $info;
@@ -817,7 +856,7 @@ print_r($ldap_object);
         // Validate
         //---------
 
-        Validation_Exception::is_valid($this->validate_username($this->username));
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
         Validation_Exception::is_valid($this->validate_user_info($user_info));
         // FIXME: acl
 
@@ -1430,13 +1469,13 @@ return '';
      * Validation routine for username.
      *
      * @param string  $username         username
-     * @param boolean $allow_reserved   check for reserved usernames
      * @param boolean $check_uniqueness check for uniqueness
+     * @param boolean $allow_reserved   check for reserved usernames
      *
      * @return string error message if username is invalid
      */
 
-    public function validate_username($username, $check_reserved = TRUE, $check_uniqueness = TRUE)
+    public function validate_username($username, $check_uniqueness = TRUE, $check_reserved = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1881,7 +1920,12 @@ return;
 
         $folder = new Folder($this->path_extensions);
 
-        $this->extensions = $folder->get_listing();
+        $list = $folder->get_listing();
+
+        foreach ($list as $extension) {
+            if (! preg_match('/^\./', $extension))
+                $this->extensions[] = $extension;
+        }
 
         return $this->extensions;
     }
