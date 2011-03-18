@@ -43,7 +43,6 @@ $this->lang->load('network');
 $headers = array(
     lang('network_ip'),
     lang('network_hostname'),
-    lang('dns_aliases'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,7 +92,6 @@ foreach ($hosts as $real_ip => $entry) {
     $item['details'] = array(
         $ip,
         $hostname,
-        $alias
     );
 
     $items[] = $item;
