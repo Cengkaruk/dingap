@@ -55,8 +55,8 @@ class Date extends ClearOS_Controller
 
     function index()
     {
-        // Load libraries
-        //---------------
+        // Load dependencies
+        //------------------
 
         $this->load->library('date/Time');
         $this->lang->load('date');
@@ -96,7 +96,7 @@ class Date extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('date', $data);
+        $this->page->view_form('date', $data, lang('date_date'));
     }
 
     /**
@@ -107,27 +107,27 @@ class Date extends ClearOS_Controller
 
     function sync()
     {
-        // Load libraries
-        //---------------
+        // Load dependencies
+        //------------------
 
         $this->load->library('date/NTP_Time');
 
         // Run synchronize
         //----------------
 
+        // FIXME: discuss standard for Ajax errors
         try {
-            $diff = $this->ntp_time->synchronize();
+            $payload['code'] = 0;
+            $payload['data']['diff'] = $this->ntp_time->synchronize();
         } catch (Exception $e) {
-            // FIXME: discuss standard for Ajax errors
-            // e.g. $this->page->view_rest_exception($e);
-            echo "Ooops: " . $e->getMessage();
-            return;
+            $payload['code'] = 1;
+            $payload['error_message'] = clearos_exception_message($e);
         }
 
         // Return status message
         //----------------------
 
-        // FIXME: discuss standard for Ajax data - JSON?
-        echo "offset: $diff\n"; // FIXME: localize
+        $this->output->set_header("Content-Type: application/json");
+        $this->output->set_output(json_encode($payload));
     }
 }

@@ -32,12 +32,20 @@ $(document).ready(function() {
 		$.ajax({
 			url: 'date/sync',
 			method: 'GET',
-			dataType: 'html',
-			success : function(html) {
-				$("#result").html(html);
-			},
+			dataType: 'json',
+			success : function(payload) {
+				showData(payload);
+            },
+			error: function (XMLHttpRequest, textStatus, errorThrown) {
+				$("#result").html('Ooops: ' + textStatus);
+			}
+
 		});
 	});
+
+	function showData(payload) {
+        $("#result").html(payload.data.diff);
+	}
 });
 
 // vim: ts=4 syntax=javascript
