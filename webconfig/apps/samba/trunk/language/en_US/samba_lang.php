@@ -66,3 +66,4 @@ $lang['samba_writable'] = 'Writable';
 
 $lang['samba_software_has_not_been_initialized'] = 'Software has not been initialized.';
 $lang['samba_file_share_not_found'] = 'File share not found.';
+$lang['samba_sid'] = 'SID';

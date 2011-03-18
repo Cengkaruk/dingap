@@ -2159,6 +2159,7 @@ class Samba extends Daemon
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
+/*
 
     public function unlock_account($username)
     {
@@ -2174,6 +2175,7 @@ class Samba extends Daemon
             throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
     }
+*/
 
     /**
      * Updates existing groups with Windows Networking group information (mapping).
