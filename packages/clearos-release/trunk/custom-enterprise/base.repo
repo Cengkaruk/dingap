@@ -1,19 +1,19 @@
-[base-os]
-name=ClearOS Enterprise 6.0.x - OS
-baseurl=http://download.clearfoundation.com/clearos/enterprise/6.0/os/$basearch
+[clearos-dev]
+name=ClearOS Enterprise 6.0.0alpha1 - OS
+baseurl=http://download.clearfoundation.com/clearos/enterprise/6.0.0alpha1/dev/$basearch
 enabled=1
 gpgcheck=0
 
 [rhel-beta]
-name=Red Hat Enterprise Linux $releasever Beta - $basearch
-baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/5.90Server/$basearch/os/
+name=Red Hat Enterprise Linux 6 Beta - $basearch
+baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/6/$basearch/os/
 enabled=1
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta
 
 [rhel-beta-optional]
-name=Red Hat Enterprise Linux $releasever Beta (Optional) - $basearch
-baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/5.90Server/optional/$basearch/os/
+name=Red Hat Enterprise Linux 6 Beta (Optional) - $basearch
+baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/6/optional/$basearch/os/
 enabled=1
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta
