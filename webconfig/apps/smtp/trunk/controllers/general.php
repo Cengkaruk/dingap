@@ -92,6 +92,7 @@ class General extends ClearOS_Controller
             $data['hostname'] = $this->postfix->get_hostname();
             $data['relay_hosts'] = $this->postfix->get_relay_hosts();
             $data['catch_all'] = $this->postfix->get_catch_all();
+            $data['catch_alls'] = array('alex@example.com', 'bob@example.com', 'tim@example.com'); // FIXME - pull from LDAP
             $data['max_message_size'] = $this->postfix->get_max_message_size();
             $data['smtp_authentication'] = $this->postfix->get_smtp_authentication_state();
         } catch (Exception $e) {

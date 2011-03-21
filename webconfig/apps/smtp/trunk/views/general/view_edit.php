@@ -79,7 +79,7 @@ echo field_input('hostname', $domain, lang('smtp_hostname'), $read_only);
 echo field_toggle_enable_disable('smtp_authentication', $smtp_authentication, lang('smtp_smtp_authentication'), $read_only);
 echo field_dropdown('max_message_size', $max_message_sizes, $max_message_size, lang('smtp_maximum_message_size'), $read_only);
 // FIXME: implement user list
-echo field_dropdown('catch_all', $catch_all, $catch_alls, lang('smtp_catch_all'), $read_only);
+echo field_simple_dropdown('catch_all', $catch_alls, $catch_all, lang('smtp_catch_all'), $read_only);
 echo form_fieldset_close();
 
 echo button_set($buttons);
