@@ -32,7 +32,7 @@ $this->lang->load('network');
 // Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'edit') {
+if ($mode === 'edit') {
 	$read_only = FALSE;
 	$buttons = array(
 		form_submit_update('submit'),
@@ -58,8 +58,8 @@ echo form_header(lang('base_general_settings'));
 echo form_fieldset(lang('network_network') . ' - ' . lang('base_general_settings'));
 echo field_dropdown('network_mode', $network_modes, $network_mode, lang('network_mode'), $read_only);
 echo field_input('hostname', $hostname, lang('network_hostname'), $read_only);
-echo field_input('dns_server_1', $hostname, lang('network_dns_server') . ' #1', $read_only);
-echo field_input('dns_server_2', $hostname, lang('network_dns_server') . ' #2', $read_only);
+echo field_input('dns1', $dns1, lang('network_dns_server') . ' #1', $read_only);
+echo field_input('dns2', $dns2, lang('network_dns_server') . ' #2', $read_only);
 
 echo form_fieldset_close(); 
 echo button_set($buttons);

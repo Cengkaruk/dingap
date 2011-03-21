@@ -50,7 +50,8 @@ class Network extends ClearOS_Controller
 	 * Basic network overview.
 	 */
 
-	function index($mode = 'edit')
+	//function index($mode = 'edit')
+	function index()
 	{
 		// Load libraries
 		//---------------
