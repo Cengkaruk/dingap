@@ -4,7 +4,7 @@
 
 Name: clearos-base
 Version: 6.0
-Release: 0.4%{dist}
+Release: 0.5%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
@@ -12,7 +12,7 @@ Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
 # Base product release information
-Requires: clearos-release = 6.0
+Requires: clearos-release >= 6.0.0
 # Core system 
 Requires: cronie
 Requires: gnupg
