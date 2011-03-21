@@ -1,0 +1,17 @@
+# Product details
+vendor = clear
+name = ClearOS Enterprise
+base_version = 6.0.0
+
+# Registration
+free_trial = 1
+portal_url = https://secure.clearcenter.com/portal
+
+# Links
+redirect_url = http://www.clearcenter.com/redirect
+
+# Apps
+samba_name = ClearOS
+samba_workgroup = Enterprise
+samba_comment = ClearOS Enterprise
+
