@@ -53,8 +53,12 @@ clearos_load_language('network');
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine');
+clearos_load_library('base/File');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -83,7 +87,7 @@ class Network extends Engine
     const MODE_GATEWAY = 'gateway';
     const MODE_TRUSTEDGATEWAY = 'trustedgateway';
     const MODE_STANDALONE = 'standalone';
-    const MODE_TRUSTED_STANDALONE = 'trustedstandalone';
+    const MODE_TRUSTEDSTANDALONE = 'trustedstandalone';
     const MODE_DMZ = 'dmz';
     const MODE_BRIDGE = 'bridge';
 
@@ -119,14 +123,14 @@ class Network extends Engine
 		} catch (File_Not_Found_Exception $e) {
             return self::MODE_TRUSTEDSTANDALONE;
 		} catch (Exception $e) {
-			throw new Engine_Exception($e->get_message(), COMMON_WARNING);
+			throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
 		}
 
 		$retval = preg_replace('/"/', '', $retval);
 		$retval = preg_replace('/\s.*/', '', $retval);
 
         try {
-            Validation_Exception::is_valid($this->validate_mode($mode));
+            Validation_Exception::is_valid($this->validate_mode($retval));
         } catch (Exception $e) {
 		    $retval = self::MODE_TRUSTEDSTANDALONE;
         }
@@ -154,9 +158,28 @@ class Network extends Engine
 			if (! $match)
 				$config->add_lines_after("MODE=\"$mode\"\n", '/^[^#]/');
 		} catch (Exception $e) {
-			throw new Engine_Exception($e->get_message(), COMMON_WARNING);
+			throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
 		}
 	}
+
+    /**
+     * Return an array of all network modes.
+     *
+     * @return array of network modes
+     */
+
+    public function get_modes()
+    {
+        $modes = array();
+        $modes[self::MODE_AUTO] = lang('network_mode_auto');
+		$modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
+		$modes[self::MODE_TRUSTEDGATEWAY] = lang('network_mode_trustedgateway');
+		$modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
+		$modes[self::MODE_TRUSTEDSTANDALONE] = lang('network_mode_trustedstandalone');
+		$modes[self::MODE_DMZ] = lang('network_mode_dmz');
+		$modes[self::MODE_BRIDGE] = lang('network_mode_bridge');
+        return $modes;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S

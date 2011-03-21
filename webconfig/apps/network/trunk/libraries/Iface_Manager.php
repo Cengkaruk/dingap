@@ -58,26 +58,6 @@ clearos_load_library('network/Network');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * IfaceManager vendor details wrapper.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
-
-class IfaceManager_GetVendorDetailsResponse
-{
-    public $vendor;
-    public $device;
-    public $sub_device;
-    public $bus;
-}
-
-$_SOAP["CLASS_MAP"]["GetVendorDetailsResponse"] = "IfaceManager_GetVendorDetailsResponse";
-
-/**
  * Network interface manager class.
  *
  * @package ClearOS
@@ -87,7 +67,7 @@ $_SOAP["CLASS_MAP"]["GetVendorDetailsResponse"] = "IfaceManager_GetVendorDetails
  * @copyright Copyright 2003-2010 ClearFoundation
  */
 
-class IfaceManager extends Engine
+class Iface_Manager extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -106,14 +86,12 @@ class IfaceManager extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * IfaceManager constructor.
+     * Iface_Manager constructor.
      */
 
     public function __construct()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__construct();
+        clearos_profile(__METHOD__, __LINE__);
     }
 
     /**
@@ -122,16 +100,16 @@ class IfaceManager extends Engine
      * @param bool $ignore_ppp ignore PPP interfaces
      * @param bool $ignore_lo ignore loopback interfaces
      * @return array list of network devices (using ifconfig.so)
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetInterfaces($ignore_ppp, $ignore_lo)
+    public function get_interfaces($ignore_ppp, $ignore_lo)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
+                throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_WARNING);
         }
 
         $handle = @ifconfig_init();
@@ -155,14 +133,14 @@ class IfaceManager extends Engine
         try {
             $matches = array();
             $folder = new Folder(self::PATH_NET_CONFIG);
-            $listing = $folder->GetListing();
+            $listing = $folder->get_listing();
 
             foreach ($listing as $netconfig) {
-                if (preg_match("/^ifcfg-(.*)/", $netconfig, $matches))
+                if (preg_match('/^ifcfg-(.*)/', $netconfig, $matches))
                     $rawlist[] = $matches[1];
             }
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
 
         // Purge unwanted interfaces
@@ -173,13 +151,13 @@ class IfaceManager extends Engine
 
         foreach ($rawlist as $iface) {
             // Ignore IPv6-related sit0 interface for now
-            if (preg_match("/^sit/", $iface))
+            if (preg_match('/^sit/', $iface))
                 continue;
 
-            if ($ignore_ppp && preg_match("/^pp/", $iface))
+            if ($ignore_ppp && preg_match('/^pp/', $iface))
                 continue;
 
-            if ($ignore_lo && $iface == "lo")
+            if ($ignore_lo && $iface == 'lo')
                 continue;
 
             $interfaces[] = $iface;
@@ -192,16 +170,16 @@ class IfaceManager extends Engine
      * Returns interface count (real interfaces only).
      *
      * @return int number of real network devices (using ifconfig.so)
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetInterfaceCount()
+    public function get_interface_count()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if (!extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new EngineException(LOCALE_LANG_ERRMSG_WEIRD, COMMON_WARNING);
+                throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_WARNING);
         }
 
         $count = 0;
@@ -228,23 +206,23 @@ class IfaceManager extends Engine
      * Returns detailed information on all network interfaces.
      *
      * @returns array information on all network interfaces.
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetInterfaceDetails()
+    public function get_interface_details()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if ($this->is_loaded)
             return $this->ethinfo;
 
         $slaveif = array();
-        $ethlist = $this->GetInterfaces(false, true);
+        $ethlist = $this->get_interfaces(false, true);
 
         foreach ($ethlist as $eth) {
 
             $interface = new Iface($eth);
-            $ifdetails = $interface->GetInterfaceInfo();
+            $ifdetails = $interface->get_interface_info();
 
             foreach ($ifdetails as $key => $value)
                 $ethinfo[$eth][$key] = $value;
@@ -263,8 +241,8 @@ class IfaceManager extends Engine
 
             try {
                 $firewall = new Firewall();
-                $role = $firewall->GetInterfaceRole($eth);
-                $rolename = $firewall->GetInterfaceRoleText($eth);
+                $role = $firewall->get_interface_role($eth);
+                $rolename = $firewall->get_interface_role_text($eth);
 
                 $ethinfo[$eth]['role'] = $role;
                 $ethinfo[$eth]['roletext'] = $rolename;
@@ -288,22 +266,22 @@ class IfaceManager extends Engine
      * Returns list of available LAN networks.
      *
      * @return array list of available LAN networks.
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetLanNetworks()
+    public function get_lan_networks()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $network = new Network();
             $firewall = new Firewall();
-            $mode = $firewall->GetMode();
+            $mode = $network->GetMode();
         } catch (Exception $e) {
-            throw new EngineException($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
 
-        $ethlist = $this->GetInterfaceDetails();
+        $ethlist = $this->get_interface_details();
 
         $lans = array();
 
@@ -314,14 +292,14 @@ class IfaceManager extends Engine
 
             // Gateway mode
             if (($details['role'] == Firewall::CONSTANT_LAN) && (! empty($details['address'])) && (! empty($details['netmask']))) {
-                $basenetwork = $network->GetNetworkAddress($details['address'], $details['netmask']);
+                $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
             }
 
             // Standalone mode
             if (($details['role'] == Firewall::CONSTANT_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask'])) &&
-                ($mode == Firewall::CONSTANT_TRUSTEDSTANDALONE) || ($mode == Firewall::CONSTANT_STANDALONE)) {
-                $basenetwork = $network->GetNetworkAddress($details['address'], $details['netmask']);
+                ($mode == Network::MODE_TRUSTEDSTANDALONE) || ($mode == Network::MODE_STANDALONE)) {
+                $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
             }
         }
@@ -333,14 +311,14 @@ class IfaceManager extends Engine
      * Returns list of Wifi interfaces.
      *
      * @return array list of Wifi interfaces
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetWifiInterfaces()
+    public function get_wifi_interfaces()
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $ethlist = $this->GetInterfaceDetails();
+        $ethlist = $this->get_interface_details();
         $wifilist = array();
 
         foreach ($ethlist as $eth => $details) {
@@ -354,29 +332,29 @@ class IfaceManager extends Engine
     /**
      * Returns the external IP address
      *
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetExternalIpAddress()
+    public function get_external_ip_address()
     {
-        $interface = $this->GetExternalInterface();
+        $interface = $this->get_external_interface();
 
         if ($interface != null)
-            return $interface["address"];
+            return $interface['address'];
     }
 
     /**
      * Returns the external interface
      *
-     * @throws EngineException
+     * @throws Engine_Exception
      */
 
-    public function GetExternalInterface()
+    public function get_external_interface()
     {
-        $ethlist = $this->GetInterfaceDetails();
+        $ethlist = $this->get_interface_details();
 
         foreach ($ethlist as $eth => $details) {
-            if ($details['role'] == "EXTIF")
+            if ($details['role'] == 'EXTIF')
                 return $details;
         }
     }
@@ -384,16 +362,16 @@ class IfaceManager extends Engine
     /**
      * Returns a list of interfaces configured with the given role.
      *
-     * @param boolean $exclude_Virtual exclude virtual interfaces
-     * @throws EngineException
+     * @param boolean $exclude_virtual exclude virtual interfaces
+     * @throws Engine_Exception
      */
 
-    public function GetExternalInterfaces($exclude_virtual = true)
+    public function get_external_interfaces($exclude_virtual = true)
     {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $ifaces = array();
-        $ethlist = $this->GetInterfaceDetails();
+        $ethlist = $this->get_interface_details();
 
         foreach ($ethlist as $eth => $info) {
             // Skip non-external interfaces
@@ -422,212 +400,7 @@ class IfaceManager extends Engine
         return $ifaces;
     }
 
-    /**
-     * Returns an interface's vendor, model, and bus details
-     * XXX: This method uses fopen/fread/fgets directly rather than the file class
-     * for performance reasons.  We don't need super-user access to gather interface
-     * details.
-     *
-     * @param bool $iface interface to return details for
-     * @returns array $details details in an array
-     * @throws EngineException
-     */
-
-    public function GetVendorDetails($iface)
-    {
-        global $_SOAP;
-
-        $details = array();
-        $details['vendor'] = null;
-        $details['device'] = null;
-        $details['sub_device'] = null;
-        $details['bus'] = null;
-
-        $id_vendor = 0;
-        $id_device = 0;
-        $id_sub_vendor = 0;
-        $id_sub_device = 0;
-
-        $device_link = self::SYS_CLASS_NET . "/$iface/device";
-
-        // TODO: translation
-        if (!file_exists($device_link))
-            throw new EngineException('Device link not found.', COMMON_WARNING);
-
-        // Determine if this is a USB device
-        $is_usb = false;
-
-        if (!($path = readlink($device_link))) {
-            throw new EngineException('Interface device inode isn\'t a symlink.',
-                COMMON_WARNING);
-        }
-
-        if (strstr($path, 'usb')) $is_usb = true;
-
-        // Obtain vendor ID number
-        $path = $device_link . (($is_usb) ? '/../idVendor' : '/vendor');
-
-        if (!($fh = fopen($path, 'r'))) {
-            throw new EngineException('Error opening vendor information file.',
-                COMMON_WARNING);
-        }
-
-        fscanf($fh, '%x', $id_vendor);
-        fclose($fh);
-
-        if ($id_vendor == 0) {
-            throw new EngineException('Error reading vendor information.',
-                COMMON_WARNING);
-        }
-
-        // Obtain device ID number
-        $path = $device_link . (($is_usb) ? '/../idProduct' : '/device');
-
-        if (!($fh = fopen($path, "r"))) {
-            throw new EngineException('Error opening device information file.',
-                COMMON_WARNING);
-        }
-
-        fscanf($fh, '%x', $id_device);
-        fclose($fh);
-
-        if ($id_device == 0) {
-            throw new EngineException('Error reading device information.',
-                COMMON_WARNING);
-        }
-
-        if (!$is_usb) {
-            // Obtain (optional) sub-vendor ID number (PCI devices only)
-            if (($fh = fopen("$device_link/subsystem_vendor", 'r'))) {
-                fscanf($fh, '%x', $id_sub_vendor);
-                fclose($fh);
-
-                if ($id_sub_vendor == 0) {
-                    throw new EngineException('Error reading sub-vendor information.',
-                        COMMON_WARNING);
-                }
-            }
-
-            // Obtain (optional) sub-device ID number (PCI devices only)
-            if( ($fh = fopen("$device_link/subsystem_device", 'r'))) {
-                fscanf($fh, '%x', $id_sub_device);
-                fclose($fh);
-
-                if($id_sub_device == 0) {
-                    throw new EngineException('Error reading sub-device information.',
-                        COMMON_NOTICE);
-                }
-            }
-        }
-
-        // Scan PCI/USB Id database for vendor/device[/sub-vendor/sub-device]
-        if (!($fh = fopen((!$is_usb ? self::PCI_ID : self::USB_ID), 'r'))) {
-            throw new EngineException('Error opening PCI/USB Id database.',
-                COMMON_WARNING);
-        }
-
-        $details['bus'] = ($is_usb) ? 'USB' : 'PCI';
-
-        // Find vendor id first
-        $search = sprintf('%04x', $id_vendor);
-
-        while (!feof($fh)) {
-            $buffer = chop(fgets($fh, 4096));
-            if (substr($buffer, 0, 4) != $search) continue;
-            $details['vendor'] = substr($buffer, 6);
-            break;
-        }
-
-        if ($details['vendor'] == null) {
-            fclose($fh);
-            throw new EngineException('No vendor string found in PCI/USB Id database.',
-                COMMON_WARNING);
-        }
-
-        // Find device id next
-        $search = sprintf('%04x', $id_device);
-
-        while (!feof($fh)) {
-            $byte = fread($fh, 1);
-            if ($byte == '#') {
-                fgets($fh, 4096);
-                continue;
-            }
-            else if($byte != "\t") break;
-
-            $buffer = chop(fgets($fh, 4096));
-            if (substr($buffer, 0, 4) != $search) continue;
-            $details['device'] = substr($buffer, 6);
-            break;
-        }
-
-        if ($details['device'] == null) {
-            if (!$is_usb) {
-                fclose($fh);
-                throw new EngineException('No device string found in PCI/USB Id database.',
-                    COMMON_WARNING);
-            }
-
-            // For USB devices, this isn't an error
-            // XXX: Probably isn't for PCI devices either?
-            return $details;
-        }
-
-        if ($id_sub_vendor == 0) {
-            fclose($fh);
-            return $details;
-        }
-
-        // Find (optional) sub-vendor id next
-        $search = sprintf('%04x %04x', $id_sub_vendor, $id_sub_device);
-
-        while (!feof($fh)) {
-            $byte = fread($fh, 1);
-            if ($byte == '#') {
-                fgets($fh, 4096);
-                continue;
-            }
-            else if($byte != "\t") break;
-
-            if(fread($fh, 1) != "\t") break;
-
-            $buffer = chop(fgets($fh, 4096));
-            if (substr($buffer, 0, 9) != $search) continue;
-            $details['sub_device'] = substr($buffer, 11);
-            break;
-        }
-
-        fclose($fh);
-
-        if (isset($_SOAP['REQUEST'])) {
-            $result = new IfaceManager_GetVendorDetailsResponse;
-
-            $result->vendor = $details['vendor'];
-            $result->sub_device = $details['sub_device'];
-            $result->device = $details['device'];
-            $result->bus = $details['bus'];
-
-            return $result;
-        }
-
-        return $details;
-    }
-
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @access private
-     */
-
-    public function __destruct()
-    {
-        ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
 }
-
-// vim: syntax=php ts=4
-?>

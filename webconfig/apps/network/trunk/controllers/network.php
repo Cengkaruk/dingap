@@ -50,13 +50,26 @@ class Network extends ClearOS_Controller
 	 * Basic network overview.
 	 */
 
-	function index()
+	function index($mode = 'edit')
 	{
 		// Load libraries
 		//---------------
 
-		$this->lang->load('network');
-		//$this->load->module('network/general');
+        $this->load->library('network/Network');
+        $this->load->library('network/Hostname');
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['mode'] = $mode;
+            $data['network_mode'] = $this->network->get_mode();
+            $data['network_modes'] = $this->network->get_modes();
+            $data['hostname'] = $this->hostname->get();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
 		// Load views
 		//-----------
@@ -64,6 +77,6 @@ class Network extends ClearOS_Controller
         $views = array('general');
 
         //$this->page->view_forms($views, 'w000');
-        $this->page->view_form('general/view_edit');
+        $this->page->view_form('general/view_edit', $data);
 	}
 }

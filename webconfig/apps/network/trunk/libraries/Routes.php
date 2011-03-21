@@ -52,7 +52,7 @@ clearos_load_library('base/File');
 clearos_load_library('firewall/Firewall');
 clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network');
-clearos_load_library('base/ShellExec');
+clearos_load_library('base/Shell_Exec');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -112,7 +112,7 @@ class Routes extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $routeinfo = array();
-        $shell = new ShellExec();
+        $shell = new Shell_Exec();
 
         // Try multi-WAN table first
         //--------------------------
