@@ -24,6 +24,7 @@ $lang['network_waiting_for_connection'] = 'Internet connection is offline';
 $lang['network_wins_server'] = 'WINS Server';
 
 // New or changed
+$lang['network_ip_settings'] = 'IP Settings';
 $lang['network_interface'] = 'Interface';
 $lang['network_alias'] = 'Alias';
 $lang['network_hostname_alias_is_invalid'] = 'Hostname alias is invalid.';
