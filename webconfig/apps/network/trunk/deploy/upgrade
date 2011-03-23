@@ -1,0 +1,16 @@
+#!/bin/sh
+
+CONFIGS=`ls /etc/sysconfig/network-scripts/ifcfg-*`
+
+for CONFIG in $CONFIGS; do
+	CHECK=`grep DEVICE=\" $CONFIG 2>/dev/null`
+	if [ -n "$CHECK" ]; then
+		logger -p local6.notice -t installer "app-network - fixing quotations in $CONFIG"
+		sed -i -e "s/DEVICE=\"\(.*\)\"/DEVICE=\1/" $CONFIG
+	fi
+done
+
+# FIXME: re-enable when API is ready
+# /usr/share/system/modules/network/upgrade-api
+
+# FIXME: re-enable upgrade-ppp

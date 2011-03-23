@@ -1,0 +1,14 @@
+#!/bin/sh
+
+logger -p local6.notice -t installer "app-ppp - uninstalling"
+# FIXME
+exit 0
+
+CHECKFW=`grep '/usr/share/system/scripts/firewall-up' /etc/ppp/ip-up.local 2>/dev/null`
+if [ -n "$CHECKFW" ]; then
+    logger -p local6.notice -t installer "app-ppp - removing PPTP and multiwan support"
+    grep -v '/usr/share/system/scripts/firewall-up' /etc/ppp/ip-up.local > /etc/ppp/ip-up.local.new
+    mv /etc/ppp/ip-up.local.new /etc/ppp/ip-up.local
+    chmod 755 /etc/ppp/ip-up.local
+fi
+

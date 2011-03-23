@@ -6,16 +6,35 @@ $app['release'] = '0.2';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
-$app['license_libraries'] = 'LGPLv3';
-$app['description'] = 'Network description...';
+$app['license_core'] = 'LGPLv3';
+$app['summary'] = 'Network configuration tool.';
+$app['description'] = 'Network description... blah blah';
 
-$app['name'] = 'IP Settings';
+$app['name'] = lang('network_ip_settings');
 $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_settings');
 
-$app['forms']['network']['title'] = $app['name'];
-$app['forms']['general']['title'] = lang('base_general_settings');
-$app['forms']['general']['title'] = lang('base_general_settings');
-$app['forms']['trusted']['title'] = lang('network_trusted_networks');
-$app['forms']['additional']['title'] = lang('network_additional_domains');
-$app['forms']['forwarding']['title'] = lang('network_mail_forwarding');
+// Packaging
+$app['core_dependencies'] = array(
+    'app-base-core',
+    'bind-utils',
+    'dhclient',
+    'ethtool',
+    'net-tools',
+    'ppp',
+    'rp-pppoe',
+);
+$app['manifest'] = array(
+   'dhclient-exit-hooks' => array(
+        'target' => '/etc/dhclient-exit-hooks',
+        'mode' => '0644',
+        'onwer' => 'root',
+        'group' => 'root',
+    ),
+   'firewall-up' => array(
+        'target' => '/usr/sbin/firewall-up',
+        'mode' => '0755',
+        'onwer' => 'root',
+        'group' => 'root',
+    )
+);
