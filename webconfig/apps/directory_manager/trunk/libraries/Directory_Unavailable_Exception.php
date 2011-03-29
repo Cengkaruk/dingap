@@ -4,12 +4,12 @@
  * Directory unavailable exception class.
  *
  * @category   Apps
- * @package    Directory
+ * @package    Directory_Manager
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\directory;
+namespace clearos\apps\directory_manager;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('directory');
+clearos_load_language('directory_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -64,12 +64,12 @@ clearos_load_library('base/Engine_Exception');
  * Directory unavailable exception class.
  *
  * @category   Apps
- * @package    Directory
+ * @package    Directory_Manager
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
  */
 
 class Directory_Unavailable_Exception extends Engine_Exception
