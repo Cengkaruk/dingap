@@ -1,10 +1,6 @@
-#------------------------------------------------------------------------------
-# P A C K A G E  I N F O
-#------------------------------------------------------------------------------
-
 Name: clearos-base
-Version: 6.0
-Release: 0.5%{dist}
+Version: 6.0.0alpha1.1
+Release: 1%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
@@ -54,20 +50,12 @@ BuildRoot: %_tmppath/%name-%version-buildroot
 %description
 Initializes the system environment
 
-#------------------------------------------------------------------------------
-# B U I L D
-#------------------------------------------------------------------------------
-
 %prep
 %setup
 %build
 
-#------------------------------------------------------------------------------
-# I N S T A L L  F I L E S
-#------------------------------------------------------------------------------
-
 %install
-[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+rm -rf $RPM_BUILD_ROOT
 
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
@@ -174,18 +162,10 @@ fi
 
 exit 0
 
-#------------------------------------------------------------------------------
-# U N I N S T A L L  S C R I P T
-#------------------------------------------------------------------------------
-
 %preun
 if [ $1 -eq 0 ]; then
 	logger -p local6.notice -t installer "clearos-base - uninstalling"
 fi
-
-#------------------------------------------------------------------------------
-# F I L E S
-#------------------------------------------------------------------------------
 
 %files
 %defattr(-,root,root)
