@@ -6,12 +6,33 @@ $app['release'] = '0.2';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
-$app['license_libraries'] = 'LGPLv3';
-$app['description'] = 'SMTP description...';
+$app['license_core'] = 'LGPLv3';
+$app['summary'] = 'SMTP server and gateway.';
+$app['description'] = 'SMTP description blah blah blah...';
 
 $app['name'] = lang('smtp_smtp_server');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_mail');
+
+// Packaging
+$app['core_dependencies'] = array('app-base-core', 'postfix >= 2.6.6');
+/*
+$app['manifest'] = array( 
+   'app-date.cron' => array(
+        'target' => '/etc/cron.d/app-date',
+        'mode' => '0644',
+        'onwer' => 'root',
+        'group' => 'root',
+    ),
+
+   'timesync' => array(
+        'target' => '/usr/sbin/timesync',
+        'mode' => '0755',
+        'onwer' => 'root',
+        'group' => 'root',
+    ),
+);
+*/
 
 $app['forms']['smtp']['title'] = $app['name'];
 $app['forms']['general']['title'] = lang('base_general_settings');
