@@ -19,6 +19,7 @@ Requires: mlocate
 Requires: ntpdate
 Requires: openssh-server
 Requires: openssh-clients
+Requires: postfix
 Requires: perl
 Requires: selinux-policy-targeted
 Requires: sudo
