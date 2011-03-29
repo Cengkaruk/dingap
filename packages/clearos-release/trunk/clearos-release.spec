@@ -1,6 +1,6 @@
 Name: clearos-release
-Version: 6.0.0alpha1
-Release: 3.1%{?dist}
+Version: 6.0.0alpha1.1
+Release: 1%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
 License: GPLv2
@@ -86,8 +86,9 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/clearos/release/upgrade
 
 %changelog
-* Mon Mar 28 2011 ClearFoundation <developer@clearfoundation.com> - 6.0.0alpha1-3.1
+* Mon Mar 28 2011 ClearFoundation <developer@clearfoundation.com> - 6.0.0alpha1.1-1
 - Removed deprecated upgrade routines
+- Changed release to conform to new standard
 
 * Mon Mar 21 2011 ClearFoundation <developer@clearfoundation.com> - 6.0.0alpha1-1.1
 - Import based on spec file from upstream
