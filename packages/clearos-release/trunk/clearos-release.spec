@@ -1,6 +1,6 @@
 Name: clearos-release
 Version: 6.0.0alpha1
-Release: 1.2%{?dist}
+Release: 3.1%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
 License: GPLv2
@@ -59,45 +59,13 @@ mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/release/
 install -m 755 config/upgrade $RPM_BUILD_ROOT/usr/share/clearos/release/ 
 install -m 644 config/product $RPM_BUILD_ROOT/usr/share/clearos/release/
 
-
-%pre
-if [ -e /etc/release ]; then
-    mkdir -p /usr/share/clearos/release
-	cp /etc/release /usr/share/clearos/release/clearos-release.previous
-fi
-
 %post
 rpm --import /etc/pki/rpm-gpg/clearos-gpg-key 2>/dev/null
 rpm --import /etc/pki/rpm-gpg/product-gpg-key 2>/dev/null
 rpm --import /etc/pki/rpm-gpg/pointclark-gpg-key 2>/dev/null
 rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-5 2>/dev/null
 
-if [ $1 == 1 ]; then
-	# Reset registration when migrating from old products
-	#----------------------------------------------------
-
-	if ( [ -e /usr/share/clearos/release/clearos-release.previous ] && [ -e /etc/release ] ); then
-		OLDPRODUCT=`/bin/sed -e 's/ release.*//' /usr/share/clearos/release/clearos-release.previous`
-		NEWPRODUCT=`/bin/sed -e 's/ release.*//' /etc/release`
-		OLDVERSION=`/bin/sed -e 's/.*release //' /usr/share/clearos/release/clearos-release.previous`
-		NEWVERSION=`/bin/sed -e 's/.*release //' /etc/release`
-		OLDBASEPRODUCT=`echo "$OLDPRODUCT" | /bin/sed 's/ .*//'`
-
-		logger -p local6.notice -t installer "app-release - found install $OLDPRODUCT $OLDVERSION"
-
-		if [ "$OLDBASEPRODUCT" == "ClarkConnect" ]; then
-			logger -p local6.notice -t installer "app-release - detected product change, resetting registration"
-			rm -f /var/lib/rbs/backup-history.data /var/lib/rbs/session-history.data
-		fi
-	else
-		logger -p local6.notice -t installer "app-release - detected new install"
-	fi
-
-	# Run product script
-	#--------------------
-
-	/usr/share/clearos/release/upgrade >/dev/null 2>&1
-fi
+/usr/share/clearos/release/upgrade >/dev/null 2>&1
 
 exit 0
 
