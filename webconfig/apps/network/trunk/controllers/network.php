@@ -23,12 +23,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Basic network configuration.
+ * Network controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
+ * @category   Apps
+ * @package    Network
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,12 +39,15 @@
 ///////////////////////////////////////////////////////////////////////////////
  
 /**
- * Basic network configuration.
+ * Network controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
+ * @category   Apps
+ * @package    Network
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
  */
 
 class Network extends ClearOS_Controller
@@ -50,34 +56,18 @@ class Network extends ClearOS_Controller
 	 * Basic network overview.
 	 */
 
-	//function index($mode = 'edit')
 	function index()
 	{
 		// Load libraries
 		//---------------
 
-        $this->load->library('network/Network');
-        $this->load->library('network/Hostname');
-
-        // Load view data
-        //---------------
-
-        try {
-            $data['mode'] = $mode;
-            $data['network_mode'] = $this->network->get_mode();
-            $data['network_modes'] = $this->network->get_modes();
-            $data['hostname'] = $this->hostname->get();
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
+		$this->lang->load('network');
 
 		// Load views
 		//-----------
 
-        $views = array('general');
+        $views = array('network/general');
 
-        //$this->page->view_forms($views, 'w000');
-        $this->page->view_form('general/view_edit', $data);
+        $this->page->view_forms($views, lang('network_network'));
 	}
 }

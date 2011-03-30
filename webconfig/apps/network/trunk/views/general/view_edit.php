@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Network general settings view.
+ *
+ * @category   ClearOS
+ * @package    Network
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software; you can redistribute it and/or
@@ -27,6 +35,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('network');
+$this->lang->load('base');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form handler
@@ -47,14 +56,13 @@ if ($mode === 'edit') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('network/general'); 
+echo form_open('network'); 
 echo form_header(lang('base_general_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-//$read_only = FALSE;
 echo form_fieldset(lang('network_network') . ' - ' . lang('base_general_settings'));
 echo field_dropdown('network_mode', $network_modes, $network_mode, lang('network_mode'), $read_only);
 echo field_input('hostname', $hostname, lang('network_hostname'), $read_only);
@@ -62,6 +70,7 @@ echo field_input('dns1', $dns1, lang('network_dns_server') . ' #1', $read_only);
 echo field_input('dns2', $dns2, lang('network_dns_server') . ' #2', $read_only);
 
 echo form_fieldset_close(); 
+
 echo button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,6 +79,3 @@ echo button_set($buttons);
 
 echo form_footer();
 echo form_close();
-
-// vim: ts=4
-?>

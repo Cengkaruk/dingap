@@ -25,7 +25,7 @@
  * The Resolver class manages the /etc/resolv.conf file.
  *
  * @category   Apps
- * @package    
+ * @package    Network
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -37,7 +37,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\;
+namespace clearos\apps\network;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -51,15 +51,32 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\base\Shell as Shell;
+
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
-clearos_load_library('network/Network');
+clearos_load_library('network/Network_Utils');
 clearos_load_library('base/Shell');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -71,7 +88,7 @@ clearos_load_library('base/Shell');
  * Provides tools for editing /etc/resolv.conf.
  *
  * @category   Apps
- * @package    
+ * @package    Network
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -79,14 +96,18 @@ clearos_load_library('base/Shell');
  * @copyright  2003-2011 ClearFoundation
  */
 
-class Resolver extends Network
+class Resolver extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CONFIG = "/etc/resolv.conf";
     const CONST_TEST_HOST = 'sdn1.clearsdn.com';
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -95,44 +116,12 @@ class Resolver extends Network
     /**
      * Resolver constructor.
      *
-     *
      * @return void
      */
 
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        parent::__construct();
-
-    }
-
-    /**
-     * A generic method to grab information from /etc/resolv.conf.
-     *
-     * @access private
-     * @param string $key parameter - eg domain
-     *
-     * @return string value for given key
-     * @throws Engine_Exception
-     */
-
-    public function get_parameter($key)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::FILE_CONFIG);
-
-        if (! $file->exists())
-            return "";
-
-        try {
-            $value = $file->LookupValue("/^$key\s+/");
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        return $value;
     }
 
     /**
@@ -147,7 +136,7 @@ class Resolver extends Network
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $domain = $this->GetParameter('domain');
+        $domain = $this->get_parameter('domain');
         return $domain;
     }
 
@@ -173,7 +162,7 @@ class Resolver extends Network
 
         $nameservers = array();
 
-        $lines = $file->GetContentsAsArray();
+        $lines = $file->get_contents_as_array();
 
         try {
             foreach ($lines as $line) {
@@ -181,7 +170,7 @@ class Resolver extends Network
                     array_push($nameservers, preg_replace('/^nameserver\s+/', '', $line));
             }
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         return $nameservers;
@@ -199,50 +188,7 @@ class Resolver extends Network
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $search = $this->GetParameter('search');
-        return $search;
-    }
-
-    /**
-     * Generic set parameter for /etc/resolv.conf.
-     *
-     * @access private
-     * @param string $key parameter that is being replaced
-     * @param string $replacement the full replacement (could be multiple lines)
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function set_parameter($key, $replacement)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $file = new File(self::FILE_CONFIG);
-
-            // Create file if it does not exist
-            //---------------------------------
-
-            if (! $file->exists())
-                $file->create('root', 'root', '0644');
-
-            $file->ReplaceLines('/^' . $key . '/', '');
-
-            // Add domain (if it exists)
-            //--------------------------
-
-            if ($replacement) {
-                if (is_array($replacement)) {
-                    foreach ($replacement as $line)
-                    $file->add_lines($line . "\n");
-                } else {
-                    $file->add_lines($replacement . "\n");
-                }
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage());
-        }
+        return $this->get_parameter('search');
     }
 
     /**
@@ -263,16 +209,16 @@ class Resolver extends Network
         // Validate
         //---------
 
-        if (! $this->IsValidLocalDomain($domain))
+        if (! $this->is_valid_local_domain($domain))
             throw new Validation_Exception(RESOLVER_LANG_ERRMSG_DOMAIN_INVALID);
 
         // Set the parameter
         //------------------
 
         if ($domain)
-            $this->SetParameter('domain', 'domain ' . $domain);
+            $this->set_parameter('domain', 'domain ' . $domain);
         else
-            $this->SetParameter('domain', '');
+            $this->set_parameter('domain', '');
     }
 
     /**
@@ -303,17 +249,16 @@ class Resolver extends Network
 
             if (! $server) {
                 continue;
-            } else if (! $this->IsValidIp($server)) {
-                throw new Validation_Exception(RESOLVER_LANG_ERRMSG_NAMESERVERS_INVALID);
             } else {
+                Validation_Exception::is_valid($this->validate_ip($server));
                 $thelist[] = 'nameserver ' . $server;
             }
         }
 
         if (count($thelist) > 0)
-            $this->SetParameter('nameserver', $thelist);
+            $this->set_parameter('nameserver', $thelist);
         else
-            $this->SetParameter('nameserver', '');
+            $this->set_parameter('nameserver', '');
     }
 
     /**
@@ -341,9 +286,9 @@ class Resolver extends Network
         //------------------
 
         if ($search)
-            $this->SetParameter('search', 'search ' . $search);
+            $this->set_parameter('search', 'search ' . $search);
         else
-            $this->SetParameter('search', '');
+            $this->set_parameter('search', '');
 
     }
 
@@ -369,14 +314,14 @@ class Resolver extends Network
         $shell = new Shell();
 
         try {
-            $servers = $this->GetNameservers();
+            $servers = $this->get_nameserverss();
 
             foreach ($servers as $server) {
-                if ($shell->Execute("/usr/bin/dig", "@$server $domain +time=$timeout") == 0)
+                if ($shell->execute('/usr/bin/dig', "@$server $domain +time=$timeout") == 0)
                     return TRUE;
             }
         } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
         }
 
         return FALSE;
@@ -402,25 +347,116 @@ class Resolver extends Network
         $shell = new Shell();
 
         try {
-            $servers = $this->GetNameservers();
+            $servers = $this->get_nameserverss();
 
             foreach ($servers as $server) {
-                if ($shell->Execute("/usr/bin/dig", "@$server $domain +time=$timeout") == 0) {
-                    $result[$server]["success"] = TRUE;
+                if ($shell->execute('/usr/bin/dig', "@$server $domain +time=$timeout") == 0) {
+                    $result[$server]['success'] = TRUE;
                 } else {
-                    $result[$server]["success"] = FALSE;
+                    $result[$server]['success'] = FALSE;
                 }
             }
         } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
         }
 
         return $result;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    // V A L I D A T I O N   M E T H O D S
+    // P R I V A T E   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
+    /**
+     * A generic method to grab information from /etc/resolv.conf.
+     *
+     * @access private
+     * @param string $key parameter - eg domain
+     *
+     * @return string value for given key
+     * @throws Engine_Exception
+     */
+
+    private function get_parameter($key)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_CONFIG);
+
+        if (! $file->exists())
+            return '';
+
+        try {
+            $value = $file->lookup_value("/^$key\s+/");
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Generic set parameter for /etc/resolv.conf.
+     *
+     * @access private
+     * @param string $key parameter that is being replaced
+     * @param string $replacement the full replacement (could be multiple lines)
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    private function set_parameter($key, $replacement)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $file = new File(self::FILE_CONFIG);
+
+            // Create file if it does not exist
+            //---------------------------------
+
+            if (! $file->exists())
+                $file->create('root', 'root', '0644');
+
+            $file->replace_lines("/^$key/", '');
+
+            // Add domain (if it exists)
+            //--------------------------
+
+            if ($replacement) {
+                if (is_array($replacement)) {
+                    foreach ($replacement as $line)
+                    $file->add_lines("$line\n");
+                } else {
+                    $file->add_lines("$replacement\n");
+                }
+            }
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e));
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates a DNS IP address.
+     *
+     * @param string $ip IP address
+     *
+     * @return string error message if ip address is invalid
+     */
+
+    public function validate_ip($ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (Network_Utils::is_valid_ip($ip) === FALSE) {
+            throw new Validation_Exception(
+                lang('network_ip_is_invalid'), CLEAROS_ERROR);
+        }
+    }
 
     /**
      * Validation routine for domain.
@@ -437,12 +473,11 @@ class Resolver extends Network
         if (! $domain)
             return TRUE;
 
-        if ($this->IsValidDomain($domain))
+        if (Network_Utils::is_valid_domain($domain))
             return TRUE;
 
         return FALSE;
     }
-
 
     /**
      * Validation routine for search.
@@ -459,25 +494,10 @@ class Resolver extends Network
         if (! $search)
             return TRUE;
 
-        if ($this->IsValidDomain($search))
+        if (Network_Utils::is_valid_domain($search))
             return TRUE;
 
         return FALSE;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * @access private
-     */
-
-    public function __destruct()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
 }
-

@@ -213,9 +213,10 @@ class Hostname extends Engine
         // Validate
         //---------
 
-        $network = new Network_Utils();
-
-        Validation_Exception::is_valid($network->validate_hostname($hostname));
+        if (Network_Utils::is_valid_hostname($hostname) === FALSE) {
+            throw new Validation_Exception(
+                lang('network_hostname_is_invalid'), CLEAROS_ERROR);
+        }
 
         // Update tag if it exists
         //------------------------
@@ -235,5 +236,25 @@ class Hostname extends Engine
 
         $shell = new Shell();
         $shell->execute(self::CMD_HOSTNAME, $hostname, TRUE);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates a hostname.
+     *
+     * @param string $hostname hostname
+     *
+     * @return string error message if hostname is invalid
+     */
+
+    public function validate_hostname($hostname)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_hostname($hostname))
+            return lang('network_hostname_is_invalid');
     }
 }

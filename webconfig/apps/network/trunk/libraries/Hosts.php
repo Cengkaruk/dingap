@@ -117,6 +117,17 @@ class Hosts extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Hosts constructor.
+     *
+     * @return void
+     */
+
+    public function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
      * Add an entry to the /etc/hosts file.
      *
      * @param string $ip       IP address
