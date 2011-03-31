@@ -1,0 +1,3 @@
+This module is considered experimental.
+
+Ethtool functions (ifconfig_link_detect and ifconfig_speed) require a kernel patch to run without super-user permissions.
