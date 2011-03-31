@@ -175,7 +175,7 @@ div.theme-button-set { color: red; background-image: url(); }
 /* ------------------------------------------------------------------------- */
 
 .theme-summary-table-container {
-  margin-top: 6px;
+  margin-top: 0px;
 }
 .theme-summary-table-legend {
   text-align: center;	
@@ -185,12 +185,13 @@ div.theme-button-set { color: red; background-image: url(); }
   text-align: left;
 }
 .theme-summary-table-header {
-   background: #FFFFFF url(../images/header-grad.png) repeat-x;
+   background: #FFFFFF url(../images/header-grad-small.png) repeat-x;
   height: 23px;
   padding: 5px;
   color: #ffffff;
   font-weight: bold;
-  width: 716px;
+  width: 499px;
+  ^width: 509px;
   margin-left: 0px;
 }
 .theme-summary-table-title { 
@@ -212,9 +213,9 @@ div.theme-button-set { color: red; background-image: url(); }
 /* ------------------------------------------------------------------------- */
 
 .theme-form-header {
-  background: #FFFFFF url(../images/header-grad2.png);
+  background: #FFFFFF url(../images/header-grad2-small.png);
   background-repeat: no-repeat;
-  background-position: 2 0;
+  background-position: 0 0;
   ^background-position: 0 0;
 /* Peter: reduced width/max-width by 250 */
   ^width: 460px;
@@ -226,6 +227,7 @@ div.theme-button-set { color: red; background-image: url(); }
   border-right: 1px solid #e1e1e1;
   border-top: none;
   border-bottom: none;
+  margin-left: 0px;
 }
 
 .theme-form-header .theme-fieldset .theme-fieldset-legend {
@@ -295,7 +297,7 @@ div.theme-button-set { color: red; background-image: url(); }
 
 .theme-form-header .theme-button-set {
   background-image: url(../images/widget-bottom2.png);
-  background-position: 0 3px;
+  background-position: 0 0px;
   background-repeat: no-repeat;
   border-top: none;
   border-bottom: none;
@@ -303,14 +305,14 @@ div.theme-button-set { color: red; background-image: url(); }
   padding-top: 0px;
   ^padding-top: 5px;
   padding-bottom: 15px;
-  margin-left: 2px;
+  margin-left: 0px;
   ^margin-left: 0px;
 /* Peter: reduced width by 250 */
 /*
   width: 716px;
   ^width: 727px;
 */
-  width: 466px;
+  width: 500px;
   ^width: 477px;
 }
 
@@ -346,6 +348,11 @@ div.theme-button-set { color: red; background-image: url(); }
 /* Helpbox */
 /* ------------------------------------------------------------------------- */
 
+.help-sides {
+  boder-left: 1px solid #E1E1E1;
+
+}
+
 .theme-view-container {
   margin: 0 auto;
   width: 100%;
@@ -363,6 +370,55 @@ div.theme-button-set { color: red; background-image: url(); }
   width: 50%;  
   position: relative;
 }
+
+#theme-content-help {
+  background-image: url(../images/header-grad2.png);
+  background-repeat: no-repeat;
+  background-position: 0px 0px;
+  margin: 0px;	
+  padding-top: 5px;
+}
+
+#theme-content-help .theme-dialogbox-info {
+  padding-top: 0px;	
+}
+
+.help-sides .theme-dialogbox-info { 
+  margin-top: 5px;
+  background: none;	
+  border-top: none;
+  border-right: none;
+  border-left: 1px solid #E1E1E1;
+  border-right: 1px solid #E1E1E1;
+  border-bottom: none;
+  color: #686868;
+}
+
+.help-sides p {
+  margin-left: 15px;	
+}
+
+.help-sides ul {
+  margin-bottom: 0px;
+} 
+
+.help-bottom {
+  background-image: url(../images/help-bottom.png);
+  background-repeat: no-repeat;	
+  width: 100%;
+  height: 10px;
+}
+
+#theme-content-help h3 {
+  position: relative;
+  margin-top: 0px;
+  top: 0px; 
+  left: 5px;
+  color: #98bb60;
+  font-weight: normal;
+  font-size: 14px;
+}
+
 
 /* ------------------------------------------------------------------------- */
 /* Tabs */
@@ -484,11 +540,41 @@ div.theme-button-set { color: red; background-image: url(); }
 	}
 	
 .theme-main-content-top {
+	/*
 	background-image: url(../images/maincontent-top.png);
 	background-repeat: no-repeat;
-	height: 14px; 
+	height: 225px; */
 	width: 972px;
 	clear: both;
+	position: relative;
+}
+
+.green-stroke-top {
+	position: absolute; 
+	width: 972px; 
+	height: 12px; 
+	background-image: url(../images/green-stroke-top.jpg);
+	background-repeat: no-repeat;
+}
+
+.green-stroke-left {
+	position: absolute; 
+	left: 0px; 
+	top: 12px;
+	width: 3px;
+	height: 201px;
+	background-image: url(../images/green-stroke-left.jpg);
+	background-repeat: no-repeat;
+}
+
+.green-stroke-right {
+	position: absolute; 
+	right: 0px; 
+	top: 12px; 
+	width: 3px;
+	height: 201px;
+	background-image: url(../images/green-stroke-right.jpg);
+	background-repeat: no-repeat;
 }
 
 #theme-content-container {
@@ -497,14 +583,22 @@ div.theme-button-set { color: red; background-image: url(); }
   max-width: 728px;
   width: 728px;
 */
-  max-width: 478px;
-  width: 478px;
+  width: 729px;
   float: left;
   z-index:5;
-  margin-left: 9px;
+  margin-left: 8px;
   position: relative;
-  top: -2px;
+  top: -1px;
   ^z-index: 0;
+}
+
+.theme-core-content {
+  background-image: url(../images/core-content-bg.jpg);
+  background-repeat: repeat-y;
+  margin-top: 12px;
+  float: left;
+  width: 972px;
+  margin-bottom: -3px;
 }
 
 #theme-content-splash-container {
@@ -527,17 +621,52 @@ div.theme-button-set { color: red; background-image: url(); }
   z-index:0;
 }
 
+
+
+#theme-content-left {
+  width: 511px;
+  float: left;	
+  margin-top: 10px;
+}
+
 /* Peter: added sidebar ... used absolute positioning instead of spending cycles on figuring this stuff out! */
 #theme-sidebar-container {
-  width: 240px;
-  padding-right: 10px;
-  margin-top: -20px;
+  background-image: url('../images/sidebar-bg.png');
+  background-repeat: repeat-y;
+  width: 210px;
+  float: right;
+  margin-top: 10px;
 /*
  *   position: absolute;
  *     top: 5px;
  *       left: 500px;
  *       */
   float: right;
+}
+
+.sidebar-top {
+  background-image: url('../images/sidebar-top.png');
+  background-repeat: no-repeat;
+  height: 8px;
+  width: 210px;
+}
+
+.sidebar-bottom {
+  background-image: url('../images/sidebar-bottom.png');
+  background-repeat: no-repeat;
+  height: 9px;
+  width: 210px;
+}
+
+#theme-sidebar-container .theme-dialogbox-info  {
+  border: none;	
+  background: none;
+  padding-left: 5px;
+}
+
+#theme-sidebar-container h3 {
+  margin-top: 2px;
+  color: #98bb60;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -548,13 +677,13 @@ div.theme-button-set { color: red; background-image: url(); }
   background-image: url('../images/maincontent-bottom.png');
   background-repeat: no-repeat;
   background-position: 0px 0px;
-  clear: both;
+  float: left;
+  width: 972px;
   padding-top: 20px;
   padding-left: 15px;
   position: relative;
-  line-height: 30px;
-  top: 50px;
-  z-index: -1;
+  line-height: 20px;
+ 
 }
 
 /* ------------------------------------------------------------------------- */
@@ -684,10 +813,10 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   width: 213px;
   height: auto;
   float: left;
-  margin-left: 12px;
+  margin-left: 11px;
   margin-bottom: -64px;
   position: relative;
-  top: -2px;
+  top: -1px;
 }
 
 #theme-left-menu-top {

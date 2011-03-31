@@ -101,12 +101,21 @@ function _configuration_page($page)
 
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'></div>" .
+        <div class='theme-main-content-top'>
+		<div class='green-stroke-top'></div>
+		<div class='green-stroke-left'></div>
+		<div class='green-stroke-right'></div>
+		</div>
+		<div class='theme-core-content'>
+		" .
             _get_left_menu($page, $menus) .
             _get_app($page) .
             _get_sidebar($page) .
-            _get_footer($page) .
         "
+		</div>
+		" .
+		_get_footer($page) .
+		"
     </div>
 </div>
 </body>
@@ -137,10 +146,17 @@ function _report_page($page)
 
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'></div>" .
+        <div class='theme-main-content-top'>
+		<div class='green-stroke-top'></div>
+		<div class='green-stroke-left'></div>
+		<div class='green-stroke-right'></div>
+		</div>
+		<div class='theme-core-content'>
+		" .
             _get_left_menu($page, $menus) .
             _get_app($page) .
         "
+		</div>
     </div>
 </div>
 </body>
@@ -166,9 +182,16 @@ function _splash_page($page)
 <div id='theme-page-container'>
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'></div>" .
+        <div class='theme-main-content-top'>
+		<div class='green-stroke-top'></div>
+		<div class='green-stroke-left'></div>
+		<div class='green-stroke-right'></div>
+		</div>
+		<div class='theme-core-content'>
+		" .
             _get_app($page) .
         "
+		</div>
     </div>
 </div>
 </body>
@@ -197,11 +220,20 @@ function _wizard_page($page)
 
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'></div>" .
+        <div class='theme-main-content-top'>
+		<div class='green-stroke-top'></div>
+		<div class='green-stroke-left'></div>
+		<div class='green-stroke-right'></div>
+		</div>
+		<div class='theme-core-content'>
+		" .
             _get_wizard_menu($page) .
             _get_app($page) .
-            _get_footer($page) .
         "
+		</div>
+		" .
+		_get_footer($page) .
+		"
     </div>
 </div>
 </body>
@@ -218,8 +250,22 @@ function _get_app($page)
     return "
         <!-- Content -->
         <div id='theme-content-container'>
+		<div id='theme-content-help'>
+		<div class='help-sides'>
+		" . $page['page_help'] . "
+		</div>
+		<div class='help-bottom'></div>
+		</div>
+		<div id='theme-content-left'>
         " . $page['app_view'] . "
         </div>
+		<div id='theme-sidebar-container'>
+		<div class='sidebar-top'></div>
+        " . $page['page_summary'] . "
+        " . $page['page_report'] . "
+		<div class='sidebar-bottom'></div>
+    	</div>
+		</div>
     ";
 }
 
@@ -238,11 +284,7 @@ function _get_sidebar($page)
 {
     return "
     <!-- Sidebar -->
-    <div id='theme-sidebar-container'>
-        " . $page['page_help'] . "
-        " . $page['page_summary'] . "
-        " . $page['page_report'] . "
-    </div>
+    
     ";
 }
 

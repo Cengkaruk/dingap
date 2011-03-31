@@ -319,7 +319,7 @@ function theme_form_header($title)
 
 function theme_form_footer()
 {
-    return "</div>\n";
+    return "</div><div class='theme-form-footer'></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -454,7 +454,7 @@ function theme_dialogbox_info($message)
     $iconclass = 'ui-icon-info';
 
     return "
-        <div class='ui-widget' style='margin: 10px'>
+        <div class='ui-widget'>
             <div class='ui-corner-all theme-dialogbox-info $class'>
                <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message
             </div>

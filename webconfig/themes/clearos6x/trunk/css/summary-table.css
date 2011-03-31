@@ -126,7 +126,7 @@ table.display thead th div.DataTables_sort_wrapper span {
 	clear: both;
 	border-left: 1px solid #e1e1e1 ;
 	border-right: 1px solid #e1e1e1;
-	width: 724px;	
+	width: 507px;	
 	background-color: white;
 }
 
@@ -197,7 +197,7 @@ table.display thead th div.DataTables_sort_wrapper span {
  */
 table.display {
 	margin: 0 auto;
-	width: 724px;
+	width: 507px;
 	clear: both;
 	
 }
@@ -555,6 +555,6 @@ tr.even.gradeU td.sorting_3 {
 .dataTables_filter input {color: #686868; border: none; background-image: url(../images/search-bg.png); background-repeat: no-repeat; width: 141px; height: 20px; padding-top: 3px; padding-bottom: 3px; padding-right: 5px;padding-left: 19px;} 
 
 
-.dataTables_wrapper div:first-child + table + div {background-image: url(../images/widget-bottom.png); background-repeat: no-repeat; background-position:0 24px; height:23px; width:718px; border-top: 1px solid #f1f0f0; border-left: none; border-bottom: none; border-right: none; -webkit-border-radius: 0px; -moz-border-radius: 0px; margin-left: -1px;}
+.dataTables_wrapper div:first-child + table + div {background-image: url(../images/widget-bottom-small.png); background-repeat: no-repeat; background-position:0 25px; height:23px; width:499px; border-top: 1px solid #f1f0f0; border-left: none; border-bottom: none; border-right: none; -webkit-border-radius: 0px; -moz-border-radius: 0px; margin-left: -1px;}
 	
 .theme-list-table> tr> .ui-state-default {border: blue 1px solid;}
