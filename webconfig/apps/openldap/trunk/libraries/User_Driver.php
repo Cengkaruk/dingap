@@ -47,7 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('directory');
+clearos_load_language('directory_manager');
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,6 +146,7 @@ class User_Driver extends Engine
 
         $this->username = $username;
 
+        // Core LDAP classes
         $this->core_classes = array(
             'top',
             'posixAccount',
@@ -154,239 +155,13 @@ class User_Driver extends Engine
             'clearAccount'
         );
 
+        // Paths to plugins and extensions
         $this->path_extensions = clearos_app_base('openldap') . '/config/extensions';
+        $this->path_plugins = clearos_app_base('openldap') . '/config/plugins';
 
-        // The info_map array maps user_info to LDAP attributes and object classes.
-        // In the future, the object class might need to be an array... a simple
-        // one-to-one ratio will do for now.
-
-        $this->info_map = array(
-            'city' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_city',
-                'object_class' => 'clearAccount',
-                'attribute' => 'l' 
-            ),
-
-            'certificate' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_certificate',
-                'object_class' => 'clearAccount',
-                'attribute' => 'userCertificate'
-            ),
-
-            'country' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_country',
-                'object_class' => 'clearAccount',
-                'attribute' => 'c'
-            ),
-
-            'description' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_description',
-                'object_class' => 'clearAccount',
-                'attribute' => 'description'
-            ),
-
-            'display_name' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_display_name',
-                'object_class' => 'clearAccount',
-                'attribute' => 'displayName' 
-            ),
-
-            'fax' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_fax_number',
-                'object_class' => 'clearAccount',
-                'attribute' => 'facsimileTelephoneNumber' 
-            ),
-
-            'first_name' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_first_name',
-                'object_class' => 'clearAccount',
-                'attribute' => 'givenName'
-            ),
-
-            'gid_number' => array(
-                'type' => 'integer',
-                'required' => FALSE,
-                'validator' => 'validate_gid_number',
-                'object_class' => 'clearAccount',
-                'attribute' => 'gidNumber'
-            ),
-
-            'home_directory' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_home_directory',
-                'object_class' => 'clearAccount',
-                'attribute' => 'homeDirectory'
-            ),
-
-            'last_name' => array(
-                'type' => 'string',
-                'required' => TRUE,
-                'validator' => 'validate_last_name',
-                'object_class' => 'clearAccount',
-                'attribute' => 'sn',
-                'locale' => lang('directory_last_name')
-            ),
-
-            'login_shell' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_login_shell',
-                'object_class' => 'clearAccount',
-                'attribute' => 'loginShell'
-            ),
-
-            'mail' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_mail',
-                'object_class' => 'clearAccount',
-                'attribute' => 'mail'
-            ),
-
-            'mobile' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_mobile',
-                'object_class' => 'clearAccount',
-                'attribute' => 'mobile'
-            ),
-
-            'organization' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_organization',
-                'object_class' => 'clearAccount',
-                'attribute' => 'o'
-            ),
-
-            'password' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_password',
-                'object_class' => 'clearAccount',
-                'attribute' => 'userPassword',
-                'locale' => lang('base_password')
-            ),
-
-            'pkcs12' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_pkcs12',
-                'object_class' => 'clearAccount',
-                'attribute' => 'userPKCS12'
-            ),
-
-            'postal_code' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_postal_code',
-                'object_class' => 'clearAccount',
-                'attribute' => 'postalCode'
-            ),
-
-            'post_office_box' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_post_office_box',
-                'object_class' => 'clearAccount',
-                'attribute' => 'postOfficeBox'
-            ),
-
-            'region' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_region',
-                'object_class' => 'clearAccount',
-                'attribute' => 'st'
-            ),
-
-            'room_number' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_room_number',
-                'object_class' => 'clearAccount',
-                'attribute' => 'roomNumber'
-            ),
-
-            'street' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_street',
-                'object_class' => 'clearAccount',
-                'attribute' => 'street'
-            ),
-
-            'telephone' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_telephone_number',
-                'object_class' => 'clearAccount',
-                'attribute' => 'telephoneNumber'
-            ),
-
-            'title' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_title',
-                'object_class' => 'clearAccount',
-                'attribute' => 'title'
-            ),
-
-            'uid' => array(
-                'type' => 'integer',
-                'required' => FALSE,
-                'validator' => 'IsValidUsername',
-                'object_class' => 'clearAccount',
-                'attribute' => 'uid'
-            ),
-
-            'uid_number' => array(
-                'type' => 'integer',
-                'required' => FALSE,
-                'validator' => 'IsValidUidNumber',
-                'object_class' => 'clearAccount',
-                'attribute' => 'uidNumber'
-            ),
-
-            'unit' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_organization_unit',
-                'object_class' => 'clearAccount',
-                'attribute' => 'ou'
-            ),
-        );
-/*
-
-            'aliases'        => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidAlias', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailAliases' ),
-            'forwarders'    => array( 'type' => 'stringarray',  'required' => FALSE, 'validator' => 'IsValidForwarder', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailForwarders' ),
-            'ftpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnFTPAccount', 'attribute' => 'pcnFTPFlag' , 'passwordfield' => 'pcnFTPPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
-            'mailFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnMailAccount', 'attribute' => 'pcnMailFlag' , 'passwordfield' => 'pcnMailPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
-            'googleAppsFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnGoogleAppsAccount', 'attribute' => 'pcnGoogleAppsFlag' , 'passwordfield' => 'pcnGoogleAppsPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA1 ),
-            'openvpnFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnOpenVPNAccount', 'attribute' => 'pcnOpenVPNFlag' , 'passwordfield' => 'pcnOpenVPNPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
-            'pptpFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnPPTPAccount', 'attribute' => 'pcnPPTPFlag' , 'passwordfield' => 'pcnPPTPPassword', 'passwordtype' => User::PASSWORD_TYPE_NT ),
-            'proxyFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnProxyAccount', 'attribute' => 'pcnProxyFlag' , 'passwordfield' => 'pcnProxyPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
-            'webconfigFlag'    => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebconfigAccount', 'attribute' => 'pcnWebconfigFlag' , 'passwordfield' => 'pcnWebconfigPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
-            'webFlag'        => array( 'type' => 'boolean', 'required' => FALSE, 'validator' => 'IsValidFlag', 'object_class' => 'pcnWebAccount', 'attribute' => 'pcnWebFlag' , 'passwordfield' => 'pcnWebPassword', 'passwordtype' => User::PASSWORD_TYPE_SHA ),
-*/
-
-        // The attribute_map contains the reverse mapping of the above info_map.
-
+        // Attribute/Info mapping.  The attribute_map contains the reverse mapping.
+        include_once clearos_app_base('openldap') . '/config/info_map.php';
+        $this->info_map = $info_map;
         $this->attribute_map = array();
     
         foreach ($this->info_map as $info => $details)
@@ -448,6 +223,9 @@ class User_Driver extends Engine
 
 print_r($ldap_object);
 //        $this->ldaph->add($dn, $ldap_object);
+
+        // FIXME: run plugin handler
+        // for every plugin, add user to the plugin group
 
         // Run post-add processing hook
         //-----------------------------
@@ -619,6 +397,23 @@ print_r($ldap_object);
                 $info[$extension_nickname] = $extension->get_info_hook($attributes);
         }
 
+        // Add user info from plugins
+        //---------------------------
+
+        foreach ($this->_get_plugins() as $extension_name) {
+/*
+            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+
+            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
+            $extension_nickname = preg_replace('/_directory_extension/', '', $extension_name);
+            $extension = new $class();
+
+            if (method_exists($extension, 'get_info_hook'))
+                $info[$extension_nickname] = $extension->get_info_hook($attributes);
+*/
+        }
+// $this->_get_plugins();
+
         return $info;
     }
 
@@ -653,7 +448,7 @@ print_r($ldap_object);
             $extension = new $class();
 
             if (method_exists($extension, 'get_info_map_hook'))
-                $info[$extension_nickname] = $extension->get_info_map_hook($attributes);
+                $info['extensions'][$extension_nickname] = $extension->get_info_map_hook($attributes);
         }
 
         return $info;
@@ -1929,6 +1724,34 @@ return;
 
         return $this->extensions;
     }
+
+    /**
+     * Returns plugins list.
+     *
+     * @access private
+     * @return array extension list
+     */
+
+    protected function _get_plugins()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! empty($this->plugins))
+            return $this->plugins;
+
+        $folder = new Folder($this->path_plugins);
+
+        $list = $folder->get_listing();
+
+        foreach ($list as $plugin) {
+            if (! preg_match('/^\./', $plugin))
+                $this->plugins[] = $plugin;
+        }
+
+        return $this->plugins;
+    }
+
+    /**
 
     /**
      * Returns the next available user ID.

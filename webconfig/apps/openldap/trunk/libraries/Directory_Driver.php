@@ -47,13 +47,13 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('directory');
+clearos_load_language('directory_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\directory\Directory as Directory;
+use \clearos\apps\directory_manager\Directory as Directory;
 
 // Classes
 //--------
@@ -77,7 +77,7 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('date/NTP_Time');
-clearos_load_library('directory/Directory');
+clearos_load_library('directory_manager/Directory');
 clearos_load_library('openldap/OpenLDAP');
 clearos_load_library('openldap/Utilities');
 // clearos_load_library('network/Hostname');
@@ -109,7 +109,7 @@ clearos_load_library('base/Validation_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
  */
 
 class Directory_Driver extends Engine
@@ -1062,11 +1062,27 @@ class Directory_Driver extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validates domain.
+     *
+     * @param string $domain domain
+     *
+     * @return string error message if domain is invalid
+     */
+
+    public function validate_domain($domain)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_domain($domain))
+            return lang('openldap_domain_is_invalid');
+    }
+
+    /**
      * Validates LDAP mode.
      *
      * @param string $mode LDAP mode
      *
-     * @return boolean TRUE if mode is valid
+     * @return string error message if LDAP mode is invalid
      */
 
     public function validate_mode($mode)
@@ -1084,7 +1100,7 @@ class Directory_Driver extends Engine
      *
      * @param string $password LDAP password
      *
-     * @return boolean TRUE if password is valid
+     * @return string error message if LDAP password is invalid
      */
 
     public function validate_password($password)

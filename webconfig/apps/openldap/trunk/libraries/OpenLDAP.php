@@ -64,11 +64,11 @@ clearos_load_library('base/Daemon');
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\directory\Directory_Unavailable_Exception as Directory_Unavailable_Exception;
+use \clearos\apps\directory_manager\Directory_Unavailable_Exception as Directory_Unavailable_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
-clearos_load_library('directory/Directory_Unavailable_Exception');
+clearos_load_library('directory_manager/Directory_Unavailable_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S

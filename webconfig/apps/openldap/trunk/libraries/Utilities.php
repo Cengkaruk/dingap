@@ -47,7 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 // clearos_load_language('base');
-// clearos_load_language('directory');
+// clearos_load_language('directory_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -79,12 +79,12 @@ clearos_load_library('base/Engine_Exception');
  * ClearOS OpenLDAP utilities class.
  *
  * @category   Apps
- * @package    Directory
+ * @package    OpenLDAP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
  */
 
 class Utilities extends Engine
@@ -94,7 +94,7 @@ class Utilities extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Directory utilities constructor.
+     * OpenLDAP utilities constructor.
      */
 
     public function __construct()
