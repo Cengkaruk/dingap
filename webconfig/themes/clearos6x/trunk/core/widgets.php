@@ -551,6 +551,94 @@ $item_html
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// H E L P  B O X
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Displays a help box.
+ *
+ * The available data for display:
+ * - $name - app name
+ * - $category - category
+ * - $subcategory - subcategory
+ * - $description - description
+ * - $tooltip -  tooltip
+ * - $user_guide_url - URL to the User Guide
+ * - $support_url - URL to support
+ */
+
+function theme_help_box($data)
+{
+    // FIXME: translate
+    $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
+
+    return theme_dialogbox_info("
+            <h3>Help Box</h3>
+            <p>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
+            <p>" . $data['description'] . "</p>
+            $tooltip
+            <ul>
+                <li><a target='_blank' href='" . $data['user_guide_url'] . "'>User Guide</a></li>
+                <li><a target='_blank' href='" . $data['support_url'] . "'>ClearCenter Support</a></li>
+            </ul>
+    ");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// A P P  S U M M A R Y  B O X
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Displays a summary box.
+ *
+ * The available data for display:
+ * - $name - app name
+ * - $version - version number (e.g. 4.7)
+ * - $release - release number (e.g. 31.1, so version-release is 4.7-31.1)
+ * - $vendor - vendor
+ * 
+ * If this application is included in the Marketplace, the following
+ * information is also available.
+ *
+ * - $subscription_expiration - subscription expiration (if applicable)
+ * - $install_status - install status ("up-to-date" or "update available")
+ * - $marketplace_chart - a relevant chart object
+ */
+
+function theme_summary_box($data)
+{
+    // FIXME: translate
+    $html = theme_dialogbox_info("
+        <h3>" . $data['name'] . "</h3>
+        <table>
+            <tr>
+                <td><b>Version</b></td>
+                <td>" . $data['version'] . '-' . $data['release'] . "</td>
+            </tr>
+            <tr>
+                <td><b>Status</b></td>
+                <td>" . $data['install_status'] . "</td>
+            </tr>
+            <tr>
+                <td><b>Subscription</b></td>
+                <td>" . $data['subscription_expiration'] . "</td>
+            </tr>
+        </table>
+
+        <!-- Just an example chart -->
+
+        <div id='theme-chart-info-box' style='height:200px; width:200px;'></div>
+
+        <script type='text/javascript'>
+            $.jqplot.config.enablePlugins = true;
+            $.jqplot('theme-chart-info-box', [[[1, 2],[3,5.12],[5,13.1],[7,33.6],[9,85.9],[11,219.9]]]);
+        </script>
+    ");
+
+    return $html;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // C O N T R O L  P A N E L
 ///////////////////////////////////////////////////////////////////////////////
 
