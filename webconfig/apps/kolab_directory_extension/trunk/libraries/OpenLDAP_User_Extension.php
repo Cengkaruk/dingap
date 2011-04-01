@@ -4,12 +4,12 @@
  * Kolab OpenLDAP user extension.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    Kolab_Directory_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/kolab/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/kolab_directory_extension/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\kolab;
+namespace clearos\apps\kolab_directory_extension;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -47,6 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('kolab');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -56,9 +57,11 @@ clearos_load_language('base');
 //--------
 
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\kolab\Kolab as Kolab;
 use \clearos\apps\openldap\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
+clearos_load_library('kolab/Kolab');
 clearos_load_library('openldap/Utilities');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,12 +72,12 @@ clearos_load_library('openldap/Utilities');
  * Kolab OpenLDAP user extension.
  *
  * @category   Apps
- * @package    Directory
+ * @package    Kolab_Directory_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/kolab/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/kolab_directory_extension/
  */
 
 class OpenLDAP_User_Extension extends Engine
@@ -105,55 +108,22 @@ class OpenLDAP_User_Extension extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->info_map = array(
-            'alias' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_alias',
-                'object_class' => 'kolabInetOrgPerson',
-                'attribute' => 'alias'
-            ),
-            'delete_mailbox' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_mailbox',
-                'object_class' => 'kolabInetOrgPerson',
-                'attribute' => 'kolabDeleteflag'
-            ),
-            'home_server' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_home_server',
-                'object_class' => 'kolabInetOrgPerson',
-                'attribute' => 'kolabHomeServer'
-            ),
-            'invitation_policy' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_invitation_policy',
-                'object_class' => 'kolabInetOrgPerson',
-                'attribute' => 'kolabInvitationPolicy'
-            ),
-            'mail_quota' => array(
-                'type' => 'string',
-                'required' => FALSE,
-                'validator' => 'validate_mail_quota',
-                'object_class' => 'kolabInetOrgPerson',
-                'attribute' => 'cyrus-userquota'
-            ),
-        );
+        include clearos_app_base('kolab_directory_extension') . '/config/info_map.php';
+
+        $this->info_map = $info_map;
     }
 
     /** 
-     * Adds LDAP attributes for given user info hash array.
+     * Add LDAP attributes hook.
      *
      * @param array $user_info user information in hash array
+     * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
      * @throws Engine_Exception
      */
 
-    public function add_attributes_hook($user_info)
+    public function add_attributes_hook($user_info, $ldap_object)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -187,12 +157,12 @@ class OpenLDAP_User_Extension extends Engine
         return $ldap_object;
     }
 
-    /** 
-     * Returns user info for passwd in raw LDAP attributes.
+    /**
+     * Returns user info hash array.
      *
      * @param array $attributes LDAP attributes
      *
-     * @return string default home server
+     * @return array user info array
      * @throws Engine_Exception
      */
 
@@ -203,5 +173,12 @@ class OpenLDAP_User_Extension extends Engine
         $info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
         return $info;
+    }
+
+    public function get_info_map_hook($attributes)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->info_map;
     }
 }
