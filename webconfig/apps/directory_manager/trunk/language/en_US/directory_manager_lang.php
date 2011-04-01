@@ -22,6 +22,16 @@ $lang['directory_bind_dn'] = 'LDAP Bind DN';
 $lang['directory_bind_password'] = 'LDAP Bind Password';
 
 // New
+$lang['directory_directory_mode_is_invalid'] = 'Directory mode is invalid';
+$lang['directory_master_directory_hostname'] = 'Master Hostname';
+$lang['directory_master_directory_password'] = 'Master Password';
+$lang['directory_realm'] = 'Realm';
+$lang['directory_simple_master'] = 'Master (Simple)';
+$lang['directory_active_directory'] = 'Active Directory';
+$lang['directory_base_domain'] = 'Base Domain';
+$lang['directory_publish_policy'] = 'Publish Policy';
+$lang['directory_directory_settings'] = 'Directory Settings';
+$lang['directory_ldap_information'] = 'LDAP Information';
 $lang['directory_security_policy'] = 'Security Policy';
 
 $lang['directory_validate_security_policy_invalid'] = 'Security policy is invalid.';

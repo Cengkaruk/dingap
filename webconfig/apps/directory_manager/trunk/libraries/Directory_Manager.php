@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ClearOS directory factory.
+ * ClearOS directory manager factory.
  *
  * @category   Apps
  * @package    Directory_Manager
@@ -52,8 +52,6 @@ clearos_load_language('directory_manager');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Note: factory drivers are loaded on the fly
-
 use \clearos\apps\base\Engine as Engine;
 
 clearos_load_library('base/Engine');
@@ -74,73 +72,94 @@ clearos_load_library('base/Engine');
  * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
  */
 
-class Directory extends Engine
+class Directory_Manager extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    // Directory modes
+    const MODE_ACTIVE_DIRECTORY = 'ad';
     const MODE_MASTER = 'master';
-    const MODE_SLAVE = 'replicate';
+    const MODE_SIMPLE_MASTER = 'simple_master';
+    const MODE_SLAVE = 'slave';
     const MODE_STANDALONE = 'standalone';
 
-    // Security policies
-    const POLICY_LAN = 'lan';
-    const POLICY_LOCALHOST = 'localhost';
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $modes = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Directory constructor.
+     * Directory manager constructor.
      */
 
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $this->modes = array(
+            self::MODE_ACTIVE_DIRECTORY => lang('directory_active_directory'),
+            self::MODE_SIMPLE_MASTER => lang('directory_simple_master'),
+            self::MODE_MASTER => lang('directory_master'),
+            self::MODE_SLAVE => lang('directory_slave'),
+            self::MODE_STANDALONE => lang('directory_standalone')
+        );
     }
 
     /**
-     * Creates a directory instance via the factory framwork.
+     * Returns the directory driver.
      *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public static function create($driver)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: move this to a config file of course
-        $driver = 'openldap';
-
-        clearos_load_library($driver . '/Directory_Driver');
-
-        $class = '\clearos\apps\\' . $driver . '\\Directory_Driver';
-
-        return new $class;
-    }
-
-    /**
-     * Returns the driver name for use in the framework.
-     *
-     * This method is used by the web framework to create a factory object.
-     * Though the method is public, it is only intended for the web framework.
-     *
-     * @access private
-     * @return string driver name
+     * @return string directory driver
      * @throws Engine_Exception
      */
 
-    public function framework_create()
+    public function get_driver()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: move this to a config file of course
         $driver = 'openldap';
+//        $driver = 'active_directory';
 
-       return $driver . '/Directory_Driver';
+        return $driver;
+    }
+
+    /**
+     * Returns the available directory modes.
+     *
+     * @return array directory modes
+     * @throws Engine_Exception
+     */
+
+    public function get_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->modes;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates mode.
+     *
+     * @param string $mode mode
+     *
+     * @return string error message if mode is invalid
+     * @throws Engine_Exception
+     */
+
+    public function validate_mode($mode)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($mode, $this->modes))
+            return lang('directory_directory_mode_is_invalid');
     }
 }

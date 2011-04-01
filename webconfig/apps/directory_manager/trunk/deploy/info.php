@@ -1,6 +1,6 @@
 <?php
 
-$app['basename'] = 'directory';
+$app['basename'] = 'directory_manager';
 $app['version'] = '6.0.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
