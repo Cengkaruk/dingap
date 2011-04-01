@@ -440,6 +440,8 @@ print_r($ldap_object);
         // Add user info from extensions
         //------------------------------
 
+        $info_map = array();
+
         foreach ($this->_get_extensions() as $extension_name) {
             clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
 
@@ -448,10 +450,10 @@ print_r($ldap_object);
             $extension = new $class();
 
             if (method_exists($extension, 'get_info_map_hook'))
-                $info['extensions'][$extension_nickname] = $extension->get_info_map_hook($attributes);
+                $info_map['extensions'][$extension_nickname] = $extension->get_info_map_hook($attributes);
         }
 
-        return $info;
+        return $info_map;
     }
 
     /**
@@ -708,67 +710,6 @@ print_r($ldap_object);
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validation routine for mail aliases.
-     *
-     * @param string $alias alias
-     *
-     * @return boolean TRUE if alias is valid
-     */
-
-    public function validate_alias($alias)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (empty($alias) || preg_match("/^([a-z0-9_\-\.\$]+)$/", $alias)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_MAIL_ALIAS, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for city.
-     *
-     * @param string $city city
-     *
-     * @return string error message is city is invalid
-     */
-
-    public function validate_city($city)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/([:;\/#!@])/", $city))
-            return lang('directory_validate_city_invalid');
-    }
-
-    /**
-     * Validation routine for country.
-     *
-     * @param string $country country
-     *
-     * @return string error message if country is invalid
-     */
-
-    public function validate_country($country)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $country_object = new Country();
-            $country_list = $country_object->get_list();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-        }
-
-        if (! array_key_exists($country, $country_list))
-            return lang('directory_validate_country_invalid');
-    }
-
-    /**
      * Validation routine for description.
      *
      * @param string $description description
@@ -798,22 +739,6 @@ print_r($ldap_object);
 
         if (preg_match("/([:;\/#!@])/", $display_name))
             return lang('directory_validate_display_name_invalid');
-    }
-
-    /**
-     * Validation routine for fax number.
-     *
-     * @param string $number fax number
-     *
-     * @return string error message if fax number is invalid
-     */
-
-    public function validate_fax_number($number)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/([:;\/#!@])/", $number))
-            return lang('directory_validate_fax_invalid');
     }
 
     /**
@@ -912,95 +837,6 @@ return '';
     }
 
     /**
-     * Validation routine for mail address.
-     *
-     * @param string $mail mail address
-     *
-     * @return boolean TRUE if mail address is valid
-     */
-
-    public function validate_mail($address)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: new regex
-        if (preg_match("/^([a-z0-9_\-\.\$]+)@/", $address)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_MAIL_ADDRESS, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for quota.
-     *
-     * @param integer $quota quota
-     *
-     * @return boolean TRUE if quota is valid
-     */
-
-    public function validate_mail_quota($quota)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ((! $quota) || preg_match("/\d+/", $quota)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_QUOTA, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for organization.
-     *
-     * @param string $organization organization
-     *
-     * @return boolean TRUE if organization is valid
-     */
-
-    public function validate_organization($organization)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $organization)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_ORGANIZATION, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for organization unit.
-     *
-     * @param string $unit organization unit
-     *
-     * @return boolean TRUE if organization unit is valid
-     */
-
-    public function validate_organization_unit($unit)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $unit)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_ORGANIZATION_UNIT, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
      * Password validation routine.
      *
      * @param string $password password
@@ -1060,182 +896,6 @@ return '';
         }
 
         return $is_valid;
-    }
-
-    /**
-     * Validation routine for post office box.
-     *
-     * @param string $pobox post office box
-     *
-     * @return boolean TRUE if post office box is valid
-     */
-
-    public function validate_post_office_box($pobox)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $pobox)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_POST_OFFICE_BOX, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for postal code.
-     *
-     * @param string $postalcode postal code
-     *
-     * @return boolean TRUE if postal code is valid
-     */
-
-    public function validate_postal_code($postalcode)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $postalcode)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_POSTAL_CODE, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for room number.
-     *
-     * @param string $room room number
-     *
-     * @return boolean TRUE if room number is valid
-     */
-
-    public function validate_room_number($room)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $room)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_ROOM_NUMBER, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for state or province.
-     *
-     * @param string $region region
-     *
-     * @return boolean TRUE if region is valid
-     */
-
-    public function validate_region($region)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $region)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_REGION, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for street.
-     *
-     * @param string $street street
-     *
-     * @return boolean TRUE if street is valid
-     */
-
-    public function validate_street($street)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $street)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_STREET, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for phone number extension.
-     *
-     * @param string $extension phone number extension
-     *
-     * @return boolean TRUE if phone number extension is valid
-     */
-
-    public function validate_telephone_extension($extension)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $extension)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_EXTENSION, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for phone number.
-     *
-     * @param string $number phone number
-     *
-     * @return boolean TRUE if phone number is valid
-     */
-
-    public function validate_telephone_number($number)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $number)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . ORGANIZATION_LANG_PHONE, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
-    }
-
-    /**
-     * Validation routine for title.
-     *
-     * @param string $title title
-     *
-     * @return boolean TRUE if title is valid
-     */
-
-    public function validate_title($title)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (!preg_match("/([:;\/#!@])/", $title)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_TITLE, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
     }
 
     /**
@@ -1620,11 +1280,6 @@ return;
                 $ldap_object['homeDirectory'] = $user_info['core']['home_directory'];
             else
                 $ldap_object['homeDirectory'] = self::DEFAULT_HOMEDIR_PATH . '/' . $this->username;
-
-            if (isset($user_info['core']['mail'])) 
-                $ldap_object['mail'] = $user_info['core']['mail'];
-            else
-                $ldap_object['mail'] = $this->username . "@" . $directory->get_base_internet_domain();
 
             if (isset($user_info['core']['status'])) 
                 $ldap_object['clearAccountStatus'] = $user_info['core']['status'];

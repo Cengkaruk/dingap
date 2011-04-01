@@ -1,32 +1,9 @@
 <?php
 
 $info_map = array(
-    'city' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_city',
-        'object_class' => 'clearAccount',
-        'attribute' => 'l' 
-    ),
-
-    'certificate' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_certificate',
-        'object_class' => 'clearAccount',
-        'attribute' => 'userCertificate'
-    ),
-
-    'country' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_country',
-        'object_class' => 'clearAccount',
-        'attribute' => 'c'
-    ),
-
     'description' => array(
         'type' => 'string',
+        'field_type' => 'text',
         'required' => FALSE,
         'validator' => 'validate_description',
         'object_class' => 'clearAccount',
@@ -39,14 +16,6 @@ $info_map = array(
         'validator' => 'validate_display_name',
         'object_class' => 'clearAccount',
         'attribute' => 'displayName' 
-    ),
-
-    'fax' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_fax_number',
-        'object_class' => 'clearAccount',
-        'attribute' => 'facsimileTelephoneNumber' 
     ),
 
     'first_name' => array(
@@ -90,30 +59,6 @@ $info_map = array(
         'attribute' => 'loginShell'
     ),
 
-    'mail' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_mail',
-        'object_class' => 'clearAccount',
-        'attribute' => 'mail'
-    ),
-
-    'mobile' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_mobile',
-        'object_class' => 'clearAccount',
-        'attribute' => 'mobile'
-    ),
-
-    'organization' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_organization',
-        'object_class' => 'clearAccount',
-        'attribute' => 'o'
-    ),
-
     'password' => array(
         'type' => 'string',
         'required' => FALSE,
@@ -121,70 +66,6 @@ $info_map = array(
         'object_class' => 'clearAccount',
         'attribute' => 'userPassword',
         'locale' => lang('base_password')
-    ),
-
-    'pkcs12' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_pkcs12',
-        'object_class' => 'clearAccount',
-        'attribute' => 'userPKCS12'
-    ),
-
-    'postal_code' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_postal_code',
-        'object_class' => 'clearAccount',
-        'attribute' => 'postalCode'
-    ),
-
-    'post_office_box' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_post_office_box',
-        'object_class' => 'clearAccount',
-        'attribute' => 'postOfficeBox'
-    ),
-
-    'region' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_region',
-        'object_class' => 'clearAccount',
-        'attribute' => 'st'
-    ),
-
-    'room_number' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_room_number',
-        'object_class' => 'clearAccount',
-        'attribute' => 'roomNumber'
-    ),
-
-    'street' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_street',
-        'object_class' => 'clearAccount',
-        'attribute' => 'street'
-    ),
-
-    'telephone' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_telephone_number',
-        'object_class' => 'clearAccount',
-        'attribute' => 'telephoneNumber'
-    ),
-
-    'title' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_title',
-        'object_class' => 'clearAccount',
-        'attribute' => 'title'
     ),
 
     'uid' => array(
@@ -201,14 +82,6 @@ $info_map = array(
         'validator' => 'IsValidUidNumber',
         'object_class' => 'clearAccount',
         'attribute' => 'uidNumber'
-    ),
-
-    'unit' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_organization_unit',
-        'object_class' => 'clearAccount',
-        'attribute' => 'ou'
     ),
 );
 

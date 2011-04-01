@@ -182,8 +182,8 @@ class Utilities extends Engine
                 $attribute = $mapping[$info]['attribute'];
 
                 // Delete
-                if ($value === NULL) {
-                    if ($is_modify)
+                if (($value === NULL) || ($value === '')) {
+                    // if ($is_modify) FIXME
                         $ldap_object[$attribute] = array();
 
                 // Add/modify
