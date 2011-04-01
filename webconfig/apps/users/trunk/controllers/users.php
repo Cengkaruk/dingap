@@ -51,22 +51,21 @@ class Users extends ClearOS_Controller
 	 * Users server overview.
 	 */
 
-	function index($view = 'page')
+	function index()
 	{
 		// Load libraries
 		//---------------
 
-//		$this->load->library('dns/DnsMasq');
+		$this->load->factory('users/User_Manager');
 		$this->lang->load('users');
 
 		// Load view data
 		//---------------
 
 		try {
-//			$data['subnets'] = $this->dnsmasq->GetSubnets();
-//			$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
+			$data['users'] = $this->user_manager->get_users_info();
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage(), $view);
+			$this->page->view_exception($e);
 			return;
 		}
  
@@ -243,10 +242,58 @@ class Users extends ClearOS_Controller
             $data['countries'] = $this->country->get_list();
             $data['info_map'] = $this->user->get_info_map();
             $data['user_info'] = $this->user->get_info();
+
             // FIXME - where should extension_info come from
             $data['extension_info'] = array();
+            $data['extension_info']['contact']['name'] = 'Contact Extension'; // FIXME
             $data['extension_info']['samba']['name'] = 'Samba Extension'; // FIXME
+            $data['extension_info']['kolab']['name'] = 'Kolab Extension'; // FIXME
             $data['username'] = $username;
+/*
+            $data['username'] = $username;
+
+            $data['info'] = $this->get_info();  
+
+username
+    core
+        password
+
+    extensions
+        name
+            first_name 
+            last_name
+        contact
+            mail
+            street
+            city
+            region
+            ...
+        mail
+            clearMail
+            clearAliases
+        samba
+            home_drive
+            home_path
+            sid
+            nt_password
+        kolab (dependencies: name, contact, mail)
+            home_server
+        pptp
+            nt_password
+        zarafa    
+            ...    
+
+    plugins
+        ftp           group: plugin_ftp
+            state   
+        proxy         group: plugin_proxy
+            state   
+        tiki          group: plugin_tiki
+            state   
+        web           group: plugin_web
+            state   
+    
+*/
 		} catch (Exception $e) {
 			$this->page->view_exception($e);
 			return;

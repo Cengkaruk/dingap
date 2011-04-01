@@ -83,6 +83,7 @@ echo form_fieldset(lang('users_password'));
 echo field_password('password', '', lang('users_password'), $read_only);
 echo field_password('verify', '', lang('users_verify'), $read_only);
 echo form_fieldset_close();
+/*
 
 echo form_fieldset(lang('users_address'));
 echo field_input('street', $user_info['core']['street'], lang('users_street'), $read_only);
@@ -99,11 +100,12 @@ echo field_input('mobile', $user_info['core']['mobile'], lang('users_mobile'), $
 echo field_input('telephone', $user_info['core']['telephone'], lang('users_telephone'), $read_only);
 echo field_input('fax', $user_info['core']['fax'], lang('users_fax'), $read_only);
 echo form_fieldset_close();
+*/
 
 // Loop through all the fields described in the info_map
 //------------------------------------------------------
 
-foreach ($info_map as $extension => $parameters) {
+foreach ($info_map['extensions'] as $extension => $parameters) {
 
     // Use the extension name for the title
     //-------------------------------------
@@ -120,7 +122,7 @@ foreach ($info_map as $extension => $parameters) {
 
         if ($details['field_type'] === 'list') {
             echo field_dropdown($key, $details['field_options'], $value, $description, $read_only);
-        } else if ($details['field_type'] === 'input') {
+        } else if ($details['field_type'] === 'text') {
             echo field_input($key, $value, $description, $read_only);
         }
     }

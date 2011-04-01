@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ClearOS user factory.
+ * ClearOS user manager factory.
  *
  * @category   Apps
  * @package    Users
@@ -52,9 +52,6 @@ clearos_load_language('users');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
 
@@ -66,7 +63,7 @@ clearos_load_library('directory_manager/Directory_Manager');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS user factory.
+ * ClearOS user manager factory.
  *
  * @category   Apps
  * @package    Users
@@ -77,29 +74,14 @@ clearos_load_library('directory_manager/Directory_Manager');
  * @link       http://www.clearfoundation.com/docs/developer/apps/users/
  */
 
-class User extends Engine
+class User_Manager extends Engine
 {
-    ///////////////////////////////////////////////////////////////////////////////
-    // C O N S T A N T S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    // Password types
-    const PASSWORD_TYPE_SHA = 'sha';
-    const PASSWORD_TYPE_SHA1 = 'sha1';
-    const PASSWORD_TYPE_NT = 'nt';
-
-    // Account status codes
-    const STATUS_LOCKED = 'locked';
-    const STATUS_UNLOCKED = 'unlocked';
-    const STATUS_ENABLED = 'enabled';
-    const STATUS_DISABLED = 'disabled';
-
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * User constructor.
+     * User manager constructor.
      */
 
     public function __construct()
@@ -108,15 +90,13 @@ class User extends Engine
     }
 
     /**
-     * Creates a user instance via the factory framwork.
-     *
-     * @param string $username username
+     * Creates a user manager instance via the factory framwork.
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public static function create($username)
+    public static function create()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -124,11 +104,11 @@ class User extends Engine
 
         $driver = $directory->get_driver();
 
-        clearos_load_library($driver . '/User_Driver');
+        clearos_load_library($driver . '/User_Manager_Driver');
 
-        $class = '\clearos\apps\\' . $driver . '\\User_Driver';
+        $class = '\clearos\apps\\' . $driver . '\\User_Manager_Driver';
 
-        return new $class($username);
+        return new $class();
     }
 
     /**
@@ -150,6 +130,6 @@ class User extends Engine
 
         $driver = $directory->get_driver();
 
-        return $driver . '/User_Driver';
+        return $driver . '/User_Manager_Driver';
     }
 }

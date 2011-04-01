@@ -43,40 +43,32 @@ $headers = array(
 
 $anchors = array();
 
+$view_only = TRUE;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($subnets as $interface => $subnetinfo) {
+foreach ($users as $username => $info) {
 
-	if (! $subnetinfo["isvalid"]) {
-		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
-		$action = "/app/dhcp/subnets/edit/" . $interface;
-		$buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface));
-	} else if ($subnetinfo["isconfigured"]) {
-		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
-		$action = "/app/dhcp/subnets/edit/" . $interface;
-		$buttons = array(
-				anchor_edit('/app/dhcp/subnets/edit/' . $interface),
-				anchor_delete('/app/dhcp/subnets/delete/' . $interface)
-			);
-	} else {
-		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
-		$action = "/app/dhcp/subnets/add/" . $interface;
-		$buttons = array(anchor_add('/app/dhcp/subnets/add/' . $interface));
-	}
+    if ($view_only) {
+        $buttons = array(
+            anchor_view('/app/users/view/' . $username),
+        );
+    } else {
+        $buttons = array(
+            anchor_edit('/app/users/edit/' . $username),
+            anchor_delete('/app/users/delete/' . $username)
+        );
+    }
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Item details
-    ///////////////////////////////////////////////////////////////////////////
-
-	$item['title'] = "$interface / " .  $subnetinfo['network'];
-	$item['action'] = $action;
+	$item['title'] = $username;
+	$item['action'] = '/app/users/edit/' . $username;
 	$item['anchors'] = button_set($buttons);
 	$item['details'] = array(
-		$interface,
-		$subnetinfo['network'],
-		$status
+		$username,
+		$info['display_name'],
+		$username,
 	);
 
 	$items[] = $item;
