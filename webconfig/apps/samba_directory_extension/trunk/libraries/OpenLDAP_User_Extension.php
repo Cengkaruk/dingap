@@ -4,7 +4,7 @@
  * Samba OpenLDAP user extension.
  *
  * @category   Apps
- * @package    Samba
+ * @package    Samba_Directory_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -52,9 +52,6 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap\Utilities as Utilities;
 use \clearos\apps\samba\Samba as Samba;
@@ -71,20 +68,16 @@ clearos_load_library('samba/Samba');
  * Samba OpenLDAP user extension.
  *
  * @category   Apps
- * @package    Samba
+ * @package    Samba_Directory_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/samba/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/samba_directory_extension/
  */
 
 class OpenLDAP_User_Extension extends Engine
 {
-    ///////////////////////////////////////////////////////////////////////////////
-    // C O N S T A N T S
-    ///////////////////////////////////////////////////////////////////////////////
-
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
@@ -119,7 +112,7 @@ class OpenLDAP_User_Extension extends Engine
             ),
             'home_path' => array(
                 'type' => 'string',
-                'field_type' => 'input',
+                'field_type' => 'text',
                 'required' => FALSE,
                 'validator' => 'validate_home_path',
                 'validator_class' => 'samba_directory_extension/OpenLDAP_User_Extension',
@@ -129,7 +122,7 @@ class OpenLDAP_User_Extension extends Engine
             ),
             'sid' => array(
                 'type' => 'string',
-                'field_type' => 'input',
+                'field_type' => 'text',
                 'required' => FALSE,
                 'validator' => 'validate_sid',
                 'validator_class' => 'samba_directory_extension/OpenLDAP_User_Extension',
@@ -219,7 +212,7 @@ class OpenLDAP_User_Extension extends Engine
         return $attributes;
     }
 
-    /** 
+    /**
      * Returns user info hash array.
      *
      * @param array $attributes LDAP attributes
