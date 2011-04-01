@@ -85,6 +85,11 @@ class Kolab extends Software
 
     const COMMAND_KOLABCONF = '/usr/sbin/kolabconf';
     const FILE_CONFIG = '/etc/kolab/kolab.conf';
+    const INVITATION_ALWAYS_ACCEPT = 'ACT_ALWAYS_ACCEPT';
+    const INVITATION_ALWAYS_REJECT = 'ACT_ALWAYS_REJECT';
+    const INVITATION_REJECT_IF_CONFLICTS = 'ACT_REJECT_IF_CONFLICTS';
+    const INVITATION_MANUAL_IF_CONFLICTS = 'ACT_MANUAL_IF_CONFLICTS';
+    const INVITATION_MANUAL = 'ACT_MANUAL';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -92,6 +97,7 @@ class Kolab extends Software
 
     protected $config = NULL;
     protected $is_loaded = FALSE;
+    protected $invitation_policies = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -105,7 +111,30 @@ class Kolab extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $this->invitation_policies = array(
+            self::INVITATION_ALWAYS_ACCEPT => lang('kolab_always_accept_invitation'),
+            self::INVITATION_ALWAYS_REJECT => lang('kolab_always_reject_invitation'),
+            self::INVITATION_REJECT_IF_CONFLICTS => lang('kolab_reject_if_conflict'),
+            self::INVITATION_MANUAL_IF_CONFLICTS => lang('kolab_manual_operation_if_conflict'),
+            self::INVITATION_MANUAL => lang('kolab_manual_operation')
+        );
+
         parent::__construct('kolabd');
+    }
+
+    /**
+     * Returns invitation policies.
+     *
+     * @return array invitation policies
+     * @throws Engine_Exception
+     */
+
+    public static function get_invitation_policies()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $kolab = new Kolab();
+        return $kolab->invitation_policies;
     }
 
     /**
