@@ -70,10 +70,10 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap/Directory_Driver');
-clearos_load_library('openldap/OpenLDAP');
 clearos_load_library('openldap/Utilities');
 clearos_load_library('users/User');
 
+// Exceptions
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
@@ -107,16 +107,8 @@ class User_Driver extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const LOG_TAG = 'user';
-
-    const PATH_EXTENSIONS = 'config/extensions';
-
-    const DEFAULT_HOMEDIR_PATH = '/home';
-    const DEFAULT_HOMEDIR_PERMS = '0755';
-    const DEFAULT_LOGIN = '/sbin/nologin';
-    const DEFAULT_USER_GROUP = 'allusers';
-    const DEFAULT_USER_GROUP_ID = '63000';
-
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
+    const PATH_EXTENSIONS = 'config/extensions';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -160,7 +152,7 @@ class User_Driver extends Engine
         $this->path_plugins = clearos_app_base('openldap') . '/config/plugins';
 
         // Attribute/Info mapping.  The attribute_map contains the reverse mapping.
-        include_once clearos_app_base('openldap') . '/config/info_map.php';
+        include clearos_app_base('openldap') . '/config/user_map.php';
         $this->info_map = $info_map;
         $this->attribute_map = array();
     
@@ -1269,17 +1261,17 @@ return;
             if (isset($user_info['core']['gid_number']))
                 $ldap_object['gidNumber'] = $user_info['core']['gid_number'];
             else
-                $ldap_object['gidNumber'] = self::DEFAULT_USER_GROUP_ID;
+                $ldap_object['gidNumber'] = User::DEFAULT_USER_GROUP_ID;
 
             if (isset($user_info['core']['login_shell']))
                 $ldap_object['loginShell'] = $user_info['core']['login_shell'];
             else
-                $ldap_object['loginShell'] = self::DEFAULT_LOGIN;
+                $ldap_object['loginShell'] = User::DEFAULT_LOGIN;
         
             if (isset($user_info['core']['home_directory'])) 
                 $ldap_object['homeDirectory'] = $user_info['core']['home_directory'];
             else
-                $ldap_object['homeDirectory'] = self::DEFAULT_HOMEDIR_PATH . '/' . $this->username;
+                $ldap_object['homeDirectory'] = User::DEFAULT_HOMEDIR_PATH . '/' . $this->username;
 
             if (isset($user_info['core']['status'])) 
                 $ldap_object['clearAccountStatus'] = $user_info['core']['status'];

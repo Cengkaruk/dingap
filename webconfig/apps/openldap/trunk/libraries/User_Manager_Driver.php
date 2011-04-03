@@ -97,9 +97,6 @@ class User_Manager_Driver extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const CONSTANT_SYSTEM_ID = 500;
-    const CONSTANT_BUILTIN_START = 300;
-    const CONSTANT_BUILTIN_END = 399;
     const COMMAND_SYNCUSERS = "/usr/sbin/syncusers";
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -122,7 +119,7 @@ class User_Manager_Driver extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // Load attribute mapping
-        include_once clearos_app_base('openldap') . '/config/info_map.php';
+        include clearos_app_base('openldap') . '/config/user_map.php';
         $this->info_map = $info_map;
     }
 
@@ -235,7 +232,7 @@ class User_Manager_Driver extends Engine
             $username = $attributes['uid'][0];
 
             if ($showhidden ||
-                 (!(($uid >= self::CONSTANT_BUILTIN_START) && ($uid <= self::CONSTANT_BUILTIN_END)))) {
+                 (!(($uid >= User::UID_RANGE_BUILTIN_MIN) && ($uid <= User::UID_RANGE_BUILTIN_MAX)))) {
                 $user = new User("not used");
                 $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 

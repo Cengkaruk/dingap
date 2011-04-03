@@ -503,6 +503,20 @@ class Directory_Driver extends Engine
     }
 
     /**
+     * Returns the DN of the master server 
+     *
+     * @return string DN of the master server
+     * @throws Engine_Exception
+     */
+
+    public function get_master_dn()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return "cn=Master,ou=Servers," . $this->get_base_dn();
+    }
+
+    /**
      * Returns the mode of directory.
      *
      * The return values are:

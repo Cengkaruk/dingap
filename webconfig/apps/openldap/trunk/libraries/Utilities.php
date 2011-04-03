@@ -204,6 +204,33 @@ class Utilities extends Engine
     }
 
     /**
+     * Returns DN for given user ID (username).
+     *
+     * @param string $uid user ID
+     *
+     * @return string DN
+     * @throws Engine_Exception
+     */
+
+// FIXME: remove this function from other classes
+    public static function get_dn_for_uid($uid)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ldaph = Utilities::get_ldap_handle();
+
+        $ldaph->search('(&(objectclass=clearAccount)(uid=' . $ldaph->escape($uid) . '))');
+        $entry = $ldaph->get_first_entry();
+
+        $dn = '';
+
+        if ($entry)
+            $dn = $ldaph->get_dn($entry);
+
+        return $dn;
+    }
+
+    /**
      * Creates an LDAP connection handle.
      *
      * Many libraries that use OpenLDAP need to:
@@ -231,5 +258,51 @@ class Utilities extends Engine
         $ldaph = new OpenLDAP($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
 
         return $ldaph;
+    }
+
+    /**
+     * Loads group list arrays to help with mapping usernames to DNs.
+     *
+     * RFC2307bis lists a group of users by DN (which is a CN/common name
+     * in our implementation).  Since we prefer seeing a group listed by
+     * usernames, this method is used to create two hash arrays to map
+     * the usernames and DNs.
+     *
+     * @access private
+     * @return void
+     */
+
+// FIXME: remove this function from other classes
+    public static function get_usermap_by_dn()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ldaph = Utilities::get_ldap_handle();
+
+        $usermap_dn = array();
+        $usermap_username = array();
+
+        $directory = new Directory_Driver();
+
+        $result = $ldaph->search(
+            "(&(cn=*)(objectclass=posixAccount))",
+            $directory->get_users_ou(),
+            array('dn', 'uid')
+        );
+
+        $entry = $ldaph->get_first_entry($result);
+
+        while ($entry) {
+            $attrs = $ldaph->get_attributes($entry);
+            $dn = $ldaph->get_dn($entry);
+            $uid = $attrs['uid'][0];
+
+            $usermap_dn[$dn] = $uid;
+            $usermap_username[$uid] = $dn;
+
+            $entry = $ldaph->next_entry($entry);
+        }
+
+        return $usermap_dn;
     }
 }
