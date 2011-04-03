@@ -52,9 +52,6 @@ clearos_load_language('users');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
 
@@ -83,12 +80,38 @@ class User extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
+    // User policy
+    //------------
+
+    const DEFAULT_HOMEDIR_PATH = '/home';
+    const DEFAULT_HOMEDIR_PERMS = '0755';
+    const DEFAULT_LOGIN = '/sbin/nologin';
+    const DEFAULT_USER_GROUP_ID = '63000';
+
+    // User ID ranges
+    //---------------
+
+    const UID_RANGE_SYSTEM_MIN = '0';
+    const UID_RANGE_SYSTEM_MAX = '499';
+    const UID_RANGE_BUILTIN_MIN = '300';
+    const UID_RANGE_BUILTIN_MAX = '399';
+
+    // User types
+    //-----------
+
+    const TYPE_BUILTIN = 'builtin';
+    const TYPE_SYSTEM = 'system';
+
     // Password types
+    //---------------
+
     const PASSWORD_TYPE_SHA = 'sha';
     const PASSWORD_TYPE_SHA1 = 'sha1';
     const PASSWORD_TYPE_NT = 'nt';
 
     // Account status codes
+    //---------------------
+
     const STATUS_LOCKED = 'locked';
     const STATUS_UNLOCKED = 'unlocked';
     const STATUS_ENABLED = 'enabled';
