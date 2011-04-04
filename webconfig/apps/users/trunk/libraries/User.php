@@ -80,26 +80,11 @@ class User extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    // User policy
-    //------------
-
-    const DEFAULT_HOMEDIR_PATH = '/home';
-    const DEFAULT_HOMEDIR_PERMS = '0755';
-    const DEFAULT_LOGIN = '/sbin/nologin';
-    const DEFAULT_USER_GROUP_ID = '63000';
-
-    // User ID ranges
-    //---------------
-
-    const UID_RANGE_SYSTEM_MIN = '0';
-    const UID_RANGE_SYSTEM_MAX = '499';
-    const UID_RANGE_BUILTIN_MIN = '300';
-    const UID_RANGE_BUILTIN_MAX = '399';
-
     // User types
     //-----------
 
     const TYPE_BUILTIN = 'builtin';
+    const TYPE_NORMAL = 'normal';
     const TYPE_SYSTEM = 'system';
 
     // Password types
