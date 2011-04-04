@@ -83,28 +83,6 @@ class Group extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    // Group policy
-    //-------------
-
-    const ALL_USERS_GROUP = 'allusers';
-    const ALL_USERS_GROUP_ID = '63000';
-
-    // Group ID ranges
-    //----------------
-
-    const GID_RANGE_MIN = '0';
-    const GID_RANGE_MAX = '29999999';
-    const GID_RANGE_SYSTEM_MIN = '0';
-    const GID_RANGE_SYSTEM_MAX = '499';
-    const GID_RANGE_USER_MIN = '500';
-    const GID_RANGE_USER_MAX = '59999';
-    const GID_RANGE_NORMAL_MIN = '60000';
-    const GID_RANGE_NORMAL_MAX = '62999';
-    const GID_RANGE_RESERVED_MIN = '63000';
-    const GID_RANGE_RESERVED_MAX = '63999';
-    const GID_RANGE_WINDOWS_MIN = '1000000';
-    const GID_RANGE_WINDOWS_MAX = '29999999';
-
     // Group types
     //------------
 
