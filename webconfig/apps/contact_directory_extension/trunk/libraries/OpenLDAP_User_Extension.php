@@ -97,7 +97,7 @@ class OpenLDAP_User_Extension extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        include clearos_app_base('contact_directory_extension') . '/config/info_map.php';
+        include clearos_app_base('contact_directory_extension') . '/config/user_map.php';
 
         $this->info_map = $info_map;
     }
