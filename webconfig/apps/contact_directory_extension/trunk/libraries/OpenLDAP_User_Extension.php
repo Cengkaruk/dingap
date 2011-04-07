@@ -244,7 +244,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $number))
-            return lang('contact_fax_is_invalid');
+            return lang('contact_fax_number_is_invalid');
     }
 
     /**

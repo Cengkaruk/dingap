@@ -61,7 +61,9 @@ use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
 use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap\Utilities as Utilities;
 use \clearos\apps\users\User as User;
 
@@ -69,7 +71,9 @@ clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('directory_manager/Directory_Manager');
 clearos_load_library('openldap/Directory_Driver');
+clearos_load_library('openldap/Group_Manager_Driver');
 clearos_load_library('openldap/Utilities');
 clearos_load_library('users/User');
 
@@ -110,19 +114,37 @@ class User_Driver extends Engine
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
     const PATH_EXTENSIONS = 'config/extensions';
 
+    // User policy
+    //------------
+
+    const DEFAULT_HOMEDIR_PATH = '/home';
+    const DEFAULT_HOMEDIR_PERMS = '0755';
+    const DEFAULT_LOGIN = '/sbin/nologin';
+    const DEFAULT_USER_GROUP_ID = '63000';
+
+    // User ID ranges
+    //---------------
+
+    const UID_RANGE_SYSTEM_MIN = '0';
+    const UID_RANGE_SYSTEM_MAX = '499';
+    const UID_RANGE_BUILTIN_MIN = '300';
+    const UID_RANGE_BUILTIN_MAX = '399';
+    const UID_RANGE_NORMAL_MIN = '1000';
+    const UID_RANGE_NORMAL_MAX = '59999';
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
     protected $ldaph = NULL;
-    protected $username;
-    protected $core_classes;
-    protected $attribute_map;
-    protected $info_map;
+    protected $username = NULL;
+    protected $core_classes = array();
+    protected $attribute_map = array();
+    protected $info_map = array();
     protected $reserved_usernames = array('root', 'manager');
-    protected $plugins = NULL;
-    protected $extensions = NULL;
-    protected $path_extensions = NULL;
+    protected $plugins = array();
+    protected $extensions = array();
+    protected $path_extensions = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -386,25 +408,20 @@ print_r($ldap_object);
             $extension = new $class();
 
             if (method_exists($extension, 'get_info_hook'))
-                $info[$extension_nickname] = $extension->get_info_hook($attributes);
+                $info['extensions'][$extension_nickname] = $extension->get_info_hook($attributes);
         }
 
         // Add user info from plugins
         //---------------------------
 
-        foreach ($this->_get_plugins() as $extension_name) {
-/*
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
+        $group_manager = new Group_Manager_Driver();
+        $memberships = $group_manager->get_group_memberships($this->username);
 
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension_nickname = preg_replace('/_directory_extension/', '', $extension_name);
-            $extension = new $class();
-
-            if (method_exists($extension, 'get_info_hook'))
-                $info[$extension_nickname] = $extension->get_info_hook($attributes);
-*/
+        foreach ($this->_get_plugins() as $plugin => $details) {
+            $plugin_name = 'plugin-' . $plugin;
+            $details['state'] = in_array($plugin_name, $memberships) ? TRUE : FALSE;
+            $info['plugins'][$plugin] = $details;
         }
-// $this->_get_plugins();
 
         return $info;
     }
@@ -421,18 +438,12 @@ print_r($ldap_object);
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Get user info
-        //--------------
-
-        $attributes = $this->_get_user_attributes();
-
-        // FIXME: add core to info_map
-        // $info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
-
-        // Add user info from extensions
-        //------------------------------
-
         $info_map = array();
+
+        $info_map['core'] = $this->info_map;
+
+        // Add user info map from extensions
+        //----------------------------------
 
         foreach ($this->_get_extensions() as $extension_name) {
             clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
@@ -442,7 +453,18 @@ print_r($ldap_object);
             $extension = new $class();
 
             if (method_exists($extension, 'get_info_map_hook'))
-                $info_map['extensions'][$extension_nickname] = $extension->get_info_map_hook($attributes);
+                $info_map['extensions'][$extension_nickname] = $extension->get_info_map_hook();
+        }
+
+        // Add user info map from plugins
+        //-------------------------------
+
+        $directory = new Directory_Manager();
+        $plugin_map = $directory->get_plugin_map();
+
+        foreach ($this->_get_plugins() as $plugin => $details) {
+            $plugin_name = 'plugin-' . $plugin;
+            $info_map['plugins'][$plugin] = $plugin_map;
         }
 
         return $info_map;
@@ -1261,17 +1283,17 @@ return;
             if (isset($user_info['core']['gid_number']))
                 $ldap_object['gidNumber'] = $user_info['core']['gid_number'];
             else
-                $ldap_object['gidNumber'] = User::DEFAULT_USER_GROUP_ID;
+                $ldap_object['gidNumber'] = User_Driver::DEFAULT_USER_GROUP_ID;
 
             if (isset($user_info['core']['login_shell']))
                 $ldap_object['loginShell'] = $user_info['core']['login_shell'];
             else
-                $ldap_object['loginShell'] = User::DEFAULT_LOGIN;
+                $ldap_object['loginShell'] = User_Driver::DEFAULT_LOGIN;
         
             if (isset($user_info['core']['home_directory'])) 
                 $ldap_object['homeDirectory'] = $user_info['core']['home_directory'];
             else
-                $ldap_object['homeDirectory'] = User::DEFAULT_HOMEDIR_PATH . '/' . $this->username;
+                $ldap_object['homeDirectory'] = User_Driver::DEFAULT_HOMEDIR_PATH . '/' . $this->username;
 
             if (isset($user_info['core']['status'])) 
                 $ldap_object['clearAccountStatus'] = $user_info['core']['status'];
@@ -1357,7 +1379,7 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->extensions !== NULL)
+        if (! empty($this->extensions))
             return $this->extensions;
 
         $folder = new Folder($this->path_extensions);
@@ -1386,14 +1408,9 @@ return;
         if (! empty($this->plugins))
             return $this->plugins;
 
-        $folder = new Folder($this->path_plugins);
+        $directory = new Directory_Manager();
 
-        $list = $folder->get_listing();
-
-        foreach ($list as $plugin) {
-            if (! preg_match('/^\./', $plugin))
-                $this->plugins[] = $plugin;
-        }
+        $this->plugins = $directory->get_plugins();
 
         return $this->plugins;
     }

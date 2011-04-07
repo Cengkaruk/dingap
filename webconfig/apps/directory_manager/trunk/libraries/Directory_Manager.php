@@ -78,6 +78,9 @@ class Directory_Manager extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
+    // Modes
+    //------
+
     const MODE_ACTIVE_DIRECTORY = 'ad';
     const MODE_MASTER = 'master';
     const MODE_SIMPLE_MASTER = 'simple_master';
@@ -123,7 +126,7 @@ class Directory_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $driver = 'openldap';
-//        $driver = 'active_directory';
+        $driver = 'active_directory';
 
         return $driver;
     }
@@ -140,6 +143,67 @@ class Directory_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         return $this->modes;
+    }
+
+    /**
+     * Returns the available plugins.
+     *
+     * @return array plugin list
+     * @throws Engine_Exception
+     */
+
+    public function get_plugins()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // FIXME
+/*
+        $folder = new Folder($this->path_plugins);
+
+        $list = $folder->get_listing();
+
+        foreach ($list as $plugin) {
+            if (! preg_match('/^\./', $plugin))
+                $this->plugins[] = $plugin;
+        }
+*/
+
+        $plugins = array(
+            'pptp' => array(
+                'name' => 'PPTP',
+            ),
+
+            'ftp' => array(
+                'name' => 'FTP',
+            ),
+        );
+
+        return $plugins;
+    }
+
+    /**
+     * Returns the plugin map.
+     *
+     * @return array plugin map
+     * @throws Engine_Exception
+     */
+
+    public function get_plugin_map()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $map = array(
+            'state' => array(
+                'type' => 'boolean',
+                'field_type' => 'toggle',
+                'required' => TRUE,
+                'validator' => 'validate_state',
+                'validator_class' => 'directory_manager/Directory_Manager',
+                'description' => lang('directory_manager_state')
+            )
+        );
+
+        return $map;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -161,5 +225,21 @@ class Directory_Manager extends Engine
 
         if (! array_key_exists($mode, $this->modes))
             return lang('directory_directory_mode_is_invalid');
+    }
+
+    /**
+     * Validates plugin state.
+     *
+     * @param string $state state
+     *
+     * @return string error message if state is invalid
+     * @throws Engine_Exception
+     */
+
+    public function validate_state($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // FIXME
     }
 }

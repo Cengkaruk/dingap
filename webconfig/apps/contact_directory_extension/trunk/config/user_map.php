@@ -43,6 +43,14 @@ require_once $bootstrap . '/bootstrap.php';
 clearos_load_language('contact');
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\base\Country as Country;
+
+clearos_load_library('base/Country');
+
+///////////////////////////////////////////////////////////////////////////////
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 /*
@@ -60,6 +68,14 @@ clearos_load_language('contact');
     ),
 */
 
+// Load list of countries
+
+try {
+    $country = new Country();
+    $country_list = $country->get_list();
+} catch (Exception $e) {
+    // 
+}
 
 $info_map = array(
     'city' => array(
@@ -75,7 +91,8 @@ $info_map = array(
 
     'country' => array(
         'type' => 'string',
-        'field_type' => 'text',
+        'field_type' => 'list',
+        'field_options' => $country_list,
         'required' => FALSE,
         'validator' => 'validate_country',
         'validator_class' => 'contact_directory_extension/OpenLDAP_User_Extension',

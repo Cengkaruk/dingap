@@ -138,23 +138,30 @@ class Group_Driver extends Engine
 
     const LOG_TAG = 'group';
     const FILE_CONFIG = '/etc/group';
+
     const CONSTANT_NO_MEMBERS_USERNAME = 'nomembers';
     const CONSTANT_NO_MEMBERS_DN = 'No Members';
     const CONSTANT_ALL_WINDOWS_USERS_GROUP = 'domain_users';
 
-    // Group filters
-    // -------------
-    // When using some API calls, it is handy to filter for only certain types of 
-    // groups.  The following filter flags can be used where applicable.
+    // Group policy
+    //-------------
 
-    const FILTER_SYSTEM = 1;        // System groups
-    const FILTER_NORMAL = 2;        // User-defined groups
-    const FILTER_WINDOWS = 4;       // Windows reserved groups
-    const FILTER_HIDDEN = 8;        // Hidden groups
-    const FILTER_BUILTIN = 16;      // Builtin groups
-    const FILTER_DEFAULT = 18;      // Builtin and user defined groups
+    const ALL_USERS_GROUP = 'allusers';
+    const ALL_USERS_GROUP_ID = '63000';
 
-    // Group ranges: system, user defined, reserved, windows reserved
+    // Group ID ranges
+    //----------------
+
+    const GID_RANGE_SYSTEM_MIN = '0';
+    const GID_RANGE_SYSTEM_MAX = '499';
+    const GID_RANGE_NORMAL_MIN = '60000';
+    const GID_RANGE_NORMAL_MAX = '62999';
+    const GID_RANGE_BUILTIN_MIN = '63000';
+    const GID_RANGE_BUILTIN_MAX = '63999';
+    const GID_RANGE_PLUGIN_MIN = '900000';
+    const GID_RANGE_PLUGIN_MAX = '999999';
+    const GID_RANGE_WINDOWS_MIN = '1000000';
+    const GID_RANGE_WINDOWS_MAX = '1001000';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -238,7 +245,7 @@ class Group_Driver extends Engine
 
             if ($info['type'] == Group::TYPE_WINDOWS)
                 $warning = lang('groups_group_is_reserved_for_windows');
-            else if ($info['type'] == Group::TYPE_RESERVED)
+            else if ($info['type'] == Group::TYPE_BUILTIN)
                 $warning = lang('groups_group_is_reserved_for_system');
             else if ($info['type'] == Group::TYPE_SYSTEM)
                 $warning = lang('groups_group_is_reserved_for_system');
@@ -541,7 +548,7 @@ class Group_Driver extends Engine
         //------------------------
 
         $user_manager = User_Manager::create();
-        $user_list = $user_manager->get_users(NULL, TRUE);
+        $user_list = $user_manager->get_list();
 
         foreach ($members as $user) {
             if (! in_array($user, $user_list))
@@ -810,16 +817,16 @@ class Group_Driver extends Engine
             $info['sambaSID'] = $info['sambaSID'];
         */
 
-        if (($info['gid_number'] >= Group::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] < Group::GID_RANGE_NORMAL_MAX))
+        if (($info['gid_number'] >= self::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] < self::GID_RANGE_NORMAL_MAX))
             $info['type'] = Group::TYPE_NORMAL;
-        else if (($info['gid_number'] >= Group::GID_RANGE_RESERVED_MIN) && ($info['gid_number'] < Group::GID_RANGE_RESERVED_MAX))
-            $info['type'] = Group::TYPE_RESERVED;
-        else if (($info['gid_number'] >= Group::GID_RANGE_WINDOWS_MIN) && ($info['gid_number'] < Group::GID_RANGE_WINDOWS_MAX))
+        else if (($info['gid_number'] >= self::GID_RANGE_BUILTIN_MIN) && ($info['gid_number'] < self::GID_RANGE_BUILTIN_MAX))
+            $info['type'] = Group::TYPE_BUILTIN;
+        else if (($info['gid_number'] >= self::GID_RANGE_WINDOWS_MIN) && ($info['gid_number'] < self::GID_RANGE_WINDOWS_MAX))
             $info['type'] = Group::TYPE_WINDOWS;
-        else if (($info['gid_number'] >= Group::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] < Group::GID_RANGE_SYSTEM_MAX))
+        else if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] < self::GID_RANGE_SYSTEM_MAX))
             $info['type'] = Group::TYPE_SYSTEM;
         else
-            $info['type'] = Group::TYPE_UNSUPPORTED;
+            $info['type'] = Group::TYPE_UNKNOWN;
 
         return $info;
     }
@@ -858,15 +865,16 @@ class Group_Driver extends Engine
         // Sanity check: check for non-compliant group ID
         //-----------------------------------------------
 
-        if (($info['gid_number'] >= Group::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] <= Group::GID_RANGE_SYSTEM_MAX)) {
+// FIXME: - no USER_MIN anymore
+        if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] <= self::GID_RANGE_SYSTEM_MAX)) {
             $info['type'] = Group::TYPE_SYSTEM;
-        } else if (($info['gid_number'] >= Group::GID_RANGE_USER_MIN) && ($info['gid_number'] <= Group::GID_RANGE_USER_MAX)) {
+        } else if (($info['gid_number'] >= self::GID_RANGE_USER_MIN) && ($info['gid_number'] <= self::GID_RANGE_USER_MAX)) {
             $info['type'] = Group::TYPE_NORMAL;
-        } else if (($info['gid_number'] >= Group::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] <= Group::GID_RANGE_NORMAL_MAX)) {
-            $info['type'] = Group::TYPE_UNSUPPORTED;
+        } else if (($info['gid_number'] >= self::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] <= self::GID_RANGE_NORMAL_MAX)) {
+            $info['type'] = Group::TYPE_UNKNOWN;
             // Logger::Syslog(self::LOG_TAG, "Posix group ID in LDAP group range: " . $info['gid_number']);
         } else {
-            $info['type'] = Group::TYPE_UNSUPPORTED;
+            $info['type'] = Group::TYPE_UNKNOWN;
             // Logger::Syslog(self::LOG_TAG, "Posix group ID out of range: " . $info['gid_number']);
         }
 

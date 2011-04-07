@@ -86,6 +86,8 @@ class User extends Engine
     const TYPE_BUILTIN = 'builtin';
     const TYPE_NORMAL = 'normal';
     const TYPE_SYSTEM = 'system';
+    const TYPE_UNKNOWN = 'unknown';
+    const TYPE_ALL = 'all';
 
     // Password types
     //---------------

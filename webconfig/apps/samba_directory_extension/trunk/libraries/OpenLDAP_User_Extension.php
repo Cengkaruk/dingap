@@ -247,11 +247,9 @@ class OpenLDAP_User_Extension extends Engine
         return $info;
     }
 
-    public function get_info_map_hook($attributes)
+    public function get_info_map_hook()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
         return $this->info_map;
     }
@@ -351,12 +349,14 @@ class OpenLDAP_User_Extension extends Engine
 
   //      return "das ist bad drive.";
     }
+
     public function validate_home_path($path)
     {
         clearos_profile(__METHOD__, __LINE__);
 
- //       return "das ist bad path.";
+//        return "das ist bad path.";
     }
+
     public function validate_sid($sid)
     {
         clearos_profile(__METHOD__, __LINE__);

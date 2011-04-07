@@ -59,12 +59,14 @@ clearos_load_language('users');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap\User_Driver as User_Driver;
 use \clearos\apps\openldap\Utilities as Utilities;
-use \clearos\apps\users\User as User;
+use \clearos\apps\users\user as User;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap/Directory_Driver');
+clearos_load_library('openldap/User_Driver');
 clearos_load_library('openldap/Utilities');
 clearos_load_library('users/User');
 
@@ -126,46 +128,42 @@ class User_Manager_Driver extends Engine
     /**
      * Returns the user list.
      *
-     * @param string $type service type
-     * @param bool $showhidden include hidden accounts
+     * @param string $app  app extension or plugin
+     * @param string $type user type
      *
      * @return array user list
      * @throws Engine_Exception
      */
 
-    public function get_users($type = NULL, $showhidden = FALSE)
+    public function get_list($app = NULL, $type = User::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $rawlist = $this->_ldap_get_user_list($showhidden, $type);
-        $userlist = array();
+        $raw_list = $this->_get_details($app, $type);
 
-        foreach ($rawlist as $username => $userinfo)
-            $userlist[] = $username;
+        $user_list = array();
 
-        return $userlist;
+        foreach ($raw_list as $username => $userinfo)
+            $user_list[] = $username;
+
+        return $user_list;
     }
     
     /**
      * Returns detailed user information for all users.
      *
-     * @param bool $showhidden include hidden accounts
+     * @param string $app  app extension or plugin
+     * @param string $type user type
      *
      * @return array user information array
      * @throws Engine_Exception
      */
 
-    public function get_users_info($showhidden = FALSE)
+    public function get_details($app = NULL, $type = User::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $rawlist = $this->_ldap_get_user_list($showhidden);
-        $userlist = array();
-
-        foreach ($rawlist as $index => $userinfo)
-            $userlist[$index] = $userinfo;
-
-        return $userlist;
+        return $this->_get_details($app, $type);
     }
 
     /**
@@ -192,24 +190,21 @@ class User_Manager_Driver extends Engine
     /**
      * Returns user information.
      *
-     * The type (e.g. ClearDirectory::SERVICE_TYPE_OPENVPN) can be used
-     * to filter results.
+     * @param string $app  app extension or plugin
+     * @param string $type user type
      *
-     * @param bool $showhidden include hidden accounts
-     * @param string $type ClearDirectory user service type
      * @access private
-     *
      * @return array user information
      */
 
-    protected function _ldap_get_user_list($showhidden = FALSE, $type = NULL)
+    protected function _get_details($app, $type)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        // FIXME: implement "type" flag
+        // FIXME: implement "app" flag
         $search = '';
 
         $userlist = array();
@@ -231,11 +226,29 @@ class User_Manager_Driver extends Engine
             $uid = $attributes['uidNumber'][0];
             $username = $attributes['uid'][0];
 
-            if ($showhidden ||
-                 (!(($uid >= User::UID_RANGE_BUILTIN_MIN) && ($uid <= User::UID_RANGE_BUILTIN_MAX)))) {
-                $user = new User("not used");
-                $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+            $process = FALSE;
 
+            if (($type === User::TYPE_NORMAL) 
+                && ($uid >= User_Driver::UID_RANGE_NORMAL_MIN)
+                && ($uid <= User_Driver::UID_RANGE_NORMAL_MAX)
+            ) {
+                $process = TRUE;
+            } else if (($type === User::TYPE_BUILTIN) 
+                && ($uid >= User_Driver::UID_RANGE_BUILTIN_MIN)
+                && ($uid <= User_Driver::UID_RANGE_BUILTIN_MAX)
+            ) {
+                $process = TRUE;
+            } else if (($type === User::TYPE_SYSTEM) 
+                && ($uid >= User_Driver::UID_RANGE_SYSTEM_MIN)
+                && ($uid <= User_Driver::UID_RANGE_SYSTEM_MAX)
+            ) {
+                $process = TRUE;
+            } else if ($type === User::TYPE_ALL) {
+                $process = TRUE;
+            }
+
+            if ($process) {
+                $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
                 $userlist[$username] = $userinfo;
             }
 

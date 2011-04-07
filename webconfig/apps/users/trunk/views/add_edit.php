@@ -70,60 +70,81 @@ echo form_open($form_path . '/' . $username);
 echo form_header(lang('users_user'));
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Core fields
+///////////////////////////////////////////////////////////////////////////////
+//
+// Some directory drivers separate first and last names into separate fields,
+// while others only support the full name (common name).  If the separate 
+// fields don't exist, fall back to the full name.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_fieldset(lang('base_general_settings'));
 echo field_input('username', $username, lang('users_username'), $username_read_only);
-echo field_input('first_name', $user_info['core']['first_name'], lang('users_first_name'), $read_only);
-echo field_input('last_name', $user_info['core']['last_name'], lang('users_last_name'), $read_only);
+
+if (isset($user_info['core']['first_name']) || isset($user_info['core']['last_name'])) {
+    echo field_input('first_name', $user_info['core']['first_name'], lang('users_first_name'), $read_only);
+    echo field_input('last_name', $user_info['core']['last_name'], lang('users_last_name'), $read_only);
+} else {
+    echo field_input('full_name', $user_info['core']['full_name'], lang('users_full_name'), $read_only);
+}
+
 echo form_fieldset_close();
 
-echo form_fieldset(lang('users_password'));
-echo field_password('password', '', lang('users_password'), $read_only);
-echo field_password('verify', '', lang('users_verify'), $read_only);
-echo form_fieldset_close();
-/*
+///////////////////////////////////////////////////////////////////////////////
+// Password fields
+///////////////////////////////////////////////////////////////////////////////
+//
+// Don't bother showing passwords when read_only.
+//
+///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('users_address'));
-echo field_input('street', $user_info['core']['street'], lang('users_street'), $read_only);
-echo field_input('city', $user_info['core']['city'], lang('users_city'), $read_only);
-echo field_input('region', $user_info['core']['region'], lang('users_region'), $read_only);
-echo field_dropdown('country', $countries, $user_info['core']['country'], lang('users_country'), $read_only);
-echo field_input('postal_code', $user_info['core']['postal_code'], lang('users_postal_code'), $read_only);
-echo field_input('organization', $user_info['core']['organization'], lang('users_organization'), $read_only);
-echo field_input('organization_unit', $user_info['core']['organization_unit'], lang('users_organization_unit'), $read_only);
+if (! $read_only) {
+    echo form_fieldset(lang('users_password'));
+    echo field_password('password', '', lang('users_password'), $read_only);
+    echo field_password('verify', '', lang('users_verify'), $read_only);
+    echo form_fieldset_close();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Plugin groups
+///////////////////////////////////////////////////////////////////////////////
+
+//echo form_fieldset(lang('users_plugins'));
+echo form_fieldset('Plugin Groups'); //FIXME
+
+foreach ($info_map['plugins'] as $plugin => $parameters) {
+    $name = "user_info[plugins][$plugin][state]";
+    $value = $user_info['plugins'][$plugin]['state'];
+    $description = $plugin_info[$plugin]['description'];
+    echo field_toggle_enable_disable($name, $value, $description, $read_only);
+}
+
 echo form_fieldset_close();
 
-echo form_fieldset(lang('users_telephone_numbers'));
-echo field_input('mobile', $user_info['core']['mobile'], lang('users_mobile'), $read_only);
-echo field_input('telephone', $user_info['core']['telephone'], lang('users_telephone'), $read_only);
-echo field_input('fax', $user_info['core']['fax'], lang('users_fax'), $read_only);
-echo form_fieldset_close();
-*/
-
-// Loop through all the fields described in the info_map
-//------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+// Extensions
+///////////////////////////////////////////////////////////////////////////////
 
 foreach ($info_map['extensions'] as $extension => $parameters) {
 
     // Use the extension name for the title
     //-------------------------------------
 
-    echo form_fieldset($extension_info[$extension]['name']);
+    echo form_fieldset($extension_info[$extension]['description']);
 
     // Echo out the specific info field
     //---------------------------------
 
     foreach ($parameters as $key_name => $details) {
-        $key = "user_info[$extension][$key_name]";
-        $value = $user_info[$extension][$key_name];
+        $name = "user_info[extensions][$extension][$key_name]";
+        $value = $user_info['extensions'][$extension][$key_name];
         $description =  $details['description'];
 
         if ($details['field_type'] === 'list') {
-            echo field_dropdown($key, $details['field_options'], $value, $description, $read_only);
+            echo field_dropdown($name, $details['field_options'], $value, $description, $read_only);
         } else if ($details['field_type'] === 'text') {
-            echo field_input($key, $value, $description, $read_only);
+            echo field_input($name, $value, $description, $read_only);
         }
     }
 
