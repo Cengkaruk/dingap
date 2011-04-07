@@ -86,11 +86,13 @@ class Group extends Engine
     // Group types
     //------------
 
-    const TYPE_SYSTEM = 'system';
+    const TYPE_BUILTIN = 'builtin';
     const TYPE_NORMAL = 'normal';
-    const TYPE_RESERVED = 'reserved';
+    const TYPE_SYSTEM = 'system';
     const TYPE_WINDOWS = 'windows';
-    const TYPE_UNSUPPORTED = 'unsupported';
+    const TYPE_PLUGIN = 'plugin';
+    const TYPE_UNKNOWN = 'unknown';
+    const TYPE_ALL = 'all';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S

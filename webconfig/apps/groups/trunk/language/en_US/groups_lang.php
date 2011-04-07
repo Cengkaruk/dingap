@@ -12,6 +12,7 @@ $lang['groups_user'] = 'User';
 $lang['groups_user_defined_groups'] = 'User Defined Groups';
 
 $lang['groups_groups'] = 'Groups';
+$lang['groups_group_manager'] = 'Group Manager';
 
 $lang['groups_group_not_found'] = 'Group not found.';
 $lang['groups_group_already_exists'] = 'Group already exists.';
