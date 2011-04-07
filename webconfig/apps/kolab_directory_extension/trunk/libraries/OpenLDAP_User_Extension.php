@@ -175,7 +175,7 @@ class OpenLDAP_User_Extension extends Engine
         return $info;
     }
 
-    public function get_info_map_hook($attributes)
+    public function get_info_map_hook()
     {
         clearos_profile(__METHOD__, __LINE__);
 
