@@ -80,6 +80,6 @@ class Directory_Unavailable_Exception extends Engine_Exception
 
     public function __construct()
     {
-        parent::__construct(lang('directory_exception_directory_is_unavailable'), CLEAROS_INFO);
+        parent::__construct(lang('directory_manager_exception_directory_is_unavailable'), CLEAROS_INFO);
     }
 }

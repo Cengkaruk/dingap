@@ -106,11 +106,11 @@ class Directory_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $this->modes = array(
-            self::MODE_ACTIVE_DIRECTORY => lang('directory_active_directory'),
-            self::MODE_SIMPLE_MASTER => lang('directory_simple_master'),
-            self::MODE_MASTER => lang('directory_master'),
-            self::MODE_SLAVE => lang('directory_slave'),
-            self::MODE_STANDALONE => lang('directory_standalone')
+            self::MODE_ACTIVE_DIRECTORY => lang('directory_manager_active_directory'),
+            self::MODE_SIMPLE_MASTER => lang('directory_manager_simple_master'),
+            self::MODE_MASTER => lang('directory_manager_master'),
+            self::MODE_SLAVE => lang('directory_manager_slave'),
+            self::MODE_STANDALONE => lang('directory_manager_standalone')
         );
     }
 
@@ -125,8 +125,8 @@ class Directory_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $driver = 'openldap';
         $driver = 'active_directory';
+        $driver = 'openldap';
 
         return $driver;
     }
@@ -224,7 +224,7 @@ class Directory_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! array_key_exists($mode, $this->modes))
-            return lang('directory_directory_mode_is_invalid');
+            return lang('directory_manager_directory_mode_is_invalid');
     }
 
     /**
