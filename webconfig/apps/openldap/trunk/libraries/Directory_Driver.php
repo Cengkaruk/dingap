@@ -53,7 +53,7 @@ clearos_load_language('directory_manager');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\directory_manager\Directory as Directory;
+use \clearos\apps\directory_manager\Directory_Factory as Directory;
 
 // Classes
 //--------
@@ -77,7 +77,7 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('date/NTP_Time');
-clearos_load_library('directory_manager/Directory');
+clearos_load_library('directory_manager/Directory_Factory');
 clearos_load_library('openldap/OpenLDAP');
 clearos_load_library('openldap/Utilities');
 // clearos_load_library('network/Hostname');
