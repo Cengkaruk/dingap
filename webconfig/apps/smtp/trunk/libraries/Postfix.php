@@ -69,15 +69,12 @@ clearos_load_library('network/Network_Utils');
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
-use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
-clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -321,17 +318,13 @@ class Postfix extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $shell = new Shell();
+        $shell = new Shell();
 
-            foreach ($messageids as $id) {
-                if (preg_match('/^[A-Z0-9]+$/', $id))
-                    $shell->Execute(self::COMMAND_POSTSUPER, "-d $id", TRUE);
-                else
-                    throw new Validation_Exception(POSTFIX_LANG_MAIL_ID . " - " . LOCALE_LANG_INVALID, COMMON_ERROR);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
+        foreach ($messageids as $id) {
+            if (preg_match('/^[A-Z0-9]+$/', $id))
+                $shell->Execute(self::COMMAND_POSTSUPER, "-d $id", TRUE);
+            else
+                throw new Validation_Exception(POSTFIX_LANG_MAIL_ID . " - " . LOCALE_LANG_INVALID, COMMON_ERROR);
         }
     }
 
@@ -411,22 +404,18 @@ class Postfix extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $options['background'] = TRUE;
+        $options['background'] = TRUE;
 
-            $shell = new Shell();
-            $shell->Execute(self::COMMAND_POSTSUPER, "-r ALL", TRUE);
-            $shell->Execute(self::COMMAND_POSTFIX, "flush", TRUE, $options);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $shell = new Shell();
+        $shell->Execute(self::COMMAND_POSTSUPER, "-r ALL", TRUE);
+        $shell->Execute(self::COMMAND_POSTFIX, "flush", TRUE, $options);
     }
 
     /**
      * Returns the always_bcc email.
      *
      * @return string bcc email
-     * @throws File_No_Match_Exception, Engine_Exception
+     * @throws Engine_Exception
      */
 
     public function get_always_bcc()
@@ -720,13 +709,10 @@ class Postfix extends Daemon
 
         $contents = Array();
         
-        try {
-            $file = new File($filename);
-            if ($file->exists())
-                $contents = $file->get_contents_as_array();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $file = new File($filename);
+
+        if ($file->exists())
+            $contents = $file->get_contents_as_array();
 
         return $contents;
     }
@@ -770,18 +756,13 @@ class Postfix extends Daemon
 
         $list = Array();
 
-        try {
-            $bcc = $this->_get_list_items('sender_bcc_maps', ',');
-            $scrubbed_bcc = array();
-            $match = array();
-            
-            foreach ($bcc as $entry) {
-                if (preg_match('/^hash:(.*)/', $entry, $match))
-                    $list[] = trim($match[1]);
-            }
-
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
+        $bcc = $this->_get_list_items('sender_bcc_maps', ',');
+        $scrubbed_bcc = array();
+        $match = array();
+        
+        foreach ($bcc as $entry) {
+            if (preg_match('/^hash:(.*)/', $entry, $match))
+                $list[] = trim($match[1]);
         }
         
         return $list;
@@ -791,7 +772,7 @@ class Postfix extends Daemon
      * Returns the sender_bcc_maps.
      *
      * @return string the file that maps senders to BCC
-     * @throws File_No_Match_Exception, Engine_Exception
+     * @throws Engine_Exception
      */
 
     public function get_sender_bcc_maps_contents($filename)
@@ -800,13 +781,10 @@ class Postfix extends Daemon
 
         $contents = Array();
         
-        try {
-            $file = new File($filename);
-            if ($file->exists())
-                $contents = $file->get_contents_as_array();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $file = new File($filename);
+
+        if ($file->exists())
+            $contents = $file->get_contents_as_array();
 
         return $contents;
     }
