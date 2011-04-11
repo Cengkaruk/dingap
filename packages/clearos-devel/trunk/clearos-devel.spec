@@ -17,8 +17,9 @@ Requires: clearos-coding-standard
 Requires: phpdoc
 Requires: php-phpunit-PHPUnit
 Requires: php-pear-PHP-CodeSniffer
-Requires: subversion
 Requires: rpm-build
+Requires: rsync
+Requires: subversion
 BuildArch: noarch 
 BuildRoot: %_tmppath/%name-%version-buildroot
 
