@@ -1,315 +1,579 @@
-#!/usr/bin/perl
+#!/usr/clearos/webconfig/usr/bin/php
+<?php
 
-#-----------------------------------------------------------------------------
-#
-# Copyright 2011 ClearFoundation
-#
-#-----------------------------------------------------------------------------
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Lesser General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-#-----------------------------------------------------------------------------
+/**
+ * ClearOS developer tools.
+ *
+ * @category   Framework
+ * @package    Developer
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/framework/
+ */
 
-use strict;
-use Switch;
-use Cwd;
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
 
-$ENV {'PATH'}  = '/sbin:/usr/bin:/bin';
-$ENV {'SHELL'} = '/bin/sh';
-delete @ENV {'ENV', 'BASH_ENV'};  # Perl security stuff - see "man perlsec"
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
 
-#-----------------------------------------------------------------------------
-#
-# Constants
-#
-#-----------------------------------------------------------------------------
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
-# FIXME - fix paths
-# For now, hack the ClearOS Bootstrap path.  When we're in packaging mode
-# This will all be packaged up properly (e.g. in app-devel-tools)
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
 
-my $BASEPATH = $ENV{'CLEAROS_BOOTSTRAP'};
-$BASEPATH =~ s/\/framework.*//;
+use \clearos\framework\Config as Config;
 
-my $PHPCS = '/usr/bin/phpcs';
-my $PHPCS_STANDARD = '/usr/share/clearos/devel/code_sniffer/ClearOS';
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
 
-my $PHPDOC = '/usr/bin/phpdoc';
-my $PHPDOC_DEST = $BASEPATH . '/framework/trunk/htdocs/phpdocs';
+//  clearos_load_language('base');
 
-#-----------------------------------------------------------------------------
-#
-# Function Definitions
-#
-#-----------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
+// M A I N
+///////////////////////////////////////////////////////////////////////////////
 
-sub build();
-sub deps($);
-sub docs(@);
-sub lint(@);
-sub newapp($);
+$actions = array(
+    'build' => 'Builds an RPM in the build system',
+    'local' => 'Builds an RPM on the local system',
+    'spec' => 'Generates the RPM spec file for an app',
+    'deps' => 'Provides a library dependency list',
+    'docs' => 'Builds phpDocs',
+    'lint' => 'PHP coding standards checker',
+);
 
-#-----------------------------------------------------------------------------
-#
-# Build
-#
-#-----------------------------------------------------------------------------
+$help_output  = '
+Usage: clearos <action> [options]
 
-sub build() {
-    print "TODO\n";
+Actions
+-------
+
+';
+
+foreach ($actions as $action => $description) {
+    $help_output .= "$action -- $description\n";
 }
 
-#-----------------------------------------------------------------------------
-#
-# Dependencies
-#
-#-----------------------------------------------------------------------------
+$help_output .= "\n";
 
-sub deps($) { 
-    my $source = $_[0];
+// Handle command line options
+//----------------------------
 
-    # Quick hack to map classes to app names
-    #---------------------------------------
+$action = (isset($argv[1])) ? $argv[1] : 'noaction';
 
-    my %all_classes;
-    my $class;
-    my $full_path;
-    my $raw_data = `find $BASEPATH -type f`;
+$options = getopt($short_options);
 
-    open(FIND, "find $BASEPATH -type f|");
-
-    while (<FIND>){
-
-        s/.*clearos\/webconfig\///;
-
-        next if /\.svn/;
-        next if (!/^apps/);
-        next if (!/\/libraries\//);
-
-        s/trunk\/libraries\///;
-        s/\.php$//;
-
-        next if (/\./); # No include files, e.g. Firewall.inc.php
-
-        $full_path = $_;
-        chomp($full_path);
-
-        s/.*\///;
-    
-        $class = $_;
-        chomp($class);
-
-        %all_classes->{$class} = $full_path;
-    }
-
-    # Parse file looking for dependencies
-    #------------------------------------
-
-    my $detected_class;
-    my %detected_classes;
-
-    die("uh-oh - open file issues on $source - $!") if (!open(FILE, $source));
-
-    while (<FILE>) {
-        if (/\s+throw new\s+/) {
-            $detected_class = $_;
-            $detected_class =~ s/.*\s+new\s+//;
-            $detected_class =~ s/\(.*//;
-            %detected_classes->{$detected_class} = 1;
-        } elsif (/\s*=\s*new\s+/) {
-            $detected_class = $_;
-            $detected_class =~ s/.*\s*=\s*new\s*//;
-            $detected_class =~ s/\(.*//;
-            %detected_classes->{$detected_class} = 1;
-        } elsif (/\s+extends\s+/) {
-            $detected_class = $_;
-            $detected_class =~ s/.*\s+extends\s+//;
-            $detected_class =~ s/\(.*//;
-            %detected_classes->{$detected_class} = 1;
-        } elsif ((/\s*catch\s*\(/) && (!(/\s*catch\s*\(Exception\s+/))) {
-            $detected_class = $_;
-            $detected_class =~ s/.*catch\s*\(//;
-            $detected_class =~ s/\s+.*//;
-            %detected_classes->{$detected_class} = 1;
-        } elsif (/Validation_Exception/) {
-            $detected_class = 'Validation_Exception';
-            %detected_classes->{$detected_class} = 1;
-        }
-    }
-
-    my @classes_namespace;
-    my @classes_load;
-    my @exceptions_namespace;
-    my @exceptions_load;
-    my $path;
-    my $use_path;
-    my $lib_path;
-
-    foreach my $class (sort keys %detected_classes) {
-        chomp($class);
-        $_ = $class;
-        $path = %all_classes->{$class};
-
-        $use_path = $path;
-        $use_path =~ s/\//\\/g;
-
-        $lib_path = $path;
-        $lib_path =~ s/apps\///g;
-
-        if (/Exception/) {
-            push(@exceptions_namespace, "use \\clearos\\$use_path as $class;");
-            push(@exceptions_load, "clearos_load_library('$lib_path');");
-        } else {
-            push(@classes_namespace, "use \\clearos\\$use_path as $class;");
-            push(@classes_load, "clearos_load_library('$lib_path');");
-        }
-    }
-
-    print "// Classes\n";
-    print "//--------\n\n";
-
-    foreach my $line (sort @classes_namespace) {
-        print $line . "\n";
-    }
-
-    print "\n";
-
-    foreach my $line (sort @classes_load) {
-        print $line . "\n";
-    }
-
-    print "\n";
+$help = isset($options['h']) ? TRUE : FALSE;
 
 
-    print "// Exceptions\n";
-    print "//-----------\n\n";
+//--------------------------------------------------------------------
+// Usage issues
+//--------------------------------------------------------------------
 
-    foreach my $line (sort @exceptions_namespace) {
-        print $line . "\n";
-    }
-
-    print "\n";
-
-    foreach my $line (sort @exceptions_load) {
-        print $line . "\n";
-    }
+if ($help) {
+    echo "usage: " . $argv[0] . " [options]\n";
+    echo $help_output;
+    exit(0);
 }
 
-#-----------------------------------------------------------------------------
-#
-# Docs
-#
-#-----------------------------------------------------------------------------
+//--------------------------------------------------------------------
+// Handle action and dispatch
+//--------------------------------------------------------------------
 
-sub docs(@) {
-    my @source_files = @_;
-    my $file_list;
-    my $dir_list;
-    my $filename_target;
-    my $directory_target;
+if ($action === 'deps') {
+    deps($options);
+} else if ($action === 'lint') {
+    lint($options);
+} else if ($action === 'local') {
+    local($options);
+} else if ($action === 'spec') {
+    spec($options);
+} else {
+    echo $help_output;
+}
 
-    if ($#source_files eq 0) {
-        $directory_target = "--directory \"" . cwd() . "\" ";
+///////////////////////////////////////////////////////////////////////////////
+// F U N C T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * ClearOS App dependency list.
+ *
+ * @category  Framework
+ * @package   Builder
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/framework/
+ */
+
+function deps($options)
+{
+    global $argv;
+
+    $base_dir = getcwd();
+
+    $app = preg_replace('/.*\/apps\//', '', $base_dir);
+    $app = preg_replace('/\/.*/', '', $app);
+
+    if (isset($argv[2])) {
+        if (! file_exists($base_dir . '/' . $argv[2])) {
+            echo "Source file not found.\n";
+            exit(1);
+        }
+
+        $source_file = $base_dir . '/' . $argv[2];
     } else {
-        foreach my $file (@source_files) {
-            if (/php$/) {
-                $file_list .= "$file,";
-            } else {
-                $dir_list .= "$file,";
+        echo "Please specify source file\n";
+        exit(1);
+    }
+
+    // Create an array that maps classes to app names
+    //
+    // $class_mapping:
+    //  [Folder] => base
+    //  [File] => base
+    //-----------------------------------------------
+
+    $class_mapping = array();
+    $factory_mapping = array();
+
+    foreach (Config::$apps_paths as $path) {
+        $path = (preg_match('/apps$/', $path)) ? $path : $path . '/apps'; // FIXME: temporary workaround for old version
+
+        exec("find $path -type f -name '*.php'", $output);
+
+        foreach ($output as $file) {
+            if (preg_match('/libraries/', $file)) {
+                $matches = array();
+                preg_match('/(.*)\/(.*).php/', $file, $matches);
+                $class = $matches[2];
+
+                $app_path = preg_replace('/.*\/apps\//', '', $matches[1]);
+                $app_path = preg_replace('/\/.*/', '', $app_path);
+
+                if (preg_match('/_Factory$/', $class)) {
+                    $factory_class = preg_replace('/_Factory$/', '', $class);
+                    $factory_mapping[$factory_class] = $app_path;
+                }
+
+                $class_mapping[$class] = $app_path;
             }
         }
-
-        $file_list =~ s/,$//;
-        $dir_list =~ s/,$//;
-
-        $filename_target = "--filename \"$file_list\"";
-        $directory_target = "--directory \"$dir_list\"";
     }
 
-    my $command = "$PHPDOC " .
-        "--output HTML:frames:phphtmllib " .
-        "--title \"ClearOS API\" "  .
-        "--target $PHPDOC_DEST " .
-        "--ignore .svn/,htdocs/,deploy/,language/ " .
-        "--undocumentedelements " .
-        $directory_target . " " . 
-        $filename_target;
+    // Open target file and look for dependencies
+    //-------------------------------------------
 
-    system("$command");
-}
+    $detected_classes = array();
 
-#-----------------------------------------------------------------------------
-#
-# Lint (Code Sniffer)
-#
-#-----------------------------------------------------------------------------
+    $raw_contents = file_get_contents($source_file);
 
-sub lint(@) {
-    shift(@_);
-    my @source_files = @_;
-    my $file_list = '';
+    $contents = explode("\n", $raw_contents);
 
-    foreach my $file (@source_files) {
-        $file_list .= "$file ";
+    foreach ($contents as $line) {
+        $matches = array();
+
+        // Ignore comments
+        if (preg_match('/\s*\/\//', $line)) {
+            // echo test
+
+        // throw new xyz_Exception
+        } else if (preg_match('/\s+throw new\s+([^\(]*)/', $line, $matches)) {
+            $detected_classes[] = $matches[1];
+
+        // $example = new Example();
+        } else if (preg_match('/\s*=\s*new\s+([^\(]*)/', $line, $matches)) {
+            $detected_classes[] = $matches[1];
+
+        // OpenVPN extends Daemon
+        } else if (preg_match('/\s+extends\s+(.*)/', $line, $matches)) {
+            $detected_classes[] = $matches[1];
+
+        // } catch (Some_Exception $e) {
+        } else if (preg_match('/\s*catch\s*\(([^\s+]*)/', $line, $matches)) {
+            // Ignore base 'Exception' class since it is built into PHP
+            if ($matches[1] !== 'Exception')
+                $detected_classes[] = $matches[1];
+
+        // Static calls (probably some false positives on this sometimes
+        } else if (preg_match('/\s*([a-zA-Z0-9_]*)::\w+/', $line, $matches)) {
+            // Ignore parent::xyz and self::xyz
+            if (($matches[1] !== 'parent') && ($matches[1] !== 'self'))
+                $detected_classes[] = $matches[1];
+        }
     }
 
-    system("$PHPCS --standard=$PHPCS_STANDARD $file_list");
+    // Massage the classes into different categories
+    //----------------------------------------------
+
+    $detected_classes = array_unique($detected_classes);
+    sort($detected_classes);
+
+    $source_namespace = preg_replace('/.*\/apps\//', '', $base_dir);
+    $source_namespace = preg_replace('/\/.*/', '', $source_namespace);
+
+    $normal_use = array();
+    $normal_load = array();
+    $factory_use = array();
+    $factory_load = array();
+    $exception_use = array();
+    $exception_load = array();
+
+    foreach ($detected_classes as $class) {
+        if (isset($factory_mapping[$class])) {
+            $namespace = $factory_mapping[$class];
+            $use = "use \\clearos\\apps\\$namespace\\${class}_Factory as $class;";
+            $load = "clearos_load_library('$namespace/${class}_Factory');";
+            $is_factory = TRUE;
+        } else {
+            $namespace = $class_mapping[$class];
+            $use = "use \\clearos\\apps\\$namespace\\$class as $class;";
+            $load = "clearos_load_library('$namespace/$class');";
+            $is_factory = FALSE;
+        }
+
+        if ($is_factory) {
+            $factory_use[] = $use;
+            $factory_load[] = $load;
+        } else if (preg_match('/_Exception/', $class)) {
+            $exception_use[] = $use;
+            $exception_load[] = $load;
+        } else {
+            $normal_use[] = $use;
+            $normal_load[] = $load;
+        }
+    }
+
+    sort($factory_use);
+    sort($factory_load);
+    sort($normal_use);
+    sort($normal_load);
+    sort($exception_use);
+    sort($exception_load);
+
+    $factory_use_output = implode("\n", $factory_use);
+    $factory_load_output = implode("\n", $factory_load);
+    $normal_use_output = implode("\n", $normal_use);
+    $normal_load_output = implode("\n", $normal_load);
+    $exception_use_output = implode("\n", $exception_use);
+    $exception_load_output = implode("\n", $exception_load);
+
+if (! empty($factory_use_output)) {
+    echo "
+// Factories
+//----------
+
+$factory_use_output
+
+$factory_load_output
+";
 }
 
-#-----------------------------------------------------------------------------
-#
-# New app 
-# see "rails new blog" @ http://guides.rubyonrails.org/getting_started.html
-#
-#-----------------------------------------------------------------------------
+if (! empty($normal_use_output)) {
+    echo "
+// Classes
+//--------
 
-sub newapp($) { 
-    my $app = $_[0];
+$normal_use_output
 
-    print "dude $app\n";
+$normal_load_output
+";
+}
 
-    if (-d "$app") {
-        print "App directory already exists... buh-bye.\n";
+if (! empty($exception_use_output)) {
+    echo "
+// Exceptions
+//-----------
+
+$exception_use_output
+
+$exception_load_output
+";
+}
+
+}
+
+/**
+ * ClearOS App lint check.
+ *
+ * @category  Framework
+ * @package   Builder
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/framework/
+ */
+
+function lint($options)
+{
+    global $argv;
+
+    $PHPCS = '/usr/bin/phpcs';
+    $PHPCS_STANDARD = '/usr/share/clearos/devel/code_sniffer/ClearOS';
+
+    $base_dir = getcwd();
+    $file_list = '';
+
+    if (isset($argv[2])) {
+        if (! file_exists($base_dir . '/' . $argv[2])) {
+            echo "Source file not found.\n";
+            exit(1);
+        }
+
+        $file_list = $argv[2];
+    } else {
+        if ($dh = opendir($base_dir)) {
+            while (($file = readdir($dh)) !== FALSE) {
+                if (preg_match('/\.php$/', $file))
+                    $file_list .= ' ' . $file;
+            }
+            closedir($dh);
+        }
+    }
+
+    if (! empty($file_list)) {
+        echo "Checking:$file_list\n";
+        system("$PHPCS --standard=$PHPCS_STANDARD $file_list");
+    } else {
+        echo "What file did you want to check?\n";
         exit(1);
-    } 
-
-    mkdir "$app";
-
-    mkdir "$app/branches";
-    mkdir "$app/tags";
-    mkdir "$app/trunk";
-
-    mkdir "$app/trunk/";
-    mkdir "$app/trunk/controllers";
-    mkdir "$app/trunk/deploy";
-    mkdir "$app/trunk/htdocs";
-    mkdir "$app/trunk/language";
-    mkdir "$app/trunk/language/en_US";
-    mkdir "$app/trunk/libraries";
-    mkdir "$app/trunk/packaging";
-    mkdir "$app/trunk/tests";
-    mkdir "$app/trunk/views";
+    }
 }
 
-#-------------------------------------------------------------------------
-# Main
-#-------------------------------------------------------------------------
+/**
+ * ClearOS App local package builder.
+ *
+ * @category  Framework
+ * @package   Builder
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/framework/
+ */
 
-switch ($ARGV[0]) {
-  case "build"    { build(); }
-  case "deps"     { deps($ARGV[1]); }
-  case "docs"     { docs(@ARGV); }
-  case "lint"     { lint(@ARGV); }
-  case "newapp"   { newapp($ARGV[1]); }
+function local($options)
+{
+    $app = _load_metadata();
+
+    $temp_dir = '/var/tmp';
+    $rpm_sources = '~/rpmbuild/SOURCES';
+
+    $package_name = 'app-' . preg_replace('/_/', '-', $app['basename']);
+    $package_source_name = $package_name . '-' . $app['version'];
+    $source_tar_temp = $temp_dir . '/' . $package_source_name;
+    $source_code = getcwd();
+    $spec_file = 'packaging/' . $package_name . '.spec';
+
+    // Sorry for the execs -- this was originally a shell script
+    //----------------------------------------------------------
+
+    if (is_dir($source_tar_temp))
+        system('rm -rf ' . $source_tar_temp);
+
+    mkdir($source_tar_temp);
+    system("cp -a $source_code/* $source_tar_temp/");
+    system("find $source_tar_temp -type d -name '.svn' -exec rm -rf '{}' \; 2>/dev/null");
+    system("cd $temp_dir; tar -czf $package_source_name.tar.gz $package_source_name");
+    system("mv $temp_dir/$package_source_name.tar.gz $rpm_sources/");
+    system("rpmbuild -ba $spec_file"); 
+
+    system('rm -rf ' . $source_tar_temp);
+}
+
+/**
+ * ClearOS App spec builder.
+ *
+ * @category  Framework
+ * @package   Builder
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/framework/
+ */
+
+function spec($options)
+{
+    // Load app metadata
+    //------------------
+
+    $app = _load_metadata();
+
+    // RPM-ize the values (e.g. change underscores to dashes)
+    //-------------------------------------------------------
+
+    $app['package_name'] = 'app-' . preg_replace('/_/', '-', $app['basename']);
+    $app['summary'] = preg_replace('/\.$/', '', $app['summary']); // No period: an RPM policy (shrug).
+
+    // Build file manifest
+    //--------------------
+
+    $core_manifest = '';
+    $install_files = '';
+
+    if (isset($app['manifest'])) {
+        foreach ($app['manifest'] as $file => $details) {
+            $core_manifest .= $details['target'] . "\n";
+            $install_files .= 'install -D -m ' . $details['mode'] . ' packaging/' . $file . ' %{buildroot}' . $details['target'] . "\n";
+        }
+    }
+
+    // Build dependencies
+    //-------------------
+
+    $core_dependencies = '';
+
+    foreach ($app['core_dependencies'] as $dependency)
+        $core_dependencies .= "Requires: $dependency\n";
+
+
+    // Template
+    //---------
+
+    $spec = "
+Name: {$app['package_name']}
+Group: ClearOS/Apps
+Version: {$app['version']}
+Release: {$app['release']}
+Summary: {$app['summary']}
+License: {$app['license']}
+Packager: {$app['packager']}
+Vendor: {$app['vendor']}
+Source: %{name}-%{version}.tar.gz
+Requires: %{name}-core = %{version}-%{release}
+Buildarch: noarch
+
+%description
+{$app['description']}
+
+%package core
+Summary: Core libraries and install for {$app['package_name']}
+Group: ClearOS/Libraries
+License: {$app['license_core']}
+$core_dependencies
+%description core
+Core API and install for {$app['package_name']}
+
+%prep
+%setup -q
+%build
+
+%install
+mkdir -p -m 755 %{buildroot}/usr/clearos/apps/{$app['basename']}
+cp -r * %{buildroot}/usr/clearos/apps/{$app['basename']}/
+
+$install_files
+%post
+logger -p local6.notice -t installer '{$app['package_name']} - installing'
+
+%post core
+logger -p local6.notice -t installer '{$app['package_name']}-core - installing'
+
+if [ $1 -eq 1 ]; then
+    [ -x /usr/clearos/apps/{$app['basename']}/deploy/install ] && /usr/clearos/apps/{$app['basename']}/deploy/install
+fi
+
+[ -x /usr/clearos/apps/{$app['basename']}/deploy/upgrade ] && /usr/clearos/apps/{$app['basename']}/deploy/upgrade
+
+exit 0
+
+%preun
+if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer '{$app['package_name']} - uninstalling'
+fi
+
+%preun core
+if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer '{$app['package_name']}-core - uninstalling'
+    [ -x /usr/clearos/apps/{$app['basename']}/deploy/uninstall ] && /usr/clearos/apps/{$app['basename']}/deploy/uninstall
+fi
+
+exit 0
+
+%files
+%defattr(-,root,root)
+/usr/clearos/apps/{$app['basename']}/controllers
+/usr/clearos/apps/{$app['basename']}/htdocs
+/usr/clearos/apps/{$app['basename']}/views
+
+%files core
+%defattr(-,root,root)
+%exclude /usr/clearos/apps/{$app['basename']}/packaging
+%exclude /usr/clearos/apps/{$app['basename']}/tests
+%dir /usr/clearos/apps/{$app['basename']}
+/usr/clearos/apps/{$app['basename']}/config
+/usr/clearos/apps/{$app['basename']}/deploy
+/usr/clearos/apps/{$app['basename']}/language
+/usr/clearos/apps/{$app['basename']}/libraries
+$core_manifest";
+
+    $spec_file = 'packaging/' . $app['package_name'] . '.spec';
+
+    file_put_contents($spec_file, $spec);
+
+    echo "Generated spec file: $spec_file\n";
+}
+
+/**
+ * Loads ClearOS App meta data.
+ *
+ * @category  Framework
+ * @package   Builder
+ * @author    ClearFoundation <developer@clearfoundation.com>
+ * @copyright 2011 ClearFoundation
+ * @license   http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
+ * @link      http://www.clearfoundation.com/docs/developer/framework/
+ */
+
+function _load_metadata()
+{
+    // Look for metadata
+    //------------------
+
+    $metadata = getcwd() . '/deploy/info.php';
+
+    if (!file_exists($metadata)) {
+        echo "Hmmm... I didn't find a deploy/info.php file.\n";
+        exit(1);
+    }
+
+    // Load dependencies
+    // Chicken/egg.  Need to know the basename in order to load translations
+    //----------------------------------------------------------------------
+
+    $basename = getcwd();
+    $basename = preg_replace('/.*\/apps\//', '', $basename);
+    $basename = preg_replace('/.*\/themes\//', '', $basename);
+    $basename = preg_replace('/\/.*/', '', $basename);
+
+    clearos_load_language('base');
+    clearos_load_language($basename);
+
+    include_once $metadata;
+
+    if ($basename != $app['basename']) {
+        echo "Basename " . $app['basename'] . " does not match detected directory " . $basename . "\n";
+        exit(1);
+    }
+
+    return $app;
 }
