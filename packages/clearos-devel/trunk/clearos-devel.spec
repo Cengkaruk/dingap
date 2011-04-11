@@ -3,15 +3,15 @@
 #------------------------------------------------------------------------------
 
 Name: clearos-devel
-Version: 6.0
-Release: 0.4%{dist}
+Version: 6.0.0.0
+Release: 1%{dist}
 Summary: ClearOS developer tools
 License: GPLv3
 Group: ClearOS/Tools
 Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
-# FIXME: these are from EPEL, so we'll have a broken repo with these dpes
+# FIXME: these are from EPEL, so we'll have a broken repo with these deps
 Requires: clearos-base
 Requires: clearos-coding-standard
 Requires: phpdoc

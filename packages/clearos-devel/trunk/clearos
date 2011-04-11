@@ -52,6 +52,9 @@ use \clearos\framework\Config as Config;
 // M A I N
 ///////////////////////////////////////////////////////////////////////////////
 
+$short_options  = '';
+$short_options .= 'h';  // Help
+
 $actions = array(
     'build' => 'Builds an RPM in the build system',
     'local' => 'Builds an RPM on the local system',
