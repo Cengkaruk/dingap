@@ -1,8 +1,8 @@
 
 Name: app-date
 Group: ClearOS/Apps
-Version: 6.0
-Release: 0.2
+Version: 5.9.9.0
+Release: 1
 Summary: Date and time settings
 License: GPLv3
 Packager: ClearFoundation
