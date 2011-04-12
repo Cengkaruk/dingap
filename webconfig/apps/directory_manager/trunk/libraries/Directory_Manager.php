@@ -96,12 +96,14 @@ class Directory_Manager extends Engine
     const DRIVER_OPENLDAP = 'openldap';
     const DRIVER_SAMBA = 'samba';
 
+    const FILE_STATE = '/var/clearos/directory_manager/state';
+    const PATH_DRIVERS = '/var/clearos/directory_manager/drivers';
+    const PATH_PLUGINS = '/var/clearos/directory_manager/plugins';
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $file_config = NULL;
-    protected $path_drivers = NULL;
     protected $path_plugins = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -116,8 +118,6 @@ class Directory_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->file_config = clearos_app_base('directory_manager') . '/config/config.php';
-        $this->path_drivers = clearos_app_base('directory_manager') . '/config/drivers';
         $this->path_plugins = clearos_app_base('directory_manager') . '/config/plugins';
     }
 
@@ -132,9 +132,12 @@ class Directory_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File($this->file_config);
+        $file = new File(self::FILE_STATE);
 
-        $driver = $file->lookup_value('/^driver =/');
+        if ($file->exists())
+            $driver = $file->lookup_value('/^driver =/');
+        else
+            $driver = '';
 
         return $driver;
     }
@@ -152,7 +155,7 @@ class Directory_Manager extends Engine
 
         $drivers = array();
 
-        $folder = new Folder($this->path_drivers);
+        $folder = new Folder(self::PATH_DRIVERS);
 
         $list = $folder->get_listing();
 
@@ -161,7 +164,7 @@ class Directory_Manager extends Engine
                 $driver = array();
                 $name = preg_replace('/\.php$/', '', $driver_file);
 
-                include $this->path_drivers . '/' . $driver_file;
+                include self::PATH_DRIVERS . '/' . $driver_file;
 
                 $drivers[$name] = $driver;
             }
@@ -244,7 +247,7 @@ class Directory_Manager extends Engine
 
         Validation_Exception::is_valid($this->validate_driver($driver));
 
-        $file = new File($this->file_config);
+        $file = new File(self::FILE_STATE);
 
         if ($file->exists())
             $file->delete();

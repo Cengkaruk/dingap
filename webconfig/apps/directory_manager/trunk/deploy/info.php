@@ -1,7 +1,7 @@
 <?php
 
 $app['basename'] = 'directory_manager';
-$app['version'] = '6.0.0';
+$app['version'] = '5.9.9.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -16,4 +16,18 @@ $app['subcategory'] = lang('base_subcategory_directory');
 
 // Packaging
 $app['core_dependencies'] = array('app-base', 'app-samba-core');
+
+$app['core_directory_manifest'] = array(
+   '/var/clearos/directory_manager/drivers' => array(
+        'mode' => '0755',
+        'onwer' => 'root',
+        'group' => 'root',
+    ),
+
+   '/var/clearos/directory_manager/plugins' => array(
+        'mode' => '0755',
+        'onwer' => 'root',
+        'group' => 'root',
+    ),
+);
 
