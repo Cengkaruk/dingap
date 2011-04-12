@@ -430,15 +430,31 @@ function spec($options)
     // Build file manifest
     //--------------------
 
-    $core_manifest = '';
-    $install_files = '';
+    $core_directories_manifest = '';	
+    $core_directories_install = '';	
+    $core_files_manifest = '';
+    $core_files_install = '';
 
-    if (isset($app['manifest'])) {
-        foreach ($app['manifest'] as $file => $details) {
-            $core_manifest .= $details['target'] . "\n";
-            $install_files .= 'install -D -m ' . $details['mode'] . ' packaging/' . $file . ' %{buildroot}' . $details['target'] . "\n";
+    if (isset($app['core_file_manifest'])) {
+        foreach ($app['core_file_manifest'] as $file => $details) {
+            $core_files_manifest .= $details['target'] . "\n";
+            $core_files_install .= 'install -D -m ' . $details['mode'] . ' packaging/' . $file . ' %{buildroot}' . $details['target'] . "\n";
         }
     }
+
+    if (isset($app['core_directory_manifest'])) {
+        foreach ($app['core_directory_manifest'] as $directory => $details) {
+            $core_directories_manifest .= '%dir ' . $directory . "\n";
+            $core_directories_install .= 'install -d -m ' . $details['mode'] . ' %{buildroot}' . $directory . "\n";
+        }
+    }
+
+/*
+    $core_files_manifest = trim($core_files_manifest);
+    $core_files_install = trim($core_files_install);
+    $core_directories_manifest = trim($core_directories_manifest);
+    $core_directories_install = trim($core_directories_install);
+*/
 
     // Build dependencies
     //-------------------
@@ -484,7 +500,7 @@ Core API and install for {$app['package_name']}
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/{$app['basename']}
 cp -r * %{buildroot}/usr/clearos/apps/{$app['basename']}/
 
-$install_files
+$core_directories_install$core_files_install
 %post
 logger -p local6.notice -t installer '{$app['package_name']} - installing'
 
@@ -523,11 +539,11 @@ exit 0
 %exclude /usr/clearos/apps/{$app['basename']}/packaging
 %exclude /usr/clearos/apps/{$app['basename']}/tests
 %dir /usr/clearos/apps/{$app['basename']}
-/usr/clearos/apps/{$app['basename']}/config
+" . $core_directories_manifest . "/usr/clearos/apps/{$app['basename']}/config
 /usr/clearos/apps/{$app['basename']}/deploy
 /usr/clearos/apps/{$app['basename']}/language
 /usr/clearos/apps/{$app['basename']}/libraries
-$core_manifest";
+$core_files_manifest";
 
     $spec_file = 'packaging/' . $app['package_name'] . '.spec';
 
