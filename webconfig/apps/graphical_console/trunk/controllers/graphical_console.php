@@ -1,35 +1,33 @@
 <?php
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Graphical console controller.
+ *
+ * @category   Apps
+ * @package    Graphical_Console
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/graphical_console/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
+// it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU Lesser General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
-
-/**
- * Graphical console controller.
- *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
- * @copyright Copyright 2010, ClearFoundation
- * @link http://www.clearfoundation.com	
- */
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -38,55 +36,57 @@
 /**
  * Graphical console controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU General Public License version 3 or later
- * @copyright Copyright 2010, ClearFoundation
- * @link http://www.clearfoundation.com	
+ * @category   Apps
+ * @package    Graphical_Console
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/graphical_console/
  */
 
-class Graphical_console extends ClearOS_Controller 
+class Graphical_Console extends ClearOS_Controller
 {
-	/**
-	 * Default controller.
-	 */
+    /**
+     * Default controller.
+     *
+     * @return view
+     */
 
-	function index()
-	{
-		redirect('/graphical_console/kill');
-	}
+    function index()
+    {
+        // FIXME
+        echo "show something here";
+    }
 
-	/**
-	 * Kill console.
-	 */
+    /**
+     * Kill console.
+     *
+     * @return void
+     */
 
-	function kill()
-	{
-		// Load libraries
-		//---------------
+    function shutdown()
+    {
+        // Load libraries
+        //---------------
 
-		$this->load->library('graphical_console/GraphicalConsole');
+        $this->load->library('graphical_console/Graphical_Console');
 
-		// Handle kill action
-		//-------------------
+        // Handle shutdown
+        //----------------
 
-		try {
-			$this->graphicalconsole->killprocess();
-		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage());
-			return;
-		}
+        try {
+            $this->graphical_console->shutdown();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
-		$this->page->set_title(lang('base_console'));
-		$this->page->set_layout(MY_Page::TYPE_SPLASH);
+        $page['type'] = MY_Page::TYPE_SPLASH;
 
-		$this->load->view('theme/header');
-		$this->load->view('theme/footer');
-	}
+        $this->page->view_form('shutdown', array(), lang('base_shutdown'), $page);
+    }
 }
-
-// vim: syntax=php ts=4
-?>

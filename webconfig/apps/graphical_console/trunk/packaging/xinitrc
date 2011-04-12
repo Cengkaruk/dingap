@@ -1,2 +1,2 @@
 /usr/bin/ratpoison &
-/usr/bin/xconsole
+/usr/bin/gconsole

@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2011 ClearFoundation
-//
+/**
+ * Graphical console class.
+ *
+ * @category   Apps
+ * @package    Graphical_Console
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/graphical_console/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,29 +29,37 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Graphical console class.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2011 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\graphical_console;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
 $bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('graphical_console');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\base\Software as Software;
+
+clearos_load_library('base/Shell');
 clearos_load_library('base/Software');
-clearos_load_library('base/ShellExec');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -52,55 +68,51 @@ clearos_load_library('base/ShellExec');
 /**
  * Graphical console class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2011 ClearFoundation
+ * @category   Apps
+ * @package    Graphical_Console
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/graphical_console/
  */
 
-class GraphicalConsole extends Software {
+class Graphical_Console extends Software
+{
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////////
-	// C O N S T A N T S
-	///////////////////////////////////////////////////////////////////////////////
+    const COMMAND_KILLALL = '/usr/bin/killall';
 
-    const COMMAND_KILLALL = "/usr/bin/killall";
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    /**
+     * Graphical console constructor.
+     */
 
-	/**
-	 * Graphical console constructor.
-	 */
+    public function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-	public function __construct()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
+        parent::__construct('app-graphical-console');
+    }
 
-		parent::__construct("app-graphical-console");
-	}
+    /**
+     * Kills the webconfig console.
+     *
+     * @return void
+     * @throws EngineException
+     */
 
-	/**
-	 * Kills the webconfig console.
-	 *
-	 * @return void
-	 * @throws EngineException
-	 */
+    public function shutdown()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-	public function KillProcess()
-	{
-		ClearOsLogger::Profile(__METHOD__, __LINE__);
-
-		try {
-			$shell = new ShellExec();
-			$shell->Execute(GraphicalConsole::COMMAND_KILLALL, 'X', TRUE);
-		} catch (Exception $e) {
-			throw new EngineException($e->GetMessage(), ClearOsError::CODE_ERROR);
-		}
-	}
+        $options['validate_exit_code'] = FALSE;
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_KILLALL, '-q X', TRUE, $options);
+    }
 }
-
-// vim: syntax=php ts=4
-?>
