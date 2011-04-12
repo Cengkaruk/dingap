@@ -24,6 +24,7 @@ $lang['directory_manager_bind_password'] = 'LDAP Bind Password';
 // New
 $lang['directory_manager_state'] = 'State';
 $lang['directory_manager_directory_mode_is_invalid'] = 'Directory mode is invalid';
+$lang['directory_manager_directory_driver_is_invalid'] = 'Directory driver is invalid';
 $lang['directory_manager_master_directory_hostname'] = 'Master Hostname';
 $lang['directory_manager_master_directory_password'] = 'Master Password';
 $lang['directory_manager_realm'] = 'Realm';
