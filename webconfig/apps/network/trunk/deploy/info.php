@@ -24,7 +24,8 @@ $app['core_dependencies'] = array(
     'ppp',
     'rp-pppoe',
 );
-$app['manifest'] = array(
+
+$app['core_file_manifest'] = array(
    'dhclient-exit-hooks' => array(
         'target' => '/etc/dhclient-exit-hooks',
         'mode' => '0644',
