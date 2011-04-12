@@ -19,9 +19,10 @@ Summary: Core libraries and install for app-graphical-console
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: mesa-dri-drivers
+Requires: dbus-x11
+Requires: gconsole
 Requires: ratpoison
-Requires: xconsole
+Requires: urw-fonts
 Requires: xorg-x11-drivers
 Requires: xorg-x11-server-Xorg
 Requires: xorg-x11-xinit
@@ -38,6 +39,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/graphical_console
 cp -r * %{buildroot}/usr/clearos/apps/graphical_console/
 
 install -D -m 0644 packaging/xinitrc %{buildroot}/var/lib/clearconsole/.xinitrc
+install -D -m 0644 packaging/Xdefaults %{buildroot}/var/lib/clearconsole/.Xdefaults
 
 %post
 logger -p local6.notice -t installer 'app-graphical-console - installing'
@@ -77,8 +79,8 @@ exit 0
 %exclude /usr/clearos/apps/graphical_console/packaging
 %exclude /usr/clearos/apps/graphical_console/tests
 %dir /usr/clearos/apps/graphical_console
-/usr/clearos/apps/graphical_console/config
 /usr/clearos/apps/graphical_console/deploy
 /usr/clearos/apps/graphical_console/language
 /usr/clearos/apps/graphical_console/libraries
 /var/lib/clearconsole/.xinitrc
+/var/lib/clearconsole/.Xdefaults

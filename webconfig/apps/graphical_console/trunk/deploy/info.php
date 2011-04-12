@@ -10,18 +10,18 @@ $app['license_core'] = 'LGPLv3';
 $app['summary'] = 'Graphical console tool.';
 $app['description'] = 'Graphical console tool for configuring the network.'; // FIXME: translate
 
-/*
-$app['name'] = lang('date_time_and_date');
+$app['name'] = 'Graphical Console'; // FIXME: translate
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
-*/
 
 // Packaging
+//    'mesa-dri-drivers',
 $app['core_dependencies'] = array(
     'app-base-core',
-    'mesa-dri-drivers',
+    'dbus-x11',
+    'gconsole',
     'ratpoison',
-    'xconsole',
+    'urw-fonts',
     'xorg-x11-drivers',
     'xorg-x11-server-Xorg',
     'xorg-x11-xinit',
@@ -34,5 +34,10 @@ $app['core_file_manifest'] = array(
         'onwer' => 'root',
         'group' => 'root',
     ),
+   'Xdefaults' => array(
+        'target' => '/var/lib/clearconsole/.Xdefaults',
+        'mode' => '0644',
+        'onwer' => 'root',
+        'group' => 'root',
+    ),
 );
-
