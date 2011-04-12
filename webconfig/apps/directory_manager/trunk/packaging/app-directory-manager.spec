@@ -75,7 +75,6 @@ exit 0
 %dir /usr/clearos/apps/directory_manager
 %dir /var/clearos/directory_manager/drivers
 %dir /var/clearos/directory_manager/plugins
-/usr/clearos/apps/directory_manager/config
 /usr/clearos/apps/directory_manager/deploy
 /usr/clearos/apps/directory_manager/language
 /usr/clearos/apps/directory_manager/libraries
