@@ -210,31 +210,9 @@ function initialize_master_or_standalone($mode, $options)
     // Initialize the directory
     //-------------------------
 
-    // KLUDGE: shutdown Samba or it will try to write information to LDAP
-
-    $samba = new Samba();
-
-    if ($samba->is_installed())
-        $samba->set_running_state(FALSE);
-
-    // By default, bind only to localhost on a standalone system.
-
-    if ($mode === Directory_Manager::MODE_MASTER) 
-        $policy = Directory::POLICY_LAN;
-    else
-        $policy = Directory::POLICY_LOCALHOST;
-
     try {
-        $directory->initialize($mode, $domain, $password, FALSE, TRUE, $force);
-        $directory->set_security_policy($policy);
-
-        // Initialize Samba elements in LDAP
-/*
-            if (!$samba->IsDirectoryInitialized()) {
-                $workgroup = $samba->GetWorkgroup();
-                $samba->InitializeDirectory($workgroup);
-            }
-*/
+        $directory->initialize_master($domain, $password, $force);
+        // $directory->initialize_slave("clearos5x.lan", 'clearos', '192.168.2.248', $force);
         echo "Success!\n";
     } catch (Exception $e) {
         echo lang('base_error') . " - " . clearos_exception_message($e) . "\n";
