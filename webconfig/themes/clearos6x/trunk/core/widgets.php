@@ -312,14 +312,18 @@ function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
 // F O R M  H E A D E R / F O O T E R
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_form_header($title)
+function theme_form_header($title, $id = NULL)
 {
-    return "<div class='theme-form-header'>\n";
+    $id_html = (is_null($id)) ? '' : " id=$id";
+
+    return "<div class='theme-form-header'$id_html>\n";
 }
 
-function theme_form_footer()
+function theme_form_footer($id = NULL)
 {
-    return "</div><div class='theme-form-footer'></div>\n";
+    $id_html = (is_null($id)) ? '' : " id=$id";
+
+    return "</div>\n<div class='theme-form-footer'$id_html></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -546,6 +550,43 @@ $item_html
    </tbody>$legend_html
   </table>
 </div>
+    ";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// I N F O  B O X
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Displays simple info boxes.
+ *
+ * There are four types of info boxes:
+ * - critical (not good... not good at all)
+ * - warning  (bad, but we can cope)
+ * - highlight (here's something you should know...)
+ */
+
+function theme_infobox($type, $title, $message)
+{
+    if ($type === 'critical') {
+        $class = 'ui-state-error';
+        $iconclass = 'ui-icon-alert';
+    } else if ($type === 'warning') {
+        $class = 'ui-state-highlight';
+        $iconclass = 'ui-icon-info';
+    } else if ($type === 'highlight') {
+        $class = 'ui-state-default';
+        $iconclass = 'ui-icon-info';
+    }
+
+    return "
+        <div class='ui-widget'>
+            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+                <h2>$title</h2>
+                <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
+                $message
+            </div>
+        </div>
     ";
 }
 

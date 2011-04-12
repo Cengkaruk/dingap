@@ -188,9 +188,7 @@ function _splash_page($page)
 		<div class='green-stroke-right'></div>
 		</div>
 		<div class='theme-core-content'>
-		" .
-            _get_app($page) .
-        "
+        " . $page['app_view'] . "
 		</div>
     </div>
 </div>
