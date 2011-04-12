@@ -196,7 +196,7 @@ div.theme-button-set { color: red; background-image: url(); }
 }
 .theme-summary-table-title { 
   float: left;
-  padding-left: 8px;
+  padding-left: 10px;
   padding-top: 3px;
   font-weight: normal;
   font-size: 14px;
@@ -219,7 +219,7 @@ div.theme-button-set { color: red; background-image: url(); }
   ^background-position: 0 0;
 /* Peter: reduced width/max-width by 250 */
   ^width: 460px;
-	
+  margin-bottom: -10px;
 }
 
 .theme-form-header .theme-fieldset {
@@ -232,7 +232,7 @@ div.theme-button-set { color: red; background-image: url(); }
 
 .theme-form-header .theme-fieldset .theme-fieldset-legend {
   border-bottom: none;
-  padding-left: 10px;
+  padding-left: 15px;
   margin-left: 0px;
   ^margin-left: -8px;
   padding-top: 0px;
@@ -296,17 +296,14 @@ div.theme-button-set { color: red; background-image: url(); }
 }
 
 .theme-form-header .theme-button-set {
-  background-image: url(../images/widget-bottom2.png);
-  background-position: 0 0px;
-  background-repeat: no-repeat;
-  border-top: none;
-  border-bottom: none;
+
   padding-left: 10px;
   padding-top: 0px;
   ^padding-top: 5px;
-  padding-bottom: 15px;
+  padding-bottom: 0px;
   margin-left: 0px;
   ^margin-left: 0px;
+  float: left;
 /* Peter: reduced width by 250 */
 /*
   width: 716px;
@@ -318,12 +315,27 @@ div.theme-button-set { color: red; background-image: url(); }
 
 .theme-form-header .theme-button-set, x:-moz-any-link, x:default {
 	background-position: 0 -5px;
-	padding-bottom: 10px;
+	padding-bottom: 0px;
 	^background-position: 0 12px;
 	^padding-bottom: 15px;
+	float: left;
 }
 
+.theme-fieldview label {
+	margin-left: 15px;
+	line-height: 18px;
+}
+ 
+.theme-dropdown {
+  margin-left: 15px;	
+}
 
+.theme-form-footer {
+  background-image: url(../images/widget-bottom2.png);
+  height: 35px;
+  width: 509px;
+  margin-top: 0px;
+}
 
 /* ------------------------------------------------------------------------- */
 /* Summary Box */
@@ -413,10 +425,11 @@ div.theme-button-set { color: red; background-image: url(); }
   position: relative;
   margin-top: 0px;
   top: 0px; 
-  left: 5px;
+  left: 14px;
   color: #98bb60;
   font-weight: normal;
   font-size: 14px;
+  width: 700px;
 }
 
 

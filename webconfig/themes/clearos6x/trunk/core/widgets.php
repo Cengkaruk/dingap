@@ -451,12 +451,11 @@ function theme_dialogbox_info($message)
 // FIXME - work in progress
 // FIXME - icons and translate
     $class = 'ui-state-highlight';
-    $iconclass = 'ui-icon-info';
 
     return "
         <div class='ui-widget'>
             <div class='ui-corner-all theme-dialogbox-info $class'>
-               <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message
+               $message
             </div>
         </div>
     ";
@@ -571,9 +570,11 @@ function theme_help_box($data)
 {
     // FIXME: translate
     $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
+	$iconclass = 'ui-icon-info';
 
     return theme_dialogbox_info("
             <h3>Help Box</h3>
+			<span class='ui-icon $iconclass' style='float: right; margin-right: 5px;'></span>$message
             <p>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
             <p>" . $data['description'] . "</p>
             $tooltip
