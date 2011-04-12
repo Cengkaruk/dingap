@@ -539,8 +539,7 @@ exit 0
 %exclude /usr/clearos/apps/{$app['basename']}/packaging
 %exclude /usr/clearos/apps/{$app['basename']}/tests
 %dir /usr/clearos/apps/{$app['basename']}
-" . $core_directories_manifest . "/usr/clearos/apps/{$app['basename']}/config
-/usr/clearos/apps/{$app['basename']}/deploy
+" . $core_directories_manifest . "/usr/clearos/apps/{$app['basename']}/deploy
 /usr/clearos/apps/{$app['basename']}/language
 /usr/clearos/apps/{$app['basename']}/libraries
 $core_files_manifest";
