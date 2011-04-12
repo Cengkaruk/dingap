@@ -52,9 +52,23 @@ clearos_load_language('directory_manager');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
 
 clearos_load_library('base/Engine');
+clearos_load_library('base/File');
+clearos_load_library('base/Folder');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -78,20 +92,17 @@ class Directory_Manager extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    // Modes
-    //------
-
-    const MODE_ACTIVE_DIRECTORY = 'ad';
-    const MODE_MASTER = 'master';
-    const MODE_SIMPLE_MASTER = 'simple_master';
-    const MODE_SLAVE = 'slave';
-    const MODE_STANDALONE = 'standalone';
+    const DRIVER_ACTIVE_DIRECTORY = 'active_directory';
+    const DRIVER_OPENLDAP = 'openldap';
+    const DRIVER_SAMBA = 'samba';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $modes = array();
+    protected $file_config = NULL;
+    protected $path_drivers = NULL;
+    protected $path_plugins = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -105,13 +116,9 @@ class Directory_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->modes = array(
-            self::MODE_ACTIVE_DIRECTORY => lang('directory_manager_active_directory'),
-            self::MODE_SIMPLE_MASTER => lang('directory_manager_simple_master'),
-            self::MODE_MASTER => lang('directory_manager_master'),
-            self::MODE_SLAVE => lang('directory_manager_slave'),
-            self::MODE_STANDALONE => lang('directory_manager_standalone')
-        );
+        $this->file_config = clearos_app_base('directory_manager') . '/config/config.php';
+        $this->path_drivers = clearos_app_base('directory_manager') . '/config/drivers';
+        $this->path_plugins = clearos_app_base('directory_manager') . '/config/plugins';
     }
 
     /**
@@ -125,8 +132,9 @@ class Directory_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $driver = 'active_directory';
-        $driver = 'openldap';
+        $file = new File($this->file_config);
+
+        $driver = $file->lookup_value('/^driver =/');
 
         return $driver;
     }
@@ -138,11 +146,28 @@ class Directory_Manager extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_modes()
+    public function get_drivers()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->modes;
+        $drivers = array();
+
+        $folder = new Folder($this->path_drivers);
+
+        $list = $folder->get_listing();
+
+        foreach ($list as $driver_file) {
+            if (! preg_match('/^\./', $driver_file)) {
+                $driver = array();
+                $name = preg_replace('/\.php$/', '', $driver_file);
+
+                include $this->path_drivers . '/' . $driver_file;
+
+                $drivers[$name] = $driver;
+            }
+        }
+
+        return $drivers;
     }
 
     /**
@@ -206,25 +231,50 @@ class Directory_Manager extends Engine
         return $map;
     }
 
+    /**
+     * Sets the directory driver.
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function set_driver($driver)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_driver($driver));
+
+        $file = new File($this->file_config);
+
+        if ($file->exists())
+            $file->delete();
+
+        $file->create('root', 'root', '0644');
+
+        $file->add_lines("driver = $driver\n");
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validates mode.
+     * Validates driver.
      *
-     * @param string $mode mode
+     * @param string $driver driver
      *
-     * @return string error message if mode is invalid
+     * @return string error message if driver is invalid
      * @throws Engine_Exception
      */
 
-    public function validate_mode($mode)
+    public function validate_driver($driver)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! array_key_exists($mode, $this->modes))
-            return lang('directory_manager_directory_mode_is_invalid');
+        $drivers = $this->get_drivers();
+
+        if (! array_key_exists($driver, $drivers))
+            return lang('directory_manager_directory_driver_is_invalid');
     }
 
     /**

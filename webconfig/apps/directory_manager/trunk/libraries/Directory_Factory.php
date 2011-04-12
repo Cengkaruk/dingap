@@ -74,7 +74,7 @@ clearos_load_library('base/Engine');
  * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
  */
 
-class Directory extends Engine
+class Directory_Factory extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -109,12 +109,13 @@ class Directory extends Engine
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public static function create($driver)
+    public static function create($driver = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // TODO: move this to a config file of course
-        $driver = 'openldap';
+        if ($driver === NULL)
+            $driver = 'openldap';
 
         clearos_load_library($driver . '/Directory_Driver');
 
