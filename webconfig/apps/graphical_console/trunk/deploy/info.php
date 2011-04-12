@@ -27,7 +27,7 @@ $app['core_dependencies'] = array(
     'xorg-x11-xinit',
 );
 
-$app['manifest'] = array( 
+$app['core_file_manifest'] = array( 
    'xinitrc' => array(
         'target' => '/var/lib/clearconsole/.xinitrc',
         'mode' => '0644',
