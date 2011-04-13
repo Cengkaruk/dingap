@@ -8,22 +8,26 @@ License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-Requires: %{name}-core = %{version}-%{release}
 Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
+Requires: app-network
 
 %description
 The PPTP provides a VPN server for end users.
 
 %package core
-Summary: Core libraries and install for app-pptpd
+Summary: PPTP VPN Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
-Requires: app-base
-Requires: app-network
+Requires: app-base-core
+Requires: app-network-core
 Requires: pptpd >= 1.3.4
 
 %description core
-Core API and install for app-pptpd
+The PPTP provides a VPN server for end users.
+
+This package provides the core API and libraries.
 
 %prep
 %setup -q
