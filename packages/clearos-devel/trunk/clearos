@@ -449,26 +449,28 @@ function spec($options)
         }
     }
 
-/*
-    $core_files_manifest = trim($core_files_manifest);
-    $core_files_install = trim($core_files_install);
-    $core_directories_manifest = trim($core_directories_manifest);
-    $core_directories_install = trim($core_directories_install);
-*/
-
     // Build dependencies
     //-------------------
 
+    $dependencies = '';
     $core_dependencies = '';
 
-    foreach ($app['core_dependencies'] as $dependency)
-        $core_dependencies .= "Requires: $dependency\n";
+    if (isset($app['dependencies'])) {
+        foreach ($app['dependencies'] as $dependency)
+            $dependencies .= "Requires: $dependency\n";
+    }
 
+    if (isset($app['core_dependencies'])) {
+        foreach ($app['core_dependencies'] as $dependency)
+            $core_dependencies .= "Requires: $dependency\n";
+    }
 
-    // Template
-    //---------
+    // Template for both core and base RPMS
+    //-------------------------------------
 
-    $spec = "
+    if (!isset($app['core_only']) || (!$app['core_only'])) {
+
+        $spec = "
 Name: {$app['package_name']}
 Group: ClearOS/Apps
 Version: {$app['version']}
@@ -478,19 +480,23 @@ License: {$app['license']}
 Packager: {$app['packager']}
 Vendor: {$app['vendor']}
 Source: %{name}-%{version}.tar.gz
-Requires: %{name}-core = %{version}-%{release}
 Buildarch: noarch
-
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
+" . $dependencies . "
 %description
 {$app['description']}
 
 %package core
-Summary: Core libraries and install for {$app['package_name']}
+Summary: {$app['summary']} - APIs and install
 Group: ClearOS/Libraries
 License: {$app['license_core']}
+Requires: app-base-core
 $core_dependencies
 %description core
-Core API and install for {$app['package_name']}
+{$app['description']}
+
+This package provides the core API and libraries.
 
 %prep
 %setup -q
@@ -543,6 +549,69 @@ exit 0
 /usr/clearos/apps/{$app['basename']}/language
 /usr/clearos/apps/{$app['basename']}/libraries
 $core_files_manifest";
+
+
+// Template for both core and base RPMS
+//-------------------------------------
+
+} else {
+$spec = "
+Name: {$app['package_name']}-core
+Group: ClearOS/Libraries
+Version: {$app['version']}
+Release: {$app['release']}
+Summary: {$app['summary']} - APIs and install
+License: {$app['license_core']}
+Packager: {$app['packager']}
+Vendor: {$app['vendor']}
+Source: {$app['package_name']}-%{version}.tar.gz
+Buildarch: noarch
+Requires: app-base-core
+" . $dependencies . "
+%description
+{$app['description']}
+
+This package provides the core API and libraries.
+
+%prep
+%setup -q -n {$app['package_name']}-%{version}
+%build
+
+%install
+mkdir -p -m 755 %{buildroot}/usr/clearos/apps/{$app['basename']}
+cp -r * %{buildroot}/usr/clearos/apps/{$app['basename']}/
+
+$core_directories_install$core_files_install
+%post
+logger -p local6.notice -t installer '{$app['package_name']}-core - installing'
+
+if [ $1 -eq 1 ]; then
+    [ -x /usr/clearos/apps/{$app['basename']}/deploy/install ] && /usr/clearos/apps/{$app['basename']}/deploy/install
+fi
+
+[ -x /usr/clearos/apps/{$app['basename']}/deploy/upgrade ] && /usr/clearos/apps/{$app['basename']}/deploy/upgrade
+
+exit 0
+
+%preun
+if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer '{$app['package_name']}-core - uninstalling'
+    [ -x /usr/clearos/apps/{$app['basename']}/deploy/uninstall ] && /usr/clearos/apps/{$app['basename']}/deploy/uninstall
+fi
+
+exit 0
+
+%files
+%defattr(-,root,root)
+%exclude /usr/clearos/apps/{$app['basename']}/packaging
+%exclude /usr/clearos/apps/{$app['basename']}/tests
+%dir /usr/clearos/apps/{$app['basename']}
+" . $core_directories_manifest . "/usr/clearos/apps/{$app['basename']}/deploy
+/usr/clearos/apps/{$app['basename']}/language
+/usr/clearos/apps/{$app['basename']}/libraries
+$core_files_manifest";
+}
+
 
     $spec_file = 'packaging/' . $app['package_name'] . '.spec';
 
