@@ -1,5 +1,9 @@
 <?php
 
+/////////////////////////////////////////////////////////////////////////////
+// General information
+/////////////////////////////////////////////////////////////////////////////
+
 $app['basename'] = 'directory_manager';
 $app['version'] = '5.9.9.0';
 $app['release'] = '1';
@@ -10,12 +14,24 @@ $app['license_core'] = 'LGPLv3';
 $app['summary'] = 'Directory management and setup.'; // FIXME: translate
 $app['description'] = 'The Directory Manager provides... blah blah blah'; // FIXME: translate
 
+/////////////////////////////////////////////////////////////////////////////
+// App name and categories
+/////////////////////////////////////////////////////////////////////////////
+
 $app['name'] = lang('directory_manager_directory_manager');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
+$app['menu_enabled'] = FALSE;
 
+/////////////////////////////////////////////////////////////////////////////
 // Packaging
-$app['core_dependencies'] = array('app-base', 'app-samba-core');
+/////////////////////////////////////////////////////////////////////////////
+
+$app['core_only'] = TRUE;
+
+$app['core_dependencies'] = array(
+    'app-samba-core'
+);
 
 $app['core_directory_manifest'] = array(
    '/var/clearos/directory_manager/drivers' => array(
@@ -30,4 +46,3 @@ $app['core_directory_manifest'] = array(
         'group' => 'root',
     ),
 );
-
