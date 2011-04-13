@@ -21,12 +21,7 @@ $app['description'] = 'Synchronize the clock and set the date and time zone.'; /
 $app['name'] = lang('date_time_and_date');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
-
-/////////////////////////////////////////////////////////////////////////////
-// Controllers
-/////////////////////////////////////////////////////////////////////////////
-
-$app['controllers']['date']['title'] = lang('date_time_and_date');
+$app['menu_enabled'] = TRUE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
