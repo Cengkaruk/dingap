@@ -8,14 +8,14 @@ License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-Requires: %{name}-core = %{version}-%{release}
 Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
 
 %description
 Graphical console tool for configuring the network.
 
 %package core
-Summary: Core libraries and install for app-graphical-console
+Summary: Graphical console tool - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -28,7 +28,9 @@ Requires: xorg-x11-server-Xorg
 Requires: xorg-x11-xinit
 
 %description core
-Core API and install for app-graphical-console
+Graphical console tool for configuring the network.
+
+This package provides the core API and libraries.
 
 %prep
 %setup -q
