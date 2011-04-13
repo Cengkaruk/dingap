@@ -8,22 +8,24 @@ License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-Requires: %{name}-core = %{version}-%{release}
 Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
 
 %description
 Synchronize the clock and set the date and time zone.
 
 %package core
-Summary: Core libraries and install for app-date
+Summary: Date and time settings - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
-Requires: app-base-core
 Requires: app-cron-core
 Requires: ntpdate >= 4.2.4p8
 
 %description core
-Core API and install for app-date
+Synchronize the clock and set the date and time zone.
+
+This package provides the core API and libraries.
 
 %prep
 %setup -q
@@ -74,7 +76,6 @@ exit 0
 %exclude /usr/clearos/apps/date/packaging
 %exclude /usr/clearos/apps/date/tests
 %dir /usr/clearos/apps/date
-/usr/clearos/apps/date/config
 /usr/clearos/apps/date/deploy
 /usr/clearos/apps/date/language
 /usr/clearos/apps/date/libraries

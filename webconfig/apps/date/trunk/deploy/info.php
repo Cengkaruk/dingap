@@ -15,7 +15,13 @@ $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
 
 // Packaging
-$app['core_dependencies'] = array('app-base-core', 'app-cron-core', 'ntpdate >= 4.2.4p8');
+$app['dependencies'] = array('app-base');
+
+$app['core_dependencies'] = array(
+    'app-cron-core', 
+    'ntpdate >= 4.2.4p8'
+);
+
 $app['core_file_manifest'] = array( 
    'app-date.cron' => array(
         'target' => '/etc/cron.d/app-date',
