@@ -35,6 +35,5 @@ $app['controllers']['trusted']['title'] = lang('smtp_trusted_networks');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_dependencies'] = array(
-    'app-base-core',
     'postfix >= 2.6.6'
 );
