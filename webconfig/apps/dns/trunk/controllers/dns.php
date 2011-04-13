@@ -74,7 +74,7 @@ class Dns extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('dns/summary', $data);
+        $this->page->view_form('dns/summary', $data, lang('dns_dns_server'));
     }
 
     /**
@@ -226,8 +226,8 @@ class Dns extends ClearOS_Controller
                 // Return to summary page with status message
                 $this->page->set_success(lang('base_system_updated'));
                 redirect('/dns');
-            } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message(), $view);
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -238,13 +238,12 @@ class Dns extends ClearOS_Controller
         try {
             if ($form_type === 'edit') 
                 $entry = $this->hosts->get_entry($ip);
-        } catch (Engine_Exception $e) {
-            $this->page->view_exception($e->get_message(), $view);
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
             return;
         }
 
         $data['form_type'] = $form_type;
-
         $data['ip'] = $ip;
         $data['hostname'] = isset($entry['hostname']) ? $entry['hostname'] : '';
         $data['aliases'] = isset($entry['aliases']) ? $entry['aliases'] : '';
@@ -252,6 +251,6 @@ class Dns extends ClearOS_Controller
         // Load the views
         //---------------
 
-        $this->page->view_form('dns/add_edit', $data);
+        $this->page->view_form('dns/add_edit', $data, lang('dns_dns_entry'));
     }
 }
