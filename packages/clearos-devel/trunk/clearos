@@ -437,7 +437,16 @@ function spec($options)
 
     if (isset($app['core_file_manifest'])) {
         foreach ($app['core_file_manifest'] as $file => $details) {
-            $core_files_manifest .= $details['target'] . "\n";
+            if (isset($details['config'])) {
+                if (isset($details['config_params'])) 
+                    $config = '%config(' . $details['config_params'] . ') ';
+                else 
+                    $config = '%config ';
+	    } else {	
+                $config = '';
+            }
+
+            $core_files_manifest .= $config . $details['target'] . "\n";
             $core_files_install .= 'install -D -m ' . $details['mode'] . ' packaging/' . $file . ' %{buildroot}' . $details['target'] . "\n";
         }
     }
