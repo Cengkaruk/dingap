@@ -8,21 +8,23 @@ License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-Requires: %{name}-core = %{version}-%{release}
 Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
 
 %description
 SMTP description blah blah blah...
 
 %package core
-Summary: Core libraries and install for app-smtp
+Summary: SMTP server and gateway - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: postfix >= 2.6.6
 
 %description core
-Core API and install for app-smtp
+SMTP description blah blah blah...
+
+This package provides the core API and libraries.
 
 %prep
 %setup -q
@@ -71,7 +73,6 @@ exit 0
 %exclude /usr/clearos/apps/smtp/packaging
 %exclude /usr/clearos/apps/smtp/tests
 %dir /usr/clearos/apps/smtp
-/usr/clearos/apps/smtp/config
 /usr/clearos/apps/smtp/deploy
 /usr/clearos/apps/smtp/language
 /usr/clearos/apps/smtp/libraries
