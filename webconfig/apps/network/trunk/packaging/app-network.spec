@@ -1,21 +1,22 @@
 
 Name: app-network
 Group: ClearOS/Apps
-Version: 6.0
-Release: 0.2
+Version: 5.9.9.0
+Release: 1
 Summary: Network configuration tool
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-Requires: %{name}-core = %{version}-%{release}
 Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
 
 %description
 Network description... blah blah
 
 %package core
-Summary: Core libraries and install for app-network
+Summary: Network configuration tool - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -27,7 +28,9 @@ Requires: ppp
 Requires: rp-pppoe
 
 %description core
-Core API and install for app-network
+Network description... blah blah
+
+This package provides the core API and libraries.
 
 %prep
 %setup -q
@@ -39,6 +42,7 @@ cp -r * %{buildroot}/usr/clearos/apps/network/
 
 install -D -m 0644 packaging/dhclient-exit-hooks %{buildroot}/etc/dhclient-exit-hooks
 install -D -m 0755 packaging/firewall-up %{buildroot}/usr/sbin/firewall-up
+install -D -m 0644 packaging/network %{buildroot}/etc/network
 
 %post
 logger -p local6.notice -t installer 'app-network - installing'
@@ -78,9 +82,9 @@ exit 0
 %exclude /usr/clearos/apps/network/packaging
 %exclude /usr/clearos/apps/network/tests
 %dir /usr/clearos/apps/network
-/usr/clearos/apps/network/config
 /usr/clearos/apps/network/deploy
 /usr/clearos/apps/network/language
 /usr/clearos/apps/network/libraries
 /etc/dhclient-exit-hooks
 /usr/sbin/firewall-up
+%config(noreplace) /etc/network
