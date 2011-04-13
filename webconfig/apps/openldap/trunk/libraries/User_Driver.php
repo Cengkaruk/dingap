@@ -217,7 +217,8 @@ class User_Driver extends Engine
         // Add LDAP attributes from extensions
         //------------------------------------
 
-        $ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
+// FIXME: re-enable
+        //$ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
 
         // Validation revisited - check for DN uniqueness
         //-----------------------------------------------
@@ -236,7 +237,7 @@ class User_Driver extends Engine
         //-------------------------
 
 print_r($ldap_object);
-//        $this->ldaph->add($dn, $ldap_object);
+        $this->ldaph->add($dn, $ldap_object);
 
         // FIXME: run plugin handler
         // for every plugin, add user to the plugin group
