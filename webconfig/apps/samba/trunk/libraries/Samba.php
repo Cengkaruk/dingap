@@ -74,11 +74,13 @@ clearos_load_library('users/User');
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\samba\Samba_Connection_Exception as Samba_Connection_Exception;
 use \clearos\apps\samba\Samba_Not_Initialized_Exception as Samba_Not_Initialized_Exception;
 use \clearos\apps\samba\Samba_Share_Not_Found_Exception as Samba_Share_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
+clearos_load_library('samba/Samba_Connection_Exception');
 clearos_load_library('samba/Samba_Not_Initialized_Exception');
 clearos_load_library('samba/Samba_Share_Not_Found_Exception');
 
@@ -97,7 +99,6 @@ clearos_load_library('samba/Samba_Share_Not_Found_Exception');
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/samba/
  */
-
 
 class Samba extends Daemon
 {
@@ -245,7 +246,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (!$this->IsValidShare($name))
             throw new Validation_Exception(SAMBA_LANG_SHARE . " - " . LOCALE_LANG_INVALID);
@@ -296,7 +297,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (! strlen($name))
             throw new Validation_Exception( SAMBA_LANG_SHARE . " - " . LOCALE_LANG_INVALID);
@@ -345,7 +346,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['add machine script']['value']))
             return "";
@@ -416,7 +417,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         $sambavalue = $this->_GetBoolean($this->shares['global']['domain logons']['value']);
 
@@ -439,7 +440,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         $sambavalue = $this->_GetBoolean($this->shares['global']['domain master']['value']);
 
@@ -509,7 +510,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->shares['global']['interfaces']['value'];
     }
@@ -527,7 +528,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         $sambavalue = $this->_GetBoolean($this->shares['global']['local master']['value']);
 
@@ -577,7 +578,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['logon drive']['value']))
             return "";
@@ -598,7 +599,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['logon home']['value']))
             return "";
@@ -619,7 +620,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['logon path']['value']))
             return "";
@@ -640,7 +641,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['logon script']['value']))
             return "";
@@ -701,7 +702,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->shares['global']['netbios name']['value'];
     }
@@ -719,7 +720,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['os level']['value']))
             return Samba::DEFAULT_OS_LEVEL;
@@ -740,7 +741,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['passwd chat']['value']))
             return "";
@@ -761,7 +762,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (empty($this->shares['global']['passwd program']['value']))
             return "";
@@ -782,7 +783,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         $sambavalue = $this->_GetBoolean($this->shares['global']['preferred master']['value']);
 
@@ -864,7 +865,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->shares['global']['security']['value'];
     }
@@ -882,7 +883,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->shares['global']['server string']['value'];
     }
@@ -900,7 +901,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         $shares = array();
 
@@ -927,7 +928,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (! $this->ShareExists($share))
             throw new Samba_Share_Not_Found_Exception($share);
@@ -1057,7 +1058,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->shares['global']['wins server']['value'];
     }
@@ -1075,7 +1076,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         $sambavalue = $this->_GetBoolean($this->shares['global']['wins support']['value']);
 
@@ -1220,7 +1221,7 @@ class Samba extends Daemon
             $this->_NetGrantDefaultPrivileges($password);
 
             // If PDC, join the local system to itself
-            $this->_NetRpcJoin($password);
+            $this->_net_rpc_join($password);
         } catch (Exception $e) {
             if (! $wasrunning)
                 $this->SetRunningState(FALSE);
@@ -1312,6 +1313,55 @@ class Samba extends Daemon
     }
 
     /**
+     * Runs net rpc join command.
+     *
+     * @access private
+     * @param string $password winadmin password
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function net_ads_join($server, $password, $administrator = 'Administrator')
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // FIXME: password handling via Shell
+        $options['env'] = 'LANG=en_US';
+        $options['validate_exit_code'] = FALSE;
+
+        $shell = new Shell();
+        $exit_code = $shell->execute(self::CMD_NET, 'ads join' .
+            " -S '$server' " .
+            " -U '" . $administrator . '%' . $password . "'", 
+            TRUE, 
+            $options
+        );
+
+        // Translate common error messages, fallback to command output
+        //------------------------------------------------------------
+
+        if ($exit_code !== 0) {
+            $output = $shell->get_last_output_line();
+
+            if (preg_match('/Logon failure/', $output))
+                $message = lang('samba_authentication_failure');
+            else if (preg_match('/network name cannot be found/', $output))
+                $message = lang('samba_server_name_could_not_be_found');
+            else if (preg_match('/connection was refused/', $output))
+                $message = lang('samba_connection_to_server_was_refused');
+            else if (preg_match('/NT_STATUS_HOST_UNREACHABLE/', $output))
+                $message = lang('samba_server_is_not_reachable');
+            else if (preg_match('/NT_STATUS_IO_TIMEOUT/', $output))
+                $message = lang('samba_server_response_took_too_long');
+            else
+                $message = $output;
+
+            throw new Samba_Connection_Exception($message);
+        }
+    }
+
+    /**
      * Gets workgroup name.
      *
      *
@@ -1324,7 +1374,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         return $this->shares['global']['workgroup']['value'];
     }
@@ -1585,7 +1635,7 @@ class Samba extends Daemon
             );
 
             // TODO: this should be the PDC name, not the local server
-            $pdc = $this->GetNetbiosName();
+            $pdc = $this->get_netbios_name();
             $entry = $this->ldaph->GetFirstEntry($result);
 
             while ($entry) {
@@ -1649,7 +1699,7 @@ class Samba extends Daemon
             );
 
             // TODO: this should be the PDC name, not the local server
-            $pdc = $this->GetNetbiosName();
+            $pdc = $this->get_netbios_name();
             $entry = $this->ldaph->GetFirstEntry($result);
             $usersou = ClearDirectory::GetUsersOu();
 
@@ -2352,7 +2402,7 @@ class Samba extends Daemon
         }
 
         try {
-            $workgroup = strtoupper($this->GetWorkgroup());
+            $workgroup = strtoupper($this->get_workgroup());
             $netbiosname = strtoupper($netbiosname);
         } catch (Exception $e) {
             $this->AddValidationError(LOCALE_LANG_ERRMSG_WEIRD, __METHOD__ ,__LINE__);
@@ -2423,10 +2473,11 @@ class Samba extends Daemon
      * @return  boolean  TRUE if workgroup is valid
      */
 
-    public function is_valid_workgroup($workgroup)
+    public function validate_workgroup($workgroup)
     {
         clearos_profile(__METHOD__, __LINE__);
 
+return '';
         $isvalid = TRUE;
 
         if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $workgroup) && (strlen($workgroup) <= 15))) {
@@ -2435,7 +2486,7 @@ class Samba extends Daemon
         }
 
         try {
-            $netbiosname = $this->GetNetbiosName();
+            $netbiosname = $this->get_netbios_name();
 
             $hostnameobj = new Hostname();
             $hostname = $hostnameobj->Get();
@@ -2916,7 +2967,7 @@ class Samba extends Daemon
         // TODO: validate
 
         try {
-            $domain = $this->GetWorkgroup();
+            $domain = $this->get_workgroup();
             $logondrive = $this->GetLogonDrive();
             $basedn = $this->ldaph->GetBaseDn();
 
@@ -3317,7 +3368,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $domain = $this->GetWorkgroup();
+            $domain = $this->get_workgroup();
             $options['stdin'] = TRUE;
 
             $shell = new Shell();
@@ -3347,8 +3398,8 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $domain = $this->GetWorkgroup();
-            $netbiosname = $this->GetNetbiosName();
+            $domain = $this->get_workgroup();
+            $netbiosname = $this->get_netbios_name();
 
             $options['stdin'] = TRUE;
 
@@ -3439,7 +3490,7 @@ class Samba extends Daemon
         sleep(3); // TODO: Wait for samba ... replace this with a loop
 
         if (! empty($winpassword))
-            $this->_NetRpcJoin($winpassword);
+            $this->_net_rpc_join($winpassword);
     }
 
     /**
@@ -3621,7 +3672,7 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->loaded)
-            $this->_Load();
+            $this->_load();
 
         if (!$this->ShareExists($share))
             throw new Samba_Share_Not_Found_Exception($share);
