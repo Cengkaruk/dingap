@@ -4,7 +4,7 @@
  * LDAP manager controller.
  *
  * @category   Apps
- * @package    LDAP_Manager
+ * @package    LDAP
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -37,7 +37,7 @@
  * LDAP manager controller.
  *
  * @category   Apps
- * @package    LDAP_Manager
+ * @package    LDAP
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -45,10 +45,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
  */
 
-class LDAP_Manager extends ClearOS_Controller
+class LDAP extends ClearOS_Controller
 {
     /**
-     * LDAP_Manager default controller
+     * LDAP default controller
      *
      * @return view
      */
@@ -58,9 +58,9 @@ class LDAP_Manager extends ClearOS_Controller
         // Load dependencies
         //------------------
 
+/*
         $this->load->factory('ldap_manager/LDAP_Factory');
         $this->lang->load('ldap_manager');
-/*
 
         // Set validation rules
         //---------------------
@@ -95,7 +95,6 @@ echo " master mode / $domain";
 
         // Load view data
         //---------------
-*/
 
         try {
             $data['modes'] = $this->ldap_factory->get_modes();
@@ -103,10 +102,11 @@ echo " master mode / $domain";
             $this->page->view_exception($e);
             return;
         }
+*/
 
         // Load views
         //-----------
 
-        $this->page->view_form('ldap_manager', $data, lang('ldap_manager_ldap_manager'));
+        $this->page->view_form('ldap', $data, 'Mode'); // FIXME: translate
     }
 }

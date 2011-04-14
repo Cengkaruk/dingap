@@ -43,7 +43,6 @@ echo "<div id='master' class='mode_form'>";
 
 echo form_fieldset(lang('directory_manager_master'));
 echo field_input('domain', $domain, lang('directory_manager_base_domain'));
-echo field_dropdown('publish_policy', $publish_policies, $publish_policy, lang('directory_manager_publish_policy'));
 echo form_fieldset_close();
 
 echo "</div>";
@@ -57,7 +56,6 @@ echo "<div id='slave' class='mode_form'>";
 echo form_fieldset(lang('directory_manager_slave'));
 echo field_input('master_hostname', $master_hostname, lang('directory_manager_master_directory_hostname'));
 echo field_input('master_password', $master_password, lang('directory_manager_master_directory_password'));
-echo field_dropdown('publish_policy', $publish_policies, $publish_policy, lang('directory_manager_publish_policy'));
 echo form_fieldset_close();
 
 echo "</div>";
