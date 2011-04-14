@@ -71,8 +71,18 @@ clearos_load_language('network');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\network\Chap as Chap;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
+clearos_load_library('base/Validation_Exception');
 clearos_load_library('network/Chap');
 clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network_Utils');
@@ -960,7 +970,7 @@ class Iface extends Engine
             if (! $file->exists())
                 return NULL;
 
-            $lines = $file->GetContentsAsArray();
+            $lines = $file->get_contents_as_array();
 
             foreach ($lines as $line) {
                 $line = eregi_replace('"', '', $line);

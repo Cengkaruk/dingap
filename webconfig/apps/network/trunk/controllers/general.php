@@ -66,6 +66,7 @@ class General extends ClearOS_Controller
         $this->load->library('network/Hostname');
         $this->load->library('network/Resolver');
         $this->load->library('network/Network_Utils');
+        $this->load->library('network/Iface_Manager');
 
         // Set validation rules
         //---------------------
@@ -120,9 +121,17 @@ class General extends ClearOS_Controller
             return;
         }
 
+        try {
+            $data['network_interface'] = $this->iface_manager->get_interface_details();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
 		// Load views
 		//-----------
 
         $this->page->view_form('general/view_edit', $data);
+        $this->page->view_form('interface/summary', $data);
 	}
 }

@@ -61,3 +61,5 @@ $lang['network_mode_standalone'] = 'Standalone Mode - No Firewall';
 $lang['network_mode_trustedgateway'] = 'Trusted Gateway';
 $lang['network_mode_trustedstandalone'] = 'Trusted Standalone';
 $lang['network_mode_bridge'] = 'Bridge Mode';
+$lang['network_interface_speed'] = 'Speed';
+$lang['network_interface_link'] = 'Link';
