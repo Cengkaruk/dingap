@@ -25,9 +25,14 @@ $app['subcategory'] = lang('base_subcategory_settings');
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
-$app['core_dependencies'] = array(
+
+$app['core_requires'] = array(
     'app-cron-core', 
     'ntpdate >= 4.2.4p8'
+);
+
+$app['core_directory_manifest'] = array(
+    '/etc/clearos/date' => array(),
 );
 
 $app['core_file_manifest'] = array( 
