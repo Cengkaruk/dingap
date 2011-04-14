@@ -1,0 +1,559 @@
+###########################################################################
+#
+# ClearFoundation
+#
+# Requires: core.schema, nis.schema
+#
+# 1.3.6.1.4.1.25573      - root
+# 1.3.6.1.4.1.25573.3    - LDAP
+# 1.3.6.1.4.1.25573.3.1  - Attributes
+# 1.3.6.1.4.1.25573.3.2  - Object Classes
+#
+###########################################################################
+
+objectIdentifier ClearRoot 1.3.6.1.4.1.25573
+objectIdentifier ClearLDAP ClearRoot:3
+objectIdentifier ClearAttribute ClearLDAP:1
+objectIdentifier ClearObjectClass ClearLDAP:2
+
+###########################################################################
+#
+# Core Account
+#
+###########################################################################
+
+# Identifiers
+#--------------------------------------------------------------------------
+
+objectIdentifier clearAccount ClearObjectClass:100
+
+objectIdentifier clearAccountStatus ClearAttribute:100
+objectIdentifier clearSHAPassword ClearAttribute:111
+objectIdentifier clearSHA1Password ClearAttribute:112
+objectIdentifier clearMD5Password ClearAttribute:113
+objectIdentifier clearMicrosoftNTPassword ClearAttribute:114
+objectIdentifier clearMicrosoftLanmanPassword ClearAttribute:115
+objectIdentifier clearMailAliases ClearAttribute:120
+objectIdentifier clearMailForwarders ClearAttribute:121
+
+# Attributes
+#--------------------------------------------------------------------------
+
+attributetype ( clearAccountStatus
+    NAME 'clearAccountStatus'
+    DESC 'Account status'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( clearSHAPassword
+    NAME 'clearSHAPassword'
+    DESC 'SHA password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( clearSHA1Password
+    NAME 'clearSHA1Password'
+    DESC 'SHA1 password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( clearMD5Password
+    NAME 'clearMD5Password'
+    DESC 'MD5 password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( clearMicrosoftNTPassword
+    NAME 'clearMicrosoftNTPassword'
+    DESC 'Microsoft NT password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( clearMicrosoftLanmanPassword
+    NAME 'clearMicrosoftLanmanPassword'
+    DESC 'Microsoft Lanman password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( clearMailAliases
+    NAME 'clearMailAliases'
+    DESC 'Mail aliases'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+attributetype ( clearMailForwarders
+    NAME 'clearMailForwarders'
+    DESC 'Mail forwarders'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+# Class
+#--------------------------------------------------------------------------
+
+objectclass ( clearAccount
+    NAME 'clearAccount'
+    SUP top AUXILIARY
+    DESC 'ClearOS account object'
+    MUST ( uid $ clearAccountStatus $userPassword )
+    MAY ( c $ l $ o $ ou $ st $ sn $ userCertificate $ description $ 
+    displayName $ facsimileTelephoneNumber $ givenName $ gidNumber $ 
+    homeDirectory $ loginShell $ mail $ mobile $ userPKCS12 $ postalCode $ 
+    postOfficeBox $ roomNumber $ street $ telephoneNumber $ title $ 
+    uidNumber $ clearSHAPassword $ clearSHA1Password $ clearMD5Password $ 
+    clearMicrosoftNTPassword ) )
+
+
+###########################################################################
+#
+# Plugins
+#
+###########################################################################
+
+# Identifiers
+#--------------------------------------------------------------------------
+
+objectIdentifier clearPluginsAccount ClearObjectClass:200
+
+objectIdentifier clearPlugins ClearAttribute:200
+objectIdentifier clearPluginParameters ClearAttribute:201
+
+# Attributes
+#--------------------------------------------------------------------------
+
+# FIXME: use DirectoryString ? -- http://www.zytrax.com/books/ldap/apa/types.html#strings
+attributetype ( clearPlugins
+    NAME 'clearPlugins'
+    DESC 'List of enabled plugins'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{4096} )
+
+# FIXME: size limitation could be a problem?  How big should this be?  What are the
+# ramifications?
+attributetype ( clearPluginParameters
+    NAME 'clearPluginParameters'
+    DESC 'List of parameters for plugins'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{8192} )
+
+# Class
+#--------------------------------------------------------------------------
+
+objectclass ( clearPluginsAccount
+    NAME 'clearPluginsAccount'
+    SUP top AUXILIARY
+    DESC 'ClearOS plugins account object'
+    MUST ( uid )
+    MAY ( clearPlugins $ clearPluginParameters ) )
+
+
+###########################################################################
+#
+# PBX
+#
+###########################################################################
+
+# Identifiers
+#--------------------------------------------------------------------------
+
+objectIdentifier clearPbxAccount ClearObjectClass:300
+
+objectIdentifier clearPbxPassword ClearAttribute:300
+objectIdentifier clearPbxExtension ClearAttribute:301
+objectIdentifier clearPbxPresenceState ClearAttribute:302
+objectIdentifier clearPbxState ClearAttribute:303
+
+# Attributes
+#--------------------------------------------------------------------------
+
+attributetype ( clearPbxPassword
+    NAME 'clearPbxPassword'
+    DESC 'password for PBX clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( clearPbxExtension
+    NAME 'clearPbxExtension'
+    DESC 'extension for PBX clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( clearPbxPresenceState
+    NAME 'clearPbxPresenceState'
+    DESC 'presence state for PBX clients'
+    EQUALITY integerMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+attributetype ( clearPbxState
+    NAME 'clearPbxState'
+    DESC 'state PBX clients'
+    EQUALITY integerMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+# Class
+#--------------------------------------------------------------------------
+
+objectclass ( clearPbxAccount
+    NAME 'clearPbxAccount'
+    SUP top AUXILIARY
+    DESC 'PBX account object'
+    MUST ( uid )
+    MAY ( clearPbxExtension $ clearPbxState $ clearPbxPresenceState ) )
+
+
+
+
+###########################################################################
+#
+# Point Clark Networks - DEPRECATED
+#
+# 1.3.6.1.4.1.25573      - root
+# 1.3.6.1.4.1.25573.2    - LDAP
+# 1.3.6.1.4.1.25573.2.1  - Attributes
+# 1.3.6.1.4.1.25573.2.2  - Object Classes
+#
+###########################################################################
+
+objectIdentifier PcnRoot 1.3.6.1.4.1.25573
+objectIdentifier PcnLDAP PcnRoot:2
+objectIdentifier PcnAttribute PcnLDAP:1
+objectIdentifier PcnObjectClass PcnLDAP:2
+
+###########################################################################
+#
+# Attributes
+#
+# Note: the numeric ordering is not important -- just keep on adding.
+#
+###########################################################################
+
+objectIdentifier pcnSHAPassword PcnAttribute:1
+objectIdentifier pcnMD5Password PcnAttribute:2
+objectIdentifier pcnMicrosoftNTPassword PcnAttribute:3
+objectIdentifier pcnMicrosoftLanmanPassword PcnAttribute:4
+
+objectIdentifier pcnProxyBypass PcnAttribute:100
+objectIdentifier pcnProxyPassword PcnAttribute:101
+objectIdentifier pcnPPTPPassword PcnAttribute:102
+objectIdentifier pcnFTPPassword PcnAttribute:103
+objectIdentifier pcnWebPassword PcnAttribute:104
+objectIdentifier pcnSambaPassword PcnAttribute:105
+objectIdentifier pcnWebconfigPassword PcnAttribute:106
+objectIdentifier pcnMailPassword PcnAttribute:107
+objectIdentifier pcnPbxPassword PcnAttribute:111
+objectIdentifier pcnPbxExtension PcnAttribute:112
+objectIdentifier pcnPbxPresenceState PcnAttribute:113
+objectIdentifier pcnPbxState PcnAttribute:114
+objectIdentifier pcnOpenVPNPassword PcnAttribute:115
+objectIdentifier pcnFTPFlag PcnAttribute:116
+objectIdentifier pcnMailFlag PcnAttribute:117
+objectIdentifier pcnOpenVPNFlag PcnAttribute:118
+objectIdentifier pcnPPTPFlag PcnAttribute:119
+objectIdentifier pcnProxyFlag PcnAttribute:120
+objectIdentifier pcnWebconfigFlag PcnAttribute:121
+objectIdentifier pcnWebFlag PcnAttribute:122
+objectIdentifier pcnGoogleAppsPassword PcnAttribute:123
+objectIdentifier pcnGoogleAppsFlag PcnAttribute:124
+objectIdentifier pcnMailAliases PcnAttribute:125
+objectIdentifier pcnMailForwarders PcnAttribute:126
+
+attributetype ( pcnSHAPassword
+    NAME 'pcnSHAPassword'
+    DESC 'SHA password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnMD5Password
+    NAME 'pcnMD5Password'
+    DESC 'MD5 password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnMicrosoftNTPassword
+    NAME 'pcnMicrosoftNTPassword'
+    DESC 'Microsoft NT password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( pcnMicrosoftLanmanPassword
+    NAME 'pcnMicrosoftLanmanPassword'
+    DESC 'Microsoft Lanman password'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( pcnProxyPassword
+    NAME 'pcnProxyPassword'
+    DESC 'password for proxy services'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnProxyBypass
+    NAME 'pcnProxyBypass'
+    DESC 'flag for allowing user to temporarily bypass filter'
+    EQUALITY booleanMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnPPTPPassword
+    NAME 'pcnPPTPPassword'
+    DESC 'password for PPTP VPN clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( pcnFTPPassword
+    NAME 'pcnFTPPassword'
+    DESC 'password for FTP clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnWebPassword
+    NAME 'pcnWebPassword'
+    DESC 'password for web clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnSambaPassword
+    NAME 'pcnSambaPassword'
+    DESC 'password for Samba clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{32}
+    SINGLE-VALUE )
+
+attributetype ( pcnWebconfigPassword
+    NAME 'pcnWebconfigPassword'
+    DESC 'password for Webconfig clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnMailPassword
+    NAME 'pcnMailPassword'
+    DESC 'password for mail clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnMailAliases
+    NAME 'pcnMailAliases'
+    DESC 'mail aliases'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+attributetype ( pcnMailForwarders
+    NAME 'pcnMailForwarders'
+    DESC 'mail forwarders'
+    EQUALITY caseIgnoreIA5Match
+    SUBSTR caseIgnoreIA5SubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} )
+
+attributetype ( pcnPbxPassword
+    NAME 'pcnPbxPassword'
+    DESC 'password for PBX clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnPbxExtension
+    NAME 'pcnPbxExtension'
+    DESC 'extension for PBX clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnPbxPresenceState
+    NAME 'pcnPbxPresenceState'
+    DESC 'presence state for PBX clients'
+    EQUALITY integerMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+attributetype ( pcnPbxState
+    NAME 'pcnPbxState'
+    DESC 'state PBX clients'
+    EQUALITY integerMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
+
+attributetype ( pcnOpenVPNPassword
+    NAME 'pcnOpenVPNPassword'
+    DESC 'password for OpenVPN clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnGoogleAppsPassword
+    NAME 'pcnGoogleAppsPassword'
+    DESC 'password for Google Apps clients'
+    EQUALITY caseIgnoreIA5Match
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{128}
+    SINGLE-VALUE )
+
+attributetype ( pcnFTPFlag
+    NAME 'pcnFTPFlag'
+    DESC 'account flag for FTP clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnMailFlag
+    NAME 'pcnMailFlag'
+    DESC 'account flag for mail clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnOpenVPNFlag
+    NAME 'pcnOpenVPNFlag'
+    DESC 'account flag for OpenVPN clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnPPTPFlag
+    NAME 'pcnPPTPFlag'
+    DESC 'account flag for PPTP clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnProxyFlag
+    NAME 'pcnProxyFlag'
+    DESC 'account flag for proxy services'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnWebconfigFlag
+    NAME 'pcnWebconfigFlag'
+    DESC 'account flag for Webconfig clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnWebFlag
+    NAME 'pcnWebFlag'
+    DESC 'account flag for web clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+attributetype ( pcnGoogleAppsFlag
+    NAME 'pcnGoogleAppsFlag'
+    DESC 'account flag for Google Apps clients'
+	EQUALITY booleanMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.7
+    SINGLE-VALUE )
+
+
+###########################################################################
+#
+# Object Classes
+#
+###########################################################################
+
+objectIdentifier pcnAccount PcnObjectClass:1
+objectIdentifier pcnProxyAccount PcnObjectClass:2
+objectIdentifier pcnPPTPAccount PcnObjectClass:3
+objectIdentifier pcnFTPAccount PcnObjectClass:4
+objectIdentifier pcnWebAccount PcnObjectClass:5
+objectIdentifier pcnSambaAccount PcnObjectClass:6
+objectIdentifier pcnWebconfigAccount PcnObjectClass:7
+objectIdentifier pcnMailAccount PcnObjectClass:8
+objectIdentifier pcnPbxAccount PcnObjectClass:9
+objectIdentifier pcnOpenVPNAccount PcnObjectClass:10
+objectIdentifier pcnGoogleAppsAccount PcnObjectClass:11
+
+objectclass ( pcnAccount
+    NAME 'pcnAccount'
+    SUP top AUXILIARY
+    DESC 'Point Clark Networks account object'
+    MUST ( uid )
+    MAY ( pcnSHAPassword $ pcnMD5Password $ pcnMicrosoftNTPassword $ pcnMicrosoftLanmanPassword ) )
+
+objectclass ( pcnProxyAccount
+    NAME 'pcnProxyAccount'
+    SUP top AUXILIARY
+    DESC 'proxy account object'
+    MUST ( uid $ pcnProxyFlag )
+    MAY ( pcnProxyPassword $ pcnProxyBypass ) )
+
+objectclass ( pcnPPTPAccount
+    NAME 'pcnPPTPAccount'
+    SUP top AUXILIARY
+    DESC 'PPTP VPN account object'
+    MUST ( uid $ pcnPPTPFlag )
+    MAY ( pcnPPTPPassword $ ipHostNumber ) )
+
+objectclass ( pcnFTPAccount
+    NAME 'pcnFTPAccount'
+    SUP top AUXILIARY
+    DESC 'FTP account object'
+    MUST ( uid $ pcnFTPFlag )
+    MAY ( pcnFTPPassword ) )
+
+objectclass ( pcnWebAccount
+    NAME 'pcnWebAccount'
+    SUP top AUXILIARY
+    DESC 'Web account object'
+    MUST ( uid $ pcnWebFlag )
+    MAY ( pcnWebPassword ) )
+
+objectclass ( pcnSambaAccount
+    NAME 'pcnSambaAccount'
+    SUP top AUXILIARY
+    DESC 'Samba account object'
+    MUST ( uid )
+    MAY ( pcnSambaPassword ) )
+
+objectclass ( pcnWebconfigAccount
+    NAME 'pcnWebconfigAccount'
+    SUP top AUXILIARY
+    DESC 'Webconfig account object'
+    MUST ( uid $ pcnWebconfigFlag )
+    MAY ( pcnWebconfigPassword ) )
+
+objectclass ( pcnMailAccount
+    NAME 'pcnMailAccount'
+    SUP top AUXILIARY
+    DESC 'Mail account object'
+    MUST ( uid $ pcnMailFlag )
+    MAY ( pcnMailPassword $ pcnMailAliases $ pcnMailForwarders ) )
+
+objectclass ( pcnPbxAccount
+    NAME 'pcnPbxAccount'
+    SUP top AUXILIARY
+    DESC 'PBX account object'
+    MUST ( uid $ pcnPbxState )
+    MAY ( pcnPbxPassword $ pcnPbxExtension $ pcnPbxPresenceState ) )
+
+objectclass ( pcnOpenVPNAccount
+    NAME 'pcnOpenVPNAccount'
+    SUP top AUXILIARY
+    DESC 'OpenVPN VPN account object'
+    MUST ( uid $ pcnOpenVPNFlag )
+    MAY ( pcnOpenVPNPassword ) )
+
+objectclass ( pcnGoogleAppsAccount
+    NAME 'pcnGoogleAppsAccount'
+    SUP top AUXILIARY
+    DESC 'Google Apps account object'
+    MUST ( uid $ pcnGoogleAppsFlag )
+    MAY ( pcnGoogleAppsPassword ) )
