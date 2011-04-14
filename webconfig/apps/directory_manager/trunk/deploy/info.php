@@ -21,7 +21,6 @@ $app['description'] = 'The Directory Manager provides... blah blah blah'; // FIX
 $app['name'] = lang('directory_manager_directory_manager');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
-$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

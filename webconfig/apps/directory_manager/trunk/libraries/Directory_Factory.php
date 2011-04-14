@@ -117,6 +117,8 @@ class Directory_Factory extends Engine
         if ($driver === NULL)
             $driver = 'openldap';
 
+        $driver .= '_directory';
+
         clearos_load_library($driver . '/Directory_Driver');
 
         $class = '\clearos\apps\\' . $driver . '\\Directory_Driver';
@@ -142,6 +144,8 @@ class Directory_Factory extends Engine
         // TODO: move this to a config file of course
         $driver = 'openldap';
 
-       return $driver . '/Directory_Driver';
+        $driver .= '_directory';
+
+        return $driver . '/Directory_Driver';
     }
 }
