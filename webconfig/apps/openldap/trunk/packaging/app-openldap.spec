@@ -9,7 +9,7 @@ Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: app-openldap-%{version}.tar.gz
 Buildarch: noarch
-Provides: app-ldap-driver
+Provides: system-ldap-driver
 Requires: app-base-core
 
 %description

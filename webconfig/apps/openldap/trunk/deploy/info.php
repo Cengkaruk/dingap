@@ -29,34 +29,16 @@ $app['subcategory'] = lang('base_subcategory_settings');
 $app['core_only'] = TRUE;
 
 $app['core_provides'] = array(
-    'app-ldap-driver'
+    'system-ldap-driver'
 );
 
 $app['core_dependencies'] = array(
-    'app-cron-core', 
-    'ntpdate >= 4.2.4p8'
+    'openldap-servers >= 2.4.19',
+    'openssl',
 );
 
 $app['core_directory_manifest'] = array(
-   '/var/clearos/openldap/provision' => array(),
    '/var/clearos/openldap' => array(),
+   '/var/clearos/openldap/provision' => array(),
    '/var/clearos/openldap/synchronize' => array(),
 );
-
-/*
-$app['core_file_manifest'] = array( 
-   'app-date.cron' => array(
-        'target' => '/etc/cron.d/app-date',
-        'mode' => '0644',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-
-   'timesync' => array(
-        'target' => '/usr/sbin/timesync',
-        'mode' => '0755',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-);
-*/
