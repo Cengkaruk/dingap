@@ -1,15 +1,15 @@
 <?php
 
 /**
- * System mode controller.
+ * LDAP manager controller.
  *
  * @category   Apps
- * @package    Mode
+ * @package    LDAP_Manager
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/mode/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,21 +34,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * System mode controller.
+ * LDAP manager controller.
  *
  * @category   Apps
- * @package    Mode
+ * @package    LDAP_Manager
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/mode/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
  */
 
-class Mode extends ClearOS_Controller
+class LDAP_Manager extends ClearOS_Controller
 {
     /**
-     * Mode default controller
+     * LDAP_Manager default controller
      *
      * @return view
      */
@@ -57,10 +57,10 @@ class Mode extends ClearOS_Controller
     {
         // Load dependencies
         //------------------
-/*
 
-        $this->load->library('openldap/Directory_Driver');
-        $this->lang->load('directory_manager');
+        $this->load->factory('ldap_manager/LDAP_Factory');
+        $this->lang->load('ldap_manager');
+/*
 
         // Set validation rules
         //---------------------
@@ -95,18 +95,18 @@ echo " master mode / $domain";
 
         // Load view data
         //---------------
+*/
 
         try {
-            $data['modes'] = $this->directory_driver->get_modes();
+            $data['modes'] = $this->ldap_factory->get_modes();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
-*/
 
         // Load views
         //-----------
 
-        $this->page->view_form('mode', $data, lang('directory_manager_directory_manager'));
+        $this->page->view_form('ldap_manager', $data, lang('ldap_manager_ldap_manager'));
     }
 }
