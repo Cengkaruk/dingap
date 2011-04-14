@@ -4,12 +4,12 @@
  * OpenLDAP user manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -58,24 +58,17 @@ clearos_load_language('users');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
-use \clearos\apps\openldap\User_Driver as User_Driver;
-use \clearos\apps\openldap\Utilities as Utilities;
-use \clearos\apps\users\user as User;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
+use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_directory\User_Driver as User_Driver;
+use \clearos\apps\users\User as User;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
-clearos_load_library('openldap/Directory_Driver');
-clearos_load_library('openldap/User_Driver');
-clearos_load_library('openldap/Utilities');
+clearos_load_library('openldap_directory/Utilities');
+clearos_load_library('openldap_directory/Directory_Driver');
+clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('users/User');
-
-// Exceptions
-//-----------
-
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
-
-clearos_load_library('base/Engine_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -85,12 +78,12 @@ clearos_load_library('base/Engine_Exception');
  * OpenLDAP user manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class User_Manager_Driver extends Engine
@@ -120,8 +113,8 @@ class User_Manager_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Load attribute mapping
-        include clearos_app_base('openldap') . '/config/user_map.php';
+        include clearos_app_base('openldap_directory') . '/deploy/user_map.php';
+
         $this->info_map = $info_map;
     }
 
@@ -210,11 +203,11 @@ class User_Manager_Driver extends Engine
         $userlist = array();
 
         $directory = new Directory_Driver();
-        $users_ou = $directory->get_users_ou();
+        $users_container = $directory->get_users_container();
 
         $result = $this->ldaph->search(
             "(&(cn=*)(objectclass=posixAccount)$search)",
-            $users_ou
+            $users_container
         );
 
         $this->ldaph->sort($result, 'uid');

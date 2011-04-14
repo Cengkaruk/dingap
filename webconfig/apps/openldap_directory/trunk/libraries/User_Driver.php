@@ -4,12 +4,12 @@
  * OpenLDAP user driver.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -57,24 +57,26 @@ clearos_load_language('users');
 // Classes
 //--------
 
-use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
-use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
-use \clearos\apps\openldap\Group_Manager_Driver as Group_Manager_Driver;
-use \clearos\apps\openldap\Utilities as Utilities;
+use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
+use \clearos\apps\openldap_directory\User_Driver as User_Driver;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User as User;
 
-clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('directory_manager/Directory_Manager');
-clearos_load_library('openldap/Directory_Driver');
-clearos_load_library('openldap/Group_Manager_Driver');
-clearos_load_library('openldap/Utilities');
+clearos_load_library('openldap/OpenLDAP');
+clearos_load_library('openldap_directory/Directory_Driver');
+clearos_load_library('openldap_directory/Group_Manager_Driver');
+clearos_load_library('openldap_directory/User_Driver');
+clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User');
 
 // Exceptions
@@ -96,12 +98,12 @@ clearos_load_library('users/User_Not_Found_Exception');
  * User class.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class User_Driver extends Engine
@@ -112,7 +114,7 @@ class User_Driver extends Engine
 
     const LOG_TAG = 'user';
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
-    const PATH_EXTENSIONS = 'config/extensions';
+    const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
     // User policy
     //------------
@@ -144,7 +146,6 @@ class User_Driver extends Engine
     protected $reserved_usernames = array('root', 'manager');
     protected $plugins = array();
     protected $extensions = array();
-    protected $path_extensions = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -169,12 +170,8 @@ class User_Driver extends Engine
             'clearAccount'
         );
 
-        // Paths to plugins and extensions
-        $this->path_extensions = clearos_app_base('openldap') . '/config/extensions';
-        $this->path_plugins = clearos_app_base('openldap') . '/config/plugins';
-
         // Attribute/Info mapping.  The attribute_map contains the reverse mapping.
-        include clearos_app_base('openldap') . '/config/user_map.php';
+        include clearos_app_base('openldap_directory') . '/deploy/user_map.php';
         $this->info_map = $info_map;
         $this->attribute_map = array();
     
@@ -228,7 +225,7 @@ class User_Driver extends Engine
         // That means two people with the same name cannot exist in the directory.
 
         $directory = new Directory_Driver();
-        $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_ou();
+        $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_container();
 
         if ($this->_dn_exists($dn))
             throw new Validation_Exception(lang('users_full_name_already_exists')); 
@@ -704,10 +701,10 @@ print_r($ldap_object);
         $old_attributes = $this->_get_user_attributes();
 
         $rdn = 'cn=' . OpenLDAP::dn_escape($ldap_object['cn']);
-        $new_dn = $rdn . ',' . $directory->get_users_ou();
+        $new_dn = $rdn . ',' . $directory->get_users_container();
 
         if ($new_dn !== $old_attributes['dn'])
-            $this->ldaph->rename($old_attributes['dn'], $rdn, $directory->get_users_ou());
+            $this->ldaph->rename($old_attributes['dn'], $rdn, $directory->get_users_container());
 
         // Modify LDAP object
         //-------------------
@@ -1358,7 +1355,7 @@ return;
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $this->ldaph->search('(&(objectclass=clearAccount)(uid=' . $this->ldaph->escape($uid) . '))');
+        $this->ldaph->search('(&(objectclass=posixAccount)(uid=' . $this->ldaph->escape($uid) . '))');
         $entry = $this->ldaph->get_first_entry();
 
         $dn = '';
@@ -1383,7 +1380,7 @@ return;
         if (! empty($this->extensions))
             return $this->extensions;
 
-        $folder = new Folder($this->path_extensions);
+        $folder = new Folder(self::PATH_EXTENSIONS);
 
         $list = $folder->get_listing();
 
@@ -1436,7 +1433,7 @@ return;
         $directory = new Directory_Driver();
 
         // FIXME: discuss with David -- move "Master" node?
-        $dn = 'cn=Master,' . $directory->get_servers_ou();
+        $dn = 'cn=Master,' . $directory->get_servers_container();
 
         $attributes = $this->ldaph->read($dn);
 
@@ -1465,6 +1462,7 @@ return;
             $this->ldaph = Utilities::get_ldap_handle();
 
         $dn = $this->_get_dn_for_uid($this->username);
+
         $attributes = $this->ldaph->read($dn);
         $attributes['dn'] = $dn;
 

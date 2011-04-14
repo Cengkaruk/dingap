@@ -4,12 +4,12 @@
  * OpenLDAP group driver.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -58,16 +58,18 @@ clearos_load_language('base');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
-use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
-use \clearos\apps\openldap\Utilities as Utilities;
+use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\samba\Samba as Samba;
 use \clearos\apps\users\User_Manager as User_Manager;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
-clearos_load_library('openldap/Directory_Driver');
-clearos_load_library('openldap/Utilities');
+clearos_load_library('openldap/OpenLDAP');
+clearos_load_library('openldap_directory/Directory_Driver');
+clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('samba/Samba');
 clearos_load_library('users/User_Manager');
 
@@ -113,12 +115,12 @@ clearos_load_library('groups/Group_Not_Found_Exception');
  * member: cn=Doug McKenzie,ou=Users,ou=Accounts,dc=example,dc=org
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class Group_Driver extends Engine
@@ -217,7 +219,7 @@ class Group_Driver extends Engine
             'users'
         );
 
-        include clearos_app_base('openldap') . '/config/group_map.php';
+        include clearos_app_base('openldap_directory') . '/deploy/group_map.php';
 
         $this->info_map = $info_map;
     }
@@ -288,10 +290,10 @@ class Group_Driver extends Engine
         if (empty($members))
             $members = array(self::CONSTANT_NO_MEMBERS_DN);
 
-        $users_ou = $directory->get_users_ou();    
+        $users_container = $directory->get_users_container();    
 
         foreach ($members as $member)
-            $ldap_object['member'][] = 'cn=' . $member . ',' . $users_ou;
+            $ldap_object['member'][] = 'cn=' . $member . ',' . $users_container;
 
         // Add the group to LDAP
         //----------------------
@@ -299,7 +301,7 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_ou();
+        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         $this->ldaph->add($dn, $ldap_object);
     }
@@ -352,7 +354,7 @@ class Group_Driver extends Engine
 
         $directory = new Directory_Driver();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_ou();
+        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         $this->ldaph->delete($dn);
     }
@@ -518,7 +520,7 @@ class Group_Driver extends Engine
 
         $directory = new Directory_Driver();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_ou();
+        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         $this->ldaph->modify($dn, $attributes);
     }
@@ -566,7 +568,7 @@ class Group_Driver extends Engine
 
         $directory = new Directory_Driver();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_ou();
+        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         if ($this->usermap_username === NULL)
             $this->_load_usermap_from_ldap();
@@ -679,7 +681,7 @@ class Group_Driver extends Engine
         $directory = new Directory_Driver();
 
         foreach ($group_info['members'] as $member)
-            $attributes['member'][] = 'cn=' . $member . ',' . $directory->get_users_ou();
+            $attributes['member'][] = 'cn=' . $member . ',' . $directory->get_users_container();
 
         return $attributes;
     }
@@ -779,7 +781,7 @@ class Group_Driver extends Engine
 
         $result = $this->ldaph->search(
             "(&(cn=" . $this->group_name . ")(objectclass=posixGroup))",
-            $directory->get_groups_ou()
+            $directory->get_groups_container()
         );
 
         $entry = $this->ldaph->get_first_entry($result);
@@ -938,7 +940,7 @@ class Group_Driver extends Engine
 
         $result = $this->ldaph->search(
             "(&(cn=*)(objectclass=posixAccount))",
-            $directory->get_users_ou(),
+            $directory->get_users_container(),
             array('dn', 'uid')
         );
 

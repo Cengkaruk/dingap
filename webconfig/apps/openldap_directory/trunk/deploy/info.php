@@ -4,7 +4,7 @@
 // General information
 /////////////////////////////////////////////////////////////////////////////
 
-$app['basename'] = 'openldap';
+$app['basename'] = 'openldap_directory';
 $app['version'] = '5.9.9.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
@@ -18,7 +18,7 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Manager'; // FIXME
+$app['name'] = 'OpenLDAP Directory'; // FIXME
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
 
@@ -32,8 +32,12 @@ $app['core_dependencies'] = array(
     'app-network-core',
     'app-samba-core',
     'app-users-core',
+    'nss-pam-ldapd',
+    'nscd',
     'openldap >= 2.4.19',
     'openldap-clients >= 2.4.19',
     'openldap-servers >= 2.4.19',
+    'pam_ldap',
+    'samba-winbind-clients',
     'webconfig-php-ldap'
 );

@@ -1,15 +1,15 @@
 <?php
 
 /**
- * OpenLDAP utilities class.
+ * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -47,7 +47,6 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 // clearos_load_language('base');
-// clearos_load_language('directory_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -56,35 +55,28 @@ require_once $bootstrap . '/bootstrap.php';
 // Classes
 //--------
 
-use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
+use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
 
-clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Engine');
-clearos_load_library('openldap/OpenLDAP');
-
-// Exceptions
-//-----------
-
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
-
-clearos_load_library('base/Engine_Exception');
+clearos_load_library('openldap/LDAP_Driver');
+clearos_load_library('openldap_directory/Directory_Driver');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS OpenLDAP utilities class.
+ * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class Utilities extends Engine
@@ -94,7 +86,7 @@ class Utilities extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * OpenLDAP utilities constructor.
+     * OpenLDAP directory utilities constructor.
      */
 
     public function __construct()
@@ -217,7 +209,7 @@ class Utilities extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ldaph = Utilities::get_ldap_handle();
+        $ldaph = self::get_ldap_handle();
 
         $ldaph->search('(&(objectclass=clearAccount)(uid=' . $ldaph->escape($uid) . '))');
         $entry = $ldaph->get_first_entry();
@@ -249,13 +241,8 @@ class Utilities extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file_config = clearos_app_base('openldap') . '/config/config.php';
-
-        // FIXME: add security context
-        $file = new Configuration_File($file_config, 'split', '=', 2);
-        $config = $file->load();
-
-        $ldaph = new OpenLDAP($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
+        $ldap = new LDAP_Driver();
+        $ldaph = $ldap->get_ldap_handle();
 
         return $ldaph;
     }
@@ -277,7 +264,7 @@ class Utilities extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ldaph = Utilities::get_ldap_handle();
+        $ldaph = self::get_ldap_handle();
 
         $usermap_dn = array();
         $usermap_username = array();
@@ -286,7 +273,7 @@ class Utilities extends Engine
 
         $result = $ldaph->search(
             "(&(cn=*)(objectclass=posixAccount))",
-            $directory->get_users_ou(),
+            $directory->get_users_container(),
             array('dn', 'uid')
         );
 

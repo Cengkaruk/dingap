@@ -4,12 +4,12 @@
  * OpenLDAP group manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -52,19 +52,22 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
-use \clearos\apps\openldap\Directory_Driver as Directory_Driver;
-use \clearos\apps\openldap\Group_Driver as Group_Driver;
-use \clearos\apps\openldap\Utilities as Utilities;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
+use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
-clearos_load_library('openldap/Directory_Driver');
-clearos_load_library('openldap/Group_Driver');
-clearos_load_library('openldap/Utilities');
+clearos_load_library('openldap_directory/Utilities');
+clearos_load_library('openldap_directory/Directory_Driver');
+clearos_load_library('openldap_directory/Group_Driver');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -74,12 +77,12 @@ clearos_load_library('openldap/Utilities');
  * OpenLDAP group manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class Group_Manager_Driver extends Engine
@@ -103,10 +106,8 @@ class Group_Manager_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Load LDAP attribute mapping
-        //---------------------------
+        include_once clearos_app_base('openldap_directory') . '/deploy/group_map.php';
 
-        include_once clearos_app_base('openldap') . '/config/group_map.php';
         $this->info_map = $info_map;
     }
 
@@ -321,7 +322,7 @@ class Group_Manager_Driver extends Engine
 
         $result = $this->ldaph->search(
             "(&(objectclass=posixGroup))", 
-            $directory->get_groups_ou()
+            $directory->get_groups_container()
         );
 
         $this->ldaph->sort($result, 'cn');
