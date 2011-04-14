@@ -104,6 +104,8 @@ class Group_Manager extends Engine
 
         $driver = $directory->get_driver();
 
+        $driver .= '_directory';
+
         clearos_load_library($driver . '/Group_Manager_Driver');
 
         $class = '\clearos\apps\\' . $driver . '\\Group_Manager_Driver';
@@ -129,6 +131,8 @@ class Group_Manager extends Engine
         $directory = new Directory_Manager();
 
         $driver = $directory->get_driver();
+
+        $driver .= '_directory';
 
         return $driver . '/Group_Manager_Driver';
     }

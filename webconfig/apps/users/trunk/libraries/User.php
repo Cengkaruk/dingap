@@ -132,7 +132,7 @@ class User extends Engine
 
         $directory = new Directory_Manager();
 
-        $driver = $directory->get_driver();
+        $driver = $directory->get_driver() . '_directory';
 
         clearos_load_library($driver . '/User_Driver');
 
@@ -158,7 +158,7 @@ class User extends Engine
 
         $directory = new Directory_Manager();
 
-        $driver = $directory->get_driver();
+        $driver = $directory->get_driver() . '_directory';
 
         return $driver . '/User_Driver';
     }
