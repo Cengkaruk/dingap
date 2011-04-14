@@ -61,7 +61,7 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
-use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
+use \clearos\apps\ldap\LDAP as LDAP;
 use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
 use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
@@ -72,7 +72,7 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('directory_manager/Directory_Manager');
-clearos_load_library('openldap/OpenLDAP');
+clearos_load_library('ldap/LDAP');
 clearos_load_library('openldap_directory/Directory_Driver');
 clearos_load_library('openldap_directory/Group_Manager_Driver');
 clearos_load_library('openldap_directory/User_Driver');
@@ -700,7 +700,7 @@ print_r($ldap_object);
         $directory = new Directory_Driver();
         $old_attributes = $this->_get_user_attributes();
 
-        $rdn = 'cn=' . OpenLDAP::dn_escape($ldap_object['cn']);
+        $rdn = 'cn=' . LDAP::dn_escape($ldap_object['cn']);
         $new_dn = $rdn . ',' . $directory->get_users_container();
 
         if ($new_dn !== $old_attributes['dn'])

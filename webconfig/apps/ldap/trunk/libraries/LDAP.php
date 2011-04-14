@@ -1,15 +1,15 @@
 <?php
 
 /**
- * OpenLDAP class.
+ * Generic LDAP class.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    LDAP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap;
+namespace clearos\apps\ldap;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('openldap');
+clearos_load_language('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -75,21 +75,21 @@ clearos_load_library('directory_manager/Directory_Unavailable_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * OpenLDAP class.
+ * Generic LDAP class.
  *
  * This is a low-level PHP class for performing directory operations on an 
- * OpenLDAP server.
+ * LDAP server.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    LDAP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
-class OpenLDAP extends Daemon
+class LDAP extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -105,7 +105,7 @@ class OpenLDAP extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * OpenLDAP constructor.
+     * LDAP constructor.
      *
      * @param string $base_dn   Base DN
      * @param string $bind_dn   Bind DN
@@ -143,7 +143,7 @@ class OpenLDAP extends Daemon
             $this->_bind();
 
         if (! ldap_add($this->connection, $dn, $attributes))
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
     }
 
     /**
@@ -185,7 +185,7 @@ class OpenLDAP extends Daemon
             $this->_bind();
 
         if (! ldap_delete($this->connection, $dn))
-            throw new Engine_Exception(lang('openldap_ldap_operation_failed'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('ldap_ldap_operation_failed'));
     }
 
     /**
@@ -248,7 +248,7 @@ class OpenLDAP extends Daemon
         $attributes = ldap_get_attributes($this->connection, $entry);
 
         if (! $attributes)
-            throw new Engine_Exception(lang('openldap_ldap_operation_failed'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('ldap_ldap_operation_failed'));
 
         return $attributes;
     }
@@ -314,7 +314,7 @@ class OpenLDAP extends Daemon
         $dn = ldap_get_dn($this->connection, $entry);
 
         if (! $dn)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
 
         return $dn;
     }
@@ -336,7 +336,7 @@ class OpenLDAP extends Daemon
         $entries = ldap_get_entries($this->connection, $this->search_result);
 
         if (! $entries)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
 
         return $entries;
     }
@@ -377,7 +377,7 @@ class OpenLDAP extends Daemon
     /** 
      * Checks LDAP availability.
      *
-     * @return boolean TRUE if OpenLDAP connection was successful
+     * @return boolean TRUE if LDAP connection was successful
      * @throws Engine_Exception, Directory_Unavailable_Exception
      */
 
@@ -417,7 +417,7 @@ class OpenLDAP extends Daemon
         $ok = ldap_modify($this->connection, $dn, $entry);
 
         if (!$ok)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
     }
 
     /**
@@ -440,7 +440,7 @@ class OpenLDAP extends Daemon
         $ok = ldap_modify($this->connection, $dn, $entry);
 
         if (!$ok)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
     }
 
     /**
@@ -481,7 +481,7 @@ class OpenLDAP extends Daemon
         $result = @ldap_read($this->connection, $dn, '(objectclass=*)');
 
         if (!$result)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
 
         $entry = ldap_first_entry($this->connection, $result);
 
@@ -493,7 +493,7 @@ class OpenLDAP extends Daemon
         $ldap_object = ldap_get_attributes($this->connection, $entry);
 
         if (! $ldap_object)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
 
         ldap_free_result($result);
 
@@ -522,7 +522,7 @@ class OpenLDAP extends Daemon
             $new_parent = $this->config['base_dn'];
 
         if (! ldap_rename($this->connection, $dn, $rdn, $new_parent, TRUE))
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
     }
 
     /**
@@ -554,7 +554,7 @@ class OpenLDAP extends Daemon
             $this->search_result = ldap_search($this->connection, $base_dn, $filter, $attributes);
 
         if (! $this->search_result)
-            throw new Engine_Exception(ldap_error($this->connection), CLEAROS_ERROR);
+            throw new Engine_Exception(ldap_error($this->connection));
 
         return $this->search_result;
     }
@@ -648,7 +648,7 @@ class OpenLDAP extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Loads default settings, connects and binds to OpenLDAP server.
+     * Loads default settings, connects and binds to LDAP server.
      *
      * @return void
      * @throws Engine_Exception, Directory_Unavailable_Exception
@@ -661,13 +661,13 @@ class OpenLDAP extends Daemon
         $this->connection = ldap_connect($this->config['bind_host']);
 
         if (! ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3))
-            throw new Engine_Exception(lang('openldap_ldap_operation_failed'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('ldap_ldap_operation_failed'));
 
         if (! @ldap_bind($this->connection, $this->config['bind_dn'], $this->config['bind_pw'])) {
             if (ldap_errno($this->connection) === -1)
                 throw new Directory_Unavailable_Exception();
             else
-                throw new Engine_Exception($this->error(), CLEAROS_ERROR);
+                throw new Engine_Exception($this->error());
         }
 
         $this->bound = TRUE;

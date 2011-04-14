@@ -57,10 +57,8 @@ clearos_load_language('directory_manager');
 //----------
 
 use \clearos\apps\directory_manager\Directory_Factory as Directory;
-use \clearos\apps\mode\Mode_Factory as Mode;
 
 clearos_load_library('directory_manager/Directory_Factory');
-clearos_load_library('mode/Mode_Factory');
 
 // Classes
 //--------
@@ -71,9 +69,9 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\ldap\LDAP as LDAP;
 //use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
-use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
 use \clearos\apps\samba\Samba as Samba;
 
 clearos_load_library('base/Configuration_File');
@@ -82,9 +80,9 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('ldap/LDAP');
 // clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
-clearos_load_library('openldap/OpenLDAP');
 clearos_load_library('samba/Samba');
 
 // Exceptions
@@ -335,7 +333,7 @@ class LDAP_Driver extends Engine
         $file = new Configuration_File(self::FILE_CONFIG, 'split', '=', 2);
         $config = $file->load();
 
-        $ldaph = new OpenLDAP($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
+        $ldaph = new LDAP($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
 
         return $ldaph;
     }
@@ -614,7 +612,7 @@ class LDAP_Driver extends Engine
             //------------------------------
 
 // FIXME - FILE_KOLAB_CONFIG should not be here.
-            $kolabconfig = new File(OpenLDAP::FILE_KOLAB_CONFIG);
+            $kolabconfig = new File(LDAP::FILE_KOLAB_CONFIG);
             $kolablines = $kolabconfig->GetContentsAsArray();
 
             // Load LDAP configuration
@@ -734,7 +732,7 @@ class LDAP_Driver extends Engine
             //--------------------
 
 // FIXME - FILE_KOLAB_CONFIG should not be here.
-            $newconfig = new File(OpenLDAP::FILE_KOLAB_CONFIG, TRUE);
+            $newconfig = new File(LDAP::FILE_KOLAB_CONFIG, TRUE);
 
             if ($newconfig->Exists())
                 $newconfig->Delete();
@@ -777,8 +775,8 @@ class LDAP_Driver extends Engine
      * Sets security policy.
      *
      * The LDAP server can be configured to listen on:
-     * -  localhost only: OpenLDAP::POLICY_LOCALHOST
-     * -  localhost and all LAN interfaces: OpenLDAP::POLICY_LAN
+     * -  localhost only: LDAP::POLICY_LOCALHOST
+     * -  localhost and all LAN interfaces: LDAP::POLICY_LAN
      *
      * @param boolean $policy policy setting
      *

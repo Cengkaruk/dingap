@@ -58,7 +58,7 @@ clearos_load_language('base');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
-use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
+use \clearos\apps\ldap\LDAP as LDAP;
 use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\samba\Samba as Samba;
@@ -67,7 +67,7 @@ use \clearos\apps\users\User_Manager as User_Manager;
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
-clearos_load_library('openldap/OpenLDAP');
+clearos_load_library('ldap/LDAP');
 clearos_load_library('openldap_directory/Directory_Driver');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('samba/Samba');
@@ -301,7 +301,7 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
+        $dn = "cn=" . LDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         $this->ldaph->add($dn, $ldap_object);
     }
@@ -354,7 +354,7 @@ class Group_Driver extends Engine
 
         $directory = new Directory_Driver();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
+        $dn = "cn=" . LDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         $this->ldaph->delete($dn);
     }
@@ -520,7 +520,7 @@ class Group_Driver extends Engine
 
         $directory = new Directory_Driver();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
+        $dn = "cn=" . LDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         $this->ldaph->modify($dn, $attributes);
     }
@@ -568,7 +568,7 @@ class Group_Driver extends Engine
 
         $directory = new Directory_Driver();
 
-        $dn = "cn=" . OpenLDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
+        $dn = "cn=" . LDAP::dn_escape($this->group_name) . "," . $directory->get_groups_container();
 
         if ($this->usermap_username === NULL)
             $this->_load_usermap_from_ldap();

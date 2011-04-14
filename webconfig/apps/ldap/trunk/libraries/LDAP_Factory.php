@@ -4,12 +4,12 @@
  * ClearOS LDAP factory.
  *
  * @category   Apps
- * @package    LDAP_Manager
+ * @package    LDAP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\ldap_manager;
+namespace clearos\apps\ldap;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('ldap_manager');
+clearos_load_language('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -66,12 +66,12 @@ clearos_load_library('base/Engine');
  * ClearOS LDAP factory.
  *
  * @category   Apps
- * @package    LDAP_Manager
+ * @package    LDAP
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
 class LDAP_Factory extends Engine
