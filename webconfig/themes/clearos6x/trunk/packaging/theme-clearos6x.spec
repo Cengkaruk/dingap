@@ -8,7 +8,7 @@ License: Copyright 2011 ClearFoundation
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-Provides: clearos-theme
+Provides: system-theme
 Requires: util-linux-ng
 Obsoletes: app-theme-clearos5x
 Buildarch: noarch
