@@ -2,7 +2,7 @@
 Name: app-graphical-console
 Group: ClearOS/Apps
 Version: 5.9.9.0
-Release: 1
+Release: 1%{dist}
 Summary: Graphical console tool
 License: GPLv3
 Packager: ClearFoundation
@@ -10,6 +10,7 @@ Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
 
 %description
 Graphical console tool for configuring the network.
@@ -19,6 +20,7 @@ Summary: Graphical console tool - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: clearos-console
 Requires: dbus-x11
 Requires: gconsole
 Requires: ratpoison
@@ -40,8 +42,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/graphical_console
 cp -r * %{buildroot}/usr/clearos/apps/graphical_console/
 
-install -D -m 0644 packaging/xinitrc %{buildroot}/var/lib/clearconsole/.xinitrc
 install -D -m 0644 packaging/Xdefaults %{buildroot}/var/lib/clearconsole/.Xdefaults
+install -D -m 0644 packaging/xinitrc %{buildroot}/var/lib/clearconsole/.xinitrc
 
 %post
 logger -p local6.notice -t installer 'app-graphical-console - installing'
@@ -84,5 +86,5 @@ exit 0
 /usr/clearos/apps/graphical_console/deploy
 /usr/clearos/apps/graphical_console/language
 /usr/clearos/apps/graphical_console/libraries
-/var/lib/clearconsole/.xinitrc
 /var/lib/clearconsole/.Xdefaults
+/var/lib/clearconsole/.xinitrc

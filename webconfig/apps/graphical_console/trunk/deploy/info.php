@@ -28,8 +28,8 @@ $app['menu_enabled'] = FALSE;
 /////////////////////////////////////////////////////////////////////////////
 //    'mesa-dri-drivers',
 
-$app['core_dependencies'] = array(
-    'app-base-core',
+$app['core_requires'] = array(
+    'clearos-console',
     'dbus-x11',
     'gconsole',
     'ratpoison',
