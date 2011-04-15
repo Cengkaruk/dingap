@@ -63,3 +63,7 @@ $lang['network_mode_trustedstandalone'] = 'Trusted Standalone';
 $lang['network_mode_bridge'] = 'Bridge Mode';
 $lang['network_interface_speed'] = 'Speed';
 $lang['network_interface_link'] = 'Link';
+$lang['network_bootproto_dhcp'] = 'DHCP';
+$lang['network_bootproto_static'] = 'Static';
+$lang['network_bootproto_pppoe'] = 'PPPoE';
+$lang['network_bootproto_bootp'] = 'BootP';

@@ -65,7 +65,57 @@ $anchors = array();
 ///////////////////////////////////////////////////////////////////////////////
 
 $items = array();
-//foreach ($iface_list as $interface => $subnetinfo) {
+foreach ($network_interface as $interface => $detail) {
+	// Skip interfaces used 'indirectly' (e.g. PPPoE, bonded interfaces)
+	if (isset($detail['master']))
+		continue;
+
+	// Skip 1-to-1 NAT interfaces
+	if (isset($detail['one-to-one-nat']) && $detail['one-to-one-nat'])
+		continue;
+
+	// Skip non-configurable interfaces
+	if (! $detail['configurable'])
+		continue;
+
+	// Create summary
+	$ip = empty($detail['address']) ? '' : $detail['address'];
+	$speed = (isset($detail['speed']) && $detail['speed'] > 0) ? $detail['speed'] . " " . lang('base_megabits') : '';
+	$role = isset($detail['role']) ? $detail['role'] : '';
+	$roletext = isset($detail['roletext']) ? $detail['roletext'] : '';
+	$bootproto = isset($detail['ifcfg']['bootprototext']) ? $detail['ifcfg']['bootprototext'] : '';
+
+	if (isset($detail['link'])) {
+		if ($detail['link'] == -1)
+			$link = '';
+		else if ($detail['link'] == 0)
+			$link = lang('base_no');
+		else
+			$link = lang('base_yes');
+	} else {
+		$link = '';
+	}
+
+	$buttons = array(anchor_edit('/app/network/interface/edit/' . $interface));
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Item details
+    ///////////////////////////////////////////////////////////////////////////
+
+	$item['title'] = $interface;
+	$item['action'] = '';
+	$item['anchors'] = button_set($buttons);
+	$item['details'] = array(
+		$interface,
+        $roletext,
+        $bootproto,
+        $ip,
+        $link,
+        $speed
+	);
+
+	$items[] = $item;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Summary table
@@ -77,4 +127,3 @@ echo summary_table(
 	$headers,
 	$items
 );
-

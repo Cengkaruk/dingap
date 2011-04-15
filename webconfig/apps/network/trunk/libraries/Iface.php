@@ -356,11 +356,11 @@ class Iface extends Engine
         $text = '';
 
         if ($bootproto == self::BOOTPROTO_DHCP)
-            $text = IFACE_LANG_DHCP;
+            $text = lang('network_bootproto_dhcp');
         else if ($bootproto == self::BOOTPROTO_STATIC)
-            $text = IFACE_LANG_STATIC;
+            $text = lang('network_bootproto_static');
         else if ($bootproto == self::BOOTPROTO_PPPOE)
-            $text = IFACE_LANG_PPPOE;
+            $text = lang('network_bootproto_pppoe');
 
         return $text;
     }
@@ -990,15 +990,15 @@ class Iface extends Engine
                     $netinfo['bootproto'] = self::BOOTPROTO_PPPOE;
 
                 if ($netinfo['bootproto'] == self::BOOTPROTO_STATIC)
-                    $netinfo['bootprototext'] = IFACE_LANG_STATIC;
+                    $netinfo['bootprototext'] = lang('network_bootproto_static');
                 else if ($netinfo['bootproto'] == self::BOOTPROTO_DHCP)
-                    $netinfo['bootprototext'] = IFACE_LANG_DHCP;
+                    $netinfo['bootprototext'] = lang('network_bootproto_dhcp');
                 else if ($netinfo['bootproto'] == self::BOOTPROTO_PPPOE)
-                    $netinfo['bootprototext'] = IFACE_LANG_PPPOE;
+                    $netinfo['bootprototext'] = lang('network_bootproto_pppoe');
                 else if ($netinfo['bootproto'] == self::BOOTPROTO_BOOTP)
-                    $netinfo['bootprototext'] = IFACE_LANG_BOOTP;
+                    $netinfo['bootprototext'] = lang('network_bootproto_bootp');
                 else 
-                    $netinfo['bootprototext'] = IFACE_LANG_STATIC;
+                    $netinfo['bootprototext'] = lang('network_bootproto_static');
             }
 
             return $netinfo;

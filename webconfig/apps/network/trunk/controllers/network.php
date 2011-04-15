@@ -23,7 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Network controller.
+ * Network general settings controller.
  *
  * @category   Apps
  * @package    Network
@@ -34,12 +34,13 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
  */
 
+
 ///////////////////////////////////////////////////////////////////////////////
 // C O N T R O L L E R
 ///////////////////////////////////////////////////////////////////////////////
  
 /**
- * Network controller.
+ * Network general settings controller.
  *
  * @category   Apps
  * @package    Network
@@ -56,7 +57,7 @@ class Network extends ClearOS_Controller
 	 * Basic network overview.
 	 */
 
-	function index()
+    function index()
 	{
 		// Load libraries
 		//---------------
@@ -66,7 +67,7 @@ class Network extends ClearOS_Controller
 		// Load views
 		//-----------
 
-        $views = array('network/general');
+        $views = array('network/general', 'network/iface');
 
         $this->page->view_forms($views, lang('network_network'));
 	}

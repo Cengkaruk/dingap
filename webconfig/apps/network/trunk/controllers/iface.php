@@ -50,25 +50,39 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
  */
 
-class NetworkInterface extends ClearOS_Controller
+class Iface extends ClearOS_Controller
 {
 	/**
 	 * Basic network interface summary.
 	 */
 
-	function index()
+    function index($mode = 'edit')
 	{
 		// Load libraries
 		//---------------
 
-		$this->lang->load('firewall');
-		$this->lang->load('network');
+        $this->load->library('network/Iface_Manager');
+
+        // Set validation rules
+        //---------------------
+
+        // Handle form submit
+        //-------------------
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['mode'] = $mode;
+            $data['network_interface'] = $this->iface_manager->get_interface_details();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
 		// Load views
 		//-----------
 
-        $views = array('network/interface');
-
-        $this->page->view_forms($views, lang('network_interface'));
+        $this->page->view_form('network/interface/summary', $data);
 	}
 }
