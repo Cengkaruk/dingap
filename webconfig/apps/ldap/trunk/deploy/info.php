@@ -11,7 +11,7 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'LDAP Manage';
+$app['summary'] = 'LDAP Manager';
 $app['description'] = 'The LDAP mode manager... master/slave/standalone.'; // FIXME: translate
 
 /////////////////////////////////////////////////////////////////////////////
@@ -25,26 +25,7 @@ $app['subcategory'] = lang('base_subcategory_settings');
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
-/*
 
-$app['core_dependencies'] = array(
-    'app-cron-core', 
-    'ntpdate >= 4.2.4p8'
+$app['core_requires'] = array(
+    'system-ldap-driver', 
 );
-
-$app['core_file_manifest'] = array( 
-   'app-date.cron' => array(
-        'target' => '/etc/cron.d/app-date',
-        'mode' => '0644',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-
-   'timesync' => array(
-        'target' => '/usr/sbin/timesync',
-        'mode' => '0755',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-);
-*/
