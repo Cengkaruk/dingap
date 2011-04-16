@@ -47,7 +47,8 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('directory_manager');
+clearos_load_language('ldap');
+clearos_load_language('openldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -56,9 +57,9 @@ clearos_load_language('directory_manager');
 // Factories
 //----------
 
-use \clearos\apps\directory_manager\Directory_Factory as Directory;
+use \clearos\apps\ldap\LDAP_Factory as LDAP;
 
-clearos_load_library('directory_manager/Directory_Factory');
+clearos_load_library('ldap/LDAP_Factory');
 
 // Classes
 //--------
@@ -69,10 +70,9 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\ldap\LDAP as LDAP;
-//use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
+// use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
-use \clearos\apps\samba\Samba as Samba;
 
 clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Daemon');
@@ -80,10 +80,9 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
-clearos_load_library('ldap/LDAP');
+clearos_load_library('ldap/LDAP_Client');
 // clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
-clearos_load_library('samba/Samba');
 
 // Exceptions
 //-----------
@@ -112,7 +111,7 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
  */
 
-class LDAP_Driver extends Engine
+class LDAP_Driver extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -190,9 +189,9 @@ class LDAP_Driver extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $this->modes = array(
-            self::MODE_MASTER => lang('mode_master'),
-            self::MODE_SLAVE => lang('mode_slave'),
-            self::MODE_STANDALONE => lang('mode_standalone')
+            self::MODE_MASTER => lang('ldap_master'),
+            self::MODE_SLAVE => lang('ldap_slave'),
+            self::MODE_STANDALONE => lang('ldap_standalone')
         );
 
         $this->file_provision_accesslog_data = clearos_app_base('openldap') . '/' . self::FILE_PROVISION_ACCESSLOG_DATA;
@@ -201,6 +200,8 @@ class LDAP_Driver extends Engine
         $this->file_provision_ldap_config = clearos_app_base('openldap') . '/' . self::FILE_PROVISION_LDAP_CONFIG;
         $this->file_provision_slapd_config = clearos_app_base('openldap') . '/' . self::FILE_PROVISION_SLAPD_CONFIG;
         $this->file_provision_slapd_config_replicate = clearos_app_base('openldap') . '/' . self::FILE_PROVISION_SLAPD_CONFIG_REPLICATE;
+
+        parent::__construct('slapd');
     }
 
     /**
@@ -226,16 +227,16 @@ class LDAP_Driver extends Engine
             if ($this->ldaph === NULL)
                 $this->ldaph = $this->get_ldap_handle();
 
-            $was_running = $this->ldaph->get_running_state();
+            $was_running = $this->get_running_state();
 
             if ($was_running)
-                $this->ldaph->set_running_state(FALSE);
+                $this->set_running_state(FALSE);
 
             $shell = new Shell();
             $shell->execute(self::COMMAND_SLAPCAT, "-n$dbnum -l " . $ldif, TRUE);
 
             if ($was_running)
-                $this->ldaph->set_running_state(TRUE);
+                $this->set_running_state(TRUE);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -333,7 +334,7 @@ class LDAP_Driver extends Engine
         $file = new Configuration_File(self::FILE_CONFIG, 'split', '=', 2);
         $config = $file->load();
 
-        $ldaph = new LDAP($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
+        $ldaph = new LDAP_Client($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
 
         return $ldaph;
     }
@@ -599,7 +600,7 @@ class LDAP_Driver extends Engine
             // Dump LDAP database to export file
             //----------------------------------
 
-            $was_running = $this->ldaph->get_running_state();
+            $was_running = $this->get_running_state();
             $this->Export(self::FILE_LDIF_OLD_DOMAIN, self::CONSTANT_BASE_DB_NUM);
 
             // Load LDAP export file
@@ -628,7 +629,7 @@ class LDAP_Driver extends Engine
 
         } catch (Exception $e) {
             if ($was_running)
-                $this->ldaph->set_running_state(TRUE);
+                $this->set_running_state(TRUE);
 
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -757,14 +758,14 @@ class LDAP_Driver extends Engine
             // FIXME: this shold not be here
             if (file_exists(COMMON_CORE_DIR . '/api/Samba.class.php')) {
                 require_once('Samba.class.php');
-                $samba = new Samba();
+                // $samba = new Samba();
                 $samba->_CleanSecretsFile('');
             }
 
             // Tell other LDAP dependent apps to grab latest configuration
             // TODO: move this to a daemon
             if ($was_running)
-                $this->_synchronize(FALSE);
+                $this->synchronize(FALSE);
 
         } catch (Exception $e) {
             // Not fatal
@@ -925,10 +926,18 @@ class LDAP_Driver extends Engine
         // KLUDGE: shutdown Samba or it will try to write information to LDAP
         //-------------------------------------------------------------------
 
-        $samba = new Samba();
+        $samba_list = array('smb', 'nmb', 'winbind');
 
-        if ($samba->is_installed())
-            $samba->set_running_state(FALSE);
+        try {
+            foreach ($samba_list as $daemon) {
+                $samba = new Daemon($daemon);
+
+                if ($samba->is_installed())
+                    $samba->set_running_state(FALSE);
+            }
+        } catch (Exception $e) {
+            // not fatail
+        }
 
         // Determine our hostname and generate an LDAP password (if required)
         //-------------------------------------------------------------------
@@ -964,7 +973,7 @@ class LDAP_Driver extends Engine
 
         $this->_set_initialized();
         $this->_set_startup($start);
-        $this->_synchronize();
+        $this->synchronize();
     }
 
     /**
@@ -1131,11 +1140,10 @@ class LDAP_Driver extends Engine
         // Shutdown LDAP if running
         //-------------------------
 
-        $was_running = $this->ldaph->get_running_state();
+        $was_running = $this->get_running_state();
 
-        if ($was_running) {
-            $this->ldaph->set_running_state(FALSE);
-        }
+        if ($was_running)
+            $this->set_running_state(FALSE);
 
         // Backup old LDAP
         //----------------
@@ -1182,7 +1190,7 @@ FIXME: re-enable backup
         $folder->chown("ldap", "ldap", TRUE);
 
         if ($was_running) {
-            $this->ldaph->set_running_state(TRUE);
+            $this->set_running_state(TRUE);
         }
     }
 
@@ -1212,7 +1220,7 @@ FIXME: re-enable backup
         if ($this->ldaph === NULL)
             $this->ldaph = $this->get_ldap_handle();
 
-        $this->ldaph->set_boot_state(TRUE);
+        $this->set_boot_state(TRUE);
 
         /*
         FIXME
@@ -1221,7 +1229,7 @@ FIXME: re-enable backup
         */
 
         if ($start) {
-            $this->ldaph->restart();
+            $this->restart();
             // FIXME $ldapsync->restart();
         }
     }
