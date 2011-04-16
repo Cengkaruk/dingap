@@ -86,7 +86,7 @@ clearos_load_library('ldap/LDAP_Unavailable_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
-class LDAP extends Daemon
+class LDAP_Client extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
