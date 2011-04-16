@@ -28,6 +28,16 @@ cp -r * %{buildroot}/usr/clearos/apps/openldap/
 install -d -m 0755 %{buildroot}/var/clearos/openldap
 install -d -m 0755 %{buildroot}/var/clearos/openldap/provision
 install -d -m 0755 %{buildroot}/var/clearos/openldap/synchronize
+install -D -m 0644 packaging/schema/RADIUS-LDAPv3.schema %{buildroot}/etc/openldap/schema/RADIUS-LDAPv3.schema
+install -D -m 0644 packaging/schema/clearcenter.schema %{buildroot}/etc/openldap/schema/clearcenter.schema
+install -D -m 0644 packaging/schema/clearfoundation.schema %{buildroot}/etc/openldap/schema/clearfoundation.schema
+install -D -m 0644 packaging/schema/horde.schema %{buildroot}/etc/openldap/schema/horde.schema
+install -D -m 0644 packaging/schema/kolab2.schema %{buildroot}/etc/openldap/schema/kolab2.schema
+install -D -m 0644 packaging/schema/pcn.schema %{buildroot}/etc/openldap/schema/pcn.schema
+install -D -m 0644 packaging/schema/rfc2307bis.schema %{buildroot}/etc/openldap/schema/rfc2307bis.schema
+install -D -m 0644 packaging/schema/rfc2739.schema %{buildroot}/etc/openldap/schema/rfc2739.schema
+install -D -m 0644 packaging/schema/samba.schema %{buildroot}/etc/openldap/schema/samba.schema
+install -D -m 0644 packaging/schema/zarafa.schema %{buildroot}/etc/openldap/schema/zarafa.schema
 
 %post
 logger -p local6.notice -t installer 'app-openldap-core - installing'
@@ -59,3 +69,13 @@ exit 0
 /usr/clearos/apps/openldap/deploy
 /usr/clearos/apps/openldap/language
 /usr/clearos/apps/openldap/libraries
+/etc/openldap/schema/RADIUS-LDAPv3.schema
+/etc/openldap/schema/clearcenter.schema
+/etc/openldap/schema/clearfoundation.schema
+/etc/openldap/schema/horde.schema
+/etc/openldap/schema/kolab2.schema
+/etc/openldap/schema/pcn.schema
+/etc/openldap/schema/rfc2307bis.schema
+/etc/openldap/schema/rfc2739.schema
+/etc/openldap/schema/samba.schema
+/etc/openldap/schema/zarafa.schema

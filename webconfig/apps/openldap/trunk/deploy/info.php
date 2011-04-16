@@ -21,6 +21,7 @@ $app['description'] = 'LDAP Manager...blah blah blah'; // FIXME: translate
 $app['name'] = 'LDAP Manager'; // FIXME
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
@@ -41,4 +42,17 @@ $app['core_directory_manifest'] = array(
    '/var/clearos/openldap' => array(),
    '/var/clearos/openldap/provision' => array(),
    '/var/clearos/openldap/synchronize' => array(),
+);
+
+$app['core_file_manifest'] = array(
+    'schema/clearfoundation.schema' => array( 'target' => '/etc/openldap/schema/clearfoundation.schema' ),
+    'schema/clearcenter.schema' => array( 'target' => '/etc/openldap/schema/clearcenter.schema' ),
+    'schema/horde.schema' => array( 'target' => '/etc/openldap/schema/horde.schema' ),
+    'schema/kolab2.schema' => array( 'target' => '/etc/openldap/schema/kolab2.schema' ),
+    'schema/pcn.schema' => array( 'target' => '/etc/openldap/schema/pcn.schema' ),
+    'schema/RADIUS-LDAPv3.schema' => array( 'target' => '/etc/openldap/schema/RADIUS-LDAPv3.schema' ),
+    'schema/rfc2307bis.schema' => array( 'target' => '/etc/openldap/schema/rfc2307bis.schema' ),
+    'schema/rfc2739.schema' => array( 'target' => '/etc/openldap/schema/rfc2739.schema' ),
+    'schema/samba.schema' => array( 'target' => '/etc/openldap/schema/samba.schema' ),
+    'schema/zarafa.schema' => array( 'target' => '/etc/openldap/schema/zarafa.schema' ),
 );

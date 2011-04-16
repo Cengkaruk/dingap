@@ -20,14 +20,17 @@ include /etc/openldap/schema/ppolicy.schema
 include /etc/openldap/schema/RADIUS-LDAPv3.schema
 
 # Kolab extension
-#include /etc/openldap/schema/rfc2739.schema
-#include /etc/openldap/schema/kolab2.schema
+include /etc/openldap/schema/rfc2739.schema
+include /etc/openldap/schema/kolab2.schema
 
 # Horde extension
-#include /etc/openldap/schema/horde.schema
+include /etc/openldap/schema/horde.schema
 
 # Samba extension
-#include /etc/openldap/schema/samba.schema
+include /etc/openldap/schema/samba.schema
+
+# Zarafa extension
+include /etc/openldap/schema/zarafa.schema
 
 
 # Global configuration directives
@@ -108,18 +111,17 @@ index  cn approx,sub,pres,eq
 index  sn approx,sub,pres,eq
 index  givenName approx,sub,pres,eq
 
-# Fixme: Samba
-# index  sambaSID eq,sub
-# index  sambaSIDList eq 
-# index  sambaPrimaryGroupSID eq
-# index  sambaDomainName eq
-# index  sambaGroupType eq 
+# Samba extension
+index  sambaSID eq,sub
+index  sambaSIDList eq 
+index  sambaPrimaryGroupSID eq
+index  sambaDomainName eq
+index  sambaGroupType eq 
 
-
-# FIXME: Kolab
-# index  kolabDelegate approx,sub,pres,eq
-# index  kolabHomeServer pres,eq
-# index  kolabDeleteflag pres,eq
+# Kolab extension
+index  kolabDelegate approx,sub,pres,eq
+index  kolabHomeServer pres,eq
+index  kolabDeleteflag pres,eq
 
 # password policies 
 overlay ppolicy
