@@ -63,12 +63,10 @@ clearos_load_library('base/Daemon');
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
-use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\directory_manager\Directory_Unavailable_Exception as Directory_Unavailable_Exception;
+use \clearos\apps\ldap\LDAP_Unavailable_Exception as LDAP_Unavailable_Exception;
 
 clearos_load_library('base/Engine_Exception');
-clearos_load_library('base/Validation_Exception');
-clearos_load_library('directory_manager/Directory_Unavailable_Exception');
+clearos_load_library('ldap/LDAP_Unavailable_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -77,8 +75,7 @@ clearos_load_library('directory_manager/Directory_Unavailable_Exception');
 /**
  * Generic LDAP class.
  *
- * This is a low-level PHP class for performing directory operations on an 
- * LDAP server.
+ * This is a low-level PHP class for performing LDAP operations.
  *
  * @category   Apps
  * @package    LDAP
@@ -132,7 +129,7 @@ class LDAP extends Daemon
      * @param array  $attributes attributes
      *
      * @return void
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function add($dn, $attributes)
@@ -174,7 +171,7 @@ class LDAP extends Daemon
      * @param string $dn distinguished name
      *
      * @return void
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function delete($dn)
@@ -194,7 +191,7 @@ class LDAP extends Daemon
      * @param string $dn distinguised name
      *
      * @return TRUE if DN exists
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function exists($dn)
@@ -216,7 +213,7 @@ class LDAP extends Daemon
      * Returns LDAP error.
      *
      * @return string LDAP error
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function error()
@@ -235,7 +232,7 @@ class LDAP extends Daemon
      * @param string $entry LDAP entry
      *
      * @return array attributes in array format
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function get_attributes($entry)
@@ -301,7 +298,7 @@ class LDAP extends Daemon
      * @param string $entry LDAP entry
      *
      * @return string DN
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function get_dn($entry)
@@ -323,7 +320,7 @@ class LDAP extends Daemon
      * Returns LDAP entries.
      *
      * @return array complete result information in a multi-dimensional array
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function get_entries()
@@ -345,7 +342,7 @@ class LDAP extends Daemon
      * Returns first LDAP entry.
      *
      * @return resource result entry identifier for the first entry.
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function get_first_entry()
@@ -378,7 +375,7 @@ class LDAP extends Daemon
      * Checks LDAP availability.
      *
      * @return boolean TRUE if LDAP connection was successful
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function is_available()
@@ -390,7 +387,7 @@ class LDAP extends Daemon
 
         try {
             $this->_bind();
-        } catch (Directory_Unavailable_Exception $e) {
+        } catch (LDAP_Unavailable_Exception $e) {
             return FALSE;
         }
 
@@ -404,7 +401,7 @@ class LDAP extends Daemon
      * @param string $entry entry
      *
      * @return void
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function modify($dn, $entry)
@@ -449,7 +446,7 @@ class LDAP extends Daemon
      * @param string $entry LDAP entry
      *
      * @return resource next result entry
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function next_entry($entry)
@@ -468,7 +465,7 @@ class LDAP extends Daemon
      * @param string $dn distinguished name
      *
      * @return array complete entry information
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function read($dn)
@@ -508,7 +505,7 @@ class LDAP extends Daemon
      * @param string $new_parent new parent
      *
      * @return void
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function rename($dn, $rdn, $new_parent = NULL)
@@ -533,7 +530,7 @@ class LDAP extends Daemon
      * @param array  $attributes attributes
      *
      * @return handle search result identifier
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function search($filter, $base_dn = NULL, $attributes = NULL)
@@ -566,7 +563,7 @@ class LDAP extends Daemon
      * @param string $sort_filter attribute used for sorting
      *
      * @return void
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     public function sort(&$result, $sort_filter)
@@ -651,7 +648,7 @@ class LDAP extends Daemon
      * Loads default settings, connects and binds to LDAP server.
      *
      * @return void
-     * @throws Engine_Exception, Directory_Unavailable_Exception
+     * @throws Engine_Exception, LDAP_Unavailable_Exception
      */
 
     protected function _bind()
@@ -665,7 +662,7 @@ class LDAP extends Daemon
 
         if (! @ldap_bind($this->connection, $this->config['bind_dn'], $this->config['bind_pw'])) {
             if (ldap_errno($this->connection) === -1)
-                throw new Directory_Unavailable_Exception();
+                throw new LDAP_Unavailable_Exception();
             else
                 throw new Engine_Exception($this->error());
         }
