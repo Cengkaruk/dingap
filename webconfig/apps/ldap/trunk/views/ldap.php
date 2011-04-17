@@ -77,9 +77,8 @@ echo "</div>";
 // Common submit button
 ///////////////////////////////////////////////////////////////////////////////
 
-echo button_set(
-    array( form_submit_update('submit', 'high') )
-);
+if (! $read_only)
+    echo button_set( array( form_submit_update('submit', 'high') ));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Close form
