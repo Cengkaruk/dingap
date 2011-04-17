@@ -844,7 +844,7 @@ class LDAP_Driver extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_domain($domain))
-            return lang('openldap_domain_is_invalid');
+            return lang('ldap_domain_is_invalid');
     }
 
     /**
@@ -859,10 +859,9 @@ class LDAP_Driver extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (isset($mode) && array_key_exists($mode, $this->modes))
-            return TRUE;
-        else
-            return FALSE;
+        if (! (isset($mode) && array_key_exists($mode, $this->modes)))
+            return lang('ldap_mode_is_invalid');
+            return lang('ldap_mode_is_invalid');
     }
 
     /**
@@ -895,7 +894,7 @@ class LDAP_Driver extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (($policy !== self::POLICY_LOCALHOST) && ($policy !== self::POLICY_LAN))
-            return lang('openldap_security_policy_is_invalid');
+            return lang('ldap_security_policy_is_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
