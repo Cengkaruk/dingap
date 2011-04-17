@@ -25,11 +25,10 @@ if ($initialized) {
 } else {
     $read_only = FALSE;
 }
-//    $read_only = FALSE;
 
 $ids['input'] = 'mode';
 
-echo form_open('directory_manager');
+echo form_open('ldap');
 echo form_header(lang('directory_manager_mode'));
 
 echo form_fieldset(lang('base_general_settings'));
@@ -43,7 +42,19 @@ echo form_fieldset_close();
 echo "<div id='master' class='mode_form'>";
 
 echo form_fieldset(lang('directory_manager_master'));
-echo field_input('domain', $domain, lang('directory_manager_base_domain'));
+echo field_input('domain', $domain, lang('directory_manager_base_domain'), $read_only);
+echo form_fieldset_close();
+
+echo "</div>";
+
+///////////////////////////////////////////////////////////////////////////////
+// OpenLDAP Standalone
+///////////////////////////////////////////////////////////////////////////////
+
+echo "<div id='standalone' class='mode_form'>";
+
+echo form_fieldset(lang('directory_manager_standalone'));
+echo field_input('domain', $domain, lang('directory_manager_base_domain'), $read_only);
 echo form_fieldset_close();
 
 echo "</div>";
@@ -56,8 +67,8 @@ echo "<div id='slave' class='mode_form'>";
 
 echo form_fieldset(lang('directory_manager_slave'));
 echo field_input('master_hostname', $master_hostname, lang('directory_manager_master_directory_hostname'), $read_only);
-echo field_input('master_password', $master_password, lang('directory_manager_master_directory_password'));
-echo field_view('Field Label:', 'Field Output Text', 'field_name', 'field_value');
+if (! $read_only)
+    echo field_input('master_password', $master_password, lang('directory_manager_master_directory_password'));
 echo form_fieldset_close();
 
 echo "</div>";

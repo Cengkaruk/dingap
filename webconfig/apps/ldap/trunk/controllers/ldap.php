@@ -53,35 +53,24 @@ class LDAP extends ClearOS_Controller
      * @return view
      */
 
-    function index()
+    function index($reset = FALSE)
     {
         // Load dependencies
         //------------------
 
         $this->load->factory('ldap/LDAP_Factory');
         $this->lang->load('ldap');
-/*
 
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('mode', 'directory_manager/Directory_Manager', 'validate_mode', TRUE);
-
-        $mode = $this->input->post('mode');
-
-        if ($mode === 'master') {
-            $this->form_validation->set_policy('domain', 'openldap/Directory_Driver', 'validate_domain', TRUE);
-
-            echo $this->directory_driver->get_groups_ou();
-            
-        $domain = $this->input->post('domain');
-echo " master mode / $domain";
-        }
-
+        // FIXME: openldap/LDAP_Driver should not be mentioned
+        $this->form_validation->set_policy('mode', 'openldap/LDAP_Driver', 'validate_mode', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
         //-------------------
+/*
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
@@ -92,18 +81,18 @@ echo " master mode / $domain";
                 return;
             }
         }
+*/
 
         // Load view data
         //---------------
-*/
 
         try {
             $data['mode'] = $this->ldap_factory->get_mode();
             $data['modes'] = $this->ldap_factory->get_modes();
-            $data['base_domain'] = $this->ldap_factory->get_base_internet_domain();
+            $data['domain'] = $this->ldap_factory->get_base_internet_domain();
             $data['master_hostname'] = $this->ldap_factory->get_master_hostname();
-            $data['initialized'] = $this->ldap_factory->is_initialized();
             $data['available'] = $this->ldap_factory->is_available();
+            $data['initialized'] = ($reset) ? FALSE : $this->ldap_factory->is_initialized();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
