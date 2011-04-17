@@ -78,7 +78,7 @@ class Scan extends ClearOS_Controller
 				redirect('/file_scan/');
 				*/
 			} catch (Exception $e) {
-				$this->page->view_exception($e->GetMessage(), $view);
+                $this->page->view_exception($e);
 				return;
 			}
 		}
@@ -94,27 +94,14 @@ class Scan extends ClearOS_Controller
 			$schedule = $this->file_scan->get_scan_schedule();
 			$data['hour'] = $schedule['hour'];
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage(), $view);
+			$this->page->view_exception($e);
 			return;
 		}
  
 		// Load views
 		//-----------
 
-		if ($view == 'form') {
-			$data['form_type'] = 'view';
-
-			$this->load->view('file_scan/scan', $data);
-
-		} else if ($view == 'page') {
-			$data['form_type'] = 'edit';
-
-			$this->page->set_title(lang('file_scan_antimalware') . ' - ' . lang('base_status'));
-
-			$this->load->view('theme/header');
-			$this->load->view('file_scan/scan', $data);
-			$this->load->view('theme/footer');
-		}
+        $this->page->view_form('file_scan/scan', $data, lang('file_scan_antimalware') . ' - ' . lang('base_status'));
 	}
 
 	/**
@@ -143,5 +130,3 @@ class Scan extends ClearOS_Controller
 		echo json_encode($info); 
 	}
 }
-
-?>

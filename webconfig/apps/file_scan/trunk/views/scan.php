@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * File scan scanner view.
+ *
+ * @category   ClearOS
+ * @package    Date
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,8 +25,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -33,9 +40,10 @@ $this->lang->load('file_scan');
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('file_scan/config'); 
+echo form_header(lang('file_scan_scanner'));
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
 // FIXME
@@ -52,10 +60,6 @@ echo field_input('last_result', $last_result, lang('file_scan_last_scan_result')
 
 echo form_fieldset_close(); 
 
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
-
 echo button_set(
 	array(
 		anchor_javascript('start', lang('base_start'), 'high'),
@@ -67,7 +71,5 @@ echo button_set(
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
+echo form_footer();
 echo form_close();
-
-// vim: ts=4
-?>

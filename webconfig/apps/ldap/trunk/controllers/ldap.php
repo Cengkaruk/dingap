@@ -58,9 +58,9 @@ class LDAP extends ClearOS_Controller
         // Load dependencies
         //------------------
 
+        $this->load->factory('ldap/LDAP_Factory');
+        $this->lang->load('ldap');
 /*
-        $this->load->factory('ldap_manager/LDAP_Factory');
-        $this->lang->load('ldap_manager');
 
         // Set validation rules
         //---------------------
@@ -95,14 +95,19 @@ echo " master mode / $domain";
 
         // Load view data
         //---------------
+*/
 
         try {
+            $data['mode'] = $this->ldap_factory->get_mode();
             $data['modes'] = $this->ldap_factory->get_modes();
+            $data['base_domain'] = $this->ldap_factory->get_base_internet_domain();
+            $data['master_hostname'] = $this->ldap_factory->get_master_hostname();
+            $data['initialized'] = $this->ldap_factory->is_initialized();
+            $data['available'] = $this->ldap_factory->is_available();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
-*/
 
         // Load views
         //-----------

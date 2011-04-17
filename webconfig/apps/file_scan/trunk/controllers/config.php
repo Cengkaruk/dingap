@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * Antivirus file scan configuration controller.
+ *
+ * @category   Apps
+ * @package    File_Scan
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/file_scan/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2011 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,32 +25,26 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * File scanner configuration.
- *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2011, ClearFoundation
- */
-
 ///////////////////////////////////////////////////////////////////////////////
-// C O N T R O L L E R
+// C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * File scanner configuration.
+ * Antivirus file scan configuration controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2011, ClearFoundation
+ * @category   Apps
+ * @package    File_Scan
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/file_scan/
  */
+
 
 class Config extends ClearOS_Controller
 {
@@ -119,21 +121,6 @@ class Config extends ClearOS_Controller
 		// Load views
 		//-----------
 
-		if ($view == 'form') {
-			$data['form_type'] = 'view';
-
-			$this->load->view('file_scan/config', $data);
-
-		} else if ($view == 'page') {
-			$data['form_type'] = 'edit';
-
-			$this->page->set_title(lang('file_scan_antimalware') . ' - ' . lang('base_general_settings'));
-
-			$this->load->view('theme/header');
-			$this->load->view('file_scan/config', $data);
-			$this->load->view('theme/footer');
-		}
+        $this->page->view_form('file_scan/config', $data, lang('file_scan_antimalware') . ' - ' . lang('base_general_settings'));
 	}
 }
-
-?>

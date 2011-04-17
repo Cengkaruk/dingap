@@ -330,17 +330,20 @@ class LDAP_Driver extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: add security context
-        $file = new Configuration_File(self::FILE_CONFIG, 'split', '=', 2);
-        $config = $file->load();
+        if (is_null($this->config))
+            $this->_load_config();
 
-        $ldaph = new LDAP_Client($config['base_dn'], $config['bind_dn'], $config['bind_pw']);
+        $base_dn = (empty($this->config['base_dn'])) ? '' : $this->config['base_dn'];
+        $bind_dn = (empty($this->config['bind_dn'])) ? '' : $this->config['bind_dn'];
+        $bind_pw = (empty($this->config['bind_pw'])) ? '' : $this->config['bind_pw'];
+
+        $ldaph = new LDAP_Client($base_dn, $bind_dn, $bind_pw);
 
         return $ldaph;
     }
 
     /**
-     * Returns the DN of the master server 
+     * Returns the DN of the master server.
      *
      * @return string DN of the master server
      * @throws Engine_Exception
@@ -351,6 +354,25 @@ class LDAP_Driver extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         return "cn=Master,ou=Servers," . $this->get_base_dn();
+    }
+
+    /**
+     * Returns the master hostname.
+     *
+     * @return string DN of the master server
+     * @throws Engine_Exception
+     */
+
+    public function get_master_hostname()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (is_null($this->config))
+            $this->_load_config();
+
+        $hostname = (empty($this->config['master_hostname'])) ? '' : $this->config['master_hostname'];
+
+        return $hostname;
     }
 
     /**
@@ -369,27 +391,10 @@ class LDAP_Driver extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $file = new Configuration_File(self::FILE_CONFIG);
-            $config = $file->load();
-        } catch (File_Not_Found_Exception $e) {
-            // Not fatal
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if (is_null($this->config))
+            $this->_load_config();
         
-        if (isset($config['mode'])) {
-            if ($config['mode'] === self::MODE_MASTER)
-                $mode = self::MODE_MASTER;
-            else if ($config['mode'] === self::MODE_SLAVE)
-                $mode = self::MODE_SLAVE;
-            else if ($config['mode'] === self::MODE_STANDALONE)
-                $mode = self::MODE_STANDALONE;
-            else 
-                $mode = self::MODE_STANDALONE;
-        } else {
-            $mode = self::MODE_STANDALONE;
-        }
+        $mode = (empty($this->config['mode'])) ? '' : $this->config['mode'];
 
         return $mode;
     }
@@ -1018,6 +1023,9 @@ class LDAP_Driver extends Daemon
         $config .= "bind_pw = $bind_pw\n";
         $config .= "bind_pw_hash = $bind_pw_hash\n";
 
+        if ($mode === self::MODE_SLAVE)
+            $config .= "master_hostname = $master_hostname\n";
+
         $file = new File(self::FILE_CONFIG);
 
         if ($file->exists())
@@ -1025,6 +1033,8 @@ class LDAP_Driver extends Daemon
 
         $file->create('root', 'root', '0644'); // FIXME: put permissions back to 0600
         $file->add_lines($config);
+
+        $this->config = NULL;
 
         // Create slapd.conf configuration
         //--------------------------------
@@ -1195,9 +1205,12 @@ FIXME: re-enable backup
     }
 
     /**
-     * Sets initialized flag
-     *
+     * Sets initialized flag.
+     * 
+     * @return void
+     * @throws Engine_Exception
      */
+
     protected function _set_initialized()
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -1209,8 +1222,31 @@ FIXME: re-enable backup
     }
 
     /**
+     * Loads configuration file.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _load_config()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $file = new Configuration_File(self::FILE_CONFIG);
+            $this->config = $file->load();
+        } catch (File_Not_Found_Exception $e) {
+            // Not fatal
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e));
+        }
+    }
+
+    /**
      * Sets startup policy
      *
+     * @return void
+     * @throws Engine_Exception
      */
 
     protected function _set_startup($start)
@@ -1248,25 +1284,14 @@ FIXME: re-enable backup
         // Load directory configuration settings
         //--------------------------------------
 
-        $config_file = new File(self::FILE_CONFIG);
+        if (is_null($this->config))
+            $this->_load_config();
 
-        $lines = $config_file->get_contents_as_array();
-
-        $base_dn = '';
-        $bind_dn = '';
-        $bind_pw = '';
-        $bind_pw_hash = '';
-
-        foreach ($lines as $line) {
-            if (preg_match('/^base_dn\s*=/', $line))
-                $base_dn = preg_replace('/^base_dn\s*=\s*/', '', $line);
-            if (preg_match('/^bind_dn\s*=/', $line))
-                $bind_dn = preg_replace('/^bind_dn\s*=\s*/', '', $line);
-            if (preg_match('/^bind_pw\s*=/', $line))
-                $bind_pw = preg_replace('/^bind_pw\s*=\s*/', '', $line);
-            if (preg_match('/^bind_pw_hash\s*=/', $line))
-                $bind_pw_hash = preg_replace('/^bind_pw_hash\s*=\s*/', '', $line);
-        }
+        $base_dn = (empty($this->config['base_dn'])) ? '' : $this->config['base_dn'];
+        $bind_dn = (empty($this->config['bind_dn'])) ? '' : $this->config['bind_dn'];
+        $bind_pw = (empty($this->config['bind_pw'])) ? '' : $this->config['bind_pw'];
+        $bind_pw_hash = (empty($this->config['bind_pw_hash'])) ? '' : $this->config['bind_pw_hash'];
+        $master_hostname = (empty($this->config['master_hostname'])) ? '' : $this->config['master_hostname'];
 
         // Synchronize all the configs 
         //----------------------------

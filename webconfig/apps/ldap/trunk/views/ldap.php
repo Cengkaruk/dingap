@@ -18,13 +18,14 @@
 $mode = 'master';
 $read_only = FALSE;
 
-/*
-if (empty($mode)) {
-    $read_only = FALSE;
-} else {
-    $read_only = TRUE;
-}
 */
+
+if ($initialized) {
+    $read_only = TRUE;
+} else {
+    $read_only = FALSE;
+}
+//    $read_only = FALSE;
 
 $ids['input'] = 'mode';
 
@@ -54,8 +55,9 @@ echo "</div>";
 echo "<div id='slave' class='mode_form'>";
 
 echo form_fieldset(lang('directory_manager_slave'));
-echo field_input('master_hostname', $master_hostname, lang('directory_manager_master_directory_hostname'));
+echo field_input('master_hostname', $master_hostname, lang('directory_manager_master_directory_hostname'), $read_only);
 echo field_input('master_password', $master_password, lang('directory_manager_master_directory_password'));
+echo field_view('Field Label:', 'Field Output Text', 'field_name', 'field_value');
 echo form_fieldset_close();
 
 echo "</div>";
