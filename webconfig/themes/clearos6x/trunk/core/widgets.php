@@ -618,7 +618,7 @@ function theme_help_box($data)
 
     return theme_dialogbox_info("
             <h3>Help Box</h3>
-			<span class='ui-icon $iconclass' style='float: right; margin-right: 5px;'></span>$message
+			<span class='ui-icon $iconclass' style='float: right; margin-right: 5px;'>&nbsp;</span>$message
             <p>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
             <p>" . $data['description'] . "</p>
             $tooltip
