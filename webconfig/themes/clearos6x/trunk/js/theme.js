@@ -24,12 +24,18 @@ $(function(){
 	});
 
 	// Summary tables
+    var summaryCount = $('.theme-summary-table tr').length;
+    var summaryExtras = (summaryCount > 10) ? true : false;
+
 	$(".theme-summary-table").dataTable({
 		"aoColumnDefs": [{ 
 			"bSortable": false, "aTargets": [ -1 ] 
 		}],
 		"bJQueryUI": true,
-		"sPaginationType": "full_numbers"
+		"sPaginationType": "full_numbers",
+        "bInfo": summaryExtras,
+        "bPaginate": summaryExtras,
+        "bFilter": summaryExtras,
 	});
 
     // Charts
