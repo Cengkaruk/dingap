@@ -273,7 +273,7 @@ class ProFTPd extends Daemon
      * @return boolean TRUE if port is valid
      */
 
-    public function is_valid_port($port)
+    public function validate_port($port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
