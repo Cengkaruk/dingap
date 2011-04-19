@@ -1,15 +1,23 @@
 <?php
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2010 ClearFoundation
-//
+/**
+ * Theme developer controller.
+ *
+ * @category   Apps
+ * @package    Devel
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2010-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/devel/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,60 +25,51 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
+
 /**
- * Devel controller.
+ * Theme developer controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
- * @link http://www.clearfoundation.com	
+ * @category   Apps
+ * @package    Devel
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2010-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/devel/
  */
 
-class Devel extends ClearOS_Controller 
+class Devel extends ClearOS_Controller
 {
-	/**
-	 * Devel default controller
-	 *
-	 * @return string
-	 */
+    /**
+     * Devel default controller
+     *
+     * @return string
+     */
 
-	function index()
-	{
-		$header['title'] = 'Theme Viewer';
+    function index()
+    {
+        $this->lang->load('devel');
+        $this->page->view_form('theme', $data, lang('devel_theme_viewer'));
+    }
 
-		$this->load->view('theme/header', $header);
-		$this->load->view('theme', $data);
-		$this->load->view('theme/footer');
-	}
+    /**
+     * JSON encoded progress bar information
+     *
+     * @return string JSON encoded information
+     */
 
-	function mobile()
-	{
-		$_SESSION['system_template'] = 'clearos6xmobile/trunk';
+    function progress_data()
+    {
+        $info['progress'] = strftime("%S") * 100 / 60;
+        $info['progress_standalone'] = 100 - $info['progress'];
 
-		$header['title'] = 'Theme Viewer';
-
-		$this->load->view('theme/header', $header);
-		$this->load->view('theme', $data);
-		$this->load->view('theme/footer');
-	}
-
-	function normal()
-	{
-		$_SESSION['system_template'] = 'clearos6x/trunk';
-
-		$header['title'] = 'Theme Viewer';
-
-		$this->load->view('theme/header', $header);
-		$this->load->view('theme', $data);
-		$this->load->view('theme/footer');
-	}
+        echo json_encode($info);
+    }
 }
-
-// vim: ts=4
-?>

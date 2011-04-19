@@ -1,16 +1,23 @@
 <?php
 
+/**
+ * Theme viewer view.
+ *
+ * @category   ClearOS
+ * @package    Devel
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/devel/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-// Copyright 2010 jQuery Authors
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,101 +25,68 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->load->helper('form');
-$this->load->helper('url');
+///////////////////////////////////////////////////////////////////////////////
+// Load dependencies
+///////////////////////////////////////////////////////////////////////////////
+
+$this->lang->load('base');
+$this->lang->load('devel');
 
 ?>
 
 <h1>Theme Viewer</h1>
 <p>This page displays all the standard widgets used in a ClearOS system.</p>
 
-<?php
+<h1>Heading Styles</h1>
+<p>Headings are not used very much in webconfig; reports are pretty much the
+only place these elements appear.</p>
 
-///////////////////////////////////////////////////////////////////////////////
-// Grid
-///////////////////////////////////////////////////////////////////////////////
-
-echo "
-<h2>Data Grids</h2>
 <ul>
-	<li>Add search toolbar when size &gt; ?</li>
-	<li>Add edit/delete/create buttons</li>
+    <li><h1>Heading 1</h1></li>
+    <li><h2>Heading 2</h2></li>
+    <li><h3>Heading 3</h3></li>
 </ul>
-";
 
-$grid_title = 'Grid Title';
-$grid_columns = array();
-
-echo "
-<table id='grid'></table>
-<div id='gridpagination'></div>
-";
+<?php
 
 ///////////////////////////////////////////////////////////////////////////////
 // Forms
 ///////////////////////////////////////////////////////////////////////////////
 
 echo "
+
 <h2>Forms</h2>
 <p>For forms, the labels and fieldsets are the elements that need to be styled
 here.  Other widgets (e.g. select boxes, checkboxes, buttons) are defined 
 elsewhere on this page.</p>
-
-<h3>Summary Form</h3>
-<p>This type of form is common for webconfig pages that have a group of 
-similar objects.</p>
-";
-
-echo "
-<h3>Common Form</h3>
 ";
 
 $cities = array('Toronto', 'Erin', 'Orem');
 
-echo form_open('date');
-echo form_fieldset('Form Title');
-echo "
-    <div>" .
-        form_label('City', 'city') . " " .
-		cos_form_dropdown('city', $cities) . "
-    </div>
-    <div>" .
-        form_label('Postal Code', 'postalcode') . " " .
-		form_input('postalcode', set_value('postalcode', $postalcode)) . " " . form_error('postalcode') . "
-    </div>
-    <div>" .
-		button_set_open('radioset') .
-		form_submit_update('submit') . 
-		anchor('/dhcp', 'Cancel') . 
-		button_set_close('radioset') . "
-    </div>
-";
+echo form_open('devel');
+echo form_header('User Information');
+
+echo form_fieldset('Address');
+echo field_dropdown('city', $cities, 'Toronto', 'City');
+echo field_input('postal_code', '', 'Postal Code');
 echo form_fieldset_close();
+
+echo form_fieldset('Phone Numbers');
+echo field_input('home', '', 'Home');
+echo field_input('mobile', '', 'Mobile');
+echo form_fieldset_close();
+
+echo button_set( array(
+    form_submit_update('submit'),
+    anchor('/dhcp', 'Cancel'),
+));
+
+echo form_footer();
 echo form_close();
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Dialog Box
-///////////////////////////////////////////////////////////////////////////////
-
-echo "
-<h2>Dialog Box</h2>
-<p>A dialog box is used to display a single question to the end user.</p>
-";
-
-echo anchor_custom('#', 'dialog_test_link', 'Click Here');
-
-echo dialogbox(
-    'dialogtest', 
-    'ClearOS Dialog Title',
-    'Are you sure this dialog box is themed the way you want it?'
-);
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons and Anchors
@@ -123,32 +97,39 @@ echo "
 <p>Buttons and anchors should be styled identically.  What is an 
 &quot;anchor&quot;?  An anchor is an href URL that performs a specific
 request.  For example, /app/user/add anchor is a request to show the web form
-for adding a new user.  This anchor should look just like an Add button as 
+for adding a new user.  This anchor should look just like an <b>Add</b> button as 
 opposed to the usual href link shown in a web browser.</p>
 
 <h3>Buttons</h3>
 <p>These buttons extend the existing form_submit() function in CodeIgniter.</p>
 ";
 
-echo form_submit_add('submit');
-echo form_submit_update('submit');
-echo form_submit_delete('submit');
-
-echo form_submit_previous('submit');
-echo form_submit_next('submit');
+echo "<ul>";
+echo "<li>" . form_submit_add('submit') . "</li>";
+echo "<li>" . form_submit_delete('submit') . "</li>";
+echo "<li>" . form_submit_disable('submit') . "</li>";
+echo "<li>" . form_submit_next('submit') . "</li>";
+echo "<li>" . form_submit_previous('submit') . "</li>";
+echo "<li>" . form_submit_update('submit') . "</li>";
+echo "<li>" . form_submit_custom('submit', 'This is a custom button', 'high') . "</li>";
+echo "</ul>";
 
 echo "
 <h3>Anchors</h3>
 <p>These anchors should look identical to the above buttons.</p>
 ";
 
-echo anchor_add('submit');
-echo anchor_update('submit');
-echo anchor_delete('submit');
-
-echo anchor_previous('submit');
-echo anchor_next('submit');
-
+echo "<ul>";
+echo "<li>" . anchor_add('/app/devel') . "</li>";
+echo "<li>" . anchor_cancel('/app/devel') . "</li>";
+echo "<li>" . anchor_delete('/app/devel') . "</li>";
+echo "<li>" . anchor_edit('/app/devel') . "</li>";
+echo "<li>" . anchor_next('/app/devel') . "</li>";
+echo "<li>" . anchor_ok('/app/devel') . "</li>";
+echo "<li>" . anchor_previous('/app/devel') . "</li>";
+echo "<li>" . anchor_view('/app/devel') . "</li>";
+echo "<li>" . anchor_custom('/app/devel', 'This is a custom anchor', 'high') . "</li>";
+echo "</ul>";
 
 echo "
 <h3>Button and Anchor Sets</h3>
@@ -156,12 +137,90 @@ echo "
 has 3 actions: edit, delete, disable.  These buttons can be grouped.</p>
 ";
 
-echo button_set_open('radioset');
-echo form_submit_update('submit');
-echo form_submit_disable('submit');
-echo form_submit_delete('submit');
-echo button_set_close('radioset');
+echo button_set( array(
+    form_submit_update('submit'),
+    form_submit_disable('submit'),
+    form_submit_delete('submit'),
+));
 
+echo "
+<h3>Button and Anchor Importance</h3>
+<p>App developers can indicate the importance of a button.  The typical 
+example is an important <b>Update</b> button next to a low-piority <b>Cancel</b>
+anchor.  Here's an example:</p>
+";
+
+echo button_set( array(
+    form_submit_update('submit'),
+    anchor_cancel('/app/devel', 'low'),
+));
+
+echo "<p>Here's the same example, but switched around.  This could be what
+you would see when answering: are you sure want to eat that worm?</p>";
+
+echo button_set( array(
+    form_submit_ok('submit', 'low'),
+    anchor_cancel('/app/devel'),
+));
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Summary Table
+///////////////////////////////////////////////////////////////////////////////
+
+echo "
+<h2>Summary Tables</h2>
+<p>Summary tables are for display pages where it's possible to manage a list 
+of stuff:</p>
+<ul>
+    <li><b>C</b>reate</li>
+    <li><b>R</b>eview</li>
+    <li><b>U</b>pdate</li>
+    <li><b>D</b>elete</li>
+</ul>
+
+<p>This common design element is called <b>CRUD</b> and the <i>User Manager</i>
+page is a good example.</p>
+";
+
+$items = array();
+$wee_items = array();
+
+for ($i = 1; $i < 11; $i++) {
+    $item = array(
+        'title' => "example$i.lan",
+        'action' => anchor_edit('/app/devel'),
+        'anchors' => anchor_edit('/app/devel') . anchor_delete('/app/devel'),
+        'details' => array("example$i.lan", "192.168.2.$i"),
+    );
+
+    if ($i < 3)
+        $wee_items[] = $item;
+
+    $items[] = $item;
+}
+
+echo "
+<h3>Small List</h3>
+<p>For a small list of items, pagination and search features should be removed.</p>
+";
+echo summary_table(
+    'Local DNS Server',
+    array(anchor_add('/app/devel')),
+    array('Hostname', 'IP'),
+    $wee_items
+);
+
+echo "
+<h3>Large List</h3>
+<p>For a large list of items, pagination and search features are recommended.</p>
+";
+echo summary_table(
+    'Local DNS Server',
+    array(anchor_add('/app/devel')),
+    array('Hostname', 'IP'),
+    $items
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Radio and Checkboxes
@@ -169,30 +228,59 @@ echo button_set_close('radioset');
 
 echo "
 <h2>Radio Boxes and Checkboxes</h2>
+<p>In some cases, radio boxes and checkboxes are shown in a standar form:</p> 
 ";
 
-echo "<div>";
-echo form_label('Checkbox', 'mycheckbox');
-echo form_checkbox('mycheckbox', 'accept', TRUE);
-echo "</div>";
+$restaurants = array('Burger Master', 'Flames-r-us', 'Wimpy');
 
-echo "<div>";
-echo form_label('Radio', 'myradio') . "\n";
-echo form_radio('myradio', 'accept', TRUE) . "\n";
-echo "</div>";
+echo form_open('/app/devel');
+echo form_header('Lunch');
+
+echo form_fieldset('Lunch Menu');
+echo field_dropdown('restaurant', $restaurants, 'Burger Master', 'Restaurant');
+echo field_checkbox('checkbox1', '1', 'Hamburger');
+echo field_checkbox('checkbox2', '0', 'Juice');
+echo field_checkbox('checkbox3', '0', 'French Fries');
+echo form_fieldset_close();
+
+echo form_footer();
+echo form_close();
 
 
 echo "
-<h3>Radio Box and Checkbox Sets</h3>
-<p>Radio boxes and checkboxes can be grouped and labeled.</p>
-";
+<p>In other cases, a bunch of checboxes might be put in a set: FIXME: need a good example</p>";
 
+/*
+$checkboxes = array(
+    form_checkbox('checkbox100', '1', 'Hamburger'),
+    form_checkbox('checkbox101', '0', 'Hot Dog'),
+    form_checkbox('checkbox102', '1', 'Salad'),
+);
+
+echo form_open('/app/devel');
+echo form_header('Lunch');
+
+echo form_fieldset('Lunch Menu');
+echo field_dropdown('restaurant', $restaurants, 'Burger Master', 'Restaurant');
+echo field_checkboxes($checkboxes, 'checkbox11', 'Hamburger', 'Entree');
+echo form_fieldset_close();
+
+echo form_footer();
+echo form_close();
+*/
+
+
+/*
+echo form_radio_set_open('', '');
+echo form_radio('checkbox11', '1', 'Hamburger');
+echo form_radio('checkbox21', '0', 'Hotdog');
+echo form_radio('checkbox31', '0', 'French Fries');
+echo form_radio_set_close();
+*/
 // FIXME form_radio_set_open/close should be named to include checkboxes?
-echo button_set_open();
-echo form_radio_set_item('radio1', 'radio', 'Choice #1');
-echo form_radio_set_item('radio2', 'radio', 'Choice #2');
-echo form_radio_set_item('radio3', 'radio', 'Choice #3');
-echo button_set_close('radioset');
+// echo form_radio_set_item('radio1', 'radio', 'Choice #1');
+// echo form_radio_set_item('radio2', 'radio', 'Choice #2');
+// echo form_radio_set_item('radio3', 'radio', 'Choice #3');
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,7 +292,20 @@ echo "
 ";
 
 $cities = array('Toronto', 'Erin', 'Orem');
-echo cos_form_dropdown('city', $cities);
+echo form_dropdown('city', $cities);
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Help Box
+///////////////////////////////////////////////////////////////////////////////
+
+echo "<br><br>"; // FIXME: remove when theme is fixed
+
+echo "
+<h2>Help Box</h2>
+<p>The help box is shown automatically by the framework and you can see an
+example at the top of this page!</p>.";
+
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -222,17 +323,30 @@ echo infobox_highlight("This is some bit of information worth highlighting.");
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Help Box
+// Dialog Box
 ///////////////////////////////////////////////////////////////////////////////
 
 echo "
-<h2>Help Box</h2>
-<p>Help can be shown inline on webconfig pages.  The help box is optional and 
-can be disabled if desired (notably, in mobile themes).</p>
+<h2>Dialog Box</h2>
+<p>A dialog box is used to display a single question to the end user.</p>
 ";
 
-echo helpbox("This is a help box");
+echo anchor_dialog('dialog_box_anchor', 'Click Here to Open a Dialog');
 
+echo "
+<div id='dialog_box_message' title='My Dialog Title'>
+    <p>This is the default dialog which is useful for displaying information. 
+    The dialog window can be moved, resized and closed with the 'x' icon.</p>
+</div>
+";
+/*
+// Similarly, a complementary call needs to be made in javascript
+dialog_critical()
+dialog_warning()
+dialog_highlight()
+dialog_custom()
+
+*/
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -240,9 +354,24 @@ echo helpbox("This is a help box");
 ///////////////////////////////////////////////////////////////////////////////
 
 echo "<h2>Progress Bar</h2>\n";
+echo "<p>A standalone progress bar:</p>";
+echo progress_bar('bacon_progress_standalone');
 
-echo progress_bar('progressbartest');
+echo "<p>A progress bar in a form:</p>";
+echo form_open('/app/devel');
+echo form_header('Progress Bar');
 
+echo form_fieldset('Progress Bar');
+echo field_input('lettuce', '', 'Lettuce');
+echo field_input('tomato', '', 'Tomato');
+echo field_progress_bar('Bacon Consumed', 'bacon_progress');
+echo form_fieldset_close();
+
+echo form_footer();
+echo form_close();
+
+
+return;
 ?>
 
 <!-- Tabs -->

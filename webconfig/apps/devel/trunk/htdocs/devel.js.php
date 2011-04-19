@@ -1,11 +1,17 @@
-$(function(){
-	// Progress bar demo
-	$("#progressbartest").progressbar({
-		value: 35
+$(document).ready(function() {
+
+    // Dialog Box
+    //-----------    
+
+    // Click event
+	$('#dialog_box_anchor').click(function() {
+		$('#dialog_box_message').dialog('open');
+		return false;
 	});
 
-	// Dialog box demo
-	$('#dialogtest').dialog({
+    // Dialog box
+	$('#dialog_box_message').dialog({
+        autoOpen: false,
 		buttons: {
 			"Ok": function() { 
 				$(this).dialog("close"); 
@@ -15,66 +21,43 @@ $(function(){
 			} 
 		}
 	});
-	
-	$('#dialog_test_link').click(function(){
-		$('#dialogtest').dialog('open');
-		return false;
-	});
 
-///////////////////////////////////// TODO
+    // Progress Bar Demo
+    //------------------
 
-	// Grid
-	$("#grid").jqGrid({
-		caption: "ClearOS Grid",
-		colNames:['Date','Client IP','Total','Average','Notes'],
-		colModel:[
-			{name:'summarydate', index:'summarydate', width:90, sorttype:"date"},
-			{name:'ip', index:'ip', width:100},
-			{name:'usage', index:'usage', width:80, align:"right", sorttype:"float"},
-			{name:'average', index:'average', width:80, align:"right", sorttype:"float"},
-			{name:'note', index:'note', width:200, sortable:false}
-		],
-		datatype: "local",
-		height: 100,
-		rowNum: 3,
-		rowList:[3,6,9],
-		pager: '#gridpagination',
-		loadonce: true,
-	});
-	var mydata = [
-			{summarydate:"2010-10-01",ip:"192.168.1.1",note:"This is a note",usage:"300",average:"10"},
-			{summarydate:"2010-10-02",ip:"192.168.1.12",note:"This is another note",usage:"300",average:"20"},
-			{summarydate:"2010-10-03",ip:"192.168.1.13",note:"This is yet another note",usage:"300",average:"30"},
-			{summarydate:"2010-10-04",ip:"192.168.1.1",note:"This is part of a series of notes",usage:"250",average:"10"},
-			{summarydate:"2010-10-05",ip:"192.168.1.12",note:"Hey, this a note",usage:"300",average:"10"},
-			{summarydate:"2010-10-06",ip:"192.168.1.13",note:"I smell a note!",usage:"400",average:"10"},
-			{summarydate:"2010-10-07",ip:"192.168.1.1",note:"Dogs and cats living together, with a note",usage:"200",average:"10"},
-			{summarydate:"2010-10-08",ip:"192.168.1.12",note:"This is a high note",usage:"300",average:"20"},
-			{summarydate:"2010-10-09",ip:"192.168.1.13",note:"This is a low note",usage:"300",average:"30"},
-			];
-	for(var i=0;i<=mydata.length;i++)
-		jQuery("#grid").jqGrid('addRowData',i+1,mydata[i]);
+    getData();
 
+    function getData() {
+        $.ajax({
+            url: '/app/devel/progress_data',
+            method: 'GET',
+            dataType: 'json',
+            success : function(json) {
+                showData(json);
+                window.setTimeout(getData, 1000);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                $("#status").html('Ooops: ' + textStatus);
+                window.setTimeout(getData, 1000);
+            }
+        });
+    }
+
+    function showData(info) {
+        $("#bacon_progress").progressbar({
+            value: Math.round(info.progress)
+        });
+
+        $("#bacon_progress_standalone").progressbar({
+            value: Math.round(info.progress_standalone)
+        });
+    }
 
 	// Tabs
-	$('#tabs').tabs();
+    //-----
 
-	// Date Picker
-	$('#datepicker').datepicker({
-		inline: true
-	});
-	
-	// Slider
-	$('#slider').slider({
-		range: true,
-		values: [17, 67]
-	});
-	
-	//hover states on the static widgets
-	$('ul#icons li').hover(
-		function() { $(this).addClass('ui-state-hover'); }, 
-		function() { $(this).removeClass('ui-state-hover'); }
-	);
+	// $('#tabs').tabs();
+
 });
 
 // vim: ts=4 syntax=javascript
