@@ -35,20 +35,22 @@
 /**
  * Anchor widget.
  *
- * @param string $url URL
- * @param string $text text to be shown on the anchor
+ * @param string $url        URL
+ * @param string $text       text to be shown on the anchor
  * @param string $importance prominence of the button
- * @param string $class CSS class
- * @param string $id ID
+ * @param string $class      CSS class
+ * @param array  $options    options
+ *
  * @return HTML for anchor
  */
 
-function theme_anchor($url, $text, $importance, $class, $id)
+function theme_anchor($url, $text, $importance, $class, $options)
 {
-    // FIXME: revisit importance
     $importance_class = ($importance === 'high') ? "theme-anchor-important" : "theme-anchor-unimportant";
 
-    return "<a href='$url' id='$id' class='theme-anchor $class $importance_class'>$text</a>";
+    $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+
+    return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,20 +60,22 @@ function theme_anchor($url, $text, $importance, $class, $id)
 /**
  * Button widget.
  *
- * @param string $name button name,
- * @param string $text text to be shown on the anchor
+ * @param string $name       button name,
+ * @param string $text       text to be shown on the anchor
  * @param string $importance prominence of the button
- * @param string $class CSS class
- * @param string $id ID
+ * @param string $class      CSS class
+ * @param array  $options    options
+ *
  * @return HTML for button
  */
 
-function theme_form_submit($name, $text, $importance, $class, $id)
+function theme_form_submit($name, $text, $importance, $class, $options)
 {
-    // FIXME: revisit importance
     $importance_class = ($importance === 'high') ? "theme-form-important" : "theme-form-unimportant";
 
-    return "<input type='submit' name='$name' id='$id' value=\"$text\" class='theme-form-submit $class $importance_class' />\n";
+    $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+
+    return "<input type='submit' name='$name'$id value=\"$text\" class='theme-form-submit $class $importance_class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,7 +158,7 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
     $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
     $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-field-input'>
@@ -188,7 +192,7 @@ function theme_field_password($name, $value, $label, $error, $input_id, $ids = N
     $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
     $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-password'>
@@ -221,7 +225,7 @@ function theme_field_dropdown($name, $selected, $label, $error, $options, $input
     $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
     $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-dropdown'>
@@ -242,7 +246,7 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $op
     $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
     $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
 
-    $error_html = (empty($error)) ? "" : "<span class='FIXME_validation'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-field-toggle'>
@@ -284,32 +288,47 @@ function theme_field_checkbox($name, $selected, $label, $options, $input_id, $id
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// F I E L D  P R O G R E S S  B A R
+// P R O G R E S S  B A R S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Progress bar field.
+ * Display a progress bar as part of a form field.
  *
- * @param string $value value of text input 
- * @param string $label label for text input field
- * @param string $input_id input ID
- * @param array $ids other optional HTML IDs
+ * @param string $label   form field label
+ * @param string $id      HTML ID
+ * @param array  $options options
+ *
  * @return string HTML for text input field
  */
 
-function theme_field_progress_bar($value, $label, $input_id, $ids = NULL)
+function theme_field_progress_bar($label, $id, $options = array())
 {
-    $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
 
     return "
         <div$field_id_html class='theme-field-progress-bar'>
-            <label for='$input_id'$label_id_html>$label</label>
-            <div id='$input_id' class='theme-progress-bar'> </div>
+            <label for='$id'$label_id_html>$label</label>
+            <div id='$id' class='theme-progress-bar'> </dive>
         </div>
     ";
 }
+
+/**
+ * Display a progress bar as standalone entity.
+ *
+ * @param string $label   form field label
+ * @param string $id      HTML ID
+ * @param array  $options options
+ *
+ * @return string HTML output
+ */
+
+function theme_progress_bar($id, $options)
+{
+    return "<div id='$id' class='theme-progress-bar'> </div>";
+} 
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // F O R M  H E A D E R / F O O T E R

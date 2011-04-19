@@ -9,9 +9,11 @@ $(function(){
 	$(".theme-button-set").buttonset();
 
 	// Progress bar
+	/*
 	$(".theme-progress-bar").progressbar({ 
 		value: 0
 	});
+*/
 
 	// List tables
 	$(".theme-list-table").dataTable({
