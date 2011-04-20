@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Delete inner tunnel link
+#-------------------------
+
+if [ -h /etc/raddb/sites-enabled/clearos-inner-tunnel ]; then
+	logger -p local6.notice -t installer "app-radius-core - removing clearos-inner-tunnel"
+    rm -f /etc/raddb/sites-enabled/clearos-inner-tunnel
+fi

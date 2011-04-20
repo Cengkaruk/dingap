@@ -1,0 +1,49 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Create random file for certs
+#-----------------------------
+
+if [ ! -e /etc/raddb/clearos-certs/random ]; then
+	logger -p local6.notice -t installer "app-radius-core - creating certificate helper random_file"
+	dd if=/dev/urandom of=/etc/raddb/clearos-certs/random bs=100 count=1 >/dev/null 2>&1
+	chown root.radiusd /etc/raddb/clearos-certs/random
+	chmod 640 /etc/raddb/clearos-certs/random
+fi
+
+# Use ClearOS configlets file instead of the default
+#---------------------------------------------------
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*eap.conf" /etc/raddb/radiusd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-radius-core - adding clearos-eap.conf configlet"
+	cp -a /etc/raddb/radiusd.conf /usr/clearos/apps/radius/deploy/radius.conf.$TIMESTAMP
+	sed -i -e 's/^[[:space:]]*\$INCLUDE[[:space:]]*eap.conf/\t\$INCLUDE clearos-eap.conf/' /etc/raddb/radiusd.conf
+fi
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*clients.conf" /etc/raddb/radiusd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-radius-core - adding clearos-clients.conf configlet"
+	cp -a /etc/raddb/radiusd.conf /usr/clearos/apps/radius/deploy/radius.conf.$TIMESTAMP
+	sed -i -e 's/^[[:space:]]*\$INCLUDE[[:space:]]*clients.conf/$INCLUDE clearos-clients.conf/' /etc/raddb/radiusd.conf
+fi
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*clearos-users" /etc/raddb/users 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-radius-core - adding clearos-users configlet"
+	cp -a /etc/raddb/users /usr/clearos/apps/radius/deploy/users.$TIMESTAMP
+	echo "\$INCLUDE clearos-users" > /etc/raddb/users
+fi
+
+# Create inner tunnel link
+#-------------------------
+
+if [ ! -h /etc/raddb/sites-enabled/clearos-inner-tunnel ]; then
+	logger -p local6.notice -t installer "app-radius-core - enabling clearos-inner-tunnel"
+    ln -s /etc/raddb/sites-available/clearos-inner-tunnel /etc/raddb/sites-enabled/clearos-inner-tunnel
+fi
+
+# Signal syswatch to handle the certificates
+# TODO: create some kind of plugin or command wrapper for this
+killall -USR1 syswatch >/dev/null 2>&1

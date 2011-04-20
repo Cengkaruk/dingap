@@ -1,0 +1,24 @@
+KOLAB_META_START
+TARGET=/etc/raddb/modules/ldap
+PERMISSIONS=0640
+OWNERSHIP=root:radiusd
+KOLAB_META_END
+# This file is automatically updated by ldapsync -- please do not edit.
+ldap {
+	server = "localhost"
+	identity = "@@@bind_dn@@@"
+	password = @@@bind_pw@@@
+	basedn = "@@@base_dn@@@"
+	filter = "(uid=%{%{Stripped-User-Name}:-%{User-Name}})"
+	ldap_connections_number = 5
+	timeout = 20
+	timelimit = 10 
+	net_timeout = 5
+	tls {
+		start_tls = no
+	}
+	dictionary_mapping = ${confdir}/ldap.attrmap
+	edir_account_policy_check = no
+	groupname_attribute = cn
+	groupmembership_filter = "(|(&(objectClass=GroupOfNames)(member=%{control:Ldap-UserDn}))(&(objectClass=GroupOfUniqueNames)(uniquemember=%{control:Ldap-UserDn})))"
+}
