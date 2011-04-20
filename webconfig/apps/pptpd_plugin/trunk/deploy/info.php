@@ -18,7 +18,7 @@ $app['description'] = 'The PPTP server plugin ... blah blah blah.'; // FIXME: tr
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('pptpd_plugin');
+$app['name'] = lang('pptpd_plugin_pptp_server_directory_plugin');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
 $app['menu_enabled'] = FALSE;
