@@ -48,7 +48,7 @@
 class File_Scan extends ClearOS_Controller
 {
 	/**
-	 * DHCP server overview.
+	 * File scan server overview.
 	 */
 
 	function index()
@@ -56,20 +56,13 @@ class File_Scan extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->lang->load('base');
-		$this->lang->load('dhcp');
+		$this->lang->load('file_scan');
 
 		// Load views
 		//-----------
 
-// FIXME: add icons and help blurb for control panel view
-		$summary['links']['/app/dhcp/general'] = lang('base_general_settings');
-		$summary['links']['/app/dhcp/subnets'] = lang('dhcp_subnets');
-		$summary['links']['/app/dhcp/leases'] = lang('dhcp_leases');
+        $views = array('file_scan/config', 'file_scan/scan');
 
-
-		$this->load->view('theme/summary', $summary, );
+		$this->page->view_forms($views, lang('file_scan_file_scan'));
 	}
 }
-
-?>
