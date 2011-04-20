@@ -624,7 +624,6 @@ function theme_infobox($type, $title, $message)
  * - $category - category
  * - $subcategory - subcategory
  * - $description - description
- * - $tooltip -  tooltip
  * - $user_guide_url - URL to the User Guide
  * - $support_url - URL to support
  */
@@ -632,7 +631,6 @@ function theme_infobox($type, $title, $message)
 function theme_help_box($data)
 {
     // FIXME: translate
-    $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
 	$iconclass = 'ui-icon-info';
 
     return theme_dialogbox_info("
@@ -657,6 +655,7 @@ function theme_help_box($data)
  *
  * The available data for display:
  * - $name - app name
+ * - $tooltip -  tooltip
  * - $version - version number (e.g. 4.7)
  * - $release - release number (e.g. 31.1, so version-release is 4.7-31.1)
  * - $vendor - vendor
@@ -671,6 +670,8 @@ function theme_help_box($data)
 
 function theme_summary_box($data)
 {
+    $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
+
     // FIXME: translate
     $html = theme_dialogbox_info("
         <h3>" . $data['name'] . "</h3>
@@ -688,6 +689,7 @@ function theme_summary_box($data)
                 <td>" . $data['subscription_expiration'] . "</td>
             </tr>
         </table>
+		$tooltip
 
         <!-- Just an example chart -->
 
