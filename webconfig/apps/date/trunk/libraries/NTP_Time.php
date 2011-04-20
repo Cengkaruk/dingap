@@ -165,7 +165,7 @@ class NTP_Time extends Engine
         } catch (File_No_Match_Exception $e) {
             // Not fatal
         } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         if (! $time_server)
@@ -208,7 +208,7 @@ class NTP_Time extends Engine
         } catch (Cron_Configlet_Not_Found_Exception $e) {
             return self::DEFAULT_CRONTAB_TIME;
         } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         $lines = explode("\n", $contents);
@@ -220,7 +220,7 @@ class NTP_Time extends Engine
                 return $matches[0];
         }
 
-        throw new Engine_Exception(lang('date_exception_synchronization_schedule_invalid'), CLEAROS_ERROR);
+        throw new Engine_Exception(lang('date_time_synchronization_schedule_is_invalid'));
     }
 
     /**
@@ -326,6 +326,6 @@ class NTP_Time extends Engine
         $network_utils = new Network_Utils();
 
         if (! $network_utils->is_valid_hostname($time_server))
-            return lang('date_validate_time_server_invalid');
+            return lang('date_time_server_is_invalid');
     }
 }

@@ -11,8 +11,8 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Date and time settings.';
-$app['description'] = 'Synchronize the clock and set the date and time zone.'; // FIXME: translate
+$app['summary'] = lang('date_app_summary');
+$app['description'] = lang('date_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
@@ -21,6 +21,12 @@ $app['description'] = 'Synchronize the clock and set the date and time zone.'; /
 $app['name'] = lang('date_time_and_date');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
+
+/////////////////////////////////////////////////////////////////////////////
+// Controller info
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['date']['tooltip'] = lang('date_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

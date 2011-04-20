@@ -264,6 +264,6 @@ class Time extends Engine
         $list = $this->get_time_zone_list();
 
         if (! in_array($time_zone, $list))
-            return lang('date_validate_time_zone_invalid');
+            return lang('date_time_zone_is_invalid');
     }
 }
