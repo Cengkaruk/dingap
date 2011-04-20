@@ -34,7 +34,7 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array( 
-   'proxy.php' => array(
-        'target' => '/var/clearos/directory_manager/plugins/proxy.php'
+   'web_proxy.php' => array(
+        'target' => '/var/clearos/directory_manager/plugins/web_proxy.php'
     ),
 );

@@ -25,7 +25,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/web_proxy_plugin
 cp -r * %{buildroot}/usr/clearos/apps/web_proxy_plugin/
 
-install -D -m 0644 packaging/proxy.php %{buildroot}/var/clearos/directory_manager/plugins/proxy.php
+install -D -m 0644 packaging/web_proxy.php %{buildroot}/var/clearos/directory_manager/plugins/web_proxy.php
 
 %post
 logger -p local6.notice -t installer 'app-web-proxy-plugin-core - installing'
@@ -54,4 +54,4 @@ exit 0
 /usr/clearos/apps/web_proxy_plugin/deploy
 /usr/clearos/apps/web_proxy_plugin/language
 /usr/clearos/apps/web_proxy_plugin/libraries
-/var/clearos/directory_manager/plugins/proxy.php
+/var/clearos/directory_manager/plugins/web_proxy.php
