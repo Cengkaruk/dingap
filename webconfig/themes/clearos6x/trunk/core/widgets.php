@@ -35,9 +35,25 @@
 /**
  * Anchor widget.
  *
+ * Supported options:
+ * - id 
+ *
+ * Classes:
+ * - theme-anchor-add
+ * - theme-anchor-cancel
+ * - theme-anchor-delete
+ * - theme-anchor-edit
+ * - theme-anchor-next
+ * - theme-anchor-ok
+ * - theme-anchor-previous
+ * - theme-anchor-view
+ * - theme-anchor-custom (button with custom text)
+ * - theme-anchor-dialog (button that pops up a javascript dialog box)
+ * - theme-anchor-javascript (button that does some other javascript action)
+ * 
  * @param string $url        URL
- * @param string $text       text to be shown on the anchor
- * @param string $importance prominence of the button
+ * @param string $text       anchor text
+ * @param string $importance importance of the button ('high' or 'low')
  * @param string $class      CSS class
  * @param array  $options    options
  *
@@ -46,9 +62,10 @@
 
 function theme_anchor($url, $text, $importance, $class, $options)
 {
-    $importance_class = ($importance === 'high') ? "theme-anchor-important" : "theme-anchor-unimportant";
+    $importance_class = ($importance === 'high') ? 'theme-anchor-important' : 'theme-anchor-unimportant';
 
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+    $text = htmlspecialchars($text, ENT_QUOTES);
 
     return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>";
 }
@@ -59,6 +76,19 @@ function theme_anchor($url, $text, $importance, $class, $options)
 
 /**
  * Button widget.
+ *
+ * Supported options:
+ * - id 
+ *
+ * Classes:
+ * - theme-form-add
+ * - theme-form-delete
+ * - theme-form-disable
+ * - theme-form-next
+ * - theme-form-ok
+ * - theme-form-previous
+ * - theme-form-update
+ * - theme-form-custom (button with custom text)
  *
  * @param string $name       button name,
  * @param string $text       text to be shown on the anchor
@@ -74,8 +104,9 @@ function theme_form_submit($name, $text, $importance, $class, $options)
     $importance_class = ($importance === 'high') ? "theme-form-important" : "theme-form-unimportant";
 
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+    $text = htmlspecialchars($text, ENT_QUOTES);
 
-    return "<input type='submit' name='$name'$id value=\"$text\" class='theme-form-submit $class $importance_class' />\n";
+    return "<input type='submit' name='$name'$id value='$text' class='theme-form-submit $class $importance_class' />\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,21 +116,26 @@ function theme_form_submit($name, $text, $importance, $class, $options)
 /**
  * Button set.
  *
+ * Supported options:
+ * - id 
+ *
  * @param array $buttons list of buttons in HTML format
- * @param string $id HTML ID
+ * @param array $options options
+ * 
  * @return string HTML for button set
  */
 
-function theme_button_set($buttons, $id)
+function theme_button_set($buttons, $options)
 {
+    $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+
     $button_html = '';
 
-    // Tabs are just for clean indentation HTML output
     foreach ($buttons as $button)
-        $button_html .= "\n\t\t\t" . trim($button);
+        $button_html .= "\n" . trim($button);
 
     return "
-        <div class='theme-button-set' id='$id'>$button_html
+        <div class='theme-button-set'$id>$button_html
         </div>
     ";
 }
@@ -111,18 +147,24 @@ function theme_button_set($buttons, $id)
 /**
  * Text input field.
  *
- * @param string $value value of text input 
- * @param string $label label for text input field
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ *
+ * @param string $label    label for text input field
+ * @param string $text     text shown
+ * @param string $name     name of text input element
+ * @param string $value    value of text input 
  * @param string $input_id input ID
- * @param array $ids other optional HTML IDs
+ * @param array  $options  options
+ *
  * @return string HTML for field view
  */
 
-function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id, $ids = NULL)
+function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id, $options = NULL)
 {
-    $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label'] . "'";
 
     if (($name !== NULL) || ($value != NULL))
         $hidden_input = "<input type='hidden' name='$name' id='$input_id' value='$value'>";
@@ -142,28 +184,57 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id,
 /**
  * Text input field.
  *
- * @param string $name HTML name of text input element
- * @param string $value value of text input 
- * @param string $label label for text input field
- * @param string $error validation error message
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of text input element
+ * @param string $value    value of text input 
+ * @param string $label    label for text input field
+ * @param string $error    validation error message
  * @param string $input_id input ID
- * @param array $ids other optional HTML IDs
- * @return string HTML for text input field
+ * @param array  $options  options
+ *
+ * @return string HTML
  */
 
-function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL)
+function theme_field_input($name, $value, $label, $error, $input_id, $options = NULL)
 {
-    $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, 'text');
+}
+
+/**
+ * Common text/password input field.
+ *
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @access private
+ * @param string $name     name of text input element
+ * @param string $value    value of text input 
+ * @param string $label    label for text input field
+ * @param string $error    validation error message
+ * @param string $input_id input ID
+ * @param array  $options  options
+ *
+ * @return string HTML
+ */
+
+function _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, $type)
+{
+    $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field_id'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label_id'] . "'";
+    $error_id_html = (is_null($options['error_id'])) ? '' : " id='" . $options['error_id'] . "'";
 
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html class='theme-field-input'>
+        <div$field_id_html class='theme-field-password'>
             <label for='$input_id'$label_id_html>$label</label>
-            <input type='text' name='$name' value='$value' id='$input_id'> $error_html
+            <input type='$type' name='$name' value='$value' id='$input_id'> $error_html
         </div>
     ";
 }
@@ -171,35 +242,28 @@ function theme_field_input($name, $value, $label, $error, $input_id, $ids = NULL
 ///////////////////////////////////////////////////////////////////////////////
 // F I E L D  P A S S W O R D
 ///////////////////////////////////////////////////////////////////////////////
-// TODO: merge with theme_field_input
 
 /**
  * Password input field.
  *
- * @param string $name HTML name of text input element
- * @param string $value value of text input 
- * @param string $label label for text input field
- * @param string $error validation error message
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of pasword input element
+ * @param string $value    value of pasword input 
+ * @param string $label    label for pasword input field
+ * @param string $error    validation error message
  * @param string $input_id input ID
- * @param array $ids other optional HTML IDs
- * @return string HTML for text input field
+ * @param array  $options  options
+ *
+ * @return string HTML
  */
 
-function theme_field_password($name, $value, $label, $error, $input_id, $ids = NULL)
+function theme_field_password($name, $value, $label, $error, $input_id, $options = NULL)
 {
-    $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
-
-    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
-
-    return "
-        <div$field_id_html class='theme-password'>
-            <label for='$input_id'$label_id_html>$label</label>
-            <input type='password' name='$name' value='$value' id='$input_id'> $error_html
-        </div>
-    ";
+    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, 'password');
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,28 +273,35 @@ function theme_field_password($name, $value, $label, $error, $input_id, $ids = N
 /**
  * Dropdown field.
  *
- * @param string $name HTML name of text input element
- * @param string $value value of text input 
- * @param string $label label for text input field
- * @param string $error validation error message
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of dropdown element
+ * @param string $value    value of dropdown 
+ * @param string $label    label for dropdown field
+ * @param string $error    validation error message
+ * @param array  $values    hash list of values for dropdown
  * @param string $input_id input ID
- * @param array $ids other optional HTML IDs
- * @return string HTML for dropdown
+ * @param array  $options  options
+ *
+ * @return string HTML
  */
 
-function theme_field_dropdown($name, $selected, $label, $error, $options, $input_id, $ids)
+function theme_field_dropdown($name, $value, $label, $error, $values, $input_id, $options)
 {
     $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
+    $error_id_html = (is_null($options['error_id'])) ? "" : " id='" . $options['error_id'] . "'";
 
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-dropdown'>
             <label for='$input_id'$label_id_html>$label</label>
-            " . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html
+            " . form_dropdown($name, $values, $value, $input_id_html) . " $error_html
         </div>
     ";
 }
@@ -239,19 +310,38 @@ function theme_field_dropdown($name, $selected, $label, $error, $options, $input
 // F I E L D  T O G G L E
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_field_toggle_enable_disable($name, $selected, $label, $error, $options, $input_id, $ids)
+/**
+ * Enable/disable toggle field.
+ *
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of toggle input element
+ * @param string $value    value of toggle input 
+ * @param string $label    label for toggle input field
+ * @param string $error    validation error message
+ * @param array  $values    hash list of values for dropdown
+ * @param string $input_id input ID
+ * @param array  $options  options
+ *
+ * @return string HTML
+ */
+
+function theme_field_toggle_enable_disable($name, $selected, $label, $error, $values, $input_id, $options)
 {
     $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
+    $error_id_html = (is_null($options['error_id'])) ? "" : " id='" . $options['error_id'] . "'";
 
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-field-toggle'>
             <label for='$input_id'$label_id_html>$label</label>
-            " . form_dropdown($name, $options, $selected, $input_id_html) . " $error_html 
+            " . form_dropdown($name, $values, $selected, $input_id_html) . " $error_html 
         </div>
     ";
 }
@@ -263,21 +353,29 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $op
 /**
  * Checkbox field.
  *
- * @param string $name HTML name of text input element
- * @param boolean $selected selected flag
- * @param string $label label for text input field
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of checkbox element
+ * @param string $value    value of checkbox 
+ * @param string $label    label for checkbox field
+ * @param string $error    validation error message
+ * @param array  $values    hash list of values for dropdown
  * @param string $input_id input ID
- * @param array $ids other optional HTML IDs
- * @return string HTML for checkbox
+ * @param array  $options  options
+ *
+ * @return string HTML
  */
 
-function theme_field_checkbox($name, $selected, $label, $options, $input_id, $ids)
+function theme_field_checkbox($name, $value, $label, $options, $input_id, $options)
 {
-    $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($ids['field'])) ? "" : " id='" . $ids['field'] . "'";
-    $label_id_html = (is_null($ids['label'])) ? "" : " id='" . $ids['label'] . "'";
-    $error_id_html = (is_null($ids['error'])) ? "" : " id='" . $ids['error'] . "'";
-    $select_html = ($selected) ? ' checked' : '';
+    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
+    $error_id_html = (is_null($options['error_id'])) ? "" : " id='" . $options['error_id'] . "'";
+
+    $select_html = ($value) ? ' checked' : '';
 
     return "
         <div$field_id_html class='theme-field-checkboxes'>
@@ -288,11 +386,21 @@ function theme_field_checkbox($name, $selected, $label, $options, $input_id, $id
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// R A D I O  S E T S
+///////////////////////////////////////////////////////////////////////////////
+
+// FIXME
+
+///////////////////////////////////////////////////////////////////////////////
 // P R O G R E S S  B A R S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
  * Display a progress bar as part of a form field.
+ *
+ * Supported options:
+ * - field_id 
+ * - label_id 
  *
  * @param string $label   form field label
  * @param string $id      HTML ID
@@ -329,30 +437,138 @@ function theme_progress_bar($id, $options)
     return "<div id='$id' class='theme-progress-bar'> </div>";
 } 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // F O R M  H E A D E R / F O O T E R
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_form_header($title, $id = NULL)
+/**
+ * Form header.
+ *
+ * Supported options:
+ * - id 
+ *
+ * @param string $title form title
+ * @param array  $options options
+ *
+ * @return string HTML
+ */
+
+function theme_form_header($title, $options)
 {
-    $id_html = (is_null($id)) ? '' : " id=$id";
+    $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
 
     return "<div class='theme-form-header'$id_html>\n";
 }
 
-function theme_form_footer($id = NULL)
+/**
+ * Form footer.
+ *
+ * Supported options:
+ * - id 
+ *
+ * @param array $options options
+ *
+ * @return string HTML
+ */
+
+function theme_form_footer($options)
 {
-    $id_html = (is_null($id)) ? '' : " id=$id";
+    $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
 
     return "</div>\n<div class='theme-form-footer'$id_html></div>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// S U M M A R Y  T A B L E
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Summary table.
+ *
+ * @param string $title   table title
+ * @param array  $anchors list anchors
+ * @param array  $headers headers
+ * @param array  $items   items
+ * @param array  $options options
+ *
+ * @return string HTML
+ */
+
+function theme_summary_table($title, $anchors, $headers, $items, $options)
+{
+    $columns = count($headers) + 1;
+
+    // Header parsing
+    //---------------
+
+    // Tabs are just for clean indentation HTML output
+    $header_html = '';
+
+    foreach ($headers as $header)
+        $header_html .= "\n\t\t" . trim("<th>$header</th>");
+
+    // No title in the action header
+    $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+
+    // Anchors
+    //--------
+
+    $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
+
+    // Item parsing
+    //-------------
+
+    $item_html = '';
+
+    foreach ($items as $item) {
+        $item_html .= "\t<tr>\n";
+
+        foreach ($item['details'] as $value)
+            $item_html .= "\t\t" . "<td>$value</td>\n";
+
+        $item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
+        $item_html .= "\t</tr>\n";
+    }
+
+    // Summary table
+    //--------------
+    return "
+
+<div class='theme-summary-table-container ui-widget'>
+  <div class='theme-summary-table-header ui-state-active ui-corner-top'>
+    <div class='theme-summary-table-title'>$title</div>
+    <div class='theme-summary-table-action'>$add_html</div>
+  </div>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table display'>
+   <thead>
+    <tr>$header_html
+    </tr>
+   </thead>
+   <tbody>
+$item_html
+   </tbody>$legend_html
+  </table>
+</div>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // L I S T  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
+/**
+ * List table.
+ *
+ * @param string $title   table title
+ * @param array  $anchors list anchors
+ * @param array  $headers headers
+ * @param array  $items   items
+ * @param array  $options options
+ *
+ * @return string HTML
+ */
+
+function theme_list_table($title, $anchors, $headers, $items, $options)
 {
     $columns = count($headers) + 1;
 
@@ -373,15 +589,6 @@ function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
 
     $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
-    // Legend parsing
-    //---------------
-
-    // FIXME
-    $legend_html = '';
-
-    if ($legend)    
-        $legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-list-table-legend'>$legend</td></tr></tfoot>";
-
     // Item parsing
     //-------------
 
@@ -399,7 +606,6 @@ function theme_list_table($title, $anchors, $headers, $items, $legend = NULL)
         foreach ($item['details'] as $value)
             $item_html .= "\t\t" . "<td>$value</td>\n";
 
-// pete
 // FIXME: experimenting with checkboxes
         $select_html = ($item['state']) ? 'checked' : ''; 
         $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
@@ -504,88 +710,25 @@ function theme_dialog_warning($message)
 }
 
 
-///////////////////////////////////////////////////////////////////////////////
-// S U M M A R Y  T A B L E
-///////////////////////////////////////////////////////////////////////////////
-
-function theme_summary_table($title, $anchors, $headers, $items, $legend = NULL)
-{
-    $columns = count($headers) + 1;
-
-    // Header parsing
-    //---------------
-
-    // Tabs are just for clean indentation HTML output
-    $header_html = '';
-
-    foreach ($headers as $header)
-        $header_html .= "\n\t\t" . trim("<th>$header</th>");
-
-    // No title in the action header
-    $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
-
-    // Add button
-    //-----------
-
-    $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
-
-    // Legend parsing
-    //---------------
-
-    // FIXME
-    $legend_html = '';
-
-    if ($legend)    
-        $legend_html = "\n   <tfoot><tr><td colspan='$columns' class='theme-summary-table-legend'>$legend</td></tr></tfoot>";
-
-    // Item parsing
-    //-------------
-
-    $item_html = '';
-
-    foreach ($items as $item) {
-        $item_html .= "\t<tr>\n";
-
-        foreach ($item['details'] as $value)
-            $item_html .= "\t\t" . "<td>$value</td>\n";
-
-        $item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
-        $item_html .= "\t</tr>\n";
-    }
-
-    // Summary table
-    //--------------
-    return "
-
-<div class='theme-summary-table-container ui-widget'>
-  <div class='theme-summary-table-header ui-state-active ui-corner-top'>
-    <div class='theme-summary-table-title'>$title</div>
-    <div class='theme-summary-table-action'>$add_html</div>
-  </div>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table display'>
-   <thead>
-    <tr>$header_html
-    </tr>
-   </thead>
-   <tbody>
-$item_html
-   </tbody>$legend_html
-  </table>
-</div>
-    ";
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // I N F O  B O X
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Displays simple info boxes.
+ * Displays a standard infobox.
  *
- * There are four types of info boxes:
+ * Infobox types:
  * - critical (not good... not good at all)
  * - warning  (bad, but we can cope)
  * - highlight (here's something you should know...)
+ *
+ * @param string $type    type of infobox
+ * @param string $title   table title
+ * @param string $message message
+ * @param array  $options options
+ *
+ * @return string HTML
  */
 
 function theme_infobox($type, $title, $message)
@@ -607,6 +750,27 @@ function theme_infobox($type, $title, $message)
                 <h2>$title</h2>
                 <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
                 $message
+            </div>
+        </div>
+    ";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// C O N F I R M  D E L E T E  B O X
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_confirm_delete($confirm_anchor, $cancel_anchor, $items, $message, $options)
+{
+    if (count($items) === 1)
+        $items_html = $items[0];
+
+    return "
+        <div class='ui-widget'>
+            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+                <h2>$title</h2>
+                <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
+                $message
+                $items_html
             </div>
         </div>
     ";
@@ -635,10 +799,9 @@ function theme_help_box($data)
 
     return theme_dialogbox_info("
             <h3>Help Box</h3>
-			<span class='ui-icon $iconclass' style='float: right; margin-right: 5px;'>&nbsp;</span>$message
+			<span class='ui-icon $iconclass' style='float: right; margin-right: 5px;'>&nbsp;</span>
             <p>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
             <p>" . $data['description'] . "</p>
-            $tooltip
             <ul>
                 <li><a target='_blank' href='" . $data['user_guide_url'] . "'>User Guide</a></li>
                 <li><a target='_blank' href='" . $data['support_url'] . "'>ClearCenter Support</a></li>
@@ -714,7 +877,6 @@ function theme_summary_box($data)
 function theme_control_panel($form_data)
 {
     $items = '';
-
 
     foreach ($form_data as $form => $details)
         $items .= "<li><a rel='external' href='$form'>" . $details['title'] . "</a></li>\n";

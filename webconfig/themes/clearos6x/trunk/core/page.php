@@ -79,12 +79,12 @@ function theme_page($page)
 }
 
 /**
- * Returns the configuration page.
+ * Returns the configuration type page.
  *
- * @param array $page page data   
+ * @param array $page page data
  *
  * @return string HTML output
- */   
+ */
 
 function _configuration_page($page)
 {
