@@ -46,7 +46,7 @@ function theme_page_head($theme_path)
 <link type='text/css' href='$theme_path/css/jquery-ui-1.8.5.custom.css' rel='stylesheet'>
 <link type='text/css' href='$theme_path/css/jquery.jqplot.css'>
 <link type='text/css' href='$theme_path/css/theme.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/jquery.mobile-1.0a3.min.css' rel='stylesheet'>
+<link type='text/css' href='$theme_path/css/jquery.mobile-1.0a4.1.min.css' rel='stylesheet'>
 
 <!-- Theme Javascript -->
 <script type='text/javascript' src='$theme_path/js/jquery-ui-1.8.5.custom.min.js'></script>
@@ -54,7 +54,7 @@ function theme_page_head($theme_path)
 <script type='text/javascript' src='$theme_path/js/jqplot/jquery.jqplot.min.js'></script>
 <script type='text/javascript' src='$theme_path/js/jqplot/plugins/jqplot.barRenderer.min.js'></script>
 <script type='text/javascript' src='$theme_path/js/jqplot/plugins/jqplot.pieRenderer.min.js'></script>
-<script type='text/javascript' src='$theme_path/js/jquery.mobile-1.0a3.min.js'></script>
+<script type='text/javascript' src='$theme_path/js/jquery.mobile-1.0a4.1.min.js'></script>
 <script type='text/javascript' src='$theme_path/js/theme.js'></script>
 
 ";
