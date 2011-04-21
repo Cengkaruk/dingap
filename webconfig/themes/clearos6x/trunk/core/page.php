@@ -152,10 +152,8 @@ function _report_page($page)
 		<div class='green-stroke-right'></div>
 		</div>
 		<div class='theme-core-content'>
-		" .
-            _get_left_menu($page, $menus) .
-            _get_app($page) .
-        "
+		" .  _get_left_menu($page, $menus) . "
+        " . $page['app_view'] . "
 		</div>
     </div>
 </div>
