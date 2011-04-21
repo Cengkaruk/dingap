@@ -36,5 +36,5 @@
 
 function theme_page_doctype()
 {
-     return "<!DOCTYPE html>\n";
+    return "<!DOCTYPE html>\n";
 }

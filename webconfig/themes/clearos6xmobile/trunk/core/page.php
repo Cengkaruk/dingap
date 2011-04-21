@@ -34,24 +34,31 @@
 
 function theme_page($page)
 {
-    if ($page['layout'] == 'default')
-        return _page_default_layout($page);
-    else if ($page['layout'] == 'splash')
-        return _page_splash_layout($page);
-    else if ($page['layout'] == 'wizard')
-        return _page_wizard_layout($page);
+    if ($page['type'] == MY_Page::TYPE_CONFIGURATION)
+        return _configuration_page($page);
+    else if ($page['type'] == MY_Page::TYPE_REPORT)
+        return _configuration_page($page);
+    else if ($page['type'] == MY_Page::TYPE_SPLASH)
+        return _configuration_page($page);
+    else if ($page['type'] == MY_Page::TYPE_WIZARD)
+        return _configuration_page($page);
+
+/*
+        return _report_page($page);
+        return _splash_page($page);
+        return _wizard_page($page);
+*/
 }
 
 /**
- * Template for default layout.
+ * Returns the configuration type page.
  *
  * @param array $page page data
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2010 ClearFoundation
+ *
+ * @return string HTML output
  */
 
-function _page_default_layout($page)
+function _configuration_page($page)
 {
     $html = "
 <!-- Body -->
