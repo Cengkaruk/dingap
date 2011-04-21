@@ -19,7 +19,7 @@ $app['description'] = lang('radius_app_long_description');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['name'] = lang('radius_radius_server');
-$app['category'] = lang('base_category_system');
+$app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_infrastructure');
 
 /////////////////////////////////////////////////////////////////////////////

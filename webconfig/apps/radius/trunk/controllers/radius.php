@@ -105,27 +105,14 @@ class Radius extends ClearOS_Controller
 
         $this->lang->load('radius');
 
-        // Load views
-        //-----------
+        // Load view
+        //----------
 
-        $data['message'] = lang('radius_confirm_delete');
-        $data['ok_anchor'] = '/app/radius/destroy/' . $ip;
-        $data['cancel_anchor'] = '/app/radius';
+        $confirm_uri = '/app/radius/destroy/' . $ip;
+        $cancel_uri = '/app/radius';
+        $items = array($ip);
     
-        $this->page->view_form('theme/confirm', $data);
-    }
-
-    /**
-     * Edit RADIUS entry view.
-     *
-     * @param string $ip IP
-     *
-     * @return view
-     */
-
-    function edit($ip = NULL)
-    {
-        $this->_addedit($ip, 'edit');
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
 
     /**
@@ -141,24 +128,34 @@ class Radius extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('network/Hosts');
-        $this->load->library('dns/Dnsmasq');
+        $this->load->library('radius/FreeRADIUS');
 
         // Handle delete
         //--------------
 
         try {
-            $this->hosts->delete_entry($ip);
-            $this->dnsmasq->reset();
+            $this->freeradius->delete_client($ip);
 
             $this->page->set_status_deleted();
-            redirect('/dns');
+            redirect('/radius');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
     }
 
+    /**
+     * Edit RADIUS entry view.
+     *
+     * @param string $ip IP
+     *
+     * @return view
+     */
+
+    function edit($ip = NULL)
+    {
+        $this->_addedit($ip, 'edit');
+    }
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E
     ///////////////////////////////////////////////////////////////////////////////

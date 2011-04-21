@@ -61,11 +61,14 @@ foreach ($clients as $client => $details) {
 
     $item['title'] = $details['nickname'];
     $item['action'] = '/app/radius/edit/' . $client;
+
     $item['anchors'] = button_set(
-            array(
-                anchor_edit('/app/radius/edit/' . $client),
-                anchor_delete('/app/radius/delete/' . $client)
-            ));
+        array(
+            anchor_edit('/app/radius/edit/' . $client),
+            anchor_delete('/app/radius/delete/' . $client)
+        )
+    );
+
     $item['details'] = array(
         $client,
         $details['nickname'],
