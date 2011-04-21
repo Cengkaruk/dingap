@@ -64,7 +64,7 @@ class Date extends ClearOS_Controller
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('timezone', 'date/Time', 'validate_time_zone', TRUE);
+        $this->form_validation->set_policy('time_zone', 'date/Time', 'validate_time_zone', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -72,7 +72,7 @@ class Date extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->time->set_time_zone($this->input->post('timezone'));
+                $this->time->set_time_zone($this->input->post('time_zone'));
                 $this->page->set_status_updated();
             } catch (Exception $e) {
                 $this->page->view_exception($e);
@@ -86,8 +86,8 @@ class Date extends ClearOS_Controller
         try {
             $data['date'] = strftime("%b %e %Y");
             $data['time'] = strftime("%T %Z");
-            $data['timezone'] = $this->time->get_time_zone();
-            $data['timezones'] = $this->time->get_time_zone_list();
+            $data['time_zone'] = $this->time->get_time_zone();
+            $data['time_zones'] = $this->time->get_time_zone_list();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
