@@ -10,7 +10,7 @@ Vendor: ClearFoundation
 Source: app-pptpd-plugin-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
-Requires: app-directory-manager
+Requires: app-accounts-core
 
 %description
 The PPTP server plugin ... blah blah blah.
@@ -25,7 +25,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/pptpd_plugin
 cp -r * %{buildroot}/usr/clearos/apps/pptpd_plugin/
 
-install -D -m 0644 packaging/pptpd.php %{buildroot}/var/clearos/directory_manager/plugins/pptpd.php
+install -D -m 0644 packaging/pptpd.php %{buildroot}/var/clearos/accounts/plugins/pptpd.php
 
 %post
 logger -p local6.notice -t installer 'app-pptpd-plugin-core - installing'
@@ -54,4 +54,4 @@ exit 0
 /usr/clearos/apps/pptpd_plugin/deploy
 /usr/clearos/apps/pptpd_plugin/language
 /usr/clearos/apps/pptpd_plugin/libraries
-/var/clearos/directory_manager/plugins/pptpd.php
+/var/clearos/accounts/plugins/pptpd.php

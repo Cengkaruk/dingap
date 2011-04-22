@@ -30,11 +30,11 @@ $app['menu_enabled'] = FALSE;
 $app['core_only'] = TRUE;
 
 $app['core_requires'] = array(
-    'app-directory-manager', 
+    'app-accounts-core', 
 );
 
 $app['core_file_manifest'] = array( 
    'pptpd.php' => array(
-        'target' => '/var/clearos/directory_manager/plugins/pptpd.php'
+        'target' => '/var/clearos/accounts/plugins/pptpd.php'
     ),
 );
