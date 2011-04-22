@@ -11,4 +11,3 @@ $lang['pptpd_remote_ip_range'] = 'Remote IP Range';
 $lang['pptpd_internet_domain'] = 'Internet Domain'; 
 $lang['pptpd_dns_server'] = 'DNS Server'; 
 $lang['pptpd_wins_server'] = 'WINS Server'; 
-
