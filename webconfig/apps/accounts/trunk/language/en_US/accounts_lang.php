@@ -2,6 +2,11 @@
 
 $lang['accounts_accounts_driver_is_invalid'] = 'Accounts driver is invalid';
 $lang['accounts_account_information_is_unavailable'] = 'Account information is unavailable.';
+$lang['accounts_extension'] = 'Extension';
+$lang['accounts_plugin'] = 'Plugin';
+$lang['accounts_extensions'] = 'Extensions';
+$lang['accounts_plugins'] = 'Plugins';
+
 
 ///////////////////////////////////////
 // From LDAP class
@@ -14,21 +19,12 @@ $lang['accounts_server_mode'] = 'Server Mode';
 // Reset
 $lang['accounts_errmsg_connection_failed'] = 'Connection to directory server failed.';
 
-// Delete
-// $lang['accounts_directory_unavailable'] = 'Directory is unavailable.';
-// $lang['accounts_bind_policy'] = 'Security Policy';
-// $lang['accounts_errmsg_function_failed'] = 'LDAP function failed';
-
 // Keep
 $lang['accounts_base_dn'] = 'LDAP Base DN';
 $lang['accounts_bind_dn'] = 'LDAP Bind DN';
 $lang['accounts_bind_password'] = 'LDAP Bind Password';
 
 // New
-$lang['accounts_extension'] = 'Extension';
-$lang['accounts_plugin'] = 'Plugin';
-$lang['accounts_extensions'] = 'Extensions';
-$lang['accounts_plugins'] = 'Plugins';
 $lang['accounts_state'] = 'State';
 $lang['accounts_directory_mode_is_invalid'] = 'Directory mode is invalid';
 $lang['accounts_directory_driver_is_invalid'] = 'Directory driver is invalid';
