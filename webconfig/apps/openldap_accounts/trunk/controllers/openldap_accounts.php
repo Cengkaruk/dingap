@@ -1,15 +1,15 @@
 <?php
 
 /**
- * LDAP manager controller.
+ * OpenLDAP accounts controller.
  *
  * @category   Apps
- * @package    LDAP_Manager
+ * @package    OpenLDAP_Accounts
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,18 +34,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * LDAP manager controller.
+ * OpenLDAP accounts controller.
  *
  * @category   Apps
- * @package    LDAP_Manager
+ * @package    OpenLDAP_Accounts
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
-class OpenLDAP_Directory extends ClearOS_Controller
+class OpenLDAP_Accounts extends ClearOS_Controller
 {
     /**
      * LDAP_Manager default controller
@@ -58,8 +58,8 @@ class OpenLDAP_Directory extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('openldap_directory/Directory_Driver');
-        $this->lang->load('openldap_directory');
+        $this->load->library('openldap_accounts/Directory_Driver');
+        $this->lang->load('openldap_accounts');
 /*
 
         // Set validation rules
@@ -116,6 +116,6 @@ print_r($data);
         // Load views
         //-----------
 
-        $this->page->view_form('openldap_directory', $data, lang('ldap_manager_ldap_manager'));
+        $this->page->view_form('openldap_accounts', $data, lang('ldap_manager_ldap_manager'));
     }
 }

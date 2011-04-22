@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap_directory;
+namespace clearos\apps\openldap_accounts;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -69,8 +69,8 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_directory\Nslcd as Nslcd;
-use \clearos\apps\openldap_directory\Utilities as Utilities;
+use \clearos\apps\openldap_accounts\Nslcd as Nslcd;
+use \clearos\apps\openldap_accounts\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
@@ -78,8 +78,8 @@ clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_directory/Nslcd');
-clearos_load_library('openldap_directory/Utilities');
+clearos_load_library('openldap_accounts/Nslcd');
+clearos_load_library('openldap_accounts/Utilities');
 
 // Exceptions
 //-----------
@@ -101,7 +101,7 @@ clearos_load_library('base/Engine_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 class Directory_Driver extends Engine
@@ -128,10 +128,10 @@ class Directory_Driver extends Engine
     const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
     const FILE_SYSCONFIG = '/etc/sysconfig/ldap';
     const FILE_DATA = '/etc/openldap/provision.ldif';
-    const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
+    const FILE_INITIALIZED = '/var/clearos/openldap_accounts/initialized.php';
 
     const PATH_LDAP = '/var/lib/ldap';
-    const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
+    const PATH_EXTENSIONS = '/var/clearos/openldap_accounts/extensions';
 
 // FIXME: Review these -- moved from OpenLDAP class
     const FILE_LDIF_BACKUP = '/etc/openldap/backup.ldif';

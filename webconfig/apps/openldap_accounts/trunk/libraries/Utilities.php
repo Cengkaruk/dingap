@@ -4,12 +4,12 @@
  * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap_directory;
+namespace clearos\apps\openldap_accounts;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -57,11 +57,11 @@ require_once $bootstrap . '/bootstrap.php';
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_accounts\Directory_Driver as Directory_Driver;
 
 clearos_load_library('base/Engine');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_directory/Directory_Driver');
+clearos_load_library('openldap_accounts/Directory_Driver');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -71,12 +71,12 @@ clearos_load_library('openldap_directory/Directory_Driver');
  * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 class Utilities extends Engine

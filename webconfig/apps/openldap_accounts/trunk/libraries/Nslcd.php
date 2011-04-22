@@ -4,12 +4,12 @@
  * Nslcd class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap_directory;
+namespace clearos\apps\openldap_accounts;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-// clearos_load_language('openldap_directory');
+// clearos_load_language('openldap_accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -64,12 +64,12 @@ clearos_load_library('base/Daemon');
  * Nslcd DNS class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 class Nslcd extends Daemon

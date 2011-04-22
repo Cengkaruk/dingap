@@ -4,12 +4,12 @@
  * OpenLDAP directory view.
  *
  * @category   ClearOS
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
-$this->lang->load('openldap_directory');
+$this->lang->load('openldap_accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open

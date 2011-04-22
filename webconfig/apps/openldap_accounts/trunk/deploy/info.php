@@ -4,7 +4,7 @@
 // General information
 /////////////////////////////////////////////////////////////////////////////
 
-$app['basename'] = 'openldap_directory';
+$app['basename'] = 'openldap_accounts';
 $app['version'] = '5.9.9.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
@@ -18,13 +18,17 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Directory'; // FIXME
-$app['category'] = lang('base_category_server');
-$app['subcategory'] = lang('base_subcategory_directory');
+$app['name'] = 'OpenLDAP Accounts'; // FIXME
+$app['category'] = lang('base_category_system');
+$app['subcategory'] = 'Account Manager';
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
+
+$app['core_provides'] = array(
+    'system-accounts',
+);
 
 $app['core_requires'] = array(
     'app-cron-core',
