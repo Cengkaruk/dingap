@@ -60,18 +60,18 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_accounts\User_Manager_Driver as User_Manager_Driver;
 use \clearos\apps\openldap_accounts\Utilities as Utilities;
 use \clearos\apps\samba\Samba as Samba;
-use \clearos\apps\users\User_Manager as User_Manager;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_accounts/OpenLDAP');
+clearos_load_library('openldap_accounts/User_Manager_Driver');
 clearos_load_library('openldap_accounts/Utilities');
 clearos_load_library('samba/Samba');
-clearos_load_library('users/User_Manager');
 
 // Exceptions
 //-----------
@@ -545,7 +545,7 @@ class Group_Driver extends Engine
         // Check for invalid users
         //------------------------
 
-        $user_manager = User_Manager::create();
+        $user_manager = new User_Manager_Driver();
         $user_list = $user_manager->get_list();
 
         foreach ($members as $user) {

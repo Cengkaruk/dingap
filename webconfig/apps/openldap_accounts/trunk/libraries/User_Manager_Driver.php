@@ -61,14 +61,16 @@ use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_accounts\User_Driver as User_Driver;
 use \clearos\apps\openldap_accounts\Utilities as Utilities;
-use \clearos\apps\users\User as User;
+use \clearos\apps\users\User_Engine as User_Engine;
+use \clearos\apps\users\User_Manager_Engine as User_Manager_Engine;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap_accounts/OpenLDAP');
 clearos_load_library('openldap_accounts/User_Driver');
 clearos_load_library('openldap_accounts/Utilities');
-clearos_load_library('users/User');
+clearos_load_library('users/User_Engine');
+clearos_load_library('users/User_Manager_Engine');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -86,7 +88,7 @@ clearos_load_library('users/User');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
-class User_Manager_Driver extends Engine
+class User_Manager_Driver extends User_Manager_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -128,7 +130,7 @@ class User_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_list($app = NULL, $type = User::TYPE_NORMAL)
+    public function get_list($app = NULL, $type = User_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -152,7 +154,7 @@ class User_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_details($app = NULL, $type = User::TYPE_NORMAL)
+    public function get_details($app = NULL, $type = User_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -218,22 +220,22 @@ class User_Manager_Driver extends Engine
 
             $process = FALSE;
 
-            if (($type === User::TYPE_NORMAL) 
+            if (($type === User_Engine::TYPE_NORMAL) 
                 && ($uid >= User_Driver::UID_RANGE_NORMAL_MIN)
                 && ($uid <= User_Driver::UID_RANGE_NORMAL_MAX)
             ) {
                 $process = TRUE;
-            } else if (($type === User::TYPE_BUILTIN) 
+            } else if (($type === User_Engine::TYPE_BUILTIN) 
                 && ($uid >= User_Driver::UID_RANGE_BUILTIN_MIN)
                 && ($uid <= User_Driver::UID_RANGE_BUILTIN_MAX)
             ) {
                 $process = TRUE;
-            } else if (($type === User::TYPE_SYSTEM) 
+            } else if (($type === User_Engine::TYPE_SYSTEM) 
                 && ($uid >= User_Driver::UID_RANGE_SYSTEM_MIN)
                 && ($uid <= User_Driver::UID_RANGE_SYSTEM_MAX)
             ) {
                 $process = TRUE;
-            } else if ($type === User::TYPE_ALL) {
+            } else if ($type === User_Engine::TYPE_ALL) {
                 $process = TRUE;
             }
 

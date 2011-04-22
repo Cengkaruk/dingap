@@ -57,25 +57,25 @@ clearos_load_language('users');
 // Classes
 //--------
 
-use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
+use \clearos\apps\openldap_accounts\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_accounts\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_accounts\User_Driver as User_Driver;
 use \clearos\apps\openldap_accounts\Utilities as Utilities;
-use \clearos\apps\users\User as User;
+use \clearos\apps\users\User_Engine as User_Engine;
 
-clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
+clearos_load_library('openldap_accounts/Accounts_Driver');
 clearos_load_library('openldap_accounts/Group_Manager_Driver');
 clearos_load_library('openldap_accounts/OpenLDAP');
 clearos_load_library('openldap_accounts/User_Driver');
 clearos_load_library('openldap_accounts/Utilities');
-clearos_load_library('users/User');
+clearos_load_library('users/User_Engine');
 
 // Exceptions
 //-----------
@@ -104,7 +104,7 @@ clearos_load_library('users/User_Not_Found_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
-class User_Driver extends Engine
+class User_Driver extends User_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -305,16 +305,14 @@ print_r($ldap_object);
 
         $ldap_object = array();
 
-        $ldap_object['clearAccountStatus'] = User::STATUS_DISABLED;
+        $ldap_object['clearAccountStatus'] = User_Engine::STATUS_DISABLED;
         $ldap_object['userPassword'] = '{sha}' . base64_encode(pack('H*', sha1(mt_rand())));
 
         // Update LDAP attributes from extensions
         //---------------------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'delete_attributes_hook')) {
                 $hook_object = $extension->delete_attributes_hook();
@@ -325,10 +323,8 @@ print_r($ldap_object);
         // Run delete hook
         //----------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'delete_hook'))
                 $extension->delete_hook();
@@ -395,27 +391,11 @@ print_r($ldap_object);
         // Add user info from extensions
         //------------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension_nickname = preg_replace('/_directory_extension/', '', $extension_name);
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'get_info_hook'))
-                $info['extensions'][$extension_nickname] = $extension->get_info_hook($attributes);
-        }
-
-        // Add user info from plugins
-        //---------------------------
-
-        $group_manager = new Group_Manager_Driver();
-        $memberships = $group_manager->get_group_memberships($this->username);
-
-        foreach ($this->_get_plugins() as $plugin => $details) {
-            $plugin_name = 'plugin-' . $plugin;
-            $details['state'] = in_array($plugin_name, $memberships) ? TRUE : FALSE;
-            $info['plugins'][$plugin] = $details;
+                $info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
         }
 
         return $info;
@@ -440,26 +420,19 @@ print_r($ldap_object);
         // Add user info map from extensions
         //----------------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension_nickname = preg_replace('/_directory_extension/', '', $extension_name);
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'get_info_map_hook'))
-                $info_map['extensions'][$extension_nickname] = $extension->get_info_map_hook();
+                $info_map['extensions'][$extension_name] = $extension->get_info_map_hook();
         }
 
         // Add user info map from plugins
         //-------------------------------
 
-        $openldap = new OpenLDAP();
-        $plugin_map = $openldap->get_plugin_map();
-
         foreach ($this->_get_plugins() as $plugin => $details) {
             $plugin_name = 'plugin-' . $plugin;
-            $info_map['plugins'][$plugin] = $plugin_map;
+            $info_map['plugins'][] = $plugin;
         }
 
         return $info_map;
@@ -505,9 +478,6 @@ print_r($ldap_object);
         $ldap_object = $this->_convert_password_to_attributes($password);
 
         $this->ldaph->modify($dn, $ldap_object);
-
-        // FIXME: logger
-        // Logger::Syslog(self::LOG_TAG, "password reset for user - " . $this->username . " / by - " . $requested_by);
     }
 
     /**
@@ -596,10 +566,8 @@ print_r($ldap_object);
         // Add LDAP attributes from extensions
         //------------------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'set_password_attributes_hook')) {
                 $hook_object = $extension->set_password_attributes_hook($password, $ldap_object);
@@ -613,9 +581,6 @@ print_r($ldap_object);
         sleep(2); // see comment
 
         $this->ldaph->modify($dn, $ldap_object);
-
-        // FIXME - logger
-        // Logger::Syslog(self::LOG_TAG, "password updated for user - " . $this->username . " / by - " . $requested_by);
     }
 
     /**
@@ -632,10 +597,8 @@ print_r($ldap_object);
         // Run unlock hook
         //----------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'unlock_hook'))
                 $extension->unlock_hook($this->username);
@@ -680,10 +643,8 @@ print_r($ldap_object);
         // Update LDAP attributes from extensions
         //---------------------------------------
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'update_attributes_hook')) {
                 $hook_object = $extension->update_attributes_hook($user_info, $ldap_object);
@@ -1042,10 +1003,8 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'add_attributes_hook')) {
                 $hook_object = $extension->add_attributes_hook($user_info, $ldap_object);
@@ -1060,10 +1019,8 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        foreach ($this->_get_extensions() as $extension_name) {
-            clearos_load_library($extension_name . '/OpenLDAP_User_Extension');
-            $class = '\clearos\apps\\' . $extension_name . '\OpenLDAP_User_Extension';
-            $extension = new $class();
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'add_post_processing_hook'))
                 $extension->add_post_processing_hook();
@@ -1234,7 +1191,8 @@ return;
          * Use the utility class for this job.
          */
 
-        $ldap_object = Utilities::convert_array_to_attributes($user_info['core'], $this->info_map);
+        if (isset($user_info['core']))
+            $ldap_object = Utilities::convert_array_to_attributes($user_info['core'], $this->info_map);
 
         /**
          * Step 2 - handle derived fields
@@ -1292,7 +1250,7 @@ return;
             if (isset($user_info['core']['status'])) 
                 $ldap_object['clearAccountStatus'] = $user_info['core']['status'];
             else
-                $ldap_object['clearAccountStatus'] = User::STATUS_ENABLED;
+                $ldap_object['clearAccountStatus'] = User_Engine::STATUS_ENABLED;
         }
 
         /**
@@ -1376,14 +1334,9 @@ return;
         if (! empty($this->extensions))
             return $this->extensions;
 
-        $folder = new Folder(self::PATH_EXTENSIONS);
+        $accounts = new Accounts_Driver();
 
-        $list = $folder->get_listing();
-
-        foreach ($list as $extension) {
-            if (! preg_match('/^\./', $extension))
-                $this->extensions[] = $extension;
-        }
+        $this->extensions = $accounts->get_extensions();
 
         return $this->extensions;
     }
@@ -1467,6 +1420,25 @@ return;
     }
 
     /**
+     * Handles running various hooks in an extension
+     *
+     * @param array $details extension details
+     * @return object extension object
+     */
+
+    protected function _load_extension($details)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        clearos_load_library($details['app'] . '/OpenLDAP_User_Extension');
+
+        $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_User_Extension';
+        $extension = new $class();
+
+        return $extension;
+    }
+
+    /**
      * Merges two LDAP object class lists.
      *
      * @param array $array1 LDAP object class list
@@ -1543,8 +1515,8 @@ return;
             $options['background'] = TRUE;
             $shell = new Shell();
             if ($homedirs)
-                $shell->Execute(User::COMMAND_SYNCUSERS, '', TRUE, $options);
-            $shell->Execute(User::COMMAND_SYNCMAILBOX, '', TRUE, $options);
+                $shell->Execute(self::COMMAND_SYNCUSERS, '', TRUE, $options);
+            $shell->Execute(self::COMMAND_SYNCMAILBOX, '', TRUE, $options);
         } catch (Exception $e) {
             // Not fatal
         }

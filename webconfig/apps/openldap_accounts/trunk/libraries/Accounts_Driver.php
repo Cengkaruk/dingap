@@ -150,6 +150,7 @@ class Accounts_Driver extends Accounts_Engine
     protected $ldaph = NULL;
     protected $config = NULL;
     protected $modes = NULL;
+    protected $extensions = array();
 
     protected $file_config = NULL;
 
@@ -191,7 +192,7 @@ class Accounts_Driver extends Accounts_Engine
     /**
      * Returns list of directory extensions.
      *
-     * @return array list of extensions
+     * @return array extension list
      * @throws Engine_Exception
      */
 
@@ -199,18 +200,22 @@ class Accounts_Driver extends Accounts_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if (! empty($this->extensions))
+            return $this->extensions;
+
         $folder = new Folder(self::PATH_EXTENSIONS);
 
         $list = $folder->get_listing();
 
-        $extensions = array();
-
-        foreach ($list as $extension) {
-            if (! preg_match('/^\./', $extension))
-                $extensions[] = $extension;
+        foreach ($list as $extension_file) {
+            if (preg_match('/\.php$/', $extension_file)) {
+                $extension = array();
+                include self::PATH_EXTENSIONS . '/' . $extension_file;
+                $this->extensions[$extension['extension']] = $extension;
+            }
         }
 
-        return $extensions;
+        return $this->extensions;
     }
 
     /**
