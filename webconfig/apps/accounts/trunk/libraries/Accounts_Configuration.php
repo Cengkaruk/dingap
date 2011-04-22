@@ -119,14 +119,21 @@ class Accounts_Configuration extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File(self::FILE_STATE);
+        return self::get_accounts_driver();
+    }
 
-        if ($file->exists())
-            $driver = $file->lookup_value('/^driver =/');
-        else
-            $driver = '';
+    /**
+     * Returns the accounts driver information.
+     *
+     * @return array accounts driver information
+     * @throws Engine_Exception
+     */
 
-        return $driver;
+    public function get_driver_info()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return self::get_accounts_driver_info();
     }
 
     /**
@@ -181,6 +188,54 @@ class Accounts_Configuration extends Engine
         $file->create('root', 'root', '0644');
 
         $file->add_lines("driver = $driver\n");
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // F R I E N D   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns the accounts driver.
+     *
+     * The Accounts_Factory classes uses this method.  To avoid circular references
+     * in the factory class, this common static routine was created.
+     *
+     * @access private
+     * @return string accounts driver
+     * @throws Engine_Exception
+     */
+
+    public static function get_accounts_driver()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_STATE);
+
+        if ($file->exists())
+            $driver = $file->lookup_value('/^driver =/');
+        else
+            $driver = '';
+
+        return $driver;
+    }
+
+    /**
+     * Returns the accounts driver information.
+     *
+     * @access private
+     * @return array accounts driver information
+     * @throws Engine_Exception
+     */
+
+    public static function get_accounts_driver_info()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $driver_name = self::get_accounts_driver();
+
+        include self::PATH_DRIVERS . '/' . $driver_name . '.php';
+
+        return $driver;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -52,11 +52,16 @@ clearos_load_language('accounts');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Note: factory drivers are loaded on the fly
+// Classes
+//--------
 
+use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
 
+clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
+clearos_load_library('base/File');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -74,21 +79,8 @@ clearos_load_library('base/Engine');
  * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Directory_Factory extends Engine
+class Accounts_Factory extends Engine
 {
-    ///////////////////////////////////////////////////////////////////////////////
-    // C O N S T A N T S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    // Directory modes
-    const MODE_MASTER = 'master';
-    const MODE_SLAVE = 'replicate';
-    const MODE_STANDALONE = 'standalone';
-
-    // Security policies
-    const POLICY_LAN = 'lan';
-    const POLICY_LOCALHOST = 'localhost';
-
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -109,19 +101,15 @@ class Directory_Factory extends Engine
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public static function create($driver = NULL)
+    public static function create()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: move this to a config file of course
-        if ($driver === NULL)
-            $driver = 'openldap';
+        $driver = Accounts_Configuration::get_accounts_driver_info();
 
-        $driver .= '_directory';
+        clearos_load_library($driver['app'] . '/Accounts_Driver');
 
-        clearos_load_library($driver . '/Directory_Driver');
-
-        $class = '\clearos\apps\\' . $driver . '\\Directory_Driver';
+        $class = '\clearos\apps\\' . $driver['app'] . '\\Accounts_Driver';
 
         return new $class;
     }
@@ -141,11 +129,33 @@ class Directory_Factory extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: move this to a config file of course
-        $driver = 'openldap';
+        $driver = Accounts_Configuration::get_accounts_driver_info();
 
-        $driver .= '_directory';
+        return $driver['app'] . '/Accounts_Driver';
+    }
 
-        return $driver . '/Directory_Driver';
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns the accounts driver.
+     *
+     * @return string accounts driver
+     * @throws Engine_Exception
+     */
+
+    protected function _get_driver()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_STATE);
+
+        if ($file->exists())
+            $driver = $file->lookup_value('/^driver =/');
+        else
+            $driver = '';
+
+        return $driver;
     }
 }

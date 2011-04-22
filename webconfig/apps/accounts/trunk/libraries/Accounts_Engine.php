@@ -85,6 +85,11 @@ class Accounts_Engine extends Engine
 
     const PATH_PLUGINS = '/var/clearos/accounts/plugins';
 
+    const MODE_CONNECTOR = 'connectory';
+    const MODE_MASTER = 'master';
+    const MODE_SLAVE = 'slave';
+    const MODE_STANDALONE = 'standalone';
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -96,6 +101,13 @@ class Accounts_Engine extends Engine
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $this->modes = array(
+            self::MODE_CONNECTOR => lang('accounts_connector'),
+            self::MODE_MASTER => lang('accounts_master'),
+            self::MODE_SLAVE => lang('accounts_slave'),
+            self::MODE_STANDALONE => lang('accounts_standalone')
+        );
     }
 
     /**
