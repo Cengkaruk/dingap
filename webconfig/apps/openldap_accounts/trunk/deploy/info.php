@@ -39,7 +39,7 @@ $app['core_provides'] = array(
 );
 
 $app['core_requires'] = array(
-    'app-cron-core',
+    'app-accounts-core',
     'app-groups-core',
     'app-network-core',
     'app-samba-core',
@@ -53,3 +53,8 @@ $app['core_requires'] = array(
     'samba-winbind-clients',
     'webconfig-php-ldap'
 );
+
+$app['core_file_manifest'] = array(
+    'openldap.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap.php' ),
+);
+

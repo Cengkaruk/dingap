@@ -21,7 +21,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Provides: system-accounts
 Requires: app-base-core
-Requires: app-cron-core
+Requires: app-accounts-core
 Requires: app-groups-core
 Requires: app-network-core
 Requires: app-samba-core
@@ -48,6 +48,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/openldap_accounts
 cp -r * %{buildroot}/usr/clearos/apps/openldap_accounts/
 
+install -D -m 0644 packaging/openldap.php %{buildroot}/var/clearos/accounts/drivers/openldap.php
 
 %post
 logger -p local6.notice -t installer 'app-openldap-accounts - installing'
@@ -90,3 +91,4 @@ exit 0
 /usr/clearos/apps/openldap_accounts/deploy
 /usr/clearos/apps/openldap_accounts/language
 /usr/clearos/apps/openldap_accounts/libraries
+/var/clearos/accounts/drivers/openldap.php
