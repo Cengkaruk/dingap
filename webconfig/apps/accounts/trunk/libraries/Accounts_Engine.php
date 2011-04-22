@@ -140,49 +140,4 @@ class Accounts_Engine extends Engine
 
         return $plugins;
     }
-
-    /**
-     * Returns the plugin map.
-     *
-     * @return array plugin map
-     * @throws Engine_Exception
-     */
-
-    public function get_plugin_map()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $map = array(
-            'state' => array(
-                'type' => 'boolean',
-                'field_type' => 'toggle',
-                'required' => TRUE,
-                'validator' => 'validate_state',
-                'validator_class' => 'directory_manager/Directory_Manager',
-                'description' => lang('directory_manager_state')
-            )
-        );
-
-        return $map;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // V A L I D A T I O N   R O U T I N E S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validates plugin state.
-     *
-     * @param string $state state
-     *
-     * @return string error message if state is invalid
-     * @throws Engine_Exception
-     */
-
-    public function validate_state($state)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // FIXME
-    }
 }
