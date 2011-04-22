@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OpenLDAP accounts controller.
+ * OpenLDAP extensions controller.
  *
  * @category   Apps
  * @package    OpenLDAP_Accounts
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * OpenLDAP accounts controller.
+ * OpenLDAP extensions controller.
  *
  * @category   Apps
  * @package    OpenLDAP_Accounts
@@ -45,18 +45,35 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
  */
 
-class OpenLDAP_Accounts extends ClearOS_Controller
+class Extensions extends ClearOS_Controller
 {
-	/**
-	 * OpenLDAP_Accounts overview.
-	 */
+    /**
+     * Extensions default controller
+     *
+     * @return view
+     */
 
-	function index()
-	{
-        $this->load->language('openldap_accounts');
+    function index()
+    {
+        // Load dependencies
+        //------------------
 
-        $views = array('openldap_accounts/plugins', 'openldap_accounts/extensions');
+        $this->load->library('openldap_accounts/Accounts_Driver');
+        $this->lang->load('accounts');
 
-        $this->page->view_forms($views, lang('openldap_accounts_openldap_accounts'));
-	}
+        // Load view data
+        //---------------
+
+        try {
+            $data['extensions'] = $this->accounts_driver->get_extensions();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('extensions', $data, lang('accounts_extensions'));
+    }
 }

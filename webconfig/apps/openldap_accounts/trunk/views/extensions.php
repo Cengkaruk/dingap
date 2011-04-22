@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OpenLDAP directory view.
+ * OpenLDAP accounts extensions view.
  *
  * @category   ClearOS
  * @package    OpenLDAP_Accounts
@@ -33,26 +33,46 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
-$this->lang->load('ldap');
+$this->lang->load('accounts');
+$this->lang->load('openldap_accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('openldap_accounts/settings');
-echo form_header(lang('ldap_mode'));
-
-echo form_fieldset(lang('base_general_settings'));
-echo field_view(lang('ldap_mode'), $mode);
-echo field_view(lang('ldap_base_dn'), $bind_pw);
-echo field_view(lang('ldap_bind_dn'), $bind_dn);
-echo field_view(lang('ldap_bind_password'), $bind_password);
-echo form_fieldset_close();
+$headers = array(
+    lang('accounts_extension'),
+);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form close
+// Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_footer();
-echo form_close();
+$anchors = array();
+
+///////////////////////////////////////////////////////////////////////////////
+// Items
+///////////////////////////////////////////////////////////////////////////////
+
+foreach ($extensions as $extension => $details) {
+
+    $item['title'] = $details['nickname'];
+    $item['action'] = '/app/openldap_accounts/extensions/view/' . $extension;
+    $item['anchors'] = anchor_view('/app/openldap_accounts/extensions/view/' . $extension);
+    $item['details'] = array(
+        $details['nickname'],
+    );
+
+    $items[] = $item;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Summary table
+///////////////////////////////////////////////////////////////////////////////
+
+echo summary_table(
+    lang('accounts_extensions'),
+    $anchors,
+    $headers,
+    $items
+);

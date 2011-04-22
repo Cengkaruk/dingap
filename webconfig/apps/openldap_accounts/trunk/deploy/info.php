@@ -27,7 +27,6 @@ $app['subcategory'] = 'Account Manager';
 /////////////////////////////////////////////////////////////////////////////
 
 $app['controllers']['openldap_accounts']['title'] = $app['name'];
-$app['controllers']['settings']['title'] = lang('base_settings');
 $app['controllers']['extensions']['title'] = lang('openldap_accounts_extensions');
 $app['controllers']['plugins']['title'] = lang('openldap_accounts_plugins');
 
