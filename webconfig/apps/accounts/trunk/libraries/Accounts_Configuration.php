@@ -115,7 +115,7 @@ class Accounts_Configuration extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_driver()
+    public static function get_driver()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -129,11 +129,27 @@ class Accounts_Configuration extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_driver_info()
+    public static function get_driver_info()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         return self::get_accounts_driver_info();
+    }
+
+    /**
+     * Returns the accounts driver information.
+     *
+     * @return array accounts driver information
+     * @throws Engine_Exception
+     */
+
+    public static function get_driver_location()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $info = self::get_accounts_driver_info();
+
+        return $info['app'];
     }
 
     /**
