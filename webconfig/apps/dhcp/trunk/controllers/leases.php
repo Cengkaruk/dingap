@@ -72,25 +72,14 @@ class Leases extends ClearOS_Controller
 		try {
 			$data['leases'] = $this->dnsmasq->GetLeases();
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage(), $view);
+			$this->page->view_exception($e);
 			return;
 		}
  
 		// Load views
 		//-----------
 
-		if ($view == 'form') {
-
-			$this->load->view('dhcp/leases/summary', $data);
-
-		} else if ($view == 'page') {
-			
-			$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('dhcp_leases'));
-
-			$this->load->view('theme/header');
-			$this->load->view('dhcp/leases/summary', $data);
-			$this->load->view('theme/footer');
-		}
+        $this->page->view_form('dhcp/leases/summary', $data, lang('dhcp_leases'));
 	}
 
 	/**

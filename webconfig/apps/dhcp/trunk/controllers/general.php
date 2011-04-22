@@ -50,7 +50,7 @@ class General extends ClearOS_Controller
 	 * DHCP server overview.
 	 */
 
-	function index($view = 'page')
+	function index()
 	{
 		// Load libraries
 		//---------------
@@ -91,28 +91,13 @@ class General extends ClearOS_Controller
 			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
 			$data['domain'] = $this->dnsmasq->GetDomainName();
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage() . "huh", $view);
+			$this->page->view_exception($e);
 			return;
 		}
  
 		// Load views
 		//-----------
 
-		if ($view == 'form') {
-			$data['form_type'] = 'view';
-
-			$this->load->view('dhcp/general/view_edit', $data);
-
-		} else if ($view == 'page') {
-			$data['form_type'] = 'edit';
-
-			$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('base_general_settings'));
-
-			$this->load->view('theme/header');
-			$this->load->view('dhcp/general/view_edit', $data);
-			$this->load->view('theme/footer');
-		}
+        $this->load->view('dhcp/general/view_edit', $data, lang('base_general_settings'));
 	}
 }
-
-?>

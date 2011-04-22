@@ -52,64 +52,8 @@ class Dhcp extends ClearOS_Controller
 
 	function index()
 	{
-		if ($this->session->userdata['theme_mode'] === CLEAROS_MOBILE)
-			$this->mobile_index();
-		else
-			$this->desktop_index();
-	}
+        $views = array('dhcp/general', 'dhcp/subnets', 'dhcp/leases');
 
-	/**
-	 * DHCP server summary view for desktops.
-	 */
-
-	function desktop_index()
-	{
-		// Load libraries
-		//---------------
-
-		$this->lang->load('dhcp');
-		$this->load->module('dhcp/general');
-		$this->load->module('dhcp/subnets');
-		$this->load->module('dhcp/leases');
-
-		// Load views
-		//-----------
-
-		$this->page->set_title(lang('dhcp_dhcp'));
-
-		$this->load->view('theme/header');
-		$this->general->index('form');
-		$this->subnets->index('form');
-		$this->leases->index('form');
-		$this->load->view('theme/footer');
-	}
-
-	/**
-	 * DHCP server summary view for mobile/control panel.
-	 */
-
-	function mobile_index()
-	{
-		// Load libraries
-		//---------------
-
-		$this->lang->load('base');
-		$this->lang->load('dhcp');
-
-		// Load views
-		//-----------
-
-// FIXME: add icons and help blurb for control panel view
-		$summary['links']['/app/dhcp/general'] = lang('base_general_settings');
-		$summary['links']['/app/dhcp/subnets'] = lang('dhcp_subnets');
-		$summary['links']['/app/dhcp/leases'] = lang('dhcp_leases');
-
-		$this->page->set_title(lang('dhcp_dhcp'));
-
-		$this->load->view('theme/header');
-		$this->load->view('theme/summary', $summary);
-		$this->load->view('theme/footer');
+        $this->page->view_forms($views, lang('dhcp_dhcp_server'));
 	}
 }
-
-?>
