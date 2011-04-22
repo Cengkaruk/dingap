@@ -57,11 +57,11 @@ require_once $bootstrap . '/bootstrap.php';
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_accounts\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
 
 clearos_load_library('base/Engine');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_accounts/Directory_Driver');
+clearos_load_library('openldap_accounts/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -269,11 +269,11 @@ class Utilities extends Engine
         $usermap_dn = array();
         $usermap_username = array();
 
-        $directory = new Directory_Driver();
+        $openldap = new OpenLDAP();
 
         $result = $ldaph->search(
             "(&(cn=*)(objectclass=posixAccount))",
-            $directory->get_users_container(),
+            $openldap->get_users_container(),
             array('dn', 'uid')
         );
 

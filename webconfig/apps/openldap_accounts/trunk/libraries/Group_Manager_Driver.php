@@ -58,16 +58,16 @@ clearos_load_language('base');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
-use \clearos\apps\openldap_accounts\Utilities as Utilities;
-use \clearos\apps\openldap_accounts\Directory_Driver as Directory_Driver;
 use \clearos\apps\openldap_accounts\Group_Driver as Group_Driver;
+use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_accounts\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
-clearos_load_library('openldap_accounts/Utilities');
-clearos_load_library('openldap_accounts/Directory_Driver');
 clearos_load_library('openldap_accounts/Group_Driver');
+clearos_load_library('openldap_accounts/OpenLDAP');
+clearos_load_library('openldap_accounts/Utilities');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -318,11 +318,11 @@ class Group_Manager_Driver extends Engine
         // Load groups from LDAP
         //----------------------
 
-        $directory = new Directory_Driver();
+        $openldap = new OpenLDAP();
 
         $result = $this->ldaph->search(
             "(&(objectclass=posixGroup))", 
-            $directory->get_groups_container()
+            $openldap->get_groups_container()
         );
 
         $this->ldaph->sort($result, 'cn');

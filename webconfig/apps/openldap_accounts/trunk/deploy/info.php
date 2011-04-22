@@ -18,9 +18,18 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Accounts'; // FIXME
+$app['name'] = lang('openldap_accounts_openldap_accounts');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Account Manager';
+
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['openldap_accounts']['title'] = $app['name'];
+$app['controllers']['settings']['title'] = lang('base_settings');
+$app['controllers']['extensions']['title'] = lang('openldap_accounts_extensions');
+$app['controllers']['plugins']['title'] = lang('openldap_accounts_plugins');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

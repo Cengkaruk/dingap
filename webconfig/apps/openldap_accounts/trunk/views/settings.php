@@ -34,38 +34,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
-$this->lang->load('openldap_accounts');
+$this->lang->load('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('directory_manager');
-echo form_header(lang('directory_manager_mode'));
+echo form_open('openldap_accounts/settings');
+echo form_header(lang('ldap_mode'));
 
 echo form_fieldset(lang('base_general_settings'));
-echo field_input('domain', $domain, lang('directory_manager_base_domain'));
-echo field_dropdown('anonymous', $publish_policies, $publish_policy, 'Anonymous Access');
+echo field_view(lang('ldap_mode'), $mode);
+echo field_view(lang('ldap_base_dn'), $bind_pw);
+echo field_view(lang('ldap_bind_dn'), $bind_dn);
+echo field_view(lang('ldap_bind_password'), $bind_password);
 echo form_fieldset_close();
-
-echo form_fieldset(lang('directory_manager_extensions'));
-echo field_view('example', $base_dn, 'Google Apps');
-echo field_view('example1', $base_dn, 'Zarafa');
-echo field_view('example2', $base_dn, 'Contacts');
-echo field_view('example3', $base_dn, 'RADIUS');
-echo form_fieldset_close();
-
-echo form_fieldset(lang('directory_manager_ldap_information'));
-echo field_dropdown('mode', $modes, $mode, lang('directory_manager_mode'), TRUE);
-echo field_view('base_dn', $base_dn, lang('directory_manager_base_dn'));
-echo field_view('bind_dn', $bind_dn, lang('directory_manager_bind_dn'));
-echo field_view('bind_password', $bind_password, lang('directory_manager_bind_password'));
-echo form_fieldset_close();
-
-
-echo button_set(
-    array( form_submit_update('submit', 'high') )
-);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

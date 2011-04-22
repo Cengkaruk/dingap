@@ -47,75 +47,16 @@
 
 class OpenLDAP_Accounts extends ClearOS_Controller
 {
-    /**
-     * LDAP_Manager default controller
-     *
-     * @return view
-     */
+	/**
+	 * OpenLDAP_Accounts overview.
+	 */
 
-    function index()
-    {
-        // Load dependencies
-        //------------------
+	function index()
+	{
+        $this->load->language('openldap_accounts');
 
-        $this->load->library('openldap_accounts/Directory_Driver');
-        $this->lang->load('openldap_accounts');
-/*
+        $views = array('openldap_accounts/plugins', 'openldap_accounts/extensions', 'openldap_accounts/settings');
 
-        // Set validation rules
-        //---------------------
-         
-        $this->form_validation->set_policy('mode', 'directory_manager/Directory_Manager', 'validate_mode', TRUE);
-
-        $mode = $this->input->post('mode');
-
-        if ($mode === 'master') {
-            $this->form_validation->set_policy('domain', 'openldap/Directory_Driver', 'validate_domain', TRUE);
-
-            echo $this->directory_driver->get_groups_ou();
-            
-        $domain = $this->input->post('domain');
-echo " master mode / $domain";
-        }
-
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                $this->time->set_time_zone($this->input->post('timezone'));
-                $this->page->set_status_updated();
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load view data
-        //---------------
-*/
-        try {
-            $data['extensions'] = $this->directory_driver->get_extensions();
-/*
-            $data['modes'] = $this->ldap_factory->get_modes();
-            $data['domain'] = $this->ldap_factory->get_base_internet_domain();
-            $data['master_hostname'] = $this->ldap_factory->get_master_hostname();
-            $data['available'] = $this->ldap_factory->is_available();
-            $data['initialized'] = ($reset) ? FALSE : $this->ldap_factory->is_initialized();
-
-            $data['modes'] = $this->ldap_factory->get_modes();
-*/
-print_r($data);
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
-
-        // Load views
-        //-----------
-
-        $this->page->view_form('openldap_accounts', $data, lang('ldap_manager_ldap_manager'));
-    }
+        $this->page->view_forms($views, lang('openldap_accounts_openldap_accounts'));
+	}
 }

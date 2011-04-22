@@ -58,16 +58,16 @@ clearos_load_language('users');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\openldap_accounts\Utilities as Utilities;
-use \clearos\apps\openldap_accounts\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_accounts\User_Driver as User_Driver;
+use \clearos\apps\openldap_accounts\Utilities as Utilities;
 use \clearos\apps\users\User as User;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
-clearos_load_library('openldap_accounts/Utilities');
-clearos_load_library('openldap_accounts/Directory_Driver');
+clearos_load_library('openldap_accounts/OpenLDAP');
 clearos_load_library('openldap_accounts/User_Driver');
+clearos_load_library('openldap_accounts/Utilities');
 clearos_load_library('users/User');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -202,8 +202,8 @@ class User_Manager_Driver extends Engine
 
         $userlist = array();
 
-        $directory = new Directory_Driver();
-        $users_container = $directory->get_users_container();
+        $openldap = new OpenLDAP();
+        $users_container = $openldap->get_users_container();
 
         $result = $this->ldaph->search(
             "(&(cn=*)(objectclass=posixAccount)$search)",

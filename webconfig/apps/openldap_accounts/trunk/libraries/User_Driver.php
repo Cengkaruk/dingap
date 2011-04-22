@@ -47,7 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('directory_manager');
+clearos_load_language('openldap_accounts');
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,10 +60,9 @@ clearos_load_language('users');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
-use \clearos\apps\ldap\LDAP as LDAP;
-use \clearos\apps\openldap_accounts\Directory_Driver as Directory_Driver;
+use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_accounts\Group_Manager_Driver as Group_Manager_Driver;
+use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_accounts\User_Driver as User_Driver;
 use \clearos\apps\openldap_accounts\Utilities as Utilities;
 use \clearos\apps\users\User as User;
@@ -71,10 +70,9 @@ use \clearos\apps\users\User as User;
 clearos_load_library('base/Engine');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
-clearos_load_library('directory_manager/Directory_Manager');
-clearos_load_library('ldap/LDAP');
-clearos_load_library('openldap_accounts/Directory_Driver');
+clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_accounts/Group_Manager_Driver');
+clearos_load_library('openldap_accounts/OpenLDAP');
 clearos_load_library('openldap_accounts/User_Driver');
 clearos_load_library('openldap_accounts/Utilities');
 clearos_load_library('users/User');
@@ -224,8 +222,8 @@ class User_Driver extends Engine
         // and it is used for the DN (distinguished name) as a unique identifier.
         // That means two people with the same name cannot exist in the directory.
 
-        $directory = new Directory_Driver();
-        $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $directory->get_users_container();
+        $openldap = new OpenLDAP();
+        $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $openldap->get_users_container();
 
         if ($this->_dn_exists($dn))
             throw new Validation_Exception(lang('users_full_name_already_exists')); 
@@ -457,8 +455,8 @@ print_r($ldap_object);
         // Add user info map from plugins
         //-------------------------------
 
-        $directory = new Directory_Manager();
-        $plugin_map = $directory->get_plugin_map();
+        $openldap = new OpenLDAP();
+        $plugin_map = $openldap->get_plugin_map();
 
         foreach ($this->_get_plugins() as $plugin => $details) {
             $plugin_name = 'plugin-' . $plugin;
@@ -697,14 +695,14 @@ print_r($ldap_object);
         // Handle name change (which changes DN)
         //--------------------------------------
 
-        $directory = new Directory_Driver();
+        $openldap = new OpenLDAP();
         $old_attributes = $this->_get_user_attributes();
 
-        $rdn = 'cn=' . LDAP::dn_escape($ldap_object['cn']);
-        $new_dn = $rdn . ',' . $directory->get_users_container();
+        $rdn = 'cn=' . LDAP_Client::dn_escape($ldap_object['cn']);
+        $new_dn = $rdn . ',' . $openldap->get_users_container();
 
         if ($new_dn !== $old_attributes['dn'])
-            $this->ldaph->rename($old_attributes['dn'], $rdn, $directory->get_users_container());
+            $this->ldaph->rename($old_attributes['dn'], $rdn, $openldap->get_users_container());
 
         // Modify LDAP object
         //-------------------
@@ -953,8 +951,8 @@ return '';
             return lang('users_username_is_reserved');
 
         if ($check_uniqueness) {
-            $directory = new Directory_Driver();
-            $message = $directory->check_uniqueness($username);
+            $openldap = new OpenLDAP();
+            $message = $openldap->check_uniqueness($username);
 
             if ($message)
                 return $message;
@@ -1224,7 +1222,7 @@ return;
 
         $ldap_object = array();
         $old_attributes = array();
-        $directory = new Directory_Driver();
+        $openldap = new OpenLDAP();
 
         try {
             $old_attributes = $this->_get_user_attributes();
@@ -1406,9 +1404,9 @@ return;
         if (! empty($this->plugins))
             return $this->plugins;
 
-        $directory = new Directory_Manager();
+        $accounts = new Accounts_Driver();
 
-        $this->plugins = $directory->get_plugins();
+        $this->plugins = $accounts->get_plugins();
 
         return $this->plugins;
     }
@@ -1430,10 +1428,10 @@ return;
         if ($this->ldaph == NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $directory = new Directory_Driver();
+        $openldap = new OpenLDAP();
 
         // FIXME: discuss with David -- move "Master" node?
-        $dn = 'cn=Master,' . $directory->get_servers_container();
+        $dn = 'cn=Master,' . $openldap->get_servers_container();
 
         $attributes = $this->ldaph->read($dn);
 
