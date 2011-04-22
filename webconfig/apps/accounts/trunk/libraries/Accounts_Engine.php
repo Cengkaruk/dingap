@@ -86,15 +86,15 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Accounts extends Engine
+class Accounts_Engine extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
     const DRIVER_ACTIVE_DIRECTORY = 'active_directory';
-    const DRIVER_OPENLDAP = 'openldap';
-    const DRIVER_SAMBA = 'samba';
+    const DRIVER_OPENLDAP = 'openldap_accounts';
+    const DRIVER_SAMBA = 'samba_accounts';
 
     const FILE_STATE = '/var/clearos/accounts/state';
     const PATH_DRIVERS = '/var/clearos/accounts/drivers';
