@@ -11,7 +11,7 @@ $app['summary'] = 'Group manager'; // FIXME: translate
 $app['description'] = 'Group manager description blah blah...'; // FIXME: translate
 
 $app['name'] = lang('groups_group_manager');
-$app['category'] = lang('base_category_server');
+$app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_accounts');
 
 // Packaging

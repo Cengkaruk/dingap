@@ -11,7 +11,7 @@ $app['summary'] = 'User manager'; // FIXME: translate
 $app['description'] = 'User manager description blah blah blah ...'; // FIXME: translate
 
 $app['name'] = lang('users_user_manager');
-$app['category'] = lang('base_category_server');
+$app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_accounts');
 
 // Packaging
