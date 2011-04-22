@@ -36,31 +36,42 @@
 $this->lang->load('directory_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('directory_manager');
-echo form_header(lang('directory_manager_directory_manager'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_fieldset(lang('directory_manager_plugins'));
-echo field_view('example', $base_dn, 'PPTP VPN');
-echo field_view('example2', $base_dn, 'Web Proxy');
-echo field_view('example3', $base_dn, 'FTP');
-echo form_fieldset_close();
-
-echo button_set(
-    array( 
-        form_submit_update('submit', 'high'),
-    )
+$headers = array(
+    lang('directory_manager_plugin'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form close
+// Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_footer();
-echo form_close();
+$anchors = array();
+
+///////////////////////////////////////////////////////////////////////////////
+// Items
+///////////////////////////////////////////////////////////////////////////////
+
+foreach ($plugins as $plugin => $details) {
+
+    $item['title'] = $details['nickname'];
+    $item['action'] = '/app/directory_manager/view/' . $plugin;
+    $item['anchors'] = anchor_view('/app/directory_manager/view/' . $plugin);
+    $item['details'] = array(
+        $details['nickname'],
+    );
+
+    $items[] = $item;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Summary table
+///////////////////////////////////////////////////////////////////////////////
+
+echo summary_table(
+    lang('directory_manager_plugins'),
+    $anchors,
+    $headers,
+    $items
+);

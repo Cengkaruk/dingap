@@ -58,37 +58,14 @@ class Directory_Manager extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-/*
-        $this->load->library('date/Time');
-        $this->lang->load('date');
-
-        // Set validation rules
-        //---------------------
-         
-        $this->form_validation->set_policy('timezone', 'date/Time', 'validate_time_zone', TRUE);
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                $this->time->set_time_zone($this->input->post('timezone'));
-                $this->page->set_status_updated();
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
+        $this->load->library('directory_manager/Directory_Manager');
+        $this->lang->load('directory_manager');
 
         // Load view data
         //---------------
 
         try {
-            $data['date'] = strftime("%b %e %Y");
-            $data['time'] = strftime("%T %Z");
-            $data['timezone'] = $this->time->get_time_zone();
-            $data['timezones'] = $this->time->get_time_zone_list();
+            $data['plugins'] = $this->directory_manager->get_plugins();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -96,7 +73,6 @@ class Directory_Manager extends ClearOS_Controller
 
         // Load views
         //-----------
-*/
 
         $this->page->view_form('directory_manager', $data, lang('directory_manager_directory_manager'));
     }

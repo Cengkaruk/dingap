@@ -26,7 +26,7 @@ $app['subcategory'] = lang('base_subcategory_directory');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_dependencies'] = array(
+$app['core_requires'] = array(
     'app-cron-core',
     'app-groups-core',
     'app-network-core',

@@ -58,9 +58,9 @@ class OpenLDAP_Directory extends ClearOS_Controller
         // Load dependencies
         //------------------
 
+        $this->load->library('openldap_directory/Directory_Driver');
+        $this->lang->load('openldap_directory');
 /*
-        $this->load->factory('ldap_manager/LDAP_Factory');
-        $this->lang->load('ldap_manager');
 
         // Set validation rules
         //---------------------
@@ -95,14 +95,23 @@ echo " master mode / $domain";
 
         // Load view data
         //---------------
-
+*/
         try {
+            $data['extensions'] = $this->directory_driver->get_extensions();
+/*
             $data['modes'] = $this->ldap_factory->get_modes();
+            $data['domain'] = $this->ldap_factory->get_base_internet_domain();
+            $data['master_hostname'] = $this->ldap_factory->get_master_hostname();
+            $data['available'] = $this->ldap_factory->is_available();
+            $data['initialized'] = ($reset) ? FALSE : $this->ldap_factory->is_initialized();
+
+            $data['modes'] = $this->ldap_factory->get_modes();
+*/
+print_r($data);
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
-*/
 
         // Load views
         //-----------

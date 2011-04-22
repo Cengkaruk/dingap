@@ -65,6 +65,7 @@ clearos_load_library('directory_manager/Directory_Factory');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
@@ -73,6 +74,7 @@ use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
@@ -126,9 +128,10 @@ class Directory_Driver extends Engine
     const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
     const FILE_SYSCONFIG = '/etc/sysconfig/ldap';
     const FILE_DATA = '/etc/openldap/provision.ldif';
+    const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
 
     const PATH_LDAP = '/var/lib/ldap';
-    const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
+    const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
 // FIXME: Review these -- moved from OpenLDAP class
     const FILE_LDIF_BACKUP = '/etc/openldap/backup.ldif';
@@ -354,23 +357,36 @@ class Directory_Driver extends Engine
     /**
      * Returns list of directory extensions.
      *
-     * @return array list of installed extensions
+     * @return array list of extensions
      * @throws Engine_Exception
      */
 
-    public function get_installed_extensions()
+    public function get_extensions()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $folder = new Folder(self::PATH_EXTENSIONS);
+
+        $list = $folder->get_listing();
+
+        $extensions = array();
+
+        foreach ($list as $extension) {
+            if (! preg_match('/^\./', $extension))
+                $extensions[] = $extension;
+        }
+
+        return $extensions;
     }
 
     /**
-     * Returns list of services managed in Directory.
+     * Returns list of plugins.
      *
      * @return array list of services
      * @throws Engine_Exception
      */
 
-    public function get_installed_plugins()
+    public function get_plugins()
     {
         clearos_profile(__METHOD__, __LINE__);
     }

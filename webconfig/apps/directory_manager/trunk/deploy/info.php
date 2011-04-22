@@ -26,22 +26,14 @@ $app['subcategory'] = lang('base_subcategory_directory');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_only'] = TRUE;
-
-$app['core_dependencies'] = array(
-    'app-samba-core'
+/*
+$app['core_requires'] = array(
+    'system-directory-driver',
 );
+*/
 
 $app['core_directory_manifest'] = array(
-   '/var/clearos/directory_manager/drivers' => array(
-        'mode' => '0755',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-
-   '/var/clearos/directory_manager/plugins' => array(
-        'mode' => '0755',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
+   '/var/clearos/directory_manager' => array(),
+   '/var/clearos/directory_manager/drivers' => array(),
+   '/var/clearos/directory_manager/plugins' => array(),
 );

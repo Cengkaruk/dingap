@@ -22,6 +22,8 @@ $lang['directory_manager_bind_dn'] = 'LDAP Bind DN';
 $lang['directory_manager_bind_password'] = 'LDAP Bind Password';
 
 // New
+$lang['directory_manager_extension'] = 'Extension';
+$lang['directory_manager_plugin'] = 'Plugin';
 $lang['directory_manager_extensions'] = 'Extensions';
 $lang['directory_manager_plugins'] = 'Plugins';
 $lang['directory_manager_state'] = 'State';
