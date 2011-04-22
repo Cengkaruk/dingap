@@ -100,19 +100,11 @@ class Dns extends ClearOS_Controller
 
     function delete($ip = NULL)
     {
-        // Load libraries
-        //---------------
+        $confirm_uri = '/app/dns/destroy/' . $ip;
+        $cancel_uri = '/app/dns';
+        $items = array($ip);
 
-        $this->lang->load('dns');
-
-        // Load views
-        //-----------
-
-        $data['message'] = sprintf(lang('dns_confirm_delete'), $ip);
-        $data['ok_anchor'] = '/app/dns/destroy/' . $ip;
-        $data['cancel_anchor'] = '/app/dns';
-    
-        $this->page->view_form('theme/confirm', $data);
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
 
     /**
@@ -189,7 +181,7 @@ class Dns extends ClearOS_Controller
         $key_validator = ($form_type === 'edit') ? 'validate_ip' : 'validate_unique_ip';
 
         // TODO: Review the messy alias1/2/3 handling
-        $this->form_validation->set_policy('ip', 'network/Hosts', $key_validator, TRUE);
+        // $this->form_validation->set_policy('ip', 'network/Hosts', $key_validator, TRUE);
         $this->form_validation->set_policy('hostname', 'network/Hosts', 'validate_hostname', TRUE);
         $this->form_validation->set_policy('alias1', 'network/Hosts', 'validate_alias');
         $this->form_validation->set_policy('alias2', 'network/Hosts', 'validate_alias');
