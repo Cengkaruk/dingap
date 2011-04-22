@@ -290,7 +290,7 @@ class Group_Driver extends Engine
         if (empty($members))
             $members = array(self::CONSTANT_NO_MEMBERS_DN);
 
-        $users_container = $openldap->get_users_container();    
+        $users_container = OpenLDAP::get_users_container();    
 
         foreach ($members as $member)
             $ldap_object['member'][] = 'cn=' . $member . ',' . $users_container;
@@ -301,7 +301,7 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . $openldap->get_groups_container();
+        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         $this->ldaph->add($dn, $ldap_object);
     }
@@ -352,9 +352,7 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $openldap = new OpenLDAP();
-
-        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . $openldap->get_groups_container();
+        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         $this->ldaph->delete($dn);
     }
@@ -518,9 +516,7 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $openldap = new OpenLDAP();
-
-        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . $openldap->get_groups_container();
+        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         $this->ldaph->modify($dn, $attributes);
     }
@@ -566,9 +562,7 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $openldap = new OpenLDAP();
-
-        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . $openldap->get_groups_container();
+        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         if ($this->usermap_username === NULL)
             $this->_load_usermap_from_ldap();
@@ -678,10 +672,8 @@ class Group_Driver extends Engine
         if (empty($group_info['members']))
             $group_info['members'] = array(self::CONSTANT_NO_MEMBERS_DN);
 
-        $openldap = new OpenLDAP();
-
         foreach ($group_info['members'] as $member)
-            $attributes['member'][] = 'cn=' . $member . ',' . $openldap->get_users_container();
+            $attributes['member'][] = 'cn=' . $member . ',' . OpenLDAP::get_users_container();
 
         return $attributes;
     }
@@ -777,11 +769,9 @@ class Group_Driver extends Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $openldap = new OpenLDAP();
-
         $result = $this->ldaph->search(
             "(&(cn=" . $this->group_name . ")(objectclass=posixGroup))",
-            $openldap->get_groups_container()
+            OpenLDAP::get_groups_container()
         );
 
         $entry = $this->ldaph->get_first_entry($result);
@@ -936,11 +926,9 @@ class Group_Driver extends Engine
         $this->usermap_dn = array();
         $this->usermap_username = array();
 
-        $openldap = new OpenLDAP();
-
         $result = $this->ldaph->search(
             "(&(cn=*)(objectclass=posixAccount))",
-            $openldap->get_users_container(),
+            OpenLDAP::get_users_container(),
             array('dn', 'uid')
         );
 

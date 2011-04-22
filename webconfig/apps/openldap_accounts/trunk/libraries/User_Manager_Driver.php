@@ -202,12 +202,9 @@ class User_Manager_Driver extends Engine
 
         $userlist = array();
 
-        $openldap = new OpenLDAP();
-        $users_container = $openldap->get_users_container();
-
         $result = $this->ldaph->search(
             "(&(cn=*)(objectclass=posixAccount)$search)",
-            $users_container
+            OpenLDAP::get_users_container()
         );
 
         $this->ldaph->sort($result, 'uid');

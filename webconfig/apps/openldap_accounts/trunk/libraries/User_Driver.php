@@ -222,8 +222,7 @@ class User_Driver extends Engine
         // and it is used for the DN (distinguished name) as a unique identifier.
         // That means two people with the same name cannot exist in the directory.
 
-        $openldap = new OpenLDAP();
-        $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . $openldap->get_users_container();
+        $dn = 'cn=' . $this->ldaph->dn_escape($ldap_object['cn']) . ',' . OpenLDAP::get_users_container();
 
         if ($this->_dn_exists($dn))
             throw new Validation_Exception(lang('users_full_name_already_exists')); 
@@ -695,14 +694,13 @@ print_r($ldap_object);
         // Handle name change (which changes DN)
         //--------------------------------------
 
-        $openldap = new OpenLDAP();
         $old_attributes = $this->_get_user_attributes();
 
         $rdn = 'cn=' . LDAP_Client::dn_escape($ldap_object['cn']);
-        $new_dn = $rdn . ',' . $openldap->get_users_container();
+        $new_dn = $rdn . ',' . OpenLDAP::get_users_container();
 
         if ($new_dn !== $old_attributes['dn'])
-            $this->ldaph->rename($old_attributes['dn'], $rdn, $openldap->get_users_container());
+            $this->ldaph->rename($old_attributes['dn'], $rdn, OpenLDAP::get_users_container());
 
         // Modify LDAP object
         //-------------------
@@ -1428,10 +1426,8 @@ return;
         if ($this->ldaph == NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $openldap = new OpenLDAP();
-
         // FIXME: discuss with David -- move "Master" node?
-        $dn = 'cn=Master,' . $openldap->get_servers_container();
+        $dn = 'cn=Master,' . OpenLDAP::get_servers_container();
 
         $attributes = $this->ldaph->read($dn);
 

@@ -318,11 +318,9 @@ class Group_Manager_Driver extends Engine
         // Load groups from LDAP
         //----------------------
 
-        $openldap = new OpenLDAP();
-
         $result = $this->ldaph->search(
             "(&(objectclass=posixGroup))", 
-            $openldap->get_groups_container()
+            OpenLDAP::get_groups_container()
         );
 
         $this->ldaph->sort($result, 'cn');

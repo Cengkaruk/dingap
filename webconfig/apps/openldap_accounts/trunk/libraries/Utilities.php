@@ -269,11 +269,9 @@ class Utilities extends Engine
         $usermap_dn = array();
         $usermap_username = array();
 
-        $openldap = new OpenLDAP();
-
         $result = $ldaph->search(
             "(&(cn=*)(objectclass=posixAccount))",
-            $openldap->get_users_container(),
+            OpenLDAP::get_users_container(),
             array('dn', 'uid')
         );
 
