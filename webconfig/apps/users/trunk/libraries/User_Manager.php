@@ -52,11 +52,14 @@ clearos_load_language('users');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
+// Classes
+//--------
 
+use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
+use \clearos\apps\base\Engine as Engine;
+
+clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
-clearos_load_library('directory_manager/Directory_Manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -100,13 +103,11 @@ class User_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $directory = new Directory_Manager();
+        $driver_location = Accounts_Configuration::get_driver_location();
 
-        $driver = $directory->get_driver() . '_directory';
+        clearos_load_library($driver_location . '/User_Manager_Driver');
 
-        clearos_load_library($driver . '/User_Manager_Driver');
-
-        $class = '\clearos\apps\\' . $driver . '\\User_Manager_Driver';
+        $class = '\clearos\apps\\' . $driver_location . '\\User_Manager_Driver';
 
         return new $class();
     }
@@ -126,10 +127,8 @@ class User_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $directory = new Directory_Manager();
+        $driver_location = Accounts_Configuration::get_driver_location();
 
-        $driver = $directory->get_driver() . '_directory';
-
-        return $driver . '/User_Manager_Driver';
+        return $driver_location . '/User_Manager_Driver';
     }
 }
