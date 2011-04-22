@@ -10,7 +10,7 @@ Vendor: ClearFoundation
 Source: app-ftp-plugin-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
-Requires: app-directory-manager
+Requires: app-accounts-core
 
 %description
 The PPTP server plugin ... blah blah blah.
@@ -25,7 +25,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/ftp_plugin
 cp -r * %{buildroot}/usr/clearos/apps/ftp_plugin/
 
-install -D -m 0644 packaging/ftp.php %{buildroot}/var/clearos/directory_manager/plugins/ftp.php
+install -D -m 0644 packaging/ftp.php %{buildroot}/var/clearos/accounts/plugins/ftp.php
 
 %post
 logger -p local6.notice -t installer 'app-ftp-plugin-core - installing'
@@ -54,4 +54,4 @@ exit 0
 /usr/clearos/apps/ftp_plugin/deploy
 /usr/clearos/apps/ftp_plugin/language
 /usr/clearos/apps/ftp_plugin/libraries
-/var/clearos/directory_manager/plugins/ftp.php
+/var/clearos/accounts/plugins/ftp.php
