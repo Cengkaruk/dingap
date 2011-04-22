@@ -100,14 +100,6 @@ class Radius extends ClearOS_Controller
 
     function delete($ip = NULL)
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('radius');
-
-        // Load view
-        //----------
-
         $confirm_uri = '/app/radius/destroy/' . $ip;
         $cancel_uri = '/app/radius';
         $items = array($ip);
