@@ -1,15 +1,15 @@
 <?php
 
 /**
- * ClearOS directory factory.
+ * Accounts factory.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\directory_manager;
+namespace clearos\apps\accounts;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('directory_manager');
+clearos_load_language('accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -63,15 +63,15 @@ clearos_load_library('base/Engine');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS directory factory.
+ * Accounts factory.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 class Directory_Factory extends Engine
@@ -103,7 +103,7 @@ class Directory_Factory extends Engine
     }
 
     /**
-     * Creates a directory instance via the factory framwork.
+     * Creates an accounts instance via the factory framwork.
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception

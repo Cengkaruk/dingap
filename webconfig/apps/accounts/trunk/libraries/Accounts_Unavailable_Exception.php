@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Directory unavailable exception class.
+ * Accounts unavailable exception class.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    Accounts
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\directory_manager;
+namespace clearos\apps\accounts;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('directory_manager');
+clearos_load_language('accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -61,15 +61,15 @@ clearos_load_library('base/Engine_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Directory unavailable exception class.
+ * Accounts unavailable exception class.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    Accounts
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 class Directory_Unavailable_Exception extends Engine_Exception
@@ -80,6 +80,6 @@ class Directory_Unavailable_Exception extends Engine_Exception
 
     public function __construct()
     {
-        parent::__construct(lang('directory_manager_exception_directory_is_unavailable'), CLEAROS_INFO);
+        parent::__construct(lang('accounts_account_information_is_unavailable'), CLEAROS_INFO);
     }
 }

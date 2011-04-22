@@ -1,15 +1,15 @@
 <?php
 
 /**
- * ClearOS directory manager factory.
+ * Accounts engine class.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\directory_manager;
+namespace clearos\apps\accounts;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('directory_manager');
+clearos_load_language('accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -75,18 +75,18 @@ clearos_load_library('base/Validation_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS directory factory.
+ * Accounts engine class.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Directory_Manager extends Engine
+class Accounts extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -96,9 +96,9 @@ class Directory_Manager extends Engine
     const DRIVER_OPENLDAP = 'openldap';
     const DRIVER_SAMBA = 'samba';
 
-    const FILE_STATE = '/var/clearos/directory_manager/state';
-    const PATH_DRIVERS = '/var/clearos/directory_manager/drivers';
-    const PATH_PLUGINS = '/var/clearos/directory_manager/plugins';
+    const FILE_STATE = '/var/clearos/accounts/state';
+    const PATH_DRIVERS = '/var/clearos/accounts/drivers';
+    const PATH_PLUGINS = '/var/clearos/accounts/plugins';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -114,9 +114,9 @@ class Directory_Manager extends Engine
     }
 
     /**
-     * Returns the directory driver.
+     * Returns the accounts driver.
      *
-     * @return string directory driver
+     * @return string accounts driver
      * @throws Engine_Exception
      */
 
@@ -135,9 +135,9 @@ class Directory_Manager extends Engine
     }
 
     /**
-     * Returns the list of installed directory drivers.
+     * Returns the list of installed accounts drivers.
      *
-     * @return array directory drivers
+     * @return array accounts drivers
      * @throws Engine_Exception
      */
 
@@ -222,7 +222,7 @@ class Directory_Manager extends Engine
     }
 
     /**
-     * Sets the directory driver.
+     * Sets the accounts driver.
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -264,7 +264,7 @@ class Directory_Manager extends Engine
         $drivers = $this->get_drivers();
 
         if (! array_key_exists($driver, $drivers))
-            return lang('directory_manager_directory_driver_is_invalid');
+            return lang('accounts_accounts_driver_is_invalid');
     }
 
     /**
