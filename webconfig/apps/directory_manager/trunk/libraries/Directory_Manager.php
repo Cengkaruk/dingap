@@ -101,12 +101,6 @@ class Directory_Manager extends Engine
     const PATH_PLUGINS = '/var/clearos/directory_manager/plugins';
 
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    protected $path_plugins = NULL;
-
-    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -117,8 +111,6 @@ class Directory_Manager extends Engine
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $this->path_plugins = clearos_app_base('directory_manager') . '/config/plugins';
     }
 
     /**
@@ -143,9 +135,9 @@ class Directory_Manager extends Engine
     }
 
     /**
-     * Returns the available directory modes.
+     * Returns the list of installed directory drivers.
      *
-     * @return array directory modes
+     * @return array directory drivers
      * @throws Engine_Exception
      */
 
@@ -174,7 +166,7 @@ class Directory_Manager extends Engine
     }
 
     /**
-     * Returns the available plugins.
+     * Returns a list of installed plugins.
      *
      * @return array plugin list
      * @throws Engine_Exception
@@ -185,26 +177,21 @@ class Directory_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // FIXME
-/*
-        $folder = new Folder($this->path_plugins);
+        $folder = new Folder(self::PATH_PLUGINS);
 
         $list = $folder->get_listing();
 
-        foreach ($list as $plugin) {
-            if (! preg_match('/^\./', $plugin))
-                $this->plugins[] = $plugin;
+        foreach ($list as $plugin_file) {
+            if (! preg_match('/\.php$/', $plugin_file))
+                continue;
+
+            $plugin = array();
+            $plugin_basename = preg_replace('/\.php/', '', $plugin_file);
+
+            include self::PATH_PLUGINS . '/' . $plugin_file;
+
+            $plugins[$plugin_basename] = $plugin;
         }
-*/
-
-        $plugins = array(
-            'pptp' => array(
-                'name' => 'PPTP',
-            ),
-
-            'ftp' => array(
-                'name' => 'FTP',
-            ),
-        );
 
         return $plugins;
     }
