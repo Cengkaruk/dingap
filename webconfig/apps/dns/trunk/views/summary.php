@@ -71,16 +71,15 @@ foreach ($hosts as $real_ip => $entry) {
 
     // Hide 127.0.0.1 entry
 
-    if ($ip === '127.0.0.1') {
+    if (($ip === '127.0.0.1') || ($ip === '::1'))
         continue;
-    } else {
-        $detail_buttons = button_set(
-            array(
-                anchor_edit('/app/dns/edit/' . $ip),
-                anchor_delete('/app/dns/delete/' . $ip)
-            )
-        );
-    }
+
+    $detail_buttons = button_set(
+        array(
+            anchor_edit('/app/dns/edit/' . $ip),
+            anchor_delete('/app/dns/delete/' . $ip)
+        )
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     // Item details

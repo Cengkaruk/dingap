@@ -6,13 +6,13 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'dns';
-$app['version'] = '6.0';
-$app['release'] = '0.2';
+$app['version'] = '5.9.9.0';
+$app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Local DNS Server';
+$app['summary'] = 'DNS Server';
 $app['description'] = 'The local DNS server can be used for mapping IP addresses on your network to hostnames.'; // FIXME translate
 
 /////////////////////////////////////////////////////////////////////////////
@@ -33,8 +33,7 @@ $app['controllers']['dns']['title'] = lang('dns_dns_server');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['dependencies'] = array(
-    'app-base',
+$app['requires'] = array(
     'app-network',
     'dnsmasq >= 2.48',
 );

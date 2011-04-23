@@ -177,15 +177,15 @@ class Dns extends ClearOS_Controller
         // Set validation rules
         //---------------------
 
-        // FIXME: discuss best approach
-        $key_validator = ($form_type === 'edit') ? 'validate_ip' : 'validate_unique_ip';
+        $check_exists = ($form_type === 'add') ? TRUE : FALSE;
 
-        // TODO: Review the messy alias1/2/3 handling
-        // $this->form_validation->set_policy('ip', 'network/Hosts', $key_validator, TRUE);
+        $this->form_validation->set_policy('ip', 'network/Hosts', 'validate_ip', TRUE, $check_exists);
         $this->form_validation->set_policy('hostname', 'network/Hosts', 'validate_hostname', TRUE);
-        $this->form_validation->set_policy('alias1', 'network/Hosts', 'validate_alias');
-        $this->form_validation->set_policy('alias2', 'network/Hosts', 'validate_alias');
-        $this->form_validation->set_policy('alias3', 'network/Hosts', 'validate_alias');
+
+        foreach ($_POST as $key => $value) {
+            if (preg_match('/^alias([0-9])+$/', $key))
+                $this->form_validation->set_policy($key, 'network/Hosts', 'validate_alias');
+        }
 
         $form_ok = $this->form_validation->run();
 
@@ -198,14 +198,10 @@ class Dns extends ClearOS_Controller
             $hostname = $this->input->post('hostname');
             $aliases = array();
 
-            if ($this->input->post('alias1'))
-                $aliases[] = $this->input->post('alias1');
-
-            if ($this->input->post('alias2'))
-                $aliases[] = $this->input->post('alias2');
-
-            if ($this->input->post('alias3'))
-                $aliases[] = $this->input->post('alias3');
+            foreach ($_POST as $key => $value) {
+                if (preg_match('/^alias([0-9])+$/', $key) && !(empty($value)))
+                    $aliases[] = $this->input->post($key);
+            }
 
             try {
                 if ($form_type === 'edit') 
@@ -213,10 +209,10 @@ class Dns extends ClearOS_Controller
                 else
                     $this->hosts->add_entry($ip, $hostname, $aliases);
 
-                $this->dnsmasq->Reset();
+                $this->dnsmasq->reset();
 
                 // Return to summary page with status message
-                $this->page->set_success(lang('base_system_updated'));
+                $this->page->set_status_added();
                 redirect('/dns');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
