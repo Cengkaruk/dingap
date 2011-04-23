@@ -1,32 +1,31 @@
 <?php
+
+$lang['users_first_name_is_invalid'] = 'First name is invalid.';
+$lang['users_last_name_is_invalid'] = 'Last name is invalid.';
+$lang['users_home_directory_is_invalid'] = 'Home directory is invalid.';
+$lang['users_login_shell_is_invalid'] = 'Login shell is invalid.';
+$lang['users_user_id_is_invalid'] = 'User ID is invalid.';
+$lang['users_group_id_is_invalid'] = 'Group ID is invalid.';
+$lang['users_password_is_invalid'] = 'Password is invalid.';
+$lang['users_user_information_is_invalid'] = 'User information is invalid.';
+
 $lang['users_account_locked'] = 'Locked';
 $lang['users_account_lock_status'] = 'Account Lock Status';
 $lang['users_account_unlocked'] = 'Unlocked';
-$lang['users_check_first_last_name'] = 'Check the first and last name';
-$lang['users_common_name'] = 'Common Name';
 $lang['users_email'] = 'Mailbox';
 $lang['users_extension'] = 'Extension';
 $lang['users_first_name'] = 'First Name';
 $lang['users_full_name'] = 'Full Name';
 $lang['users_gid_number'] = 'Group ID Number';
-$lang['users_google_apps'] = 'Google Apps';
 $lang['users_home_directory'] = 'Home Directory';
 $lang['users_last_name'] = 'Last Name';
 $lang['users_lock'] = 'Lock';
 $lang['users_mail_address'] = 'E-mail Address';
-$lang['users_mail_alias'] = 'Mail Alias';
-$lang['users_mail_aliases'] = 'Mail Aliases';
-$lang['users_mail_forwarder'] = 'Mail Forwarder';
-$lang['users_mail_forwarders'] = 'Mail Forwarders';
-$lang['users_mail_services'] = 'Mail Services';
 $lang['users_name'] = 'Name';
 $lang['users_options'] = 'Options';
 $lang['users_password_was_reset'] = 'Password required a reset.';
 $lang['users_phone_numbers'] = 'Telephone Numbers';
-$lang['users_server'] = 'Server';
-$lang['users_services'] = 'Services';
 $lang['users_login_shell'] = 'Login Shell';
-$lang['users_title'] = 'Title';
 $lang['users_uid_number'] = 'User ID Number';
 $lang['users_unlock'] = 'Unlock';
 $lang['users_user_details'] = 'User Details';

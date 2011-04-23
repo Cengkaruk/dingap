@@ -56,7 +56,7 @@ class Users extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->factory('users/User_Manager');
+        $this->load->factory('users/User_Manager_Factory');
         $this->lang->load('users');
 
         // Load view data
@@ -90,31 +90,20 @@ class Users extends ClearOS_Controller
     }
 
     /**
-     * User delete view.
+     * Delete user view.
      *
      * @param string $username username
      *
      * @return view
      */
 
-    function delete($username)
+    function delete($username = NULL)
     {
-        // Load libraries
-        //---------------
+        $confirm_uri = '/app/users/destroy/' . $username;
+        $cancel_uri = '/app/users';
+        $items = array($username);
 
-        $this->lang->load('users');
-
-        // Load views
-        //-----------
-
-        $this->page->set_title(lang('users_user'));
-        $data['message'] = sprintf(lang('users_confirm_delete'), $username);
-        $data['ok_anchor'] = '/app/users/destroy/' . $username;
-        $data['cancel_anchor'] = '/app/users';
-    
-        $this->load->view('theme/header');
-        $this->load->view('theme/confirm', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
 
     /**
@@ -130,7 +119,7 @@ class Users extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->factory('users/User', $username);
+        $this->load->factory('users/User_Factory', $username);
 
         // Handle form submit
         //-------------------
@@ -192,24 +181,40 @@ class Users extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->factory('users/User', $username);
+        $this->load->factory('users/User_Factory', $username);
+        $this->load->factory('accounts/Accounts_Factory');
         $this->lang->load('users');
 
-        // Grab info map first
-        //--------------------
+        // Validate prep
+        //--------------
 
         $info_map = $this->user->get_info_map();
-
-        // Set validation rules
-        //---------------------
-
         $this->load->library('form_validation');
+
+        // Validate core
+        //--------------
+
+        foreach ($info_map['core'] as $key => $details) {
+            $full_key = 'user_info[core][' . $key . ']';
+            $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
+        }
+
+        // Validate extensions
+        //--------------------
 
         foreach ($info_map['extensions'] as $extension => $parameters) {
             foreach ($parameters as $key => $details) {
                 $full_key = 'user_info[extensions][' . $extension . '][' . $key . ']';
                 $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
             }
+        }
+
+        // Validate plugins
+        //-----------------
+
+        foreach ($info_map['plugins'] as $plugin) {
+            $full_key = 'user_info[plugins][' . $plugin . '][state]';
+            $this->form_validation->set_policy($full_key, 'accounts/Accounts_Engine', 'validate_plugin_state');
         }
 
         $form_ok = $this->form_validation->run();
@@ -234,25 +239,18 @@ class Users extends ClearOS_Controller
         //------------------- 
 
         try {
+            $data['form_type'] = $form_type;
+
+            $data['username'] = $username;
             $data['info_map'] = $info_map;
             $data['user_info'] = $this->user->get_info();
 
-            // FIXME - where should extension_info come from
-            $data['plugin_info'] = array();
-            $data['plugin_info']['pptp']['description'] = 'PPTP VPN';
-            $data['plugin_info']['ftp']['description'] = 'FTP';
-
-            $data['extension_info'] = array();
-            $data['extension_info']['contact']['description'] = 'Contact Extension'; // FIXME
-            $data['extension_info']['samba']['description'] = 'Samba Extension'; // FIXME
-            $data['extension_info']['kolab']['description'] = 'Kolab Extension'; // FIXME
-            $data['username'] = $username;
+            $data['extensions'] = $this->accounts->get_extensions();
+            $data['plugins'] = $this->accounts->get_plugins();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
-
-        $data['form_type'] = $form_type;
 
         // Load the views
         //---------------

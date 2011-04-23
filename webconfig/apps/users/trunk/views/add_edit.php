@@ -82,11 +82,23 @@ echo form_header(lang('users_user'));
 echo form_fieldset(lang('base_general_settings'));
 echo field_input('username', $username, lang('users_username'), $username_read_only);
 
-if (isset($user_info['core']['first_name']) || isset($user_info['core']['last_name'])) {
-    echo field_input('first_name', $user_info['core']['first_name'], lang('users_first_name'), $read_only);
-    echo field_input('last_name', $user_info['core']['last_name'], lang('users_last_name'), $read_only);
-} else {
-    echo field_input('full_name', $user_info['core']['full_name'], lang('users_full_name'), $read_only);
+foreach ($info_map['core'] as $key_name => $details) {
+        $name = "user_info[core][$key_name]";
+        $value = $user_info['core'][$key_name];
+        $description =  $details['description'];
+
+        if ($details['field_priority'] !== 'normal')
+            continue;
+
+        if ($details['field_type'] === 'list') {
+            echo field_dropdown($name, $details['field_options'], $value, $description, $read_only);
+        } else if ($details['field_type'] === 'simple_list') {
+            echo field_simple_dropdown($name, $details['field_options'], $value, $description, $read_only);
+        } else if ($details['field_type'] === 'text') {
+            echo field_input($name, $value, $description, $read_only);
+        } else if ($details['field_type'] === 'integer') {
+            echo field_input($name, $value, $description, $read_only);
+        }
 }
 
 echo form_fieldset_close();
@@ -110,14 +122,13 @@ if (! $read_only) {
 // Plugin groups
 ///////////////////////////////////////////////////////////////////////////////
 
-//echo form_fieldset(lang('users_plugins'));
-echo form_fieldset('Plugin Groups'); //FIXME
+echo form_fieldset(lang('users_plugins'));
 
-foreach ($info_map['plugins'] as $plugin => $parameters) {
+foreach ($plugins as $plugin => $details) {
     $name = "user_info[plugins][$plugin][state]";
-    $value = $user_info['plugins'][$plugin]['state'];
-    $description = $plugin_info[$plugin]['description'];
-    echo field_toggle_enable_disable($name, $value, $description, $read_only);
+    $value = $user_info['plugins'][$plugin];
+    echo field_toggle_enable_disable($name, $value, $details['nickname'], $read_only);
+echo "<br>"; // FIXME
 }
 
 echo form_fieldset_close();
@@ -131,7 +142,7 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
     // Use the extension name for the title
     //-------------------------------------
 
-    echo form_fieldset($extension_info[$extension]['description']);
+    echo form_fieldset($extensions[$extension]['nickname']);
 
     // Echo out the specific info field
     //---------------------------------

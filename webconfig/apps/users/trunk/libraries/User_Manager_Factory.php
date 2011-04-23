@@ -77,7 +77,7 @@ clearos_load_library('base/Engine');
  * @link       http://www.clearfoundation.com/docs/developer/apps/users/
  */
 
-class User_Manager extends Engine
+class User_Manager_Factory extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S

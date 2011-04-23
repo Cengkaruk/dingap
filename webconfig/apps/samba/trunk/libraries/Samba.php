@@ -67,7 +67,7 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('network/Hostname');
-clearos_load_library('users/User');
+// clearos_load_library('users/User');
 
 // Exceptions
 //-----------

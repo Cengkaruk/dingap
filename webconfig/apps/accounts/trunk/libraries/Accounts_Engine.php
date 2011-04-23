@@ -121,7 +121,6 @@ class Accounts_Engine extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME
         $folder = new Folder(self::PATH_PLUGINS);
 
         $list = $folder->get_listing();
@@ -139,5 +138,22 @@ class Accounts_Engine extends Engine
         }
 
         return $plugins;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validation routine for plugin state.
+     *
+     * @param boolean $state state of plugin
+     *
+     * @return boolean error message if state is invalid
+     */
+
+    public function validate_plugin_state($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
     }
 }

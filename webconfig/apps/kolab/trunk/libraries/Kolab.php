@@ -83,6 +83,7 @@ class Kolab extends Software
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
+    const COMMAND_SYNCMAILBOX = '/usr/sbin/syncmailboxes';
     const COMMAND_KOLABCONF = '/usr/sbin/kolabconf';
     const FILE_CONFIG = '/etc/kolab/kolab.conf';
     const INVITATION_ALWAYS_ACCEPT = 'ACT_ALWAYS_ACCEPT';
@@ -135,6 +136,16 @@ class Kolab extends Software
 
         $kolab = new Kolab();
         return $kolab->invitation_policies;
+    }
+
+    public function sync_mailboxes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // FIXME: implement and verify
+        // FIXME: document for Darryl's LDAP synchronizer
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_SYNCMAILBOX, '', TRUE, $options);
     }
 
     /**

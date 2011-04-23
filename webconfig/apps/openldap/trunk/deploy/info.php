@@ -11,23 +11,20 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'LDAP Manager......';
-$app['description'] = 'LDAP Manager...blah blah blah'; // FIXME: translate
+$app['summary'] = 'OpenLDAP Directory';
+$app['description'] = 'OpenLDAP Directory...blah blah blah'; // FIXME: translate
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'LDAP Manager'; // FIXME
-$app['category'] = lang('base_category_system');
-$app['subcategory'] = lang('base_subcategory_settings');
-$app['menu_enabled'] = FALSE;
+$app['name'] = 'OpenLDAP Directory'; // FIXME
+$app['category'] = lang('base_category_server');
+$app['subcategory'] = lang('base_subcategory_directory');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
-
-$app['core_only'] = TRUE;
 
 $app['core_provides'] = array(
     'system-ldap-driver'

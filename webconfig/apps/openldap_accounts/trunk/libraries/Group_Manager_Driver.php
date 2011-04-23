@@ -181,6 +181,7 @@ class Group_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
+/*
     public function get_group_memberships($username, $type = Group::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -196,6 +197,7 @@ class Group_Manager_Driver extends Engine
 
         return $group_list;
     }
+*/
 
     /**
      * Initializes default group memberships.

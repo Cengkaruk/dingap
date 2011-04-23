@@ -1,15 +1,15 @@
 <?php
 
 /**
- * LDAP manager controller.
+ * OpenLDAP manager controller.
  *
  * @category   Apps
- * @package    LDAP
+ * @package    OpenLDAP
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,21 +34,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * LDAP manager controller.
+ * OpenLDAP manager controller.
  *
  * @category   Apps
- * @package    LDAP
+ * @package    OpenLDAP
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ldap_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
  */
 
-class LDAP extends ClearOS_Controller
+class OpenLDAP extends ClearOS_Controller
 {
     /**
-     * LDAP default controller
+     * OpenLDAP default controller
      *
      * @return view
      */
@@ -60,6 +60,7 @@ class LDAP extends ClearOS_Controller
 
         $this->load->factory('ldap/LDAP_Factory');
         $this->lang->load('ldap');
+/*
 
         // Set validation rules
         //---------------------
@@ -70,7 +71,6 @@ class LDAP extends ClearOS_Controller
 
         // Handle form submit
         //-------------------
-/*
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
@@ -81,10 +81,10 @@ class LDAP extends ClearOS_Controller
                 return;
             }
         }
-*/
 
         // Load view data
         //---------------
+*/
 
         try {
             $data['mode'] = $this->ldap_factory->get_mode();
@@ -101,6 +101,6 @@ class LDAP extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('ldap', $data, 'Mode'); // FIXME: translate
+        $this->page->view_form('openldap', $data, 'Mode'); // FIXME: translate
     }
 }

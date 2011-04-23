@@ -43,99 +43,92 @@ require_once $bootstrap . '/bootstrap.php';
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\base\Login_Shell as Login_Shell;
+
+clearos_load_library('base/Login_Shell');
+
+///////////////////////////////////////////////////////////////////////////////
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-$info_map = array(
-    'common_name' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_common_name',
-        'validator_class' => 'openldap/User_Driver',
-        'description' => lang('users_common_name'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'cn' 
-    ),
+$login_shell = new Login_Shell();
+$shells = $login_shell->get_list();
 
+$info_map = array(
     'first_name' => array(
         'type' => 'string',
+        'field_type' => 'text',
+        'field_priority' => 'normal',
         'required' => FALSE,
         'validator' => 'validate_first_name',
-        'validator_class' => 'openldap/User_Driver',
+        'validator_class' => 'openldap_accounts/User_Driver',
         'description' => lang('users_first_name'),
         'object_class' => 'clearAccount',
         'attribute' => 'givenName'
     ),
 
-    'gid_number' => array(
-        'type' => 'integer',
-        'required' => FALSE,
-        'validator' => 'validate_gid_number',
-        'validator_class' => 'openldap/User_Driver',
-        'description' => lang('users_gid_number'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'gidNumber'
-    ),
-
-    'home_directory' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_home_directory',
-        'validator_class' => 'openldap/User_Driver',
-        'description' => lang('users_home_directory'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'homeDirectory'
-    ),
-
     'last_name' => array(
         'type' => 'string',
-        'required' => TRUE,
+        'field_type' => 'text',
+        'field_priority' => 'normal',
+        'required' => FALSE,
         'validator' => 'validate_last_name',
-        'validator_class' => 'openldap/User_Driver',
+        'validator_class' => 'openldap_accounts/User_Driver',
         'description' => lang('users_last_name'),
         'object_class' => 'clearAccount',
         'attribute' => 'sn',
         'locale' => lang('directory_last_name')
     ),
 
+    'home_directory' => array(
+        'type' => 'string',
+        'field_type' => 'text',
+        'field_priority' => 'hidden',
+        'required' => TRUE,
+        'validator' => 'validate_home_directory',
+        'validator_class' => 'openldap_accounts/User_Driver',
+        'description' => lang('users_home_directory'),
+        'object_class' => 'clearAccount',
+        'attribute' => 'homeDirectory'
+    ),
+
     'login_shell' => array(
         'type' => 'string',
-        'required' => FALSE,
+        'field_type' => 'simple_list',
+        'field_options' => $shells, 
+        'field_priority' => 'normal',
+        'required' => TRUE,
         'validator' => 'validate_login_shell',
-        'validator_class' => 'openldap/User_Driver',
+        'validator_class' => 'openldap_accounts/User_Driver',
         'description' => lang('users_login_shell'),
         'object_class' => 'clearAccount',
         'attribute' => 'loginShell'
     ),
 
-    'password' => array(
-        'type' => 'string',
-        'required' => FALSE,
-        'validator' => 'validate_password',
-        'validator_class' => 'openldap/User_Driver',
-        'description' => lang('users_password'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'userPassword',
-        'locale' => lang('base_password')
-    ),
-
-    'uid' => array(
-        'type' => 'integer',
-        'required' => FALSE,
-        'validator' => 'IsValidUsername',
-        'validator_class' => 'openldap/User_Driver',
-        'description' => lang('users_username'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'uid'
-    ),
-
     'uid_number' => array(
         'type' => 'integer',
-        'required' => FALSE,
-        'validator' => 'IsValidUidNumber',
-        'validator_class' => 'openldap/User_Driver',
+        'field_type' => 'integer',
+        'field_priority' => 'hidden',
+        'required' => TRUE,
+        'validator' => 'validate_uid_number',
+        'validator_class' => 'openldap_accounts/User_Driver',
         'description' => lang('users_uid_number'),
         'object_class' => 'clearAccount',
         'attribute' => 'uidNumber'
+    ),
+
+    'gid_number' => array(
+        'type' => 'integer',
+        'field_type' => 'integer',
+        'field_priority' => 'hidden',
+        'required' => TRUE,
+        'validator' => 'validate_gid_number',
+        'validator_class' => 'openldap_accounts/User_Driver',
+        'description' => lang('users_gid_number'),
+        'object_class' => 'clearAccount',
+        'attribute' => 'gidNumber'
     ),
 );

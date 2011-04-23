@@ -46,8 +46,6 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
-clearos_load_language('openldap_accounts');
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,6 +56,7 @@ clearos_load_language('users');
 //--------
 
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Login_Shell as Login_Shell;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_accounts\Accounts_Driver as Accounts_Driver;
@@ -68,6 +67,7 @@ use \clearos\apps\openldap_accounts\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
 clearos_load_library('base/Folder');
+clearos_load_library('base/Login_Shell');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_accounts/Accounts_Driver');
@@ -370,6 +370,33 @@ print_r($ldap_object);
     }
 
     /**
+     * Returns the list of groups for given user.
+     *
+     * @return array a list of groups
+     * @throws Engine_Exception
+     */
+
+    public function get_group_memberships()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
+
+        $groups = new Group_Manager_Driver();
+
+        $groups_info = $groups->get_details();
+
+        $group_list = array();
+
+        foreach ($groups_info as $group_name => $group_details) {
+            if (in_array($this->username, $group_details['members']))
+                $group_list[] = $group_name;
+        }
+
+        return $group_list;
+    }
+
+    /**
      * Retrieves information for user from LDAP.
      *
      * @throws Engine_Exception
@@ -396,6 +423,17 @@ print_r($ldap_object);
 
             if (method_exists($extension, 'get_info_hook'))
                 $info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+        }
+
+        // Add user info map from plugins
+        //-------------------------------
+
+        $groups = $this->get_group_memberships();
+
+        foreach ($this->_get_plugins() as $plugin => $details) {
+            $plugin_name = 'plugin-' . $plugin;
+            $state = (in_array($plugin_name, $groups)) ? TRUE : FALSE;
+            $info['plugins'][$plugin] = $state;
         }
 
         return $info;
@@ -668,6 +706,10 @@ print_r($ldap_object);
 
         $this->ldaph->modify($new_dn, $ldap_object);
 
+        // Handle plugins
+        //---------------
+
+print_r($user_info);
         // Ping the synchronizer
         //----------------------
 
@@ -677,38 +719,6 @@ print_r($ldap_object);
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validation routine for description.
-     *
-     * @param string $description description
-     *
-     * @return string error message if description is invalid
-     */
-
-    public function validate_description($description)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/([:;\/#!@])/", $description))
-            return lang('directory_validate_description_invalid');
-    }
-
-    /**
-     * Validation routine for display name.
-     *
-     * @param string $display_name display name
-     *
-     * @return string error message if display name is invalid
-     */
-
-    public function validate_display_name($display_name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/([:;\/#!@])/", $display_name))
-            return lang('directory_validate_display_name_invalid');
-    }
 
     /**
      * Validation routine for first name.
@@ -723,7 +733,7 @@ print_r($ldap_object);
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $name))
-            return lang('directory_validate_first_name_invalid');
+            return lang('users_first_name_is_invalid');
     }
 
     /**
@@ -738,8 +748,8 @@ print_r($ldap_object);
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match("/^\d+/", $gid_number))
-            return lang('directory_validate_gid_number_invalid');
+        if (! preg_match('/^[0-9]+$/', $gid_number))
+            return lang('users_group_id_is_invalid');
     }
 
     /**
@@ -755,7 +765,7 @@ print_r($ldap_object);
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;#!@])/", $homedir))
-            return lang('directory_validate_home_directory_invalid');
+            return lang('users_home_directory_is_invalid');
     }
 
     /**
@@ -771,7 +781,7 @@ print_r($ldap_object);
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $name))
-            return lang('directory_validate_last_name_invalid');
+            return lang('users_last_name_is_invalid');
     }
 
     /**
@@ -782,27 +792,15 @@ print_r($ldap_object);
      * @return boolean TRUE if login shell is valid
      */
 
-    public function validate_login_shell($loginshell)
+    public function validate_login_shell($shell)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-// FIXME
-return '';
-        try {
-            $shell = new Shell();
-            $allshells = $shell->GetList();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
-        }
+        $login_shell = new Login_Shell();
+        $login_list = $login_shell->get_list();
 
-        if (in_array($loginshell, $allshells)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_SHELL, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
+        if (! in_array($shell, $login_list))
+            return lang('users_login_shell_is_invalid');
     }
 
     /**
@@ -817,17 +815,8 @@ return '';
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME
-        // return lang('users_password_is_invalid');
-
-        /*
-        if (preg_match("/[\|;\*]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password)) {
-            $this->AddValidationError(LOCALE_LANG_ERRMSG_PASSWORD_INVALID, __METHOD__, __LINE__);
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-        */
+        if (preg_match("/[\|;\*]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password))
+            return lang('users_password_is_invalid');
     }
 
     /**
@@ -870,23 +859,19 @@ return '';
     /**
      * Validation routine for UID number.
      *
-     * @param integer $uidnumber UID number
+     * @param integer $uid_number UID number
      *
      * @return boolean TRUE if UID number is valid
      */
 
-    public function validate_uid_number($uidnumber)
+    public function validate_uid_number($uid_number)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^\d+/", $uidnumber)) {
-            return TRUE;
-        } else {
-            $this->AddValidationError(
-                LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - " . USER_LANG_UIDNUMBER, __METHOD__, __LINE__
-            );
-            return FALSE;
-        }
+        if (! preg_match('/^[0-9]+$/', $uid_number))
+            return lang('users_user_id_is_invalid');
+        else if ($uid_number > self::UID_RANGE_NORMAL_MAX)
+            return lang('users_user_id_is_invalid');
     }
 
     /**
@@ -939,7 +924,7 @@ return '';
         //---------------------
 
         if (!is_array($user_info))
-            throw new Validation_Exception(lang('directory_validate_user_info_invalid'));
+            throw new Validation_Exception(lang('users_user_information_is_invalid'));
 
         // Validate user information using validator defined in $this->info_map
         //--------------------------------------------------------------------
@@ -1363,8 +1348,6 @@ return;
     }
 
     /**
-
-    /**
      * Returns the next available user ID.
      *
      * @access private
@@ -1506,20 +1489,6 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: move this to an external daemon... just a hack for now
-        /*
-        const COMMAND_SYNCMAILBOX = '/usr/sbin/syncmailboxes';
-        const COMMAND_SYNCUSERS = '/usr/sbin/syncusers';
-
-        try {
-            $options['background'] = TRUE;
-            $shell = new Shell();
-            if ($homedirs)
-                $shell->Execute(self::COMMAND_SYNCUSERS, '', TRUE, $options);
-            $shell->Execute(self::COMMAND_SYNCMAILBOX, '', TRUE, $options);
-        } catch (Exception $e) {
-            // Not fatal
-        }
-        */
+        // TODO
     }
 }
