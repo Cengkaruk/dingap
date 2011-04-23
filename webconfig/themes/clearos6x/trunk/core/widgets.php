@@ -457,7 +457,17 @@ function theme_form_header($title, $options)
 {
     $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
 
-    return "<div class='theme-form-header'$id_html>\n";
+    // return "<div class='theme-form-header'$id_html>\n";
+
+    // Pete update - hacked in form title in theme
+    return "<div class='theme-form-header'$id_html><h3 style='position: relative;
+margin-top: 0px;
+top: 10px;
+left: 14px;
+color: #98BB60;
+font-weight: normal;
+font-size: 14px;
+width: 700px;'>$title</h3><br>\n";
 }
 
 /**
@@ -759,18 +769,23 @@ function theme_infobox($type, $title, $message)
 // C O N F I R M  D E L E T E  B O X
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_confirm_delete($confirm_anchor, $cancel_anchor, $items, $message, $options)
+function theme_confirm_delete($confirm_uri, $cancel_uri, $items, $message, $options)
 {
-    if (count($items) === 1)
-        $items_html = $items[0];
+    $class = 'ui-state-highlight';
+    $iconclass = 'ui-icon-info';
+
+    foreach ($items as $item)
+        $items_html = "<li>$item</li>\n";
+
+    $items_html = "<ul>\n$items_html\n</ul>\n";
 
     return "
         <div class='ui-widget'>
             <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
-                <h2>$title</h2>
                 <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
                 $message
-                $items_html
+                <div>$items_html</div>
+                <div>" . anchor_ok($confirm_uri) . anchor_cancel($cancel_uri) . "</div>
             </div>
         </div>
     ";
