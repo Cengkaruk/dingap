@@ -1,9 +1,9 @@
 
 Name: app-dns
 Group: ClearOS/Apps
-Version: 6.0
-Release: 0.2
-Summary: Local DNS Server
+Version: 5.9.9.0
+Release: 1%{dist}
+Summary: DNS Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -18,9 +18,10 @@ Requires: dnsmasq >= 2.48
 The local DNS server can be used for mapping IP addresses on your network to hostnames.
 
 %package core
-Summary: Local DNS Server - APIs and install
+Summary: DNS Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
+Requires: app-base-core
 
 %description core
 The local DNS server can be used for mapping IP addresses on your network to hostnames.
