@@ -20,7 +20,7 @@ $app['description'] = 'Developer tools for webconfig.'; // FIXME: translate
 
 $app['name'] = lang('devel_developer_tools');
 $app['category'] = lang('base_category_system');
-$app['subcategory'] = lang('base_subcategory_settings');
+$app['subcategory'] = 'Developer';
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
