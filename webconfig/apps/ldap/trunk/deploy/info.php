@@ -21,6 +21,7 @@ $app['description'] = 'The LDAP mode manager... master/slave/standalone.'; // FI
 $app['name'] = 'Mode'; // FIXME
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
