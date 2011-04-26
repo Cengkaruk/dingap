@@ -153,7 +153,9 @@ function _report_page($page)
 		</div>
 		<div class='theme-core-content'>
 		" .  _get_left_menu($page, $menus) . "
+        <div id='theme-content-container'>
         " . $page['app_view'] . "
+		</div>
 		</div>
     </div>
 </div>
