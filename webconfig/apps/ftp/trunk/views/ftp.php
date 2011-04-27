@@ -1,10 +1,10 @@
 <?php
 
 /**
- * System time manager view.
+ * FTP manager view.
  *
  * @category   ClearOS
- * @package    Date
+ * @package    Ftp
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
