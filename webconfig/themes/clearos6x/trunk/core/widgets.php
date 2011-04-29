@@ -489,6 +489,37 @@ function theme_form_footer($options)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// T A B  V I E W
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Tabular content.
+ *
+ * Supported options:
+ * - TODO 
+ *
+ * @param array $tabs    tabs
+ * @param array $content content
+ * @param array $options options
+ *
+ * @return string HTML
+ */
+
+function theme_tab($tabs, $content, $options)
+{
+    $html = '';
+    foreach ($tabs as $tab) {
+        $width = isset($tab['width']) ? 'width: ' . $tab['width'] . ';' : '';
+        if (!isset($tab['view']))
+            return "<div>Missing view...</div>";
+        else
+            $label = "<a href='" . $tab['view'] . "'>" . $tab['label'] . "</a>";
+        $html .= "<div style='position: relative; float: left; $width'>" . $label . "</div>"; 
+    }
+    return "<div class='theme-tab'><div class='theme-tab-header'>$html</div><div class='theme-tab-content'>$content</div></div>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // S U M M A R Y  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
