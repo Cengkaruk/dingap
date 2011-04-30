@@ -44,9 +44,9 @@ function theme_page_head($theme_path)
 
 <!-- Theme Style Sheets -->
 <link type='text/css' href='$theme_path/css/jquery-ui-1.8.5.custom.css' rel='stylesheet'>
-<link type='text/css' href='$theme_path/css/jquery.jqplot.css'>
-<link type='text/css' href='$theme_path/css/jquery.lightbox-0.5.css'>
+<link type='text/css' href='$theme_path/css/jquery.jqplot.css' rel='stylesheet'>
 <link type='text/css' href='$theme_path/css/superfish.css' rel='stylesheet'>
+<link type='text/css' href='$theme_path/css/jquery.lightbox-0.5.css' rel='stylesheet'>
 <link type='text/css' href='$theme_path/css/theme.css' rel='stylesheet'>
 <link type='text/css' href='$theme_path/css/summary-table.css' rel='stylesheet'>
 
