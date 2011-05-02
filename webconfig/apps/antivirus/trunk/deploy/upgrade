@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# There seems to be some upgrade ordering sometimes.
+# This may no longer be necessary.
+#---------------------------------------------------
+
+/usr/bin/clamscan /etc/hosts >/dev/null 2>&1
+
+if [ $? != 0 ]; then
+    logger -p local6.notice -t installer "app-antivirus-core - resetting antivirus definitions"
+    rm -rf /var/lib/clamav/daily.inc
+    rm -rf /var/lib/clamav/main.inc
+    /usr/bin/freshclam
+fi
+
+INIT=`ls /etc/rc.d/rc3.d/S[0-9]*clamd 2>/dev/null`
+if ( [ ! -z $INIT ] && [ -x /etc/rc.d/init.d/clamd ] ); then
+    logger -p local6.notice -t installer "app-antivirus-core - restarting antivirus engine"
+    /etc/rc.d/init.d/clamd start >/dev/null 2>&1
+fi

@@ -51,6 +51,9 @@ $max_files_options[3000] = 3000;
 $max_files_options[4000] = 4000;
 $max_files_options[5000] = 5000;
 $max_files_options[10000] = 10000;
+$max_files_options[15000] = 15000;
+$max_files_options[20000] = 20000;
+$max_files_options[25000] = 25000;
 
 $max_file_size_options[2] = 2 . ' ' . lang('base_megabytes');
 $max_file_size_options[5] = 5 . ' ' . lang('base_megabytes');
@@ -88,21 +91,19 @@ $checks_options = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('antivirus');
-echo form_header('antivirus_antivius');
+echo form_header(lang('base_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_general_settings'));
 echo field_toggle_enable_disable('block_encrypted', $block_encrypted, lang('antivirus_block_encrypted_files'));
 echo field_dropdown('max_files', $max_files_options, $max_files, lang('antivirus_maximum_files'));
 echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lang('antivirus_maximum_file_size'));
 echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antivirus_maximum_recursion'));
 echo field_dropdown('checks', $checks_options, $checks, lang('antivirus_update_interval'));
-echo form_fieldset_close();
 
-echo button_set( array( form_submit_update('submit', 'high') ));
+echo button_set( array( form_submit_update('submit') ));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

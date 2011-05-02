@@ -651,8 +651,11 @@ class ClamAV extends Daemon
         $file = new File(self::FILE_CONFIG);
         $match = $file->replace_lines("/^\s*$key\s+/", "$key $bool_value\n");
 
-        if (count($match) === 0)
-            $file->add_lines("$key $bool_value\n");
+        if ($match === 0) {
+            $match = $file->replace_lines("/^#\s*$key\s+/", "$key $bool_value\n");
+            if ($match === 0)
+                $file->add_lines("$key $bool_value\n");
+        }
 
         $this->is_loaded = FALSE;
     }
@@ -676,9 +679,9 @@ class ClamAV extends Daemon
 
         $match = $file->replace_lines("/^$key\s+/", "$key $value\n");
 
-        if (!$match) {
+        if ($match === 0) {
             $match = $file->replace_lines("/^#\s*$key\s+/", "$key $value\n");
-            if (!$match)
+            if ($match === 0)
                 $file->add_lines("$key = $value\n");
         }
 

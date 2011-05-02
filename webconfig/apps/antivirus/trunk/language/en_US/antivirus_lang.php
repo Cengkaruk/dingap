@@ -1,5 +1,8 @@
 <?php
 
+$lang['antivirus_app_long_description'] = 'Gateway Antivirus long description...'; // FIXME
+$lang['antivirus_app_summary'] = 'Gateway Antivirus app summary...'; // FIXME
+$lang['antivirus_gateway_antivirus'] = 'Gateway Antivirus';
 $lang['antivirus_antivirus'] = 'Antivirus';
 $lang['antivirus_twice_a_day'] = 'Twice a Day';
 $lang['antivirus_every_two_hours'] = 'Every Two Hours';
@@ -28,3 +31,4 @@ $lang['antivirus_maximum_file_size'] = 'Maximum File Size in Zip Files';
 $lang['antivirus_maximum_recursion'] = 'Maximum Recursion in Zip Files';
 $lang['antivirus_over_maximum_policy'] = 'Maximum Exceeded Policy';
 $lang['antivirus_block_ssl_mismatch'] = 'Block SSL Mismatch';
+

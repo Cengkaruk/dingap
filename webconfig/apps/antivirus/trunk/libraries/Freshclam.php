@@ -300,7 +300,7 @@ class Freshclam extends Daemon
         $file = new File(self::FILE_CONFIG);
         $match = $file->replace_lines("/^$key\s+/", "$key $value\n");
 
-        if (count($match) === 0)
+        if ($match === 0)
             $file->add_lines("$key $value\n");
 
         $this->is_loaded = FALSE;

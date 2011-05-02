@@ -86,9 +86,9 @@ class Antivirus extends ClearOS_Controller
                 $this->freshclam->reset();
                 $this->clamav->reset();
 
-                $this->page->set_success(lang('base_system_updated'));
+                $this->page->set_status_updated();
             } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message());
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -110,10 +110,6 @@ class Antivirus extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('antivirus_antivirus'));
-
-        $this->load->view('theme/header');
-        $this->load->view('antivirus', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('antivirus', $data, lang('antivirus_gateway_antivirus'));
     }
 }
