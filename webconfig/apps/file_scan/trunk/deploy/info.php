@@ -20,7 +20,7 @@ $app['description'] = 'Antivirus file scanner...blah blah.'; // FIXME: translate
 
 $app['name'] = 'Antivirus File Scan'; // FIXME
 $app['category'] = lang('base_category_server');
-$app['subcategory'] = lang('base_subcategory_file_and_print');
+$app['subcategory'] = lang('base_subcategory_file');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
