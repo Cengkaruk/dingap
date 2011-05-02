@@ -495,31 +495,41 @@ function theme_form_footer($options)
 /**
  * Tabular content.
  *
- * Supported options:
- * - TODO 
- *
- * @param array $tabs    tabs
- * @param array $content content
- * @param array $options options
+ * @param array $tabs tabs
  *
  * @return string HTML
  */
 
-function theme_tab($tabs, $content, $options)
+function theme_tab($tabs)
 {
-    $html = '';
-    foreach ($tabs as $tab) {
-        $width = isset($tab['width']) ? 'width: ' . $tab['width'] . ';' : '';
-        if (!isset($tab['view']))
-            return "<div>Missing view...</div>";
-        else
-            $label = "<a href='" . $tab['view'] . "'>" . $tab['label'] . "</a>";
-        $html .= "<div style='position: relative; float: left; $width'>" . $label . "</div>"; 
-    }
-    return "<div class='theme-tab'><div class='theme-tab-header'>$html</div><div class='theme-tab-content'>$content</div></div>\n";
-}
+    $html = "<div id='tabs' class='ui-tabs ui-widget ui-widget-content ui-corner-all'>\n
+<div>\n
+<ul class='ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all'>\n
+    ";
 
-///////////////////////////////////////////////////////////////////////////////
+    $tab_content = "";
+    foreach ($tabs as $key => $tab) {
+        $html .= "<li class='ui-state-default ui-corner-top'>
+<a href='#" . $key . "'>" . $tab['title'] . "</a></li>\n";
+        $tab_content .= "<div id='tabs-" . $key .
+"' class='clearos_tabs ui-tabs ui-widget ui-widget-content ui-corner-all'>" . $tab['content'] . "</div>";
+    }
+    $html .= "</ul>\n";
+    $html .= $tab_content;
+    $html .= "</div>\n";
+    $html .= "</div>\n";
+    $html .= "<script type='text/javascript'>
+$(function(){
+$('#tabs').tabs({
+selected: 0
+});
+});
+</script>";
+
+        return $html;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
 // S U M M A R Y  T A B L E
 ///////////////////////////////////////////////////////////////////////////////
 
