@@ -68,8 +68,6 @@ echo form_header(lang('dns_dns_entry'));
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('dns_dns_entry'));
-
 echo field_input('ip', $ip, lang('network_ip'), $read_only);
 echo field_input('hostname', $hostname, lang('network_hostname'));
 
@@ -77,8 +75,6 @@ $alias_count = count($aliases);
 
 for ($inx = 1; $inx < $alias_count + 5; $inx++)
     echo field_input('alias' . $inx, $aliases[$inx-1], lang('dns_alias') . " #" . $inx);
-
-echo form_fieldset_close();
 
 echo button_set($buttons);
 
