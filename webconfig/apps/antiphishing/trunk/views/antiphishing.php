@@ -33,7 +33,6 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('antiphishing');
 $this->lang->load('antivirus');
 $this->lang->load('base');
 
@@ -42,18 +41,16 @@ $this->lang->load('base');
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('antiphishing');
-echo form_header('antiphishing_antiphishing');
+echo form_header(lang('base_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_general_settings'));
 echo field_toggle_enable_disable('signatures', $signatures, lang('antivirus_signature_engine'));
 echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antivirus_heuristics_engine'));
 echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antivirus_block_ssl_mismatch'));
 echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antivirus_block_cloaked'));
-echo form_fieldset_close();
 
 echo button_set( array( form_submit_update('submit', 'high') ));
 

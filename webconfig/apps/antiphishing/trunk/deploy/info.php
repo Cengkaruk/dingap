@@ -1,17 +1,37 @@
 <?php
 
+/////////////////////////////////////////////////////////////////////////////
+// General information
+/////////////////////////////////////////////////////////////////////////////
+
 $app['basename'] = 'antiphishing';
-$app['version'] = '6.0';
-$app['release'] = '0.2';
+$app['version'] = '5.9.9.0';
+$app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
-$app['license_libraries'] = 'LGPLv3';
-$app['description'] = 'Antiphishing description...'; // FIXME
+$app['license_core'] = 'LGPLv3';
+$app['summary'] = lang('antiphishing_app_summary');
+$app['description'] = lang('antiphishing_app_long_description');
 
-$app['name'] = lang('antiphishing_antiphishing');
+/////////////////////////////////////////////////////////////////////////////
+// App name and categories
+/////////////////////////////////////////////////////////////////////////////
+
+$app['name'] = lang('antiphishing_gateway_antiphishing');
 $app['category'] = lang('base_category_gateway');
 $app['subcategory'] = lang('base_subcategory_antimalware');
 
-$app['forms']['antiphishing']['title'] = $app['name'];
-$app['forms']['antiphishing']['tooltip'] = 'Even the most savvy Internet users can accidentally click on a phishing link.  We recommend leaving all antiphishing features enabled.'; // FIXME translate
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['antiphishing']['tooltip'] = 'Even the most savvy Internet users can accidentally click on a phishing link.  We recommend leaving all antiphishing features enabled.'; // FIXME translate
+
+/////////////////////////////////////////////////////////////////////////////
+// Packaging
+/////////////////////////////////////////////////////////////////////////////
+
+$app['core_requires'] = array(
+    'app-antivirus-core',
+);

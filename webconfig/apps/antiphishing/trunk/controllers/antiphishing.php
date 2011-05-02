@@ -106,17 +106,6 @@ class Antiphishing extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('antiphishing', $data);
-    }
-
-    /**
-     * Report widget.
-     *
-     * @return view
-     */
-
-    function report()
-    {
-        echo "<b>Report widget here...maybe</b>";
+        $this->page->view_form('antiphishing', $data, lang('antiphishing_antiphishing'));
     }
 }
