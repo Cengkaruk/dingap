@@ -110,7 +110,7 @@ class Hosts extends Engine
      * @var array hosts_array
      */
 
-    protected $hostdata = array();
+    protected $host_data = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -217,11 +217,8 @@ class Hosts extends Engine
         foreach ($aliases as $alias)
             Validation_Exception::is_valid($this->validate_alias($alias));
 
-        if (! $this->entry_exists($ip)) {
-            throw new Validation_Exception(
-                sprintf(lang('network_host_entry_not_found'), $ip)
-            );
-        }
+        if (! $this->entry_exists($ip))
+            throw new Validation_Exception(lang('network_entry_not_found'));
 
         // Update
         //-------
@@ -255,7 +252,7 @@ class Hosts extends Engine
 
         $this->_load_entries();
 
-        foreach ($this->hostdata as $real_ip => $entry) {
+        foreach ($this->host_data as $real_ip => $entry) {
             if ($entry['ip'] == $ip)
                 return $entry;
         }
@@ -278,7 +275,7 @@ class Hosts extends Engine
 
         $this->_load_entries();
 
-        return $this->hostdata;
+        return $this->host_data;
     }
 
     /**
@@ -304,7 +301,7 @@ class Hosts extends Engine
 
         $this->_load_entries();
 
-        foreach ($this->hostdata as $real_ip => $entry) {
+        foreach ($this->host_data as $real_ip => $entry) {
             if (strcasecmp($entry['hostname'], $hostname) == 0)
                 return $entry['ip'];
 
@@ -340,8 +337,8 @@ class Hosts extends Engine
 
         $this->_load_entries();
 
-        foreach ($this->hostdata as $real_ip => $entry) {
-            if (strncasecmp($entry['ip'], $ip) == 0)
+        foreach ($this->host_data as $real_ip => $entry) {
+            if ($entry['ip'] === $ip)
                 return TRUE;
         }
 
@@ -387,18 +384,23 @@ class Hosts extends Engine
     /**
      * Validates IP address entry.
      *
-     * @param string  $ip      IP address
-     * @param boolean $is_edit set to TRUE if validation is an edit
+     * @param string  $ip           IP address
+     * @param boolean $check_exists set to TRUE to check for pre-existing IP entry
      *
      * @return string error message if IP is invalid
      */
 
-    public function validate_ip($ip, $is_edit = FALSE)
+    public function validate_ip($ip, $check_exists = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_ip($ip))
             return lang('network_ip_is_invalid');
+
+        if ($check_exists) {
+            if ($this->entry_exists($ip))
+                return lang('network_entry_already_exists');
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -421,7 +423,7 @@ class Hosts extends Engine
             return;
 
         $this->is_loaded = FALSE;
-        $this->hostdata = array();
+        $this->host_data = array();
 
         $file = new File(self::FILE_CONFIG);
         $contents = $file->get_contents_as_array();
@@ -438,12 +440,12 @@ class Hosts extends Engine
             // Use inet_pton for proper key sorting
             $addr_key = bin2hex(inet_pton($ip));
 
-            $this->hostdata[$addr_key]['ip'] = $ip;
-            $this->hostdata[$addr_key]['hostname'] = array_shift($entries);
-            $this->hostdata[$addr_key]['aliases'] = $entries;
+            $this->host_data[$addr_key]['ip'] = $ip;
+            $this->host_data[$addr_key]['hostname'] = array_shift($entries);
+            $this->host_data[$addr_key]['aliases'] = $entries;
         }
 
-        ksort($this->hostdata);
+        ksort($this->host_data);
 
         $this->is_loaded = TRUE;
     }
