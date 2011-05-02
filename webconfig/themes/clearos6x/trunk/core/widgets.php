@@ -510,7 +510,7 @@ function theme_tab($tabs)
     $tab_content = "";
     foreach ($tabs as $key => $tab) {
         $html .= "<li class='ui-state-default ui-corner-top'>
-<a href='#" . $key . "'>" . $tab['title'] . "</a></li>\n";
+<a href='#tabs-" . $key . "'>" . $tab['title'] . "</a></li>\n";
         $tab_content .= "<div id='tabs-" . $key .
 "' class='clearos_tabs ui-tabs ui-widget ui-widget-content ui-corner-all'>" . $tab['content'] . "</div>";
     }
