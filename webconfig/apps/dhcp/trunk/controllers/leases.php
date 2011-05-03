@@ -63,7 +63,7 @@ class Leases extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Load view data
@@ -118,7 +118,7 @@ class Leases extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 
 		// Handle form submit
 		//-------------------
@@ -159,7 +159,7 @@ class Leases extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 		$this->lang->load('dhcp');
 		$this->lang->load('base');
 
@@ -170,16 +170,16 @@ class Leases extends ClearOS_Controller
 		$this->load->helper('url');
 
 		// TODO: Review the messy dns1/2/3 handling
-		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_DnsMasq_ValidateGateway');
+		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_Dnsmasq_ValidateGateway');
 		$this->form_validation->set_rules('lease_time', lang('dhcp_lease_time'), 'required');
-		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_DnsMasq_ValidateStartIp');
-		$this->form_validation->set_rules('end', lang('dhcp_ip_range_end'), 'required|api_dns_DnsMasq_ValidateEndIp');
-		$this->form_validation->set_rules('dns1', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_rules('dns2', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_rules('dns3', lang('dhcp_dns'), 'api_dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_rules('wins', lang('dhcp_wins'), 'api_dns_DnsMasq_ValidateWins');
-		$this->form_validation->set_rules('tftp', lang('dhcp_tftp'), 'api_dns_DnsMasq_ValidateTftp');
-		$this->form_validation->set_rules('ntp', lang('dhcp_ntp'), 'api_dns_DnsMasq_ValidateNtp');
+		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_Dnsmasq_ValidateStartIp');
+		$this->form_validation->set_rules('end', lang('dhcp_ip_range_end'), 'required|api_dns_Dnsmasq_ValidateEndIp');
+		$this->form_validation->set_rules('dns1', lang('dhcp_dns'), 'api_dns_Dnsmasq_ValidateDns');
+		$this->form_validation->set_rules('dns2', lang('dhcp_dns'), 'api_dns_Dnsmasq_ValidateDns');
+		$this->form_validation->set_rules('dns3', lang('dhcp_dns'), 'api_dns_Dnsmasq_ValidateDns');
+		$this->form_validation->set_rules('wins', lang('dhcp_wins'), 'api_dns_Dnsmasq_ValidateWins');
+		$this->form_validation->set_rules('tftp', lang('dhcp_tftp'), 'api_dns_Dnsmasq_ValidateTftp');
+		$this->form_validation->set_rules('ntp', lang('dhcp_ntp'), 'api_dns_Dnsmasq_ValidateNtp');
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit

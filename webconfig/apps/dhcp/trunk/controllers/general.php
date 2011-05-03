@@ -55,14 +55,14 @@ class General extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Set validation rules
 		//---------------------
 
-		$this->form_validation->set_policy('domain', 'dns_DnsMasq_ValidateDomain', TRUE);
-		$this->form_validation->set_policy('authoritative', 'dns_DnsMasq_ValidateAuthoritative', TRUE);
+		$this->form_validation->set_policy('domain', 'dns_Dnsmasq_ValidateDomain', TRUE);
+		$this->form_validation->set_policy('authoritative', 'dns_Dnsmasq_ValidateAuthoritative', TRUE);
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
@@ -87,6 +87,7 @@ class General extends ClearOS_Controller
 		// Load view data
 		//---------------
 
+/*
 		try {
 			$data['authoritative'] = $this->dnsmasq->GetAuthoritativeState();
 			$data['domain'] = $this->dnsmasq->GetDomainName();
@@ -94,6 +95,7 @@ class General extends ClearOS_Controller
 			$this->page->view_exception($e);
 			return;
 		}
+*/
  
 		// Load views
 		//-----------

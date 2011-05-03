@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# Fix DHCP DNS configuration - bug #436
+#------------------------------------------------------------------
+
+ETHS="ppp eth"
+NUMBER="0 1 2 3 4 5"
+
+for ETH in $ETHS; do
+	for NUM in $NUMBER; do
+
+		# Check for duplicate DNS server parameter, e.g.:
+		# dhcp-option=eth0,6,192.168.2.3
+		# dhcp-option=eth0,6,192.168.2.4
+
+		CHECK=`grep -c "^dhcp-option=${ETH}${NUM},6" /etc/dnsmasq.d/dhcp.conf 2>/dev/null`
+		if ( [ -n "$CHECK" ] && [ $CHECK -gt 1 ] ) ; then
+			logger -p local6.notice -t installer "app-dhcp-core - fixing DHCP server configuration"
+
+			# Munge the configuration to merge the lines, e.g.: 
+			# dhcp-option=eth0,6,192.168.2.3,192.168.2.4
+
+			LIST=`grep "^dhcp-option=${ETH}${NUM},6" /etc/dnsmasq.d/dhcp.conf 2>/dev/null | sed "s/.*${ETH}${NUM},6,//"`
+			NEWDNSLINE="dhcp-option=${ETH}${NUM},6"
+			for DNS in $LIST; do
+				NEWDNSLINE="$NEWDNSLINE,$DNS"
+			done
+
+			# Remove the broken configuration and add the new one
+			grep -v "^dhcp-option=${ETH}${NUM},6" /etc/dnsmasq.d/dhcp.conf > /etc/dnsmasq.d/dhcp.conf.new
+			mv /etc/dnsmasq.d/dhcp.conf.new /etc/dnsmasq.d/dhcp.conf
+			echo $NEWDNSLINE >> /etc/dnsmasq.d/dhcp.conf
+		fi
+	done
+done

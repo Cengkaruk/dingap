@@ -63,7 +63,7 @@ class Subnets extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Load view data
@@ -144,7 +144,7 @@ class Subnets extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 
 		// Handle form submit
 		//-------------------
@@ -190,7 +190,7 @@ class Subnets extends ClearOS_Controller
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/DnsMasq');
+		$this->load->library('dns/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Set validation rules
@@ -198,16 +198,16 @@ class Subnets extends ClearOS_Controller
 
 		// TODO: Review the messy dns1/2/3 handling
 		$this->load->library('form_validation');
-		$this->form_validation->set_policy('gateway', 'dns_DnsMasq_ValidateGateway', TRUE);
-		$this->form_validation->set_policy('lease_time', 'dns_DnsMasq_ValidateLeaseTime', TRUE);
-		$this->form_validation->set_policy('start', 'dns_DnsMasq_ValidateStartIp', TRUE);
-		$this->form_validation->set_policy('end', 'dns_DnsMasq_ValidateEndIp', TRUE);
-		$this->form_validation->set_policy('dns1', 'dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_policy('dns2', 'dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_policy('dns3', 'dns_DnsMasq_ValidateDns');
-		$this->form_validation->set_policy('wins', 'dns_DnsMasq_ValidateWins');
-		$this->form_validation->set_policy('tftp', 'dns_DnsMasq_ValidateTftp');
-		$this->form_validation->set_policy('ntp', 'dns_DnsMasq_ValidateNtp');
+		$this->form_validation->set_policy('gateway', 'dns_Dnsmasq_ValidateGateway', TRUE);
+		$this->form_validation->set_policy('lease_time', 'dns_Dnsmasq_ValidateLeaseTime', TRUE);
+		$this->form_validation->set_policy('start', 'dns_Dnsmasq_ValidateStartIp', TRUE);
+		$this->form_validation->set_policy('end', 'dns_Dnsmasq_ValidateEndIp', TRUE);
+		$this->form_validation->set_policy('dns1', 'dns_Dnsmasq_ValidateDns');
+		$this->form_validation->set_policy('dns2', 'dns_Dnsmasq_ValidateDns');
+		$this->form_validation->set_policy('dns3', 'dns_Dnsmasq_ValidateDns');
+		$this->form_validation->set_policy('wins', 'dns_Dnsmasq_ValidateWins');
+		$this->form_validation->set_policy('tftp', 'dns_Dnsmasq_ValidateTftp');
+		$this->form_validation->set_policy('ntp', 'dns_Dnsmasq_ValidateNtp');
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
