@@ -1,6 +1,6 @@
 Name: clearos-release
 Version: 6.0.0alpha1.1
-Release: 1%{?dist}
+Release: 5%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
 License: GPLv2
