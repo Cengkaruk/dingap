@@ -430,49 +430,91 @@ function spec($options)
     // Build file manifest
     //--------------------
 
-    $core_directories_manifest = '';	
-    $core_directories_install = '';	
+    $core_directories_manifest = '';
+    $core_directories_install = '';
     $core_files_manifest = '';
     $core_files_install = '';
 
     if (isset($app['core_file_manifest'])) {
+        ksort($app['core_file_manifest']);
         foreach ($app['core_file_manifest'] as $file => $details) {
             if (isset($details['config'])) {
                 if (isset($details['config_params'])) 
                     $config = '%config(' . $details['config_params'] . ') ';
                 else 
                     $config = '%config ';
-	    } else {	
+            } else {        
                 $config = '';
             }
 
-            $core_files_manifest .= $config . $details['target'] . "\n";
-            $core_files_install .= 'install -D -m ' . $details['mode'] . ' packaging/' . $file . ' %{buildroot}' . $details['target'] . "\n";
+            $mode = isset($details['mode']) ? $details['mode'] : '0644';
+            $owner = isset($details['owner']) ? $details['owner'] : 'root';
+            $group = isset($details['group']) ? $details['group'] : 'root';
+
+            if (($owner === 'root') && ($group === 'root')) 
+                $attributes = '';
+            else
+                $attributes = "%attr($mode,$owner,$group) ";
+
+            $core_files_manifest .= $attributes . $config . $details['target'] . "\n";
+            $core_files_install .= 'install -D -m ' . $mode . ' packaging/' . $file . ' %{buildroot}' . $details['target'] . "\n";
         }
     }
 
     if (isset($app['core_directory_manifest'])) {
+        ksort($app['core_directory_manifest']);
         foreach ($app['core_directory_manifest'] as $directory => $details) {
-            $core_directories_manifest .= '%dir ' . $directory . "\n";
-            $core_directories_install .= 'install -d -m ' . $details['mode'] . ' %{buildroot}' . $directory . "\n";
+            $mode = isset($details['mode']) ? $details['mode'] : '0755';
+            $owner = isset($details['owner']) ? $details['owner'] : 'root';
+            $group = isset($details['group']) ? $details['group'] : 'root';
+
+            if (($owner === 'root') && ($group === 'root')) 
+                $attributes = '';
+            else
+                $attributes = "%attr($mode,$owner,$group) ";
+
+            $core_directories_manifest .= '%dir ' . $attributes . $directory . "\n";
+            $core_directories_install .= 'install -d -m ' . $mode . ' %{buildroot}' . $directory . "\n";
         }
     }
 
-    // Build dependencies
-    //-------------------
+    // Provides
+    //---------
 
-    $dependencies = '';
-    $core_dependencies = '';
+    $provides = '';
+    $core_provides = '';
 
-    if (isset($app['dependencies'])) {
-        foreach ($app['dependencies'] as $dependency)
-            $dependencies .= "Requires: $dependency\n";
+    if (isset($app['provides'])) {
+        foreach ($app['provides'] as $provide)
+            $provides .= "Provides: $provide\n";
     }
 
-    if (isset($app['core_dependencies'])) {
-        foreach ($app['core_dependencies'] as $dependency)
-            $core_dependencies .= "Requires: $dependency\n";
+    if (isset($app['core_provides'])) {
+        foreach ($app['core_provides'] as $provide)
+            $core_provides .= "Provides: $provide\n";
     }
+
+    // Dependencies
+    //-------------
+
+    $requires = '';
+    $core_requires = '';
+
+    if ($app['basename'] !== 'base') {
+	$requires .= "Requires: app-base\n";
+	$core_requires .= "Requires: app-base-core\n";
+    }
+
+    if (isset($app['requires'])) {
+        foreach ($app['requires'] as $require)
+            $requires .= "Requires: $require\n";
+    }
+
+    if (isset($app['core_requires'])) {
+        foreach ($app['core_requires'] as $require)
+            $core_requires .= "Requires: $require\n";
+    }
+
 
     // Template for both core and base RPMS
     //-------------------------------------
@@ -483,16 +525,16 @@ function spec($options)
 Name: {$app['package_name']}
 Group: ClearOS/Apps
 Version: {$app['version']}
-Release: {$app['release']}
+Release: {$app['release']}%{dist}
 Summary: {$app['summary']}
 License: {$app['license']}
 Packager: {$app['packager']}
 Vendor: {$app['vendor']}
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
-Requires: %{name}-core = %{version}-%{release}
-Requires: app-base
-" . $dependencies . "
+" . $provides . 
+"Requires: %{name}-core = %{version}-%{release}
+" . $requires . "
 %description
 {$app['description']}
 
@@ -500,8 +542,7 @@ Requires: app-base
 Summary: {$app['summary']} - APIs and install
 Group: ClearOS/Libraries
 License: {$app['license_core']}
-Requires: app-base-core
-$core_dependencies
+" . $core_provides . $core_requires . "
 %description core
 {$app['description']}
 
@@ -568,15 +609,14 @@ $spec = "
 Name: {$app['package_name']}-core
 Group: ClearOS/Libraries
 Version: {$app['version']}
-Release: {$app['release']}
+Release: {$app['release']}%{dist}
 Summary: {$app['summary']} - APIs and install
 License: {$app['license_core']}
 Packager: {$app['packager']}
 Vendor: {$app['vendor']}
 Source: {$app['package_name']}-%{version}.tar.gz
 Buildarch: noarch
-Requires: app-base-core
-" . $dependencies . "
+" . $core_provides . $core_requires . "
 %description
 {$app['description']}
 
