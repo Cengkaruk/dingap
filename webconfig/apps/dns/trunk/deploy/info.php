@@ -32,8 +32,12 @@ $app['controllers']['dns']['title'] = lang('dns_dns_server');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['core_requires'] = array(
+    'app-network-core',
+    'dnsmasq >= 2.48',
+    'net-tools',
+);
+
 $app['requires'] = array(
     'app-network',
-    'dnsmasq >= 2.48',
-    'net-tools >= 1.60',
 );

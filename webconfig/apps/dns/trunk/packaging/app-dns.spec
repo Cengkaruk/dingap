@@ -12,8 +12,6 @@ Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-network
-Requires: dnsmasq >= 2.48
-Requires: net-tools >= 1.60
 
 %description
 The local DNS server can be used for mapping IP addresses on your network to hostnames.
@@ -23,6 +21,9 @@ Summary: DNS Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network-core
+Requires: dnsmasq >= 2.48
+Requires: net-tools
 
 %description core
 The local DNS server can be used for mapping IP addresses on your network to hostnames.
