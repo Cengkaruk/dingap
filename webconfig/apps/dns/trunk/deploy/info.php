@@ -1,4 +1,3 @@
-
 <?php
 
 /////////////////////////////////////////////////////////////////////////////
@@ -36,4 +35,5 @@ $app['controllers']['dns']['title'] = lang('dns_dns_server');
 $app['requires'] = array(
     'app-network',
     'dnsmasq >= 2.48',
+    'net-tools >= 1.60',
 );

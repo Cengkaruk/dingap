@@ -13,6 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-network
 Requires: dnsmasq >= 2.48
+Requires: net-tools >= 1.60
 
 %description
 The local DNS server can be used for mapping IP addresses on your network to hostnames.
