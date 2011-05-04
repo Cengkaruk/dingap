@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Add sudo entry
-/usr/sbin/addsudo /usr/sbin/dhcptest app-dnsmasq
-
 # Enable on boot for local caching
 logger -p local6.notice -t installer "app-dns-core - enabling dnsmasq on boot"
 chkconfig --add dnsmasq
