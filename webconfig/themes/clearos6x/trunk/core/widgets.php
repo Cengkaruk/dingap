@@ -417,7 +417,7 @@ function theme_field_progress_bar($label, $id, $options = array())
     return "
         <div$field_id_html class='theme-field-progress-bar'>
             <label for='$id'$label_id_html>$label</label>
-            <div id='$id' class='theme-progress-bar'> </dive>
+            <div id='$id' class='theme-progress-bar'> </div>
         </div>
     ";
 }
