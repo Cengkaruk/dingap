@@ -26,11 +26,11 @@ $app['subcategory'] = lang('base_subcategory_vpn');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['dependencies'] = array(
+$app['requires'] = array(
     'app-network'
 );
 
-$app['core_dependencies'] = array(
+$app['core_requires'] = array(
     'app-network-core',
     'pptpd >= 1.3.4',
 );

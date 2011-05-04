@@ -2,7 +2,7 @@
 Name: app-pptpd
 Group: ClearOS/Apps
 Version: 5.9.9.0
-Release: 1
+Release: 1%{dist}
 Summary: PPTP VPN Server
 License: GPLv3
 Packager: ClearFoundation
