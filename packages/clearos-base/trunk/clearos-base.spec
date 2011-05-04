@@ -1,6 +1,6 @@
 Name: clearos-base
 Version: 5.9.9.0
-Release: 1%{dist}
+Release: 2%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
@@ -8,7 +8,7 @@ Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
 # Base product release information
-Requires: clearos-release >= 6.0.0
+Requires: clearos-release >= 5.9.9.0
 # Core system 
 Requires: cronie
 Requires: gnupg
@@ -45,7 +45,6 @@ Obsoletes: cc-setup
 Obsoletes: cc-shell
 Obsoletes: cc-support
 Obsoletes: indexhtml
-BuildArch: noarch
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
@@ -54,6 +53,12 @@ Initializes the system environment
 %prep
 %setup
 %build
+# Helper tools
+cd utils
+gcc -O2 app-rename.c -o app-rename
+gcc -lcrypt -O2 app-passwd.c -o app-passwd
+gcc -O2 app-realpath.c -o app-realpath
+
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -72,6 +77,11 @@ install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
 install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/clearos/base/scripts/
+
+# Helper tools
+install -m 755 utils/app-passwd $RPM_BUILD_ROOT%{_sbindir}
+install -m 755 utils/app-rename $RPM_BUILD_ROOT%{_sbindir}
+install -m 755 utils/app-realpath $RPM_BUILD_ROOT%{_sbindir}
 
 #------------------------------------------------------------------------------
 # I N S T A L L  S C R I P T
@@ -177,6 +187,9 @@ fi
 /etc/logrotate.d/system
 /etc/init.d/functions-automagic
 /usr/sbin/addsudo
+%{_sbindir}/app-passwd
+%{_sbindir}/app-rename
+%{_sbindir}/app-realpath
 %dir /usr/share/clearos/base
 %dir /usr/share/clearos/base/scripts
 /usr/share/clearos/base/scripts/*
