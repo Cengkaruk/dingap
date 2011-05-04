@@ -80,7 +80,7 @@ class Intrusion_Detection extends ClearOS_Controller
         try {
             // $data['rule_sets'] = $this->snort->get_rule_set_details();
             $rule_sets = $this->snort->get_rule_set_details();
-            $data['rule_sets'] = $rule_sets['clearcenter'];
+            $data['rule_sets'] = $rule_sets['gpl'];
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
