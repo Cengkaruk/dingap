@@ -33,7 +33,7 @@ $app['controllers']['iface']['title'] = 'Network Interfaces';
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_dependencies'] = array(
+$app['core_requires'] = array(
     'bind-utils',
     'dhclient',
     'ethtool',
