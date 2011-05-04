@@ -644,7 +644,7 @@ function theme_list_table($title, $anchors, $headers, $items, $options)
     //-------------
 
     // FIXME: clean up enabled/disabled toggle widget
-    $options = array(
+    $dropdown_options = array(
         '0' => lang('base_disabled'),
         '1' => lang('base_enabled')
     );
@@ -659,9 +659,9 @@ function theme_list_table($title, $anchors, $headers, $items, $options)
 
 // FIXME: experimenting with checkboxes
         $select_html = ($item['state']) ? 'checked' : ''; 
-        $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . " id='$input_id' $select_html>";
+        $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . "' $select_html></td>\n";
 // FIXME: or use toggle switch?
-//        $item_html .= "\t\t<td>" . form_dropdown($item['name'], $options, $item['state']) ."</td>";
+//        $item_html .= "\t\t<td>" . form_dropdown($item['name'], $dropdown_options, $item['state']) ."</td>";
         $item_html .= "\t</tr>\n";
     }
 
@@ -670,7 +670,7 @@ function theme_list_table($title, $anchors, $headers, $items, $options)
 
     return "
 
-<div class='theme-list-table-container ui-widget theme-list-table'>
+<div class='theme-list-table-container ui-widget'>
   <div class='theme-list-table-header ui-state-active ui-corner-top'>
     <div class='theme-list-table-title'>$title</div>
     <div class='theme-list-table-action'>$add_html</div>
@@ -682,7 +682,7 @@ function theme_list_table($title, $anchors, $headers, $items, $options)
    </thead>
    <tbody>
 $item_html
-   </tbody>$legend_html
+   </tbody>
   </table>
 </div>
     ";
