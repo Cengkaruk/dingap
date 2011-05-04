@@ -13,9 +13,10 @@ $lang['intrusion_detection_policy'] = 'Policy';
 // $lang['intrusion_detection_group_name'] = 'Group Name';
 
 // New
-$lang['intrusion_detection'] = 'Intrusion Detection';
+$lang['intrusion_detection_intrusion_detection'] = 'Intrusion Detection';
 $lang['intrusion_detection_rules'] = 'Rules';
 $lang['intrusion_detection_rule_set'] = 'Rule Set';
+$lang['intrusion_detection_rule_sets'] = 'Rule Sets';
 $lang['intrusion_detection_rule_set_type'] = 'Type';
 $lang['intrusion_detection_rule_set_type_policy'] = 'Policy';
 $lang['intrusion_detection_rule_set_type_security'] = 'Security';

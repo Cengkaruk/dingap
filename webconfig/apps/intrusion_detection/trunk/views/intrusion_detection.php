@@ -87,7 +87,7 @@ foreach ($rule_sets as $rule_set => $entry) {
 echo form_open('intrusion_detection');
 
 echo list_table(
-    lang('intrusion_detection'),
+    lang('intrusion_detection_rule_sets'),
     $buttons,
     $headers,
     $items
