@@ -106,7 +106,7 @@ function theme_form_submit($name, $text, $importance, $class, $options)
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
     $text = htmlspecialchars($text, ENT_QUOTES);
 
-    return "<input type='submit' name='$name'$id value='$text' class='theme-form-submit $class $importance_class' />\n";
+    return "<div style='height: 22px; display: inline;'><input type='submit' name='$name'$id value='$text' class='theme-form-submit $class $importance_class' /><span class='theme-form-input'></span></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -462,12 +462,13 @@ function theme_form_header($title, $options)
     // Pete update - hacked in form title in theme
     return "<div class='theme-form-header'$id_html><h3 style='position: relative;
 margin-top: 0px;
+margin-bottom: 0px;
 top: 10px;
 left: 14px;
 color: #98BB60;
 font-weight: normal;
 font-size: 14px;
-width: 700px;'>$title</h3><br>\n";
+width: 700px;'>$title</h3>\n";
 }
 
 /**
@@ -660,7 +661,6 @@ function theme_list_table($title, $anchors, $headers, $items, $options)
 // FIXME: experimenting with checkboxes
         $select_html = ($item['state']) ? 'checked' : ''; 
         $item_html .= "\t\t<td><input type='checkbox' name='" . $item['name'] . "' $select_html></td>\n";
-// FIXME: or use toggle switch?
 //        $item_html .= "\t\t<td>" . form_dropdown($item['name'], $dropdown_options, $item['state']) ."</td>";
         $item_html .= "\t</tr>\n";
     }
