@@ -2,13 +2,14 @@
 Name: app-cron-core
 Group: ClearOS/Libraries
 Version: 5.9.9.0
-Release: 1
+Release: 1%{dist}
 Summary: Cron.. - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: app-cron-%{version}.tar.gz
 Buildarch: noarch
+Requires: app-base-core
 
 %description
 Cron...
