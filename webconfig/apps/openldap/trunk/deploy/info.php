@@ -30,7 +30,7 @@ $app['core_provides'] = array(
     'system-ldap-driver'
 );
 
-$app['core_dependencies'] = array(
+$app['core_requires'] = array(
     'openldap-servers >= 2.4.19',
     'openssl',
 );

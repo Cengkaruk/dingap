@@ -33,6 +33,6 @@ $app['controllers']['imap']['tooltip'] = 'Using secure protocols is a good secur
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_dependencies'] = array(
+$app['core_requires'] = array(
     'cyrus-imapd >= 2.3.16',
 );

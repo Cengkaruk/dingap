@@ -29,7 +29,7 @@ $app['menu_enabled'] = FALSE;
 
 $app['core_only'] =  TRUE;
 
-$app['core_dependencies'] = array(
+$app['core_requires'] = array(
     'app-base',
     'cronie >= 1.4.4'
 );

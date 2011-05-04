@@ -19,7 +19,7 @@ OpenLDAP Directory...blah blah blah
 Summary: OpenLDAP Directory - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
-Provides: system-directory-driver
+Provides: system-ldap-driver
 Requires: app-base-core
 
 %description core
