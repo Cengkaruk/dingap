@@ -1,0 +1,8 @@
+#!/bin/sh
+
+CHECK=`LANG=en_US /sbin/chkconfig --list pppoe-server | /bin/grep 3:on`
+
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-network - disabling PPPoE server"
+    /sbin/chkconfig pppoe-server off
+fi
