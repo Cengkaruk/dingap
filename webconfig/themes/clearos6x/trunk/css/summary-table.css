@@ -44,7 +44,7 @@
 }
 
 .ui-buttonset .ui-button {
-	margin-right: -0.4em !important;
+	margin-right: 0 !important;
 }
 
 .paging_full_numbers {
@@ -71,15 +71,18 @@ table.display thead th {
 	* cursor: hand;
 }
 
+div.datatables_wrapper {
+border: 1px solid #e1e1e1;
+	border-bottom-left-radius: 9px;
+	-moz-border-radius-bottoleft: 9px;
+	border-bottom-right-radius: 9px;
+	-moz-border-radius-bottomright: 9px;	
+}
+
 div.dataTables_wrapper .ui-widget-header {
 	font-weight: normal;
 /* ClearFoundation - remove rounded edges from to header */
-    -moz-border-radius-topleft: 0px;
-    -moz-border-radius-topright: 0px;
-    -webkit-border-top-right-radius: 0px;
-    -webkit-border-top-left-radius: 0px;
-	border-bottom: 1px solid #f1f0f0;
-	
+    
 }
 
 /*
@@ -93,6 +96,7 @@ table.display thead th div.DataTables_sort_wrapper {
 
 .ui-state-default .DataTables_sort_wrapper {
 	border-right: 1px solid #f1f0f0;
+	border-top: solid 1px #f1f0f0;
 	padding-top: 4px;
 	padding-bottom: 4px;
 }
@@ -124,10 +128,7 @@ table.display thead th div.DataTables_sort_wrapper span {
 .dataTables_wrapper {
 	position: relative;
 	clear: both;
-	border-left: 1px solid #e1e1e1 ;
-	border-right: 1px solid #e1e1e1;
 	width: 507px;	
-	background-color: white;
 }
 
 .dataTables_processing {
@@ -554,7 +555,13 @@ tr.even.gradeU td.sorting_3 {
 
 .dataTables_filter input {color: #686868; border: none; background-image: url(../images/search-bg.png); background-repeat: no-repeat; width: 141px; height: 20px; padding-top: 3px; padding-bottom: 3px; padding-right: 5px;padding-left: 19px;} 
 
-
-.dataTables_wrapper div:first-child + table + div {background-image: url(../images/widget-bottom-small.png); background-repeat: no-repeat; background-position:0 25px; height:23px; width:499px; border-top: 1px solid #f1f0f0; border-left: none; border-bottom: none; border-right: none; -webkit-border-radius: 0px; -moz-border-radius: 0px; margin-left: -1px;}
+/*
+.dataTables_wrapper div:first-child + table + div { border-top: 1px solid #f1f0f0; border-left: 1px solid #e1e1e1; border-bottom: 1px solid #e1e1e1; border-right: 1px solid #e1e1e1;
+-moz-border-radius-bottomright: 9px;
+border-bottom-right-radius: 9px;
+-moz-border-radius-bottomleft: 9px;
+border-bottom-left-radius: 9px;
+margin-left: -1px;}
+*/
 	
 .theme-list-table> tr> .ui-state-default {border: blue 1px solid;}

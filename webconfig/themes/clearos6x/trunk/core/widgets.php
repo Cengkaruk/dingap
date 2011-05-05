@@ -468,7 +468,7 @@ left: 14px;
 color: #98BB60;
 font-weight: normal;
 font-size: 14px;
-width: 700px;'>$title</h3>\n";
+width: 700px;'>$title</h3><div class='theme-form-wrapper'>";
 }
 
 /**
@@ -486,7 +486,7 @@ function theme_form_footer($options)
 {
     $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
 
-    return "</div>\n<div class='theme-form-footer'$id_html></div>\n";
+    return "</div></div><div class='theme-form-footer'$id_html></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
