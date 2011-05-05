@@ -3,7 +3,7 @@ Name: app-date
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: Date and time settings
+Summary: Time and Date
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,10 +13,10 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Synchronize the clock and set the date and time zone.
+The time zone and clock synchronization tool.
 
 %package core
-Summary: Date and time settings - APIs and install
+Summary: Time and Date - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -24,7 +24,7 @@ Requires: app-cron-core
 Requires: ntpdate >= 4.2.4p8
 
 %description core
-Synchronize the clock and set the date and time zone.
+The time zone and clock synchronization tool.
 
 This package provides the core API and libraries.
 

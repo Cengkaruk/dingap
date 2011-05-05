@@ -1,6 +1,17 @@
 #!/bin/sh
 
-/usr/sbin/addsudo /sbin/hwclock app-date
-/usr/sbin/addsudo /usr/sbin/ntpdate app-date
+# Add sudoers entries
+/usr/sbin/addsudo /sbin/hwclock app-date-core
+/usr/sbin/addsudo /usr/sbin/ntpdate app-date-core
 
-exit 0
+# Enable ntpdate on boot
+logger -p local6.notice -t installer "app-date-core - enabling time synchronization on boot"
+chkconfig ntpdate on
+
+# Enable hardware clock synchronization
+logger -p local6.notice -t installer "app-date-core - enabling hardware time synchronization"
+sed -i -e 's/SYNC_HWCLOCK=.*/SYNC_HWCLOCK=yes/' /etc/sysconfig/ntpdate
+
+# Configure synchronization servers
+logger -p local6.notice -t installer "app-date-core - configurating time synchronization servers"
+install -m 0644 /usr/clearos/apps/date/deploy/step-tickers /etc/ntp/
