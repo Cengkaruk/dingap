@@ -1,16 +1,13 @@
 %define enginedir /usr/clearos/webconfig/
 
 Name: webconfig-utils
-Version: 5.9.9.1
+Version: 6.0.0
 Release: 1%dist
 Group: Applications/Modules
 Summary: Web-based administration tool core
 Source: %{name}-%{version}.tar.gz
-Requires: coreutils
-Requires: grep
-Requires: initscripts
-Requires: sudo
 Requires: webconfig-php
+Requires(post): intscripts
 BuildRequires: webconfig-php-devel
 Obsoletes: cc-webconfig-engine
 License: GPL
@@ -49,7 +46,6 @@ echo "extension=ifconfig.so" > $RPM_BUILD_ROOT%{enginedir}%{_sysconfdir}/php.d/i
 # statvfs PHP module
 cp php-statvfs/modules/statvfs.so $RPM_BUILD_ROOT%{enginedir}%{_libdir}/php/modules
 echo "extension=statvfs.so" > $RPM_BUILD_ROOT%{enginedir}%{_sysconfdir}/php.d/statvfs.ini
-
 
 %post
 /sbin/service webconfig condrestart >/dev/null 2>&1
