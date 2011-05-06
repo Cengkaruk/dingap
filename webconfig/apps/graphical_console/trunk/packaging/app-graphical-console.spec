@@ -25,7 +25,7 @@ Requires: dbus-x11
 Requires: gconsole
 Requires: ratpoison
 Requires: urw-fonts
-Requires: xorg-x11-drivers
+Requires: xorg-x11-drv-vesa
 Requires: xorg-x11-server-Xorg
 Requires: xorg-x11-xinit
 

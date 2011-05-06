@@ -34,7 +34,7 @@ $app['core_requires'] = array(
     'gconsole',
     'ratpoison',
     'urw-fonts',
-    'xorg-x11-drivers',
+    'xorg-x11-drv-vesa',
     'xorg-x11-server-Xorg',
     'xorg-x11-xinit',
 );
