@@ -10,6 +10,8 @@ Vendor: ClearFoundation
 Source: app-cron-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
+Requires: app-base
+Requires: cronie >= 1.4.4
 
 %description
 Cron...

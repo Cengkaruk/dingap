@@ -3,7 +3,7 @@ Name: app-radius
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: Translation missing
+Summary: RADIUS Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,10 +13,10 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Translation missing
+RADIUS provides additional authentication mechanisms for the system.
 
 %package core
-Summary: Translation missing - APIs and install
+Summary: RADIUS Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -25,7 +25,7 @@ Requires: freeradius-ldap
 Requires: freeradius-utils
 
 %description core
-Translation missing
+RADIUS provides additional authentication mechanisms for the system.
 
 This package provides the core API and libraries.
 
