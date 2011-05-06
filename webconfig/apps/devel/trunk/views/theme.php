@@ -357,6 +357,12 @@ dialog_custom()
 echo "<h2>Progress Bar</h2>\n";
 echo "<p>A standalone progress bar:</p>";
 echo progress_bar('bacon_progress_standalone');
+echo "<script type='text/javascript'>
+$('#bacon_progress_standalone').progressbar({
+  value: 30
+});
+</script>
+";
 
 echo "<p>A progress bar in a form:</p>";
 echo form_open('/app/devel');
@@ -371,6 +377,12 @@ echo form_fieldset_close();
 echo form_footer();
 echo form_close();
 
+echo "<script type='text/javascript'>
+$('#bacon_progress').progressbar({
+  value: 50
+});
+</script>
+";
 
 return;
 ?>
