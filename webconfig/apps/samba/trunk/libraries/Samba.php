@@ -2787,9 +2787,9 @@ return '';
             $configlines .= "netbios name = mytempnetbios\n";
             $configlines .= "workgroup = mytempdomain\n";
             $configlines .= "domain logons = Yes\n";
-            $configlines .= "private dir = " . COMMON_TEMP_DIR . "\n";
+            $configlines .= "private dir = " . CLEAROS_TEMP_DIR . "\n";
 
-            $config = new File(COMMON_TEMP_DIR . "/smb.conf");
+            $config = new File(CLEAROS_TEMP_DIR . "/smb.conf");
                 
             if ($config->Exists())    
                 $config->Delete();
@@ -2803,14 +2803,14 @@ return '';
         // Run net getdomainsid / getlocalsid
 
         try {
-            $secrets = new File(COMMON_TEMP_DIR . "/secrets.tdb");
+            $secrets = new File(CLEAROS_TEMP_DIR . "/secrets.tdb");
 
             if ($secrets->Exists())
                 $secrets->Delete();
 
             $shell = new Shell();
 
-            if ($shell->Execute(self::CMD_NET, '-s ' . COMMON_TEMP_DIR . '/smb.conf ' . $param, TRUE) != 0)
+            if ($shell->Execute(self::CMD_NET, '-s ' . CLEAROS_TEMP_DIR . '/smb.conf ' . $param, TRUE) != 0)
                 throw Engine_Exception($shell->GetFirstOutputLine());
 
             $sid = $shell->GetLastOutputLine();
