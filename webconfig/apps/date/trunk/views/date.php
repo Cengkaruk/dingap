@@ -53,8 +53,8 @@ echo field_simple_dropdown('time_zone', $time_zones, $time_zone, lang('date_time
 
 echo button_set(
     array( 
-        form_submit_update('submit'),
-        anchor_javascript('sync', lang('date_synchronize_now'))
+        form_submit_update('submit', 'high'),
+        anchor_javascript('sync', lang('date_synchronize_now'), 'high')
     )
 );
 
