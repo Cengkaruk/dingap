@@ -1,8 +1,8 @@
 
 Name: app-users
 Group: ClearOS/Apps
-Version: 6.0
-Release: 0.2%{dist}
+Version: 5.9.9.0
+Release: 1%{dist}
 Summary: User manager
 License: GPLv3
 Packager: ClearFoundation
