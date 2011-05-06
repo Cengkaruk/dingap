@@ -2,7 +2,7 @@
 Name: app-smtp
 Group: ClearOS/Apps
 Version: 6.0
-Release: 0.2
+Release: 0.2%{dist}
 Summary: SMTP server and gateway
 License: GPLv3
 Packager: ClearFoundation
@@ -10,6 +10,7 @@ Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
 
 %description
 SMTP description blah blah blah...
