@@ -20,6 +20,7 @@ Summary: POP and IMAP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: cyrus-imapd >= 2.3.16
 
 %description core
 The POP and IMAP servers provide standard messaging... blah blah blah.
