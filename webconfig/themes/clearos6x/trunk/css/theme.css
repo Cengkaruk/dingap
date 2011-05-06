@@ -193,26 +193,26 @@ div.theme-button-set { color: red; background-image: url(); }
   width: 100%;
   margin-left: 0px;
 }
-.theme-list-table-title { 
+.theme-list-table-title {
   float: left;
   padding-left: 8px;
   padding-top: 3px;
   font-weight: normal;
   font-size: 14px;
   font-family: arial;
-} 
-.theme-list-table-action { 
+}
+.theme-list-table-action {
   text-align: right;
   padding: 0 !important;
   font-size: 7pt !important;
-} 
+}
 
 /* ------------------------------------------------------------------------- */
 /* Summary Table */
 /* ------------------------------------------------------------------------- */
 
 .theme-summary-table {
-border-bottom: 1px solid #e1e1e1;	
+  border-bottom: 1px solid #e1e1e1;
 }
 
 .theme-summary-table-container {
@@ -229,7 +229,7 @@ border-bottom: 1px solid #e1e1e1;
   text-align: left;
 }
 .theme-summary-table-header {
-   background: #FFFFFF url(../images/header-bg-green.png) repeat-x;
+  background: #FFFFFF url(../images/header-bg-green.png) repeat-x;
   height: 23px;
   padding: 5px;
   color: #ffffff;
@@ -237,19 +237,19 @@ border-bottom: 1px solid #e1e1e1;
   width: 99%;
   margin-left: 0px;
 }
-.theme-summary-table-title { 
+.theme-summary-table-title {
   float: left;
   padding-left: 10px;
   padding-top: 3px;
   font-weight: normal;
   font-size: 14px;
   font-family: arial;
-} 
-.theme-summary-table-action { 
+}
+.theme-summary-table-action {
   text-align: right;
   padding: 0 !important;
   font-size: 7pt !important;
-} 
+}
 
 /* ------------------------------------------------------------------------- */
 /* Forms */
@@ -278,7 +278,7 @@ border-radius: 9px;
 .theme-fieldset-legend {
   color: #98bb60;
   font-size: 14px;
-  
+ 
 }
 
 /*
@@ -382,13 +382,13 @@ border-radius: 9px;
 	margin-left: 15px;
 	line-height: 18px;
 }
- 
+
 .theme-dropdown {
 
 }
 
 .theme-form-footer {
-  
+ 
 }
 
 /* ------------------------------------------------------------------------- */
@@ -414,9 +414,9 @@ border-radius: 9px;
   color: #ffffff;
   font-weight: bold;
 }
-.theme-summary-box-title { 
+.theme-summary-box-title {
   float: left;
-} 
+}
 
 /* ------------------------------------------------------------------------- */
 /* Helpbox */
@@ -441,7 +441,7 @@ border-radius: 9px;
 .theme-view-help {
   clear: right;
   float: right;
-  width: 50%;  
+  width: 50%; 
   position: relative;
 }
 
@@ -462,7 +462,7 @@ border-radius: 9px;
   padding-top: 0px;	
 }
 
-.help-sides .theme-dialogbox-info { 
+.help-sides .theme-dialogbox-info {
   margin-top: 5px;
   background: none;	
   border: none;
@@ -475,16 +475,16 @@ border-radius: 9px;
 
 .help-sides ul {
   margin-bottom: 0px;
-} 
+}
 
 .help-bottom {
- 
+
 }
 
 #theme-content-help h3 {
   position: relative;
   margin-top: 0px;
-  top: 0px; 
+  top: 0px;
   left: 14px;
   color: #98bb60;
   font-weight: normal;
@@ -502,6 +502,12 @@ border-radius: 9px;
 
 .ui-progressbar-value {
   background: red;
+}
+
+/* REDO */
+
+.ui-dialog {
+  background: #FFFFFF url(../images/header-bg-green.png) repeat-x;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -589,7 +595,7 @@ color: white;
 }
 
 #theme-banner-background {
- 
+
 }
 
 #theme-banner-logo {
@@ -604,7 +610,7 @@ color: white;
   ^padding-left: 10px;
 }
 
-.name-holder { 
+.name-holder {
 	position: absolute;
 	right: 3px;
 	top: 15px;
@@ -674,16 +680,16 @@ theme-form-container {margin-top: 10px;}
 }
 
 .green-stroke-top {
-	position: absolute; 
-	width: 972px; 
-	height: 12px; 
+	position: absolute;
+	width: 972px;
+	height: 12px;
 	background-image: url(../images/green-stroke-top.jpg);
 	background-repeat: no-repeat;
 }
 
 .green-stroke-left {
-	position: absolute; 
-	left: 0px; 
+	position: absolute;
+	left: 0px;
 	top: 12px;
 	width: 3px;
 	height: 201px;
@@ -692,9 +698,9 @@ theme-form-container {margin-top: 10px;}
 }
 
 .green-stroke-right {
-	position: absolute; 
-	right: 0px; 
-	top: 12px; 
+	position: absolute;
+	right: 0px;
+	top: 12px;
 	width: 3px;
 	height: 201px;
 	background-image: url(../images/green-stroke-right.jpg);
@@ -793,7 +799,7 @@ theme-form-container {margin-top: 10px;}
 }
 
 .theme-field-checkboxes {
- 
+
 }
 
 .theme-field-password {
@@ -801,7 +807,7 @@ theme-form-container {margin-top: 10px;}
 }
 
 .theme-field-progress-bar {
-  
+ 
 }
 
 /* ------------------------------------------------------------------------- */
@@ -818,7 +824,7 @@ theme-form-container {margin-top: 10px;}
   padding-left: 15px;
   position: relative;
   line-height: 20px;
- 
+
 }
 
 /* ------------------------------------------------------------------------- */
@@ -975,7 +981,7 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   padding-top: 0px;
   padding-left: 13px;
   padding-bottom: 14px;
- 
+
 }
 
 #theme-left-menu {
@@ -985,8 +991,6 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
 #theme-left-menu, x:-moz-any-link, x:default {
   margin-top: -6px;	
 }
-
-
 
 #theme-left-menu.ui-accordion {
   width: 213px;
