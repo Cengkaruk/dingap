@@ -333,8 +333,9 @@ echo "
 
 echo anchor_dialog('dialog_box_anchor', 'Click Here to Open a Dialog');
 
+// Note...the DOM id of the message box must follow the id of the anchor_button + "_message"
 echo "
-<div id='dialog_box_message' title='My Dialog Title'>
+<div id='dialog_box_anchor_message' title='My Dialog Title'>
     <p>This is the default dialog which is useful for displaying information. 
     The dialog window can be moved, resized and closed with the 'x' icon.</p>
 </div>
