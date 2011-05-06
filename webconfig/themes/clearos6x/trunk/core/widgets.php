@@ -70,6 +70,37 @@ function theme_anchor($url, $text, $importance, $class, $options)
     return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>";
 }
 
+function theme_anchor_dialog($url, $text, $importance, $class, $options)
+{
+    $importance_class = ($importance === 'high') ? 'theme-anchor-important' : 'theme-anchor-unimportant';
+
+    $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+    $text = htmlspecialchars($text, ENT_QUOTES);
+
+    return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>
+<script type='text/javascript'>
+  $(document).ready(function() {
+  $('#" . $options['id'] . "_message').dialog({
+    autoOpen: false,
+    resizable: false,
+    modal: true,
+    closeOnEscape: true,
+    width: 400,
+    open: function(event, ui) {
+    },
+    close: function(event, ui) {
+    }
+  });
+  });
+  $('a#" . $options['id'] . "').click(function (e) {
+    e.preventDefault();
+    $('#" . $options['id'] . "_message').dialog('open');
+  });
+
+</script>
+";
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // B U T T O N S
 ///////////////////////////////////////////////////////////////////////////////
