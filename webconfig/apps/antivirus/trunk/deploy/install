@@ -13,3 +13,10 @@ cp /usr/clearos/apps/antivirus/deploy/clamd.conf /etc/clamd.conf
 
 logger -p local6.notice -t installer "app-antivirus-core - installing default freshclam configuration"
 cp /usr/clearos/apps/antivirus/deploy/freshclam.conf /etc/freshclam.conf
+
+# Set boot policy
+#----------------
+
+logger -p local6.notice -t installer "app-antivirus-core - enabling antivirus server"
+/sbin/chkconfig clamd on
+
