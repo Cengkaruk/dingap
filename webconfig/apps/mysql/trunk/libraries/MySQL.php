@@ -88,7 +88,7 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/mysql/
  */
 
-class Mysql extends Daemon
+class MySQL extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -102,7 +102,7 @@ class Mysql extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Mysql constructor.
+     * MySQL constructor.
      */
 
     public function __construct()

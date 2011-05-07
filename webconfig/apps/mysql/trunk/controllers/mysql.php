@@ -58,14 +58,15 @@ class MySQL extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('mysql/Mysql');
+        $this->load->library('mysql/MySQL');
+        $this->lang->load('mysql');
 
         // Set validation rules
         //---------------------
          
-        // $this->form_validation->set_policy('current_password', 'mysql/Mysql', 'validate_password', TRUE);
-        $this->form_validation->set_policy('password', 'mysql/Mysql', 'validate_password', TRUE);
-        $this->form_validation->set_policy('verify', 'mysql/Mysql', 'validate_password', TRUE);
+        // $this->form_validation->set_policy('current_password', 'mysql/MySQL', 'validate_password', TRUE);
+        $this->form_validation->set_policy('password', 'mysql/MySQL', 'validate_password', TRUE);
+        $this->form_validation->set_policy('verify', 'mysql/MySQL', 'validate_password', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -78,13 +79,12 @@ class MySQL extends ClearOS_Controller
                 else
                     $current_password = '';
 
-echo "dude $current_password " . $this->input->post($password);
 
                 $this->mysql->set_root_password($current_password, $this->input->post($password));
 
                 $this->page->set_success(lang('base_system_updated'));
-            } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message());
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -103,13 +103,6 @@ echo "dude $current_password " . $this->input->post($password);
         // Load views
         //-----------
 
-        $this->page->set_title(lang('mysql_msyql'));
-
-        $this->load->view('theme/header');
-
-        if ($is_running)
-            $this->load->view('mysql', $data);
-
-        $this->load->view('theme/footer');
+        $this->page->view_form('mysql', $data, lang('mysql_mysql_database'));
     }
 }
