@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * Network routes class.
+ *
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,22 +29,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Network routes class.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
- */
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
+namespace clearos\apps\network;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
@@ -48,11 +52,33 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\firewall\Firewall as Firewall;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
+use \clearos\apps\network\Routes as Routes;
+
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('firewall/Firewall');
-clearos_load_library('network/Iface_Manager');
-clearos_load_library('network/Network');
-clearos_load_library('base/Shell_Exec');
+clearos_load_library('base/Shell');
+// clearos_load_library('firewall/Firewall');
+// clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Routes');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -61,24 +87,26 @@ clearos_load_library('base/Shell_Exec');
 /**
  * Network routes class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2003-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Routes extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CONFIG = '/etc/sysconfig/network-scripts/route-';
     const FILE_ACTIVE = '/proc/net/route';
     const FILE_NETWORK = '/etc/sysconfig/network';
     const FILE_SYSTEM_NETWORK = '/etc/system/network';
-    const CMD_IP = '/sbin/ip';
+    const COMMAND_IP = '/sbin/ip';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -86,15 +114,11 @@ class Routes extends Engine
 
     /**
      * Routes constructor.
-     *
-     * @return void
      */
 
     function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        parent::__construct();
     }
 
     /**
@@ -112,17 +136,13 @@ class Routes extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $routeinfo = array();
-        $shell = new Shell_Exec();
+        $shell = new Shell();
 
         // Try multi-WAN table first
         //--------------------------
 
-        try {
-            $shell->execute(self::CMD_IP, 'route show table 250', false);
-            $output = $shell->get_output();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_ERROR);
-        }
+        $shell->execute(self::COMMAND_IP, 'route show table 250');
+        $output = $shell->get_output();
 
         if (! empty($output)) {
             foreach ($output as $line) {
@@ -139,12 +159,8 @@ class Routes extends Engine
         // Fallback to single WAN
         //-----------------------
 
-        try {
-            $shell->execute(self::CMD_IP, 'route', false);
-            $output = $shell->get_output();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_ERROR);
-        }
+        $shell->execute(self::COMMAND_IP, 'route');
+        $output = $shell->get_output();
 
         if (! empty($output)) {
             foreach ($output as $line) {
@@ -172,24 +188,20 @@ class Routes extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $file = new File(self::FILE_ACTIVE);
-            $contents = $file->get_contents_as_array();
+        $file = new File(self::FILE_ACTIVE);
+        $contents = $file->get_contents_as_array();
 
-            // Grab the last line in the route table
-            $lastline = array_pop($contents);
-            $lastline = preg_replace('/\s+/', ' ', $lastline);
+        // Grab the last line in the route table
+        $lastline = array_pop($contents);
+        $lastline = preg_replace('/\s+/', ' ', $lastline);
 
-            // Grab the second column (contains the default route)
-            $lineitem = explode(' ', $lastline);
+        // Grab the second column (contains the default route)
+        $lineitem = explode(' ', $lastline);
 
-            // Split the IP up and make it readable
-            $ip = str_split($lineitem[2], 2);
+        // Split the IP up and make it readable
+        $ip = str_split($lineitem[2], 2);
 
-            return hexdec($ip[3]) . '.' . hexdec($ip[2]) . '.' . hexdec($ip[1]) . '.' . hexdec($ip[0]);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
-        }
+        return hexdec($ip[3]) . '.' . hexdec($ip[2]) . '.' . hexdec($ip[1]) . '.' . hexdec($ip[0]);
     }
 
     /**
@@ -235,27 +247,25 @@ class Routes extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $file = new File(self::FILE_NETWORK);
+
         try {
-            $file = new File(self::FILE_NETWORK);
-            try {
-                $device = $file->lookup_value('/^GATEWAYDEV=/');
-            } catch (File_No_Match_Exception $e) {
-                return 'eth0'; // Default to eth0
-            } 
+            $device = $file->lookup_value('/^GATEWAYDEV=/');
+        } catch (File_No_Match_Exception $e) {
+            return 'eth0'; // Default to eth0
+        } 
 
-            $device = preg_replace('/\"/', '', $device);
+        $device = preg_replace('/\"/', '', $device);
 
-            return $device;
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
-        }
+        return $device;
     }
 
     /**
      * Sets the network device (eg eth0) doing the default route.
      *
-     * @param  string  $device  the default route device
-     * @return  void
+     * @param string $device the default route device
+     *
+     * @return void
      * @throws Engine_Exception
      */
 
@@ -270,19 +280,14 @@ class Routes extends Engine
         // Update tag if it exists
         //------------------------
 
-        try {
-            $file = new File(self::FILE_NETWORK);
-            $match = $file->replace_lines('/^GATEWAYDEV=/', "GATEWAYDEV=\"$device\"\n");
+        $file = new File(self::FILE_NETWORK);
+        $match = $file->replace_lines('/^GATEWAYDEV=/', "GATEWAYDEV=\"$device\"\n");
 
-            // If tag does not exist, add it
-            //------------------------------
+        // If tag does not exist, add it
+        //------------------------------
 
-            if (! $match)
-                $file->add_lines("GATEWAYDEV=\"" . $device . "\"\n");
-
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
-        }
+        if (! $match)
+            $file->add_lines("GATEWAYDEV=\"" . $device . "\"\n");
     }
 
     /**
@@ -296,33 +301,21 @@ class Routes extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Delete default route
-        //---------------------
+        $file = new File(self::FILE_NETWORK);
+        $file->delete_lines('/GATEWAYDEV=\".*\"/i');
 
-        try {
-            $file = new File(self::FILE_NETWORK);
-            $file->delete_lines('/GATEWAYDEV=\".*\"/i');
+        $interfaces = new Iface_Manager();
+        $ethlist = $interfaces->get_interface_details();
+        $wanif = "";
 
-            $interfaces = new Iface_Manager();
-            $ethlist = $interfaces->get_interface_details();
-            $wanif = "";
-
-            foreach ($ethlist as $eth => $info) {
-                if (isset($info['role']) && ($info['role'] == Firewall::CONSTANT_EXTERNAL)) {
-                    $wanif = $eth;
-                    break;
-                }
+        foreach ($ethlist as $eth => $info) {
+            if (isset($info['role']) && ($info['role'] == Firewall::CONSTANT_EXTERNAL)) {
+                $wanif = $eth;
+                break;
             }
-
-            if ($wanif)
-                $this->set_gateway_device($wanif);
-
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
         }
-    }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
+        if ($wanif)
+            $this->set_gateway_device($wanif);
+    }
 }
