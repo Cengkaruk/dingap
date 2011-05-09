@@ -1022,6 +1022,14 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   background-position: 0 4px;
 }
 
+.theme-loading {
+  background-image: url(../images/loading.gif);
+  background-repeat: no-repeat;
+  height: 23px;
+  width: 22px;
+  margin: auto;
+  display: inline-block;
+}
 /* Standard buttons */
 input.theme-form-submit-add { }
 input.theme-form-submit-delete { }
