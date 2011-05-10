@@ -59,10 +59,12 @@ clearos_load_language('network');
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
+clearos_load_library('network/Network_Utils');
 
 // Exceptions
 //-----------
@@ -335,5 +337,24 @@ class SnortSam extends Daemon
 
         if (! preg_match('/^[a-zA-Z0-9]+$/', $crc))
             return lang('intrusion_prevention_crc_invalid');
+    }
+
+    /**
+     * Validates IP address.
+     *
+     * @param string $ip IP address
+     *
+     * @return string error message if IP address is invalid
+     */
+
+    public function validate_whitelist_ip($ip, $check_exists = FALSE)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('network_ip_is_invalid');
+
+        if ($check_exists && in_array($ip, $this->get_whitelist()))
+            return lang('base_entry_already_exists');
     }
 }
