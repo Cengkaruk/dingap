@@ -1,3 +1,0 @@
-#!/bin/sh
-
-/usr/sbin/addsudo /usr/sbin/authconfig app-openldap-core
