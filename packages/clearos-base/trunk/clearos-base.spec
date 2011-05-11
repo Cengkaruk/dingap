@@ -24,6 +24,7 @@ Requires: perl
 Requires: selinux-policy-targeted
 Requires: sudo
 Requires: rsyslog
+Requires: telnet
 # Common tools used in install and upgrade scripts for app-* packages
 Requires: bc
 Requires: chkconfig
