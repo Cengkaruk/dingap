@@ -1,6 +1,6 @@
 Name: clearos-release
-Version: 6.0.0alpha1.1
-Release: 5%{?dist}
+Version: 6.0.0doh
+Release: 1%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
 License: GPLv2
@@ -11,9 +11,15 @@ Requires: util-linux-ng
 Requires: rpm
 Provides: redhat-release system-release
 Provides: redhat-release-server
+Provides: redhat-release-client
+Provides: redhat-release-workstation
+Provides: redhat-release-computenode
 Provides: centos-release
 Obsoletes: redhat-release system-release
 Obsoletes: redhat-release-server
+Obsoletes: redhat-release-client
+Obsoletes: redhat-release-workstation
+Obsoletes: redhat-release-computenode
 Obsoletes: centos-release
 Obsoletes: app-release
 BuildArch: noarch 
@@ -33,7 +39,8 @@ rm -rf $RPM_BUILD_ROOT
 # create /etc
 mkdir -p $RPM_BUILD_ROOT/etc
 
-# create /etc/system-release and /etc/clearos-release
+# create /etc/product, /etc/clearos-release and /etc/system-release
+install -m 644 config/product $RPM_BUILD_ROOT/etc/
 install -m 644 config/release $RPM_BUILD_ROOT/etc/clearos-release
 ln -s clearos-release $RPM_BUILD_ROOT/etc/system-release
 
@@ -57,7 +64,6 @@ install -m 0644 config/base.repo $RPM_BUILD_ROOT/etc/yum.repos.d/
 # Product marks
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/release/
 install -m 755 config/upgrade $RPM_BUILD_ROOT/usr/share/clearos/release/ 
-install -m 644 config/product $RPM_BUILD_ROOT/usr/share/clearos/release/
 
 %post
 rpm --import /etc/pki/rpm-gpg/clearos-gpg-key 2>/dev/null
@@ -77,12 +83,12 @@ rm -rf $RPM_BUILD_ROOT
 /etc/issue
 /etc/issue.net
 /etc/clearos-release
+/etc/product
 /etc/system-release
 %dir /etc/pki/rpm-gpg
 /etc/pki/rpm-gpg
 /etc/yum.repos.d/base.repo
 %dir /usr/share/clearos/release
-/usr/share/clearos/release/product
 /usr/share/clearos/release/upgrade
 
 %changelog
