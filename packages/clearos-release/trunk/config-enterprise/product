@@ -20,4 +20,4 @@ jws_nodes = 1
 jws_prefix = ws
 jws_domain = clearsdn.com
 jws_realm = webservice
-jws_version  2.0
+jws_version = 2.0
