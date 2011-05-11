@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap_accounts;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -57,11 +57,11 @@ require_once $bootstrap . '/bootstrap.php';
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 
 clearos_load_library('base/Engine');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_accounts/OpenLDAP');
+clearos_load_library('openldap_directory/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -76,7 +76,7 @@ clearos_load_library('openldap_accounts/OpenLDAP');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class Utilities extends Engine

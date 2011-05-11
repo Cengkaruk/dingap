@@ -11,13 +11,13 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('openldap_accounts');
+clearos_load_language('openldap_directory');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
 $driver['driver'] = 'openldap';
-$driver['app'] = 'openldap_accounts';
+$driver['app'] = 'openldap_directory';
 $driver['name'] = 'OpenLDAP Accounts';
 $driver['description'] = 'OpenLDAP Accounts driver...'; // FIXME: translate

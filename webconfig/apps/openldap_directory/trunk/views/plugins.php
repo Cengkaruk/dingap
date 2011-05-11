@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('accounts');
-$this->lang->load('openldap_accounts');
+$this->lang->load('openldap_directory');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
@@ -57,8 +57,8 @@ $anchors = array();
 foreach ($plugins as $plugin => $details) {
 
     $item['title'] = $details['nickname'];
-    $item['action'] = '/app/openldap_accounts/plugins/view/' . $plugin;
-    $item['anchors'] = anchor_view('/app/openldap_accounts/plugins/view/' . $plugin);
+    $item['action'] = '/app/openldap_directory/plugins/view/' . $plugin;
+    $item['anchors'] = anchor_view('/app/openldap_directory/plugins/view/' . $plugin);
     $item['details'] = array(
         $details['nickname'],
     );

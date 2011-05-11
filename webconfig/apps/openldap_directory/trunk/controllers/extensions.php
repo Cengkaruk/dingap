@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class Extensions extends ClearOS_Controller
@@ -58,7 +58,7 @@ class Extensions extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('openldap_accounts/Accounts_Driver');
+        $this->load->library('openldap_directory/Accounts_Driver');
         $this->lang->load('accounts');
 
         // Load view data

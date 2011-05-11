@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class OpenLDAP_Accounts extends ClearOS_Controller
@@ -53,10 +53,10 @@ class OpenLDAP_Accounts extends ClearOS_Controller
 
 	function index()
 	{
-        $this->load->language('openldap_accounts');
+        $this->load->language('openldap_directory');
 
-        $views = array('openldap_accounts/plugins', 'openldap_accounts/extensions');
+        $views = array('openldap_directory/plugins', 'openldap_directory/extensions');
 
-        $this->page->view_forms($views, lang('openldap_accounts_openldap_accounts'));
+        $this->page->view_forms($views, lang('openldap_directory_openldap_directory'));
 	}
 }

@@ -1,5 +1,5 @@
 
-Name: app-openldap-accounts
+Name: app-openldap-directory
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
@@ -45,50 +45,50 @@ This package provides the core API and libraries.
 %build
 
 %install
-mkdir -p -m 755 %{buildroot}/usr/clearos/apps/openldap_accounts
-cp -r * %{buildroot}/usr/clearos/apps/openldap_accounts/
+mkdir -p -m 755 %{buildroot}/usr/clearos/apps/openldap_directory
+cp -r * %{buildroot}/usr/clearos/apps/openldap_directory/
 
 install -D -m 0644 packaging/openldap.php %{buildroot}/var/clearos/accounts/drivers/openldap.php
 
 %post
-logger -p local6.notice -t installer 'app-openldap-accounts - installing'
+logger -p local6.notice -t installer 'app-openldap-directory - installing'
 
 %post core
-logger -p local6.notice -t installer 'app-openldap-accounts-core - installing'
+logger -p local6.notice -t installer 'app-openldap-directory-core - installing'
 
 if [ $1 -eq 1 ]; then
-    [ -x /usr/clearos/apps/openldap_accounts/deploy/install ] && /usr/clearos/apps/openldap_accounts/deploy/install
+    [ -x /usr/clearos/apps/openldap_directory/deploy/install ] && /usr/clearos/apps/openldap_directory/deploy/install
 fi
 
-[ -x /usr/clearos/apps/openldap_accounts/deploy/upgrade ] && /usr/clearos/apps/openldap_accounts/deploy/upgrade
+[ -x /usr/clearos/apps/openldap_directory/deploy/upgrade ] && /usr/clearos/apps/openldap_directory/deploy/upgrade
 
 exit 0
 
 %preun
 if [ $1 -eq 0 ]; then
-    logger -p local6.notice -t installer 'app-openldap-accounts - uninstalling'
+    logger -p local6.notice -t installer 'app-openldap-directory - uninstalling'
 fi
 
 %preun core
 if [ $1 -eq 0 ]; then
-    logger -p local6.notice -t installer 'app-openldap-accounts-core - uninstalling'
-    [ -x /usr/clearos/apps/openldap_accounts/deploy/uninstall ] && /usr/clearos/apps/openldap_accounts/deploy/uninstall
+    logger -p local6.notice -t installer 'app-openldap-directory-core - uninstalling'
+    [ -x /usr/clearos/apps/openldap_directory/deploy/uninstall ] && /usr/clearos/apps/openldap_directory/deploy/uninstall
 fi
 
 exit 0
 
 %files
 %defattr(-,root,root)
-/usr/clearos/apps/openldap_accounts/controllers
-/usr/clearos/apps/openldap_accounts/htdocs
-/usr/clearos/apps/openldap_accounts/views
+/usr/clearos/apps/openldap_directory/controllers
+/usr/clearos/apps/openldap_directory/htdocs
+/usr/clearos/apps/openldap_directory/views
 
 %files core
 %defattr(-,root,root)
-%exclude /usr/clearos/apps/openldap_accounts/packaging
-%exclude /usr/clearos/apps/openldap_accounts/tests
-%dir /usr/clearos/apps/openldap_accounts
-/usr/clearos/apps/openldap_accounts/deploy
-/usr/clearos/apps/openldap_accounts/language
-/usr/clearos/apps/openldap_accounts/libraries
+%exclude /usr/clearos/apps/openldap_directory/packaging
+%exclude /usr/clearos/apps/openldap_directory/tests
+%dir /usr/clearos/apps/openldap_directory
+/usr/clearos/apps/openldap_directory/deploy
+/usr/clearos/apps/openldap_directory/language
+/usr/clearos/apps/openldap_directory/libraries
 /var/clearos/accounts/drivers/openldap.php

@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap_accounts;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -58,16 +58,16 @@ clearos_load_language('base');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
-use \clearos\apps\openldap_accounts\Group_Driver as Group_Driver;
-use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
-use \clearos\apps\openldap_accounts\Utilities as Utilities;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
-clearos_load_library('openldap_accounts/Group_Driver');
-clearos_load_library('openldap_accounts/OpenLDAP');
-clearos_load_library('openldap_accounts/Utilities');
+clearos_load_library('openldap_directory/Group_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/Utilities');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -82,7 +82,7 @@ clearos_load_library('openldap_accounts/Utilities');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class Group_Manager_Driver extends Engine
@@ -106,7 +106,7 @@ class Group_Manager_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        include_once clearos_app_base('openldap_accounts') . '/deploy/group_map.php';
+        include_once clearos_app_base('openldap_directory') . '/deploy/group_map.php';
 
         $this->info_map = $info_map;
     }

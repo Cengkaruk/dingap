@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\openldap_accounts;
+namespace clearos\apps\openldap_directory;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -59,22 +59,22 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Login_Shell as Login_Shell;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
-use \clearos\apps\openldap_accounts\Accounts_Driver as Accounts_Driver;
-use \clearos\apps\openldap_accounts\Group_Manager_Driver as Group_Manager_Driver;
-use \clearos\apps\openldap_accounts\OpenLDAP as OpenLDAP;
-use \clearos\apps\openldap_accounts\User_Driver as User_Driver;
-use \clearos\apps\openldap_accounts\Utilities as Utilities;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
+use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\User_Driver as User_Driver;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
 clearos_load_library('base/Folder');
 clearos_load_library('base/Login_Shell');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
-clearos_load_library('openldap_accounts/Accounts_Driver');
-clearos_load_library('openldap_accounts/Group_Manager_Driver');
-clearos_load_library('openldap_accounts/OpenLDAP');
-clearos_load_library('openldap_accounts/User_Driver');
-clearos_load_library('openldap_accounts/Utilities');
+clearos_load_library('openldap_directory/Accounts_Driver');
+clearos_load_library('openldap_directory/Group_Manager_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/User_Driver');
+clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User_Engine');
 
 // Exceptions
@@ -101,7 +101,7 @@ clearos_load_library('users/User_Not_Found_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_accounts/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 class User_Driver extends User_Engine
@@ -112,7 +112,7 @@ class User_Driver extends User_Engine
 
     const LOG_TAG = 'user';
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
-    const PATH_EXTENSIONS = '/var/clearos/openldap_accounts/extensions';
+    const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
     // User policy
     //------------
@@ -169,7 +169,7 @@ class User_Driver extends User_Engine
         );
 
         // Attribute/Info mapping.  The attribute_map contains the reverse mapping.
-        include clearos_app_base('openldap_accounts') . '/deploy/user_map.php';
+        include clearos_app_base('openldap_directory') . '/deploy/user_map.php';
         $this->info_map = $info_map;
         $this->attribute_map = array();
     

@@ -4,7 +4,7 @@
 // General information
 /////////////////////////////////////////////////////////////////////////////
 
-$app['basename'] = 'openldap_accounts';
+$app['basename'] = 'openldap_directory';
 $app['version'] = '5.9.9.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
@@ -18,7 +18,7 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('openldap_accounts_openldap_accounts');
+$app['name'] = lang('openldap_directory_openldap_directory');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Account Manager';
 
@@ -26,9 +26,9 @@ $app['subcategory'] = 'Account Manager';
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['openldap_accounts']['title'] = $app['name'];
-$app['controllers']['extensions']['title'] = lang('openldap_accounts_extensions');
-$app['controllers']['plugins']['title'] = lang('openldap_accounts_plugins');
+$app['controllers']['openldap_directory']['title'] = $app['name'];
+$app['controllers']['extensions']['title'] = lang('openldap_directory_extensions');
+$app['controllers']['plugins']['title'] = lang('openldap_directory_plugins');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
