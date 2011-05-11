@@ -18,10 +18,9 @@ $app['description'] = 'The accounts base engine provides... blah blah blah'; // 
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('accounts_accounts_engine');
+$app['name'] = 'Account Plugins and Extensions';
 $app['category'] = lang('base_category_system');
-$app['subcategory'] = lang('base_subcategory_accounts');
-$app['menu_enabled'] = FALSE;
+$app['subcategory'] = 'Accounts Manager';
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
