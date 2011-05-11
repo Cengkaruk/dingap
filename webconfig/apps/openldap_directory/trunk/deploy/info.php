@@ -18,9 +18,9 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('openldap_directory_openldap_directory');
-$app['category'] = lang('base_category_system');
-$app['subcategory'] = 'Account Manager';
+$app['name'] = 'OpenLDAP Directory';
+$app['category'] = lang('base_category_server');
+$app['subcategory'] = lang('base_subcategory_directory');
 
 /////////////////////////////////////////////////////////////////////////////
 // Controllers

@@ -4,7 +4,7 @@
  * OpenLDAP accounts controller.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -37,7 +37,7 @@
  * OpenLDAP accounts controller.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -45,10 +45,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
-class OpenLDAP_Accounts extends ClearOS_Controller
+class OpenLDAP_Directory extends ClearOS_Controller
 {
 	/**
-	 * OpenLDAP_Accounts overview.
+	 * OpenLDAP_Directory overview.
 	 */
 
 	function index()
