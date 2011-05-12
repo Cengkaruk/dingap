@@ -1,0 +1,106 @@
+#!/usr/bin/python -u
+
+import sys
+import yum
+import rpm
+from yum.callbacks import DownloadBaseCallback
+
+class tcDownloadCallback(DownloadBaseCallback):
+	def updateProgress(self, name, frac, fread, ftime):
+		pct = int(frac * 100)
+		print "Downloading: %s: %s" % (name, pct)
+
+class tcYumHelper(yum.YumBase):
+	def __init__(self):
+		yum.YumBase.__init__(self)
+		self.repos.setProgressBar(tcDownloadCallback())
+
+	def isGroupInstalled(self, group):
+		installed, available = self.doGroupLists(0)
+		for (grp) in installed:
+			if grp.name == group:
+				return True
+		return False
+
+	def installGroup(self, group):
+		self.selectGroup(group)
+		self.buildTransaction()
+		self.processTransaction()
+
+	def removeGroup(self, group):
+		self.groupRemove(group)
+		self.buildTransaction()
+		self.processTransaction()
+
+class tcRpmHelper:
+	def __init__(self):
+		self.pkg_index = 0
+		self.packages = [
+			'alsa-lib', 'atk', 'audiofile', 'cairo', 'cpp',
+			'desktop-file-utils', 'esound', 'gamin', 'GConf2',
+			'gnome-keyring', 'gnome-mime-data', 'gnome-mount',
+			'gnome-vfs2', 'gtk2', 'hicolor-icon-theme',
+			'libart_lgpl', 'libbonobo', 'libbonoboui', 'libdmx',
+			'libdrm', 'libfontenc', 'libglade2', 'libgnome',
+			'libgnomecanvas', 'libgnomeui', 'libICE', 'libIDL',
+			'libnotify', 'libSM', 'libwnck', 'libXaw', 'libXcursor',
+			'libXext', 'libXfixes', 'libXfont', 'libXfontcache',
+			'libXft', 'libXi', 'libXinerama', 'libxkbfile',
+			'libXmu', 'libXrandr', 'libXrender', 'libXres', 'libXt',
+			'libXTrap', 'libXtst', 'libXv', 'libXxf86dga',
+			'libXxf86misc', 'libXxf86vm', 'mesa-libGL',
+			'notification-daemon', 'ORBit2', 'pango', 'ratpoison',
+			'shared-mime-info', 'startup-notification', 'urw-fonts',
+			'xconsole', 'xkeyboard-config', 'xorg-x11-drv-evdev',
+			'xorg-x11-drv-keyboard', 'xorg-x11-drv-mouse',
+			'xorg-x11-drv-vesa', 'xorg-x11-drv-void',
+			'xorg-x11-fonts-base', 'xorg-x11-font-utils',
+			'xorg-x11-server-utils', 'xorg-x11-server-Xorg',
+			'xorg-x11-utils', 'xorg-x11-xauth', 'xorg-x11-xinit',
+			'xorg-x11-xkb-utils', 'xulrunner',
+			'app-graphical-console' ]
+		self.pkg_count = len(self.packages)
+
+	def transactionCallback(self, reason, amount, total, key, client_data):
+		if reason == rpm.RPMCALLBACK_UNINST_START:
+			self.pkg_index = self.pkg_index + 1
+			print "Removing: %s: %s/%s" %(key, self.pkg_index, self.pkg_count)
+
+	def isPackageInstalled(self, package):
+		ts = rpm.TransactionSet()
+		mi = ts.dbMatch('name', package)
+		try:
+			for h in mi:
+				return True
+			return False
+		except StopIteration:
+			return False
+
+	def removeConsolePackages(self):
+		self.pkg_index = 0
+		ts = rpm.TransactionSet()
+		for pkg in self.packages:
+			ts.addErase(pkg)
+
+		unmet = ts.check()
+		if len(unmet) > 0:
+			print "Unmet dependencies."
+			return -1
+
+		ts.order()
+		ts.run(self.transactionCallback, 1)
+
+group = "Graphical Console"
+tc_yum = tcYumHelper()
+tc_rpm = tcRpmHelper()
+#installed = tc_yum.isGroupInstalled(group)
+installed = tc_rpm.isPackageInstalled('app-graphical-console')
+if len(sys.argv) == 1:
+	print "Installed: %s" % installed
+elif sys.argv[1] == "install":
+	tc_yum.installGroup(group)
+elif installed == True and sys.argv[1] == "remove":
+	#tc_yum.removeGroup(group)
+	tc_rpm.removeConsolePackages();
+
+# vi: ts=4 syntax=python

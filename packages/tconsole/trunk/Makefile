@@ -1,0 +1,60 @@
+# tconsole
+CXX=g++
+INCLUDE=-I.
+CFLAGS?=-pipe -s -O3
+CXXFLAGS?=$(CFLAGS)
+LDFLAGS=
+DEFS=-D_REENTRANT
+LIBS=-lncursesw -lpthread -lm
+ifeq ($(strip $(VENDOR)),)
+	VENDOR=clearos
+endif
+ifeq ($(VENDOR), clearos)
+	DEFS+=-D_VENDOR_CLEAROS
+endif
+ifeq ($(VENDOR), clarkconnect)
+	DEFS+=-D_VENDOR_CLARKCONNECT
+endif
+ifeq ($(VENDOR), directpointe)
+	DEFS+=-D_VENDOR_DIRECTPOINTE
+endif
+ifeq ($(VENDOR), o2i)
+	DEFS+=-D_VENDOR_O2I
+endif
+ifeq ($(VENDOR), msona)
+	DEFS+=-D_VENDOR_MSONA
+endif
+ifeq ($(VENDOR), commgate)
+	DEFS+=-D_VENDOR_COMMGATE
+endif
+OBJECTS=launcher.o thread.o
+DEPS=$(patsubst %.o,%.d,$(OBJECTS))
+TARGET=launcher
+
+all:
+	@echo "Compiler: $(CXX) $(CXXFLAGS) $(INCLUDE)"
+	@echo "Linker: $(LD) $(LDFLAGS)"
+	@echo "Defines: $(DEFS)"
+	@echo "Libraries: $(LIBS)"
+	$(MAKE) MAKEFLAGS= deps
+	$(MAKE) $(TARGET)
+
+deps: $(wildcard *.cpp)
+	@echo "[D] $^"
+	@$(CXX) -MD -E $(CXXFLAGS) $(INCLUDE) $(DEFS) $^ > /dev/null
+
+%.o : %.cpp
+	@echo "[C] $@"
+	@$(CXX) -c $(CXXFLAGS) $(INCLUDE) $(DEFS) -o $@ $<
+
+-include $(DEPS)
+
+$(TARGET): $(OBJECTS)
+	@echo "[L] $@"
+	@$(CXX) $(LDFLAGS) $(CXXFLAGS) $(OBJECTS) $(LIBS) -o $@
+
+clean:
+	rm -f $(OBJECTS) $(TARGET) $(DEPS) *.log
+
+dist-clean: clean
+
