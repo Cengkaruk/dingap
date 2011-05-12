@@ -41,19 +41,17 @@ $this->lang->load('pptpd');
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('pptpd');
-echo form_header(lang('pptpd_pptp_server'));
+echo form_header(lang('base_general_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form Fields and Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_general_settings'));
 echo field_input('local_ip', $local_ip, lang('pptpd_local_ip_range'));
 echo field_input('remote_ip', $remote_ip, lang('pptpd_remote_ip_range'));
 echo field_input('domain', $domain, lang('pptpd_internet_domain'));
 echo field_input('dns', $dns, lang('pptpd_dns_server'));
 echo field_input('wins', $wins, lang('pptpd_wins_server'));
-echo form_fieldset_close();
 
 echo button_set(
     array(form_submit_update('submit', 'high'))
