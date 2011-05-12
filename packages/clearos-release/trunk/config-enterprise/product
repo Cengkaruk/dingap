@@ -1,5 +1,6 @@
 # Product details
 vendor = clear
+software_id = 10600
 name = ClearOS Enterprise
 base_version = 6.0.0
 
