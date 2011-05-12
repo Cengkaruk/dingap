@@ -1,13 +1,13 @@
 %define enginedir /usr/clearos/webconfig/
 
 Name: webconfig-utils
-Version: 6.0.0
+Version: 6.0.1
 Release: 1%dist
 Group: Applications/Modules
 Summary: Web-based administration tool core
 Source: %{name}-%{version}.tar.gz
 Requires: webconfig-php
-Requires(post): intscripts
+Requires(post): initscripts
 BuildRequires: webconfig-php-devel
 Obsoletes: cc-webconfig-engine
 License: GPL
