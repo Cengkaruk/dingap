@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("statvfs", "for statvfs support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("statvfs", "enable statvfs support", "no");
+
+if (PHP_STATVFS != "no") {
+	EXTENSION("statvfs", "statvfs.c");
+}
+
