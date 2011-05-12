@@ -18,9 +18,10 @@ $app['description'] = 'OpenLDAP Directory...blah blah blah'; // FIXME: translate
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Directory'; // FIXME
+$app['name'] = 'OpenLDAP Driver'; // FIXME
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
