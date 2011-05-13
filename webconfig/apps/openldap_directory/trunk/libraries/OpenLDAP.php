@@ -146,8 +146,6 @@ class OpenLDAP extends Engine
     const OU_PASSWORD_POLICIES = 'PasswordPolicies';
     const CN_MASTER = 'cn=Master';
 
-
-
     // Status codes for username/group/alias uniqueness
 // FIXME: might return just strings instead
     const STATUS_ALIAS_EXISTS = 'alias';
@@ -283,11 +281,12 @@ class OpenLDAP extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_base_internet_domain()
+    public static function get_base_internet_domain()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $ldap = new LDAP_Driver();
+
         return $ldap->get_base_internet_domain();
     }
 
@@ -326,11 +325,11 @@ class OpenLDAP extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_master_dn()
+    public static function get_master_dn()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::CN_MASTER . ',' . self::SUFFIX_SERVERS . ',' . $this->get_base_dn();
+        return self::CN_MASTER . ',' . self::SUFFIX_SERVERS . ',' . self::get_base_dn();
     }
 
     /** 

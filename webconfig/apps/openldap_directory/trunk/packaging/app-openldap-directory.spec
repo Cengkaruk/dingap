@@ -48,7 +48,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/openldap_directory
 cp -r * %{buildroot}/usr/clearos/apps/openldap_directory/
 
-install -D -m 0644 packaging/openldap.php %{buildroot}/var/clearos/accounts/drivers/openldap.php
+install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
 
 %post
 logger -p local6.notice -t installer 'app-openldap-directory - installing'
@@ -91,4 +91,4 @@ exit 0
 /usr/clearos/apps/openldap_directory/deploy
 /usr/clearos/apps/openldap_directory/language
 /usr/clearos/apps/openldap_directory/libraries
-/var/clearos/accounts/drivers/openldap.php
+/var/clearos/accounts/drivers/openldap_directory.php

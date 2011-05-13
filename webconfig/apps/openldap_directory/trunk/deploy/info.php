@@ -55,6 +55,6 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array(
-    'openldap.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap.php' ),
+    'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
 );
 
