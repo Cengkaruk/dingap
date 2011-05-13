@@ -27,7 +27,7 @@ header('Content-Type:application/x-javascript');
 
 $(document).ready(function() {
 	$("#sync").click(function(){
-		$("#result").html("whirylgig...");
+		$("#result").html('<div class="theme-loading"></div>');
 
 		$.ajax({
 			url: 'date/sync',

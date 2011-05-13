@@ -65,5 +65,5 @@ echo button_set(
 echo form_footer();
 echo form_close();
 
-// FIXME: Discuss how to standardize this
-echo " <span id='result'></span>";
+// FIXME - look and feel
+echo "<span id='result'></span>";
