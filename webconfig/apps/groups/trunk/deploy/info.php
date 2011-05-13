@@ -15,4 +15,5 @@ $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_accounts');
 
 // Packaging
-$app['core_requires'] = array('app-base-core', 'app-directory-manager');
+$app['requires'] = array('app-accounts');
+$app['core_requires'] = array('app-accounts-core');

@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-accounts
 
 %description
 Group manager description blah blah...
@@ -20,8 +21,7 @@ Summary: Group manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-base-core
-Requires: app-directory-manager
+Requires: app-accounts-core
 
 %description core
 Group manager description blah blah...
