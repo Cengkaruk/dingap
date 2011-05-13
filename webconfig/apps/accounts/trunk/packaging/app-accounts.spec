@@ -1,23 +1,33 @@
 
-Name: app-accounts-core
-Group: ClearOS/Libraries
+Name: app-accounts
+Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: Accounts base engine - APIs and install
-License: LGPLv3
+Summary: Accounts base engine
+License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
-Source: app-accounts-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
-Requires: app-base-core
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
 
 %description
+The accounts base engine provides... blah blah blah
+
+%package core
+Summary: Accounts base engine - APIs and install
+Group: ClearOS/Libraries
+License: LGPLv3
+Requires: app-base-core
+
+%description core
 The accounts base engine provides... blah blah blah
 
 This package provides the core API and libraries.
 
 %prep
-%setup -q -n app-accounts-%{version}
+%setup -q
 %build
 
 %install
@@ -29,6 +39,9 @@ install -d -m 0755 %{buildroot}/var/clearos/accounts/drivers
 install -d -m 0755 %{buildroot}/var/clearos/accounts/plugins
 
 %post
+logger -p local6.notice -t installer 'app-accounts - installing'
+
+%post core
 logger -p local6.notice -t installer 'app-accounts-core - installing'
 
 if [ $1 -eq 1 ]; then
@@ -41,6 +54,11 @@ exit 0
 
 %preun
 if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer 'app-accounts - uninstalling'
+fi
+
+%preun core
+if [ $1 -eq 0 ]; then
     logger -p local6.notice -t installer 'app-accounts-core - uninstalling'
     [ -x /usr/clearos/apps/accounts/deploy/uninstall ] && /usr/clearos/apps/accounts/deploy/uninstall
 fi
@@ -48,6 +66,12 @@ fi
 exit 0
 
 %files
+%defattr(-,root,root)
+/usr/clearos/apps/accounts/controllers
+/usr/clearos/apps/accounts/htdocs
+/usr/clearos/apps/accounts/views
+
+%files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/accounts/packaging
 %exclude /usr/clearos/apps/accounts/tests

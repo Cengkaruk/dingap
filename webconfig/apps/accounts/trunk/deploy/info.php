@@ -26,8 +26,6 @@ $app['subcategory'] = 'Accounts Manager';
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_only'] = TRUE;
-
 $app['core_directory_manifest'] = array(
    '/var/clearos/accounts' => array(),
    '/var/clearos/accounts/drivers' => array(),
