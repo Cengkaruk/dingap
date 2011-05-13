@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-accounts
 
 %description
 User manager description blah blah blah ...
@@ -20,7 +21,7 @@ Summary: User manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-directory-manager
+Requires: app-accounts-core
 
 %description core
 User manager description blah blah blah ...
