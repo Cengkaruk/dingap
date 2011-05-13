@@ -14,6 +14,8 @@ Requires: cronie
 Requires: gnupg
 Requires: grub
 Requires: kernel >= 2.6.32
+Requires: man
+Requires: man-pages
 Requires: mdadm
 Requires: mlocate
 Requires: ntpdate
