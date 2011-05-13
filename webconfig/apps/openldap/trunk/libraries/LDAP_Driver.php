@@ -71,6 +71,7 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
+use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
 // use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 
@@ -81,6 +82,7 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
+clearos_load_library('ldap/LDAP_Engine');
 // clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
 
@@ -111,19 +113,13 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
  */
 
-class LDAP_Driver extends Daemon
+class LDAP_Driver extends LDAP_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
     const CONSTANT_BASE_DB_NUM = 3;
-
-// FIXME: move this to the "LDAP MANAGER" class
-    // Modes
-    const MODE_MASTER = 'master';
-    const MODE_SLAVE = 'slave';
-    const MODE_STANDALONE = 'standalone';
 
     // Policies
     const POLICY_LAN = 'lan';
@@ -167,7 +163,6 @@ class LDAP_Driver extends Daemon
 
     protected $ldaph = NULL;
     protected $config = NULL;
-    protected $modes = NULL;
 
     protected $file_provision_accesslog_data = NULL;
     protected $file_provision_data = NULL;
@@ -187,12 +182,6 @@ class LDAP_Driver extends Daemon
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $this->modes = array(
-            self::MODE_MASTER => lang('ldap_master'),
-            self::MODE_SLAVE => lang('ldap_slave'),
-            self::MODE_STANDALONE => lang('ldap_standalone')
-        );
 
         $this->file_provision_accesslog_data = clearos_app_base('openldap') . '/' . self::FILE_PROVISION_ACCESSLOG_DATA;
         $this->file_provision_data = clearos_app_base('openldap') . '/' . self::FILE_PROVISION_DATA;
@@ -240,32 +229,6 @@ class LDAP_Driver extends Daemon
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
-    }
-
-    /**
-     * Generates a random password.
-     *
-     * @return string random password
-     * @throws Engine_Exception
-     */
-
-    public function generate_password()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $shell = new Shell();
-            $retval = $shell->execute(self::COMMAND_OPENSSL, 'rand -base64 12', FALSE);
-            $output = $shell->get_first_output_line();
-
-            // openssl can return with exit 0 on error, 
-            if (($retval != 0) || preg_match('/\s+/', $output))
-                throw new Engine_Exception($retval . " " . $output);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
-
-        return $output;
     }
 
     /** 
@@ -397,20 +360,6 @@ class LDAP_Driver extends Daemon
         $mode = (empty($this->config['mode'])) ? '' : $this->config['mode'];
 
         return $mode;
-    }
-
-    /**
-     * Returns a list of available modes.
-     *
-     * @return array list of modes
-     * @throws Engine_Exception
-     */
-
-    public function get_modes()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->modes;
     }
 
 // FIXME
@@ -860,7 +809,6 @@ class LDAP_Driver extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! (isset($mode) && array_key_exists($mode, $this->modes)))
-            return lang('ldap_mode_is_invalid');
             return lang('ldap_mode_is_invalid');
     }
 
