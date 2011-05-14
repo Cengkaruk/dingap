@@ -81,7 +81,7 @@ class PPTPd extends ClearOS_Controller
                 $this->pptpd->set_domain($this->input->post('domain'));
                 $this->pptpd->set_wins_server($this->input->post('wins'));
                 $this->pptpd->set_dns_server($this->input->post('dns'));
-                $this->pptpd->reset();
+                $this->pptpd->reset(TRUE);
 
                 $this->page->set_status_updated();
             } catch (Exception $e) {

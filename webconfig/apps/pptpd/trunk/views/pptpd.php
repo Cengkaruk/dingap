@@ -36,6 +36,8 @@
 $this->lang->load('base');
 $this->lang->load('pptpd');
 
+echo daemonbox('pptpd');
+
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,9 +55,7 @@ echo field_input('domain', $domain, lang('pptpd_internet_domain'));
 echo field_input('dns', $dns, lang('pptpd_dns_server'));
 echo field_input('wins', $wins, lang('pptpd_wins_server'));
 
-echo button_set(
-    array(form_submit_update('submit', 'high'))
-);
+echo form_submit_update('submit', 'high');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
