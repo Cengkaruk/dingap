@@ -48,10 +48,17 @@
 #define PATH_HOSTNAME           "/bin/hostname"
 #endif
 
+#ifndef PATH_ISSUE
+#define PATH_ISSUE              "/etc/issue"
+#endif
+
+#ifndef PATH_UPTIME
+#define PATH_UPTIME             "/proc/uptime"
+#endif
+
 #include <exception>
 #include <vector>
 #include <sstream>
-#include <regex.h>
 
 #include "thread.h"
 
@@ -855,22 +862,6 @@ public:
 
 protected:
 	ccProcessPipe *process;
-};
-
-class ccRegEx
-{
-public:
-	ccRegEx(const char *expr, int nmatch = 0, int flags = REG_EXTENDED);
-	~ccRegEx();
-
-	int Execute(const char *subject);
-	const char *GetMatch(int match);
-
-protected:
-	regex_t regex;
-	size_t nmatch;
-	regmatch_t *match;
-	char **matches;
 };
 
 #endif

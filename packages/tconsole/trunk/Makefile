@@ -27,7 +27,7 @@ endif
 ifeq ($(VENDOR), commgate)
 	DEFS+=-D_VENDOR_COMMGATE
 endif
-OBJECTS=launcher.o thread.o
+OBJECTS=launcher.o thread.o util.o
 DEPS=$(patsubst %.o,%.d,$(OBJECTS))
 TARGET=launcher
 
