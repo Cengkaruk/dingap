@@ -1,0 +1,78 @@
+
+Name: app-system-services
+Group: ClearOS/Apps
+Version: 5.9.9.0
+Release: 1%{dist}
+Summary: Services Overview
+License: GPLv3
+Packager: ClearFoundation
+Vendor: ClearFoundation
+Source: %{name}-%{version}.tar.gz
+Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
+
+%description
+Services overview... blah blah blah
+
+%package core
+Summary: Services Overview - APIs and install
+Group: ClearOS/Libraries
+License: LGPLv3
+Requires: app-base-core
+
+%description core
+Services overview... blah blah blah
+
+This package provides the core API and libraries.
+
+%prep
+%setup -q
+%build
+
+%install
+mkdir -p -m 755 %{buildroot}/usr/clearos/apps/system_services
+cp -r * %{buildroot}/usr/clearos/apps/system_services/
+
+
+%post
+logger -p local6.notice -t installer 'app-system-services - installing'
+
+%post core
+logger -p local6.notice -t installer 'app-system-services-core - installing'
+
+if [ $1 -eq 1 ]; then
+    [ -x /usr/clearos/apps/system_services/deploy/install ] && /usr/clearos/apps/system_services/deploy/install
+fi
+
+[ -x /usr/clearos/apps/system_services/deploy/upgrade ] && /usr/clearos/apps/system_services/deploy/upgrade
+
+exit 0
+
+%preun
+if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer 'app-system-services - uninstalling'
+fi
+
+%preun core
+if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer 'app-system-services-core - uninstalling'
+    [ -x /usr/clearos/apps/system_services/deploy/uninstall ] && /usr/clearos/apps/system_services/deploy/uninstall
+fi
+
+exit 0
+
+%files
+%defattr(-,root,root)
+/usr/clearos/apps/system_services/controllers
+/usr/clearos/apps/system_services/htdocs
+/usr/clearos/apps/system_services/views
+
+%files core
+%defattr(-,root,root)
+%exclude /usr/clearos/apps/system_services/packaging
+%exclude /usr/clearos/apps/system_services/tests
+%dir /usr/clearos/apps/system_services
+/usr/clearos/apps/system_services/deploy
+/usr/clearos/apps/system_services/language
+/usr/clearos/apps/system_services/libraries
