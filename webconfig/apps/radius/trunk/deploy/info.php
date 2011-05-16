@@ -31,6 +31,12 @@ $app['subcategory'] = lang('base_subcategory_infrastructure');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'app-accounts',
+);
+
+$app['core_requires'] = array(
+    'app-network-core',
+    'app-accounts-core',
     'freeradius',
     'freeradius-ldap',
     'freeradius-utils',

@@ -51,7 +51,7 @@ $headers = array(
 // Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array(anchor_add('/app/radius/add/'));
+$anchors = array(anchor_add('/app/radius/settings/add/'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -60,12 +60,12 @@ $anchors = array(anchor_add('/app/radius/add/'));
 foreach ($clients as $client => $details) {
 
     $item['title'] = $details['nickname'];
-    $item['action'] = '/app/radius/edit/' . $client;
+    $item['action'] = '/app/radius/settings/edit/' . $client;
 
     $item['anchors'] = button_set(
         array(
-            anchor_edit('/app/radius/edit/' . $client),
-            anchor_delete('/app/radius/delete/' . $client)
+            anchor_edit('/app/radius/settings/edit/' . $client),
+            anchor_delete('/app/radius/settings/delete/' . $client)
         )
     );
 
