@@ -1,15 +1,15 @@
 <?php
 
 /**
- * OpenLDAP plugins controller.
+ * Accounts info controller.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    Accounts
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,21 +34,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * OpenLDAP plugins controller.
+ * Accounts info controller.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    Accounts
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Plugins extends ClearOS_Controller
+class Status extends ClearOS_Controller
 {
     /**
-     * Plugins default controller
+     * Extensions default controller
      *
      * @return view
      */
@@ -59,21 +59,53 @@ class Plugins extends ClearOS_Controller
         //------------------
 
         $this->load->factory('accounts/Accounts_Factory');
-        $this->lang->load('accounts');
+        $this->lang->load('base');
 
         // Load view data
         //---------------
 
         try {
-            $data['plugins'] = $this->accounts->get_plugins();
+            $is_initialized = $this->accounts->is_initialized();
+            $is_available = $this->accounts->is_available();
         } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
+            $data['code'] = 1;
+            $data['error_message'] = clearos_exception_message($e);
         }
 
         // Load views
         //-----------
 
-        $this->page->view_form('plugins', $data, lang('accounts_plugins'));
+        if (!$is_initialized || !$is_available)
+            $this->page->view_form('accounts/status', $data, lang('base_status'));
+    }
+
+    /**
+     * Returns accounts information. 
+     */
+
+    function get_info()
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->factory('accounts/Accounts_Factory');
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['is_initialized'] = $this->accounts->is_initialized();
+            $data['is_available'] = $this->accounts->is_available();
+//            $data['is_initialized'] = FALSE;
+        } catch (Exception $e) {
+            $data['code'] = 1;
+            $data['error_message'] = clearos_exception_message($e);
+        }
+
+        // Return status message
+        //----------------------
+
+        $this->output->set_header("Content-Type: application/json");
+        $this->output->set_output(json_encode($data));
     }
 }

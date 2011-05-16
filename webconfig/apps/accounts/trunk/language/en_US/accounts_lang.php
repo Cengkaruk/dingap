@@ -25,6 +25,7 @@ $lang['accounts_bind_dn'] = 'LDAP Bind DN';
 $lang['accounts_bind_password'] = 'LDAP Bind Password';
 
 // New
+$lang['accounts_account_manager_status'] = 'Account Manager Status';
 $lang['accounts_state'] = 'State';
 $lang['accounts_directory_mode_is_invalid'] = 'Directory mode is invalid';
 $lang['accounts_directory_driver_is_invalid'] = 'Directory driver is invalid';

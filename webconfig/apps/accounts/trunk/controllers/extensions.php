@@ -58,14 +58,14 @@ class Extensions extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('openldap_directory/Accounts_Driver');
+        $this->load->factory('accounts/Accounts_Factory');
         $this->lang->load('accounts');
 
         // Load view data
         //---------------
 
         try {
-            $data['extensions'] = $this->accounts_driver->get_extensions();
+            $data['extensions'] = $this->accounts->get_extensions();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

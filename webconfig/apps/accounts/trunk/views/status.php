@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Accounts controller.
+ * Accounts plugins view.
  *
- * @category   Apps
+ * @category   ClearOS
  * @package    Accounts
- * @subpackage Controllers
+ * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -25,38 +25,33 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
+//  
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// C L A S S
+// Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Accounts controller.
- *
- * @category   Apps
- * @package    Accounts
- * @subpackage Controllers
- * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
- */
+$this->lang->load('accounts');
+$this->lang->load('base');
 
-class Accounts extends ClearOS_Controller
-{
-	/**
-	 * Accounts overview.
-	 */
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
 
-	function index()
-	{
-        $this->load->language('accounts');
+echo form_open('accounts/info');
+echo form_header(lang('accounts_account_manager_status'));
 
-        $views = array('accounts/status', 'accounts/plugins', 'accounts/extensions');
+///////////////////////////////////////////////////////////////////////////////
+// Form Fields and Buttons
+///////////////////////////////////////////////////////////////////////////////
 
-        $this->page->view_forms($views, 'Plugins and Extensions'); // FIXME: translate
-	}
-}
+echo field_view(lang('base_status'), '', array('id' => 'accounts_status'));
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_footer();
+echo form_close();
