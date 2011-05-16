@@ -48,65 +48,23 @@
 class PPTPd extends ClearOS_Controller
 {
     /**
-     * PPTPd default controller
+     * PPTPd server summary view.
      *
      * @return view
      */
 
     function index()
     {
-        // Load dependencies
-        //------------------
-
-        $this->load->library('pptpd/PPTPd');
-        $this->lang->load('pptpd');
-
-        // Set validation rules
-        //---------------------
-         
-        $this->form_validation->set_policy('remote_ip', 'pptpd/PPTPd', 'validate_ip_range');
-        $this->form_validation->set_policy('local_ip', 'pptpd/PPTPd', 'validate_ip_range');
-        $this->form_validation->set_policy('domain', 'pptpd/PPTPd', 'validate_domain');
-        $this->form_validation->set_policy('wins', 'pptpd/PPTPd', 'validate_wins_server');
-        $this->form_validation->set_policy('dns', 'pptpd/PPTPd', 'validate_dns_server');
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                $this->pptpd->set_remote_ip($this->input->post('remote_ip'));
-                $this->pptpd->set_local_ip($this->input->post('local_ip'));
-                $this->pptpd->set_domain($this->input->post('domain'));
-                $this->pptpd->set_wins_server($this->input->post('wins'));
-                $this->pptpd->set_dns_server($this->input->post('dns'));
-                $this->pptpd->reset(TRUE);
-
-                $this->page->set_status_updated();
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load view data
+        // Load libraries
         //---------------
 
-        try {
-            $data['local_ip'] = $this->pptpd->get_local_ip();
-            $data['remote_ip'] = $this->pptpd->get_remote_ip();
-            $data['domain'] = $this->pptpd->get_domain();
-            $data['wins'] = $this->pptpd->get_wins_server();
-            $data['dns'] = $this->pptpd->get_dns_server();
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
+        $this->lang->load('pptpd');
 
         // Load views
         //-----------
 
-        $this->page->view_form('pptpd', $data, lang('pptpd_pptp_server'));
+        $views = array('base/daemon/index/pptpd', 'pptpd/settings');
+
+        $this->page->view_forms($views, lang('pptpd_pptpd_server'));
     }
 }
