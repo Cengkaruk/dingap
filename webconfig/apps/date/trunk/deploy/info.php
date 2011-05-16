@@ -18,7 +18,7 @@ $app['description'] = lang('date_app_long_description');
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('date_time_and_date');
+$app['name'] = lang('date_date_and_time');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
 
