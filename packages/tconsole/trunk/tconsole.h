@@ -695,13 +695,13 @@ class ccThreadUpdate;
 class ccProcessExec;
 class ccProcessPipe;
 
-class ccLauncher : public ccWindow
+class ccConsole : public ccWindow
 {
 public:
-	ccLauncher();
-	~ccLauncher();
+	ccConsole();
+	~ccConsole();
 
-	static ccLauncher *Instance(void);
+	static ccConsole *Instance(void);
 
 	int EventLoop(void);
 	bool HandleEvent(ccEvent *event);
@@ -722,7 +722,7 @@ protected:
 	bool sleep_mode;
 	ccMutex ncurses_lock;
 	ccMutex timer_lock;
-	static ccLauncher *instance;
+	static ccConsole *instance;
 	ccThreadUpdate *update_thread;
 	ccThreadLogin *login_thread;
 	string hostname;

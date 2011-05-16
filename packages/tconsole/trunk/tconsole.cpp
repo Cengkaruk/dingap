@@ -21,7 +21,7 @@
 #include <ncursesw/ncurses.h>
 
 #include "config.h"
-#include "launcher.h"
+#include "tconsole.h"
 #include "thread.h"
 #include "util.h"
 
@@ -39,7 +39,7 @@ static bool idle_pause = false;
 
 using namespace std;
 
-ccLauncher *ccLauncher::instance = NULL;
+ccConsole *ccConsole::instance = NULL;
 ccEventServer *ccEventServer::instance = NULL;
 
 void signal_handler(int sig)
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     ccThreadEvent *event_thread = new ccThreadEvent();
     event_thread->Run();
 
-    ccLauncher *launcher = new ccLauncher();
+    ccConsole *console = new ccConsole();
 
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 
     try
     {
-        exit_code = launcher->EventLoop();
+        exit_code = console->EventLoop();
     }
     catch(ccSingleInstanceException &e)
     {
@@ -162,7 +162,7 @@ int main(int argc, char *argv[])
         exit_code = 1;
     }
 
-    delete launcher;
+    delete console;
 
     event_thread->Destroy();
     event_thread->Wait();
@@ -176,22 +176,22 @@ ccEvent::ccEvent(ccEventType type, ccEventClient *src, ccEventClient *dst)
     : type(type), src(src), dst(dst) { }
 
 ccEventOutput::ccEventOutput(const string &text, ccEventClient *src)
-    : ccEvent(ccEVT_OUTPUT, src, ccLauncher::Instance()), text(text) { }
+    : ccEvent(ccEVT_OUTPUT, src, ccConsole::Instance()), text(text) { }
 
 ccEventOutput::ccEventOutput(ostringstream &stream, ccEventClient *src)
-    : ccEvent(ccEVT_OUTPUT, src, ccLauncher::Instance())
+    : ccEvent(ccEVT_OUTPUT, src, ccConsole::Instance())
 {
     text = stream.str();
 }
 
 ccEventFault::ccEventFault(const string &reason)
-    : ccEvent(ccEVT_FAULT, NULL, ccLauncher::Instance()), reason(reason) { }
+    : ccEvent(ccEVT_FAULT, NULL, ccConsole::Instance()), reason(reason) { }
 
 ccEventKeyPress::ccEventKeyPress(int key, ccEventClient *src)
     : ccEvent(ccEVT_KEY_PRESS, src, NULL), key(key) { }
 
 ccEventSignal::ccEventSignal(int sig)
-    : ccEvent(ccEVT_SIGNAL, NULL, ccLauncher::Instance()), sig(sig) { }
+    : ccEvent(ccEVT_SIGNAL, NULL, ccConsole::Instance()), sig(sig) { }
 
 ccEventClient::ccEventClient(void) { }
 
@@ -256,10 +256,10 @@ void ccEventServer::DispatchEvents(void)
             }
         }
 
-        if(!handled && ccLauncher::Instance())
+        if(!handled && ccConsole::Instance())
         {
             queue_lock.Unlock();
-            ccLauncher::Instance()->HandleEvent(queue[i]);
+            ccConsole::Instance()->HandleEvent(queue[i]);
             queue_lock.Lock();
         }
 
@@ -1220,12 +1220,12 @@ ccMenuId ccMenu::GetSelected(void)
 ccMenuItem::ccMenuItem(ccMenuId id, const string &title, int hotkey, const string &hotkey_title)
     : id(id), title(title), hotkey(hotkey), hotkey_title(hotkey_title), selected(false), visible(true) { }
 
-ccLauncher::ccLauncher()
+ccConsole::ccConsole()
     : ccWindow(NULL, ccSize(0, 0, 80, 24)),
     run(true), proc_exec(NULL), proc_pipe(NULL),
     dialog(NULL), login(NULL), sleep_mode(false)
 {
-    if(instance) throw ccSingleInstanceException("ccLauncher");
+    if(instance) throw ccSingleInstanceException("ccConsole");
 
     instance = this;
 
@@ -1296,7 +1296,7 @@ ccLauncher::ccLauncher()
     login = new ccDialogLogin(this);
 }
 
-ccLauncher::~ccLauncher()
+ccConsole::~ccConsole()
 {
     if(instance == this)
     {
@@ -1320,12 +1320,12 @@ ccLauncher::~ccLauncher()
     }
 }
 
-ccLauncher *ccLauncher::Instance(void)
+ccConsole *ccConsole::Instance(void)
 {
     return instance;
 }
 
-int ccLauncher::EventLoop(void)
+int ccConsole::EventLoop(void)
 {
     int c;
     ccEventServer *server;
@@ -1396,7 +1396,7 @@ int ccLauncher::EventLoop(void)
     return 0;
 }
 
-bool ccLauncher::HandleEvent(ccEvent *event)
+bool ccConsole::HandleEvent(ccEvent *event)
 {
     ccEventKeyPress *event_keypress;
     ccEventSignal *event_signal;
@@ -1456,7 +1456,7 @@ bool ccLauncher::HandleEvent(ccEvent *event)
             }
             else if(menu->GetSelected() == ccMENU_ID_LOGOUT)
             {
-                ccLauncher::Instance()->ResetActivityTimer();
+                ccConsole::Instance()->ResetActivityTimer();
                 return true;
             }
             
@@ -1670,7 +1670,7 @@ bool ccLauncher::HandleEvent(ccEvent *event)
     return false;
 }
 
-void ccLauncher::Draw(void)
+void ccConsole::Draw(void)
 {
     if(idle_pause || !IsVisible()) wclear(window);
     if (!IsVisible()) return;
@@ -1742,13 +1742,13 @@ void ccLauncher::Draw(void)
     Refresh();
 }
 
-void ccLauncher::Refresh(void)
+void ccConsole::Refresh(void)
 {
     ccWindow::Refresh();
     if(!isendwin()) doupdate();
 }
 
-void ccLauncher::Resize(void)
+void ccConsole::Resize(void)
 {
     struct winsize ws;
 
@@ -1773,7 +1773,7 @@ void ccLauncher::Resize(void)
     Draw();
 }
 
-bool ccLauncher::UpdateGraphicalConsoleItems(void)
+bool ccConsole::UpdateGraphicalConsoleItems(void)
 {
     menu->SetItemVisible(ccMENU_ID_CON_GUI, false);
     menu->SetItemVisible(ccMENU_ID_CON_GUI_INSTALL, true);
@@ -1790,7 +1790,7 @@ bool ccLauncher::UpdateGraphicalConsoleItems(void)
     return false;
 }
 
-void ccLauncher::LaunchProcess(ccMenuId id)
+void ccConsole::LaunchProcess(ccMenuId id)
 {
     string path;
     vector<string> argv;
