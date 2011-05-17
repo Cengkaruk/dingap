@@ -25,6 +25,13 @@ $lang['accounts_bind_dn'] = 'LDAP Bind DN';
 $lang['accounts_bind_password'] = 'LDAP Bind Password';
 
 // New
+$lang['accounts_initialization'] = 'Initialization';
+$lang['accounts_account_information_is_online'] = 'Accounts system is online.';
+$lang['accounts_account_information_is_offline'] = 'Account system is offline.';
+$lang['accounts_account_system_is_initializing'] = 'Account system is initializing.';
+$lang['accounts_account_system_is_not_initialized'] = 'Account system is not initialized.'; 
+$lang['accounts_initialize_now'] = 'Initialize Now';
+
 $lang['accounts_account_manager_status'] = 'Account Manager Status';
 $lang['accounts_state'] = 'State';
 $lang['accounts_directory_mode_is_invalid'] = 'Directory mode is invalid';

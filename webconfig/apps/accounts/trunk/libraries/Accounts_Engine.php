@@ -90,6 +90,11 @@ class Accounts_Engine extends Engine
     const MODE_SLAVE = 'slave';
     const MODE_STANDALONE = 'standalone';
 
+    const STATUS_INITIALIZING = 'initializing';
+    const STATUS_UNINITIALIZED = 'uninitialized';
+    const STATUS_OFFLINE = 'offline';
+    const STATUS_ONLINE = 'online';
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////

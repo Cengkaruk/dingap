@@ -44,10 +44,19 @@ echo form_open('accounts/info');
 echo form_header(lang('accounts_account_manager_status'));
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form Fields and Buttons
+// Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_view(lang('base_status'), '', array('id' => 'accounts_status'));
+echo field_view('', '', array('id' => 'accounts_status'));
+
+echo "<div id='accounts_initialization'>";
+// echo anchor_custom('/app/accounts/initialize', lang('accounts_initialize_now'), 'high');
+echo "<p>Two options will be available in 6.0.0 for initializing accounts:</p>"; 
+echo "<ul>";
+echo "<li>Native ClearOS Accounts</li>";
+echo "<li>Active Directory Connector</li>";
+echo "</ul>";
+echo "</div>";
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

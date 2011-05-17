@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\accounts\Accounts_Engine as Accounts;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -53,7 +59,7 @@ class Status extends ClearOS_Controller
      * @return view
      */
 
-    function index()
+    function index($always_show = FALSE)
     {
         // Load dependencies
         //------------------
@@ -65,18 +71,17 @@ class Status extends ClearOS_Controller
         //---------------
 
         try {
-            $is_initialized = $this->accounts->is_initialized();
-            $is_available = $this->accounts->is_available();
+            $status = $this->accounts->get_system_status();
         } catch (Exception $e) {
-            $data['code'] = 1;
-            $data['error_message'] = clearos_exception_message($e);
+            $this->page->view_exception($e);
+            return;
         }
 
         // Load views
         //-----------
 
-        if (!$is_initialized || !$is_available)
-            $this->page->view_form('accounts/status', $data, lang('base_status'));
+        if (($status !== Accounts::STATUS_ONLINE) || $always_show)
+            $this->page->view_form('accounts/status', array(), lang('base_status'));
     }
 
     /**
@@ -94,9 +99,7 @@ class Status extends ClearOS_Controller
         //---------------
 
         try {
-            $data['is_initialized'] = $this->accounts->is_initialized();
-            $data['is_available'] = $this->accounts->is_available();
-//            $data['is_initialized'] = FALSE;
+            $data['status'] = $this->accounts->get_system_status();
         } catch (Exception $e) {
             $data['code'] = 1;
             $data['error_message'] = clearos_exception_message($e);

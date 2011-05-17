@@ -40,7 +40,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
+clearos_load_language('accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // J A V A S C R I P T
@@ -50,7 +50,8 @@ header('Content-Type:application/x-javascript');
 ?>
 
 $(document).ready(function() {
-    $("#accounts_status").html('<div class="theme-loading"></div>');
+    $("#accounts_status").html('');
+    $("#accounts_initialization").hide();
 
     getAccountsInfo();
 
@@ -72,12 +73,15 @@ $(document).ready(function() {
     function showAccountsInfo(payload) {
         var status_output = '';
 
-        if (! payload.is_initialized) {
-            status_output = '<div class="theme-loading"></div> ' + '<?php echo lang("accounts_initializing_system"); ?>';
-        } else if (! payload.is_available) {
-            status_output = '<?php echo lang("accounts_account_information_is_not_available"); ?>';
+        if (payload.status == 'uninitialized') {
+            status_output = '<?php echo lang("accounts_account_system_is_not_initialized"); ?>';
+            $("#accounts_initialization").show();
+        } else if (payload.status == 'offline') {
+            status_output = '<?php echo lang("accounts_account_information_is_offline"); ?>';
+            $("#accounts_initialization").hide();
         } else {
-            status_output = '<?php echo lang("accounts_running"); ?>';
+            status_output = '<?php echo lang("accounts_account_information_is_online"); ?>';
+            $("#accounts_initialization").hide();
         }
 
         $("#accounts_status").html(status_output);
