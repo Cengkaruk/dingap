@@ -21,14 +21,7 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 $app['name'] = 'OpenLDAP Directory';
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
-
-/////////////////////////////////////////////////////////////////////////////
-// Controllers
-/////////////////////////////////////////////////////////////////////////////
-
-$app['controllers']['openldap_directory']['title'] = $app['name'];
-$app['controllers']['extensions']['title'] = lang('openldap_directory_extensions');
-$app['controllers']['plugins']['title'] = lang('openldap_directory_plugins');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

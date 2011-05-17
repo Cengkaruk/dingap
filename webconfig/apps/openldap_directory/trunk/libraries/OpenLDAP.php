@@ -59,7 +59,6 @@ clearos_load_language('openldap_directory');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\Nslcd as Nslcd;
@@ -68,7 +67,6 @@ use \clearos\apps\openldap_directory\Utilities as Utilities;
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
-clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/Nslcd');
@@ -103,39 +101,9 @@ class OpenLDAP extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const CONSTANT_BASE_DB_NUM = 3;
-
-    // Commands
+    // General
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
-    const COMMAND_LDAPSETUP = '/usr/sbin/ldapsetup';
-    const COMMAND_LDAPSYNC = '/usr/sbin/ldapsync';
-    const COMMAND_OPENSSL = '/usr/bin/openssl';
-    const COMMAND_SLAPADD = '/usr/sbin/slapadd';
-    const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
-    const COMMAND_SLAPPASSWD = '/usr/sbin/slappasswd';
-
-    // Files and paths
-    const FILE_DBCONFIG = '/var/lib/ldap/DB_CONFIG';
-    const FILE_DBCONFIG_ACCESSLOG = '/var/lib/ldap/accesslog/DB_CONFIG';
-    const FILE_LDAP_CONFIG = '/etc/openldap/ldap.conf';
-    const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
-    const FILE_SYSCONFIG = '/etc/sysconfig/ldap';
-    const FILE_DATA = '/etc/openldap/provision.ldif';
     const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
-
-    const PATH_LDAP = '/var/lib/ldap';
-    const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
-
-// FIXME: Review these -- moved from OpenLDAP class
-    const FILE_LDIF_BACKUP = '/etc/openldap/backup.ldif';
-    const FILE_SLAPD_CONFIG_CONFIG = '/etc/openldap/slapd.conf';
-    const PATH_LDAP_BACKUP = '/usr/share/system/modules/ldap';
-    const FILE_LDIF_NEW_DOMAIN = '/etc/openldap/provision/newdomain.ldif';
-    const FILE_LDIF_OLD_DOMAIN = '/etc/openldap/provision/olddomain.ldif';
-
-    // Internal configuration
-    const PATH_SYNCHRONIZE = 'config/synchronize';
-    const FILE_CONFIG = 'config/config.php';
 
     // Containers
     const SUFFIX_COMPUTERS = 'ou=Computers,ou=Accounts';
@@ -147,7 +115,7 @@ class OpenLDAP extends Engine
     const CN_MASTER = 'cn=Master';
 
     // Status codes for username/group/alias uniqueness
-// FIXME: might return just strings instead
+    // FIXME: might return just strings instead
     const STATUS_ALIAS_EXISTS = 'alias';
     const STATUS_GROUP_EXISTS = 'group';
     const STATUS_USERNAME_EXISTS = 'user';
@@ -158,17 +126,6 @@ class OpenLDAP extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     protected $ldaph = NULL;
-    protected $config = NULL;
-
-    protected $file_config = NULL;
-
-    protected $file_provision_accesslog_data = NULL;
-    protected $file_provision_data = NULL;
-    protected $file_provision_dbconfig = NULL;
-    protected $file_provision_ldap_config = NULL;
-    protected $file_provision_slapd_config = NULL;
-    protected $file_provision_slapd_config_replicate = NULL;
-    protected $path_synchronize = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -375,231 +332,32 @@ class OpenLDAP extends Engine
     }
 
     /**
-     * Initializes the LDAP database in master mode.
-     *
-     * @param string $mode LDAP server mode
-     * @param string $domain domain name
-     * @param string $password bind DN password
-     * @param boolean $start starts LDAP after initialization
-     * @param boolean $force forces initialization even if LDAP server already has data
+     * Initializes the OpenLDAP accounts system.
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function initialize_master($domain, $password = NULL, $force = FALSE, $start = TRUE)
+    public function initialize()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $options['force'] = $force;
-        $options['start'] = $start;
-
-        if (empty($password))
-            $password = Utilities::generate_password();
-
-        $this->_initialize(Accounts_Driver::MODE_MASTER, $domain, $password, $options);
-    }
-
-    /**
-     * Initializes the LDAP database in slave mode.
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function initialize_slave($domain, $password, $master_hostname, $force = FALSE, $start = TRUE)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $options['force'] = $force;
-        $options['start'] = $start;
-        $options['master_hostname'] = $master_hostname;
-
-        $this->_initialize(Accounts_Driver::MODE_SLAVE, $domain, $password, $options);
-    }
-
-    /**
-     * Initializes the LDAP database in standalone mode.
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function initialize_standalone($domain, $password = NULL, $force = FALSE, $start = TRUE)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $options['force'] = $force;
-        $options['start'] = $start;
-
-        if (empty($password))
-            $password = Utilities::generate_password();
-
-        $this->_initialize(Accounts_Driver::MODE_STANDALONE, $domain, $password, $options);
-    }
-
-    /**
-     * Initialized LDAP system.
-     *
-     * @param string $mode LDAP server mode
-     * @param string $domain domain name
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function run_initialize($mode, $domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->IsInitialized())
-            return;
-
-        $options['stdin'] = TRUE;
-        $options['background'] = TRUE;
-
-        $password = Utilities::generate_password();
-
-        $shell = new Shell();
-        $shell->Execute(self::COMMAND_LDAPSETUP, "-r $mode -d $domain -p $password", TRUE, $options);
-    }
-
-    /**
-     * Changes base domain used in directory
-     *
-     * @param string $domain domain
-     * @param boolean $background run in background
-     *
-     * @return void
-     */
-
-    public function set_domain($domain, $background = FALSE)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: split code from OpenLDAP driver
+        // Check underlying OpenLDAP configuration
+        //----------------------------------------
 
         $ldap = new LDAP_Driver();
-        $ldap->set_domain($domain, $background);
-    }
 
-    /**
-     * Restarts the relevant daemons in a sane order.
-     *
-     * @return void
-     */
-
-    public function synchronize()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        // TODO: review
-
-        $ldap = new LDAP_Driver();
-        $ldap->synchronize();
-
-        $nslcd = new Nslcd();
-        $nslcd->reset();
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // V A L I D A T I O N
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validates domain.
-     *
-     * @param string $domain domain
-     *
-     * @return string error message if domain is invalid
-     */
-
-    public function validate_domain($domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! Network_Utils::is_valid_domain($domain))
-            return lang('openldap_domain_is_invalid');
-    }
-
-    /**
-     * Validates LDAP mode.
-     *
-     * @param string $mode LDAP mode
-     *
-     * @return string error message if LDAP mode is invalid
-     */
-
-    public function validate_mode($mode)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (isset($mode) && array_key_exists($mode, $this->modes))
-            return TRUE;
-        else
-            return FALSE;
-    }
-
-    /**
-     * Validates LDAP password.
-     *
-     * @param string $password LDAP password
-     *
-     * @return string error message if LDAP password is invalid
-     */
-
-    public function validate_password($password)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // FIXME
-        if (empty($password))
-            return lang('base_password_is_invalid');
-    }
-
-    /**
-     * Validates security policy.
-     *
-     * @param string $policy policy
-     *
-     * @return string error message if security is invalid
-     */
-
-    public function validate_security_policy($policy)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (($policy !== Accounts_Driver::POLICY_LOCALHOST) && ($policy !== Accounts_Driver::POLICY_LAN))
-            return lang('openldap_security_policy_is_invalid');
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E  M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Common initialization routine for the LDAP modes.
-     *
-     * @param string $mode LDAP server mode
-     * @param string $domain domain name
-     * @param string $password bind DN password
-     * @param options options array depending on mode
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    protected function _initialize($mode, $domain, $password, $options)
-    {
-        clearos_profile(__METHOD__, __LINE__);
+        // FIXME:
+        // $status = $ldap->get_system_status()
+        // if ($status == unitialized)
 
         $this->_initialize_authconfig();
         $this->_remove_overlaps();
-        $this->synchronize();
+        // FIXME: re-enable? $this->synchronize();
 
         // Initialize Samba elements in LDAP
         //----------------------------------
 
-        if ($mode !== Accounts_Driver::MODE_SLAVE) {
 /*
         // FIXME
             if (!$samba->IsDirectoryInitialized()) {
@@ -607,13 +365,33 @@ class OpenLDAP extends Engine
                 $samba->InitializeDirectory($workgroup);
             }
 */
-        }
 
-        $nslcd = new Nslcd();
-        $nslcd->set_boot_state(TRUE);
-
+        $this->_initialize_caching();
         $this->_set_initialized();
     }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates ID.
+     *
+     * @param string $id ID
+     *
+     * @return string error message if ID is invalid
+     */
+
+    public function validate_id($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // FIXME
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
     /**
      * Initializes authconfig.
@@ -631,6 +409,26 @@ class OpenLDAP extends Engine
             '--enableshadow --enablemd5 --enableldap --enableldapauth --update', 
             TRUE
         );
+    }
+
+    /**
+     * Initializes authentication caching.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _initialize_caching()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $nslcd = new Nslcd();
+            $nslcd->set_boot_state(TRUE);
+            $nslcd->set_running_state(TRUE);
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
     }
 
     /**
