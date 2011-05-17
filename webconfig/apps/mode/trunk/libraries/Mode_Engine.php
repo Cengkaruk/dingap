@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Mode class.
+ * Mode engine class.
  *
  * @category   Apps
  * @package    Mode
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2011 ClearFoundation
+ * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/mode/
  */
@@ -67,28 +67,26 @@ clearos_load_library('base/File');
 //-----------
 
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
-use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/File_Not_Found_Exception');
-clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Mode class.
+ * Mode engine class.
  *
  * @category   Apps
  * @package    Mode
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2011 ClearFoundation
+ * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/mode/
  */
 
-class Mode extends Engine
+class Mode_Engine extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -98,22 +96,25 @@ class Mode extends Engine
 
     const MODE_SIMPLE_MASTER = 'simple_master';
     const MODE_SIMPLE_SLAVE = 'simple_slave';
+    const MODE_MASTER = 'master';
+    const MODE_SLAVE = 'slave';
     const MODE_STANDALONE = 'standalone';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $is_loaded = FALSE;
-    protected $config = array();
     protected $modes = array();
+    protected $is_loaded = FALSE;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Mode constructor.
+     * Mode engine constructor.
+     *
+     * @param string $daemon daemon
      */
 
     public function __construct()
@@ -123,6 +124,8 @@ class Mode extends Engine
         $this->modes = array(
             self::MODE_SIMPLE_MASTER => lang('mode_simple_master'),
             self::MODE_SIMPLE_SLAVE => lang('mode_simple_slave'),
+            self::MODE_MASTER => lang('mode_master'),
+            self::MODE_SLAVE => lang('mode_slave'),
             self::MODE_STANDALONE => lang('mode_standalone')
         );
     }
@@ -245,11 +248,12 @@ class Mode extends Engine
         $file = new File(self::FILE_CONFIG);
 
         if (! $file->exists())
-            $file->create("root", "root", "0644"); 
+            $file->create("root", "root", "0644");
 
         $match = $file->replace_lines("/^$key\s*=\s*/", "$key = $value\n");
 
         if (!$match)
             $file->add_lines("$key = $value\n");
     }
+
 }

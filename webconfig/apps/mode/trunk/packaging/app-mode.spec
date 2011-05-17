@@ -10,6 +10,7 @@ Vendor: ClearFoundation
 Source: app-mode-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
+Requires: system-mode-driver
 
 %description
 Translation missing (mode_app_long_description)
