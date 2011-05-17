@@ -1,9 +1,28 @@
 <?php
 
-$lang['ftp_server_name'] = 'Server Name';
-$lang['ftp_max_instances'] = 'Maximum Instances';
-$lang['ftp_port'] = 'Port';
-$lang['ftp_ftp_server'] = 'FTP Server';
-$lang['ftp_server_name_is_invalid'] = 'Server name is invalid.';
-$lang['ftp_maximum_instances_is_invalid'] = 'Maximum instances is invalid.';
-$lang['ftp_port_is_invalid'] = 'Server name is invalid.';
+$lang['raid_array'] = 'Array';
+$lang['raid_clean'] = 'Clean';
+$lang['raid_controller'] = 'Controller';
+$lang['raid_degraded'] = 'Degraded';
+$lang['raid_device'] = 'Device';
+$lang['raid_disk'] = 'Disk';
+$lang['raid_email_notification'] = 'RAID Status Notification';
+$lang['raid_failed'] = 'failed';
+$lang['raid_hardware'] = 'Hardware RAID';
+$lang['raid_level'] = 'Level';
+$lang['raid_logical_disk'] = 'Logical Disk';
+$lang['raid_mount'] = 'Mount';
+$lang['raid_port'] = 'Port';
+$lang['raid_removed'] = 'removed';
+$lang['raid_size'] = 'Size';
+$lang['raid_slot'] = 'Slot';
+$lang['raid_software'] = 'Software RAID';
+$lang['raid_syncing'] = 'Sync in progress';
+$lang['raid_sync_pending'] = 'Sync pending';
+$lang['raid_unit'] = 'Unit';
+$lang['raid_unknown'] = 'Unknown';
+$lang['raid_vendor_3ware'] = '3Ware';
+$lang['raid_vendor_linux'] = 'Linux';
+$lang['raid_vendor_lsi'] = 'LSI Logic';
+// vi: syntax=php ts=4
+?>
