@@ -325,7 +325,7 @@ echo infobox_highlight("This is some bit of information worth highlighting.");
 ///////////////////////////////////////////////////////////////////////////////
 // Dialog Box
 ///////////////////////////////////////////////////////////////////////////////
-
+echo "<br><br>";
 echo "
 <h2>Dialog Box</h2>
 <p>A dialog box is used to display a single question to the end user.</p>
