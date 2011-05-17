@@ -127,7 +127,7 @@ class Raid_Software extends Raid
 
 		$myarrays = Array();
 
-		$this->_GetMdStat();
+		$this->_get_md_stat();
 
 		$dev = '';
 		$physical_devices = Array();
@@ -212,9 +212,9 @@ class Raid_Software extends Raid
 					$is_first = false;
 					continue;
 				}
-				$shell = new ShellExec;
+				$shell = new Shell();
 				$args = 'if=' . $copy_from . ' of=' . $dev . ' bs=512 count=1';
-				$retval = $shell->Execute(self::CMD_DD, $args, true);
+				$retval = $shell->execute(self::CMD_DD, $args, true);
 			}
 			$this->_SetParameter('copy_mbr', '1');
 			$this->loaded = false;
@@ -235,10 +235,10 @@ class Raid_Software extends Raid
 	{
         clearos_profile(__METHOD__, __LINE__);
 
-		$shell = new ShellExec;
+		$shell = new Shell();
 		$args = '-r ' . $array . ' ' . $device;
 		$options['env'] = "LANG=en_US";
-		$retval = $shell->Execute(self::CMD_MDADM, $args, true, $options);
+		$retval = $shell->execute(self::CMD_MDADM, $args, true, $options);
 		if ($retval != 0) {
 			$errstr = $shell->GetLastOutputLine();
 			throw new EngineException($errstr, COMMON_WARNING);
@@ -261,10 +261,10 @@ class Raid_Software extends Raid
 	{
         clearos_profile(__METHOD__, __LINE__);
 
-		$shell = new ShellExec;
+		$shell = new Shell();
 		$args = '-a ' . $array . ' ' . $device;
 		$options['env'] = "LANG=en_US";
-		$retval = $shell->Execute(self::CMD_MDADM, $args, true, $options);
+		$retval = $shell->execute(self::CMD_MDADM, $args, true, $options);
 		if ($retval != 0) {
 			$errstr = $shell->GetLastOutputLine();
 			throw new EngineException($errstr, COMMON_WARNING);
@@ -282,14 +282,14 @@ class Raid_Software extends Raid
 	/**
 	 * @access private
 	 */
-	function _GetMdStat()
+	function _get_md_stat()
 	{
         clearos_profile(__METHOD__, __LINE__);
 
-		$shell = new ShellExec;
+		$shell = new Shell();
 		$args = self::FILE_MDSTAT;
 		$options['env'] = "LANG=en_US";
-		$retval = $shell->Execute(self::CMD_CAT, $args, false, $options);
+		$retval = $shell->execute(self::CMD_CAT, $args, false, $options);
 		if ($retval != 0) {
 			$errstr = $shell->GetLastOutputLine();
 			throw new EngineException($errstr, COMMON_WARNING);

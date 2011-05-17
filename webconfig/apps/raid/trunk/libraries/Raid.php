@@ -57,9 +57,11 @@ clearos_load_language('raid');
 
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
+use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
+clearos_load_library('base/Shell');
 
 // Exceptions
 //-----------
@@ -145,9 +147,9 @@ class Raid extends Daemon
      * @return Class
      */
 
-    static function Create()
+    static function create()
     {
-        $shell = new ShellExec();
+        $shell = new Shell();
         $options['env'] = "LANG=en_US";
         $found = false;
         $type = array (
@@ -214,13 +216,13 @@ class Raid extends Daemon
         }
 
         if ($type['software']) {
-            require_once(COMMON_CORE_DIR . '/api/RaidSoftware.class.php');
+            include_once clearos_app_base('raid') . '/libraries/Raid_Software.php';
             return new Raid_Software();
         } else if ($type['3ware']) {
             require_once(COMMON_CORE_DIR . '/api/Raid3ware.class.php');
             return new Raid_3Ware();
         } else if ($type['lsi']) {
-            require_once(COMMON_CORE_DIR . '/api/RaidLsi.class.php');
+            include_once clearos_app_base('raid') . '/libraries/Raid_Lsi.php';
             return new Raid_Lsi();
         }
 
@@ -237,8 +239,7 @@ class Raid extends Daemon
 
 	function get_type()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		return $this->type;
 	}
@@ -252,8 +253,7 @@ class Raid extends Daemon
 
 	function get_interactive()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		return $this->interactive;
 	}
@@ -267,8 +267,7 @@ class Raid extends Daemon
 
 	function get_type_details()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		switch ($this->type) {
 
@@ -310,8 +309,7 @@ class Raid extends Daemon
 
 	function get_status()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		return RAID_LANG_UNKNOWN;
 
@@ -327,8 +325,7 @@ class Raid extends Daemon
 
 	function get_level()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		return RAID_LANG_UNKNOWN;
 
@@ -345,8 +342,7 @@ class Raid extends Daemon
 
 	function get_formatted_bytes($input, $dec)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		$prefix_arr = array(" B", "KB", "MB", "GB", "TB");
 		$value = round($input, $dec);
@@ -371,17 +367,16 @@ class Raid extends Daemon
 
 	function get_mount($dev)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		$mount = '';
-		$shell = new ShellExec();
+        $shell = new Shell();
 		$args = $dev;
 		$retval = $shell->Execute(self::CMD_DF, $args);
 
 		if ($retval != 0) {
 			$errstr = $shell->GetLastOutputLine();
-			throw new EngineException($errstr, COMMON_WARNING);
+            throw new Engine_Exception($errstr, CLEAROS_WARNING);
 		} else {
 			$lines = $shell->GetOutput();
 			foreach ($lines as $line) {
@@ -405,8 +400,7 @@ class Raid extends Daemon
 
 	function get_email()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		if (! $this->is_loaded)
 			$this->_LoadConfig();
@@ -422,8 +416,7 @@ class Raid extends Daemon
 
 	function get_monitor_status()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		try {
 			$crontab = new Cron();
@@ -444,8 +437,7 @@ class Raid extends Daemon
 
 	function get_notify()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		if (! $this->is_loaded)
 			$this->_LoadConfig();
@@ -462,8 +454,7 @@ class Raid extends Daemon
 
 	function get_devices_in_use()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		$devicesinuse = array();
 
@@ -480,7 +471,7 @@ class Raid extends Daemon
 
 		# Add swap
 		try {
-			$shell = new ShellExec();
+            $shell = new Shell();
 			$args = '-s';
 			$retval = $shell->Execute(self::CMD_SWAPON, $args);
 
@@ -508,20 +499,19 @@ class Raid extends Daemon
 
 	function get_partition_table($device)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		$table = array();
 
 		try {
-			$shell = new ShellExec();
+			$shell = new Shell();
 			$args = '-d ' . $device;
 			$options['env'] = "LANG=en_US";
 			$retval = $shell->Execute(self::CMD_SFDISK, $args, true, $options);
 
 			if ($retval != 0) {
 				$errstr = $shell->GetLastOutputLine();
-				throw new EngineException($errstr, COMMON_WARNING);
+                throw new Engine_Exception($errstr, CLEAROS_WARNING);
 			} else {
 				$lines = $shell->GetOutput();
 				foreach ($lines as $line) {
@@ -548,18 +538,17 @@ class Raid extends Daemon
 
 	function copy_partition_table($from, $to)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		try {
-			$shell = new ShellExec();
+			$shell = new Shell();
 			$args = '-d ' . $from . ' > ' . COMMON_TEMP_DIR . '/pt.txt';
 			$options['env'] = "LANG=en_US";
 			$retval = $shell->Execute(self::CMD_SFDISK, $args, true, $options);
 
 			if ($retval != 0) {
 				$errstr = $shell->GetLastOutputLine();
-				throw new EngineException($errstr, COMMON_WARNING);
+                throw new Engine_Exception($errstr, CLEAROS_WARNING);
 			}
 
 			$args = '-f ' . $to . ' < ' . COMMON_TEMP_DIR . '/pt.txt';
@@ -568,7 +557,7 @@ class Raid extends Daemon
 
 			if ($retval != 0) {
 				$errstr = $shell->GetLastOutputLine();
-				throw new EngineException($errstr, COMMON_WARNING);
+                throw new Engine_Exception($errstr, CLEAROS_WARNING);
 			}
 		} catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -586,8 +575,7 @@ class Raid extends Daemon
 
 	function sanity_check_partition($array, $check)
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		$partition_match = array('ok' => false);
 
@@ -654,8 +642,7 @@ class Raid extends Daemon
 
 	function check_status_change()
 	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
 		$lines = array();
 
@@ -693,7 +680,7 @@ class Raid extends Daemon
 
 			# Diff files to see if notification should be sent
 
-			$shell = new ShellExec();
+			$shell = new Shell();
 			$args = COMMON_TEMP_DIR . '/raid.status ' . COMMON_TEMP_DIR . '/raid.status.orig';
 			$retval = $shell->Execute(self::CMD_DIFF, $args);
 
@@ -771,7 +758,7 @@ class Raid extends Daemon
 		// ----------
 
 		if (!$mailer->IsValidEmail($email))
-			throw new ValidationException(MAILER_LANG_RECIPIENT . " - " . LOCALE_LANG_INVALID . ' (' . $email . ')');
+			throw new Validation_Exception(MAILER_LANG_RECIPIENT . " - " . LOCALE_LANG_INVALID . ' (' . $email . ')');
 
 		$this->_SetParameter('email', $email);
 	}
