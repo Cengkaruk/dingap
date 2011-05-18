@@ -20,7 +20,7 @@
 
 #include <ncursesw/ncurses.h>
 
-#ifdef _HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
     setlocale(LC_ALL, "");
 
 #ifdef _VENDOR_CLEAROS
-    cerr << "tConsole v" << VER_MAJOR << "." << VER_MINOR << endl;
+    cerr << "tConsole v" << VERSION << endl;
     cerr << "Copyright (C) 2010-2011 ClearFoundation" << endl;
 #elif _VENDOR_CLARKCONNECT
-    cerr << "tConsole v" << VER_MAJOR << "." << VER_MINOR << endl;
+    cerr << "tConsole v" << VERSION << endl;
     cerr << "Copyright (C) 2009 Point Clark Networks" << endl;
 #else
-    cerr << "tConsole v" << VER_MAJOR << "." << VER_MINOR << endl;
+    cerr << "tConsole v" << VERSION << endl;
 #endif
     ccThreadEvent *event_thread = new ccThreadEvent();
     event_thread->Run();

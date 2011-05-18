@@ -7048,8 +7048,7 @@ fi
 done
 
 
-# AC_CONFIG_FILES([Makefile])
-ac_config_files="$ac_config_files Makefile utils/Makefile"
+ac_config_files="$ac_config_files tconsole.spec Makefile utils/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -7687,6 +7686,7 @@ do
   case $ac_config_target in
     "config.h") CONFIG_HEADERS="$CONFIG_HEADERS config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
+    "tconsole.spec") CONFIG_FILES="$CONFIG_FILES tconsole.spec" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "utils/Makefile") CONFIG_FILES="$CONFIG_FILES utils/Makefile" ;;
 

@@ -1,9 +1,6 @@
 #ifndef _LAUNCHER_H
 #define _LAUNCHER_H
 
-#define VER_MAJOR				3
-#define VER_MINOR				0
-
 #ifndef TIMER_TICK
 #define TIMER_TICK              2
 #endif
