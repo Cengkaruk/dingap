@@ -19,8 +19,6 @@ Report bugs to: @PACKAGE_BUGREPORT@
 # Build
 %prep
 %setup -q
-aclocal
-automake --add-missing
 %{configure}
 
 %build
