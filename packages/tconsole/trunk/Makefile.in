@@ -207,6 +207,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = utils
+EXTRA_DIST = exceptions.h tconsole.h thread.h util.h
 tconsole_SOURCES = tconsole.cpp thread.cpp util.cpp
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
