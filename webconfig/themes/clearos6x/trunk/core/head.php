@@ -61,5 +61,9 @@ function theme_page_head($theme_path)
 <script type='text/javascript' src='$theme_path/js/superfish.js'></script>
 <script type='text/javascript' src='$theme_path/js/theme.js'></script>
 
+<!-- Firebug Lite -->
+<script type='text/javascript' src='https://getfirebug.com/firebug-lite.js'></script>
+
+
 ";
 }

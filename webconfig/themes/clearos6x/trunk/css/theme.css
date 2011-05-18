@@ -95,9 +95,33 @@ a.theme-anchor-important { color: #333333 !important; }
 a.theme-anchor-unimportant { color: #666666 !important; }
 
 /* Standard anchors */
-a.theme-anchor-add { }
-a.theme-anchor-edit { }
-a.theme-anchor-cancel { }
+.theme-anchor-add {
+	background: url(../images/green-button-bg.png) repeat-x;
+	border: 1px solid #648e20;
+	color: #98bb60; 
+	margin-top: 1px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-right: 10px;
+	padding-left: 10px;
+	^position: relative;
+	^top: 4px;
+	margin-right: 1px;
+ }
+
+.theme-anchor-add:hover {
+	background: url(../images/green-button-bg-hover.png) repeat-x;
+	border: 1px solid #648e20;
+}
+
+.theme-anchor-add .ui-button-text {
+	font-size: 1.1em;
+	color: #686868;
+}
+
+a.theme-anchor-edit {margin-right: 10px; }
+a.theme-anchor-cancel {
+	}
 a.theme-anchor-delete { }
 
 /* Custom anchor */
@@ -111,6 +135,20 @@ a.theme-anchor-javascript { }
 /* ------------------------------------------------------------------------- */
 
 /* Common button class */
+
+.theme-form-submit {
+  background: transparent url('../images/button-bg.png') repeat-x;
+  padding-left: 6px;
+  padding-right: 6px;
+  height: 22px;
+  border: 1px solid #d1d3d4;
+}
+
+.theme-form-submit:hover {
+  border: 1px solid #a5a4a4;	
+}
+
+/*
 .theme-form-submit {
 	background: transparent url('../images/button-bg.png') no-repeat scroll top left;
     color: white;
@@ -120,15 +158,30 @@ a.theme-anchor-javascript { }
     text-decoration: none;
 	border: none;
 	padding-left: 8px;
-	padding-right: 0px;
+	padding-right: 1px;
 	^padding-left: 10px;
 	^text-align: left;
 	z-index: 0;
 	position: relative;
 	display: inline;
 	}
+	*/
 	
+/*
 .theme-form-input {
+	background: transparent url('../images/button-bg-span.png') no-repeat top right;
+    display: block;
+    padding-bottom: 10px;
+	padding-left: 7px;
+	height: 24px;
+	border: none;
+	z-index: 999;
+	position: relative;
+	top: -5px;
+	display: inline;
+}
+
+.theme-form-input, x:-moz-any-link, x:default  {
 	background: transparent url('../images/button-bg-span.png') no-repeat top right;
     display: block;
     padding-bottom: 9px;
@@ -140,14 +193,13 @@ a.theme-anchor-javascript { }
 	top: -6px;
 	display: inline;
 }
+*/
+
 input.theme-form-important { color: #686868 !important; }
 input.theme-form-unimportant { color: #686868 !important; }
 
 input.theme-form-unimportant:hover {color: white;}
 
-input.theme-form-submit:hover {
-	
-}
 
 .theme-button-set .ui-buttonset span { display: none;}
 
@@ -177,6 +229,7 @@ div.theme-button-set { color: red; background-image: url(); }
 .theme-list-table-container {
   margin-top: 0px;
   ^z-index: 0;
+  ^border: 1px solid #e1e1e1;
 }
 .theme-list-table-legend {
   text-align: center;	
@@ -185,12 +238,13 @@ div.theme-button-set { color: red; background-image: url(); }
   text-align: left;
 }
 .theme-list-table-header {
-  background: #FFFFFF url(../images/header-grad.png) no-repeat;
+  background: #FFFFFF url(../images/header-bg-green.png) repeat-x;
   height: 23px;
   padding: 5px;
   color: #ffffff;
   font-weight: bold;
-  width: 100%;
+  width: 98.5%;
+  ^width: 100.4%;
   margin-left: 0px;
 }
 .theme-list-table-title {
@@ -207,16 +261,21 @@ div.theme-button-set { color: red; background-image: url(); }
   font-size: 7pt !important;
 }
 
+.theme-list-table-action .ui-buttonset {
+	margin-right: 2px;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Summary Table */
 /* ------------------------------------------------------------------------- */
 
 .theme-summary-table {
   border-bottom: 1px solid #e1e1e1;
+  ^border: 1px solid #e1e1e1;
 }
 
 .theme-summary-table-container {
-  margin-top: 10px;
+  margin-bottom: 9px;
   -moz-border-radius: 9pz;
   border-radius: 9px
   border: 1px solid #e1e1e1;
@@ -234,13 +293,16 @@ div.theme-button-set { color: red; background-image: url(); }
   padding: 5px;
   color: #ffffff;
   font-weight: bold;
-  width: 99%;
+  width: 98.5%;
+  ^width: 100%;
   margin-left: 0px;
 }
 .theme-summary-table-title {
   float: left;
   padding-left: 10px;
   padding-top: 3px;
+  ^padding-top: 1px;
+  ^padding-bottom: 2px;
   font-weight: normal;
   font-size: 14px;
   font-family: arial;
@@ -255,128 +317,132 @@ div.theme-button-set { color: red; background-image: url(); }
 /* Forms */
 /* ------------------------------------------------------------------------- */
 
+.login {
+	width: 430px;
+	margin: auto;
+	top: 30%;
+	position: relative;
+}
+
+.logo-login {
+	float: left;
+	margin-right: 40px;
+	background: url(../images/ClearOS-login.png) no-repeat;
+	width: 131px;
+	height: 155px;
+}
+
+.login .ui-button-text {
+	background: url(../images/console-icon.png) no-repeat left center;
+	padding-left: 20px;
+}
+
+.login a {
+	float: right;
+	margin-right: 14px;
+	background: url(../images/button-bg-large.png) repeat-x;
+	border-radius: 9px;
+	border: 1px solid #e1e1e1;
+	padding-right: 6px;
+	padding-left: 6px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	margin-top: -1px;
+}
+
+.login a:hover {
+	border: 1px solid #a5a4a4;
+}
+
+.login .theme-field-password input {
+	margin-top: -2px;
+}
+
+.login fieldset {
+	padding-top: 5px;
+}
+
+.login .theme-field-password {
+	margin-bottom: 17px;
+}
+
+.login .theme-form-wrapper {
+	padding-bottom: 11px;
+}
+
+.left-field-content {
+	width: 100px;
+	text-align: right;
+	float: left;
+	padding-top: 4px;
+	padding-bottom: 5px;
+}
+
+.right-field-content {
+	float: left;
+	margin-left: 15px;
+}
+
+.input-box input {
+	width: 200px;
+}
+
+.check {
+	padding-top: 2px;
+}
+
 .theme-form-header {
   background: #FFFFFF url(../images/header-bg-grey.png);
   background-repeat: repeat-x;
   -moz-border-radius: 9px;
 border-radius: 9px;
  border: 1px solid #e1e1e1;
-  ^width: 460px;
+  ^width: 100%;
 }
 
 .theme-form-wrapper {
   padding-bottom: 10px;
-  padding-top: 25px;
-  padding-left: 10px
+  padding-top: 30px;
+  padding-left: 12px
 }
 
 .theme-form-header .theme-fieldset {
   border: none;
-  width: 450px;
+  width: 490px;
+}
+
+.login .theme-form-container {
+	width: 250px;
+	float: left;
+}
+
+.login .theme-form-header {
+	text-align: left;
+}
+
+.login .theme-fieldset {
+	width: 235px;
 }
 
 .theme-fieldset-legend {
   color: #98bb60;
   font-size: 14px;
- 
-}
-
-/*
-
-.theme-form-header .theme-fieldset .theme-fieldset-legend {
-  border-bottom: none;
-  padding-left: 15px;
-  margin-left: 0px;
-  ^margin-left: -8px;
-  padding-top: 10px;
-  ^padding-top: 26px;
-  ^padding-bottom: 0px;
-/* Peter: reduced width by 250 */
-/*
-  width: 714px;
-  ^width: 718px;
-*/
-  width: 414px;
-  ^width: 468px;
-  color: #98bb60;
-  font-size: 14px;
-  height: 0px;
-  line-height: 5px;
-  ^line-height: 16px;
-  ^position: relative;
-  ^top: -30px;
-
-}
-
-/*
-.theme-fieldset {
-  position: relative;
-  top: 15px;
-  padding-bottom: 40px;
-}
-
-.theme-fieldset, x:-moz-any-link, x:default {
-  position: relative;
-  top: 15px;
   padding-bottom: 10px;
 }
 
-.theme-fieldset :first-child + div {
-  padding-top: 30px;
+.login .theme-fieldset-legend {
+	display: none;
 }
 
-
-.theme-form-header .theme-fieldset .theme-field-toggle {
-  border: none;
-  height: 0px;
-/* Peter: reduced width/max-width by 250 */
-  ^width: 460px;
-}
-/*
-
-.theme-form-header .theme-fieldset .theme-field-toggle, x:-moz-any-link, x:default  {
-  border: none;
-  height: 30px;
-
+.theme-field-toggle {
+  margin-bottom: 15px;
+  ^height: 15px;	
 }
 
-.theme-form-header .theme-fieldset .theme-field-toggle label {
-  position: absolute;
-  left: 15px;
+.theme-field-toggle select {
+	float: right;
+	margin-right: 15px;
 }
-
-.theme-form-header .theme-fieldset .theme-field-toggle select {
-  position: absolute;
-  right: 15px;
-}
-
-.theme-form-header .theme-button-set {
-
-  padding-left: 10px;
-  padding-top: 0px;
-  ^padding-top: 5px;
-  padding-bottom: 0px;
-  margin-left: 0px;
-  ^margin-left: 0px;
-  float: left;
-/* Peter: reduced width by 250 */
-/*
-  width: 716px;
-  ^width: 727px;
-*/
-  width: 500px;
-  ^width: 477px;
-}
-/*
-.theme-form-header .theme-button-set, x:-moz-any-link, x:default {
-	background-position: 0 -5px;
-	padding-bottom: 0px;
-	^background-position: 0 12px;
-	^padding-bottom: 15px;
-	float: left;
-}
-
-*/
 
 .theme-fieldview label {
 	margin-left: 15px;
@@ -384,8 +450,14 @@ border-radius: 9px;
 }
 
 .theme-dropdown {
-
+  margin-bottom: 15px;
+  height: 15px;
 }
+
+
+.theme-dropdown select {
+	float: left;
+  }
 
 .theme-form-footer {
  
@@ -422,6 +494,13 @@ border-radius: 9px;
 /* Helpbox */
 /* ------------------------------------------------------------------------- */
 
+.breadcrumb {
+	color: #98bb60;
+	font-size: 14px;
+	margin-top: 0px;
+	margin-bottom: 20px;
+}
+
 .help-sides {
   boder-left: 1px solid #E1E1E1;
 
@@ -456,6 +535,7 @@ border-radius: 9px;
   border-left: 1px solid #e1e1e1;
   border-right: 1px solid #e1e1e1;
   border-bottom: 1px solid #e1e1e1;
+  margin-bottom: 10px;
 }
 
 #theme-content-help .theme-dialogbox-info {
@@ -497,11 +577,19 @@ border-radius: 9px;
 /* ------------------------------------------------------------------------- */
 
 .ui-progressbar {
-  background: green;
+  background: url(../images/progressbar-bg.jpg) repeat-x;
+  -moz-border-radius: 9px; border-radius: 9px; 
+  height: 20px;
+  border: 1px solid #d1d3d4;
 }
 
 .ui-progressbar-value {
-  background: red;
+  background: url(../images/progressbar.gif) repeat-x;
+  position: relative;
+  top: 1px;
+  height: 24px;
+  margin-top: 0px;
+  -moz-border-radius: 9px; border-radius: 9px;
 }
 
 /* REDO */
@@ -658,7 +746,10 @@ color: white;
 /* Content Area */
 /* ------------------------------------------------------------------------- */
 
-theme-form-container {margin-top: 10px;}
+.theme-form-container {
+	margin-bottom: 10px;
+	^margin-top: 0px;
+	}
 
 #theme-main-content {
 	background-image: url(../images/maincontent-bg.png);
@@ -723,12 +814,21 @@ theme-form-container {margin-top: 10px;}
 }
 
 .theme-core-content {
-  background-image: url(../images/core-content-bg.jpg);
+  background-color: white;
+  border: 1px solid #e1e1e1;
+  border-top: none;
   background-repeat: repeat-y;
   margin-top: 12px;
   float: left;
-  width: 972px;
+  width: 970px;
+  ^width: 972px;
   margin-bottom: -3px;
+  -moz-border-radius-bottomleft: 15px; 
+  -webkit-border-bottom-left-radius: 15px; 
+  border-bottom-left-radius: 15px;
+  -moz-border-radius-bottomright: 15px; 
+  -webkit-border-bottom-right-radius: 15px; 
+  border-bottom-right-radius: 15px;
 }
 
 #theme-content-splash-container {
@@ -754,43 +854,39 @@ theme-form-container {margin-top: 10px;}
 
 
 #theme-content-left {
-  width: 511px;
-  float: left;	
+  width: 507px;
+  float: left;
+  clear: left;
+  ^margin-top: 0px;	
 }
 
 /* Peter: added sidebar ... used absolute positioning instead of spending cycles on figuring this stuff out! */
 #theme-sidebar-container {
-  background-image: url('../images/sidebar-bg.png');
-  background-repeat: repeat-y;
+  background-color: white;
+  border: 1px solid #e1e1e1;
+  -mox-border-radius: 9px;
+  border-radius: 9px;
   width: 210px;
   float: right;
-  margin-top: 10px;
-/*
- *   position: absolute;
- *     top: 5px;
- *       left: 500px;
- *       */
+  margin-top: 0px;
   float: right;
+  margin-bottom: 9px;
 }
 
 .sidebar-top {
-  background-image: url('../images/sidebar-top.png');
-  background-repeat: no-repeat;
-  height: 8px;
-  width: 210px;
+  
 }
 
 .sidebar-bottom {
-  background-image: url('../images/sidebar-bottom.png');
-  background-repeat: no-repeat;
-  height: 9px;
-  width: 210px;
+  
 }
 
 #theme-sidebar-container .theme-dialogbox-info  {
   border: none;	
   background: none;
   padding-left: 5px;
+  padding-top: 3px;
+  padding-bottom: 5px;
 }
 
 #theme-sidebar-container h3 {
@@ -799,31 +895,52 @@ theme-form-container {margin-top: 10px;}
 }
 
 .theme-field-checkboxes {
-
+  width: 100%;
+  margin-bottom: 10px;
+  float: left;
 }
+
+.theme-field-checkboxes input { 
+	
+ }
 
 .theme-field-password {
-	
+  height: 30px;
 }
 
+.theme-field-password input {float: right; margin-right: 15px; }
+
 .theme-field-progress-bar {
- 
+  width: 97.5%;
+  float: left;
 }
+
+
+
+.theme-progress-bar {
+  margin-top: 5px;	
+}
+
+/* ------------------------------------------------------------------------- */
+/* Info Boxes */
+/* ------------------------------------------------------------------------- */
+
+.info-regular {border: 1px solid #a5a4a4; background-color: #fdfdfd; border-radius: 0px;}
+
+.ui-state-error {border-radius: 0px; border: 1px solid red;}
+
+.ui-state-highlight {border-radius: 0px; border: 1px solid #e5d33e;}
 
 /* ------------------------------------------------------------------------- */
 /* Footer */
 /* ------------------------------------------------------------------------- */
 
 #theme-footer-container {
-  background-image: url('../images/maincontent-bottom.png');
-  background-repeat: no-repeat;
-  background-position: 0px 0px;
   float: left;
   width: 972px;
-  padding-top: 20px;
-  padding-left: 15px;
+  padding-top: 9px;
+  padding-left: 12px;
   position: relative;
-  line-height: 20px;
 
 }
 
@@ -954,10 +1071,11 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   width: 213px;
   height: auto;
   float: left;
-  margin-left: 11px;
-  margin-bottom: -64px;
+  margin-left: 10px;
+  margin-bottom: 2px;
   position: relative;
   top: -1px;
+  z-index: 999;
 }
 
 #theme-left-menu-top {
@@ -1033,4 +1151,21 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
 /* Standard buttons */
 input.theme-form-submit-add { }
 input.theme-form-submit-delete { }
-input.theme-form-submit-update  {}
+.theme-list-table-container input.theme-form-submit-update  {
+	background: url(../images/green-button-bg.png) repeat-x;
+	border: 1px solid #648e20;
+	color: #98bb60; 
+	padding-bottom: 2px;
+	margin-top: 1px;}
+.theme-list-table-container input.theme-form-submit-update:hover {
+	background: url(../images/green-button-bg-hover.png) repeat-x;
+	border: 1px solid #648e20;
+	
+}
+
+
+/* Miscellaneous items */
+
+.login .theme-form-header h3 {
+	width: 230px;
+}

@@ -137,7 +137,7 @@ function theme_form_submit($name, $text, $importance, $class, $options)
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
     $text = htmlspecialchars($text, ENT_QUOTES);
 
-    return "<div style='height: 22px; display: inline;'><input type='submit' name='$name'$id value='$text' class='theme-form-submit $class $importance_class' /><span class='theme-form-input'></span></div>\n";
+    return "<div style='height: 22px; display: inline;'><input type='submit' name='$name'$id value='$text' class='theme-form-submit ui-corner-all $class $importance_class' /><span class='theme-form-input'></span></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -202,8 +202,8 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id,
 
     return "
         <div$field_id_html class='theme-fieldview'>
-            <label for='$input_id'$label_id_html>$label</label>
-            <span>$text</span>$hidden_input
+            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
+            <div class='right-field-content'><span>$text</span>$hidden_input</div>
         </div>
     ";
 }
@@ -264,8 +264,8 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
 
     return "
         <div$field_id_html class='theme-field-password'>
-            <label for='$input_id'$label_id_html>$label</label>
-            <input type='$type' name='$name' value='$value' id='$input_id'> $error_html
+            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
+           <div class='right-field-content input-box'> <input type='$type' name='$name' value='$value' id='$input_id'> $error_html</div>
         </div>
     ";
 }
@@ -331,8 +331,8 @@ function theme_field_dropdown($name, $value, $label, $error, $values, $input_id,
 
     return "
         <div$field_id_html class='theme-dropdown'>
-            <label for='$input_id'$label_id_html>$label</label>
-            " . form_dropdown($name, $values, $value, $input_id_html) . " $error_html
+            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
+            <div class='right-field-content'>" . form_dropdown($name, $values, $value, $input_id_html) . " $error_html</div>
         </div>
     ";
 }
@@ -371,8 +371,8 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $va
 
     return "
         <div$field_id_html class='theme-field-toggle'>
-            <label for='$input_id'$label_id_html>$label</label>
-            " . form_dropdown($name, $values, $selected, $input_id_html) . " $error_html 
+            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
+            <div class='right-field-content'>" . form_dropdown($name, $values, $selected, $input_id_html) . " $error_html </div>
         </div>
     ";
 }
@@ -410,8 +410,8 @@ function theme_field_checkbox($name, $value, $label, $options, $input_id, $optio
 
     return "
         <div$field_id_html class='theme-field-checkboxes'>
-            <label for='$input_id'$label_id_html>$label</label>
-            <input type='checkbox' name='$name' id='$input_id' $select_html>
+            <div class='left-field-content'<label for='$input_id'$label_id_html>$label</label></div>
+          <div class='right-field-content check'>  <input type='checkbox' name='$name' id='$input_id' $select_html></div>
         </div>
     ";
 }
@@ -447,7 +447,7 @@ function theme_field_progress_bar($label, $id, $options = array())
 
     return "
         <div$field_id_html class='theme-field-progress-bar'>
-            <label for='$id'$label_id_html>$label</label>
+           <label for='$id'$label_id_html>$label</label>
             <div id='$id' class='theme-progress-bar'> </div>
         </div>
     ";
@@ -499,7 +499,7 @@ left: 14px;
 color: #98BB60;
 font-weight: normal;
 font-size: 14px;
-width: 700px;'>$title</h3><div class='theme-form-wrapper'>";
+width: 100%;'>$title</h3><div class='theme-form-wrapper'>";
 }
 
 /**
@@ -747,7 +747,7 @@ function theme_dialogbox_confirm_delete($message, $items, $ok_anchor, $cancel_an
 
     return "
         <div class='ui-widget'>
-            <div class='ui-corner-all theme-confirmation-dialogbox ui-state-error' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class=' theme-confirmation-dialogbox ui-state-error' style='margin-top: 20px; padding: 0 .7em;'>
                 <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>$message</p>
                 <ul>
                     $items_html
@@ -843,9 +843,9 @@ function theme_infobox($type, $title, $message)
 
     return "
         <div class='ui-widget'>
-            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class='ui-corner-all info-regular $class' style='margin-top: 20px; padding: 0 .7em;'>
                 <h2>$title</h2>
-                <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
+                
                 $message
             </div>
         </div>
@@ -900,13 +900,12 @@ function theme_help_box($data)
 	$iconclass = 'ui-icon-info';
 
     return theme_dialogbox_info("
-            <h3>Help Box</h3>
-			<span class='ui-icon $iconclass' style='float: right; margin-right: 5px;'>&nbsp;</span>
-            <p>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
+  
+            <p class='breadcrumb'>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
             <p>" . $data['description'] . "</p>
             <ul>
                 <li><a target='_blank' href='" . $data['user_guide_url'] . "'>User Guide</a></li>
-                <li><a target='_blank' href='" . $data['support_url'] . "'>ClearCenter Support</a></li>
+                <li><a target='_blank' href='" . $data['support_url'] . "'>ClearCARE Support</a></li>
             </ul>
     ");
 }

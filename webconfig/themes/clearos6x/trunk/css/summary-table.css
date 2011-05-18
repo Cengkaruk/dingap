@@ -147,6 +147,7 @@ table.display thead th div.DataTables_sort_wrapper span {
 .dataTables_length {
 	width: 40%;
 	float: left;
+	margin-left: 9px;
 }
 
 .dataTables_filter {
@@ -166,6 +167,11 @@ table.display thead th div.DataTables_sort_wrapper span {
 	position: absolute;
 	right: 10px;
 }
+
+.sorting_1 {
+  padding-left: 20px;	
+}
+
 
 /* Pagination nested */
 .paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next {
@@ -214,7 +220,7 @@ table.display tr.heading2 td {
 }
 
 table.display td {
-	padding: 3px 10px;
+	padding: 3px 14px;
 }
 
 table.display td.center {
@@ -565,3 +571,6 @@ margin-left: -1px;}
 */
 	
 .theme-list-table> tr> .ui-state-default {border: blue 1px solid;}
+
+
+

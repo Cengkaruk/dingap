@@ -179,18 +179,11 @@ function _splash_page($page)
 <body>
 
 <!-- Page Container -->
-<div id='theme-page-container'>
-    <!-- Main Content Container -->
-    <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'>
-		<div class='green-stroke-top'></div>
-		<div class='green-stroke-left'></div>
-		<div class='green-stroke-right'></div>
-		</div>
-		<div class='theme-core-content'>
+<div class='login'>
+<div class='logo-login'></div>
+		<div class='theme-form-container'>
         " . $page['app_view'] . "
 		</div>
-    </div>
 </div>
 </body>
 </html>
@@ -252,17 +245,18 @@ function _get_app($page)
 		<div class='help-sides'>
 		" . $page['page_help'] . "
 		</div>
-		<div class='help-bottom'></div>
+		
 		</div>
-		<div id='theme-content-left'>
-        " . $page['app_view'] . "
-        </div>
 		<div id='theme-sidebar-container'>
 		<div class='sidebar-top'></div>
         " . $page['page_summary'] . "
         " . $page['page_report'] . "
 		<div class='sidebar-bottom'></div>
     	</div>
+		<div id='theme-content-left'>
+        " . $page['app_view'] . "
+        </div>
+		
 		</div>
     ";
 }
