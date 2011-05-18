@@ -18,7 +18,7 @@ ccRegEx::ccRegEx(const char *expr, int nmatch, int flags)
 	: match(NULL), nmatch(nmatch), matches(NULL)
 {
 	if (!nmatch) flags |= REG_NOSUB;
-	if(regcomp(&regex, expr, flags) != 0)
+	if (regcomp(&regex, expr, flags) != 0)
 		throw ccException("Regular expression compilation error");
 	if (nmatch) {
 		match = new regmatch_t[nmatch];

@@ -20,8 +20,7 @@ public:
 	ccMutex(void);
 	~ccMutex();
 
-	enum ccMutexResult
-	{
+	enum ccMutexResult {
 		ccMUTEX_RESULT_SUCCESS,
 		ccMUTEX_RESULT_FAILURE,
 		ccMUTEX_RESULT_LOCKED,
@@ -32,7 +31,7 @@ public:
 	ccMutexResult Unlock(void);
 	ccMutexResult TryLock(void);
 
-	bool IsValid(void) { return state & ccMUTEX_STATE_CREATED; };
+	bool IsValid(void) { return (state & ccMUTEX_STATE_CREATED); };
 	void SetDebug(bool enable = true);
 	unsigned long GetId(void) { return id; };
 
@@ -48,8 +47,8 @@ protected:
 class ccMutexLocker
 {
 public:
-	ccMutexLocker(ccMutex &mutex) : mutex(mutex) { if(mutex.IsValid()) mutex.Lock(); };
-	~ccMutexLocker() { if(mutex.IsValid()) mutex.Unlock(); };
+	ccMutexLocker(ccMutex &mutex) : mutex(mutex) { if (mutex.IsValid()) mutex.Lock(); };
+	~ccMutexLocker() { if (mutex.IsValid()) mutex.Unlock(); };
 
 protected:
 	ccMutex &mutex;
@@ -64,8 +63,7 @@ public:
 	ccCondition(ccMutex &mutex);
 	~ccCondition();
 
-	enum ccConditionResult
-	{
+	enum ccConditionResult {
 		ccCOND_RESULT_SUCCESS,
 		ccCOND_RESULT_FAILURE,
 		ccCOND_RESULT_INVALID
@@ -76,7 +74,7 @@ public:
 	ccConditionResult Signal(void);
 	ccConditionResult Broadcast(void);
 
-	bool IsValid(void) { return state & ccCOND_STATE_CREATED; };
+	bool IsValid(void) { return (state & ccCOND_STATE_CREATED); };
 
 private:
 	ccMutex &mutex;
@@ -94,8 +92,7 @@ class ccSemaphore
 public:
 	ccSemaphore(int count_init = 0, int count_max = 0);
 
-	enum ccSemaphoreResult
-	{
+	enum ccSemaphoreResult {
 		ccSEMA_RESULT_SUCCESS,
 		ccSEMA_RESULT_FAILURE,
 		ccSEMA_RESULT_BUSY,
@@ -108,7 +105,7 @@ public:
 
 	ccSemaphoreResult Post(void);
 
-	bool IsValid(void) { return state & ccSEMA_STATE_CREATED; };
+	bool IsValid(void) { return (state & ccSEMA_STATE_CREATED); };
 
 private:
 	ccMutex mutex;
@@ -131,14 +128,12 @@ extern "C"
 class ccThread
 {
 public:
-	enum ccThreadType
-	{
+	enum ccThreadType {
 		ccTHREAD_TYPE_JOINABLE,
 		ccTHREAD_TYPE_DETACHED
 	};
 
-	enum ccThreadResult
-	{
+	enum ccThreadResult {
 		ccTHREAD_RESULT_SUCCESS,
 		ccTHREAD_RESULT_FAILURE,
 		ccTHREAD_RESULT_INVALID_TYPE
@@ -155,7 +150,7 @@ public:
 	void *Wait(void);
 
 	pthread_t GetId(void) const { return thread; };
-	bool IsValid(void) { return state & ccSEMA_STATE_CREATED; };
+	bool IsValid(void) { return (state & ccSEMA_STATE_CREATED); };
 
 protected:
 	ccThreadResult Create(void);
@@ -176,4 +171,3 @@ private:
 // vi: ts=4
 
 #endif
-

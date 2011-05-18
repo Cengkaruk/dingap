@@ -1,5 +1,5 @@
-#ifndef _LAUNCHER_H
-#define _LAUNCHER_H
+#ifndef _TCONSOLE_H
+#define _TCONSOLE_H
 
 #ifndef TIMER_TICK
 #define TIMER_TICK              2
@@ -494,14 +494,14 @@ public:
 
 	void SetReadOnly(bool readonly = true)
 	{
-		if(readonly) style |= ccINPUT_READONLY;
+		if (readonly) style |= ccINPUT_READONLY;
 		else style &= ~ccINPUT_READONLY;
 	};
 	bool IsReadOnly(void) { return (bool)(style & ccINPUT_READONLY); };
 
 	void SetPassword(bool password = true)
 	{
-		if(password) style |= ccINPUT_PASSWORD;
+		if (password) style |= ccINPUT_PASSWORD;
 		else style &= ~ccINPUT_PASSWORD;
 	};
 	bool IsPassword(void) { return (bool)(style & ccINPUT_PASSWORD); };
@@ -610,7 +610,8 @@ public:
 			_size = progress2->GetSize();
 			_size.SetY(_size.GetY() + 3);
 			progress2->SetSize(_size);
-		} else {
+		}
+        else {
 			progress1->CenterOnParent();
 			ccSize _size = progress1->GetSize();
 			_size.SetY(_size.GetY() + 2);
@@ -880,4 +881,3 @@ protected:
 #endif
 
 // vi: ts=4
-

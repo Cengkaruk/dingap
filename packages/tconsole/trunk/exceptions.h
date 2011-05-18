@@ -23,25 +23,7 @@ public:
 private:
 	string reason;
 };
-#if 0
-class ccServiceFaultException : public ccException
-{
-public:
-	ccServiceFaultException()
-		: ccException("Application Fault") { }
-	~ccServiceFaultException() throw() { }
 
-	void SetFault(const string &code, const string &reason)
-	{ this->code = code, this->reason = reason; }
-
-	string GetCode(void) { return code; }
-	string GetReason(void) { return reason; }
-
-private:
-	string code;
-	string reason;
-};
-#endif
 class ccLocaleException : public ccException
 {
 public:

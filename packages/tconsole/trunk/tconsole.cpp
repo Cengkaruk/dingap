@@ -40,8 +40,7 @@ ccEventServer *ccEventServer::instance = NULL;
 
 void signal_handler(int sig)
 {
-    if(ccEventServer::Instance())
-    {
+    if (ccEventServer::Instance()) {
         ccEventSignal *event = new ccEventSignal(sig);
         ccEventServer::Instance()->PostEvent(event);
     }
@@ -53,22 +52,19 @@ int main(int argc, char *argv[])
     const char *debug = devnull;
     int exit_code = 0;
 
-    while(1)
-    {
+    for ( ;; ) {
         int rc, o = 0;
 
-        static struct option options[] =
-        {
+        static struct option options[] = {
             { "help", 0, 0, '?' },
             { "debug", 1, 0, 'd' },
             { NULL, 0, 0, 0 }
         };
 
-        if((rc = getopt_long(argc, argv,
+        if ((rc = getopt_long(argc, argv,
             "d:h?", options, &o)) == -1) break;
 
-        switch(rc)
-        {
+        switch (rc) {
         case 'd':
             debug = optarg;
             break;
@@ -80,20 +76,14 @@ int main(int argc, char *argv[])
         }
     }
 
-    if(optind < argc)
-    {
+    if (optind < argc) {
         int fd;
         ostringstream device;
         device << "/dev/" << argv[argc - 1];
 
-        if((fd = open(device.str().c_str(), O_RDWR)) == -1)
-        {
-        }
-        else if(ioctl(fd, TIOCSCTTY, 1) == -1)
-        {
-        }
-        else
-        {
+        if ((fd = open(device.str().c_str(), O_RDWR)) == -1) { }
+        else if (ioctl(fd, TIOCSCTTY, 1) == -1) { }
+        else {
             close(0);
             close(1);
             close(2);
@@ -110,7 +100,7 @@ int main(int argc, char *argv[])
     close(2);
     int fd = open(debug, O_WRONLY | O_APPEND | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
-    if(fd == -1)
+    if (fd == -1)
         fd = open(debug, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR);
 
     setlocale(LC_ALL, "");
@@ -139,19 +129,19 @@ int main(int argc, char *argv[])
     {
         exit_code = console->EventLoop();
     }
-    catch(ccSingleInstanceException &e)
+    catch (ccSingleInstanceException &e)
     {
         endwin();
         cerr << "Single instance exception: " << e.GetClassName() << endl;
         exit_code = 1;
     }
-    catch(ccException &e)
+    catch (ccException &e)
     {
         endwin();
         cerr << "ccException: " << e.what() << endl;
         exit_code = 1;
     }
-    catch(exception &e)
+    catch (exception &e)
     {
         endwin();
         cerr << "std::exception: " << e.what() << endl;
@@ -208,7 +198,7 @@ bool ccEventClient::HandleEvent(ccEvent *event)
 
 ccEventServer::ccEventServer(void)
 {
-    if(instance)
+    if (instance)
         throw ccSingleInstanceException("ccEventServer");
 
     instance = this;
@@ -216,7 +206,7 @@ ccEventServer::ccEventServer(void)
 
 ccEventServer::~ccEventServer()
 {
-    if(instance == this) instance = NULL;
+    if (instance == this) instance = NULL;
 }
 
 void ccEventServer::PostEvent(ccEvent *event)
@@ -230,30 +220,25 @@ void ccEventServer::DispatchEvents(void)
 {
     queue_lock.Lock();
 
-    for(int i = 0; i < queue.size(); i++)
-    {
+    for (int i = 0; i < queue.size(); i++) {
         bool handled = false;
 
-        if(queue[i]->GetDestination())
-        {
+        if (queue[i]->GetDestination()) {
             queue_lock.Unlock();
             handled = queue[i]->GetDestination()->HandleEvent(queue[i]);
             queue_lock.Lock();
         }
-        else
-        {
-            for(vector<client_pair>::reverse_iterator c = client.rbegin();
-                !handled && c != client.rend(); c++)
-            {
-                if(c->second != queue[i]->GetType()) continue;
+        else {
+            for (vector<client_pair>::reverse_iterator c = client.rbegin();
+                !handled && c != client.rend(); c++) {
+                if (c->second != queue[i]->GetType()) continue;
                 queue_lock.Unlock();
                 handled = c->first->HandleEvent(queue[i]);
                 queue_lock.Lock();
             }
         }
 
-        if(!handled && ccConsole::Instance())
-        {
+        if (!handled && ccConsole::Instance()) {
             queue_lock.Unlock();
             ccConsole::Instance()->HandleEvent(queue[i]);
             queue_lock.Lock();
@@ -280,11 +265,9 @@ void ccEventServer::UnregisterClient(ccEventClient *client)
     ccMutexLocker lock(queue_lock);
     vector<client_pair>::iterator i = this->client.begin();
 
-    while(i != this->client.end())
-    {
-        if(i->first != client) i++;
-        else
-        {
+    while (i != this->client.end()) {
+        if (i->first != client) i++;
+        else {
             this->client.erase(i);
             i = this->client.begin();
         }
@@ -292,11 +275,9 @@ void ccEventServer::UnregisterClient(ccEventClient *client)
 
     vector<ccEvent *>::iterator j = queue.begin();
 
-    while(j != queue.end())
-    {
-        if((*j)->GetDestination() != client) j++;
-        else
-        {
+    while (j != queue.end()) {
+        if ((*j)->GetDestination() != client) j++;
+        else {
             queue.erase(j);
             j = queue.begin();
         }
@@ -311,34 +292,29 @@ void ccText::Resize(void)
     _lines.clear();
     string word, line, last, remaining = text;
 
-    while(remaining.size())
-    {
+    while (remaining.size()) {
         w = remaining.find_first_of(0x20);
 
-        if(w == -1) word = remaining;
+        if (w == -1) word = remaining;
         else word = remaining.substr(0, w);
 
-        if(line.size()) line.append(" ");
+        if (line.size()) line.append(" ");
 
         line.append(word);
 
-        if(line.size() > width)
-        {
-            if(last.size())
-            {
+        if (line.size() > width) {
+            if (last.size()) {
                 _lines.push_back(last);
                 last.clear();
 
-                if(w == -1)
-                {
+                if (w == -1) {
                     _lines.push_back(word);
                     break;
                 }
 
                 line = word;
             }
-            else
-            {
+            else {
                 _lines.push_back(line);
                 break;
             }
@@ -346,17 +322,16 @@ void ccText::Resize(void)
 
         last = line;
 
-        if(w == -1) break;
+        if (w == -1) break;
         remaining = remaining.substr(w + 1);
     }
 
-    if(w != -1 || (!_lines.size() && line.size())) _lines.push_back(line);
-    else if(w == -1 && _lines.size())
-    {
-        if(_lines[_lines.size() - 1] != line) _lines.push_back(line);
+    if (w != -1 || (!_lines.size() && line.size())) _lines.push_back(line);
+    else if (w == -1 && _lines.size()) {
+        if (_lines[_lines.size() - 1] != line) _lines.push_back(line);
     }
 
-    for(int i = 0; i < _lines.size(); i++)
+    for (int i = 0; i < _lines.size(); i++)
         cerr << setw(2) << i << ": " << _lines[i] << endl;
 }
 
@@ -366,9 +341,9 @@ ccTimer::ccTimer(ccEventClient *parent, bool one_shot)
 
 bool ccTimer::Start(uint32_t usec)
 {
-    if(running) return false;
-    else if(!usec) return false;
-    else if(!parent) return false;
+    if (running) return false;
+    else if (!usec) return false;
+    else if (!parent) return false;
 
     this->usec = usec;
 
@@ -379,7 +354,7 @@ bool ccTimer::Start(uint32_t usec)
 
 bool ccTimer::Stop(void)
 {
-    if(!running) return false;
+    if (!running) return false;
 
     Destroy();
     Wait();
@@ -395,15 +370,14 @@ void *ccTimer::Entry(void)
 
     running = true;
 
-    while(!TestDestroy())
-    {
-        for(uint32_t i = 0u; i < usec && !TestDestroy(); i += 100u) usleep(100u);
-        if(TestDestroy()) break;
+    while (!TestDestroy()) {
+        for (uint32_t i = 0u; i < usec && !TestDestroy(); i += 100u) usleep(100u);
+        if (TestDestroy()) break;
 
         event = new ccEventTimer(parent);
         ccEventServer::Instance()->PostEvent(event);
 
-        if(one_shot) break;
+        if (one_shot) break;
     }
 
     return NULL;
@@ -412,14 +386,13 @@ void *ccTimer::Entry(void)
 ccWindow::ccWindow(ccWindow *parent, const ccSize &size, int bg_cp)
     : ccEventClient(), parent(parent), size(size), window(NULL), bg_cp(bg_cp), visible(true)
 {
-    if(parent != NULL)
-    {
+    if (parent != NULL) {
         parent->AddChild(this);
         window = newwin(this->size.GetHeight(), this->size.GetWidth(),
             this->size.GetY(), this->size.GetX());
     }
 
-    if(bg_cp == -1) this->bg_cp = 6;
+    if (bg_cp == -1) this->bg_cp = 6;
     wbkgd(window, COLOR_PAIR(this->bg_cp));
 }
 
@@ -427,40 +400,35 @@ ccWindow::~ccWindow()
 {
     vector<ccWindow *>::iterator i = child.begin();
 
-    while(i != child.end())
-    {
+    while (i != child.end()) {
         delete (*i);
         i = child.begin();
     }
 
-    if(parent) parent->RemoveChild(this);
+    if (parent) parent->RemoveChild(this);
 
-    if(window != stdscr) delwin(window);
+    if (window != stdscr) delwin(window);
 }
 
 void ccWindow::Draw(void)
 {
     if (!visible) return;
-    for(int i = 0; i < child.size(); i++) child[i]->Draw();
+    for (int i = 0; i < child.size(); i++) child[i]->Draw();
 }
 
 void ccWindow::Refresh(void)
 {
-    if(isendwin() || !visible) return;
+    if (isendwin() || !visible) return;
     wnoutrefresh(window);
-    for(int i = 0; i < child.size(); i++) child[i]->Refresh();
-    //if(parent != NULL) wnoutrefresh(window);
-    //else doupdate();
+    for (int i = 0; i < child.size(); i++) child[i]->Refresh();
 }
 
 void ccWindow::RemoveChild(ccWindow *w)
 {
     vector<ccWindow *>::iterator i = child.begin();
 
-    while(i != child.end())
-    {
-        if((*i) != w)
-        {
+    while (i != child.end()) {
+        if ((*i) != w) {
             i++;
             continue;
         }
@@ -474,7 +442,7 @@ void ccWindow::RemoveChild(ccWindow *w)
 
 void ccWindow::CenterOnParent(void)
 {
-    if(!parent) return;
+    if (!parent) return;
 
     size.SetX((parent->GetSize().GetWidth() - size.GetWidth()) / 2 + parent->GetSize().GetX());
     size.SetY((parent->GetSize().GetHeight() - size.GetHeight()) / 2 + parent->GetSize().GetY());
@@ -491,9 +459,7 @@ ccInputBox::ccInputBox(ccWindow *parent, const ccSize &size, const string &value
     cpos = value.size();
 }
 
-ccInputBox::~ccInputBox()
-{
-}
+ccInputBox::~ccInputBox() { }
 
 void ccInputBox::Draw(void)
 {
@@ -501,8 +467,7 @@ void ccInputBox::Draw(void)
     wmove(window, 0, 0);
     wclrtoeol(window);
 
-    if(style & ccINPUT_PASSWORD)
-    {
+    if (style & ccINPUT_PASSWORD) {
         string mask;
         mask.resize(value.size(), '*');
         wprintw(window, mask.c_str());
@@ -516,21 +481,19 @@ bool ccInputBox::HandleEvent(ccEvent *event)
     ccEventKeyPress *event_keypress;
     ccEventPaint *event_paint;
 
-    if(!focus) return false;
+    if (!focus) return false;
 
-    switch(event->GetType())
-    {
+    switch (event->GetType()) {
     case ccEVT_KEY_PRESS:
         event_keypress = dynamic_cast<ccEventKeyPress *>(event);
     
-        switch(event_keypress->GetKey())
-        {
+        switch (event_keypress->GetKey()) {
         case KEY_LEFT:
-            if(cpos > 0) cpos--;
+            if (cpos > 0) cpos--;
             return true;
 
         case KEY_RIGHT:
-            if(cpos < value.size()) cpos++;
+            if (cpos < value.size()) cpos++;
             return true;
 
         case KEY_HOME:
@@ -543,12 +506,10 @@ bool ccInputBox::HandleEvent(ccEvent *event)
 
         case 0x7f:
         case KEY_BACKSPACE:
-            if(cpos > 0 && value.size())
-            {
-                if(cpos == value.size())
+            if (cpos > 0 && value.size()) {
+                if (cpos == value.size())
                     value = value.substr(0, cpos - 1);
-                else
-                {
+                else {
                     string s = value.substr(0, cpos - 1);
                     s.append(value.substr(cpos, value.size()));
                     value = s;
@@ -563,12 +524,11 @@ bool ccInputBox::HandleEvent(ccEvent *event)
             return true;
 
         case 0x14a:
-            if(!value.size() || cpos == value.size()) return true;
+            if (!value.size() || cpos == value.size()) return true;
 
-            if(cpos == 0)
+            if (cpos == 0)
                 value = value.substr(1, value.size());
-            else
-            {
+            else {
                 string s = value.substr(0, cpos);
                 s.append(value.substr(cpos + 1, value.size()));
                 value = s;
@@ -589,18 +549,16 @@ bool ccInputBox::HandleEvent(ccEvent *event)
             return true;
         }
 
-        if(value.size() == size.GetWidth() - 1)
-        {
+        if (value.size() == size.GetWidth() - 1) {
             flash(); beep(); return false;
         }
 
-        if(isprint(event_keypress->GetKey()))
-        {
+        if (isprint(event_keypress->GetKey())) {
             char key[2];
             key[0] = event_keypress->GetKey();
             key[1] = '\0';
 
-            if(cpos == value.size())
+            if (cpos == value.size())
                 value.append(key);
             else value.insert(cpos, key);
 
@@ -619,13 +577,9 @@ bool ccInputBox::HandleEvent(ccEvent *event)
 }
 
 ccProgressBar::ccProgressBar(ccWindow *parent, const ccSize &size)
-    : ccWindow(parent, size, 6), cvalue(0), mvalue(100)
-{
-}
+    : ccWindow(parent, size, 6), cvalue(0), mvalue(100) { }
 
-ccProgressBar::~ccProgressBar()
-{
-}
+ccProgressBar::~ccProgressBar() { }
 
 void ccProgressBar::Update(uint32_t value)
 {
@@ -655,8 +609,8 @@ ccDialog::ccDialog(ccWindow *parent, const ccSize &size, const string &title, co
 
 ccDialog::~ccDialog()
 {
-    if(blurb) delete blurb;
-    for(int i = 0; i < button.size(); i++) delete button[i];
+    if (blurb) delete blurb;
+    for (int i = 0; i < button.size(); i++) delete button[i];
 }
 
 void ccDialog::Draw(void)
@@ -664,48 +618,36 @@ void ccDialog::Draw(void)
     wcolor_set(window, bg_cp, NULL);
     wmove(window, 1, 2);
     wclrtoeol(window);
-//  wattron(window, A_BOLD);
     wprintw(window, title.c_str());
-//  wattroff(window, A_BOLD);
 
     box(window, ACS_VLINE, ACS_HLINE);
 
-    for(int i = 0; i < size.GetWidth() - 4; i++)
-    {
+    for (int i = 0; i < size.GetWidth() - 4; i++) {
         wmove(window, 2, i + 2);
         waddch(window, ACS_HLINE);
     }
 
-//  wattron(window, A_BOLD);
-
-    for(int i = 0; i < blurb->GetLineCount(); i++)
-    {
+    for (int i = 0; i < blurb->GetLineCount(); i++) {
         wmove(window, 4 + i, 2);
-        for(int x = 0; x < size.GetWidth() - 4; x++)
+        for (int x = 0; x < size.GetWidth() - 4; x++)
             wprintw(window, " ");
         wmove(window, 4 + i, 2);
         wprintw(window, blurb->GetLine(i).c_str());
     }
 
-//  wattroff(window, A_BOLD);
-
-    if(button.size()) {
+    if (button.size()) {
         int offset_x = 0;
         int offset_y = size.GetHeight() - 4;
         int width = button.size() * (button_width + 4);
 
-        if(button.size() == 1)
+        if (button.size() == 1)
             offset_x = (size.GetWidth() - width) / 2;
-        else
-        {
+        else {
             width += (button.size() - 1);
             offset_x = (size.GetWidth() - width) / 2;
         }
 
-        for(int i = 0; i < button.size(); i++)
-        {
-//          if(button[i]->HasFocus()) wattron(window, A_BOLD);
-
+        for (int i = 0; i < button.size(); i++) {
             wmove(window, offset_y, offset_x);
             waddch(window, (button[i]->HasFocus()) ? ACS_ULCORNER : ' ');
             wmove(window, offset_y + 1, offset_x);
@@ -713,8 +655,7 @@ void ccDialog::Draw(void)
             wmove(window, offset_y + 2, offset_x);
             waddch(window, (button[i]->HasFocus()) ? ACS_LLCORNER : ' ');
 
-            for(int j = 0; j < button_width + 2; j++)
-            {
+            for (int j = 0; j < button_width + 2; j++) {
                 wmove(window, offset_y, offset_x + j + 1);
                 waddch(window, (button[i]->HasFocus()) ? ACS_HLINE : ' ');
                 wmove(window, offset_y + 2, offset_x + j + 1);
@@ -732,8 +673,6 @@ void ccDialog::Draw(void)
                 offset_x + (int)(ceil(((float)button_width - (float)button[i]->GetLabel().size()) / 2.0f)) + 1);
             wprintw(window, button[i]->GetLabel().c_str());
 
-//          if(button[i]->HasFocus()) wattroff(window, A_BOLD);
-
             offset_x += button_width + 4;
         }
     }
@@ -743,20 +682,18 @@ void ccDialog::Draw(void)
 
 bool ccDialog::HandleEvent(ccEvent *event)
 {
-    if(!visible) return false;
+    if (!visible) return false;
 
     ccEventKeyPress *event_keypress;
     ccEventPaint *event_paint;
 
-    switch(event->GetType())
-    {
+    switch (event->GetType()) {
     case ccEVT_KEY_PRESS:
         event_keypress = dynamic_cast<ccEventKeyPress *>(event);
 
-        switch(event_keypress->GetKey())
-        {
+        switch (event_keypress->GetKey()) {
         case 0x009:
-            if(GetFocus() == FocusNext())
+            if (GetFocus() == FocusNext())
                 FocusPrevious();
             break;
 
@@ -788,8 +725,8 @@ bool ccDialog::HandleEvent(ccEvent *event)
 
 ccButtonId ccDialog::GetFocus(void)
 {
-    for(int i = 0; i < button.size(); i++)
-        if(button[i]->HasFocus()) return button[i]->GetId();
+    for (int i = 0; i < button.size(); i++)
+        if (button[i]->HasFocus()) return button[i]->GetId();
 
     return ccBUTTON_ID_NONE;
 }
@@ -798,7 +735,7 @@ void ccDialog::SetFocus(int index)
 {
     button.at(index);
 
-    for(int i = 0; i < button.size(); i++)
+    for (int i = 0; i < button.size(); i++)
         button[i]->SetFocus(false);
 
     button[index]->SetFocus();
@@ -806,9 +743,8 @@ void ccDialog::SetFocus(int index)
 
 void ccDialog::SetFocus(ccButtonId id)
 {
-    for(int i = 0; i < button.size(); i++)
-    {
-        if(button[i]->GetId() == id)
+    for (int i = 0; i < button.size(); i++) {
+        if (button[i]->GetId() == id)
             button[i]->SetFocus();
         else
             button[i]->SetFocus(false);
@@ -817,27 +753,25 @@ void ccDialog::SetFocus(ccButtonId id)
 
 ccButtonId ccDialog::FocusNext(void)
 {
-    if(!button.size()) return ccBUTTON_ID_NONE;
+    if (!button.size()) return ccBUTTON_ID_NONE;
 
     ccButtonId id = GetFocus();
 
-    if(id == ccBUTTON_ID_NONE || button.size() == 1)
-    {
+    if (id == ccBUTTON_ID_NONE || button.size() == 1) {
         button[0]->SetFocus();
         return button[0]->GetId();
     }
 
     int i = 0;
-    for(; i < button.size(); i++)
-    {
-        if(!button[i]->HasFocus()) continue;
+    for (; i < button.size(); i++) {
+        if (!button[i]->HasFocus()) continue;
 
         button[i]->SetFocus(false);
         break;
     }
 
-    if(i == button.size()) return ccBUTTON_ID_NONE;
-    else if(i == button.size() - 1) button[button.size() - 1]->SetFocus();
+    if (i == button.size()) return ccBUTTON_ID_NONE;
+    else if (i == button.size() - 1) button[button.size() - 1]->SetFocus();
     else button[i + 1]->SetFocus();
 
     return GetFocus();
@@ -845,27 +779,25 @@ ccButtonId ccDialog::FocusNext(void)
 
 ccButtonId ccDialog::FocusPrevious(void)
 {
-    if(!button.size()) return ccBUTTON_ID_NONE;
+    if (!button.size()) return ccBUTTON_ID_NONE;
 
     ccButtonId id = GetFocus();
 
-    if(id == ccBUTTON_ID_NONE || button.size() == 1)
-    {
+    if (id == ccBUTTON_ID_NONE || button.size() == 1) {
         button[0]->SetFocus();
         return button[0]->GetId();
     }
 
     int i = button.size() - 1;
-    for(; i > -1; i--)
-    {
-        if(!button[i]->HasFocus()) continue;
+    for (; i > -1; i--) {
+        if (!button[i]->HasFocus()) continue;
 
         button[i]->SetFocus(false);
         break;
     }
 
-    if(i == -1) return ccBUTTON_ID_NONE;
-    else if(i == 0) button[0]->SetFocus();
+    if (i == -1) return ccBUTTON_ID_NONE;
+    else if (i == 0) button[0]->SetFocus();
     else button[i - 1]->SetFocus();
 
     return GetFocus();
@@ -874,7 +806,7 @@ ccButtonId ccDialog::FocusPrevious(void)
 void ccDialog::SetSelected(void)
 {
     selected = GetFocus();
-    if(selected == ccBUTTON_ID_NONE) return;
+    if (selected == ccBUTTON_ID_NONE) return;
 
     ccEventDialog *event = new ccEventDialog(this, parent, selected);
     ccEventServer::Instance()->PostEvent(event);
@@ -882,15 +814,14 @@ void ccDialog::SetSelected(void)
 
 void ccDialog::AppendButton(ccButtonId id, const string &label, bool focus)
 {
-    for(int i = 0; i < button.size(); i++)
-    {
-        if(button[i]->GetId() != id) continue;
+    for (int i = 0; i < button.size(); i++) {
+        if (button[i]->GetId() != id) continue;
         return;
     }
 
     button.push_back(new ccButton(id, label));
 
-    if(label.size() > button_width) button_width = label.size();
+    if (label.size() > button_width) button_width = label.size();
 
     if(focus) SetFocus(id);
 }
@@ -928,8 +859,7 @@ void ccDialogProgress::Update(const string &update)
     // Removing: gnome-mime-data
     ccRegEx removing("^(Removing): (.*): ([0-9]*)/([0-9]*)", 5);
 
-    if (install && downloading.Execute(update.c_str()) == 0)
-    {
+    if (install && downloading.Execute(update.c_str()) == 0) {
         ostringstream os;
         os << downloading.GetMatch(1);
         os << " package " << downloading.GetMatch(2);
@@ -940,8 +870,7 @@ void ccDialogProgress::Update(const string &update)
         progress2->SetRange(atoi(downloading.GetMatch(3)));
         progress2->Update(atoi(downloading.GetMatch(2)));
     }
-    else if (install && installing.Execute(update.c_str()) == 0)
-    {
+    else if (install && installing.Execute(update.c_str()) == 0) {
         ostringstream os;
         os << installing.GetMatch(1);
         os << ": " << installing.GetMatch(2);
@@ -951,8 +880,7 @@ void ccDialogProgress::Update(const string &update)
         progress2->SetRange(atoi(installing.GetMatch(6)));
         progress2->Update(atoi(installing.GetMatch(5)));
     }
-    else if (!install && removing.Execute(update.c_str()) == 0)
-    {
+    else if (!install && removing.Execute(update.c_str()) == 0) {
         ostringstream os;
         os << removing.GetMatch(1);
         os << ": " << removing.GetMatch(2);
@@ -968,12 +896,12 @@ ccMenu::ccMenu(ccWindow *parent, const ccSize &size, const string &title)
 
 ccMenu::~ccMenu()
 {
-    for(int i = 0; i < item.size(); i++) delete item[i];
+    for (int i = 0; i < item.size(); i++) delete item[i];
 }
 
 void ccMenu::Draw(void)
 {
-    if(!visible) return;
+    if (!visible) return;
 
     wcolor_set(window, bg_cp, NULL);
     wmove(window, 1, 2);
@@ -983,14 +911,10 @@ void ccMenu::Draw(void)
     int offset_y = 4;
     int offset_x = (size.GetWidth() - menu_width) / 2;
 
-    for(int i = 0; i < item.size(); i++)
-    {
-        if(!item[i]->IsVisible()) continue;
-
-        if(item[i]->IsSeperator())
-        {
-            for(int x = 0; x < menu_width; x++)
-            {
+    for (int i = 0; i < item.size(); i++) {
+        if (!item[i]->IsVisible()) continue;
+        if (item[i]->IsSeperator()) {
+            for (int x = 0; x < menu_width; x++) {
                 wmove(window, offset_y, offset_x + x);
                 waddch(window, ACS_HLINE);
             }
@@ -1002,27 +926,21 @@ void ccMenu::Draw(void)
         wmove(window, offset_y, 1);
         wclrtoeol(window);
 
-        if(item[i]->GetHotkey())
-        {
+        if (item[i]->GetHotkey()) {
             wmove(window, offset_y,
                 offset_x - (item[i]->GetHotkeyTitle().size() + 2));
             wcolor_set(window, 8, NULL);
-//          wattron(window, A_BOLD);
             wprintw(window, item[i]->GetHotkeyTitle().c_str());
-//          wattroff(window, A_BOLD);
             wcolor_set(window, bg_cp, NULL);
         }
 
         wmove(window, offset_y, offset_x - 1);
 
-        if(item[i]->IsSelected())
-        {
+        if (item[i]->IsSelected()) {
             wcolor_set(window, 7, NULL);
-//          wattron(window, A_BOLD);
             wprintw(window, " %s", item[i]->GetTitle().c_str());
-            for(int x = 0; x < (menu_width - item[i]->GetTitle().size()) + 1; x++)
+            for (int x = 0; x < (menu_width - item[i]->GetTitle().size()) + 1; x++)
                 waddch(window, ' ');
-//          wattroff(window, A_BOLD);
             wcolor_set(window, bg_cp, NULL);
         }
         else wprintw(window, " %s", item[i]->GetTitle().c_str());
@@ -1032,8 +950,7 @@ void ccMenu::Draw(void)
 
     box(window, ACS_VLINE, ACS_HLINE);
 
-    for(int i = 0; i < size.GetWidth() - 4; i++)
-    {
+    for (int i = 0; i < size.GetWidth() - 4; i++) {
         wmove(window, 2, i + 2);
         waddch(window, ACS_HLINE);
     }
@@ -1045,11 +962,8 @@ void ccMenu::Resize(void)
 {
     ccSize view_size = parent->GetSize();
 
-    //size.SetWidth(view_size.GetWidth() - 30);
-    //size.SetHeight(view_size.GetHeight() - 20);
     int items = 0;
-    for(int i = 0; i < item.size(); i++)
-    {
+    for (int i = 0; i < item.size(); i++) {
         if (!item[i]->IsVisible()) continue;
         items++;
     }
@@ -1078,9 +992,8 @@ void ccMenu::InsertItem(ccMenuItem *item)
 
 void ccMenu::RemoveItem(ccMenuId id)
 {
-    for(vector<ccMenuItem *>::iterator i = item.begin(); i != item.end(); i++)
-    {
-        if((*i)->GetId() != id) continue;
+    for (vector<ccMenuItem *>::iterator i = item.begin(); i != item.end(); i++) {
+        if ((*i)->GetId() != id) continue;
 
         delete (*i);
         item.erase(i);
@@ -1092,9 +1005,8 @@ void ccMenu::RemoveItem(ccMenuId id)
 
 void ccMenu::SetItemVisible(ccMenuId id, bool visible)
 {
-    for(vector<ccMenuItem *>::iterator i = item.begin(); i != item.end(); i++)
-    {
-        if((*i)->GetId() != id) continue;
+    for (vector<ccMenuItem *>::iterator i = item.begin(); i != item.end(); i++) {
+        if ((*i)->GetId() != id) continue;
 
         (*i)->SetVisible(visible);
         CalcMenuWidth();
@@ -1106,20 +1018,18 @@ void ccMenu::CalcMenuWidth(void)
 {
     menu_width = 0;
 
-    for(int i = 0; i < item.size(); i++)
-    {
-        if(item[i]->GetTitle().size() > menu_width)
+    for (int i = 0; i < item.size(); i++) {
+        if (item[i]->GetTitle().size() > menu_width)
             menu_width = item[i]->GetTitle().size();
     }
 }
 
 void ccMenu::SelectItem(ccMenuId id)
 {
-    if(id == ccMENU_ID_SEPERATOR) return;
+    if (id == ccMENU_ID_SEPERATOR) return;
 
-    for(int i = 0; i < item.size(); i++)
-    {
-        if(item[i]->GetId() == id) item[i]->SetSelected();
+    for (int i = 0; i < item.size(); i++) {
+        if (item[i]->GetId() == id) item[i]->SetSelected();
         else item[i]->SetSelected(false);
     }
 }
@@ -1128,16 +1038,14 @@ bool ccMenu::SelectItem(int hotkey)
 {
     ccMenuId id = ccMENU_ID_INVALID;
 
-    for(int i = 0; i < item.size(); i++)
-    {
-        if(item[i]->GetHotkey() != hotkey ||
+    for (int i = 0; i < item.size(); i++) {
+        if (item[i]->GetHotkey() != hotkey ||
             !item[i]->IsVisible()) continue;
         id = item[i]->GetId();
         break;
     }
 
-    if(id != ccMENU_ID_INVALID)
-    {
+    if (id != ccMENU_ID_INVALID) {
         SelectItem(id);
         return true;
     }
@@ -1147,28 +1055,27 @@ bool ccMenu::SelectItem(int hotkey)
 
 void ccMenu::SelectFirst(void)
 {
-    if(item.size()) SelectItem(item[0]->GetId());
+    if (item.size()) SelectItem(item[0]->GetId());
 }
 
 void ccMenu::SelectNext(void)
 {
     ccMenuId id = GetSelected();
 
-    if(id == ccMENU_ID_INVALID)
-    {
-        if(item.size()) item[0]->SetSelected();
+    if (id == ccMENU_ID_INVALID) {
+        if (item.size()) item[0]->SetSelected();
         return;
     }
 
-    int i = 0; for(; i < item.size(); i++)
-        if(item[i]->GetId() == id) break;
+    int i = 0;
+    for (; i < item.size(); i++)
+        if (item[i]->GetId() == id) break;
 
-    if(i == item.size() - 1) return;
+    if (i == item.size() - 1) return;
 
     int deselect = i;
-    for(i = i + 1; i < item.size(); i++)
-    {
-        if(item[i]->GetId() == ccMENU_ID_SEPERATOR ||
+    for (i = i + 1; i < item.size(); i++) {
+        if (item[i]->GetId() == ccMENU_ID_SEPERATOR ||
             !item[i]->IsVisible()) continue;
         item[deselect]->SetSelected(false);
         item[i]->SetSelected();
@@ -1180,22 +1087,21 @@ void ccMenu::SelectPrevious(void)
 {
     ccMenuId id = GetSelected();
 
-    if(id == ccMENU_ID_INVALID)
-    {
-        if(item.size()) item[0]->SetSelected();
+    if (id == ccMENU_ID_INVALID) {
+        if (item.size()) item[0]->SetSelected();
         return;
     }
 
-    int i = 0; for(; i < item.size(); i++)
-        if(item[i]->GetId() == id) break;
+    int i = 0;
+    for (; i < item.size(); i++)
+        if (item[i]->GetId() == id) break;
 
-    if(i == 0) return;
+    if (i == 0) return;
 
     int deselect = i;
 
-    for(i = i - 1; i >= 0; i--)
-    {
-        if(item[i]->GetId() == ccMENU_ID_SEPERATOR ||
+    for (i = i - 1; i >= 0; i--) {
+        if (item[i]->GetId() == ccMENU_ID_SEPERATOR ||
             !item[i]->IsVisible()) continue;
         item[deselect]->SetSelected(false);
         item[i]->SetSelected();
@@ -1205,9 +1111,8 @@ void ccMenu::SelectPrevious(void)
 
 ccMenuId ccMenu::GetSelected(void)
 {
-    for(int i = 0; i < item.size(); i++)
-    {
-        if(item[i]->IsSelected()) return item[i]->GetId();
+    for (int i = 0; i < item.size(); i++) {
+        if (item[i]->IsSelected()) return item[i]->GetId();
     }
 
     return ccMENU_ID_INVALID;
@@ -1221,7 +1126,7 @@ ccConsole::ccConsole()
     run(true), proc_exec(NULL), proc_pipe(NULL),
     dialog(NULL), login(NULL), sleep_mode(false)
 {
-    if(instance) throw ccSingleInstanceException("ccConsole");
+    if (instance) throw ccSingleInstanceException("ccConsole");
 
     instance = this;
 
@@ -1230,8 +1135,7 @@ ccConsole::ccConsole()
     size.SetWidth(COLS);
     size.SetHeight(LINES);
 
-    if(has_colors())
-    {
+    if (has_colors()) {
         start_color();
         assume_default_colors(COLOR_WHITE, COLOR_BLACK);
         init_pair(1, COLOR_WHITE, COLOR_BLACK);
@@ -1294,10 +1198,8 @@ ccConsole::ccConsole()
 
 ccConsole::~ccConsole()
 {
-    if(instance == this)
-    {
-        if(login_thread)
-        {
+    if (instance == this) {
+        if (login_thread) {
             login_thread->Destroy();
             login_thread->Wait();
             delete login_thread;
@@ -1308,8 +1210,8 @@ ccConsole::~ccConsole()
 
         delete update_thread;
 
-        if(proc_exec) delete proc_exec;
-        if(proc_pipe) delete proc_pipe;
+        if (proc_exec) delete proc_exec;
+        if (proc_pipe) delete proc_pipe;
 
         instance = NULL;
         endwin();
@@ -1327,12 +1229,10 @@ int ccConsole::EventLoop(void)
     ccEventServer *server;
     activity = time(NULL);
 
-    while(run)
-    {
+    while (run) {
         ncurses_lock.Lock();
 
-        if(isendwin())
-        {
+        if (isendwin()) {
             ncurses_lock.Unlock();
 
             usleep(SLEEP_DELAY);
@@ -1343,14 +1243,11 @@ int ccConsole::EventLoop(void)
 
         ncurses_lock.Unlock();
 
-        if(c == ERR || !(server = ccEventServer::Instance()))
-        {
+        if (c == ERR || !(server = ccEventServer::Instance())) {
             ccMutexLocker locker(timer_lock);
 
-            if(!idle_pause && time(NULL) > activity + IDLE_TIMEOUT)
-            {
-                if(menu->IsVisible())
-                {
+            if (!idle_pause && time(NULL) > activity + IDLE_TIMEOUT) {
+                if (menu->IsVisible()) {
                     menu->SetVisible(false);
                     ncurses_lock.Lock();
                     Draw();
@@ -1359,22 +1256,6 @@ int ccConsole::EventLoop(void)
 
                 ccEventFault *event = new ccEventFault("Access denied");
                 ccEventServer::Instance()->PostEvent(event);
-#if 0
-                service_client->SetUser("");
-                service_client->SetPassword("");
-
-                ccServiceConsole service_console;
-
-                try
-                {
-                    service_console.AuthCheck();
-                }
-                catch(ccServiceFaultException &e)
-                {
-                    ccEventFault *event = new ccEventFault(e.GetUri(), e.GetReason());
-                    ccEventServer::Instance()->PostEvent(event);
-                }
-#endif
             }
 
             usleep(SLEEP_DELAY);
@@ -1404,20 +1285,13 @@ bool ccConsole::HandleEvent(ccEvent *event)
 
     ccMutexLocker locker(ncurses_lock);
 
-    switch(event->GetType())
-    {
+    switch (event->GetType()) {
     case ccEVT_KEY_PRESS:
         event_keypress = dynamic_cast<ccEventKeyPress *>(event);
 
-        if(!menu->IsVisible()) return false;
+        if (!menu->IsVisible()) return false;
 
-//      wmove(window, 3, 0);
-//      wclrtoeol(window);
-//      wprintw(window, "Key Event: 0x%03x", event_keypress->GetKey());
-//      Draw();
-
-        switch(event_keypress->GetKey())
-        {
+        switch (event_keypress->GetKey()) {
         case KEY_DOWN:
             menu->SelectNext();
             Draw();
@@ -1429,14 +1303,12 @@ bool ccConsole::HandleEvent(ccEvent *event)
             return true;
         }
 
-        if(event_keypress->GetKey() == 0x0d ||
-            menu->SelectItem(event_keypress->GetKey()))
-        {
-            if(menu->GetSelected() == ccMENU_ID_SYS_REBOOT ||
-                menu->GetSelected() == ccMENU_ID_SYS_SHUTDOWN)
-            {
+        if (event_keypress->GetKey() == 0x0d ||
+            menu->SelectItem(event_keypress->GetKey())) {
+            if (menu->GetSelected() == ccMENU_ID_SYS_REBOOT ||
+                menu->GetSelected() == ccMENU_ID_SYS_SHUTDOWN) {
                 string blurb;
-                if(menu->GetSelected() == ccMENU_ID_SYS_REBOOT)
+                if (menu->GetSelected() == ccMENU_ID_SYS_REBOOT)
                     blurb = "Are you sure you want to restart?";
                 else
                     blurb = "Are you sure you want to shutdown?";
@@ -1450,8 +1322,7 @@ bool ccConsole::HandleEvent(ccEvent *event)
                 Draw();
                 return true;
             }
-            else if(menu->GetSelected() == ccMENU_ID_LOGOUT)
-            {
+            else if (menu->GetSelected() == ccMENU_ID_LOGOUT) {
                 ccConsole::Instance()->ResetActivityTimer();
                 return true;
             }
@@ -1466,19 +1337,16 @@ bool ccConsole::HandleEvent(ccEvent *event)
 
     case ccEVT_PROCESS:
         event_process = dynamic_cast<ccEventProcess *>(event);
-        if(event_process->GetProcess() == proc_exec)
-        {
+        if (event_process->GetProcess() == proc_exec) {
             int status = proc_exec->GetExitStatus();
-            if((WIFEXITED(status) && WEXITSTATUS(status) != 0))
-            {
+            if ((WIFEXITED(status) && WEXITSTATUS(status) != 0)) {
                 cerr << "Process did not exit normally: " << WEXITSTATUS(status) << endl;
-                for(int i = 0; i < 3; i++) { cerr << "."; sleep(1); }
+                for (int i = 0; i < 3; i++) { cerr << "."; sleep(1); }
             }
-            else if(WIFSIGNALED(status) &&
-                WTERMSIG(status) != SIGINT && WTERMSIG(status) != SIGTERM)
-            {
+            else if (WIFSIGNALED(status) &&
+                WTERMSIG(status) != SIGINT && WTERMSIG(status) != SIGTERM) {
                 cerr << "Process did not exit normally: " << sys_siglist[WTERMSIG(status)] << endl;
-                for(int i = 0; i < 3; i++) { cerr << "."; sleep(1); }
+                for (int i = 0; i < 3; i++) { cerr << "."; sleep(1); }
             }
 
             delete proc_exec;
@@ -1487,15 +1355,13 @@ bool ccConsole::HandleEvent(ccEvent *event)
             refresh();
             Resize();
         }
-        else if(event_process->GetProcess() == proc_pipe)
-        {
+        else if (event_process->GetProcess() == proc_pipe) {
             FILE *ph = proc_pipe->GetId();
             int status = proc_pipe->GetExitStatus();
 
             string text = event_process->GetError();
-            if (text.size()) {
+            if (text.size())
                 cerr << text.c_str();
-            }
             else {
                 text = event_process->GetText();
                 if (text.size()) {
@@ -1528,13 +1394,11 @@ bool ccConsole::HandleEvent(ccEvent *event)
     case ccEVT_SIGNAL:
         event_signal = dynamic_cast<ccEventSignal *>(event);
 
-        switch(event_signal->GetSignal())
-        {
+        switch (event_signal->GetSignal()) {
         case SIGINT:
         case SIGTERM:
         case SIGHUP:
-            if(proc_exec)
-            {
+            if (proc_exec) {
                 kill(proc_exec->GetId(), event_signal->GetSignal());
                 return true;
             }
@@ -1548,10 +1412,6 @@ bool ccConsole::HandleEvent(ccEvent *event)
             return true;
 
         default:
-//          wmove(window, 11, 0);
-//          wclrtoeol(window);
-//          wprintw(window, "Signal Event: %02d (NOT handled)", event_signal->GetSignal());
-
             return false;
         }
         break;
@@ -1568,7 +1428,6 @@ bool ccConsole::HandleEvent(ccEvent *event)
         idle = event_sysinfo->GetIdle();
 
         Draw();
-
         return true;
 
     case ccEVT_OUTPUT:
@@ -1576,9 +1435,7 @@ bool ccConsole::HandleEvent(ccEvent *event)
 
         wmove(window, size.GetHeight() - 3, 1);
         wclrtoeol(window);
-//      wattron(window, A_BOLD);
         waddch(window, ACS_RARROW);
-//      wattroff(window, A_BOLD);
         wprintw(window, " %s", event_output->GetText().c_str());
 
         Draw();
@@ -1591,28 +1448,24 @@ bool ccConsole::HandleEvent(ccEvent *event)
         cerr << "Application fault: ";
         cerr << event_fault->GetReason() << endl;
 
-        if(event_fault->GetReason() == string("Access denied"))
-        {
+        if (event_fault->GetReason() == string("Access denied")) {
             bool draw = false;
 
             idle_pause = true;
 
-            if(menu->IsVisible())
-            {
+            if (menu->IsVisible()) {
                 draw = true;
                 menu->SetVisible(false);
             }
 
-            if(!login)
-            {
+            if (!login) {
                 draw = true;
                 login = new ccDialogLogin(this);
             }
 
             Draw();
         }
-        else if(event_fault->GetReason() == string("Authenticated"))
-        {
+        else if (event_fault->GetReason() == string("Authenticated")) {
             idle_pause = false;
             login_thread->Wait();
             delete login_thread;
@@ -1627,28 +1480,20 @@ bool ccConsole::HandleEvent(ccEvent *event)
     case ccEVT_DIALOG:
         event_dialog = dynamic_cast<ccEventDialog *>(event);
 
-        if(event_dialog->GetSource() == dialog)
-        {
+        if (event_dialog->GetSource() == dialog) {
             ccMenuId id = (ccMenuId)dialog->GetUserId();
 
-            if(dialog->GetSelected() == ccBUTTON_ID_YES)
-            {
+            if (dialog->GetSelected() == ccBUTTON_ID_YES) {
                 delete dialog; dialog = NULL;
                 Draw();
                 LaunchProcess(id);
             }
-            else
-            {
+            else {
                 delete dialog; dialog = NULL;
                 Draw();
             }
         }
-        else if(event_dialog->GetSource() == login)
-        {
-#if 0
-            service_client->SetUser("root");
-            service_client->SetPassword(login->GetPassword());
-#endif
+        else if (event_dialog->GetSource() == login) {
             login_thread = new ccThreadLogin("root", login->GetPassword());
             login_thread->Run();
 
@@ -1668,7 +1513,7 @@ bool ccConsole::HandleEvent(ccEvent *event)
 
 void ccConsole::Draw(void)
 {
-    if(idle_pause || !IsVisible()) wclear(window);
+    if (idle_pause || !IsVisible()) wclear(window);
     if (!IsVisible()) return;
 
     wcolor_set(window, 1, NULL);
@@ -1677,53 +1522,40 @@ void ccConsole::Draw(void)
     wmove(window, 1, 0);
     wclrtoeol(window);
 
-    if(hostname.size())
-    {
+    if (hostname.size()) {
         wmove(window, 0, 0);
         wcolor_set(window, 2, NULL);
-        //wmove(window, 0, (size.GetWidth() - hostname.size()) / 2);
         wprintw(window, hostname.c_str());
         wcolor_set(window, 1, NULL);
     }
 
-    if(release.size())
-    {
+    if (release.size()) {
         wmove(window, 1, 0);
         wprintw(window, release.c_str());
     }
 
-    if(!idle_pause)
-    {
-        if(clock.size())
-        {
+    if (!idle_pause) {
+        if (clock.size()) {
             wmove(window, 1, size.GetWidth() - clock.size());
             wprintw(window, clock.c_str());
         }
 
-        if(uptime.size())
-        {
+        if (uptime.size()) {
             wmove(window, size.GetHeight() - 1, 0);
             wclrtoeol(window);
             wprintw(window, "Uptime: %s", uptime.c_str());
         }
 
-        if(load_average.size())
-        {
+        if (load_average.size()) {
             wmove(window, size.GetHeight() - 1,
                 size.GetWidth() - (string("Load Average: ").size() + load_average.size()));
-                //size.GetWidth() - (string("Load Average: ").size() + load_average.size() + 1));
             wprintw(window, "Load Average: ");
-//          if(load_average_color != 1) wattron(window, A_BOLD);
             wcolor_set(window, load_average_color, NULL);
             wprintw(window, load_average.c_str());
-//          if(load_average_color == 4) waddch(window, ACS_UARROW);
-//          else if(load_average_color == 5) waddch(window, ACS_DARROW);
-//          if(load_average_color != 1) wattroff(window, A_BOLD);
             wcolor_set(window, 1, NULL);
         }
 
-        if(idle.size())
-        {
+        if (idle.size()) {
             wmove(window, size.GetHeight() - 1,
                 (size.GetWidth() - (string("Idle: %").size() + idle.size())) / 2);
             wprintw(window, "Idle: %s%%", idle.c_str());
@@ -1741,17 +1573,15 @@ void ccConsole::Draw(void)
 void ccConsole::Refresh(void)
 {
     ccWindow::Refresh();
-    if(!isendwin()) doupdate();
+    if (!isendwin()) doupdate();
 }
 
 void ccConsole::Resize(void)
 {
     struct winsize ws;
 
-    if(ioctl(fileno(stdin), TIOCGWINSZ, (char *)&ws) != -1)
-    {
-        if(is_term_resized(ws.ws_row, ws.ws_col))
-        {
+    if (ioctl(fileno(stdin), TIOCGWINSZ, (char *)&ws) != -1) {
+        if (is_term_resized(ws.ws_row, ws.ws_col)) {
             resize_term(ws.ws_row, ws.ws_col);
 
             size.SetWidth(ws.ws_col);
@@ -1760,11 +1590,9 @@ void ccConsole::Resize(void)
     }
 
     wclear(window);
-//  wmove(window, 12, 0);
-//  wprintw(window, "Window Size: %dx%d", size.GetWidth(), size.GetHeight());
     curs_set(1); curs_set(0);
 
-    for(int i = 0; i < child.size(); i++) child[i]->Resize();
+    for (int i = 0; i < child.size(); i++) child[i]->Resize();
 
     Draw();
 }
@@ -1792,10 +1620,8 @@ void ccConsole::LaunchProcess(ccMenuId id)
     vector<string> argv;
     bool signal_trap = true;
 
-    switch(id)
-    {
+    switch (id) {
     case ccMENU_ID_CON_GUI:
-        //setenv("XCONSOLE_PASSWD", service_client->GetPassword(), 1);
         path = PATH_XCONSOLE;
         signal_trap = false;
         break;
@@ -1804,7 +1630,7 @@ void ccConsole::LaunchProcess(ccMenuId id)
         progress = new ccDialogProgress(this, "Installing Packages");
 
         path = PATH_SUDO " " PATH_TCONSOLE_YUM " install";
-        if(proc_pipe) delete proc_pipe;
+        if (proc_pipe) delete proc_pipe;
         proc_pipe = new ccProcessPipe(path, argv);
         proc_pipe->Execute();
         break;
@@ -1813,7 +1639,7 @@ void ccConsole::LaunchProcess(ccMenuId id)
         progress = new ccDialogProgress(this, "Removing Packages", false);
 
         path = PATH_SUDO " " PATH_TCONSOLE_YUM " remove";
-        if(proc_pipe) delete proc_pipe;
+        if (proc_pipe) delete proc_pipe;
         proc_pipe = new ccProcessPipe(path, argv);
         proc_pipe->Execute();
         break;
@@ -1843,7 +1669,7 @@ void ccConsole::LaunchProcess(ccMenuId id)
         return;
     }
 
-    if(proc_exec) delete proc_exec;
+    if (proc_exec) delete proc_exec;
     proc_exec = new ccProcessExec(path, argv, signal_trap);
 
     endwin();
@@ -1851,9 +1677,7 @@ void ccConsole::LaunchProcess(ccMenuId id)
 }
 
 ccThreadLogin::ccThreadLogin(const string &user, const string &passwd)
-    : ccThread(ccThread::ccTHREAD_TYPE_JOINABLE), user(user), passwd(passwd)
-{
-}
+    : ccThread(ccThread::ccTHREAD_TYPE_JOINABLE), user(user), passwd(passwd) { }
 
 void *ccThreadLogin::Entry(void)
 {
@@ -1877,13 +1701,9 @@ void *ccThreadLogin::Entry(void)
 }
 
 ccThreadUpdate::ccThreadUpdate(void)
-    : ccThread(ccThread::ccTHREAD_TYPE_JOINABLE)
-{
-}
+    : ccThread(ccThread::ccTHREAD_TYPE_JOINABLE) { }
 
-ccThreadUpdate::~ccThreadUpdate()
-{
-}
+ccThreadUpdate::~ccThreadUpdate() { }
 
 void *ccThreadUpdate::Entry(void)
 {
@@ -1895,12 +1715,10 @@ void *ccThreadUpdate::Entry(void)
 
     sleep(TIMER_TICK * 2);
 
-    while(!TestDestroy())
-    {
+    while (!TestDestroy()) {
         ostringstream os;
 
-        if(idle_pause)
-        {
+        if(idle_pause) {
             sleep(TIMER_TICK);
             continue;
         }
@@ -1926,7 +1744,7 @@ void *ccThreadUpdate::Entry(void)
                     event_sysinfo.SetRelease(os.str());
                 }
             }
-            if(++i == 60) i = 0;
+            if (++i == 60) i = 0;
     
             time_t now = time(NULL);
             struct tm *tm_bits = localtime(&now);
@@ -1946,18 +1764,15 @@ void *ccThreadUpdate::Entry(void)
             }
             unsigned long days = 0, hours = 0, minutes = 0;
 
-            if(seconds >= 86400)
-            {
+            if (seconds >= 86400) {
                 days = seconds / 86400;
                 seconds -= days * 86400;
             }
-            if(seconds >= 3600)
-            {
+            if (seconds >= 3600) {
                 hours = seconds / 3600;
                 seconds -= hours * 3600;
             }
-            if(seconds >= 60)
-            {
+            if (seconds >= 60) {
                 minutes = seconds / 60;
                 seconds -= minutes * 60;
             }
@@ -1977,8 +1792,8 @@ void *ccThreadUpdate::Entry(void)
                 float fifteen = strtof(rx_loadavg.GetMatch(3), NULL);
                 load_avg = (one + five + fifteen) / 3.0f;
             }
-            if(load_avg > last_load_avg) event_sysinfo.SetLoadAverageColor(4);
-            else if(load_avg < last_load_avg) event_sysinfo.SetLoadAverageColor(5);
+            if (load_avg > last_load_avg) event_sysinfo.SetLoadAverageColor(4);
+            else if (load_avg < last_load_avg) event_sysinfo.SetLoadAverageColor(5);
             last_load_avg = load_avg;
 
             os.str("");
@@ -2019,7 +1834,7 @@ ccThreadEvent::~ccThreadEvent()
 
 void *ccThreadEvent::Entry(void)
 {
-    while(!TestDestroy())
+    while (!TestDestroy())
     {
         server->DispatchEvents();
         usleep(SLEEP_DELAY);
@@ -2031,7 +1846,7 @@ void *ccThreadEvent::Entry(void)
 ccProcessBase::ccProcessBase(const string &path, const vector<string> &arg)
     : path(path), argv(NULL), thread(NULL)
 {
-    if(arg.size())
+    if (arg.size())
         argv = new char *[arg.size() + 2];
     else
         argv = new char *[2];
@@ -2041,9 +1856,8 @@ ccProcessBase::ccProcessBase(const string &path, const vector<string> &arg)
     memcpy(argv[0], path.c_str(), path.size());
 
     int i = 0;
-    for(; i < arg.size(); i++)
-    {
-        if(!arg[i].size()) continue;
+    for (; i < arg.size(); i++) {
+        if (!arg[i].size()) continue;
 
         argv[i + 1] = new char[arg[i].size() + 1];
         memset(argv[i + 1], 0, arg[i].size() + 1);
@@ -2055,14 +1869,12 @@ ccProcessBase::ccProcessBase(const string &path, const vector<string> &arg)
 
 ccProcessBase::~ccProcessBase()
 {
-    if(argv)
-    {
-        for(int i = 0; argv[i]; i++) delete [] argv[i];
+    if (argv) {
+        for (int i = 0; argv[i]; i++) delete [] argv[i];
         delete [] argv;
     }
 
-    if(thread)
-    {
+    if (thread) {
         thread->Destroy();
         thread->Wait();
         delete thread;
@@ -2074,7 +1886,7 @@ ccProcessExec::ccProcessExec(const string &path, const vector<string> &arg, bool
 
 void ccProcessExec::Execute(void)
 {
-    if(!path.size()) throw ccException("Invalid process path");
+    if (!path.size()) throw ccException("Invalid process path");
 
     thread = new ccThreadProcessExec(NULL, this);
     thread->Run();
@@ -2085,7 +1897,7 @@ ccProcessPipe::ccProcessPipe(const string &path, const vector<string> &arg)
 
 void ccProcessPipe::Execute(void)
 {
-    if(!path.size()) throw ccException("Invalid process path");
+    if (!path.size()) throw ccException("Invalid process path");
 
     thread = new ccThreadProcessPipe(NULL, this);
     thread->Run();
@@ -2094,12 +1906,11 @@ void ccProcessPipe::Execute(void)
 int ccProcessPipe::Execute(const string &path, vector<string> &output)
 {
     FILE *ph;
-    if((ph = popen(path.c_str(), "r")) == NULL) return -1;
+    if ((ph = popen(path.c_str(), "r")) == NULL) return -1;
     output.clear();
     int text_size = getpagesize();
     char *text = new char[text_size];
-    while(!feof(ph))
-    {
+    while (!feof(ph)) {
         if (fgets(text, text_size, ph) == NULL) break;
         output.push_back(text);
     }
@@ -2118,8 +1929,7 @@ void *ccThreadProcessExec::Entry(void)
     pid_t pid;
     ccEventProcess *event = new ccEventProcess(parent, process);
 
-    switch((pid = fork()))
-    {
+    switch ((pid = fork())) {
     case 0:
         setsid();
         for (int i = 3; i < FD_SETSIZE; i++) close(i);
@@ -2136,8 +1946,7 @@ void *ccThreadProcessExec::Entry(void)
             pthread_sigmask(SIG_UNBLOCK, &sigset, NULL);
         }
 
-        if(execv(process->path.c_str(), process->argv) == -1)
-        {
+        if (execv(process->path.c_str(), process->argv) == -1) {
             event->SetError(strerror(errno));
             ccEventServer::Instance()->PostEvent(event);
             return NULL;
@@ -2160,12 +1969,10 @@ void *ccThreadProcessExec::Entry(void)
 
     idle_pause = true;
 
-    while(!TestDestroy())
-    {
+    while (!TestDestroy()) {
         process->lock.Lock();
 
-        switch(waitpid(process->pid, &process->status, WNOHANG))
-        {
+        switch (waitpid(process->pid, &process->status, WNOHANG)) {
         case 0:
             break;
 
@@ -2194,8 +2001,7 @@ void *ccThreadProcessPipe::Entry(void)
     FILE *ph;
     ccEventProcess *event = new ccEventProcess(parent, process);
 
-    if((ph = popen(process->path.c_str(), "r")) == NULL)
-    {
+    if ((ph = popen(process->path.c_str(), "r")) == NULL) {
         event = new ccEventProcess(parent, process);
         event->SetError(strerror(errno));
         ccEventServer::Instance()->PostEvent(event);
@@ -2214,8 +2020,7 @@ void *ccThreadProcessPipe::Entry(void)
     int text_size = getpagesize();
     char *text = new char[text_size];
 
-    while(!TestDestroy())
-    {
+    while (!TestDestroy()) {
         if (fgets(text, text_size, ph) == NULL) break;
 
         event = new ccEventProcess(parent, process);
@@ -2236,4 +2041,3 @@ void *ccThreadProcessPipe::Entry(void)
 }
 
 // vi: ts=4
-
