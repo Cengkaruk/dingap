@@ -3,6 +3,10 @@
 #include <pthread.h>
 #include <signal.h>
 
+#ifdef _HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "thread.h"
 
 using namespace std;

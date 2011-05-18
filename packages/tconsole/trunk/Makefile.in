@@ -3,7 +3,6 @@ CXX=g++
 INCLUDE=-I.
 CFLAGS?=-pipe -s -O3
 CXXFLAGS?=$(CFLAGS)
-LDFLAGS=
 DEFS=-D_REENTRANT
 LIBS=-lncursesw -lpthread -lm
 ifeq ($(strip $(VENDOR)),)
@@ -33,7 +32,6 @@ TARGET=tconsole
 
 all:
 	@echo "Compiler: $(CXX) $(CXXFLAGS) $(INCLUDE)"
-	@echo "Linker: $(LD) $(LDFLAGS)"
 	@echo "Defines: $(DEFS)"
 	@echo "Libraries: $(LIBS)"
 	$(MAKE) MAKEFLAGS= deps
@@ -51,7 +49,7 @@ deps: $(wildcard *.cpp)
 
 $(TARGET): $(OBJECTS)
 	@echo "[L] $@"
-	@$(CXX) $(LDFLAGS) $(CXXFLAGS) $(OBJECTS) $(LIBS) -o $@
+	@$(CXX) $(CXXFLAGS) $(OBJECTS) $(LIBS) -o $@
 
 clean:
 	rm -f $(OBJECTS) $(TARGET) $(DEPS) *.log

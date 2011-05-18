@@ -4,6 +4,18 @@
 #define VER_MAJOR				3
 #define VER_MINOR				0
 
+#ifndef TIMER_TICK
+#define TIMER_TICK              2
+#endif
+
+#ifndef IDLE_TIMEOUT
+ #ifdef _DEBUG
+  #define IDLE_TIMEOUT          99999
+ #else
+  #define IDLE_TIMEOUT          300
+ #endif
+#endif
+
 #ifndef PATH_XCONSOLE
 #define PATH_XCONSOLE			"/usr/bin/startx"
 #endif
@@ -54,6 +66,10 @@
 
 #ifndef PATH_UPTIME
 #define PATH_UPTIME             "/proc/uptime"
+#endif
+
+#ifndef PATH_LOADAVG
+#define PATH_LOADAVG             "/proc/loadavg"
 #endif
 
 #include <exception>

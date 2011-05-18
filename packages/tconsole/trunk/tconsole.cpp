@@ -20,19 +20,15 @@
 
 #include <ncursesw/ncurses.h>
 
+#ifdef _HAVE_CONFIG_H
 #include "config.h"
+#endif
+
 #include "tconsole.h"
 #include "thread.h"
 #include "util.h"
 
-#define TIMER_TICK              5
 #define SLEEP_DELAY             50000
-#ifdef _DEBUG
-#define IDLE_TIMEOUT            99999
-#else
-//#define IDLE_TIMEOUT          300
-#define IDLE_TIMEOUT            10
-#endif
 
 extern int errno;
 static bool idle_pause = false;
@@ -119,9 +115,9 @@ int main(int argc, char *argv[])
 
     setlocale(LC_ALL, "");
 
-#ifdef _VENDOR_CLARKCONNECT
+#ifdef _VENDOR_CLEAROS
     cerr << "tConsole v" << VER_MAJOR << "." << VER_MINOR << endl;
-    cerr << "Copyright (C) 2009 ClearFoundation" << endl;
+    cerr << "Copyright (C) 2010-2011 ClearFoundation" << endl;
 #elif _VENDOR_CLARKCONNECT
     cerr << "tConsole v" << VER_MAJOR << "." << VER_MINOR << endl;
     cerr << "Copyright (C) 2009 Point Clark Networks" << endl;
@@ -1895,12 +1891,10 @@ void *ccThreadUpdate::Entry(void)
     ccFile file;
     ccRegEx rx_issue("^(.*) release (.*).Kernel", 3);
     ccRegEx rx_uptime("^([0-9]*)....([0-9]*)", 3);
-//s/^\([0-9]*\)\.[0-9][0-9] \([0-9]*\)
-#if 0
-    ccServiceConsole service_console;
-    ccServiceHostname service_hostname;
-    ccServiceStats service_stats;
-#endif
+    ccRegEx rx_loadavg("^([0-9]*\\.[0-9]*) ([0-9]*\\.[0-9]*) ([0-9]*\\.[0-9]*)", 4);
+
+    sleep(TIMER_TICK * 2);
+
     while(!TestDestroy())
     {
         ostringstream os;
@@ -1945,9 +1939,9 @@ void *ccThreadUpdate::Entry(void)
 
             event_sysinfo.SetTime(os);
 
-            unsigned long seconds = 0, idle = 0;
+            unsigned long uptime = 0, seconds = 0, idle = 0;
             if (rx_uptime.Execute(file.Read(PATH_UPTIME)) == 0) {
-                seconds = strtol(rx_uptime.GetMatch(1), NULL, 0);
+                uptime = seconds = strtol(rx_uptime.GetMatch(1), NULL, 0);
                 idle = strtol(rx_uptime.GetMatch(2), NULL, 0);
             }
             unsigned long days = 0, hours = 0, minutes = 0;
@@ -1974,59 +1968,15 @@ void *ccThreadUpdate::Entry(void)
                 << minutes;
 
             event_sysinfo.SetUptime(os);
-#if 0
-        try
-        {
-            if(!i)
-            {
-                event_sysinfo.SetHostname(service_hostname.GetHostname());
-                event_sysinfo.SetRelease(service_stats.GetRelease());
-            }
-
-            if(++i == 60) i = 0;
-
-            service_console.GetSystemStats();
-
-            struct tm *tm_bits = localtime(&service_console.timestamp);
-            int hour = (tm_bits->tm_hour > 12) ? tm_bits->tm_hour - 12 : tm_bits->tm_hour;
-    
-            os.str("");
-            os << ((hour) ? hour : 12) << ":"
-                << setw(2) << setfill('0') << tm_bits->tm_min << " "
-                << ((tm_bits->tm_hour >= 12) ? "PM" : "AM");
-
-            event_sysinfo.SetTime(os);
-
-            unsigned long seconds = (unsigned long)service_console.uptime;
-            unsigned long days = 0, hours = 0, minutes = 0;
-
-            if(seconds >= 86400)
-            {
-                days = seconds / 86400;
-                seconds -= days * 86400;
-            }
-            if(seconds >= 3600)
-            {
-                hours = seconds / 3600;
-                seconds -= hours * 3600;
-            }
-            if(seconds >= 60)
-            {
-                minutes = seconds / 60;
-                seconds -= minutes * 60;
-            }
-
-            os.str("");
-            os << days << "d "
-                << hours << ":" << setw(2) << setfill('0')
-                << minutes;
-                //<< ":" << setw(2) << setfill('0')
-                //<< seconds;
-
-            event_sysinfo.SetUptime(os);
 
             static float last_load_avg = 0.0f;
-            float load_avg = ((service_console.one + service_console.five + service_console.fifteen) / 3);
+            float load_avg = 0.0f;
+            if (rx_loadavg.Execute(file.Read(PATH_LOADAVG)) == 0) {
+                float one = strtof(rx_loadavg.GetMatch(1), NULL);
+                float five = strtof(rx_loadavg.GetMatch(2), NULL);
+                float fifteen = strtof(rx_loadavg.GetMatch(3), NULL);
+                load_avg = (one + five + fifteen) / 3.0f;
+            }
             if(load_avg > last_load_avg) event_sysinfo.SetLoadAverageColor(4);
             else if(load_avg < last_load_avg) event_sysinfo.SetLoadAverageColor(5);
             last_load_avg = load_avg;
@@ -2036,13 +1986,14 @@ void *ccThreadUpdate::Entry(void)
 
             event_sysinfo.SetLoadAverage(os);
 
-            float idle_percent = (float)(service_console.idle * 100) / (float)service_console.uptime;
+            float idle_percent = (float)idle * 100.0f / (float)uptime;
+            if (idle_percent > 100.0f) idle_percent = 99.99f;
 
             os.str("");
             os << fixed << setprecision(2) << idle_percent;
 
             event_sysinfo.SetIdle(os);
-#endif
+
             ccEventServer::Instance()->PostEvent(new ccEventSysInfo(event_sysinfo));
         }
         catch (ccException &e)

@@ -1,0 +1,52 @@
+# Text console RPM spec
+Name: tconsole
+Version: 3.0.0
+Release: 1%{dist}
+Vendor: ClearFoundation
+License: GPL
+Group: System Environment/Daemons
+Packager: ClearFoundation
+Source: %{name}-%{version}.tar.gz
+BuildRoot: /var/tmp/%{name}-%{version}
+Requires: sudo
+Summary: Text-based console tool
+BuildRequires: ncurses-devel
+
+%description
+Text-based console tool
+
+# Build
+%prep
+%setup -n %{name}-%{version}
+
+%build
+make
+
+# Install
+%install
+
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
+
+cp tconsole $RPM_BUILD_ROOT/usr/sbin/tconsole
+cp utils/tc-yum $RPM_BUILD_ROOT/usr/sbin/tc-yum
+
+# Post install
+%post
+/sbin/ldconfig
+
+# Post un-install
+%postun
+/sbin/ldconfig
+
+# Clean-up
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+# Files
+%files
+%defattr(-,root,root)
+/usr/sbin/tc-yum
+/usr/sbin/tconsole
+
