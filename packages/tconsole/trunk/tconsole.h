@@ -1,8 +1,8 @@
 #ifndef _TCONSOLE_H
 #define _TCONSOLE_H
 
-#ifndef TIMER_TICK
-#define TIMER_TICK              2
+#ifndef UPDATE_INTERVAL
+#define UPDATE_INTERVAL         4
 #endif
 
 #ifndef IDLE_TIMEOUT

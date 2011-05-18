@@ -32,6 +32,7 @@
 
 extern int errno;
 static bool idle_pause = false;
+static int update_interval = UPDATE_INTERVAL;
 
 using namespace std;
 
@@ -57,20 +58,34 @@ int main(int argc, char *argv[])
 
         static struct option options[] = {
             { "help", 0, 0, '?' },
+            { "interval", 1, 0, 'i' },
             { "debug", 1, 0, 'd' },
             { NULL, 0, 0, 0 }
         };
 
         if ((rc = getopt_long(argc, argv,
-            "d:h?", options, &o)) == -1) break;
+            "i:d:h?", options, &o)) == -1) break;
 
         switch (rc) {
+        case 'i':
+            update_interval = atoi(optarg);
+            if (update_interval <= 0)
+                update_interval = UPDATE_INTERVAL;
+            break;
         case 'd':
             debug = optarg;
             break;
 
         case '?':
         case 'h':
+            cout << "tConsole v" << VERSION << endl;
+            cout << "Copyright (C) 2010-2011 ClearFoundation" << endl;
+            cout << "To report bugs, go to: " << PACKAGE_BUGREPORT << endl;
+            cout << "  -i, --interval <n>" << endl;
+            cout << "    Specify update interval in seconds (default: "
+                 << UPDATE_INTERVAL << "s)" << endl;
+            cout << "  -d, --debug <log>" << endl;
+            cout << "    Enable debug mode and write to: <log>" << endl;
             exit(0);
             break;
         }
@@ -105,15 +120,7 @@ int main(int argc, char *argv[])
 
     setlocale(LC_ALL, "");
 
-#ifdef _VENDOR_CLEAROS
     cerr << "tConsole v" << VERSION << endl;
-    cerr << "Copyright (C) 2010-2011 ClearFoundation" << endl;
-#elif _VENDOR_CLARKCONNECT
-    cerr << "tConsole v" << VERSION << endl;
-    cerr << "Copyright (C) 2009 Point Clark Networks" << endl;
-#else
-    cerr << "tConsole v" << VERSION << endl;
-#endif
     ccThreadEvent *event_thread = new ccThreadEvent();
     event_thread->Run();
 
@@ -1405,13 +1412,11 @@ bool ccConsole::HandleEvent(ccEvent *event)
                 kill(proc_exec->GetId(), event_signal->GetSignal());
                 return true;
             }
-
             run = false;
             return true;
 
         case SIGWINCH:
             Resize();
-
             return true;
 
         default:
@@ -1537,32 +1542,30 @@ void ccConsole::Draw(void)
         wprintw(window, release.c_str());
     }
 
-    if (!idle_pause) {
-        if (clock.size()) {
-            wmove(window, 1, size.GetWidth() - clock.size());
-            wprintw(window, clock.c_str());
-        }
+    if (clock.size()) {
+        wmove(window, 1, size.GetWidth() - clock.size());
+        wprintw(window, clock.c_str());
+    }
 
-        if (uptime.size()) {
-            wmove(window, size.GetHeight() - 1, 0);
-            wclrtoeol(window);
-            wprintw(window, "Uptime: %s", uptime.c_str());
-        }
+    if (uptime.size()) {
+        wmove(window, size.GetHeight() - 1, 0);
+        wclrtoeol(window);
+        wprintw(window, "Uptime: %s", uptime.c_str());
+    }
 
-        if (load_average.size()) {
-            wmove(window, size.GetHeight() - 1,
-                size.GetWidth() - (string("Load Average: ").size() + load_average.size()));
-            wprintw(window, "Load Average: ");
-            wcolor_set(window, load_average_color, NULL);
-            wprintw(window, load_average.c_str());
-            wcolor_set(window, 1, NULL);
-        }
+    if (load_average.size()) {
+        wmove(window, size.GetHeight() - 1,
+            size.GetWidth() - (string("Load Average: ").size() + load_average.size()));
+        wprintw(window, "Load Average: ");
+        wcolor_set(window, load_average_color, NULL);
+        wprintw(window, load_average.c_str());
+        wcolor_set(window, 1, NULL);
+    }
 
-        if (idle.size()) {
-            wmove(window, size.GetHeight() - 1,
-                (size.GetWidth() - (string("Idle: %").size() + idle.size())) / 2);
-            wprintw(window, "Idle: %s%%", idle.c_str());
-        }
+    if (idle.size()) {
+        wmove(window, size.GetHeight() - 1,
+            (size.GetWidth() - (string("Idle: %").size() + idle.size())) / 2);
+        wprintw(window, "Idle: %s%%", idle.c_str());
     }
 
     string keys("Press Alt-F2 to Alt-F6 for additional shell terminals.");
@@ -1716,15 +1719,10 @@ void *ccThreadUpdate::Entry(void)
     ccRegEx rx_uptime("^([0-9]*)....([0-9]*)", 3);
     ccRegEx rx_loadavg("^([0-9]*\\.[0-9]*) ([0-9]*\\.[0-9]*) ([0-9]*\\.[0-9]*)", 4);
 
-    sleep(TIMER_TICK * 2);
+    sleep(update_interval);
 
     while (!TestDestroy()) {
         ostringstream os;
-
-        if(idle_pause) {
-            sleep(TIMER_TICK);
-            continue;
-        }
 
         try {
             FILE *ph;
@@ -1818,7 +1816,7 @@ void *ccThreadUpdate::Entry(void)
         {
             ccEventServer::Instance()->PostEvent(new ccEventFault(e.what()));
         }
-        sleep(TIMER_TICK);
+        sleep(update_interval);
     }
 
     return NULL;
