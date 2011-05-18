@@ -18,13 +18,17 @@ $app['description'] = 'The accounts base engine provides... blah blah blah'; // 
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Account Plugins and Extensions';
+$app['name'] = 'Account Manager';
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Accounts Manager';
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
+
+$app['core_requires'] = array(
+    'app-mode',
+);
 
 $app['core_directory_manifest'] = array(
    '/var/clearos/accounts' => array(),

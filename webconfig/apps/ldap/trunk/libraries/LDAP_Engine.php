@@ -52,6 +52,13 @@ clearos_load_language('ldap');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Factories
+//----------
+
+use \clearos\apps\mode\Mode_Factory as Mode;
+
+clearos_load_library('mode/Mode_Factory');
+
 // Classes
 //--------
 
@@ -147,19 +154,5 @@ class LDAP_Engine extends Daemon
         }
 
         return $output;
-    }
-
-    /**
-     * Returns a list of available modes.
-     *
-     * @return array list of modes
-     * @throws Engine_Exception
-     */
-
-    public function get_modes()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->modes;
     }
 }

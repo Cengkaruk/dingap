@@ -67,8 +67,10 @@ clearos_load_library('base/File');
 //-----------
 
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -104,7 +106,6 @@ class Mode_Engine extends Engine
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $modes = array();
     protected $is_loaded = FALSE;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -120,14 +121,6 @@ class Mode_Engine extends Engine
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $this->modes = array(
-            self::MODE_SIMPLE_MASTER => lang('mode_simple_master'),
-            self::MODE_SIMPLE_SLAVE => lang('mode_simple_slave'),
-            self::MODE_MASTER => lang('mode_master'),
-            self::MODE_SLAVE => lang('mode_slave'),
-            self::MODE_STANDALONE => lang('mode_standalone')
-        );
     }
 
     /**
@@ -148,20 +141,6 @@ class Mode_Engine extends Engine
             $this->config['mode'] = self::MODE_STANDALONE;
 
         return $this->config['mode'];
-    }
-
-    /**
-     * Returns a list of available modes.
-     *
-     * @return array list of modes
-     * @throws Engine_Exception
-     */
-
-    public function get_modes()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->modes;
     }
 
     /**

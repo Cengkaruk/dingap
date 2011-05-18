@@ -2,15 +2,15 @@
 <?php
 
 /**
- * ClearOS directory manager script.
+ * ClearOS LDAP manager script.
  *
  * @category   Apps
- * @package    Directory_Manager
+ * @package    LDAP
  * @subpackage Scripts
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2008-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/directory_manager/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,24 +42,25 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('directory_manager');
+clearos_load_language('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\active_directory\Active_Directory as Active_Directory;
-use \clearos\apps\directory_manager\Directory_Factory as Directory;
-use \clearos\apps\directory_manager\Directory_Manager as Directory_Manager;
-use \clearos\apps\network\Network_Utils as Network_Utils;
-use \clearos\apps\openldap\OpenLDAP as OpenLDAP;
-use \clearos\apps\samba\Samba as Samba;
+// Classes
+//--------
 
-clearos_load_library('directory_manager/Directory_Manager');
-clearos_load_library('directory_manager/Directory_Factory');
-clearos_load_library('network/Network_Utils');
-clearos_load_library('openldap/OpenLDAP');
-clearos_load_library('samba/Samba');
+use \clearos\apps\active_directory\Active_Directory as Active_Directory;
+use \clearos\apps\ldap\LDAP_Factory as LDAP_Factory;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+
+clearos_load_library('ldap/LDAP_Factory');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('mode/Mode_Factory');
+clearos_load_library('openldap_directory/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // M A I N
@@ -98,15 +99,16 @@ $helpopts  = '
   -h: help
   -p: password
 
-  Master Mode
-  -----------
+  OpenLDAP Master/Standalone Mode
+  -------------------------------
 
   -b: base domain (e.g. example.com)
 
-  Slave Mode
-  ----------
+  OpenLDAP Slave Mode
+  -------------------
 
   -s: master hostname
+  -a: administrator account
 
   Active Directory Mode
   ---------------------
@@ -126,12 +128,13 @@ $force = isset($options['f']) ? TRUE : FALSE;
 $help = isset($options['h']) ? TRUE : FALSE;
 $mode = isset($options['m']) ? $options['m'] : '';
 
-
 //--------------------------------------------------------------------
 // Usage issues
 //--------------------------------------------------------------------
 
-$dmanager = new Directory_Manager();
+$ldap = LDAP_Factory::create();
+$sysmode = Mode_Factory::create();
+$openldap = new OpenLDAP();
 
 if ($help) {
     echo "usage: " . $argv[0] . " [options]\n";
@@ -154,9 +157,9 @@ try {
 // Handle mode setting and dispatch
 //--------------------------------------------------------------------
 
-$modes = $dmanager->get_modes();
+$modes = $ldap->get_supported_modes();
 
-while ($dmanager->validate_mode($mode)) {
+while ($ldap->validate_mode($mode)) {
     echo "\nAvailable modes:\n\n";
 
     foreach ($modes as $mode => $mode_text)
@@ -166,10 +169,13 @@ while ($dmanager->validate_mode($mode)) {
     $mode = trim(fgets(STDIN));
 }
 
-if ($mode === Directory_Manager::MODE_MASTER) {
+// Initialize directory
+//---------------------
+
+if (($mode === Mode_Engine::MODE_MASTER) || ($mode === Mode_Engine::MODE_STANDALONE)) {
     initialize_master_or_standalone($mode, $options);
-} else if ($mode === Directory_Manager::MODE_ACTIVE_DIRECTORY) {
-    initialize_active_directory($options);
+    $openldap->initialize();
+    $sysmode->set_mode($mode);
 } else {
     echo "This tool does not support this mode... sorry.\n";
 }
@@ -180,7 +186,7 @@ if ($mode === Directory_Manager::MODE_MASTER) {
 
 function initialize_master_or_standalone($mode, $options)
 {
-    $directory = Directory::create();
+    global $ldap;
 
     // Handle command line options
     //--------------------------------------------------------------------
@@ -189,12 +195,12 @@ function initialize_master_or_standalone($mode, $options)
     $domain = isset($options['b']) ? $options['b'] : '';
     $password = isset($options['p']) ? $options['p'] : '';
 
-    while ($directory->validate_domain($domain)) {
+    while ($ldap->validate_domain($domain)) {
         echo "Please specify the base domain (e.g. example.com): ";
         $domain = trim(fgets(STDIN));
     }
 
-    while ($directory->validate_password($password)) {
+    while ($ldap->validate_password($password)) {
         ttyecho(FALSE); // Disable echo to terminal
         echo "Please specify the directory password: ";
         $password = trim(fgets(STDIN));
@@ -202,8 +208,8 @@ function initialize_master_or_standalone($mode, $options)
     }
 
     echo "\nThe following settings will be used to initialize the directory:\n\n";
-    printf("%25s - %s\n", lang('directory_manager_mode'), lang('directory_manager_master'));
-    printf("%25s - %s\n", lang('directory_manager_base_domain'), $domain);
+    printf("%25s - %s\n", lang('mode_mode'), $mode);
+    printf("%25s - %s\n", lang('ldap_base_domain'), $domain);
     printf("%25s - %s\n", lang('base_password'), str_repeat("*", strlen($password)));
     echo "\nThis can take a few seconds, please be patient...\n\n";
 
@@ -211,8 +217,13 @@ function initialize_master_or_standalone($mode, $options)
     //-------------------------
 
     try {
-        $directory->initialize_master($domain, $password, $force);
-        // $directory->initialize_slave("clearos5x.lan", 'clearos', '192.168.2.248', $force);
+/*
+        if ($mode === Mode_Engine::MODE_MASTER)
+            $ldap->initialize_master($domain, $password, $force);
+        else
+            $ldap->initialize_standalone($domain, $password, $force);
+*/
+
         echo "Success!\n";
     } catch (Exception $e) {
         echo lang('base_error') . " - " . clearos_exception_message($e) . "\n";

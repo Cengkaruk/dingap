@@ -79,6 +79,12 @@ clearos_load_library('mode/Mode_Engine');
 class Mode_Driver extends Mode_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $modes = array();
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -91,5 +97,25 @@ class Mode_Driver extends Mode_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct();
+
+        $this->modes = array(
+            self::MODE_SIMPLE_MASTER => lang('mode_simple_master'),
+            self::MODE_SIMPLE_SLAVE => lang('mode_simple_slave'),
+            self::MODE_STANDALONE => lang('mode_standalone')
+        );
+    }
+
+    /**
+     * Returns a list of available modes.
+     *
+     * @return array list of modes
+     * @throws Engine_Exception
+     */
+
+    public function get_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->modes;
     }
 }

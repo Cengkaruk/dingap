@@ -57,9 +57,11 @@ clearos_load_language('openldap');
 // Factories
 //----------
 
+use \clearos\apps\mode\Mode_Factory as Mode;
 use \clearos\apps\ldap\LDAP_Factory as LDAP;
 
 clearos_load_library('ldap/LDAP_Factory');
+clearos_load_library('mode/Mode_Factory');
 
 // Classes
 //--------
@@ -342,9 +344,9 @@ class LDAP_Driver extends LDAP_Engine
      * Returns the mode of directory.
      *
      * The return values are:
-     * - self::MODE_STANDALONE
-     * - self::MODE_MASTER
-     * - self::MODE_SLAVE
+     * - Mode_Engine::MODE_STANDALONE
+     * - Mode_Engine::MODE_MASTER
+     * - Mode_Engine::MODE_SLAVE
      *
      * @return string mode of the directory
      * @throws Engine_Exception
@@ -360,6 +362,40 @@ class LDAP_Driver extends LDAP_Engine
         $mode = (empty($this->config['mode'])) ? '' : $this->config['mode'];
 
         return $mode;
+    }
+
+    /**
+     * Returns a list of available modes.
+     *
+     * @return array list of modes
+     * @throws Engine_Exception
+     */
+
+    public function get_supported_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mode = Mode::create();
+
+        return $mode->get_modes();
+    }
+
+    /**
+     * Returns status of account system.
+     *
+     * - self::STATUS_INITIALIZING
+     * - self::STATUS_UNINITIALIZED
+     * - self::STATUS_OFFLINE
+     * - self::STATUS_ONLINE
+     *
+     * @return string account system status
+     * @throws Engine_Exception
+     */
+
+    public function get_system_status()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
     }
 
 // FIXME

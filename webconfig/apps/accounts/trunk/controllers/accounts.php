@@ -59,4 +59,9 @@ class Accounts extends ClearOS_Controller
 
         $this->page->view_forms($views, 'Plugins and Extensions'); // FIXME: translate
 	}
+
+    function initialize()
+    {
+        $this->index();
+    }
 }
