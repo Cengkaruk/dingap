@@ -220,7 +220,7 @@ void ccEventServer::DispatchEvents(void)
 {
     queue_lock.Lock();
 
-    for (int i = 0; i < queue.size(); i++) {
+    for (unsigned long i = 0; i < queue.size(); i++) {
         bool handled = false;
 
         if (queue[i]->GetDestination()) {
@@ -302,7 +302,7 @@ void ccText::Resize(void)
 
         line.append(word);
 
-        if (line.size() > width) {
+        if (line.size() > (unsigned long)width) {
             if (last.size()) {
                 _lines.push_back(last);
                 last.clear();
@@ -331,7 +331,7 @@ void ccText::Resize(void)
         if (_lines[_lines.size() - 1] != line) _lines.push_back(line);
     }
 
-    for (int i = 0; i < _lines.size(); i++)
+    for (unsigned long i = 0; i < _lines.size(); i++)
         cerr << setw(2) << i << ": " << _lines[i] << endl;
 }
 
@@ -413,14 +413,14 @@ ccWindow::~ccWindow()
 void ccWindow::Draw(void)
 {
     if (!visible) return;
-    for (int i = 0; i < child.size(); i++) child[i]->Draw();
+    for (unsigned long i = 0; i < child.size(); i++) child[i]->Draw();
 }
 
 void ccWindow::Refresh(void)
 {
     if (isendwin() || !visible) return;
     wnoutrefresh(window);
-    for (int i = 0; i < child.size(); i++) child[i]->Refresh();
+    for (unsigned long i = 0; i < child.size(); i++) child[i]->Refresh();
 }
 
 void ccWindow::RemoveChild(ccWindow *w)
@@ -549,7 +549,7 @@ bool ccInputBox::HandleEvent(ccEvent *event)
             return true;
         }
 
-        if (value.size() == size.GetWidth() - 1) {
+        if (value.size() == (unsigned long)(size.GetWidth() - 1)) {
             flash(); beep(); return false;
         }
 
@@ -571,6 +571,9 @@ bool ccInputBox::HandleEvent(ccEvent *event)
         }
 
         return false;
+
+    default:
+        break;
     }
 
     return false;

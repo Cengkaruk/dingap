@@ -50,8 +50,8 @@ public:
 
 private:
 	long id;
-	int error;
 	string reason;
+	int error;
 };
 
 class ccMutexException : public ccException
@@ -65,8 +65,8 @@ public:
 	string GetReason(void) { return reason; }
 
 private:
-	int error;
 	string reason;
+	int error;
 };
 
 class ccConditionException : public ccException
@@ -80,8 +80,8 @@ public:
 	string GetReason(void) { return reason; }
 
 private:
-	int error;
 	string reason;
+	int error;
 };
 
 class ccSemaphoreException : public ccException

@@ -306,8 +306,8 @@ public:
 	int GetX(void) { return x; };
 	int GetY(void) { return y; };
 
-	int SetX(int x) { this->x = x; };
-	int SetY(int y) { this->y = y; };
+	void SetX(int x) { this->x = x; };
+	void SetY(int y) { this->y = y; };
 
 	ccPoint& operator=(const ccPoint &p)
 	{
@@ -339,8 +339,8 @@ public:
 	int GetWidth(void) { return w; };
 	int GetHeight(void) { return h; };
 
-	int SetWidth(int w) { this->w = w; };
-	int SetHeight(int h) { this->h = h; };
+	void SetWidth(int w) { this->w = w; };
+	void SetHeight(int h) { this->h = h; };
 
 	ccSize& operator=(const ccPoint &p)
 	{
@@ -406,9 +406,9 @@ public:
 
 protected:
 	ccEventClient *parent;
-	uint32_t usec;
-	bool running;
 	bool one_shot;
+	bool running;
+	uint32_t usec;
 };
 
 class ccThreadLogin : public ccThread
@@ -454,12 +454,12 @@ public:
 	};
 
 protected:
-	bool visible;
-	ccSize size;
-	vector<ccWindow *> child;
 	ccWindow *parent;
+	ccSize size;
 	WINDOW *window;
 	int bg_cp;
+	bool visible;
+	vector<ccWindow *> child;
 
 	void AddChild(ccWindow *w) { child.push_back(w); };
 	void RemoveChild(ccWindow *w);
@@ -565,11 +565,11 @@ public:
 
 protected:
 	int user_id;
+	int button_width;
+	ccButtonId selected;
 	string title;
 	ccText *blurb;
-	ccButtonId selected;
 	vector<ccButton *> button;
-	int button_width;
 };
 
 class ccDialogLogin : public ccDialog
