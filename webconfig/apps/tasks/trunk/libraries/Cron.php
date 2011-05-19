@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/task/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/tasks/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\task;
+namespace clearos\apps\tasks;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -67,12 +67,12 @@ clearos_load_library('base/File');
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\task\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
+use \clearos\apps\tasks\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
-clearos_load_library('task/Cron_Configlet_Not_Found_Exception');
+clearos_load_library('tasks/Cron_Configlet_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -87,7 +87,7 @@ clearos_load_library('task/Cron_Configlet_Not_Found_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/task/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/tasks/
  */
 
 class Cron extends Daemon
@@ -133,7 +133,7 @@ class Cron extends Daemon
         $file = new File(self::PATH_CROND . '/' . $name, TRUE);
 
         if ($file->exists())
-            throw new Validation_Exception(lang('task_schedule_configuration_already_exists'));
+            throw new Validation_Exception(lang('tasks_schedule_configuration_already_exists'));
 
         $file->create('root', 'root', '0644');
 
@@ -165,7 +165,7 @@ class Cron extends Daemon
         $file = new File(self::PATH_CROND . '/' . $name, TRUE);
 
         if ($file->exists())
-            throw new Validation_Exception(lang('task_schedule_configuration_already_exists'));
+            throw new Validation_Exception(lang('tasks_schedule_configuration_already_exists'));
 
         $file->create('root', 'root', '0644');
 

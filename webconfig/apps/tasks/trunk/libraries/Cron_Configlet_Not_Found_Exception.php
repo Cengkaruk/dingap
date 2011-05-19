@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/task/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/tasks/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\task;
+namespace clearos\apps\tasks;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -69,7 +69,7 @@ clearos_load_library('base/Engine_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/task/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/tasks/
  */
 
 class Cron_Configlet_Not_Found_Exception extends Engine_Exception
