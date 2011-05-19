@@ -54,11 +54,11 @@ clearos_load_language('base');
 
 use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\openldap_accounts\Utilities as Utilities;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
-clearos_load_library('openldap_accounts/Utilities');
+clearos_load_library('openldap_directory/Utilities');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
