@@ -27,7 +27,7 @@ $app['subcategory'] = 'Accounts Manager';
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'app-mode',
+    'app-mode-core',
 );
 
 $app['core_directory_manifest'] = array(

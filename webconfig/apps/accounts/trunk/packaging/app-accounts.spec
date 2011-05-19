@@ -20,6 +20,7 @@ Summary: Accounts base engine - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-mode-core
 
 %description core
 The accounts base engine provides... blah blah blah
