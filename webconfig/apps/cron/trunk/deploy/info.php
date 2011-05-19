@@ -11,14 +11,14 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Cron...'; // FIXME
-$app['description'] = 'Cron...'; // FIXME: translate
+$app['summary'] = lang('cron_app_summary');
+$app['description'] = lang('cron_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Task Scheduler'; // FIXME translate
+$app['name'] = lang('cron_task_scheduler');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
 $app['menu_enabled'] = FALSE;
@@ -30,6 +30,5 @@ $app['menu_enabled'] = FALSE;
 $app['core_only'] =  TRUE;
 
 $app['core_requires'] = array(
-    'app-base',
     'cronie >= 1.4.4'
 );
