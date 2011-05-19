@@ -398,9 +398,12 @@ function local($options)
     system("find $source_tar_temp -type d -name '.svn' -exec rm -rf '{}' \; 2>/dev/null");
     system("cd $temp_dir; tar -czf $package_source_name.tar.gz $package_source_name");
     system("mv $temp_dir/$package_source_name.tar.gz $rpm_sources/");
-    system("rpmbuild -ba $spec_file"); 
+    system("rpmbuild -ba $spec_file", $retval); 
 
     system('rm -rf ' . $source_tar_temp);
+
+    if ($retval !== 0)
+        exit(1);
 }
 
 /**
