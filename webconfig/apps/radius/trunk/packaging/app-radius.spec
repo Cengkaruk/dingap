@@ -20,6 +20,8 @@ Summary: RADIUS Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network-core
+Requires: app-accounts-core
 Requires: freeradius
 Requires: freeradius-ldap
 Requires: freeradius-utils
