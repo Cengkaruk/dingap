@@ -58,13 +58,13 @@ clearos_load_language('date');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\cron\Cron as Cron;
+use \clearos\apps\tasks\Cron as Cron;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
-clearos_load_library('cron/Cron');
+clearos_load_library('tasks/Cron');
 clearos_load_library('network/Network_Utils');
 
 // Exceptions
@@ -74,13 +74,13 @@ use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\cron\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
+use \clearos\apps\tasks\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
-clearos_load_library('cron/Cron_Configlet_Not_Found_Exception');
+clearos_load_library('tasks/Cron_Configlet_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
