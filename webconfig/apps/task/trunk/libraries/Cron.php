@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/cron/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/task/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace clearos\apps\cron;
+namespace clearos\apps\task;
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -67,12 +67,12 @@ clearos_load_library('base/File');
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\cron\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
+use \clearos\apps\task\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
-clearos_load_library('cron/Cron_Configlet_Not_Found_Exception');
+clearos_load_library('task/Cron_Configlet_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -87,7 +87,7 @@ clearos_load_library('cron/Cron_Configlet_Not_Found_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/cron/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/task/
  */
 
 class Cron extends Daemon
@@ -96,8 +96,8 @@ class Cron extends Daemon
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_CRONTAB = "/etc/crontab";
-    const PATH_CROND = "/etc/cron.d";
+    const FILE_CRONTAB = '/etc/crontab';
+    const PATH_CROND = '/etc/cron.d';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -111,7 +111,7 @@ class Cron extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        parent::__construct("cronie");
+        parent::__construct('cronie');
     }
 
     /**
@@ -130,19 +130,14 @@ class Cron extends Daemon
 
         // TODO -- validate payload
 
-        try {
-            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
+        $file = new File(self::PATH_CROND . '/' . $name, TRUE);
 
-            if ($file->exists())
-                throw new Validation_Exception(FILE_LANG_ERRMSG_EXISTS . " - " . $name);
+        if ($file->exists())
+            throw new Validation_Exception(lang('task_schedule_configuration_already_exists'));
 
-            $file->create("root", "root", "0644");
+        $file->create('root', 'root', '0644');
 
-            $file->add_lines("$payload\n");
-
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $file->add_lines("$payload\n");
     }
 
     /**
@@ -167,18 +162,14 @@ class Cron extends Daemon
 
         // TODO: validate variables
 
-        try {
-            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
+        $file = new File(self::PATH_CROND . '/' . $name, TRUE);
 
-            if ($file->exists())
-                throw new Validation_Exception(FILE_LANG_ERRMSG_EXISTS . " - " . $name);
+        if ($file->exists())
+            throw new Validation_Exception(lang('task_schedule_configuration_already_exists'));
 
-            $file->create("root", "root", "0644");
+        $file->create('root', 'root', '0644');
 
-            $file->add_lines("$minute $hour $day_of_month $month $day_of_week $user $command\n");
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $file->add_lines("$minute $hour $day_of_month $month $day_of_week $user $command\n");
     }
 
     /**
@@ -196,15 +187,15 @@ class Cron extends Daemon
 
         // TODO: validate filename, do not allow .. or leading /
 
-        $contents = "";
+        $contents = '';
 
         try {
-            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
+            $file = new File(self::PATH_CROND . '/' . $name, TRUE);
             $contents = $file->get_contents();
         } catch (File_Not_Found_Exception $e) {
             throw new Cron_Configlet_Not_Found_Exception($e->get_message(), CLEAROS_INFO);
         } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
+            throw new Engine_Exception($e->get_message());
         }
 
         return $contents;
@@ -225,16 +216,10 @@ class Cron extends Daemon
 
         // TODO: validate filename, do not allow .. or leading /
 
-        try {
-            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
+        $file = new File(self::PATH_CROND . '/' . $name, TRUE);
 
-            if (! $file->exists())
-                throw new Validation_Exception(FILE_LANG_ERRMSG_NOTEXIST . " - " . $name);
-
+        if ($file->exists())
             $file->delete();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
     }
 
     /**
@@ -250,16 +235,12 @@ class Cron extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $file = new File(self::PATH_CROND . "/" . $name, TRUE);
+        $file = new File(self::PATH_CROND . '/' . $name, TRUE);
 
-            if ($file->exists())
-                return TRUE;
-            else
-                return FALSE;
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        if ($file->exists())
+            return TRUE;
+        else
+            return FALSE;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -280,9 +261,9 @@ class Cron extends Daemon
 
         // Could do more validation here...
 
-        $time = preg_replace("/\s+/", " ", $time);
+        $time = preg_replace('/\s+/', ' ', $time);
 
-        $parts = explode(" ", $time);
+        $parts = explode(' ', $time);
 
         if (sizeof($parts) != 5)
             return FALSE;

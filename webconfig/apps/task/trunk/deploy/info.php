@@ -4,21 +4,21 @@
 // General information
 /////////////////////////////////////////////////////////////////////////////
 
-$app['basename'] = 'cron';
+$app['basename'] = 'task';
 $app['version'] = '5.9.9.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('cron_app_summary');
-$app['description'] = lang('cron_app_long_description');
+$app['summary'] = lang('task_app_summary');
+$app['description'] = lang('task_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('cron_task_scheduler');
+$app['name'] = lang('task_task_scheduler');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
 $app['menu_enabled'] = FALSE;
