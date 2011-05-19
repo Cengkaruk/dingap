@@ -184,16 +184,21 @@ function theme_button_set($buttons, $options)
  *
  * @param string $label    label for text input field
  * @param string $text     text shown
+ * @param string $name     name of text input element
+ * @param string $value    value of text input 
  * @param string $input_id input ID
  * @param array  $options  options
  *
  * @return string HTML for field view
  */
 
-function theme_field_view($label, $text, $input_id, $options = NULL)
+function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id, $options = NULL)
 {
     $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field'] . "'";
     $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label'] . "'";
+
+    if (($name !== NULL) || ($value != NULL))
+        $hidden_input = "<input type='hidden' name='$name' id='$input_id' value='$value'>";
 
     return "
         <div$field_id_html class='theme-fieldview'>
