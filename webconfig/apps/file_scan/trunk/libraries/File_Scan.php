@@ -60,14 +60,14 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\cron\Cron as Cron;
+use \clearos\apps\tasks\Cron as Cron;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
-clearos_load_library('cron/Cron');
+clearos_load_library('tasks/Cron');
 
 // Exceptions
 //-----------
