@@ -11,8 +11,8 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'PPTP Server Directory Plugin';
-$app['description'] = 'The PPTP server plugin ... blah blah blah.'; // FIXME: translate
+$app['summary'] = 'Contact account extension summary';
+$app['description'] = 'Contact account extension description ... blah blah blah.'; // FIXME: translate
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories

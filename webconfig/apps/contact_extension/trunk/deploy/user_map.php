@@ -40,7 +40,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('contact');
+clearos_load_language('contact_extension');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -62,7 +62,7 @@ clearos_load_library('base/Country');
         'required' => FALSE,
         'validator' => 'validate_mobile_number',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_mobile_number'),
+        'description' => lang('contact_extension_mobile_number'),
         'object_class' => 'clearAccount',
         'attribute' => 'mobileTelephoneNumber'
     ),
@@ -84,7 +84,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_city',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_city'),
+        'description' => lang('contact_extension_city'),
         'object_class' => 'clearAccount',
         'attribute' => 'l' 
     ),
@@ -96,7 +96,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_country',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_country'),
+        'description' => lang('contact_extension_country'),
         'object_class' => 'clearAccount',
         'attribute' => 'c'
     ),
@@ -107,7 +107,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_fax_number',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_fax_number'),
+        'description' => lang('contact_extension_fax_number'),
         'object_class' => 'clearAccount',
         'attribute' => 'facsimileTelephoneNumber' 
     ),
@@ -118,7 +118,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_email',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_email'),
+        'description' => lang('contact_extension_email'),
         'object_class' => 'clearAccount',
         'attribute' => 'mail'
     ),
@@ -129,7 +129,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_organization',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_organization'),
+        'description' => lang('contact_extension_organization'),
         'object_class' => 'clearAccount',
         'attribute' => 'o'
     ),
@@ -140,7 +140,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_postal_code',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_postal_code'),
+        'description' => lang('contact_extension_postal_code'),
         'object_class' => 'clearAccount',
         'attribute' => 'postalCode'
     ),
@@ -151,7 +151,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_post_office_box',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_post_office_box'),
+        'description' => lang('contact_extension_post_office_box'),
         'object_class' => 'clearAccount',
         'attribute' => 'postOfficeBox'
     ),
@@ -162,7 +162,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_region',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_region'),
+        'description' => lang('contact_extension_region'),
         'object_class' => 'clearAccount',
         'attribute' => 'st'
     ),
@@ -173,7 +173,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_room_number',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_room_number'),
+        'description' => lang('contact_extension_room_number'),
         'object_class' => 'clearAccount',
         'attribute' => 'roomNumber'
     ),
@@ -184,7 +184,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_street',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_street'),
+        'description' => lang('contact_extension_street'),
         'object_class' => 'clearAccount',
         'attribute' => 'street'
     ),
@@ -195,7 +195,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_telephone_number',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_telephone_number'),
+        'description' => lang('contact_extension_telephone_number'),
         'object_class' => 'clearAccount',
         'attribute' => 'telephoneNumber'
     ),
@@ -206,7 +206,7 @@ $info_map = array(
         'required' => FALSE,
         'validator' => 'validate_unit',
         'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_unit'),
+        'description' => lang('contact_extension_unit'),
         'object_class' => 'clearAccount',
         'attribute' => 'ou'
     ),

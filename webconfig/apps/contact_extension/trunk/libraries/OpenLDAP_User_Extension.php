@@ -83,7 +83,7 @@ class OpenLDAP_User_Extension extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     protected $info_map = array();
-    protected $name = 'Contact Directory Extension'; // FIXME: translate
+    protected $name = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -99,6 +99,7 @@ class OpenLDAP_User_Extension extends Engine
 
         include clearos_app_base('contact_extension') . '/deploy/user_map.php';
 
+        $this->name = lang('contact_extension_contact_account_extension');
         $this->info_map = $info_map;
     }
 
@@ -209,7 +210,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $city))
-            return lang('contact_city_is_invalid');
+            return lang('contact_extension_city_is_invalid');
     }
 
     /**
@@ -228,7 +229,7 @@ class OpenLDAP_User_Extension extends Engine
         $country_list = $country_object->get_list();
 
         if (! array_key_exists($country, $country_list))
-            return lang('contact_country_is_invalid');
+            return lang('contact_extension_country_is_invalid');
     }
 
     /**
@@ -244,7 +245,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $number))
-            return lang('contact_fax_number_is_invalid');
+            return lang('contact_extension_fax_number_is_invalid');
     }
 
     /**
@@ -260,7 +261,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match("/^([a-z0-9_\-\.\$]+)@/", $address))
-            return lang('contact_email_is_invalid');
+            return lang('contact_extension_email_is_invalid');
     }
 
     /**
@@ -276,7 +277,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $number))
-            return lang('contact_mobile_number_is_invalid');
+            return lang('contact_extension_mobile_number_is_invalid');
     }
 
     /**
@@ -292,7 +293,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $organization))
-            return lang('contact_organization_is_invalid');
+            return lang('contact_extension_organization_is_invalid');
     }
 
     /**
@@ -308,7 +309,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $pobox))
-            return lang('contact_post_office_box_is_invalid');
+            return lang('contact_extension_post_office_box_is_invalid');
     }
 
     /**
@@ -324,7 +325,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $postal_code))
-            return lang('contact_postal_code_is_invalid');
+            return lang('contact_extension_postal_code_is_invalid');
     }
 
     /**
@@ -340,7 +341,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $room))
-            return lang('contact_room_number_is_invalid');
+            return lang('contact_extension_room_number_is_invalid');
     }
 
     /**
@@ -356,7 +357,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $region))
-            return lang('contact_region_is_invalid');
+            return lang('contact_extension_region_is_invalid');
     }
 
     /**
@@ -372,7 +373,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $street))
-            return lang('contact_street_is_invalid');
+            return lang('contact_extension_street_is_invalid');
     }
 
     /**
@@ -388,7 +389,7 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $number))
-            return lang('contact_telephone_number_is_invalid');
+            return lang('contact_extension_telephone_number_is_invalid');
     }
 
     /**
@@ -404,6 +405,6 @@ class OpenLDAP_User_Extension extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $unit))
-            return lang('contact_unit_is_invalid');
+            return lang('contact_extension_unit_is_invalid');
     }
 }
