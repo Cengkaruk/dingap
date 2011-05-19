@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Snort intrusion detection class.
+ *
+ * @category   Apps
+ * @package    Intrusion_Detection
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2005-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_detection/
+ */
+
 $rule_sets = array(
 	'activex'          => array( 'type' => 'security',    'description' => lang('intrusion_detection_rulelist_activex') ),
 	'attack-responses' => array( 'type' => 'security',    'description' => lang('intrusion_detection_rulelist_attack_responses') ),

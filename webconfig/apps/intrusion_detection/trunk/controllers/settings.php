@@ -45,10 +45,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_detection/
  */
 
-class Intrusion_Detection extends ClearOS_Controller
+class Settings extends ClearOS_Controller
 {
     /**
-     * Intrusion detection server summary view.
+     * Intrusion detection default controller
      *
      * @return view
      */
@@ -59,12 +59,36 @@ class Intrusion_Detection extends ClearOS_Controller
         //---------------
 
         $this->lang->load('intrusion_detection');
+        $this->load->library('intrusion_detection/Snort');
+
+        // Handle form submit
+        //-------------------
+
+        if ($this->input->post('submit')) {
+            try {
+                $this->snort->set_rule_sets($this->input->post('rule_sets'));
+                $this->page->set_status_updated();
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            // $data['rule_sets'] = $this->snort->get_rule_set_details();
+            $rule_sets = $this->snort->get_rule_set_details();
+            $data['rule_sets'] = $rule_sets['gpl'];
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Load views
         //-----------
 
-        $views = array('base/daemon/index/snort', 'intrusion_detection/settings');
-
-        $this->page->view_forms($views, lang('intrusion_detection_intrusion_detection'));
+        $this->page->view_form('settings', $data, lang('intrusion_detection_intrusion_detection'));
     }
 }
