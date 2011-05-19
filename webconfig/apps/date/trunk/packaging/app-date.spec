@@ -20,7 +20,7 @@ Summary: Date and Time - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-cron-core
+Requires: app-tasks-core
 Requires: ntpdate >= 4.2.4p8
 
 %description core
