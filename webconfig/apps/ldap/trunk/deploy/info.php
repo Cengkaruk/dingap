@@ -28,6 +28,6 @@ $app['menu_enabled'] = FALSE;
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'app-mode',
+    'app-mode-core',
     'system-ldap-driver', 
 );
