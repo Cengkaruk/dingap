@@ -363,7 +363,8 @@ div.theme-button-set { color: red; background-image: url(); }
 }
 
 .login .theme-field-password {
-	margin-bottom: 17px;
+	margin-bottom: 12px;
+	height: 20px;
 }
 
 .login .theme-form-wrapper {
@@ -371,7 +372,7 @@ div.theme-button-set { color: red; background-image: url(); }
 }
 
 .left-field-content {
-	width: 100px;
+	width: 130px;
 	text-align: right;
 	float: left;
 	padding-top: 4px;
@@ -411,6 +412,26 @@ border-radius: 9px;
   width: 490px;
 }
 
+.login .input-box input {
+	width: 120px;
+	float: right;
+}
+
+.login .left-field-content label {
+	float: left;
+	
+}
+
+.login .left-field-content {
+	text-align: left;
+	width: 60px;
+}
+
+.login .right-field-content {
+	float: right;
+	padding-top: 3px;
+}
+
 .login .theme-form-container {
 	width: 250px;
 	float: left;
@@ -435,6 +456,7 @@ border-radius: 9px;
 }
 
 .theme-field-toggle {
+	height: 25px;
   margin-bottom: 15px;
   ^height: 15px;	
 }
@@ -499,6 +521,37 @@ border-radius: 9px;
 	font-size: 14px;
 	margin-top: 0px;
 	margin-bottom: 20px;
+}
+
+.help-sides {
+}
+
+.help-description {
+	width: 435px;
+	display: inline;
+}
+
+.help-assets {
+	
+	display: inline;
+	
+}
+
+.help-assets-style {
+	border: 1px solid #98bb60;
+	padding: 5px;
+	border-radius: 9px;
+	width: 220px;
+	height: 15px
+	clear: both;
+	margin-right: 15px;
+	display: inline;
+}
+
+.help-assets-icons {
+	float: right;
+	margin-left: 15px;
+	
 }
 
 .help-sides {

@@ -897,11 +897,14 @@ function theme_help_box($data)
     return theme_dialogbox_info("
   
             <p class='breadcrumb'>" . $data['category'] . " &gt; " . $data['subcategory'] . " &gt; " . $data['name'] . "</p>
-            <p>" . $data['description'] . "</p>
-            <ul>
-                <li><a target='_blank' href='" . $data['user_guide_url'] . "'>User Guide</a></li>
-                <li><a target='_blank' href='" . $data['support_url'] . "'>ClearCARE Support</a></li>
-            </ul>
+            <p class='help-description'>" . $data['description'] . "</p>
+            <div class='help-assets'>
+              <div class='help-assets-style'>
+                <div class='help-assets-icons'><a target='_blank' href='" . $data['user_guide_url'] . "'>User Guide</a></div>
+                <div class='help-assets-icons'><a target='_blank' href='" . $data['support_url'] . "'>ClearCARE Support</a></div>
+              </div>
+            </div>
+  
     ");
 }
 
