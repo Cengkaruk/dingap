@@ -20,6 +20,7 @@ Summary: LDAP Manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-mode
 Requires: system-ldap-driver
 
 %description core
