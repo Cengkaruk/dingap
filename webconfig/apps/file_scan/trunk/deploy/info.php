@@ -26,29 +26,3 @@ $app['subcategory'] = lang('base_subcategory_file');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-/*
-$app['core_requires'] = array(
-    'app-cron-core', 
-    'ntpdate >= 4.2.4p8'
-);
-
-$app['core_directory_manifest'] = array(
-    '/etc/clearos/date' => array(),
-);
-
-$app['core_file_manifest'] = array( 
-   'app-date.cron' => array(
-        'target' => '/etc/cron.d/app-date',
-        'mode' => '0644',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-
-   'timesync' => array(
-        'target' => '/usr/sbin/timesync',
-        'mode' => '0755',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-);
-*/
