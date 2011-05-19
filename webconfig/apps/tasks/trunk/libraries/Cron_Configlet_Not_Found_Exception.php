@@ -4,7 +4,7 @@
  * Cron configlet not found class.
  *
  * @category   ClearOS
- * @package    Cron
+ * @package    Tasks
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
@@ -64,7 +64,7 @@ clearos_load_library('base/Engine_Exception');
  * Cron configlet not found class.
  *
  * @category   Apps
- * @package    Cron
+ * @package    Tasks
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation

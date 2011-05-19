@@ -4,7 +4,7 @@
  * Cron class.
  *
  * @category   Apps
- * @package    Cron
+ * @package    Tasks
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
@@ -82,7 +82,7 @@ clearos_load_library('tasks/Cron_Configlet_Not_Found_Exception');
  * Cron class.
  *
  * @category   Apps
- * @package    Cron
+ * @package    Tasks
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
