@@ -258,6 +258,23 @@ class LDAP_Driver extends LDAP_Engine
     }
 
     /** 
+     * Returns the bind DN.
+     *
+     * @return string bind DN
+     * @throws Engine_Exception
+     */
+
+    public function get_bind_dn()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph === NULL)
+            $this->ldaph = $this->get_ldap_handle();
+
+        return $this->ldaph->get_bind_dn();
+    }
+
+    /** 
      * Returns base DN in Internet domain format.
      *
      * @return string default domain
