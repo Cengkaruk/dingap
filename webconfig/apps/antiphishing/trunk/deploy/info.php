@@ -26,7 +26,7 @@ $app['subcategory'] = lang('base_subcategory_antimalware');
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['antiphishing']['tooltip'] = 'Even the most savvy Internet users can accidentally click on a phishing link.  We recommend leaving all antiphishing features enabled.'; // FIXME translate
+$app['controllers']['antiphishing']['tooltip'] = lang('antiphishing_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

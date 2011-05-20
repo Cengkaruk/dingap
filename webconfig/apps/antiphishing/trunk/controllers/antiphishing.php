@@ -106,6 +106,6 @@ class Antiphishing extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('antiphishing', $data, lang('antiphishing_antiphishing'));
+        $this->page->view_form('antiphishing', $data, lang('antiphishing_gateway_antiphishing'));
     }
 }
