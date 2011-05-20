@@ -32,6 +32,10 @@ $app['controllers']['antiphishing']['tooltip'] = 'Even the most savvy Internet u
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['requires'] = array(
+    'app-antivirus',
+);
+
 $app['core_requires'] = array(
     'app-antivirus-core',
 );

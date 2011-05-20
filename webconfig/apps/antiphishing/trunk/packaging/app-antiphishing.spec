@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-antivirus
 
 %description
 Antiphishing description...
