@@ -34,6 +34,7 @@ $app['core_provides'] = array(
 );
 
 $app['core_requires'] = array(
+    'app-mode-core',
     'app-network-core',
     'openldap-servers >= 2.4.19',
     'openssl',

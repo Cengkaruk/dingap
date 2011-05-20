@@ -11,6 +11,7 @@ Source: app-openldap-%{version}.tar.gz
 Buildarch: noarch
 Provides: system-ldap-driver
 Requires: app-base-core
+Requires: app-mode-core
 Requires: app-network-core
 Requires: openldap-servers >= 2.4.19
 Requires: openssl
