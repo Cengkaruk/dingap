@@ -21,6 +21,7 @@ $app['description'] = lang('samba_app_long_description');
 $app['name'] = 'Windows Settings';
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_file');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
@@ -33,5 +34,9 @@ $app['core_requires'] = array(
 );
 
 $app['requires'] = array(
+    'app-accounts',
+    'app-groups',
+    'app-users',
+    'app-network',
     'samba >= 3.5.4',
 );

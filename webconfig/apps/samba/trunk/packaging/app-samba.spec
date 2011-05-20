@@ -11,6 +11,10 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-accounts
+Requires: app-groups
+Requires: app-users
+Requires: app-network
 Requires: samba >= 3.5.4
 
 %description
