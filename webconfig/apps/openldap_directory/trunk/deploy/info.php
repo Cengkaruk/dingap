@@ -28,13 +28,18 @@ $app['menu_enabled'] = FALSE;
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_provides'] = array(
-    'system-accounts',
+    'system-accounts-driver',
+    'app-accounts',
+    'app-groups',
+    'app-users',
 );
 
 $app['core_requires'] = array(
     'app-accounts-core',
     'app-groups-core',
+    'app-ldap-core',
     'app-network-core',
+    'app-openldap-core',
     'app-samba-core',
     'app-users-core',
     'nss-pam-ldapd',

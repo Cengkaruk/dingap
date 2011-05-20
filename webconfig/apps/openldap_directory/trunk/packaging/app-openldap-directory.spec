@@ -19,11 +19,16 @@ OpenLDAP directory driver... blah blah.
 Summary: OpenLDAP Directory Driver - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
-Provides: system-accounts
+Provides: system-accounts-driver
+Provides: app-accounts
+Provides: app-groups
+Provides: app-users
 Requires: app-base-core
 Requires: app-accounts-core
 Requires: app-groups-core
+Requires: app-ldap-core
 Requires: app-network-core
+Requires: app-openldap-core
 Requires: app-samba-core
 Requires: app-users-core
 Requires: nss-pam-ldapd
