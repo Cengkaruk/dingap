@@ -20,6 +20,7 @@ Summary: Network configuration tool - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: avahi
 Requires: bind-utils
 Requires: dhclient
 Requires: ethtool
@@ -41,7 +42,6 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/network
 cp -r * %{buildroot}/usr/clearos/apps/network/
 
 install -D -m 0644 packaging/dhclient-exit-hooks %{buildroot}/etc/dhclient-exit-hooks
-install -D -m 0755 packaging/firewall-up %{buildroot}/usr/sbin/firewall-up
 install -D -m 0644 packaging/network %{buildroot}/etc/network
 
 %post
@@ -86,5 +86,4 @@ exit 0
 /usr/clearos/apps/network/language
 /usr/clearos/apps/network/libraries
 /etc/dhclient-exit-hooks
-/usr/sbin/firewall-up
 %config(noreplace) /etc/network

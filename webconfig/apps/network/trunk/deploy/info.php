@@ -34,6 +34,7 @@ $app['controllers']['iface']['title'] = 'Network Interfaces';
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'avahi',
     'bind-utils',
     'dhclient',
     'ethtool',
@@ -46,12 +47,6 @@ $app['core_file_manifest'] = array(
    'dhclient-exit-hooks' => array(
         'target' => '/etc/dhclient-exit-hooks',
         'mode' => '0644',
-        'onwer' => 'root',
-        'group' => 'root',
-    ),
-   'firewall-up' => array(
-        'target' => '/usr/sbin/firewall-up',
-        'mode' => '0755',
         'onwer' => 'root',
         'group' => 'root',
     ),
