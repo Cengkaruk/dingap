@@ -26,7 +26,12 @@ $app['subcategory'] = lang('base_subcategory_intrusion_protection');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['requires'] = array(
+    'app-network',
+);
+
 $app['core_requires'] = array(
+    'app-network-core',
     'snort >= 2.9.0.4',
     'snort-gpl-rules',
 );

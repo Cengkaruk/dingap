@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-network
 
 %description
 Translation missing (intrusion_detection_app_long_description)
@@ -20,6 +21,7 @@ Summary: Translation missing (intrusion_detection_app_summary) - APIs and instal
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network-core
 Requires: snort >= 2.9.0.4
 Requires: snort-gpl-rules
 
