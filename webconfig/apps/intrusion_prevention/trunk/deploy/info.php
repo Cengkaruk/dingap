@@ -33,7 +33,13 @@ $app['controllers']['white_list']['title'] = lang('intrusion_prevention_white_li
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['requires'] = array(
+    'app-intrusion-detection',
+    'app-network',
+);
+
 $app['core_requires'] = array(
+    'app-network-core',
     'app-intrusion-detection-core',
     'snort >= 2.9.0.4',
 );

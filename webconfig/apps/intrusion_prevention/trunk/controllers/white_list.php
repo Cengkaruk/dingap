@@ -107,7 +107,7 @@ class White_List extends ClearOS_Controller
                 $ip = $this->input->post('ip');
 
                 $this->snortsam->add_whitelist_ip($ip);
-                $this->snortsam->reset();
+                $this->snortsam->reset(TRUE);
 
                 // Return to summary page with status message
                 $this->page->set_status_added();

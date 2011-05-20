@@ -47,22 +47,28 @@
 
 class Intrusion_Prevention extends ClearOS_Controller
 {
-	/**
-	 * Intrusion prevention server overview.
-	 */
+    /**
+     * Intrusion prevention server overview.
+     *
+     * @return view
+     */
 
-	function index()
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        // Load libraries
+        //---------------
 
-		$this->lang->load('intrusion_prevention');
+        $this->lang->load('intrusion_prevention');
 
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
-        $views = array('intrusion_prevention/white_list', 'intrusion_prevention/blocked_list');
+        $views = array(
+            'base/daemon/index/snortsam',
+            'intrusion_prevention/white_list',
+            'intrusion_prevention/blocked_list'
+        );
 
         $this->page->view_forms($views, lang('intrusion_prevention_intrusion_prevention'));
-	}
+    }
 }

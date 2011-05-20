@@ -11,6 +11,8 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-intrusion-detection
+Requires: app-network
 
 %description
 Intrusion Prevention long description
@@ -20,6 +22,7 @@ Summary: Intrusion Prevention app summary.. - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network-core
 Requires: app-intrusion-detection-core
 Requires: snort >= 2.9.0.4
 

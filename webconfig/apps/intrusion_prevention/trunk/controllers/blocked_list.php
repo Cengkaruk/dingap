@@ -115,7 +115,7 @@ class Blocked_List extends ClearOS_Controller
 
         try {
             $this->snortsam->delete_blocked_ip($ip);
-            $this->snortsam->reset($ip);
+            $this->snortsam->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/intrusion_prevention');
@@ -152,7 +152,7 @@ class Blocked_List extends ClearOS_Controller
 
         try {
             $this->snortsam->add_whitelist_ip($ip);
-            $this->snortsam->reset($ip);
+            $this->snortsam->reset(TRUE);
 
             $this->page->set_status_updated();
             redirect('/intrusion_prevention');

@@ -4,7 +4,7 @@
  * SnortSam intrusion prevention class.
  *
  * @category   Apps
- * @package    Intrusion_Detection
+ * @package    Intrusion_Prevention
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
@@ -81,7 +81,7 @@ clearos_load_library('base/Validation_Exception');
  * SnortSam intrusion prevention class.
  *
  * @category   Apps
- * @package    Intrusion_Detection
+ * @package    Intrusion_Prevention
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
