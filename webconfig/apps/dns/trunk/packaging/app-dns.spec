@@ -21,7 +21,6 @@ Summary: DNS Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-network-core
 Requires: dnsmasq >= 2.48
 Requires: net-tools
 
