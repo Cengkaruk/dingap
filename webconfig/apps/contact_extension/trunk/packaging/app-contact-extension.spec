@@ -3,18 +3,17 @@ Name: app-contact-extension-core
 Group: ClearOS/Libraries
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: PPTP Server Directory Plugin - APIs and install
+Summary: Contact account extension summary - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
 Source: app-contact-extension-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
-Requires: app-accounts-core
 Requires: app-openldap-directory-core
 
 %description
-The PPTP server plugin ... blah blah blah.
+Contact account extension description ... blah blah blah.
 
 This package provides the core API and libraries.
 

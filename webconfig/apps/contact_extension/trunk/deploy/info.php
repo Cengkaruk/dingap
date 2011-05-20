@@ -29,12 +29,7 @@ $app['menu_enabled'] = FALSE;
 
 $app['core_only'] = TRUE;
 
-$app['requires'] = array(
-    'app-accounts', 
-);
-
 $app['core_requires'] = array(
-    'app-accounts-core', 
     'app-openldap-directory-core',
 );
 
