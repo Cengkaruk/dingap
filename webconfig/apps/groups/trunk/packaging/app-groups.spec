@@ -12,6 +12,7 @@ Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-accounts
+Requires: app-users
 
 %description
 Group manager description blah blah...
@@ -22,6 +23,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-accounts-core
+Requires: system-groups-driver
 
 %description core
 Group manager description blah blah...
