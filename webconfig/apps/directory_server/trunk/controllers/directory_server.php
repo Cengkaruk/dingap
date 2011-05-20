@@ -125,15 +125,16 @@ class Directory_Server extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('openldap/LDAP_Driver');
+        $this->load->library('openldap_directory/OpenLDAP');
 
         // Load view data
         //---------------
 
         try {
-            $data['base_dn'] = $this->ldap_driver->get_base_dn();
-            $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
-            $data['bind_password'] = $this->ldap_driver->get_bind_password();
+            $data['base_dn'] = $this->openldap->get_base_dn();
+// FIXME
+//            $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
+//            $data['bind_password'] = $this->ldap_driver->get_bind_password();
         } catch (Exception $e) {
             $data['code'] = 1;
             $data['error_message'] = clearos_exception_message($e);

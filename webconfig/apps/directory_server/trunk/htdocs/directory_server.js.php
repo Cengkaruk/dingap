@@ -39,7 +39,7 @@ $(document).ready(function() {
 
     function getDirectoryInfo() {
         $.ajax({
-            url: 'directory_server/get_info',
+            url: '/app/directory_server/get_info',
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
