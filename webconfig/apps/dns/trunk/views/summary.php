@@ -85,11 +85,15 @@ foreach ($hosts as $real_ip => $entry) {
     // Item details
     ///////////////////////////////////////////////////////////////////////////
 
+    // TODO: not IPv6 friendly
+    // Order IPs in human-readable way
+    $order_ip = "<span style='display: none'>" . sprintf("%032b", ip2long($ip)) . "</span>$ip";
+
     $item['title'] = $ip . " - " . $hostname;
     $item['action'] = '/app/dns/edit/' . $ip;
     $item['anchors'] = $detail_buttons;
     $item['details'] = array(
-        $ip,
+        $order_ip,
         $hostname,
     );
 
