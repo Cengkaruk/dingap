@@ -32,7 +32,11 @@ $app['controllers']['antivirus']['tooltip'] = 'Encrypted files are often used to
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_requires'] = array(
+$app['requires'] = array(
     'app-network',
+);
+
+$app['core_requires'] = array(
+    'app-network-core',
     'clamd',
 );

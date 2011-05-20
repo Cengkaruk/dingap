@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-network
 
 %description
 Gateway Antivirus long description...
@@ -20,7 +21,7 @@ Summary: Gateway Antivirus app summary.. - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-network
+Requires: app-network-core
 Requires: clamd
 
 %description core
