@@ -128,6 +128,8 @@ class Time extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        date_default_timezone_set($this->get_time_zone());
+        
         return time();
     }
 

@@ -14,3 +14,4 @@ $lang['date_time_server_is_invalid'] = 'Time server is invalid.';
 $lang['date_time_synchronization_schedule_is_invalid'] = 'Time synchronization schedule is invalid.';
 $lang['date_time_zone'] = 'Time Zone';
 $lang['date_time_zone_is_invalid'] = 'Time zone is invalid.';
+$lang['date_synchronization_changed_time_by_x_seconds:'] = 'The synchronization changed the system time by the following number of seconds:';

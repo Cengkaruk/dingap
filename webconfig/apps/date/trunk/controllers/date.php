@@ -84,10 +84,12 @@ class Date extends ClearOS_Controller
         //---------------
 
         try {
-            $data['date'] = strftime("%b %e %Y");
-            $data['time'] = strftime("%T %Z");
             $data['time_zone'] = $this->time->get_time_zone();
             $data['time_zones'] = $this->time->get_time_zone_list();
+
+            $timestamp = $this->time->get_time();
+            $data['date'] = strftime("%b %e %Y", $timestamp);
+            $data['time'] = strftime("%T %Z", $timestamp);
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -115,19 +117,20 @@ class Date extends ClearOS_Controller
         // Run synchronize
         //----------------
 
-        // FIXME: discuss standard for Ajax errors
         try {
-            $payload['code'] = 0;
-            $payload['data']['diff'] = $this->ntp_time->synchronize();
+            $data['error_code'] = 0;
+            $data['diff'] = $this->ntp_time->synchronize();
+            $data['date'] = strftime("%b %e %Y");
+            $data['time'] = strftime("%T %Z");
         } catch (Exception $e) {
-            $payload['code'] = 1;
-            $payload['error_message'] = clearos_exception_message($e);
+            $data['error_code'] = clearos_exception_code($e);
+            $data['error_message'] = clearos_exception_message($e);
         }
 
         // Return status message
         //----------------------
 
         $this->output->set_header("Content-Type: application/json");
-        $this->output->set_output(json_encode($payload));
+        $this->output->set_output(json_encode($data));
     }
 }

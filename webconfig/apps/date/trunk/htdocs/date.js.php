@@ -26,8 +26,13 @@ header('Content-Type:application/x-javascript');
 ?>
 
 $(document).ready(function() {
+    $("#result_box").hide();
+
 	$("#sync").click(function(){
+        $("#result_box").hide();
 		$("#result").html('<div class="theme-loading"></div>');
+		$("#date").html('<div class="theme-loading"></div>');
+		$("#time").html('<div class="theme-loading"></div>');
 
 		$.ajax({
 			url: 'date/sync',
@@ -37,14 +42,20 @@ $(document).ready(function() {
 				showData(payload);
             },
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
-				$("#result").html('Ooops: ' + textStatus);
 			}
 
 		});
 	});
 
 	function showData(payload) {
-        $("#result").html(payload.data.diff);
+        if (payload.error_message) {
+            $("#result").html(payload.error_message);
+        } else {
+            $("#result").html(payload.diff);
+            $("#date").html(payload.date);
+            $("#time").html(payload.time);
+            $("#result_box").show();
+        }
 	}
 });
 
