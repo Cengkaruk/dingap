@@ -44,8 +44,9 @@ exit 0
 
 CHECK=`grep "^Cmnd_Alias CLEARCONSOLE =" /etc/sudoers`
 if [ -z "$CHECK" ]; then
-	echo "Cmnd_Alias CLEARCONSOLE = /usr/bin/iptraf, /usr/sbin/console_start, /usr/sbin/tc-yum, /bin/rpm, /sbin/halt, /sbin/reboot" >> /etc/sudoers
+	echo "Cmnd_Alias CLEARCONSOLE = /usr/bin/iptraf, /usr/sbin/console_start, /usr/sbin/tc-yum, /bin/rpm, /sbin/halt, /sbin/reboot, /usr/sbin/app-passwd" >> /etc/sudoers
 fi
+# FIXMEFIXME: changes required for Cmnd_Alias on an upgrade
 
 CHECK=`grep "^clearconsole[[:space:]]*" /etc/sudoers`
 if [ -z "$CHECK" ]; then
