@@ -1,37 +1,27 @@
 
-Name: app-openldap
-Group: ClearOS/Apps
+Name: app-openldap-core
+Group: ClearOS/Libraries
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: OpenLDAP Directory
-License: GPLv3
+Summary: OpenLDAP Directory - APIs and install
+License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
-Source: %{name}-%{version}.tar.gz
+Source: app-openldap-%{version}.tar.gz
 Buildarch: noarch
-Requires: %{name}-core = %{version}-%{release}
-Requires: app-base
-
-%description
-OpenLDAP Directory...blah blah blah
-
-%package core
-Summary: OpenLDAP Directory - APIs and install
-Group: ClearOS/Libraries
-License: LGPLv3
 Provides: system-ldap-driver
 Requires: app-base-core
 Requires: app-network-core
 Requires: openldap-servers >= 2.4.19
 Requires: openssl
 
-%description core
+%description
 OpenLDAP Directory...blah blah blah
 
 This package provides the core API and libraries.
 
 %prep
-%setup -q
+%setup -q -n app-openldap-%{version}
 %build
 
 %install
@@ -53,9 +43,6 @@ install -D -m 0644 packaging/schema/samba.schema %{buildroot}/etc/openldap/schem
 install -D -m 0644 packaging/schema/zarafa.schema %{buildroot}/etc/openldap/schema/zarafa.schema
 
 %post
-logger -p local6.notice -t installer 'app-openldap - installing'
-
-%post core
 logger -p local6.notice -t installer 'app-openldap-core - installing'
 
 if [ $1 -eq 1 ]; then
@@ -68,11 +55,6 @@ exit 0
 
 %preun
 if [ $1 -eq 0 ]; then
-    logger -p local6.notice -t installer 'app-openldap - uninstalling'
-fi
-
-%preun core
-if [ $1 -eq 0 ]; then
     logger -p local6.notice -t installer 'app-openldap-core - uninstalling'
     [ -x /usr/clearos/apps/openldap/deploy/uninstall ] && /usr/clearos/apps/openldap/deploy/uninstall
 fi
@@ -80,12 +62,6 @@ fi
 exit 0
 
 %files
-%defattr(-,root,root)
-/usr/clearos/apps/openldap/controllers
-/usr/clearos/apps/openldap/htdocs
-/usr/clearos/apps/openldap/views
-
-%files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/openldap/packaging
 %exclude /usr/clearos/apps/openldap/tests

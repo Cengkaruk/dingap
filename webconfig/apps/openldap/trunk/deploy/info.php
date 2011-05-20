@@ -27,6 +27,8 @@ $app['menu_enabled'] = FALSE;
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['core_only'] = TRUE;
+
 $app['core_provides'] = array(
     'system-ldap-driver'
 );
