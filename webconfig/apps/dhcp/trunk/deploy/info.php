@@ -31,7 +31,6 @@ $app['requires'] = array(
 );
 
 $app['core_requires'] = array(
-    'app-dns-core',
     'app-network-core',
     'dhcping',
     'dnsmasq >= 2.48',

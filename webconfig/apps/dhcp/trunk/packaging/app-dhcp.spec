@@ -21,7 +21,6 @@ Summary: DHCP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-dns-core
 Requires: app-network-core
 Requires: dhcping
 Requires: dnsmasq >= 2.48
