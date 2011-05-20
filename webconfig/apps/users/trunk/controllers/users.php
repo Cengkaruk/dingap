@@ -57,6 +57,7 @@ class Users extends ClearOS_Controller
         //---------------
 
         $this->load->factory('users/User_Manager_Factory');
+        $this->load->factory('accounts/Accounts_Factory');
         $this->lang->load('users');
 
         // Load view data
@@ -64,6 +65,10 @@ class Users extends ClearOS_Controller
 
         try {
             $data['users'] = $this->user_manager->get_details();
+/*
+            $is_initialized = $this->accounts->is_initialized();
+            $is_available = $this->accounts->is_available();
+*/
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
