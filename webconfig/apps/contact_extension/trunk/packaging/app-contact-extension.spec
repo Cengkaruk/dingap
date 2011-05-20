@@ -1,7 +1,7 @@
 
 Name: app-contact-extension-core
 Group: ClearOS/Libraries
-Version: 5.9.9.0
+Version: 5.9.9.1
 Release: 1%{dist}
 Summary: Contact account extension summary - APIs and install
 License: LGPLv3

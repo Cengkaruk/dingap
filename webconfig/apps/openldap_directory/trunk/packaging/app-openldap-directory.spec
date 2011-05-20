@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory-core
 Group: ClearOS/Libraries
-Version: 5.9.9.0
+Version: 5.9.9.1
 Release: 1%{dist}
 Summary: OpenLDAP Directory Driver - APIs and install
 License: LGPLv3
@@ -42,6 +42,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/openldap_directory
 cp -r * %{buildroot}/usr/clearos/apps/openldap_directory/
 
+install -d -m 0755 %{buildroot}/var/clearos/openldap_directory
+install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/extensions
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
 
 %post
@@ -68,6 +70,8 @@ exit 0
 %exclude /usr/clearos/apps/openldap_directory/packaging
 %exclude /usr/clearos/apps/openldap_directory/tests
 %dir /usr/clearos/apps/openldap_directory
+%dir /var/clearos/openldap_directory
+%dir /var/clearos/openldap_directory/extensions
 /usr/clearos/apps/openldap_directory/deploy
 /usr/clearos/apps/openldap_directory/language
 /usr/clearos/apps/openldap_directory/libraries

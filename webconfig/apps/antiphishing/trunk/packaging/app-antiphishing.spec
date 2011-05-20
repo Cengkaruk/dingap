@@ -1,7 +1,7 @@
 
 Name: app-antiphishing
 Group: ClearOS/Apps
-Version: 5.9.9.0
+Version: 5.9.9.1
 Release: 1%{dist}
 Summary: Antiphishing app summary...
 License: GPLv3

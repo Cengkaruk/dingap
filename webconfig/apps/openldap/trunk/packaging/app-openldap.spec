@@ -1,7 +1,7 @@
 
 Name: app-openldap-core
 Group: ClearOS/Libraries
-Version: 5.9.9.0
+Version: 5.9.9.1
 Release: 1%{dist}
 Summary: OpenLDAP Directory - APIs and install
 License: LGPLv3

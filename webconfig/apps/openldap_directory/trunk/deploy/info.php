@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'openldap_directory';
-$app['version'] = '5.9.9.0';
+$app['version'] = '5.9.9.1';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -57,3 +57,7 @@ $app['core_file_manifest'] = array(
     'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
 );
 
+$app['core_directory_manifest'] = array(
+   '/var/clearos/openldap_directory' => array(),
+   '/var/clearos/openldap_directory/extensions' => array(),
+);
