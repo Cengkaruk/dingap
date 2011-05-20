@@ -27,10 +27,14 @@ $app['subcategory'] = lang('base_subcategory_vpn');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['requires'] = array(
-    'app-network'
+    'app-accounts',
+    'app-groups',
+    'app-users',
+    'app-network',
 );
 
 $app['core_requires'] = array(
     'app-network-core',
+    'app-pptpd-plugin-core',
     'pptpd >= 1.3.4',
 );

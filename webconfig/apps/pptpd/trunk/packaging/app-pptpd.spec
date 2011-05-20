@@ -11,6 +11,9 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-accounts
+Requires: app-groups
+Requires: app-users
 Requires: app-network
 
 %description
@@ -22,6 +25,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
+Requires: app-pptpd-plugin-core
 Requires: pptpd >= 1.3.4
 
 %description core
