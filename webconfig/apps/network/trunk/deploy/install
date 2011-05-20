@@ -13,11 +13,11 @@
 # Disable Avahi server
 #---------------------
 
-CHECK=`LANG=en_US /sbin/chkconfig --list avahi-daemon | /bin/grep 3:on`
+CHECK=`LANG=en_US /sbin/chkconfig --list avahi-daemon 2>&1 | /bin/grep 3:on`
 
 if [ -n "$CHECK" ]; then
     logger -p local6.notice -t installer "app-network-core - disabling Avahi server"
-    /sbin/chkconfig avahi-daemon off
+    /sbin/chkconfig avahi-daemon off >/dev/null 2>&1
     /sbin/service avahi-daemon stop >/dev/null 2>&1
 fi
 
