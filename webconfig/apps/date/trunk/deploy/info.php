@@ -27,6 +27,7 @@ $app['subcategory'] = lang('base_subcategory_settings');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'app-network-core', 
     'app-tasks-core', 
     'ntpdate >= 4.2.4p8'
 );
