@@ -75,7 +75,10 @@ class Language extends ClearOS_Controller
                 $this->locale->set_locale($this->input->post('code'));
                 $this->page->set_status_updated();
 
-                // Do a full reload with the new language setting!
+                // Special handling when changing the language
+                // - Do a full reload with the new language setting!
+                // - Blow away cache
+                $this->page->clear_cache();
                 redirect('/language');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
