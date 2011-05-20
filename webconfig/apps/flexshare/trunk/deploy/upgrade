@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# Make sure directory ownership is correct on upgrade
+#----------------------------------------------------
+
+for DIR in /var/flexshare/scripts /var/flexshare/shares; do
+    CHECKPERMS=`stat --format=%a $DIR`
+    if [ "$CHECKPERMS" != "755" ]; then
+        logger -p local6.notice -t installer "app-flexshare - updating file permissions of $DIR"
+        chmod 755 $DIR
+    fi
+
+    CHECKOWNERSHIP=`stat --format=%U.%G $DIR`
+    if [ "$CHECKOWNERSHIP" != "root.root" ]; then
+        logger -p local6.notice -t installer "app-flexshare - updating file ownership on $DIR"
+        chown root.root $DIR
+    fi
+done

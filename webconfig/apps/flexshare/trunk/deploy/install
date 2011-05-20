@@ -1,0 +1,7 @@
+#!/bin/sh
+
+/usr/sbin/addsudo /usr/sbin/httpd app-flexshare-api
+/usr/sbin/addsudo /usr/sbin/proftpd app-flexshare-api
+/usr/sbin/addsudo /usr/sbin/updateflexperms app-flexshare-api
+/usr/sbin/addsudo /bin/mount app-flexshare-api
+/usr/sbin/addsudo /bin/umount app-flexshare-api
