@@ -23,20 +23,19 @@ $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_infrastructure');
 
 /////////////////////////////////////////////////////////////////////////////
-// Controller info
-/////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_requires'] = array(
+$app['requires'] = array(
     'app-accounts',
+    'app-groups',
+    'app-users',
+    'app-network',
 );
 
 $app['core_requires'] = array(
     'app-network-core',
-    'app-accounts-core',
+    'app-openldap-directory-core',
     'freeradius',
     'freeradius-ldap',
     'freeradius-utils',

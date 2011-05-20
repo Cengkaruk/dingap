@@ -11,6 +11,10 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-accounts
+Requires: app-groups
+Requires: app-users
+Requires: app-network
 
 %description
 RADIUS provides additional authentication mechanisms for the system.
@@ -21,7 +25,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
-Requires: app-accounts-core
+Requires: app-openldap-directory-core
 Requires: freeradius
 Requires: freeradius-ldap
 Requires: freeradius-utils
