@@ -33,5 +33,6 @@ $app['controllers']['antivirus']['tooltip'] = 'Encrypted files are often used to
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'app-network',
     'clamd',
 );

@@ -20,6 +20,7 @@ Summary: Gateway Antivirus app summary.. - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network
 Requires: clamd
 
 %description core
