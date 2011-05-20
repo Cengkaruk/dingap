@@ -60,6 +60,7 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\network\Ethers as Ethers;
 use \clearos\apps\network\Iface as Iface;
 use \clearos\apps\network\Iface_Manager as Iface_Manager;
+use \clearos\apps\network\Network as Network;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\network\Routes as Routes;
 
@@ -67,9 +68,10 @@ clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('network/Ethers');
 clearos_load_library('network/Iface');
-// clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Network');
 clearos_load_library('network/Network_Utils');
-// clearos_load_library('network/Routes');
+clearos_load_library('network/Routes');
 
 // Exceptions
 //-----------
@@ -98,7 +100,6 @@ clearos_load_library('base/Validation_Exception');
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
  */
-
 
 class Dnsmasq extends Daemon
 {
@@ -204,7 +205,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function add_subnet($interface, $start, $end, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $gateway = NULL, $dns_list = NULL, $wins = NULL, $tftp = NULL, $ntp = NULL)
+    public function add_subnet($interface, $start, $end, $lease_time = self::DEFAULT_LEASETIME, $gateway = NULL, $dns_list = NULL, $wins = NULL, $tftp = NULL, $ntp = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -291,16 +292,12 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function DeleteStaticLease($mac)
+    public function delete_static_lease($mac)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $ethers = new Ethers();
-            $ethers->DeleteEther($mac);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $ethers = new Ethers();
+        $ethers->delete_ether($mac);
     }
 
     /**
@@ -311,7 +308,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function DeleteSubnet($interface)
+    public function delete_subnet($interface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -336,7 +333,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function SubnetExists($interface)
+    public function subnet_exists($interface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -356,7 +353,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetAuthoritativeState()
+    public function get_authoritative_state()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -378,7 +375,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetDhcpInterfaces()
+    public function get_dhcp_interfaces()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -411,7 +408,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetDhcpState()
+    public function get_dhcp_state()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -431,7 +428,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetDomainName()
+    public function get_domain_name()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -453,7 +450,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetLeases()
+    public function get_leases()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -470,8 +467,8 @@ class Dnsmasq extends Daemon
          * would look similar to 3232236157.112233445566.
          */
 
-        $active = $this->GetActiveLeases();
-        $static = $this->GetStaticLeases();
+        $active = $this->get_active_leases();
+        $static = $this->get_static_leases();
         $leases = array();
         $ip_ndx = array();
 
@@ -517,7 +514,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetActiveLeases()
+    public function get_active_leases()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -554,7 +551,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetStaticLeases()
+    public function get_static_leases()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -567,7 +564,7 @@ class Dnsmasq extends Daemon
 
         $network = new Network_Utils();
         $ethers = new Ethers();
-        $mac_ip_pairs = $ethers->GetEthers();
+        $mac_ip_pairs = $ethers->get_ethers();
 
         foreach($mac_ip_pairs as $mac => $host_or_ip) {
 
@@ -614,11 +611,11 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetSubnet($iface)
+    public function get_subnet($iface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $subnets = $this->GetSubnets();
+        $subnets = $this->get_subnets();
 
         $subnet['interface'] = $iface;
         $subnet['network'] = isset($subnets[$iface]['network']) ? $subnets[$iface]['network'] : '';
@@ -644,7 +641,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetSubnetDefault($iface)
+    public function get_subnet_default($iface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -693,7 +690,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function GetSubnets()
+    public function get_subnets()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -704,7 +701,7 @@ class Dnsmasq extends Daemon
         // on DHCP-liess interfaces
 
         $subnets = $this->subnets;
-        $ethlist = $this->GetDhcpInterfaces();
+        $ethlist = $this->get_dhcp_interfaces();
 
         foreach ($ethlist as $eth) {
             if (!isset($this->subnets[$eth]["isconfigured"])) {
@@ -741,7 +738,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function SetAuthoritativeState($state)
+    public function set_authoritative_state($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -769,7 +766,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function SetDhcpState($state)
+    public function set_dhcp_state($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -797,7 +794,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function SetDomainName($domain)
+    public function set_domain_name($domain)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -823,7 +820,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function UpdateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = Dnsmasq::DEFAULT_LEASETIME, $tftp="", $ntp="")
+    public function update_subnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = self::DEFAULT_LEASETIME, $tftp="", $ntp="")
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -835,10 +832,10 @@ class Dnsmasq extends Daemon
         if (! $this->is_loaded)
             $this->_load_config();
 
-        if ($this->SubnetExists($interface))
-            $this->DeleteSubnet($interface);
+        if ($this->subnet_exists($interface))
+            $this->delete_subnet($interface);
 
-        $this->AddSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
+        $this->add_subnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -973,7 +970,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! (preg_match("/^\d+$/", $time) || ($time === Dnsmasq::CONSTANT_UNLIMITED_LEASE)))
+        if (! (preg_match("/^\d+$/", $time) || ($time === self::CONSTANT_UNLIMITED_LEASE)))
             return lang('dhcp_lease_time_invalid');
     }
 
