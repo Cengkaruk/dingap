@@ -21,6 +21,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Provides: system-ldap-driver
 Requires: app-base-core
+Requires: app-network-core
 Requires: openldap-servers >= 2.4.19
 Requires: openssl
 
