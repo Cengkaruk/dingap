@@ -31,6 +31,7 @@ $app['core_only'] = TRUE;
 
 $app['core_requires'] = array(
     'app-accounts-core', 
+    'app-pptpd-core',
 );
 
 $app['core_file_manifest'] = array( 

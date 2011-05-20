@@ -11,6 +11,7 @@ Source: app-pptpd-plugin-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
 Requires: app-accounts-core
+Requires: app-pptpd-core
 
 %description
 The PPTP server plugin ... blah blah blah.
