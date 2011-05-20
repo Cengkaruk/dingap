@@ -26,8 +26,13 @@ $app['subcategory'] = 'Accounts Manager';
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['requires'] = array(
+    'app-mode-core',
+);
+
 $app['core_requires'] = array(
     'app-mode-core',
+    'system-accounts-driver',
 );
 
 $app['core_directory_manifest'] = array(

@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-mode-core
 
 %description
 The accounts base engine provides... blah blah blah
@@ -21,6 +22,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-mode-core
+Requires: system-accounts-driver
 
 %description core
 The accounts base engine provides... blah blah blah
