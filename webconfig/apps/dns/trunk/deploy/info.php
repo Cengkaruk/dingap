@@ -11,8 +11,8 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'DNS Server';
-$app['description'] = 'The local DNS server can be used for mapping IP addresses on your network to hostnames.'; // FIXME translate
+$app['summary'] = lang('dns_app_summary');
+$app['description'] = lang('dns_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
