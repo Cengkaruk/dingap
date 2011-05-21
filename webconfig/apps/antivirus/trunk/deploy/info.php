@@ -26,7 +26,7 @@ $app['subcategory'] = lang('base_subcategory_antimalware');
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['antivirus']['tooltip'] = 'Encrypted files are often used to deliver malware, so please be careful about allowing these types of files through the antivirus engine'; // FIXME
+$app['controllers']['antivirus']['tooltip'] = lang('antivirus_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

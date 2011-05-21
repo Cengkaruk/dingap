@@ -2,8 +2,8 @@
 
 $lang['antivirus_app_long_description'] = 'Gateway Antivirus long description...'; // FIXME
 $lang['antivirus_app_summary'] = 'Gateway Antivirus app summary...'; // FIXME
+$lang['antivirus_app_tooltip'] = 'Encrypted files are often used to deliver malware, so please be careful about allowing these types of files through the antivirus engine';
 $lang['antivirus_gateway_antivirus'] = 'Gateway Antivirus';
-$lang['antivirus_antivirus'] = 'Antivirus';
 $lang['antivirus_twice_a_day'] = 'Twice a Day';
 $lang['antivirus_every_two_hours'] = 'Every Two Hours';
 
