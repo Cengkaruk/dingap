@@ -52,22 +52,37 @@ clearos_load_language('samba');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Factories
+//----------
+
+use \clearos\apps\users\User_Factory as User;
+
+clearos_load_library('users/User_Factory');
+
 // Classes
 //--------
 
-use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\base\Software as Software;
+use \clearos\apps\date\NTP_Time as NTP_Time;
 use \clearos\apps\network\Hostname as Hostname;
-use \clearos\apps\users\User as User;
+use \clearos\apps\samba\Nmbd as Nmbd;
+use \clearos\apps\samba\OpenLDAP_Driver as OpenLDAP_Driver;
+use \clearos\apps\samba\Samba as Samba;
+use \clearos\apps\samba\Winbind as Winbind;
 
-clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('base/Software');
+clearos_load_library('date/NTP_Time');
 clearos_load_library('network/Hostname');
-// clearos_load_library('users/User');
+clearos_load_library('samba/Nmbd');
+clearos_load_library('samba/OpenLDAP_Driver');
+clearos_load_library('samba/Samba');
+clearos_load_library('samba/Winbind');
 
 // Exceptions
 //-----------
@@ -75,13 +90,11 @@ clearos_load_library('network/Hostname');
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\samba\Samba_Connection_Exception as Samba_Connection_Exception;
-use \clearos\apps\samba\Samba_Not_Initialized_Exception as Samba_Not_Initialized_Exception;
 use \clearos\apps\samba\Samba_Share_Not_Found_Exception as Samba_Share_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('samba/Samba_Connection_Exception');
-clearos_load_library('samba/Samba_Not_Initialized_Exception');
 clearos_load_library('samba/Samba_Share_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,41 +113,53 @@ clearos_load_library('samba/Samba_Share_Not_Found_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/samba/
  */
 
-class Samba extends Daemon
+class Samba extends Software
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $ldaph = NULL;
     protected $loaded = FALSE;
     protected $shares = array();
     protected $values = array();
     protected $booleans = array();
     protected $raw_lines = array();
 
+    // Files and paths
     const FILE_CONFIG = '/etc/samba/smb.conf';
     const FILE_DOMAIN_SID = '/etc/samba/domainsid';
     const FILE_LOCAL_SID = '/etc/samba/localsid';
     const FILE_LOCAL_SYSTEM_INITIALIZED = '/etc/system/initialized/sambalocal';
     const PATH_STATE = '/var/lib/samba';
-    const PATH_STATE_BACKUP = '/usr/share/system/modules/samba';
-    const CMD_NET = '/usr/bin/net';
-    const CMD_PDBEDIT = '/usr/bin/pdbedit';
-    const CMD_SMBPASSWD = '/usr/bin/smbpasswd';
-    const CMD_ADD_SAMBA_DIRS = '/usr/sbin/add-samba-directories';
+    const PATH_STATE_BACKUP = '/var/lib/samba';
+
+    // Commands
+    const COMMAND_NET = '/usr/bin/net';
+    const COMMAND_SMBPASSWD = '/usr/bin/smbpasswd';
+    const COMMAND_ADD_SAMBA_DIRS = '/usr/sbin/add-samba-directories';
+
+    // Modes
     const MODE_PDC = 'pdc';
     const MODE_BDC = 'bdc';
     const MODE_SIMPLE_SERVER = 'simple';
     const MODE_CUSTOM = 'custom';
+
+    // General
     const PRINTING_DISABLED = 'disabled';
     const PRINTING_POINT_AND_CLICK = 'pointnclick';
     const PRINTING_RAW = 'raw';
+
+    // Security settings
+    const SECURITY_ADS = 'ads';
     const SECURITY_USER = 'user';
     const SECURITY_SHARE = 'share';
     const SECURITY_DOMAIN = 'domain';
+    
+    // SID types 
     const TYPE_SID_DOMAIN = 'domain';
     const TYPE_SID_LOCAL = 'local';
+
+    // General
     const CONSTANT_NULL_LINE = -1;
     const CONSTANT_ENABLED = 'Yes';
     const CONSTANT_DISABLED = 'No';
@@ -143,10 +168,9 @@ class Samba extends Daemon
     const CONSTANT_WINADMIN_CN = 'Windows Administrator';
     const CONSTANT_WINADMIN_USERNAME = 'winadmin';
     const CONSTANT_GUEST_CN = 'Guest Account';
-    // UID/GID/RID ranges -- see http://www.clearfoundation.com/docs/developer/features/cleardirectory/uids_gids_and_rids
-    const CONSTANT_SPECIAL_RID_MAX = '1000'; // RIDs below this number are reserved
-    const CONSTANT_SPECIAL_RID_OFFSET = '1000000'; // Offset used to map <1000 RIDs to UIDs
     const CONSTANT_GID_DOMAIN_COMPUTERS = '1000515';
+
+    // Default configuration values
     const DEFAULT_PASSWORD_CHAT = '*password:* %n\n *password:* %n\n *successfully.*';
     const DEFAULT_PASSWORD_PROGRAM = '/usr/sbin/userpasswd %u';
     const DEFAULT_ADD_MACHINE_SCRIPT = '/usr/sbin/samba-add-machine "%u"';
@@ -160,7 +184,6 @@ class Samba extends Daemon
     /**
      * Samba constructor.
      *
-     *
      * @return void
      */
 
@@ -168,7 +191,7 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        parent::__construct('smb');
+        parent::__construct('samba-common');
 
         $this->booleans = array(
             'use client driver',
@@ -181,161 +204,47 @@ class Samba extends Daemon
     }
 
     /**
-     * Adds a machine.
+     * Adds a computer.
      *
-     * @param string $name machine name
+     * @param string $name computer name
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_machine($name)
+    public function add_computer($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: the "AddMachine" method does not add the Samba attributes since
-        // this is done automagically by Samba.  If this automagic is missed for
-        // some reason, then a Computer object may not have the sambaSamAccount object.
+        Validation_Exception::is_valid($this->validate_computer($name));
 
-        if (! $this->IsValidMachineName($name))
-            throw new Validation_Exception(SAMBA_LANG_COMPUTER . " - " . LOCALE_LANG_INVALID);
+        $ldap = new OpenLDAP_Driver();
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        $user = new User("notused");
-        $group = new Group("notused");
-
-        $ldap_object = array();
-
-        $ldap_object['objectClass'] = array(
-            'top',
-            'account',
-            'posixAccount'
-        );
-
-        $ldap_object['cn'] = $name;
-        $ldap_object['uid'] = $name;
-        $ldap_object['description'] = SAMBA_LANG_COMPUTER . " " . preg_replace("/\$$/", "", $name);
-        $ldap_object['uidNumber'] = $user->_GetNextUidNumber();
-        $ldap_object['gidNumber'] = Samba::CONSTANT_GID_DOMAIN_COMPUTERS;
-        $ldap_object['homeDirectory'] = '/dev/NULL';
-        $ldap_object['loginShell'] = '/sbin/nologin';
-
-        $dn = "cn=" . Ldap::DnEscape($name) . "," . ClearDirectory::GetComputersOu();
-
-        try {
-            if (! $this->ldaph->Exists($dn))
-                $this->ldaph->Add($dn, $ldap_object);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $ldap->add_computer($name);
     }
 
     /**
-     * Adds a share.
+     * Deletes a computer.
      *
-     * @param string $name share name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    public function add_share($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->loaded)
-            $this->_load();
-
-        if (!$this->IsValidShare($name))
-            throw new Validation_Exception(SAMBA_LANG_SHARE . " - " . LOCALE_LANG_INVALID);
-
-        if ($this->ShareExists($name))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_SHARE_EXISTS);
-
-        $this->shares[$name]['line'] = self::CONSTANT_NULL_LINE;
-
-        $this->_Save();
-    }
-
-    /**
-     * Deletes a computer from the domain.
-     *
-     * @param  string  $computer computer name
+     * @param string $name computer name
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function delete_computer($computer)
+    public function delete_computer($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        Validation_Exception::is_valid($this->validate_computer($name));
 
-        if (! $this->IsDirectoryInitialized())
-            throw new Samba_Not_Initialized_Exception();
+        $ldap = new OpenLDAP_Driver();
 
-        $dn = "cn=" . Ldap::DnEscape($computer) . "," . ClearDirectory::GetComputersOu();
-
-        $this->ldaph->Delete($dn);
-    }
-
-    /**
-     * Delete share.
-     *
-     * @param  string  $name  share name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    public function delete_share($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->loaded)
-            $this->_load();
-
-        if (! strlen($name))
-            throw new Validation_Exception( SAMBA_LANG_SHARE . " - " . LOCALE_LANG_INVALID);
-
-        if (! $this->ShareExists($name))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_SHARE_NOT_EXISTS);
-
-        $i = 0;
-        $lines = array();
-
-        for ($i = 0; $i < $this->shares[$name]['line']; $i++)
-            $lines[] = $this->raw_lines[$i];
-
-        for ($i = $this->shares[$name]['line'] + 1; $i < sizeof($this->raw_lines); $i++) {
-            if (ereg("^[[:space:]]*\[.*\]", $this->raw_lines[$i]))
-                break;
-        }
-
-        for ( ; $i < sizeof($this->raw_lines); $i++)
-            $lines[] = $this->raw_lines[$i];
-
-        unset($this->shares[$name]);
-
-        $this->raw_lines = $lines;
-
-        $this->_Save();
-
-        // Handle special case file permissions
-        if ($name == "ftpsite") {
-            $folder = new Folder("/var/ftp");
-            if ($folder->Exists())
-                $folder->Chown("root", "root");
-        }
+        $ldap->delete_computer($name);
     }
 
     /**
      * Returns add machine script.
-     *
      *
      * @return string add machine script
      * @throws Engine_Exception
@@ -349,14 +258,13 @@ class Samba extends Daemon
             $this->_load();
 
         if (empty($this->shares['global']['add machine script']['value']))
-            return "";
+            return '';
         else
             return $this->shares['global']['add machine script']['value'];
     }
 
     /**
-     * Gets a detailed list of computers for the domain.
-     *
+     * Returns a detailed list of computers for the domain.
      *
      * @return  array  detailed list of computers
      * @throws Engine_Exception
@@ -366,49 +274,15 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        $ldap = new OpenLDAP_Driver();
 
-        if (! $this->IsDirectoryInitialized())
-            throw new Samba_Not_Initialized_Exception();
-
-        $computers = array();
-
-        // TODO: the "AddMachine" method does not add the Samba attributes since
-        // this is done automagically by Samba.  If this automagic is missed for
-        // some reason, then a Computer object may not have the sambaSamAccount object.
-        // To be safe, use the posixAccount object so that we can cleanup.
-
-        try {
-            $result = $this->ldaph->Search(
-                "(objectclass=posixAccount)",
-                ClearDirectory::GetComputersOu(),
-                array("cn", "sambaSID", "uidNumber")
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            while ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-
-                $computer = $attributes['cn']['0'];
-                $computers[$computer]['SID'] = isset($attributes['sambaSID'][0]) ? $attributes['sambaSID'][0] : "";
-                $computers[$computer]['uidNumber'] = $attributes['uidNumber'][0];
-
-                $entry = $this->ldaph->NextEntry($entry);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        return $computers;
+        return $ldap->get_computers();
     }
 
     /**
-     * Gets domain logons.
+     * Returns domain logons state.
      *
-     *
-     * @return  string  domain logons
+     * @return boolean TRUE if domain logons is enabled
      * @throws Engine_Exception
      */
 
@@ -419,19 +293,18 @@ class Samba extends Daemon
         if (! $this->loaded)
             $this->_load();
 
-        $sambavalue = $this->_GetBoolean($this->shares['global']['domain logons']['value']);
+        $value = $this->_get_boolean($this->shares['global']['domain logons']['value']);
 
-        if ($sambavalue === self::CONSTANT_ENABLED)
+        if ($value === self::CONSTANT_ENABLED)
             return TRUE;
         else
             return FALSE;
     }
 
     /**
-     * Gets domain master setting.
+     * Returns domain master state.
      *
-     *
-     * @return  string  domain master
+     * @return boolean TRUE if domain master is enabled
      * @throws Engine_Exception
      */
 
@@ -442,15 +315,15 @@ class Samba extends Daemon
         if (! $this->loaded)
             $this->_load();
 
-        $sambavalue = $this->_GetBoolean($this->shares['global']['domain master']['value']);
+        $value = $this->_get_boolean($this->shares['global']['domain master']['value']);
 
-        if ($sambavalue === self::CONSTANT_ENABLED) {
+        if ($value === self::CONSTANT_ENABLED) {
             return TRUE;
-        } else if ($sambavalue === self::CONSTANT_DEFAULT) {
+        } else if ($value === self::CONSTANT_DEFAULT) {
             // From smb.conf man page:
             // If domain logons = yes, then the default behavior is to enable the domain master parameter. If domain
             // logons is not enabled (the default setting), then neither will domain master be enabled by default.
-            return $this->GetDomainLogons();
+            return $this->get_domain_logons();
         } else {
             return FALSE;
         }
@@ -458,7 +331,6 @@ class Samba extends Daemon
 
     /**
      * Returns domain SID.
-     *
      *
      * @return string domain SID
      * @throws Engine_Exception, Samba_Not_Initialized_Exception
@@ -468,40 +340,15 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
+        $ldap = new OpenLDAP_Driver();
 
-        if (! $this->IsDirectoryInitialized())
-            throw new Samba_Not_Initialized_Exception();
-
-        try {
-            $result = $this->ldaph->Search(
-                "(objectclass=sambaDomain)",
-                $this->ldaph->GetBaseDn(),
-                array("sambaDomainName", "sambaSID")
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            if ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-                $sid = $attributes['sambaSID'][0];
-            } else {
-                throw new Engine_Exception(LOCALE_LANG_ERRMSG_SYNTAX_ERROR . " - sambaDomainName", COMMON_ERROR);
-            }
-
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        return $sid;
+        return $ldap->get_domain_sid();
     }
 
     /**
-     * Gets network interfaces.
+     * Returns listening network interfaces.
      *
-     *
-     * @return  string  network interfaces
+     * @return array list of network interfaces
      * @throws Engine_Exception
      */
 
@@ -518,8 +365,7 @@ class Samba extends Daemon
     /**
      * Returns local master state.
      *
-     *
-     * @return string local master state
+     * @return boolean local master state
      * @throws Engine_Exception
      */
 
@@ -530,9 +376,9 @@ class Samba extends Daemon
         if (! $this->loaded)
             $this->_load();
 
-        $sambavalue = $this->_GetBoolean($this->shares['global']['local master']['value']);
+        $value = $this->_get_boolean($this->shares['global']['local master']['value']);
 
-        if (($sambavalue === self::CONSTANT_ENABLED) || ($sambavalue === self::CONSTANT_DEFAULT))
+        if (($value === self::CONSTANT_ENABLED) || ($value === self::CONSTANT_DEFAULT))
             return TRUE;
         else
             return FALSE;
@@ -540,7 +386,6 @@ class Samba extends Daemon
 
     /**
      * Returns local SID.
-     *
      *
      * @return string local SID
      * @throws Engine_Exception
@@ -550,16 +395,11 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $shell = new Shell();
-            if ($shell->Execute(self::CMD_NET, 'getlocalsid', TRUE) != 0)
-                throw Engine_Exception($shell->GetFirstOutputLine());
+        $shell = new Shell();
 
-            $sid = $shell->GetLastOutputLine();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $shell->execute(self::COMMAND_NET, 'getlocalsid', TRUE);
 
+        $sid = $shell->get_last_output_line();
         $sid = preg_replace("/.*: /", "", $sid);
 
         return $sid;
@@ -568,8 +408,7 @@ class Samba extends Daemon
     /**
      * Returns logon drive.
      *
-     *
-     * @return  string  logon drive
+     * @return string logon drive
      * @throws Engine_Exception
      */
 
@@ -581,7 +420,7 @@ class Samba extends Daemon
             $this->_load();
 
         if (empty($this->shares['global']['logon drive']['value']))
-            return "";
+            return '';
         else
             return $this->shares['global']['logon drive']['value'];
     }
@@ -589,8 +428,7 @@ class Samba extends Daemon
     /**
      * Returns logon home.
      *
-     *
-     * @return  string  logon home
+     * @return string logon home
      * @throws Engine_Exception
      */
 
@@ -610,8 +448,7 @@ class Samba extends Daemon
     /**
      * Returns logon path.
      *
-     *
-     * @return  string  logon path
+     * @return string logon path
      * @throws Engine_Exception
      */
 
@@ -631,8 +468,7 @@ class Samba extends Daemon
     /**
      * Returns logon script.
      *
-     *
-     * @return  string  logon script
+     * @return string logon script
      * @throws Engine_Exception
      */
 
@@ -654,12 +490,11 @@ class Samba extends Daemon
      *
      * The default modes are described as follows.
      *
-     *                    +  PDC  +  BDC  +  Simple
+     *                  +  PDC  +  BDC  +  Simple
      * Preferred Master |   y   | auto  |    y
      *    Domain Master |   y   |   n   |    y
      *    Domain Logons |   y   |   y   |    n
-     *         [netlogon] |   y   |   n   |    n
-     *
+     *       [netlogon] |   y   |   n   |    n
      *
      * @return string mode
      * @throws Engine_Exception
@@ -670,20 +505,20 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $domainlogons = $this->GetDomainLogons();
-            $preferredmaster = $this->GetPreferredMaster();
-            $netlogoninfo = $this->GetShareInfo("netlogon");
+            $domain_logons = $this->get_domain_logons();
+            $preferred_master = $this->get_preferred_master();
+            $netlogon_info = $this->get_share_info('netlogon');
         } catch (Samba_Share_Not_Found_Exception $e) {
             // Not fatal
         }
 
-        $netlogon = (isset($netlogoninfo)) ? $netlogoninfo['available'] : FALSE;
+        $netlogon = (isset($netlogon_info)) ? $netlogon_info['available'] : FALSE;
 
-        if ($preferredmaster && $domainlogons && $netlogon)
+        if ($preferred_master && $domain_logons && $netlogon)
             return self::MODE_PDC;
-        else if (!$preferredmaster && !$domainlogons && !$netlogon)
+        else if (!$preferred_master && !$domain_logons && !$netlogon)
             return self::MODE_BDC;
-        else if ($preferredmaster && $domainlogons && !$netlogon)
+        else if ($preferred_master && $domain_logons && !$netlogon)
             return self::MODE_SIMPLE_SERVER;
         else
             return self::MODE_CUSTOM;
@@ -692,8 +527,7 @@ class Samba extends Daemon
     /**
      * Gets system/netbios name.
      *
-     *
-     * @return  string  system name
+     * @return string system name
      * @throws Engine_Exception
      */
 
@@ -710,8 +544,7 @@ class Samba extends Daemon
     /**
      * Gets OS level.
      *
-     *
-     * @return  string  OS level
+     * @return integer OS level
      * @throws Engine_Exception
      */
 
@@ -730,7 +563,6 @@ class Samba extends Daemon
 
     /**
      * Gets password program.
-     *
      *
      * @return string password program
      * @throws Engine_Exception
@@ -752,7 +584,6 @@ class Samba extends Daemon
     /**
      * Gets password program.
      *
-     *
      * @return string password program
      * @throws Engine_Exception
      */
@@ -771,10 +602,9 @@ class Samba extends Daemon
     }
 
     /**
-     * Gets preferred master.
+     * Gets preferred master setting.
      *
-     *
-     * @return  string  preferred master
+     * @return boolean TRUE preferred master is enable
      * @throws Engine_Exception
      */
 
@@ -785,23 +615,20 @@ class Samba extends Daemon
         if (! $this->loaded)
             $this->_load();
 
-        $sambavalue = $this->_GetBoolean($this->shares['global']['preferred master']['value']);
+        $value = $this->_get_boolean($this->shares['global']['preferred master']['value']);
 
-        if ($sambavalue === self::CONSTANT_ENABLED) {
+        if ($value === self::CONSTANT_ENABLED) {
             return TRUE;
-        } else if ($sambavalue === self::CONSTANT_DEFAULT) {
+        } else if ($value === self::CONSTANT_DEFAULT) {
             // TODO: man page is unclear about the default behavior
             return FALSE;
         } else {
             return FALSE;
         }
-
-        return $this->shares['global']['preferred master']['value'];
     }
 
     /**
-     * Gets printing share information.
-     *
+     * Returns printing share information.
      *
      * @return array information about printers
      * @throws Engine_Exception
@@ -813,22 +640,21 @@ class Samba extends Daemon
 
         $info = array();
 
-        if ($this->ShareExists("printers")) {
-            $info['printers'] = $this->GetShareInfo("printers");
+        if ($this->share_exists('printers')) {
+            $info['printers'] = $this->get_share_info('printers');
             $info['enabled'] = (isset($info['printers']['available']) && $info['printers']['available']) ? TRUE : FALSE;
         } else {
             $info['enabled'] = FALSE;
         }
 
-        if ($this->ShareExists("print$"))
-            $info['print$'] = $this->GetShareInfo("print$");
+        if ($this->share_exists("print$"))
+            $info['print$'] = $this->get_share_info("print$");
 
         return $info;
     }
 
     /**
      * Returns roaming profiles state.
-     *
      *
      * @return boolean state of roaming profiles
      * @throws Engine_Exception
@@ -838,10 +664,8 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: this information should really come from LDAP, not smb.conf
-
         try {
-            $info = $this->GetShareInfo("profiles");
+            $info = $this->get_share_info("profiles");
         } catch (Samba_Share_Not_Found_Exception $e) {
             return FALSE;
         }
@@ -853,10 +677,9 @@ class Samba extends Daemon
     }
 
     /**
-     * Gets security type.
+     * Returns security type.
      *
-     *
-     * @return  string  security type
+     * @return string security type
      * @throws Engine_Exception
      */
 
@@ -871,8 +694,7 @@ class Samba extends Daemon
     }
 
     /**
-     * Gets server string.
-     *
+     * Returns server string.
      *
      * @return  string  server string
      * @throws Engine_Exception
@@ -889,10 +711,9 @@ class Samba extends Daemon
     }
 
     /**
-     * Get shares.
+     * Returns list of shares.
      *
-     *
-     * @return  array  list of shares
+     * @return array list of shares
      * @throws Engine_Exception
      */
 
@@ -930,7 +751,7 @@ class Samba extends Daemon
         if (! $this->loaded)
             $this->_load();
 
-        if (! $this->ShareExists($share))
+        if (! $this->share_exists($share))
             throw new Samba_Share_Not_Found_Exception($share);
 
         $info = array();
@@ -940,7 +761,7 @@ class Samba extends Daemon
                 continue;
 
             if (in_array($key, $this->booleans)) {
-                $boolvalue = $this->_GetBoolean($value['value']);
+                $boolvalue = $this->_get_boolean($value['value']);
 
                 if ($boolvalue == self::CONSTANT_ENABLED)
                     $info[$key] = TRUE;
@@ -954,7 +775,7 @@ class Samba extends Daemon
         if (! isset($info['available']))
             $info['available'] = TRUE;
 
-        if ($this->IsValidSpecialShare($share))
+        if ($this->is_special_share($share))
             $info['special'] = TRUE;
         else
             $info['special'] = FALSE;
@@ -963,17 +784,15 @@ class Samba extends Daemon
     }
 
     /**
-     * Get list of special shares - homes, printers, etc.
+     * Returns info on special shares - homes, printers, etc.
      *
-     *
-     * @return  array  list of special shares
+     * @return array details of special shares
      */
 
     public function get_special_share_defaults()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $shareinfo = array();
         $sharelist = array();
 
         $shareinfo = array();
@@ -983,7 +802,7 @@ class Samba extends Daemon
         $shareinfo['valid users'] = '%D\%S';
         $shareinfo['available'] = 'Yes';
         $shareinfo['path'] = '/home/%U';
-        $shareinfo['comment'] = SAMBA_LANG_HOMES;
+        $shareinfo['comment'] = lang('samba_home_directory');
         $sharelist[] = $shareinfo;
 
         $shareinfo = array();
@@ -993,7 +812,7 @@ class Samba extends Daemon
         $shareinfo['read only'] = 'No';
         $shareinfo['available'] = 'Yes';
         $shareinfo['path'] = "/var/samba/netlogon";
-        $shareinfo['comment'] = SAMBA_LANG_NETLOGON;
+        $shareinfo['comment'] = lang('samba_netlogon_directory');
         $sharelist[] = $shareinfo;
 
         $shareinfo = array();
@@ -1006,7 +825,7 @@ class Samba extends Daemon
         $shareinfo['force group'] = "domain_users"; // TODO: should be constant
         $shareinfo['force directory mode'] = "02775";
         $shareinfo['force directory security mode'] = "02775";
-        $shareinfo['comment'] = SAMBA_LANG_PROFILES;
+        $shareinfo['comment'] = lang('samba_profiles_directory');
         $sharelist[] = $shareinfo;
 
         $shareinfo = array();
@@ -1019,7 +838,7 @@ class Samba extends Daemon
         $shareinfo['printing'] = 'cups';
         $shareinfo['available'] = 'No';
         $shareinfo['path'] = "/var/spool/samba";
-        $shareinfo['comment'] = SAMBA_LANG_SHARE_PRINTERS;
+        $shareinfo['comment'] = lang('samba_printer_spool');
         $sharelist[] = $shareinfo;
 
         $shareinfo = array();
@@ -1028,28 +847,16 @@ class Samba extends Daemon
         $shareinfo['read only'] = 'No';
         $shareinfo['available'] = 'No';
         $shareinfo['path'] = "/var/samba/drivers";
-        $shareinfo['comment'] = SAMBA_LANG_PRINTER_DRIVERS;
-        $sharelist[] = $shareinfo;
-
-        $shareinfo = array();
-        $shareinfo['name'] = 'ftpsite';
-        $shareinfo['public'] = 'Yes';
-        $shareinfo['writable'] = 'Yes';
-        $shareinfo['guest only'] = 'Yes';
-        $shareinfo['browseable'] = 'Yes';
-        $shareinfo['available'] = 'No';
-        $shareinfo['path'] = "/var/ftp";
-        $shareinfo['comment'] = SAMBA_LANG_SHARE_FTP;
+        $shareinfo['comment'] = lang('samba_printer_drivers');
         $sharelist[] = $shareinfo;
 
         return $sharelist;
     }
 
     /**
-     * Gets WINS server.
+     * Returns WINS server.
      *
-     *
-     * @return  string  WINS server
+     * @return string WINS server
      * @throws Engine_Exception
      */
 
@@ -1064,10 +871,9 @@ class Samba extends Daemon
     }
 
     /**
-     * Gets WINS support.
+     * Returns WINS support.
      *
-     *
-     * @return  boolean  TRUE if WINS support is enabled
+     * @return boolean TRUE if WINS support is enabled
      * @throws Engine_Exception
      */
 
@@ -1078,90 +884,29 @@ class Samba extends Daemon
         if (! $this->loaded)
             $this->_load();
 
-        $sambavalue = $this->_GetBoolean($this->shares['global']['wins support']['value']);
+        $value = $this->_get_boolean($this->shares['global']['wins support']['value']);
 
-        if ($sambavalue === self::CONSTANT_ENABLED)
+        if ($value === self::CONSTANT_ENABLED)
             return TRUE;
         else
             return FALSE;
     }
 
     /**
-     * Initializes master node with the necessary Samba elements.
+     * Returns workgroup name.
      *
-     * You do not need to have the server components of Samba installed
-     * to run this initialization routine.  This simply initializes the
-     * necessary bits to get LDAP up and running.
-     *
-     * @param string $domain workgroup / domain
-     * @param string $password password for winadmin
-     * @param boolean $force force initialization
-     *
-     * @return void
+     * @return string workgroup name
      * @throws Engine_Exception
      */
 
-    public function initialize_directory($domain, $password = NULL, $force = FALSE)
+    public function get_workgroup()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->IsDirectoryInitialized() && !$force)
-            return;
+        if (! $this->loaded)
+            $this->_load();
 
-        // Shutdown Samba daemons if they are installed/running
-
-        $nmbd = new Nmbd();
-        $winbind = new Winbind();
-
-        $nmbd_wasrunning = FALSE;
-        $smbd_wasrunning = FALSE;
-        $winbind_wasrunning = FALSE;
-
-        if ($winbind->IsInstalled()) {
-            $winbind_wasrunning = $winbind->GetRunningState();
-            if ($winbind_wasrunning)
-                $winbind->SetRunningState(FALSE);
-        }
-
-        if ($this->IsInstalled()) {
-            $smbd_wasrunning = $this->GetRunningState();
-            if ($smbd_wasrunning)
-                $this->SetRunningState(FALSE);
-        }
-
-        if ($nmbd->IsInstalled()) {
-            $nmbd_wasrunning = $nmbd->GetRunningState();
-            if ($nmbd_wasrunning)
-                $nmbd->SetRunningState(FALSE);
-        }
-
-        // FIXME -- is this necessary?
-        // $this->SetWorkgroup($domain);
-
-        // Archive the files (usually in /var/lib/samba)
-        $this->_ArchiveStateFiles();
-
-        // Bootstrap the domain SID
-        $domainsid = $this->_InitializeDomainSid();
-
-        // Set local SID to be the same as domain SID
-        $this->_InitializeLocalSid($domainsid);
-
-        // Implant all the Samba elements into LDAP
-        $this->_InitializeLdap($domainsid, $password);
-
-        // Save the LDAP password into secrets
-        $this->_SaveBindPassword();
-
-        // Restart Samba if it was running 
-        if ($nmbd_wasrunning)
-            $nmbd->SetRunningState(TRUE);
-
-        if ($smbd_wasrunning)
-            $this->SetRunningState(TRUE);
-
-        if ($winbind_wasrunning)
-            $winbind->SetRunningState(TRUE);
+        return $this->shares['global']['workgroup']['value'];
     }
 
     /**
@@ -1179,40 +924,40 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Initialize directory if it has not already been don
-        if (! $this->IsDirectoryInitialized())
-            $this->InitializeDirectory($domain);
+        // Initialize directory if it has not already been done
+        $ldap = new OpenLDAP_Driver();
+        $ldap->initialize($domain, $password);
 
         // Set the winadmin password
-        $user = new User(Samba::CONSTANT_WINADMIN_USERNAME);
-        $user->ResetPassword($password, $password, "directory_initialize");
+        $user = User::create(Samba::CONSTANT_WINADMIN_USERNAME);
+        $user->reset_password($password, $password, "directory_initialize");
 
         // Set the netbios name and workgroup
-        $this->SetNetbiosName($netbiosname);
-        $this->SetWorkgroup($domain);
+        $this->set_netbios_name($netbiosname);
+        $this->set_workgroup($domain);
 
         // TODO: assuming PDC mode for now
-        $this->SetMode(Samba::MODE_PDC);
+        $this->set_mode(Samba::MODE_PDC);
 
         // Save the LDAP password
-        $this->_SaveBindPassword();
+        $this->_save_bind_password();
 
         // Save the winbind password
-        $this->_SaveIdmapPassword();
+        $this->_save_idmap_password();
 
         // Set the domain SID
-        $this->SetDomainSid();
+        $this->set_domain_sid();
 
         // Samba needs to be running for the next steps
         $nmbd = new Nmbd();
-        $nmbd_wasrunning = $nmbd->GetRunningState();
-        $wasrunning = $this->GetRunningState();
+        $nmbd_wasrunning = $nmbd->get_running_state();
+        $wasrunning = $this->get_running_state();
 
         if (! $wasrunning)
-            $this->SetRunningState(TRUE);
+            $this->set_running_state(TRUE);
 
         if (! $nmbd_wasrunning)
-            $nmbd->SetRunningState(TRUE);
+            $nmbd->set_running_state(TRUE);
 
         sleep(3); // TODO: Wait for samba ... replace this with a loop
 
@@ -1224,9 +969,9 @@ class Samba extends Daemon
             $this->_net_rpc_join($password);
         } catch (Exception $e) {
             if (! $wasrunning)
-                $this->SetRunningState(FALSE);
+                $this->set_running_state(FALSE);
             if (! $nmbd_wasrunning)
-                $nmbd->SetRunningState(FALSE);
+                $nmbd->set_running_state(FALSE);
             // TODO: too delicate?
             throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
         }
@@ -1234,9 +979,9 @@ class Samba extends Daemon
         // Stop samba if it was not running
         try {
             if (! $wasrunning)
-                $this->SetRunningState(FALSE);
+                $this->set_running_state(FALSE);
             if (! $nmbd_wasrunning)
-                $nmbd->SetRunningState(FALSE);
+                $nmbd->set_running_state(FALSE);
         } catch (Exception $e) {
             // Not fatal
         }
@@ -1248,47 +993,7 @@ class Samba extends Daemon
     }
 
     /**
-     * Checks to see if Samba has been initialized in LDAP.
-     *
-     *
-     * @return boolean TRUE if Samba has been initialized in LDAP
-     * @throws Engine_Exception, SambaDirectoryUnavailableException
-     */
-
-    public function is_directory_initialized()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $directory = new ClearDirectory();
-
-        // FIXME: do we need this exception?
-        if (!$directory->IsAvailable())
-            throw new SambaDirectoryUnavailableException();
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        try {
-            $result = $this->ldaph->Search(
-                "(objectclass=sambaDomain)",
-                $this->ldaph->GetBaseDn(),
-                array("sambaDomainName", "sambaSID")
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        if ($entry)
-            return TRUE;
-        else
-            return FALSE;
-    }
-
-    /**
      * Checks to see if local Samba system had been initialized.
-     *
      *
      * @return boolean TRUE if local Samba system has been initialized
      * @throws Engine_Exception
@@ -1297,9 +1002,6 @@ class Samba extends Daemon
     public function is_local_system_initialized()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->IsDirectoryInitialized())
-            throw new Samba_Not_Initialized_Exception();
 
         try {
             $file = new File(Samba::FILE_LOCAL_SYSTEM_INITIALIZED);
@@ -1310,6 +1012,50 @@ class Samba extends Daemon
         } catch (Exception $e) {
             throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
         }
+    }
+
+    /**
+     * Check routine for identifying special shares.
+     *
+     * @param string $name special share name name
+     *
+     * @return boolean TRUE if share name is special
+     */
+
+    public function is_special_share($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $sharedata = array();
+        $sharedata = $this->get_special_share_defaults();
+
+        foreach ($sharedata as $shareinfo) {
+            if ($shareinfo["name"] == $name)
+                return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Validation routine for Samba booleans.
+     *
+     * Samba allows boolean values to be yes/no, TRUE/FALSE, 1/0.  This is
+     * a simple method to chech for this type of value.
+     *
+     * @param string $value Samba boolean value
+     *
+     * @return boolean TRUE if valid
+     */
+
+    public function is_valid_boolean($value)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (preg_match("/^(yes|TRUE|1|no|FALSE|0)$/i", $value))
+            return TRUE;
+        else
+            return FALSE;
     }
 
     /**
@@ -1331,7 +1077,7 @@ class Samba extends Daemon
         $options['validate_exit_code'] = FALSE;
 
         $shell = new Shell();
-        $exit_code = $shell->execute(self::CMD_NET, 'ads join' .
+        $exit_code = $shell->execute(self::COMMAND_NET, 'ads join' .
             " -S '$server' " .
             " -U '" . $administrator . '%' . $password . "'", 
             TRUE, 
@@ -1362,24 +1108,6 @@ class Samba extends Daemon
     }
 
     /**
-     * Gets workgroup name.
-     *
-     *
-     * @return  string  workgroup name
-     * @throws Engine_Exception
-     */
-
-    public function get_workgroup()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->loaded)
-            $this->_load();
-
-        return $this->shares['global']['workgroup']['value'];
-    }
-
-    /**
      * Sets add machine script.
      *
      * @param string $script add machine script
@@ -1392,7 +1120,7 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->_SetShareInfo('global', 'add machine script', $script);
+        $this->_set_share_info('global', 'add machine script', $script);
     }
 
     /**
@@ -1408,12 +1136,11 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(LOCALE_LANG_INVALID . " - " . SAMBA_LANG_DOMAIN_LOGONS);
+        Validation_Exception::is_valid($this->validate_domain_logons($state));
 
         $state_value = ($state) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo('global', 'domain logons', $state_value);
+        $this->_set_share_info('global', 'domain logons', $state_value);
     }
 
     /**
@@ -1429,12 +1156,11 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_DOMAINMASTER_INVALID);
+        Validation_Exception::is_valid($this->validate_domain_master($state));
 
         $state_value = ($state) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo('global', 'domain master', $state_value);
+        $this->_set_share_info('global', 'domain master', $state_value);
     }
 
     /**
@@ -1450,41 +1176,19 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            if (empty($sid)) {
-                $file = new File(self::FILE_DOMAIN_SID, TRUE);
-                if ($file->exists()) {
-                    $lines = $file->GetContentsAsArray();
-                    $sid = $lines[0];
-                }
-            }
+        if (empty($sid)) {
+            $file = new File(self::FILE_DOMAIN_SID, TRUE);
 
-            if (! empty($sid)) {
-                $shell = new Shell();
-                $shell->Execute(self::CMD_NET, 'setdomainsid ' . $sid, TRUE);
+            if ($file->exists()) {
+                $lines = $file->get_contents_as_array();
+                $sid = $lines[0];
             }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
         }
-    }
 
-    /**
-     * Sets network interfaces.
-     *
-     * @param  string  $interfaces  network interfaces
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    public function set_interfaces($interfaces)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->IsValidInterfaces($interfaces))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_INTERFACES_INVALID);
-
-        $this->_SetShareInfo('global', 'interfaces', $interfaces);
+        if (! empty($sid)) {
+            $shell = new Shell();
+            $shell->execute(self::COMMAND_NET, 'setdomainsid ' . $sid, TRUE);
+        }
     }
 
     /**
@@ -1500,12 +1204,11 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_LOCALMASTER_INVALID);
+        Validation_Exception::is_valid($this->validate_local_master($state));
 
         $state_value = ($state) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo('global', 'local master', $state_value);
+        $this->_set_share_info('global', 'local master', $state_value);
     }
 
     /**
@@ -1523,12 +1226,12 @@ class Samba extends Daemon
 
         try {
             if (empty($sid))
-                $localsid = $this->GetDomainSid();
+                $localsid = $this->get_domain_sid();
 
             $shell = new Shell();
-            $shell->Execute(self::CMD_NET, 'setlocalsid ' . $localsid, TRUE);
+            $shell->execute(self::COMMAND_NET, 'setlocalsid ' . $localsid, TRUE);
         } catch (Exception $e) {
-            // Ignore for now
+            // TODO: Ignore for now?
         }
     }
 
@@ -1545,49 +1248,9 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidLogonDrive($drive))
-            throw new Validation_Exception(LOCALE_LANG_INVALID . " - " . SAMBA_LANG_LOGON_DRIVE);
+        Validation_Exception::is_valid($this->validate_logon_drive($drive));
 
-        $this->_SetShareInfo('global', 'logon drive', $drive);
-
-        // TODO: if (master)
-        $this->SetLogonDriveLdap($drive);
-    }
-
-    /**
-     * Sets logon drive for users in LDAP.
-     *
-     * @param string $drive logon drive
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_logon_drive_ldap($drive)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        try {
-            $result = $this->ldaph->Search(
-                "(objectclass=sambaSamAccount)",
-                ClearDirectory::GetUsersOu(),
-                array("cn", "dn")
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-            $ldapdrive['sambaHomeDrive'] = $drive;
-
-            while ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-                $this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . ClearDirectory::GetUsersOu(), $ldapdrive);
-                $entry = $this->ldaph->NextEntry($entry);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $this->_set_share_info('global', 'logon drive', $drive);
     }
 
     /**
@@ -1603,50 +1266,11 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidLogonHome($home))
-            throw new Validation_Exception(LOCALE_LANG_INVALID . " - " . SAMBA_LANG_LOGON_HOME);
+        Validation_Exception::is_valid($this->validate_logon_home($home));
 
-        $this->_SetShareInfo('global', 'logon home', $home);
+        $home = preg_quote($home, '\\');
 
-        // TODO: if (master)
-        $this->SetLogonHomeLdap();
-    }
-
-    /**
-     * Sets logon home for users in LDAP.
-     *
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_logon_home_ldap()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        try {
-            $result = $this->ldaph->Search(
-                "(objectclass=sambaSamAccount)",
-                ClearDirectory::GetUsersOu(),
-                array("cn", "uid")
-            );
-
-            // TODO: this should be the PDC name, not the local server
-            $pdc = $this->get_netbios_name();
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            while ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-                $ldaphome['sambaHomePath'] = '\\\\' . $pdc . '\\' . $attributes['uid'][0];
-                $this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . ClearDirectory::GetUsersOu() , $ldaphome);
-                $entry = $this->ldaph->NextEntry($entry);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $this->_set_share_info('global', 'logon home', $home);
     }
 
     /**
@@ -1662,61 +1286,15 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidLogonPath($path))
-            throw new Validation_Exception(LOCALE_LANG_INVALID . " - " . SAMBA_LANG_LOGON_PATH);
+        Validation_Exception::is_valid($this->validate_logon_path($path));
+
+        $path = preg_quote($path, '\\');
 
         // TODO: setting an empty path will delete "logon path"... that's not what
         // we want right now.  Set it to a space for now.  Yes, a kludge.
         $temppath = empty($path) ? " " : $path;
 
-        $this->_SetShareInfo('global', 'logon path', $temppath);
-
-        // TODO: if (master)
-        $this->SetLogonPathLdap($path);
-    }
-
-    /**
-     * Sets logon path (profiles) for users in LDAP.
-     *
-     * @param string $path logon path
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_logon_path_ldap($path)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        try {
-            $result = $this->ldaph->Search(
-                "(objectClass=sambaSamAccount)",
-                ClearDirectory::GetUsersOu(),
-                array("cn", "uid")
-            );
-
-            // TODO: this should be the PDC name, not the local server
-            $pdc = $this->get_netbios_name();
-            $entry = $this->ldaph->GetFirstEntry($result);
-            $usersou = ClearDirectory::GetUsersOu();
-
-            while ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-
-                if ($path)
-                    $newattrs['sambaProfilePath'] = '\\\\' . $pdc . '\\profiles\\' . $attributes['uid'][0];
-                else
-                    $newattrs['sambaProfilePath'] = array();
-
-                $this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . $usersou , $newattrs);
-                $entry = $this->ldaph->NextEntry($entry);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $this->_set_share_info('global', 'logon path', $temppath);
     }
 
     /**
@@ -1732,10 +1310,7 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidLogonScript($script))
-            throw new Validation_Exception(LOCALE_LANG_INVALID . " - " . SAMBA_LANG_LOGON_SCRIPT);
-
-        $this->_SetShareInfo('global', 'logon script', $script);
+        $this->_set_share_info('global', 'logon script', $script);
     }
 
     /**
@@ -1758,22 +1333,22 @@ class Samba extends Daemon
             $this->SetDomainLogons(TRUE);
             $this->SetDomainMaster(TRUE);
             $this->SetPreferredMaster(TRUE);
-            $this->SetShareAvailability('netlogon', TRUE);
+            $this->set_share_availability('netlogon', TRUE);
             $this->SetSecurity(Samba::SECURITY_USER);
         } else if ($mode == self::MODE_BDC) {
             $this->SetDomainLogons(FALSE);
             $this->SetDomainMaster(FALSE);
             $this->SetPreferredMaster(FALSE);
             $this->SetSecurity(Samba::SECURITY_DOMAIN);
-            $this->SetShareAvailability('netlogon', FALSE);
-            $this->SetShareAvailability('profiles', FALSE);
+            $this->set_share_availability('netlogon', FALSE);
+            $this->set_share_availability('profiles', FALSE);
             $this->SetRoamingProfilesState(FALSE);
         } else if ($mode == self::MODE_SIMPLE_SERVER) {
             $this->SetDomainLogons(TRUE);
             $this->SetDomainMaster(TRUE);
             $this->SetPreferredMaster(TRUE);
-            $this->SetShareAvailability('netlogon', FALSE);
-            $this->SetShareAvailability('profiles', FALSE);
+            $this->set_share_availability('netlogon', FALSE);
+            $this->set_share_availability('profiles', FALSE);
             $this->SetRoamingProfilesState(FALSE);
             $this->SetSecurity(Samba::SECURITY_USER);
         } else {
@@ -1794,23 +1369,17 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidNetbiosName($netbiosname))
-            return;
+        Validation_Exception::is_valid($this->validate_netbios_name($netbiosname));
 
         // Change smb.conf
-        $this->_SetShareInfo('global', 'netbios name', $netbiosname);
+        $this->_set_share_info('global', 'netbios name', $netbiosname);
 
         // Update LDAP users
-        // TODO: changing the netbios name means we have to change the relevant
-        // entries in smb.conf and LDAP.  Do this in a more elegant way.
-        if ($this->IsDirectoryInitialized()) {
-            $reset = $this->GetRoamingProfilesState();
-            $this->SetRoamingProfilesState($reset);
-            $this->SetLogonHome('\\\\%L\%U');
-        }
+        $ldap = new OpenLDAP_Driver();
+        $ldap->set_netbios_name($netbiosname);
 
         // Clean up secrets file
-        $this->_CleanSecretsFile();
+        $this->_clean_secrets_file();
     }
 
     /**
@@ -1826,10 +1395,9 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidOsLevel($oslevel))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_OS_LEVEL_INVALID);
+        Validation_Exception::is_valid($this->validate_os_level($oslevel));
 
-        $this->_SetShareInfo('global', 'os level', $oslevel);
+        $this->_set_share_info('global', 'os level', $oslevel);
     }
 
     /**
@@ -1845,7 +1413,7 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->_SetShareInfo('global', 'passwd chat', $chat);
+        $this->_set_share_info('global', 'passwd chat', $chat);
     }
 
     /**
@@ -1861,7 +1429,7 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->_SetShareInfo('global', 'passwd program', $program);
+        $this->_set_share_info('global', 'passwd program', $program);
     }
 
     /**
@@ -1877,19 +1445,17 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_PREFERREDMASTER_INVALID);
+        Validation_Exception::is_valid($this->validate_preferred_master($state));
 
         $state_value = ($state) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo('global', 'preferred master', $state_value);
+        $this->_set_share_info('global', 'preferred master', $state_value);
     }
 
     /**
      * Sets printing info.
      *
      * @param string $mode print mode
-     * @param array $info printing configuration information
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
@@ -1900,25 +1466,25 @@ class Samba extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if ($mode == self::PRINTING_DISABLED) {
-            $this->_SetShareInfo('printers', 'available', 'No');
-            $this->_SetShareInfo('print$', 'available', 'No');
+            $this->_set_share_info('printers', 'available', 'No');
+            $this->_set_share_info('print$', 'available', 'No');
         } else if ($mode == self::PRINTING_POINT_AND_CLICK) {
-            $this->_SetShareInfo('printers', 'cups options', '');
-            $this->_SetShareInfo('printers', 'use client driver', 'No');
-            $this->_SetShareInfo('printers', 'available', 'Yes');
-            $this->_SetShareInfo('print$', 'available', 'Yes');
+            $this->_set_share_info('printers', 'cups options', '');
+            $this->_set_share_info('printers', 'use client driver', 'No');
+            $this->_set_share_info('printers', 'available', 'Yes');
+            $this->_set_share_info('print$', 'available', 'Yes');
         } else if ($mode == self::PRINTING_RAW) {
-            $this->_SetShareInfo('printers', 'cups options', 'raw');
-            $this->_SetShareInfo('printers', 'use client driver', 'Yes');
-            $this->_SetShareInfo('printers', 'available', 'Yes');
-            $this->_SetShareInfo('print$', 'available', 'Yes');
+            $this->_set_share_info('printers', 'cups options', 'raw');
+            $this->_set_share_info('printers', 'use client driver', 'Yes');
+            $this->_set_share_info('printers', 'available', 'Yes');
+            $this->_set_share_info('print$', 'available', 'Yes');
         }
     }
 
     /**
      * Sets security type.
      *
-     * @param  string  $type  security type
+     * @param string $type security type
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
@@ -1928,35 +1494,27 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate
-        //---------
+        Validation_Exception::is_valid($this->validate_security($type));
 
-        if (! $this->IsValidSecurity($type))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_SECURITY_INVALID);
-
-        $this->_SetShareInfo('global', 'security', $type);
+        $this->_set_share_info('global', 'security', $type);
     }
 
     /**
      * Sets server string.
      *
-     * @param  string  $serverstring  server string
+     * @param string $server_string server string
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function set_server_string($serverstring)
+    public function set_server_string($server_string)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate
-        //---------
+        Validation_Exception::is_valid($this->validate_server_string($server_string));
 
-        if (! $this->IsValidServerString($serverstring))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_SERVERSTRING_INVALID);
-
-        $this->_SetShareInfo('global', 'server string', $serverstring);
+        $this->_set_share_info('global', 'server string', $server_string);
     }
 
     /**
@@ -2015,7 +1573,7 @@ class Samba extends Daemon
         }
 
         $this->SetLogonPath($path);
-        $this->SetShareAvailability('profiles', $profiles);
+        $this->set_share_availability('profiles', $profiles);
     }
 
     /**
@@ -2037,43 +1595,34 @@ class Samba extends Daemon
 
         $state_value = ($state) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo($share, 'available', $state_value);
+        $this->_set_share_info($share, 'available', $state_value);
     }
 
     /**
      * Sets WINS server and support.
      *
-     * @param string $winsserver WINS server
-     * @param boolean $is_wins WINS support flag
+     * @param string $server WINS server
+     * @param boolean $support_flag WINS support flag
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function set_wins_server_and_support($winsserver, $is_wins)
+    public function set_wins_server_and_support($server, $is_wins)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate
-        //---------
-
-        if (! $this->IsValidWinsServer($winsserver))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_WINSSERVER_INVALID);
-
-        if (! is_bool($is_wins))
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_WINSSUPPORT_INVALID);
+        Validation_Exception::is_valid($this->validate_wins_server($server));
+        Validation_Exception::is_valid($this->validate_wins_support($is_wins));
 
         // You cannot have "wins server" and "wins support" at the same time
-        if ($is_wins && $winsserver)
-            throw new Validation_Exception(SAMBA_LANG_ERRMSG_WINS_INVALID);
-
-        // WINS support
-        //-------------
+        if ($is_wins && $server)
+            throw new Validation_Exception(lang('samba_wins_configuration_conflict'));
 
         $is_wins_param = ($is_wins) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo('global', 'wins support', $is_wins_param);
-        $this->_SetShareInfo('global', 'wins server', trim($winsserver));
+        $this->_set_share_info('global', 'wins support', $is_wins_param);
+        $this->_set_share_info('global', 'wins server', trim($server));
     }
 
     /**
@@ -2089,12 +1638,9 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(LOCALE_LANG_INVALID . " - " . "unix password sync");
-
         $state_val = ($state) ? 'Yes' : 'No';
 
-        $this->_SetShareInfo('global', 'unix password sync', $state_val);
+        $this->_set_share_info('global', 'unix password sync', $state_val);
     }
 
     /**
@@ -2110,184 +1656,39 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidWorkgroup($workgroup))
-            return;
+        Validation_Exception::is_valid($this->validate_workgroup($workgroup));
 
         $workgroup = strtoupper($workgroup);
 
         // Change smb.conf
-        $this->_SetShareInfo('global', 'workgroup', $workgroup);
+        $this->_set_share_info('global', 'workgroup', $workgroup);
 
-        // Update LDAP users
-        if ($this->IsDirectoryInitialized())    
-            $this->SetWorkgroupLdap($workgroup);
+        // Update LDAP object
+        $ldap = new OpenLDAP_Driver();
+        $ldap->set_workgroup($workgroup);
 
         // Clean up secrets file
-        $this->_CleanSecretsFile();
+        $this->_clean_secrets_file();
     }
 
     /**
-     * Sets workgroup/domain name LDAP objects.
+     * Share look-up
      *
-     * @param string $workgroup workgroup name
+     * @param  string  $name
      *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
+     * @return  boolean  TRUE if share 'name' is exists
      */
 
-    public function set_workgroup_ldap($workgroup)
+    public function share_exists($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        // Update sambaDomainName object
-        //------------------------------
-
-        try {
-            $sid = $this->GetDomainSid();
-        } catch (Samba_Not_Initialized_Exception $e) {
-            return;
+        foreach ($this->shares as $share => $keys) {
+            if ($share == $name)
+                return TRUE;
         }
 
-        try {
-            $result = $this->ldaph->Search(
-                "(sambaSID=$sid)",
-                $this->ldaph->GetBaseDn(),
-                array("sambaDomainName")
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-
-            if ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-
-                if ($workgroup != $attributes['sambaDomainName'][0]) {
-                    $new_rdn = "sambaDomainName=" . $workgroup;
-                    $new_dn = $new_rdn . "," . $this->ldaph->GetBaseDn();
-                    $old_dn = "sambaDomainName=" . $attributes['sambaDomainName'][0] . "," . $this->ldaph->GetBaseDn();
-                    $newattrs['sambaDomainName'] = $workgroup;
-
-                    $this->ldaph->Rename($old_dn, $new_rdn);
-                    $this->ldaph->Modify($new_dn , $newattrs);
-                }
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        // Update sambaDomain attribute for all users
-        //-------------------------------------------
-
-        try {
-            $result = $this->ldaph->Search(
-                "(sambaDomainName=*)",
-                ClearDirectory::GetUsersOu(),
-                array("cn")
-            );
-
-            $entry = $this->ldaph->GetFirstEntry($result);
-            $usersou = ClearDirectory::GetUsersOu();
-            $newattrs['sambaDomainName'] = $workgroup;
-
-            while ($entry) {
-                $attributes = $this->ldaph->GetAttributes($entry);
-                $this->ldaph->Modify('cn=' . $attributes['cn'][0] . "," . $usersou , $newattrs);
-                $entry = $this->ldaph->NextEntry($entry);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Unlocks a user account.
-     *
-     * @param string $username username
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-/*
-
-    public function unlock_account($username)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $shell = new Shell();
-            $exitcode = $shell->Execute(self::CMD_PDBEDIT, '-c "[]" -z -u ' . $username, TRUE);
-
-            if ($exitcode != 0)
-                throw new Engine_Exception("unlock failed: " . $shell->GetFirstOutputLine(), COMMON_WARNING);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
-    }
-*/
-
-    /**
-     * Updates existing groups with Windows Networking group information (mapping).
-     *
-     * The ClearDirectory is designed to work without the Windows Networking
-     * overlay.  When Windows Networking is enabled, we need to go through all the
-     * existing groups and add the required Windows fields.
-     *
-     * @param string $domainsid domain SID
-     *
-     * @return void
-     * @throws Engine_Exception, Samba_Not_Initialized_Exception
-     */
-
-    public function update_directory_group_mappings($domainsid = NULL)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        if (empty($domainsid))
-            $domainsid = $this->GetDomainSid();
-
-        $group_ou = ClearDirectory::GetGroupsOu();
-
-        try {
-            $groupmanager = new GroupManager();
-            $grouplist = $groupmanager->GetGroupList();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
-
-        // Add/Update the groups
-        //--------------------------------------------------------
-
-        $attributes['objectClass'] = array(
-            'top',
-            'posixGroup',
-            'groupOfNames',
-            'sambaGroupMapping'
-        );
-
-        foreach ($grouplist as $groupinfo) {
-            if (isset($groupinfo['sambaSID']))
-                continue;
-
-            $dn = "cn=" . Ldap::DnEscape($groupinfo['group']) . "," . $group_ou;
-            $attributes['sambaSID'] = $domainsid . '-' . $groupinfo['gid'];
-            $attributes['sambaGroupType'] = 2;
-            $attributes['displayName'] = $groupinfo['group'];
- 
-            try {
-                if ($this->ldaph->Exists($dn))
-                    $this->ldaph->Modify($dn, $attributes);
-            } catch (Exception $e) {
-                throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-            }
-        }
-
-        // For good measure, update local file permissions too
-        $this->UpdateLocalFilePermissions();
+        return FALSE;
     }
 
     /**
@@ -2313,7 +1714,7 @@ class Samba extends Daemon
 
         try {
             $shell = new Shell();
-            $shell->Execute(self::CMD_ADD_SAMBA_DIRS, '', TRUE);
+            $shell->Execute(self::COMMAND_ADD_SAMBA_DIRS, '', TRUE);
         } catch (Exception $e) {
             throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
         }
@@ -2324,97 +1725,107 @@ class Samba extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Share look-up
+     * Validation routine for computers.
      *
-     * @param  string  $name
+     * @param string $name computer name
      *
-     * @return  boolean  TRUE if share 'name' is exists
+     * @return boolean TRUE if computer name valid
      */
 
-    public function share_exists($name)
+    public function validate_computer($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        foreach ($this->shares as $share => $keys) {
-            if ($share == $name)
-                return TRUE;
-        }
-
-        return FALSE;
+        if (! preg_match('/^([a-z0-9_\-\.]+)\$$/', $name))
+            return lang('samba_computer_name_is_invalid');
     }
 
     /**
-     * Validation routine for machine/computers.
+     * Validation routine for domain logons.
      *
-     * @param string $name machine name
+     * @param boolean $state domain logons state
      *
-     * @return boolean TRUE if machine name valid
+     * @return string error message if domain logons is invalid
      */
 
-    public function is_valid_machine_name($name)
+    public function validate_domain_logons($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match('/^([a-z0-9_\-\.]+)\$$/', $name))
-            return TRUE;
-        else
-            return FALSE;
+        if (! clearos_is_valid_boolean($state))
+            return lang('samba_domain_logons_setting_is_invalid');
     }
 
     /**
-     * Validation routine for Samba booleans.
+     * Validation routine for domain master.
      *
-     * Samba allows boolean values to be yes/no, TRUE/FALSE, 1/0.  This is
-     * a simple method to chech for this type of value.
+     * @param boolean $state domain master state
      *
-     * @param string $value Samba boolean value
-     *
-     * @return boolean TRUE if valid
+     * @return string error message if domain master is invalid
      */
 
-    public function is_valid_boolean($value)
+    public function validate_domain_master($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^(yes|TRUE|1|no|FALSE|0)$/i", $value))
-            return TRUE;
-        else
-            return FALSE;
+        if (! clearos_is_valid_boolean($state))
+            return lang('samba_domain_master_setting_is_invalid');
     }
 
     /**
-     * Validation routine for netbiosname
+     * Validation routine for local master.
      *
-     * @param  string  $netbiosname  system name
+     * @param boolean $state local master state
      *
-     * @return  boolean  TRUE if netbiosname is valid
+     * @return string error message if local master is invalid
      */
 
-    public function is_valid_netbios_name($netbiosname)
+    public function validate_local_master($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! clearos_is_valid_boolean($state))
+            return lang('samba_local_master_setting_is_invalid');
+    }
+
+    /**
+     * Validation routine for preferre master.
+     *
+     * @param boolean $state preferred master state
+     *
+     * @return string error message if preferred master is invalid
+     */
+
+    public function validate_preferred_master($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! clearos_is_valid_boolean($state))
+            return lang('samba_preferred_master_setting_is_invalid');
+    }
+
+    /**
+     * Validation routine for netbios name.
+     *
+     * @param string $netbiosname system name
+     *
+     * @return string error message if netbios name is invalid
+     */
+
+    public function validate_netbios_name($netbiosname)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $isvalid = TRUE;
 
-        if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $netbiosname) && (strlen($netbiosname) <= 15))) {
-            $this->AddValidationError(SAMBA_LANG_ERRMSG_NETBIOS_NAME_INVALID, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
+        if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $netbiosname) && (strlen($netbiosname) <= 15)))
+            return lang('samba_server_name_is_invalid');
 
-        try {
-            $workgroup = strtoupper($this->get_workgroup());
-            $netbiosname = strtoupper($netbiosname);
-        } catch (Exception $e) {
-            $this->AddValidationError(LOCALE_LANG_ERRMSG_WEIRD, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
+        $workgroup = strtoupper($this->get_workgroup());
+        $netbiosname = strtoupper($netbiosname);
 
-        if ($workgroup == $netbiosname) {
-            $this->AddValidationError(SAMBA_LANG_ERRMSG_SERVER_NAME_AND_DOMAIN_DUPLICATE, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
-
-        return $isvalid;
+        if ($workgroup === $netbiosname)
+            return lang('samba_server_name_conflicts_with_windows_domain');
     }
 
     /**
@@ -2425,40 +1836,12 @@ class Samba extends Daemon
      * @return  boolean  TRUE if share name is valid
      */
 
-    public function is_valid_share($name)
+    public function validate_share($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^([a-zA-Z\-$]+)$/", $name))
-            return TRUE;
-
-        $this->AddValidationError(SAMBA_LANG_SHARE . " - " . LOCALE_LANG_INVALID, __METHOD__ ,__LINE__);
-        return FALSE;
-    }
-
-    /**
-     * Validation routine for special share name
-     *
-     * @param  string  $name  special share name name
-     *
-     * @return  boolean  TRUE if special share name is valid
-     */
-
-    public function is_valid_special_share($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $sharedata = array();
-        $sharedata = $this->GetSpecialShareDefaults();
-
-        foreach ($sharedata as $shareinfo) {
-            if ($shareinfo["name"] == $name)
-                return TRUE;
-        }
-
-        $this->AddValidationError(SAMBA_LANG_SHARE . " - " . LOCALE_LANG_INVALID, __METHOD__ ,__LINE__);
-
-        return FALSE;
+        if (! preg_match("/^([a-zA-Z\-$]+)$/", $name))
+            return lang('samba_share_is_invalid');
     }
 
     /**
@@ -2477,98 +1860,61 @@ class Samba extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-return '';
-        $isvalid = TRUE;
+        if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $workgroup) && (strlen($workgroup) <= 15)))
+            return lang('samba_windows_domain_is_invalid');
 
-        if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $workgroup) && (strlen($workgroup) <= 15))) {
-            $this->AddValidationError(SAMBA_LANG_ERRMSG_WORKGROUP_INVALID, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
+        $netbiosname = $this->get_netbios_name();
 
-        try {
-            $netbiosname = $this->get_netbios_name();
+        $hostnameobj = new Hostname();
+        $hostname = $hostnameobj->get();
+        $nickname = preg_replace("/\..*/", "", $hostname);
 
-            $hostnameobj = new Hostname();
-            $hostname = $hostnameobj->Get();
-            $nickname = preg_replace("/\..*/", "", $hostname);
+        $nickname = strtoupper($nickname);
+        $netbiosname = strtoupper($netbiosname);
+        $workgroup = strtoupper($workgroup);
 
-            $nickname = strtoupper($nickname);
-            $netbiosname = strtoupper($netbiosname);
-            $workgroup = strtoupper($workgroup);
-        } catch (Exception $e) {
-            $this->AddValidationError(LOCALE_LANG_ERRMSG_WEIRD, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
+        if ($workgroup === $netbiosname)
+            return lang('samba_server_name_conflicts_with_windows_domain');
 
-        if ($workgroup == $netbiosname) {
-            $this->AddValidationError(SAMBA_LANG_ERRMSG_SERVER_NAME_AND_DOMAIN_DUPLICATE, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
-
-        if ($workgroup == $nickname) {
-            $this->AddValidationError(SAMBA_LANG_ERRMSG_DOMAIN_AND_HOSTNAME_DUPLICATE, __METHOD__ ,__LINE__);
-            $isvalid = FALSE;
-        }
-
-        return $isvalid;
+        if ($workgroup === $nickname)
+            return lang('samba_hostname_conflicts_with_windows_domain');
     }
 
     /**
-     * Validation routine for security
+     * Validation routine for security.
      *
-     * @param  string  $type  security type
+     * @param string $type security type
      *
-     * @return  boolean  TRUE if type is valid
+     * @return string error message if security type is invalid.
      */
 
-    public function is_valid_security($type)
+    public function validate_security($type)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (
-            ($type == self::SECURITY_USER) ||
-            ($type == self::SECURITY_SHARE) ||
-            ($type == self::SECURITY_DOMAIN)
-           )
-            return TRUE;
-        $this->AddValidationError(SAMBA_LANG_ERRMSG_SECURITY_INVALID, __METHOD__ ,__LINE__);
-        return FALSE;
+        if (!(
+            ($type === self::SECURITY_USER) ||
+            ($type === self::SECURITY_SHARE) ||
+            ($type === self::SECURITY_ADS) ||
+            ($type === self::SECURITY_DOMAIN)
+           ))
+            return lang('samba_security_type_is_invalid');
     }
 
     /**
-     * Validation routine for serverstring
+     * Validation routine for server string.
      *
-     * @param  string  $serverstring  server string
+     * @param string $server_string server string
      *
      * @return  boolean  TRUE if serverstring is valid
      */
 
-    public function is_valid_server_string($serverstring)
+    public function validate_server_string($server_string)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^([a-zA-Z][\-\w ]*)$/", $serverstring))
-            return TRUE;
-        $this->AddValidationError(SAMBA_LANG_ERRMSG_SERVERSTRING_INVALID, __METHOD__ ,__LINE__);
-        return FALSE;
-    }
-
-    /**
-     * Validation routine for interfaces
-     *
-     * @param  string  $interfaces  network interfaces
-     *
-     * @return  boolean  TRUE if interfaces is valid
-     */
-
-    public function is_valid_interfaces($interfaces)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/^([a-zA-Z0-9 ]*)$/", $interfaces))
-            return TRUE;
-        $this->AddValidationError(SAMBA_LANG_ERRMSG_INTERFACES_INVALID, __METHOD__ ,__LINE__);
-        return FALSE;
+        if (! preg_match("/^([a-zA-Z][\-\w ]*)$/", $server_string))
+            return lang('samba_server_comment_is_invalid');
     }
 
     /**
@@ -2579,14 +1925,12 @@ return '';
      * @return  boolean  TRUE if winsserver is valid
      */
 
-    public function is_valid_wins_server($winsserver)
+    public function validate_wins_server($winsserver)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^([a-zA-Z0-9\-\.]*)$/", $winsserver))
-            return TRUE;
-        $this->AddValidationError(SAMBA_LANG_ERRMSG_WINSSERVER_INVALID, __METHOD__ ,__LINE__);
-        return FALSE;
+        if (!preg_match("/^([a-zA-Z0-9\-\.]*)$/", $winsserver))
+            return lang('samba_wins_server_is_invalid');
     }
 
     /**
@@ -2597,16 +1941,12 @@ return '';
      * @return  boolean  TRUE if valid
      */
 
-    public function is_valid_wins_support($state)
+    public function validate_wins_support($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_bool($state))
-            return TRUE;
-
-        $this->AddValidationError(SAMBA_LANG_ERRMSG_WINSSUPPORT_INVALID, __METHOD__ ,__LINE__);
-
-        return FALSE;
+        if (! clearos_is_valid_boolean($state))
+            return lang('samba_wins_support_setting_is_invalid');
     }
 
     /**
@@ -2617,18 +1957,12 @@ return '';
      * @return  boolean  TRUE if valid
      */
 
-    public function is_valid_logon_drive($drive)
+    public function validate_logon_drive($drive)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: tighten this up
+        // TODO: hard-coded in current implementation
         return TRUE;
-        /*
-        if (preg_match("/^[a-zA-Z]:$/", $drive))
-            return TRUE;
-        else
-            return FALSE;
-        */
     }
 
     /**
@@ -2639,27 +1973,27 @@ return '';
      * @return  boolean  TRUE if valid
      */
 
-    public function is_valid_logon_home($home)
+    public function validate_logon_home($home)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: tighten this up
+        // TODO: hard-coded in current implementation
         return TRUE;
     }
 
     /**
-     * Validation routine for logon path
+     * Validation routine for logon path.
      *
-     * @param  string  $path  path
+     * @param string $path path
      *
-     * @return  boolean  TRUE if valid
+     * @return string error message if logon path is invalid
      */
 
-    public function is_valid_logon_path($path)
+    public function validate_logon_path($path)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: tighten this up
+        // TODO: hard-coded in current implementation
         return TRUE;
     }
 
@@ -2671,7 +2005,7 @@ return '';
      * @return  boolean  TRUE if valid
      */
 
-    public function is_valid_logon_script($script)
+    public function validate_logon_script($script)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -2687,142 +2021,17 @@ return '';
      * @return  boolean  TRUE if oslevel is valid
      */
 
-    public function is_valid_os_level($oslevel)
+    public function validate_os_level($oslevel)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!$oslevel)
-            return TRUE;
-
-        if (preg_match("/^([0-9]+)$/", $oslevel))
-            return TRUE;
-
-        $this->AddValidationError(SAMBA_LANG_ERRMSG_OS_LEVEL_INVALID, __METHOD__ ,__LINE__);
-        return FALSE;
+        if ($oslevel && !preg_match("/^([0-9]+)$/", $oslevel))
+            return lang('samba_os_level_setting_is_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Deletes state files used by Samba.
-     *
-     * @access private
-     *
-     * @return void
-     */
-
-    protected function _archive_state_files()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Create backup directory
-
-        try {
-            $ntptime = new NTP_Time();
-            date_default_timezone_set($ntptime->GetTimeZone());
-
-            $backuppath = Samba::PATH_STATE_BACKUP . "/varbackup-" . strftime("%m-%d-%Y-%H-%M-%S-%s", time());
-            $backupdir = new Folder($backuppath);
-
-            if (! $backupdir->Exists())
-                $backupdir->Create("root", "root", "0755");
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
-
-        // Perform backup
-
-        try {
-            $folder = new Folder(Samba::PATH_STATE);
-            $statefiles = $folder->GetRecursiveListing();
-
-            foreach ($statefiles as $filename) {
-                if (! preg_match("/(tdb)|(dat)$/", $filename))
-                    continue;
-
-                if (preg_match("/\//", $filename)) {
-                    $dirname = dirname($filename);
-                    $backupdir = new Folder($backuppath . "/" . $dirname);
-    
-                    if (! $backupdir->Exists())
-                        $backupdir->Create("root", "root", "0755");
-                }
-
-                $file = new File(Samba::PATH_STATE . "/" . $filename);
-                $file->MoveTo($backuppath . "/" . $filename);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
-    }
-
-    /**
-     * Generates a SID.
-     *
-     * @access private
-     * @param string $type SID type
-     *
-     * @return string SID
-     * @throws Engine_Exception
-     */
-
-    protected function _generate_sid($type)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Create minimalist Samba config to generate a domain or local SID
-        // Note: this can be simplified with more information on SIDs.
-
-        if ($type == Samba::TYPE_SID_LOCAL)
-            $param = "getlocalsid";
-        else if ($type == Samba::TYPE_SID_DOMAIN)
-            $param = "getdomainsid";
-        else
-            throw new Engine_Exception("Invalid SID type", COMMON_ERROR);
-
-        try {
-            $configlines = "[global]\n";
-            $configlines .= "netbios name = mytempnetbios\n";
-            $configlines .= "workgroup = mytempdomain\n";
-            $configlines .= "domain logons = Yes\n";
-            $configlines .= "private dir = " . CLEAROS_TEMP_DIR . "\n";
-
-            $config = new File(CLEAROS_TEMP_DIR . "/smb.conf");
-                
-            if ($config->Exists())    
-                $config->Delete();
-
-            $config->Create("root", "root", "0644");
-            $config->AddLines($configlines);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        // Run net getdomainsid / getlocalsid
-
-        try {
-            $secrets = new File(CLEAROS_TEMP_DIR . "/secrets.tdb");
-
-            if ($secrets->Exists())
-                $secrets->Delete();
-
-            $shell = new Shell();
-
-            if ($shell->Execute(self::CMD_NET, '-s ' . CLEAROS_TEMP_DIR . '/smb.conf ' . $param, TRUE) != 0)
-                throw Engine_Exception($shell->GetFirstOutputLine());
-
-            $sid = $shell->GetLastOutputLine();
-            $sid = preg_replace("/.*: /", "", $sid);
-
-            $config->Delete();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        return $sid;
-    }
 
     /**
      * Returns a Samba boolean.
@@ -2854,446 +2063,6 @@ return '';
     }
 
     /**
-     * Creates an LDAP handle.
-     *
-     * @access private
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _get_ldap_handle()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $this->ldaph = new Ldap();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
-    }
-
-    /**
-     * Initializes and then saves domain SID to file.
-     *
-     * @access private
-     *
-     * @return string domain SID
-     * @throws Engine_Exception
-     */
-
-    protected function _initialize_domain_sid()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            // If /etc/samba/domainsid exists, use it
-            $file = new File(self::FILE_DOMAIN_SID, TRUE);
-
-            if ($file->exists()) {
-                $lines = $file->GetContentsAsArray();
-                $sid = $lines[0];
-            } else {
-                $sid = $this->_GenerateSid(Samba::TYPE_SID_DOMAIN);
-
-                $file->create("root", "root", "400");
-                $file->add_lines("$sid\n");
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        return $sid;
-    }
-
-    /**
-     * Initializes and then saves local SID to file.
-     *
-     * @access private
-     * @param string $sid local SID
-     *
-     * @return string local SID
-     * @throws Engine_Exception
-     */
-
-    protected function _initialize_local_sid($sid)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $file = new File(self::FILE_LOCAL_SID, TRUE);
-
-            // If no SID is specified, use the local copy
-            if (empty($sid) && $file->exists()) {
-                $lines = $file->GetContentsAsArray();
-                return $lines[0];
-            }
-
-            // If local copy does not exist, create a new SID
-            if (empty($sid))
-                $sid = $this->_GenerateSid(Samba::TYPE_SID_LOCAL);
-
-            // Create a local copy of the SID
-            if ($file->exists())
-                $file->Delete();
-
-            $file->create("root", "root", "400");
-            $file->add_lines("$sid\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        return $sid;
-    }
-
-    /**
-     * Initialize LDAP configuration for Samba.
-     *
-     * @access private
-     * @param string $domainsid domain SID
-     * @param string $password windows administrator password
-     *
-     * @return void
-     * @throws Engine_Exception, Samba_Not_Initialized_Exception
-     */
-
-    protected function _initialize_ldap($domainsid, $password = NULL)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        // TODO: validate
-
-        try {
-            $domain = $this->get_workgroup();
-            $logondrive = $this->GetLogonDrive();
-            $basedn = $this->ldaph->GetBaseDn();
-
-            $directory = new ClearDirectory();
-
-            if (empty($password))
-                $password = $directory->GeneratePassword();
-
-            // TODO: should be static method
-            $user = new User("na");
-            $sha_password = '{sha}' . $user->_CalculateShaPassword($password);
-            $nt_password = $user->_CalculateNtPassword($password);
-            $lanman_password = $user->_CalculateLanmanPassword($password);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        // Domain
-        //--------------------------------------------------------
-
-        $domainobj['objectClass'] = array(
-            'top',
-            'sambaDomain'
-        );
-
-        $dn = 'sambaDomainName=' . $domain . ',' . $basedn;
-        $domainobj['sambaDomainName'] = $domain;
-        $domainobj['sambaSID'] = $domainsid;
-        $domainobj['sambaNextGroupRid'] = 20000000;
-        $domainobj['sambaNextUserRid'] = 20000000;
-        $domainobj['sambaNextRid'] = 20000000;
-        $domainobj['sambaAlgorithmicRidBase'] = 1000;
-        $domainobj['sambaMinPwdLength'] = 5;
-        $domainobj['sambaPwdHistoryLength'] = 5;
-        $domainobj['sambaLogonToChgPwd'] = 0;
-        $domainobj['sambaMaxPwdAge'] = -1;
-        $domainobj['sambaMinPwdAge'] = 0;
-        $domainobj['sambaLockoutDuration'] = 60;
-        $domainobj['sambaLockoutObservationWindow'] = 5;
-        $domainobj['sambaLockoutThreshold'] = 0;
-        $domainobj['sambaForceLogoff'] = 0;
-        $domainobj['sambaRefuseMachinePwdChange'] = 0;
-
-        try {
-            if (! $this->ldaph->Exists($dn))
-                $this->ldaph->Add($dn, $domainobj);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        // Idmap
-        //--------------------------------------------------------
-
-        $dn = 'ou=Idmap,' . $basedn;
-        $idmap['objectClass'] = array(
-            'top',
-            'organizationalUnit'
-        );
-        $idmap['ou'] = 'Idmap';
-
-        try {
-            if (! $this->ldaph->Exists($dn))
-                $this->ldaph->Add($dn, $idmap);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
-
-        // Users
-        //--------------------------------------------------------
-
-        $users_ou = ClearDirectory::GetUsersOu();
-
-        $winadmin_dn = 'cn=' . Samba::CONSTANT_WINADMIN_CN . ',' . $users_ou;
-
-        $userinfo[$winadmin_dn]['lastName'] = 'Administrator';
-        $userinfo[$winadmin_dn]['firstName'] = 'Windows';
-        $userinfo[$winadmin_dn]['uid'] = 'winadmin';
-
-        $users[$winadmin_dn]['objectClass'] = array(
-            'top',
-            'posixAccount',
-            'shadowAccount',
-            'inetOrgPerson',
-            'sambaSamAccount',
-            'pcnAccount'
-        );
-        $users[$winadmin_dn]['pcnSHAPassword'] = $sha_password;
-        $users[$winadmin_dn]['pcnSHAPassword'] = $sha_password;
-        $users[$winadmin_dn]['pcnMicrosoftNTPassword'] = $nt_password;
-        $users[$winadmin_dn]['pcnMicrosoftLanmanPassword'] = $lanman_password;
-        $users[$winadmin_dn]['sambaPwdLastSet'] = 0;
-        $users[$winadmin_dn]['sambaLogonTime'] = 0;
-        $users[$winadmin_dn]['sambaLogoffTime'] = 2147483647;
-        $users[$winadmin_dn]['sambaKickoffTime'] = 2147483647;
-        $users[$winadmin_dn]['sambaPwdCanChange'] = 0;
-        $users[$winadmin_dn]['sambaPwdLastSet'] = time();
-        $users[$winadmin_dn]['sambaPwdMustChange'] = 2147483647;
-        $users[$winadmin_dn]['sambaDomainName'] = $domain;
-        $users[$winadmin_dn]['sambaHomeDrive'] = $logondrive;
-        $users[$winadmin_dn]['sambaPrimaryGroupSID'] = $domainsid . '-512';
-        $users[$winadmin_dn]['sambaLMPassword'] = $lanman_password;
-        $users[$winadmin_dn]['sambaNTPassword'] = $nt_password;
-        $users[$winadmin_dn]['sambaAcctFlags'] = '[U       ]';
-        $users[$winadmin_dn]['sambaSID'] = $domainsid . '-500';
-
-        $guest_dn = 'cn=' . Samba::CONSTANT_GUEST_CN . ',' . $users_ou;
-
-        $users[$guest_dn]['objectClass'] = array(
-            'top',
-            'posixAccount',
-            'shadowAccount',
-            'inetOrgPerson',
-            'sambaSamAccount',
-            'pcnAccount'
-        );
-        $users[$guest_dn]['pcnSHAPassword'] = $sha_password;
-        $users[$guest_dn]['pcnMicrosoftNTPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
-        $users[$guest_dn]['pcnMicrosoftLanmanPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
-        $users[$guest_dn]['sambaPwdLastSet'] = 0;
-        $users[$guest_dn]['sambaLogonTime'] = 0;
-        $users[$guest_dn]['sambaLogoffTime'] = 2147483647;
-        $users[$guest_dn]['sambaKickoffTime'] = 2147483647;
-        $users[$guest_dn]['sambaPwdCanChange'] = 0;
-        $users[$guest_dn]['sambaPwdLastSet'] = time();
-        $users[$guest_dn]['sambaPwdMustChange'] = 2147483647;
-        $users[$guest_dn]['sambaDomainName'] = $domain;
-        $users[$guest_dn]['sambaHomeDrive'] = $logondrive;
-        $users[$guest_dn]['sambaPrimaryGroupSID'] = $domainsid . '-514';
-        $users[$guest_dn]['sambaLMPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
-        $users[$guest_dn]['sambaNTPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
-        $users[$guest_dn]['sambaAcctFlags'] = '[NUD       ]';
-        $users[$guest_dn]['sambaSID'] = $domainsid . '-501';
-
-        foreach ($users as $dn => $object) {
-            try {
-                if ($this->ldaph->Exists($dn))
-                    $this->ldaph->Modify($dn, $object);
-            } catch (Exception $e) {
-                throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-            }
-        }
-
-        // Groups
-        //--------------------------------------------------------
-
-        $this->_InitializeDirectoryWindowsGroups($domainsid);
-        $this->UpdateDirectoryGroupMappings($domainsid);
-    }
-
-    /**
-     * Initialize LDAP groups for Samba.
-     *
-     * @access private
-     * @param string $domainsid domain SID
-     *
-     * @return void
-     * @throws Engine_Exception, Samba_Not_Initialized_Exception
-     */
-
-    protected function _initialize_directory_windows_groups($domainsid = NULL)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->_get_ldap_handle();
-
-        if (empty($domainsid))
-            $domainsid = $this->GetDomainSid();
-
-        $group_ou = ClearDirectory::GetGroupsOu();
-        $users_ou = ClearDirectory::GetUsersOu();
-
-        $guest_dn = 'cn=' . Samba::CONSTANT_GUEST_CN . ',' . $users_ou;
-        $winadmin_dn = 'cn=' . Samba::CONSTANT_WINADMIN_CN . ',' . $users_ou;
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // D O M A I N   G R O U P S
-        ///////////////////////////////////////////////////////////////////////////////
-        //
-        // Samba uses the following convention for group mappings:
-        // - the base part of the DN is the Posix group
-        // - the displayName is the Windows group
-        //
-        ///////////////////////////////////////////////////////////////////////////////
-
-        $groups = array();
-
-        $dn = 'cn=domain_admins,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Domain Admins';
-        $groups[$dn]['description'] = 'Domain Admins';
-        $groups[$dn]['gidNumber'] = '1000512';
-        $groups[$dn]['sambaSID'] = $domainsid . '-512';
-        $groups[$dn]['sambaGroupType'] = 2;
-        $groups[$dn]['member'] = array($winadmin_dn);
-
-        $dn = 'cn=domain_users,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Domain Users';
-        $groups[$dn]['description'] = 'Domain Users';
-        $groups[$dn]['gidNumber'] = '1000513';
-        $groups[$dn]['sambaSID'] = $domainsid . '-513';
-        $groups[$dn]['sambaGroupType'] = 2;
-
-        $dn = 'cn=domain_guests,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Domain Guests';
-        $groups[$dn]['description'] = 'Domain Guests';
-        $groups[$dn]['gidNumber'] = '1000514';
-        $groups[$dn]['sambaSID'] = $domainsid . '-514';
-        $groups[$dn]['sambaGroupType'] = 2;
-        $groups[$dn]['member'] = array($guest_dn);
-
-        $dn = 'cn=domain_computers,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Domain Computers';
-        $groups[$dn]['description'] = 'Domain Computers';
-        $groups[$dn]['gidNumber'] = Samba::CONSTANT_GID_DOMAIN_COMPUTERS;
-        $groups[$dn]['sambaSID'] = $domainsid . '-515';
-        $groups[$dn]['sambaGroupType'] = 2;
-
-        /*
-        $dn = 'cn=domain_controllers,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Domain Controllers';
-        $groups[$dn]['description'] = 'Domain Controllers';
-        $groups[$dn]['gidNumber'] = '1000516';
-        $groups[$dn]['sambaSID'] = $domainsid . '-516';
-        $groups[$dn]['sambaGroupType'] = 2;
-        */
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // B U I L T - I N   G R O U P S
-        ///////////////////////////////////////////////////////////////////////////////
-
-        $dn = 'cn=administrators,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Administrators';
-        $groups[$dn]['description'] = 'Administrators';
-        $groups[$dn]['gidNumber'] = '1000544';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-544';
-        $groups[$dn]['SambaSIDList'] = $domainsid . '-512';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=users,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Users';
-        $groups[$dn]['description'] = 'Users';
-        $groups[$dn]['gidNumber'] = '1000545';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-545';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=guests,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Guests';
-        $groups[$dn]['description'] = 'Guests';
-        $groups[$dn]['gidNumber'] = '1000546';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-546';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=power_users,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Power Users';
-        $groups[$dn]['description'] = 'Power Users';
-        $groups[$dn]['gidNumber'] = '1000547';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-547';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=account_operators,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Account Operators';
-        $groups[$dn]['description'] = 'Account Operators';
-        $groups[$dn]['gidNumber'] = '1000548';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-548';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=server_operators,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Server Operators';
-        $groups[$dn]['description'] = 'Server Operators';
-        $groups[$dn]['gidNumber'] = '1000549';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-549';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=print_operators,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Print Operators';
-        $groups[$dn]['description'] = 'Print Operators';
-        $groups[$dn]['gidNumber'] = '1000550';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-550';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        $dn = 'cn=backup_operators,' . $group_ou;
-        $groups[$dn]['displayName'] = 'Backup Operators';
-        $groups[$dn]['description'] = 'Backup Operators';
-        $groups[$dn]['gidNumber'] = '1000551';
-        $groups[$dn]['sambaSID'] = 'S-1-5-32-551';
-        $groups[$dn]['sambaGroupType'] = 4;
-
-        // Add/Update the groups
-        //--------------------------------------------------------
-
-        $group_objectclasses['objectClass'] = array(
-            'top',
-            'posixGroup',
-            'groupOfNames',
-            'sambaGroupMapping'
-        );
-
-        foreach ($groups as $dn => $object) {
-            try {
-                if (! $this->ldaph->Exists($dn)) {
-                    $matches = array();
-                    $groupname = preg_match("/^cn=([^,]*),/", $dn, $matches);
-
-                    $group = new Group($matches[1]);
-                    $group->Add($object['description']);
-                }
-
-                $this->ldaph->Modify($dn, array_merge($group_objectclasses, $object));
-            } catch (Exception $e) {
-                // TODO: should check the existence of these groups and handle accordingly
-                // throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-            }
-        }
-
-        try {
-            $usermanager = new UserManager();
-            $allusers = $usermanager->GetAllUsers();
-
-            $group = new Group("domain_users");
-            $group->SetMembers($allusers);
-        } catch (Exception $e) {
-            // TODO: make this fatal
-        }
-    }
-
-    /**
      * Load and parse configuration file.
      *
      * @access private
@@ -3314,16 +2083,12 @@ return '';
         $this->shares = array();
         $this->values = array();
 
-        try {
-            $file = new File(self::FILE_CONFIG);
+        $file = new File(self::FILE_CONFIG);
 
-            if (! $file->exists())
-                $file->create('root', 'root', '0600');
+        if (! $file->exists())
+            $file->create('root', 'root', '0600');
 
-            $lines = $file->GetContentsAsArray();
-        } catch (Exception $e) {
-            throw new Engine_Exception ($e->GetMessage(), COMMON_ERROR);
-        }
+        $lines = $file->get_contents_as_array();
 
         $linecount = 0;
         $share = 'global';
@@ -3333,15 +2098,15 @@ return '';
         foreach ($lines as $line) {
             $this->raw_lines[] = $line;
 
-            if (ereg("^[[:space:]]*\[(.*)\]", $line, $match)) {
+            if (preg_match('/^\s*\[(.*)\]/', $line, $match)) {
                 $share = trim($match[1]);
                 $this->shares[$share]['line'] = $linecount;
-            } else if (!ereg("^[[:space:]]*[;#]+.*$", $line)) {
-                if (ereg("^[[:space:]]*([[:alnum:] ]+)[[:space:]]*=[[:space:]]*(.*$)", $line, $match)) {
+            } else if (!preg_match('/^\s*[;#]+.*$/', $line)) {
+                if (preg_match('/^\s*([a-z0-9\s]+)\s*=\s*(.*$)/', $line, $match)) {
                     $key = trim($match[1]);
-                    $this->shares[$share][$key]["line"] = $linecount;
+                    $this->shares[$share][$key]['line'] = $linecount;
 
-                    $value = explode("#", ereg_replace(";", "#", $match[2]));
+                    $value = explode('#', preg_replace('/;/', '#', $match[2]));
                     $this->values[$share][$key] = trim($value[0]);
                     $this->shares[$share][$key]['value'] = $this->values[$share][$key];
                 }
@@ -3367,28 +2132,20 @@ return '';
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $domain = $this->get_workgroup();
-            $options['stdin'] = TRUE;
+        $domain = $this->get_workgroup();
+        $options['stdin'] = TRUE;
 
-            $shell = new Shell();
-            $exitcode = $shell->Execute(self::CMD_NET, 'rpc rights grant "' . $domain . '\Domain Admins" ' .
-                self::DEFAULT_ADMIN_PRIVS . ' -U winadmin%' . $password, TRUE, $options);
-
-            if ($exitcode != 0)
-                throw new Engine_Exception("rpc rights grant failed: " . $shell->GetFirstOutputLine(), COMMON_WARNING);
-
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
+        $shell = new Shell();
+        $shell->Execute(self::COMMAND_NET, 'rpc rights grant "' . $domain . '\Domain Admins" ' .
+            self::DEFAULT_ADMIN_PRIVS . ' -U winadmin%' . $password, TRUE, $options);
     }
 
     /**
      * Runs net rpc join command.
      *
-     * @access private
      * @param string $password winadmin password
      *
+     * @access private
      * @return void
      * @throws Engine_Exception
      */
@@ -3404,13 +2161,9 @@ return '';
             $options['stdin'] = TRUE;
 
             $shell = new Shell();
-            $exitcode = $shell->Execute(self::CMD_NET, 'rpc join -W ' . $domain . ' -S ' .$netbiosname .
+            $exitcode = $shell->Execute(self::COMMAND_NET, 'rpc join -W ' . $domain . ' -S ' .$netbiosname .
                 ' -U winadmin%' . $password, TRUE, $options);
-
-            if ($exitcode != 0)
-                throw new Engine_Exception("rpc join failed: " . $shell->GetLastOutputLine(), COMMON_WARNING);
-
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             // FIXME -- too delicate
             // throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
@@ -3429,63 +2182,55 @@ return '';
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: need to fix LDAP password handling
-        try {
-            $shell = new Shell();
-            $shell->Execute("/usr/sbin/ldapsync", "config smb", TRUE);
-        } catch (Exception $e) {
-            // Ignore for now
-        }
-
         // TODO: how do we want to present this in the UI without
         // having to constantly ask for winadmin password? Or should we
         // be asking for the password?
 
-        try {
-            if (!$this->IsDirectoryInitialized() || !$this->IsLocalSystemInitialized())
-                return;
-        } catch (Exception $e) {
-            // Ignore for now
-        }
+/*
+// FIXME
+        if (!$this->is_local_system_initialized())
+            return;
+*/
 
         $nmbd = new Nmbd();
+        $smbd = new Smbd();
         $winbind = new Winbind();
 
         $nmbd_wasrunning = FALSE;
         $smbd_wasrunning = FALSE;
         $winbind_wasrunning = FALSE;
 
-        if ($winbind->IsInstalled()) {
-            $winbind_wasrunning = $winbind->GetRunningState();
+        if ($winbind->is_installed()) {
+            $winbind_wasrunning = $winbind->get_running_state();
             if ($winbind_wasrunning)
-                $winbind->SetRunningState(FALSE);
+                $winbind->set_running_state(FALSE);
         }
 
-        if ($this->IsInstalled()) {
-            $smbd_wasrunning = $this->GetRunningState();
+        if ($smbd->is_installed()) {
+            $smbd_wasrunning = $smbd->get_running_state();
             if ($smbd_wasrunning)
-                $this->SetRunningState(FALSE);
+                $smbd->set_running_state(FALSE);
         }
 
-        if ($nmbd->IsInstalled()) {
-            $nmbd_wasrunning = $nmbd->GetRunningState();
+        if ($nmbd->is_installed()) {
+            $nmbd_wasrunning = $nmbd->get_running_state();
             if ($nmbd_wasrunning)
-                $nmbd->SetRunningState(FALSE);
+                $nmbd->set_running_state(FALSE);
         }
 
-        $this->_SaveBindPassword();
-        $this->_SaveIdmapPassword();
-        $this->SetDomainSid();
-        $this->SetLocalSid();
+        $this->_save_bind_password();
+        $this->_save_idmap_password();
+        $this->set_domain_sid();
+        $this->set_local_sid();
 
         if ($nmbd_wasrunning)
-            $nmbd->SetRunningState(TRUE);
+            $nmbd->set_running_state(TRUE);
 
         if ($smbd_wasrunning)
-            $this->SetRunningState(TRUE);
+            $this->set_running_state(TRUE);
 
         if ($winbind_wasrunning)
-            $winbind->SetRunningState(TRUE);
+            $winbind->set_running_state(TRUE);
 
         sleep(3); // TODO: Wait for samba ... replace this with a loop
 
@@ -3576,27 +2321,24 @@ return '';
         // Delete any old temp file lying around
         //--------------------------------------
 
-        try {
-            $newfile = new File(self::FILE_CONFIG . '.cctmp');
-            if ($newfile->exists())
-                $newfile->Delete();
+        $new_config = new File(self::FILE_CONFIG . '.cctmp');
 
-            // Create temp file
-            //-----------------
-            $newfile->create('root', 'root', '0644');
+        if ($new_config->exists())
+            $new_config->delete();
 
-            // Write out the file
-            //-------------------
+        // Create temp file
+        //-----------------
+        $new_config->create('root', 'root', '0644');
 
-            $newfile->add_lines($filedata);
+        // Write out the file
+        //-------------------
 
-            // Copy the new config over the old config
-            //----------------------------------------
+        $new_config->add_lines($filedata);
 
-            $newfile->MoveTo(self::FILE_CONFIG);
-        } catch (Exception $e) {
-            throw new Engine_Exception ($e->GetMessage(), COMMON_ERROR);
-        }
+        // Copy the new config over the old config
+        //----------------------------------------
+
+        $new_config->move_to(self::FILE_CONFIG);
     }
 
     /**
@@ -3612,18 +2354,15 @@ return '';
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $ldap = new Ldap();
-            $bind_password = $ldap->GetBindPassword();
+        $ldap = new OpenLDAP_Driver();
 
-            // Use pipe to avoid showing password in command line
-            $options['stdin'] = TRUE;
+        $bind_password = $ldap->get_bind_password();
 
-            $shell = new Shell();
-            $shell->Execute(self::CMD_SMBPASSWD, "-w " . $bind_password, TRUE, $options);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
+        // Use pipe to avoid showing password in command line
+        $options['stdin'] = TRUE;
+
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_SMBPASSWD, "-w " . $bind_password, TRUE, $options);
     }
 
     /**
@@ -3639,20 +2378,13 @@ return '';
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $ldap = new Ldap();
-            $password = $ldap->GetBindPassword();
-            $options['stdin'] = TRUE;
+        $ldap = new OpenLDAP_Driver();
 
-            $shell = new Shell();
-            $exitcode = $shell->Execute(self::CMD_NET, 'idmap secret alloc ' . $password, TRUE, $options);
+        $password = $ldap->get_bind_password();
+        $options['stdin'] = TRUE;
 
-            if ($exitcode != 0)
-                throw new Engine_Exception("idmap secret alloc failed: " . $shell->GetFirstOutputLine(), COMMON_WARNING);
-
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
+        $shell = new Shell();
+        $exitcode = $shell->Execute(self::COMMAND_NET, 'idmap secret alloc ' . $password, TRUE, $options);
     }
 
     /**
@@ -3674,7 +2406,7 @@ return '';
         if (! $this->loaded)
             $this->_load();
 
-        if (!$this->ShareExists($share))
+        if (!$this->share_exists($share))
             throw new Samba_Share_Not_Found_Exception($share);
 
         // TODO: Some keys should not be deleted, but left blank instead.
@@ -3688,6 +2420,6 @@ return '';
             $this->shares[$share][$key]['value'] = $value;
         }
 
-        $this->_Save();
+        $this->_save();
     }
 }
