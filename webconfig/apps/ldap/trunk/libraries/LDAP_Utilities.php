@@ -57,8 +57,17 @@ clearos_load_language('ldap');
 //--------
 
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Engine');
+clearos_load_library('base/Shell');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+
+clearos_load_library('base/Engine_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -78,6 +87,12 @@ clearos_load_library('base/Engine');
 
 class LDAP_Utilities extends Engine
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const COMMAND_OPENSSL = '/usr/bin/openssl';
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -148,5 +163,30 @@ class LDAP_Utilities extends Engine
         $sha1 = unpack("H*", base64_decode($sha_password));
 
         return $sha1[1];
+    }
+
+    /**
+     * Generates a random password.
+     *
+     * @return string random password
+     * @throws Engine_Exception
+     */
+
+    public static function generate_password()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $shell = new Shell();
+
+        // openssl can return with exit 0 on error, 
+        $options['validate_exit_code'] = FALSE;
+
+        $retval = $shell->execute(self::COMMAND_OPENSSL, 'rand -base64 12', FALSE);
+        $output = $shell->get_first_output_line();
+
+        if (($retval !== 0) || preg_match('/\s+/', $output))
+            throw new Engine_Exception($retval . " " . $output);
+
+        return $output;
     }
 }
