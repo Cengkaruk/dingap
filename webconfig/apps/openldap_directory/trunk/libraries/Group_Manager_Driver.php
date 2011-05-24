@@ -106,7 +106,7 @@ class Group_Manager_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        include_once clearos_app_base('openldap_directory') . '/deploy/group_map.php';
+        include clearos_app_base('openldap_directory') . '/deploy/group_map.php';
 
         $this->info_map = $info_map;
     }

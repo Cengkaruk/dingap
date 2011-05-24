@@ -212,8 +212,7 @@ class User_Driver extends User_Engine
         // Add LDAP attributes from extensions
         //------------------------------------
 
-// FIXME: re-enable
-        //$ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
+        $ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
 
         // Validation revisited - check for DN uniqueness
         //-----------------------------------------------
@@ -230,7 +229,6 @@ class User_Driver extends User_Engine
         // Add the LDAP user object
         //-------------------------
 
-print_r($ldap_object);
         $this->ldaph->add($dn, $ldap_object);
 
         // FIXME: run plugin handler
@@ -709,7 +707,7 @@ print_r($ldap_object);
         // Handle plugins
         //---------------
 
-print_r($user_info);
+// print_r($ldap_object);
         // Ping the synchronizer
         //----------------------
 
@@ -1214,8 +1212,10 @@ return;
         if (! $is_modify) {
             if (isset($user_info['core']['uid_number']))
                 $ldap_object['nidNumber'] = $user_info['core']['uid_number'];
-            else
-                $ldap_object['uidNumber'] = $this->_get_next_uid_number();
+            else {
+                $accounts = new Accounts_Driver();
+                $ldap_object['uidNumber'] = $accounts->get_next_uid_number();
+            }
 
             if (isset($user_info['core']['gid_number']))
                 $ldap_object['gidNumber'] = $user_info['core']['gid_number'];
@@ -1345,34 +1345,6 @@ return;
         $this->plugins = $accounts->get_plugins();
 
         return $this->plugins;
-    }
-
-    /**
-     * Returns the next available user ID.
-     *
-     * @access private
-     * @return integer next available user ID
-     * @throws Engine_Exception
-     */
-
-    protected function _get_next_uid_number()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph == NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        // FIXME: discuss with David -- move "Master" node?
-        $dn = 'cn=Master,' . OpenLDAP::get_servers_container();
-
-        $attributes = $this->ldaph->read($dn);
-
-        // TODO: should have some kind of semaphore to prevent duplicate IDs
-        $next['uidNumber'] = $attributes['uidNumber'][0] + 1;
-
-        $this->ldaph->modify($dn, $next);
-
-        return $attributes['uidNumber'][0];
     }
 
     /**

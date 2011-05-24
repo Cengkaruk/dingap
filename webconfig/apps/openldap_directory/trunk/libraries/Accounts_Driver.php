@@ -219,6 +219,33 @@ class Accounts_Driver extends Accounts_Engine
     }
 
     /**
+     * Returns the next available user ID.
+     *
+     * @return integer next available user ID
+     * @throws Engine_Exception
+     */
+
+    public function get_next_uid_number()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
+
+        // FIXME: discuss with David -- move "Master" node?
+        $dn = 'cn=Master,' . OpenLDAP::get_servers_container();
+
+        $attributes = $this->ldaph->read($dn);
+
+        // TODO: should have some kind of semaphore to prevent duplicate IDs
+        $next['uidNumber'] = $attributes['uidNumber'][0] + 1;
+
+        $this->ldaph->modify($dn, $next);
+
+        return $attributes['uidNumber'][0];
+    }
+
+    /**
      * Returns status of account system.
      *
      * - Accounts_Engine::STATUS_INITIALIZING
@@ -238,12 +265,11 @@ class Accounts_Driver extends Accounts_Engine
 
         if (! $file->exists())
             return Accounts_Engine::STATUS_UNINITIALIZED;
-            return Accounts_Engine::STATUS_UNINITIALIZED;
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        if ($this->ldaph->is_available())
+        if ($this->ldaph->is_online())
             $status = Accounts_Engine::STATUS_ONLINE;
         else
             $status = Accounts_Engine::STATUS_OFFLINE;
