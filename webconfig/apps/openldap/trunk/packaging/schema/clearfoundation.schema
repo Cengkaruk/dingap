@@ -102,7 +102,7 @@ objectclass ( clearAccount
     NAME 'clearAccount'
     SUP top AUXILIARY
     DESC 'ClearOS account object'
-    MUST ( uid $ clearAccountStatus $userPassword )
+    MUST ( uid $ clearAccountStatus )
     MAY ( c $ l $ o $ ou $ st $ sn $ userCertificate $ description $ 
     displayName $ facsimileTelephoneNumber $ givenName $ gidNumber $ 
     homeDirectory $ loginShell $ mail $ mobile $ userPKCS12 $ postalCode $ 
