@@ -406,7 +406,7 @@ class OpenLDAP extends Engine
         // FIXME: Add winbind stuff
         $shell = new Shell();
         $shell->execute(self::COMMAND_AUTHCONFIG, 
-            '--enableshadow --enablemd5 --enableldap --enableldapauth --update', 
+            '--enableshadow --enablemd5 --enableldap --enableldapauth --disablefingerprint --update', 
             TRUE
         );
     }
