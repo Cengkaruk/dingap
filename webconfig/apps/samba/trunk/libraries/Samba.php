@@ -123,6 +123,7 @@ class Samba extends Software
     protected $shares = array();
     protected $values = array();
     protected $booleans = array();
+    protected $modes = array();
     protected $raw_lines = array();
 
     // Files and paths
@@ -141,6 +142,7 @@ class Samba extends Software
     // Modes
     const MODE_PDC = 'pdc';
     const MODE_BDC = 'bdc';
+    const MODE_MEMBER = 'member';
     const MODE_SIMPLE_SERVER = 'simple';
     const MODE_CUSTOM = 'custom';
 
@@ -192,6 +194,13 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct('samba-common');
+
+        $this->modes = array(
+            self::MODE_PDC => lang('samba_pdc'),
+            self::MODE_BDC => lang('samba_bdc'),
+            self::MODE_MEMBER => lang('samba_member_server'),
+            self::MODE_SIMPLE_SERVER => lang('samba_simple_server'),
+        );
 
         $this->booleans = array(
             'use client driver',
@@ -522,6 +531,20 @@ class Samba extends Software
             return self::MODE_SIMPLE_SERVER;
         else
             return self::MODE_CUSTOM;
+    }
+
+    /**
+     * Returns a list of modes
+     *
+     * @return array mode information
+     * @throws Engine_Exception
+     */
+
+    public function get_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->modes;
     }
 
     /**
@@ -912,84 +935,124 @@ class Samba extends Software
     /**
      * Initializes the local Samba system environment.
      *
-     * @param string $netbiosname netbiosname
-     * @param string $domain domain
+     * @param string $netbios_name netbios_name
      * @param string $password password for winadmin
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Samba_Not_Initialized_Exception
      */
 
-    public function initialize_local_system($netbiosname, $domain, $password)
+    public function initialize_local_system($netbios_name, $password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Initialize directory if it has not already been done
+        // Directory needs to be initialized
+        //----------------------------------
+
         $ldap = new OpenLDAP_Driver();
-        $ldap->initialize($domain, $password);
+        if (! $ldap->is_directory_initialized())
+            throw new Samba_Not_Initialized_Exception();
 
-        // Set the winadmin password
-        $user = User::create(Samba::CONSTANT_WINADMIN_USERNAME);
-        $user->reset_password($password, $password, "directory_initialize");
+        // Set the netbios name
+        //---------------------
 
-        // Set the netbios name and workgroup
-        $this->set_netbios_name($netbiosname);
-        $this->set_workgroup($domain);
+        $this->set_netbios_name($netbios_name);
 
         // TODO: assuming PDC mode for now
+        //------------------------------
+
         $this->set_mode(Samba::MODE_PDC);
 
-        // Save the LDAP password
-        $this->_save_bind_password();
+        // Save the LDAP an Idmap passwords
+        //---------------------------------
 
-        // Save the winbind password
+        $this->_save_bind_password();
         $this->_save_idmap_password();
 
         // Set the domain SID
-        $this->set_domain_sid();
+        // FIXME: investigate in BDC mode
+        // $this->set_domain_sid();
 
-        // Samba needs to be running for the next steps
+        // Net calls for privs an joining system to domain
+        // Note: Samba needs to be running for the next steps
+        //---------------------------------------------------
+
         $nmbd = new Nmbd();
+        $smbd = new Smbd();
         $nmbd_wasrunning = $nmbd->get_running_state();
-        $wasrunning = $this->get_running_state();
+        $smbd_wasrunning = $smbd->get_running_state();
 
-        if (! $wasrunning)
-            $this->set_running_state(TRUE);
+        if (! $smbd_wasrunning)
+            $smbd->set_running_state(TRUE);
 
         if (! $nmbd_wasrunning)
             $nmbd->set_running_state(TRUE);
 
-        sleep(3); // TODO: Wait for samba ... replace this with a loop
+        $net_error = ''; 
+        
+        for ($i = 0; $i < 5; $i++) { 
+            sleep(3); // wait or daemons to start, not atomic
 
-        try {
-            // Grant default privileges to winadmin et al
-            $this->_NetGrantDefaultPrivileges($password);
+            try {
+                // Grant default privileges to winadmin et al
+                $this->_net_grant_default_privileges($password);
 
-            // If PDC, join the local system to itself
-            $this->_net_rpc_join($password);
-        } catch (Exception $e) {
-            if (! $wasrunning)
-                $this->set_running_state(FALSE);
-            if (! $nmbd_wasrunning)
-                $nmbd->set_running_state(FALSE);
-            // TODO: too delicate?
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
+                // If PDC, join the local system to itself
+                $this->_net_rpc_join($password);
+
+                $net_error = '';
+                continue;
+            } catch (Engine_Exception $e) {
+                $net_error = clearos_exception_message($e);
+            }
         }
 
-        // Stop samba if it was not running
+        if (! empty($net_error))
+            throw new Engine_Exception($net_error);
+
+        // Stop daemons if that was their previous state
+        //----------------------------------------------
+
         try {
-            if (! $wasrunning)
-                $this->set_running_state(FALSE);
+            if (! $smbd_wasrunning)
+                $smbd->set_running_state(FALSE);
             if (! $nmbd_wasrunning)
                 $nmbd->set_running_state(FALSE);
         } catch (Exception $e) {
             // Not fatal
         }
 
-        $this->UpdateLocalFilePermissions();
+        // Update local file permissions
+        //------------------------------
+
+        $this->update_local_file_permissions();
 
         // Set the local system initialized flag
-        $this->SetLocalSystemInitialized(TRUE);
+        $this->set_local_system_initialized(TRUE);
+    }
+
+    /**
+     * Initializes master node with the necessary Samba elements.
+     *
+     * You do not need to have the server components of Samba installed
+     * to run this initialization routine.  This simply initializes the
+     * necessary bits to get LDAP up and running.
+     *
+     * @param string  $domain   workgroup / domain
+     * @param string  $password password for winadmin
+     * @param boolean $force    force initialization
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function initialize_master_system($domain, $password = NULL, $force = FALSE)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ldap = new OpenLDAP_Driver();
+
+        return $ldap->initialize_master_system($domain, $password, $force);
     }
 
     /**
@@ -1326,57 +1389,53 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: move this somewhere else
-        $this->SetLogonHome('\\\\%L\%U');
+        Validation_Exception::is_valid($this->validate_mode($mode));
+
+        // TODO: move this somewhere else
+        $this->set_logon_home('\\\\%L\%U');
 
         if ($mode == self::MODE_PDC) {
-            $this->SetDomainLogons(TRUE);
-            $this->SetDomainMaster(TRUE);
-            $this->SetPreferredMaster(TRUE);
+            $this->set_domain_logons(TRUE);
+            $this->set_domain_master(TRUE);
+            $this->set_preferred_master(TRUE);
             $this->set_share_availability('netlogon', TRUE);
-            $this->SetSecurity(Samba::SECURITY_USER);
+            $this->set_security(Samba::SECURITY_USER);
         } else if ($mode == self::MODE_BDC) {
-            $this->SetDomainLogons(FALSE);
-            $this->SetDomainMaster(FALSE);
-            $this->SetPreferredMaster(FALSE);
-            $this->SetSecurity(Samba::SECURITY_DOMAIN);
+            $this->set_domain_logons(FALSE);
+            $this->set_domain_master(FALSE);
+            $this->set_preferred_master(FALSE);
+            $this->set_security(Samba::SECURITY_DOMAIN);
             $this->set_share_availability('netlogon', FALSE);
             $this->set_share_availability('profiles', FALSE);
-            $this->SetRoamingProfilesState(FALSE);
+            $this->set_roaming_profiles_state(FALSE);
         } else if ($mode == self::MODE_SIMPLE_SERVER) {
-            $this->SetDomainLogons(TRUE);
-            $this->SetDomainMaster(TRUE);
-            $this->SetPreferredMaster(TRUE);
+            $this->set_domain_logons(TRUE);
+            $this->set_domain_master(TRUE);
+            $this->set_preferred_master(TRUE);
             $this->set_share_availability('netlogon', FALSE);
             $this->set_share_availability('profiles', FALSE);
-            $this->SetRoamingProfilesState(FALSE);
-            $this->SetSecurity(Samba::SECURITY_USER);
-        } else {
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - mode");
+            $this->set_roaming_profiles_state(FALSE);
+            $this->set_security(Samba::SECURITY_USER);
         }
     }
 
     /**
      * Sets system/netbios name.
      *
-     * @param  string  netbiosname     system name
+     * @param  string  netbios_name     system name
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function set_netbios_name($netbiosname)
+    public function set_netbios_name($netbios_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_netbios_name($netbiosname));
+        Validation_Exception::is_valid($this->validate_netbios_name($netbios_name));
 
         // Change smb.conf
-        $this->_set_share_info('global', 'netbios name', $netbiosname);
-
-        // Update LDAP users
-        $ldap = new OpenLDAP_Driver();
-        $ldap->set_netbios_name($netbiosname);
+        $this->_set_share_info('global', 'netbios name', $netbios_name);
 
         // Clean up secrets file
         $this->_clean_secrets_file();
@@ -1530,21 +1589,14 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - state");
+        $file = new File(Samba::FILE_LOCAL_SYSTEM_INITIALIZED);
 
-        try {
-            $file = new File(Samba::FILE_LOCAL_SYSTEM_INITIALIZED);
-
-            if ($state) {
-                if (! $file->exists())
-                    $file->create("root", "root", "0644");
-            } else {
-                if ($file->exists())
-                    $file->Delete();
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
+        if ($state) {
+            if (! $file->exists())
+                $file->create("root", "root", "0644");
+        } else {
+            if ($file->exists())
+                $file->delete();
         }
     }
 
@@ -1789,7 +1841,23 @@ class Samba extends Software
     }
 
     /**
-     * Validation routine for preferre master.
+     * Validation routine for modes.
+     *
+     * @param string $modes modes
+     *
+     * @return boolean TRUE if computer modes valid
+     */
+
+    public function validate_mode($mode)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($mode, $this->modes))
+            return lang('samba_server_mode_is_invalid');
+    }
+
+    /**
+     * Validation routine for preferred master.
      *
      * @param boolean $state preferred master state
      *
@@ -1807,24 +1875,24 @@ class Samba extends Software
     /**
      * Validation routine for netbios name.
      *
-     * @param string $netbiosname system name
+     * @param string $netbios_name system name
      *
      * @return string error message if netbios name is invalid
      */
 
-    public function validate_netbios_name($netbiosname)
+    public function validate_netbios_name($netbios_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $isvalid = TRUE;
 
-        if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $netbiosname) && (strlen($netbiosname) <= 15)))
+        if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $netbios_name) && (strlen($netbios_name) <= 15)))
             return lang('samba_server_name_is_invalid');
 
         $workgroup = strtoupper($this->get_workgroup());
-        $netbiosname = strtoupper($netbiosname);
+        $netbios_name = strtoupper($netbios_name);
 
-        if ($workgroup === $netbiosname)
+        if ($workgroup === $netbios_name)
             return lang('samba_server_name_conflicts_with_windows_domain');
     }
 
@@ -1848,7 +1916,7 @@ class Samba extends Software
      * Validation routine for workgroup
      *
      * To avoid issues on Windows networks:
-     * - the netbiosname and workgroup must be different
+     * - the netbios_name and workgroup must be different
      * - the host nickname (left-side of the hostname) must not match the workgroup
      *
      * @param  string  $workgroup  workgroup name
@@ -1863,17 +1931,17 @@ class Samba extends Software
         if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $workgroup) && (strlen($workgroup) <= 15)))
             return lang('samba_windows_domain_is_invalid');
 
-        $netbiosname = $this->get_netbios_name();
+        $netbios_name = $this->get_netbios_name();
 
         $hostnameobj = new Hostname();
         $hostname = $hostnameobj->get();
         $nickname = preg_replace("/\..*/", "", $hostname);
 
         $nickname = strtoupper($nickname);
-        $netbiosname = strtoupper($netbiosname);
+        $netbios_name = strtoupper($netbios_name);
         $workgroup = strtoupper($workgroup);
 
-        if ($workgroup === $netbiosname)
+        if ($workgroup === $netbios_name)
             return lang('samba_server_name_conflicts_with_windows_domain');
 
         if ($workgroup === $nickname)
@@ -2128,7 +2196,7 @@ class Samba extends Software
      * @throws Engine_Exception
      */
 
-    protected function _net_grant_default_privileges($password)
+    public function _net_grant_default_privileges($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -2154,19 +2222,14 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $domain = $this->get_workgroup();
-            $netbiosname = $this->get_netbios_name();
+        $domain = $this->get_workgroup();
+        $netbios_name = $this->get_netbios_name();
 
-            $options['stdin'] = TRUE;
+        $options['stdin'] = TRUE;
 
-            $shell = new Shell();
-            $exitcode = $shell->Execute(self::COMMAND_NET, 'rpc join -W ' . $domain . ' -S ' .$netbiosname .
-                ' -U winadmin%' . $password, TRUE, $options);
-        } catch (Engine_Exception $e) {
-            // FIXME -- too delicate
-            // throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
+        $shell = new Shell();
+        $shell->Execute(self::COMMAND_NET, 'rpc join -W ' . $domain . ' -S ' .$netbios_name .
+            ' -U winadmin%' . $password, TRUE, $options);
     }
 
     /**
@@ -2227,7 +2290,7 @@ class Samba extends Software
             $nmbd->set_running_state(TRUE);
 
         if ($smbd_wasrunning)
-            $this->set_running_state(TRUE);
+            $smbd->set_running_state(TRUE);
 
         if ($winbind_wasrunning)
             $winbind->set_running_state(TRUE);
@@ -2350,7 +2413,7 @@ class Samba extends Software
      * @throws Engine_Exception
      */
 
-    protected function _save_bind_password()
+    public function _save_bind_password()
     {
         clearos_profile(__METHOD__, __LINE__);
 

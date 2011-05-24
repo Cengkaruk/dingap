@@ -310,15 +310,15 @@ class OpenLDAP_Driver extends Engine
      * to run this initialization routine.  This simply initializes the
      * necessary bits to get LDAP up and running.
      *
-      @param string $domain workgroup / domain
-     * @param string $password password for winadmin
-     * @param boolean $force force initialization
+     * @param stringa $domain   workgroup / domain
+     * @param string  $password password for winadmin
+     * @param boolean $force    force initialization
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function initialize($domain, $password = NULL, $force = FALSE)
+    public function initialize_master_system($domain, $password = NULL, $force = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -354,11 +354,11 @@ class OpenLDAP_Driver extends Engine
                 $nmbd->set_running_state(FALSE);
         }
 
-        // FIXME -- is this necessary?
-        // $this->SetWorkgroup($domain);
-
         // Archive the files (usually in /var/lib/samba)
         $this->_archive_state_files();
+
+        // Set workgroup
+        $samba->set_workgroup($domain);
 
         // Bootstrap the domain SID
         $domainsid = $this->_initialize_domain_sid();
@@ -382,7 +382,7 @@ class OpenLDAP_Driver extends Engine
             $nmbd->set_running_state(TRUE);
 
         if ($smbd_was_running)
-            $this->set_running_state(TRUE);
+            $smbd->set_running_state(TRUE);
 
         if ($winbind_was_running)
             $winbind->set_running_state(TRUE);
@@ -474,106 +474,6 @@ class OpenLDAP_Driver extends Engine
             if ($this->ldaph->exists($dn))
                 $this->ldaph->modify($dn, $attributes);
         }
-    }
-
-    /**
-     * Sets logon home for all users in LDAP.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_global_logon_home($home)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-//FIXMEFIXME move to samba extension
-        if ($this->ldaph === NULL)
-            $this->_get_ldap_handle();
-
-        // FIXME: should only run on master
-        // if (master)
-
-        $result = $this->ldaph->search(
-            '(objectclass=sambaSamAccount)',
-            OpenLDAP::get_users_container(),
-            array('cn', 'uid')
-        );
-
-        $samba = new Samba();
-
-        $pdc = $samba->get_netbios_name();
-        $entry = $this->ldaph->get_first_entry($result);
-
-        while ($entry) {
-            $attributes = $this->ldaph->get_attributes($entry);
-            $ldap_home['sambaHomePath'] = '\\\\' . $pdc . '\\' . $attributes['uid'][0];
-            $this->ldaph->modify('cn=' . $attributes['cn'][0] . ',' . OpenLDAP::get_users_container(), $ldap_home);
-            $entry = $this->ldaph->next_entry($entry);
-        }
-    }
-
-    /**
-     * Sets logon path (profiles) for users in LDAP.
-     *
-     * @param string $path logon path
-     * @return void
-     * @throws EngineException
-     */
-
-    public function set_global_logon_path($path)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: if ! master, bail
-
-        if ($this->ldaph === NULL)
-            $this->_get_ldap_handle();
-
-        $result = $this->ldaph->search(
-            '(objectClass=sambaSamAccount)',
-            OpenLDAP::get_users_container(),
-            array('cn', 'uid')
-        );
-
-        $samba = new Samba();
-
-        $pdc = $samba->get_netbios_name();
-        $entry = $this->ldaph->get_first_entry($result);
-        $users_container = OpenLDAP::get_users_container();
-
-        while ($entry) {
-            $attributes = $this->ldaph->get_attributes($entry);
-
-            if ($path)
-                $newattrs['sambaProfilePath'] = '\\\\' . $pdc . '\\profiles\\' . $attributes['uid'][0];
-            else
-                $newattrs['sambaProfilePath'] = array();
-
-            $this->ldaph->modify('cn=' . $attributes['cn'][0] . "," . $users_container , $newattrs);
-            $entry = $this->ldaph->next_entry($entry);
-        }
-    }
-
-    /**
-     * Sets system/netbios name.
-     *
-     * @param  string  netbiosname     system name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    public function set_netbios_name($netbiosname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Update LDAP users
-        // TODO: changing the netbios name means we have to change the relevant
-        // entries in smb.conf and LDAP.  Do this in a more elegant way.
-
-        if ($this->is_directory_initialized())
-            $this->set_global_logon_path('\\\\%L\%U');
     }
 
     /**
@@ -928,11 +828,12 @@ class OpenLDAP_Driver extends Engine
             'shadowAccount',
             'inetOrgPerson',
             'sambaSamAccount',
-            'pcnAccount'
+            'clearAccount'
         );
-        $users[$winadmin_dn]['pcnSHAPassword'] = $sha_password;
-        $users[$winadmin_dn]['pcnSHAPassword'] = $sha_password;
-        $users[$winadmin_dn]['pcnMicrosoftNTPassword'] = $nt_password;
+        $users[$winadmin_dn]['clearAccountStatus'] = TRUE;
+        $users[$winadmin_dn]['clearSHAPassword'] = $sha_password;
+        $users[$winadmin_dn]['clearSHAPassword'] = $sha_password;
+        $users[$winadmin_dn]['clearMicrosoftNTPassword'] = $nt_password;
         $users[$winadmin_dn]['sambaPwdLastSet'] = 0;
         $users[$winadmin_dn]['sambaLogonTime'] = 0;
         $users[$winadmin_dn]['sambaLogoffTime'] = 2147483647;
@@ -955,11 +856,11 @@ class OpenLDAP_Driver extends Engine
             'shadowAccount',
             'inetOrgPerson',
             'sambaSamAccount',
-            'pcnAccount'
+            'clearAccount'
         );
-        $users[$guest_dn]['pcnSHAPassword'] = $sha_password;
-        $users[$guest_dn]['pcnMicrosoftNTPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
-        $users[$guest_dn]['pcnMicrosoftLanmanPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
+        $users[$guest_dn]['clearAccountStatus'] = TRUE;
+        $users[$guest_dn]['clearSHAPassword'] = $sha_password;
+        $users[$guest_dn]['clearMicrosoftNTPassword'] = 'NO PASSWORDXXXXXXXXXXXXXXXXXXXXX';
         $users[$guest_dn]['sambaPwdLastSet'] = 0;
         $users[$guest_dn]['sambaLogonTime'] = 0;
         $users[$guest_dn]['sambaLogoffTime'] = 2147483647;
