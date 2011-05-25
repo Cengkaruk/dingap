@@ -1,0 +1,4 @@
+#!/bin/sh
+
+/usr/sbin/addsudo /usr/sbin/add-samba-directories app-samba-core
+/usr/sbin/addsudo /usr/bin/smbpasswd app-samba-core

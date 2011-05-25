@@ -27,16 +27,29 @@ $app['menu_enabled'] = FALSE;
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_requires'] = array(
-    'app-network-core', 
-    'samba-client >= 3.5.4',
-    'samba-winbind-clients >= 3.5.4',
-);
-
 $app['requires'] = array(
     'app-accounts',
     'app-groups',
     'app-users',
     'app-network',
     'samba >= 3.5.4',
+);
+
+$app['core_requires'] = array(
+    'app-network-core', 
+    'samba-client >= 3.5.4',
+    'samba-winbind-clients >= 3.5.4',
+);
+
+$app['core_file_manifest'] = array( 
+    'smb.ldap.conf' => array( 'target' => '/var/clearos/ldap/synchronize/smb.ldap.conf' ),
+    'smb.winbind.conf' => array( 'target' => '/var/clearos/ldap/synchronize/smb.winbind.conf' ),
+    'add-samba-directories' => array(
+        'target' => '/usr/sbin/add-samba-directories',
+        'mode' => '0755',
+    ),
+);
+
+$app['core_directory_manifest'] = array(
+   '/var/clearos/samba' => array(),
 );
