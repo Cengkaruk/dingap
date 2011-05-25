@@ -33,3 +33,8 @@ $app['core_requires'] = array(
     'app-mode-core',
     'system-ldap-driver', 
 );
+
+$app['core_directory_manifest'] = array(
+   '/var/clearos/ldap' => array(),
+   '/var/clearos/ldap/synchronize' => array(),
+);

@@ -26,6 +26,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/ldap
 cp -r * %{buildroot}/usr/clearos/apps/ldap/
 
+install -d -m 0755 %{buildroot}/var/clearos/ldap
+install -d -m 0755 %{buildroot}/var/clearos/ldap/synchronize
 
 %post
 logger -p local6.notice -t installer 'app-ldap-core - installing'
@@ -51,6 +53,8 @@ exit 0
 %exclude /usr/clearos/apps/ldap/packaging
 %exclude /usr/clearos/apps/ldap/tests
 %dir /usr/clearos/apps/ldap
+%dir /var/clearos/ldap
+%dir /var/clearos/ldap/synchronize
 /usr/clearos/apps/ldap/deploy
 /usr/clearos/apps/ldap/language
 /usr/clearos/apps/ldap/libraries

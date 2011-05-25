@@ -1,7 +1,7 @@
 <?php
 
 /**
- * LDAP unavailable exception class.
+ * LDAP offline exception class.
  *
  * @category   Apps
  * @package    LDAP
@@ -61,7 +61,7 @@ clearos_load_library('base/Engine_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * LDAP unavailable exception class.
+ * LDAP offline exception class.
  *
  * @category   Apps
  * @package    LDAP
@@ -72,14 +72,14 @@ clearos_load_library('base/Engine_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
  */
 
-class LDAP_Unavailable_Exception extends Engine_Exception
+class LDAP_Offline_Exception extends Engine_Exception
 {
     /**
-     * LDAP_Unavailable_Exception constructor.
+     * LDAP_Offline_Exception constructor.
      */
 
     public function __construct()
     {
-        parent::__construct(lang('ldap_ldap_is_unavailable'), CLEAROS_INFO);
+        parent::__construct(lang('ldap_ldap_is_offline'), CLEAROS_INFO);
     }
 }

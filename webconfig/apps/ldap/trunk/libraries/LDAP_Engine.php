@@ -101,6 +101,13 @@ class LDAP_Engine extends Daemon
     const MODE_SLAVE = 'slave';
     const MODE_STANDALONE = 'standalone';
 
+    const STATUS_INITIALIZING = 'initializing';
+    const STATUS_UNINITIALIZED = 'uninitialized';
+    const STATUS_OFFLINE = 'offline';
+    const STATUS_ONLINE = 'online';
+
+    const PATH_SYNCHRONIZE = '/var/clearos/ldap/synchronize';
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////

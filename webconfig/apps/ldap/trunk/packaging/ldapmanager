@@ -134,7 +134,7 @@ $mode = isset($options['m']) ? $options['m'] : '';
 
 $ldap = LDAP_Factory::create();
 $sysmode = Mode_Factory::create();
-$openldap = new OpenLDAP();
+$openldap_directory = new OpenLDAP();
 
 if ($help) {
     echo "usage: " . $argv[0] . " [options]\n";
@@ -174,7 +174,7 @@ while ($ldap->validate_mode($mode)) {
 
 if (($mode === Mode_Engine::MODE_MASTER) || ($mode === Mode_Engine::MODE_STANDALONE)) {
     initialize_master_or_standalone($mode, $options);
-    $openldap->initialize();
+    $openldap_directory->initialize();
     $sysmode->set_mode($mode);
 } else {
     echo "This tool does not support this mode... sorry.\n";
@@ -217,12 +217,10 @@ function initialize_master_or_standalone($mode, $options)
     //-------------------------
 
     try {
-/*
         if ($mode === Mode_Engine::MODE_MASTER)
             $ldap->initialize_master($domain, $password, $force);
         else
             $ldap->initialize_standalone($domain, $password, $force);
-*/
 
         echo "Success!\n";
     } catch (Exception $e) {
