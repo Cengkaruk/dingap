@@ -52,14 +52,13 @@ if ($mode === 'view') {
 $headers = array(
 	lang('users_username'),
 	lang('users_full_name'),
-	lang('users_apps')
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array();
+$anchors = array(anchor_add('/app/users/add'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -78,13 +77,25 @@ foreach ($users as $username => $info) {
         );
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    //
+    // Some directory drivers separate first and last names into separate fields,
+    // while others only support the full name (common name).  If the separate 
+    // fields don't exist, fall back to the full name.
+    //
+    ///////////////////////////////////////////////////////////////////////////////
+
+    if (isset($info['display_name']))
+        $full_name = $info['display_name'];
+    else
+        $full_name = $info['first_name'] . ' ' . $info['last_name'];
+
 	$item['title'] = $username;
 	$item['action'] = '/app/users/edit/' . $username;
 	$item['anchors'] = button_set($buttons);
 	$item['details'] = array(
 		$username,
-		$info['display_name'],
-		$username,
+		$full_name,
 	);
 
 	$items[] = $item;

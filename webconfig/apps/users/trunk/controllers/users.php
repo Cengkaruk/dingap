@@ -90,7 +90,9 @@ class Users extends ClearOS_Controller
 
     function add($username)
     {
-        // Use common add/edit form
+        if (!isset($username) && $this->input->post('username'))
+            $username = $this->input->post('username');
+
         $this->_add_edit_view($username, 'add');
     }
 
@@ -229,11 +231,13 @@ class Users extends ClearOS_Controller
 
         if ($this->input->post('submit') && ($form_ok === TRUE)) {
             try {
-                $this->user->update($this->input->post('user_info'));
+                if ($form_type === 'add')
+                    $this->user->add($this->input->post('user_info'), $this->input->post('password'));
+                else if ($form_type === 'edit')
+                    $this->user->update($this->input->post('user_info'));
 
                 $this->page->set_status_updated();
-                // FIXME
-                //redirect('/users');
+                redirect('/users');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -248,7 +252,11 @@ class Users extends ClearOS_Controller
 
             $data['username'] = $username;
             $data['info_map'] = $info_map;
-            $data['user_info'] = $this->user->get_info();
+
+            if ($form_type === 'add')
+                $data['user_info'] = $this->user->get_info_defaults();
+            else
+                $data['user_info'] = $this->user->get_info();
 
             $data['extensions'] = $this->accounts->get_extensions();
             $data['plugins'] = $this->accounts->get_plugins();
