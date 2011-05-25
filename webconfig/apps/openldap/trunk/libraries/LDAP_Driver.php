@@ -143,13 +143,13 @@ class LDAP_Driver extends LDAP_Engine
     const FILE_INITIALIZED = '/var/clearos/openldap/initialized.php';
     const FILE_LDAP_CONFIG = '/etc/openldap/ldap.conf';
     const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
+    const FILE_STATUS = '/var/clearos/openldap/status';
     const FILE_SYSCONFIG = '/etc/sysconfig/ldap';
     const FILE_LDIF_BACKUP = '/etc/openldap/backup.ldif';
     const FILE_LDIF_NEW_DOMAIN = '/var/clearos/openldap/provision/newdomain.ldif';
     const FILE_LDIF_OLD_DOMAIN = '/var/clearos/openldap/provision/olddomain.ldif';
     const PATH_LDAP = '/var/lib/ldap';
     const PATH_LDAP_BACKUP = '/var/clearos/openldap/provision';
-    const PATH_SYNCHRONIZE = '/var/clearos/openldap/synchronize';
 
     // Internal configuration
     const FILE_PROVISION_ACCESSLOG_DATA = 'deploy/provision/provision.accesslog.ldif';
@@ -272,6 +272,23 @@ class LDAP_Driver extends LDAP_Engine
             $this->ldaph = $this->get_ldap_handle();
 
         return $this->ldaph->get_bind_dn();
+    }
+
+    /** 
+     * Returns the bind password.
+     *
+     * @return string bind password
+     * @throws Engine_Exception
+     */
+
+    public function get_bind_password()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph === NULL)
+            $this->ldaph = $this->get_ldap_handle();
+
+        return $this->ldaph->get_bind_password();
     }
 
     /** 
@@ -400,10 +417,10 @@ class LDAP_Driver extends LDAP_Engine
     /**
      * Returns status of account system.
      *
-     * - self::STATUS_INITIALIZING
-     * - self::STATUS_UNINITIALIZED
-     * - self::STATUS_OFFLINE
-     * - self::STATUS_ONLINE
+     * - LDAP_Engine::STATUS_INITIALIZING
+     * - LDAP_Engine::STATUS_UNINITIALIZED
+     * - LDAP_Engine::STATUS_OFFLINE
+     * - LDAP_Engine::STATUS_ONLINE
      *
      * @return string account system status
      * @throws Engine_Exception
@@ -413,6 +430,38 @@ class LDAP_Driver extends LDAP_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $file = new File(self::FILE_INITIALIZED);
+
+        if (! $this->is_initialized())
+            return LDAP_Engine::STATUS_UNINITIALIZED;
+
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
+
+        if ($this->ldaph->is_online())
+            $status = LDAP_Engine::STATUS_ONLINE;
+        else
+            $status = LDAP_Engine::STATUS_OFFLINE;
+
+        return $status;
+    }
+
+    /**
+     * Returns system status message.
+     *
+     * @return string system status message
+     * @throws Engine_Exception
+     */
+
+    public function get_system_message()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_STATUS);
+
+        $message = $file->lookup_value('/status_message =/');
+
+        return $message;
     }
 
 // FIXME
@@ -468,14 +517,15 @@ class LDAP_Driver extends LDAP_Engine
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function initialize_slave($domain, $password, $master_hostname, $force = FALSE, $start = TRUE)
+    public function initialize_slave($master, $password, $force = FALSE, $start = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $options['force'] = $force;
         $options['start'] = $start;
-        $options['master_hostname'] = $master_hostname;
+        $options['master'] = $master;
 
+        // FIXME: load domain from master node / SDN request
         $this->_initialize(self::MODE_SLAVE, $domain, $password, $options);
     }
 
@@ -500,26 +550,7 @@ class LDAP_Driver extends LDAP_Engine
     }
 
     /**
-     * Returns the availability of LDAP.
-     *
-     * @return boolean TRUE if LDAP is running
-     */
-
-    public function is_available()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph === NULL)
-            $this->ldaph = $this->get_ldap_handle();
-
-        $available = $this->ldaph->is_available();
-
-        return $available;
-    }
-
-    /**
      * Returns state of LDAP setup.
-     *
      *
      * @return boolean TRUE if LDAP has been initialized
      */
@@ -931,6 +962,8 @@ class LDAP_Driver extends LDAP_Engine
         // KLUDGE: shutdown Samba or it will try to write information to LDAP
         //-------------------------------------------------------------------
 
+        $this->_set_status(lang('openldap_preparing_system'));
+
         $samba_list = array('smb', 'nmb', 'winbind');
 
         try {
@@ -957,6 +990,8 @@ class LDAP_Driver extends LDAP_Engine
         // Generate the configuration files
         //---------------------------------
 
+        $this->_set_status(lang('openldap_generating_configuration'));
+
         $this->_initialize_configuration($mode, $domain, $password, $hostname, $master_hostname);
 
         // Set sane security policy
@@ -971,14 +1006,20 @@ class LDAP_Driver extends LDAP_Engine
         // Import the base LDIF data
         //--------------------------
 
+        $this->_set_status(lang('openldap_importing_data'));
+
         $this->_import_ldif(self::FILE_DATA);
 
         // Do some cleanup tasks
         //----------------------
 
+        $this->_set_status(lang('openldap_preparing_startup'));
+
         $this->_set_initialized();
         $this->_set_startup($start);
         $this->synchronize();
+
+        $this->_set_status('');
     }
 
     /**
@@ -1157,7 +1198,6 @@ class LDAP_Driver extends LDAP_Engine
 
         // Backup old LDAP
         //----------------
-
 /*
 FIXME: re-enable backup
         $filename = self::PATH_LDAP_BACKUP . '/' . "backup-" . strftime("%m-%d-%Y-%H-%M-%S", time()) . ".ldif";
@@ -1221,6 +1261,30 @@ FIXME: re-enable backup
             $file->create("root", "root", "0644");
     }
 
+    /**
+     * Sets status message.
+     * 
+     * @param string $message status message
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _set_status($message)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_STATUS);
+
+        if (! $file->exists())
+            $file->create('root', 'root', '0644');
+
+        $matches = $file->replace_lines('/^status_message =.*/', "status_message = $message\n");
+
+        if ($matches === 0)
+            $file->add_lines("status_message = $message\n");
+    }
+
+    /**
     /**
      * Loads configuration file.
      *

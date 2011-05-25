@@ -31,7 +31,6 @@ cp -r * %{buildroot}/usr/clearos/apps/openldap/
 
 install -d -m 0755 %{buildroot}/var/clearos/openldap
 install -d -m 0755 %{buildroot}/var/clearos/openldap/provision
-install -d -m 0755 %{buildroot}/var/clearos/openldap/synchronize
 install -D -m 0644 packaging/schema/RADIUS-LDAPv3.schema %{buildroot}/etc/openldap/schema/RADIUS-LDAPv3.schema
 install -D -m 0644 packaging/schema/clearcenter.schema %{buildroot}/etc/openldap/schema/clearcenter.schema
 install -D -m 0644 packaging/schema/clearfoundation.schema %{buildroot}/etc/openldap/schema/clearfoundation.schema
@@ -69,7 +68,6 @@ exit 0
 %dir /usr/clearos/apps/openldap
 %dir /var/clearos/openldap
 %dir /var/clearos/openldap/provision
-%dir /var/clearos/openldap/synchronize
 /usr/clearos/apps/openldap/deploy
 /usr/clearos/apps/openldap/language
 /usr/clearos/apps/openldap/libraries

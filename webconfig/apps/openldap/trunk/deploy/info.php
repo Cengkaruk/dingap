@@ -43,7 +43,6 @@ $app['core_requires'] = array(
 $app['core_directory_manifest'] = array(
    '/var/clearos/openldap' => array(),
    '/var/clearos/openldap/provision' => array(),
-   '/var/clearos/openldap/synchronize' => array(),
 );
 
 $app['core_file_manifest'] = array(
