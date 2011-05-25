@@ -397,9 +397,8 @@ class User_Driver extends User_Engine
     /**
      * Retrieves information for user from LDAP.
      *
-     * @throws Engine_Exception
-     *
      * @return array user details
+     * @throws Engine_Exception
      */
 
     public function get_info()
@@ -432,6 +431,27 @@ class User_Driver extends User_Engine
             $plugin_name = 'plugin-' . $plugin;
             $state = (in_array($plugin_name, $groups)) ? TRUE : FALSE;
             $info['plugins'][$plugin] = $state;
+        }
+
+        return $info;
+    }
+
+    /**
+     * Retrieves default information for a new user.
+     *
+     * @return array user details
+     * @throws Engine_Exception
+     */
+
+    public function get_info_defaults()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = $this->_load_extension($details);
+
+            if (method_exists($extension, 'get_info_defaults_hook'))
+                $info['extensions'][$extension_name] = $extension->get_info_defaults_hook($attributes);
         }
 
         return $info;
