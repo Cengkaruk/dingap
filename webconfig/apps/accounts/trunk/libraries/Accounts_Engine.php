@@ -85,7 +85,7 @@ class Accounts_Engine extends Engine
 
     const PATH_PLUGINS = '/var/clearos/accounts/plugins';
 
-    const MODE_CONNECTOR = 'connectory';
+    const MODE_CONNECTOR = 'connector';
     const MODE_MASTER = 'master';
     const MODE_SLAVE = 'slave';
     const MODE_STANDALONE = 'standalone';
