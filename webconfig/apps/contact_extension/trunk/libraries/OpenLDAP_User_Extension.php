@@ -52,13 +52,18 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
+use \clearos\apps\organization\Organization as Organization;
 
 clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
 clearos_load_library('openldap_directory/Utilities');
+clearos_load_library('organization/Organization');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -152,6 +157,32 @@ class OpenLDAP_User_Extension extends Engine
     }
 
     /**
+     * Returns user info hash array.
+     *
+     * @param array $attributes LDAP attributes
+     *
+     * @return array user info array
+     * @throws Engine_Exception
+     */
+
+    public function get_info_defaults_hook($attributes)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        $info['city'] = $organization->get_city();
+        $info['country'] = $organization->get_country();
+        $info['organization'] = $organization->get_organization();
+        $info['postal_code'] = $organization->get_postal_code();
+        $info['region'] = $organization->get_region();
+        $info['street'] = $organization->get_street();
+        $info['unit'] = $organization->get_unit();
+
+        return $info;
+    }
+
+    /**
      * Returns user info map hash array.
      *
      * @return array user info array
@@ -182,13 +213,13 @@ class OpenLDAP_User_Extension extends Engine
         // Return if nothing needs to be done
         //-----------------------------------
 
-        if (! isset($user_info['contact']))
+        if (! isset($user_info['extensions']['contact']))
             return array();
 
         // Convert to LDAP attributes
         //---------------------------
 
-        $attributes = Utilities::convert_array_to_attributes($user_info['contact'], $this->info_map);
+        $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['contact'], $this->info_map);
 
         return $attributes;
     }
