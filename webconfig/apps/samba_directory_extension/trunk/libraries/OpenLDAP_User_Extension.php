@@ -79,6 +79,16 @@ clearos_load_library('samba/Samba');
 class OpenLDAP_User_Extension extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const COMMAND_PDBEDIT = '/usr/bin/pdbedit';
+
+    // UID/GID/RID ranges -- see http://www.clearfoundation.com/docs/developer/features/cleardirectory/uids_gids_and_rids
+    const CONSTANT_SPECIAL_RID_MAX = '1000'; // RIDs below this number are reserved
+    const CONSTANT_SPECIAL_RID_OFFSET = '1000000'; // Offset used to map <1000 RIDs to UIDs
+
+    ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -183,8 +193,10 @@ class OpenLDAP_User_Extension extends Engine
                 $user_info['samba']['home_path'] = '\\\\' . $pdc . '\\profiles\\' . $user_info['core']['username'];
         }
 
-        if (! isset($user_info['samba']['sid']))
-            $user_info['samba']['sid'] = $sid . '-' . $ldap_object['uidNumber'] ;
+        if (! isset($user_info['samba']['sid'])) {
+            $rid = ($ldap_object['uidNumber'] < self::CONSTANT_SPECIAL_RID_MAX) ? self::CONSTANT_SPECIAL_RID_OFFSET + $ldap_object['uidNumber'] : $ldap_object['uidNumber'];
+            $user_info['samba']['sid'] = $sid . '-' . $rid;
+        }
 
         // Convert to LDAP attributes
         //---------------------------
