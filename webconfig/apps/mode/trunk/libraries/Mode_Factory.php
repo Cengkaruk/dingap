@@ -103,7 +103,6 @@ class Mode_Factory extends Engine
         // TODO: move this to a config file
         if ($driver === NULL)
             $driver = 'simple_mode';
-$driver = 'advanced_mode';
 
         clearos_load_library($driver . '/Mode_Driver');
 
