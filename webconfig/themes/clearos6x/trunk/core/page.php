@@ -318,7 +318,7 @@ $html = "
         });
 
         $(document).ready(function(){
-            $('#theme-left-menu').accordion({ autoHeight: false, active: $active_category_number });
+            $('#theme-left-menu').accordion({ autoHeight: false, active: $active_category_number, collapsible: false });
         });
     </script>
 

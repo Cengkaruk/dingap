@@ -62,6 +62,7 @@ input {
 
 select {
   vertical-align: middle;
+  margin-left: 0px;
 }
 
 a:link {
@@ -216,7 +217,7 @@ input.theme-form-submit-custom { }
 /* Buttons Sets */
 /* ------------------------------------------------------------------------- */
 
-div.theme-button-set { color: red; background-image: url(); }
+div.theme-button-set { color: red; background-image: url();}
 
 /* ------------------------------------------------------------------------- */
 /* Field View */
@@ -276,9 +277,10 @@ div.theme-button-set { color: red; background-image: url(); }
 
 .theme-summary-table-container {
   margin-bottom: 9px;
-  -moz-border-radius: 9pz;
   border-radius: 9px
   border: 1px solid #e1e1e1;
+  float: left;
+  width: 505px;
 }
 .theme-summary-table-legend {
   text-align: center;	
@@ -317,59 +319,7 @@ div.theme-button-set { color: red; background-image: url(); }
 /* Forms */
 /* ------------------------------------------------------------------------- */
 
-.login {
-	width: 430px;
-	margin: auto;
-	top: 30%;
-	position: relative;
-}
 
-.logo-login {
-	float: left;
-	margin-right: 40px;
-	background: url(../images/ClearOS-login.png) no-repeat;
-	width: 131px;
-	height: 155px;
-}
-
-.login .ui-button-text {
-	background: url(../images/console-icon.png) no-repeat left center;
-	padding-left: 20px;
-}
-
-.login a {
-	float: right;
-	margin-right: 14px;
-	background: url(../images/button-bg-large.png) repeat-x;
-	border-radius: 9px;
-	border: 1px solid #e1e1e1;
-	padding-right: 6px;
-	padding-left: 6px;
-	padding-top: 3px;
-	padding-bottom: 3px;
-	margin-top: -1px;
-}
-
-.login a:hover {
-	border: 1px solid #a5a4a4;
-}
-
-.login .theme-field-password input {
-	margin-top: -2px;
-}
-
-.login fieldset {
-	padding-top: 5px;
-}
-
-.login .theme-field-password {
-	margin-bottom: 12px;
-	height: 20px;
-}
-
-.login .theme-form-wrapper {
-	padding-bottom: 11px;
-}
 
 .left-field-content {
 	width: 130px;
@@ -395,16 +345,18 @@ div.theme-button-set { color: red; background-image: url(); }
 .theme-form-header {
   background: #FFFFFF url(../images/header-bg-grey.png);
   background-repeat: repeat-x;
-  -moz-border-radius: 9px;
 border-radius: 9px;
  border: 1px solid #e1e1e1;
   ^width: 100%;
+  float: left;
 }
 
 .theme-form-wrapper {
   padding-bottom: 10px;
   padding-top: 30px;
-  padding-left: 12px
+  padding-left: 12px;
+  float: left;
+  width: 493px;;
 }
 
 .theme-form-header .theme-fieldset {
@@ -412,47 +364,10 @@ border-radius: 9px;
   width: 490px;
 }
 
-.login .input-box input {
-	width: 120px;
-	float: right;
-}
-
-.login .left-field-content label {
-	float: left;
-	
-}
-
-.login .left-field-content {
-	text-align: left;
-	width: 60px;
-}
-
-.login .right-field-content {
-	float: right;
-	padding-top: 3px;
-}
-
-.login .theme-form-container {
-	width: 250px;
-	float: left;
-}
-
-.login .theme-form-header {
-	text-align: left;
-}
-
-.login .theme-fieldset {
-	width: 235px;
-}
-
 .theme-fieldset-legend {
   color: #98bb60;
   font-size: 14px;
   padding-bottom: 10px;
-}
-
-.login .theme-fieldset-legend {
-	display: none;
 }
 
 .theme-field-toggle {
@@ -467,13 +382,21 @@ border-radius: 9px;
 }
 
 .theme-fieldview label {
-	margin-left: 15px;
 	line-height: 18px;
+}
+
+.theme-fieldview {
+	line-height: 18px;
+	height: 25px;
+	float: left;
+	width: 460px;
 }
 
 .theme-dropdown {
   margin-bottom: 15px;
-  height: 15px;
+  height: 25px;
+  width: 480px;
+  float: left;
 }
 
 
@@ -523,12 +446,28 @@ border-radius: 9px;
 	margin-bottom: 20px;
 }
 
+.help-box-content {
+	min-height: 65px;
+	padding-top: 5px;
+}
+
+.theme-app-icon {
+	height: 50px;
+	width: 50px;
+	float: left;
+	margin-left: 15px;
+	margin-bottom: 15px;
+}
+
 .help-sides {
 }
 
 .help-description {
-	width: 435px;
+	width: 360px;
 	display: inline;
+	float: left;
+	clear: right;
+	margin-top: 0px;
 }
 
 .help-assets {
@@ -538,20 +477,51 @@ border-radius: 9px;
 }
 
 .help-assets-style {
-	border: 1px solid #98bb60;
+	border: 1px solid #e1e1e1;
 	padding: 5px;
 	border-radius: 9px;
-	width: 220px;
+	width: 245px;
 	height: 15px
 	clear: both;
 	margin-right: 15px;
-	display: inline;
+	float: right;
 }
 
 .help-assets-icons {
 	float: right;
-	margin-left: 15px;
 	
+	
+}
+
+.user-guide a {
+	background: url(../images/user-guide.png) no-repeat top left;
+	padding-left: 20px;
+	margin-left: 18px;
+	margin-right: 5px;
+	padding-top: 1px;
+}
+
+.user-guide a:hover {
+	background-position: 0px -15px;
+	padding-left: 20px;
+	margin-left: 18px;
+	margin-right: 5px;
+	padding-top: 1px;
+	color: #62799a;
+}
+
+
+.support a {
+	background: url(../images/help.png) no-repeat top left;
+	padding-left: 25px;
+	padding-top: 1px;
+}
+
+.support a:hover {
+	background-position: 0px -15px;
+	padding-left: 25px;
+	padding-top: 1px;
+	color: #62799a;
 }
 
 .help-sides {
@@ -580,15 +550,15 @@ border-radius: 9px;
 #theme-content-help {
   background-image: url(../images/header-bg-grey.png);
   background-repeat: repeat-x;
-  -moz-border-radius: 9px;
 border-radius: 9px;
   padding-top: 5px;
-  padding-bottom: 10px;
   border-top: 1px solid #e1e1e1;
   border-left: 1px solid #e1e1e1;
   border-right: 1px solid #e1e1e1;
   border-bottom: 1px solid #e1e1e1;
   margin-bottom: 10px;
+  float: left;
+  width: 100%
 }
 
 #theme-content-help .theme-dialogbox-info {
@@ -631,7 +601,7 @@ border-radius: 9px;
 
 .ui-progressbar {
   background: url(../images/progressbar-bg.jpg) repeat-x;
-  -moz-border-radius: 9px; border-radius: 9px; 
+  border-radius: 9px; 
   height: 20px;
   border: 1px solid #d1d3d4;
 }
@@ -642,7 +612,7 @@ border-radius: 9px;
   top: 1px;
   height: 24px;
   margin-top: 0px;
-  -moz-border-radius: 9px; border-radius: 9px;
+  border-radius: 9px;
 }
 
 /* REDO */
@@ -678,10 +648,8 @@ color: #FFFFFF;
 .ui-tabs-nav .ui-state-active a {
 color: #FFFFFF;
 background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%;
--moz-border-radius-topleft:10px;
--moz-border-radius-topright:10px;
--webkit-border-top-left-radius: 10px;
--webkit-border-top-right-radius: 10px;
+border-top-right-radius: 10px;
+border-top-left-radius: 10px;
 }
 
 .ui-tabs-nav .ui-state-active a:hover {
@@ -692,10 +660,8 @@ background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%
 
 .ui-tabs-nav .ui-state-hover a {
 background: #FFFFFF url(../images/main-nav-hover.png) repeat-x scroll 50% 50%;
--moz-border-radius-topleft:10px;
--moz-border-radius-topright:10px;
--webkit-border-top-left-radius: 10px;
--webkit-border-top-right-radius: 10px;
+border-top-right-radius: 10px;
+border-top-left-radius: 10px;
 color: white;
 }
 
@@ -802,6 +768,7 @@ color: white;
 .theme-form-container {
 	margin-bottom: 10px;
 	^margin-top: 0px;
+	float: left;
 	}
 
 #theme-main-content {
@@ -876,11 +843,7 @@ color: white;
   width: 970px;
   ^width: 972px;
   margin-bottom: -3px;
-  -moz-border-radius-bottomleft: 15px; 
-  -webkit-border-bottom-left-radius: 15px; 
   border-bottom-left-radius: 15px;
-  -moz-border-radius-bottomright: 15px; 
-  -webkit-border-bottom-right-radius: 15px; 
   border-bottom-right-radius: 15px;
 }
 
@@ -917,7 +880,6 @@ color: white;
 #theme-sidebar-container {
   background-color: white;
   border: 1px solid #e1e1e1;
-  -mox-border-radius: 9px;
   border-radius: 9px;
   width: 210px;
   float: right;
@@ -945,6 +907,7 @@ color: white;
 #theme-sidebar-container h3 {
   margin-top: 2px;
   color: #98bb60;
+  font-size: 14px;
 }
 
 .theme-field-checkboxes {
@@ -959,6 +922,8 @@ color: white;
 
 .theme-field-password {
   height: 30px;
+  width: 480px;
+  float: left;
 }
 
 .theme-field-password input {float: right; margin-right: 15px; }
@@ -1219,6 +1184,107 @@ input.theme-form-submit-delete { }
 
 /* Miscellaneous items */
 
+.login {
+	width: 430px;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+	top: 30%
+}
+
+.login, x:-moz-any-link, x:default {
+	margin-top: 15%;
+}
+
+.logo-login {
+	float: left;
+	margin-right: 40px;
+	background: url(../images/ClearOS-login.png) no-repeat;
+	width: 131px;
+	height: 155px;
+}
+
+.login .ui-button-text {
+	background: url(../images/console-icon.png) no-repeat left center;
+	padding-left: 20px;
+}
+
+.login a {
+	float: right;
+	margin-right: 14px;
+	background: url(../images/button-bg-large.png) repeat-x;
+	border-radius: 9px;
+	border: 1px solid #e1e1e1;
+	padding-right: 6px;
+	padding-left: 6px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	margin-top: -1px;
+}
+
+.login a:hover {
+	border: 1px solid #a5a4a4;
+}
+
+.login .theme-field-password input {
+	margin-top: -2px;
+}
+
+.login fieldset {
+	padding-top: 5px;
+}
+
+.login .theme-field-password {
+	margin-bottom: 12px;
+	height: 20px;
+}
+
+.login .theme-form-wrapper {
+	padding-bottom: 11px;
+	float: left;
+	min-width: 250px;
+}
+
 .login .theme-form-header h3 {
 	width: 230px;
 }
+
+.login .theme-fieldset-legend {
+	display: none;
+}
+
+
+.login .input-box input {
+	width: 120px;
+	float: right;
+}
+
+.login .left-field-content label {
+	float: left;
+	
+}
+
+.login .left-field-content {
+	text-align: left;
+	width: 60px;
+}
+
+.login .right-field-content {
+	float: right;
+	padding-top: 3px;
+}
+
+.login .theme-form-container {
+	width: 250px;
+	float: left;
+}
+
+.login .theme-form-header {
+	text-align: left;
+}
+
+.login .theme-fieldset {
+	width: 235px;
+	margin-left: 15px;
+}
+

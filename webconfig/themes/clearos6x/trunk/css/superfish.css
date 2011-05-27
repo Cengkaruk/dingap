@@ -109,6 +109,11 @@ ul.sf-menu ul li a:hover {
 	^margin-left: -10px;
 }
 
+ul.sf-menu ul li:last-child {
+	border-bottom-right-radius: 9px;
+	border-bottom-left-radius: 9px;
+}
+
 ul.sf-menu ul  li:active {
 	height:			20px; 
 } 
