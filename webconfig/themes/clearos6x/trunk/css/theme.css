@@ -607,7 +607,7 @@ border-radius: 9px;
 }
 
 .ui-progressbar-value {
-  background: url(../images/progressbar.gif) repeat-x;
+  background-color: #749640;
   position: relative;
   top: 1px;
   height: 24px;
