@@ -941,6 +941,16 @@ function theme_summary_box($data)
 {
     $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
 
+    if (empty($data['tooltip'])) {
+        $tooltip = '';
+    } else {
+        $tooltip = "
+            <tr>
+                <td colspan='2'><b>Tooltip</b> - " . $data['tooltip'] . "</td>
+            </tr>
+        ";
+    }
+
     // FIXME: translate
     $html = theme_dialogbox_info("
         <h3>" . $data['name'] . "</h3>
@@ -950,24 +960,15 @@ function theme_summary_box($data)
                 <td>" . $data['version'] . '-' . $data['release'] . "</td>
             </tr>
             <tr>
-                <td><b>Status</b></td>
-                <td>" . $data['install_status'] . "</td>
+                <td><b>Vendor</b></td>
+                <td>" . $data['vendor'] . "</td>
             </tr>
             <tr>
-                <td><b>Subscription</b></td>
+                <td><b>End-of-life</b></td>
                 <td>" . $data['subscription_expiration'] . "</td>
             </tr>
+            $tooltip
         </table>
-		$tooltip
-
-        <!-- Just an example chart -->
-
-        <div id='theme-chart-info-box' style='height:200px; width:200px;'></div>
-
-        <script type='text/javascript'>
-            $.jqplot.config.enablePlugins = true;
-            $.jqplot('theme-chart-info-box', [[[1, 2],[3,5.12],[5,13.1],[7,33.6],[9,85.9],[11,219.9]]]);
-        </script>
     ");
 
     return $html;
