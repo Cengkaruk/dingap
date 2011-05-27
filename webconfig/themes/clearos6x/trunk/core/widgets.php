@@ -132,7 +132,7 @@ function theme_anchor_dialog($url, $text, $importance, $class, $options)
 
 function theme_form_submit($name, $text, $importance, $class, $options)
 {
-    $importance_class = ($importance === 'high') ? "theme-form-important" : "theme-form-unimportant";
+    $importance_class = ($importance === 'high') ? 'theme-form-important' : 'theme-form-unimportant';
 
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
     $text = htmlspecialchars($text, ENT_QUOTES);
@@ -152,7 +152,7 @@ function theme_form_submit($name, $text, $importance, $class, $options)
  *
  * @param array $buttons list of buttons in HTML format
  * @param array $options options
- * 
+ *
  * @return string HTML for button set
  */
 
@@ -198,12 +198,12 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id,
     $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label'] . "'";
 
     if (($name !== NULL) || ($value != NULL))
-        $hidden_input = "<input type='hidden' name='$name' id='$input_id' value='$value'>";
+        $hidden_input = "<input type='hidden' name='$name' value='$value'>";
 
     return "
         <div$field_id_html class='theme-fieldview'>
             <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
-            <div class='right-field-content'><span>$text</span>$hidden_input</div>
+            <div class='right-field-content'><span id='$input_id'>$text</span>$hidden_input</div>
         </div>
     ";
 }
@@ -592,7 +592,7 @@ function theme_loading()
  * @return string HTML
  */
 
-function theme_summary_table($title, $anchors, $headers, $items, $options)
+function theme_summary_table($title, $anchors, $headers, $items, $options = NULL)
 {
     $columns = count($headers) + 1;
 
@@ -666,7 +666,7 @@ $item_html
  * @return string HTML
  */
 
-function theme_list_table($title, $anchors, $headers, $items, $options)
+function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
 {
     $columns = count($headers) + 1;
 
