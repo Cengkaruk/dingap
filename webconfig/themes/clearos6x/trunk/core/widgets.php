@@ -843,7 +843,7 @@ function theme_infobox($type, $title, $message)
 
     return "
         <div class='ui-widget'>
-            <div class='ui-corner-all info-regular $class' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class='ui-corner-all info-regular $class' style=' padding: 0 .7em;'>
                 <h2>$title</h2>
                 
                 $message

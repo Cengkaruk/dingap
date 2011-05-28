@@ -280,7 +280,7 @@ div.theme-button-set { color: red; background-image: url();}
   border-radius: 9px
   border: 1px solid #e1e1e1;
   float: left;
-  width: 505px;
+  width: 100%;
 }
 .theme-summary-table-legend {
   text-align: center;	
@@ -322,7 +322,7 @@ div.theme-button-set { color: red; background-image: url();}
 
 
 .left-field-content {
-	width: 130px;
+	width: 180px;
 	text-align: right;
 	float: left;
 	padding-top: 4px;
@@ -670,7 +670,9 @@ color: white;
 .ui-tabs .ui-tabs-hide { display: none !important; }
 
 
-
+#tabs ul {
+	border-radius: 0px;
+}
 
 /* ========================================================================= */
 /* T H E M E  */
@@ -870,7 +872,7 @@ color: white;
 
 
 #theme-content-left {
-  width: 507px;
+  width: 505px;
   float: left;
   clear: left;
   ^margin-top: 0px;	
