@@ -110,7 +110,6 @@ class User_Driver extends User_Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const LOG_TAG = 'user';
     const COMMAND_LDAPPASSWD = '/usr/bin/ldappasswd';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 

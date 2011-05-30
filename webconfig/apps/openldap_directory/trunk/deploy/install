@@ -3,4 +3,7 @@
 /usr/sbin/addsudo /usr/sbin/authconfig app-openldap-core
 
 # FIXME - hack for alpha build
-echo "driver = openldap_directory" > /var/clearos/accounts/state
+if [ ! -e /var/clearos/accounts/state ]; then
+    logger -p local6.notice -t installer 'app-openldap-directory-core - setting accounts driver'
+    echo "driver = openldap_directory" > /var/clearos/accounts/state
+fi

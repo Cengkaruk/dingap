@@ -702,6 +702,7 @@ class Group_Driver extends Engine
         $group_info['description'] = $attributes['description'][0];
         $group_info['members'] = array();
 
+        // FIXME - move to extension
         if (isset($attributes['sambaSID'][0]))
             $group_info['sambaSID'] = $attributes['sambaSID'][0];
 

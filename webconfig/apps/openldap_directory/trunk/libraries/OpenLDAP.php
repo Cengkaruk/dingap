@@ -60,7 +60,7 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
+use \clearos\apps\openldap_directory\Nscd as Nscd;
 use \clearos\apps\openldap_directory\Nslcd as Nslcd;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
@@ -68,7 +68,7 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_directory/Accounts_Driver');
+clearos_load_library('openldap_directory/Nscd');
 clearos_load_library('openldap_directory/Nslcd');
 clearos_load_library('openldap_directory/Utilities');
 
@@ -332,15 +332,36 @@ class OpenLDAP extends Engine
     }
 
     /**
+     * Returns the initialization status.
+     *
+     * @return boolean TRUE if initialized
+     * @throws Engine_Exception
+     */
+    public function is_initialized()
+    {
+        $file = new File(self::FILE_INITIALIZED);
+
+        if ($file->exists())
+            return TRUE;
+        else
+            return TRUE;
+    }
+
+    /**
      * Initializes the OpenLDAP accounts system.
+     *
+     * @param boolean $force forces initialization if TRUE
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function initialize()
+    public function initialize($force = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if (($this->is_initialized() && !$force))
+            return;
 
         // Check underlying OpenLDAP configuration
         //----------------------------------------
@@ -353,21 +374,10 @@ class OpenLDAP extends Engine
 
         $this->_initialize_authconfig();
         $this->_remove_overlaps();
-        // FIXME: re-enable? $this->synchronize();
-
-        // Initialize Samba elements in LDAP
-        //----------------------------------
-
-/*
-        // FIXME
-            if (!$samba->IsDirectoryInitialized()) {
-                $workgroup = $samba->GetWorkgroup();
-                $samba->InitializeDirectory($workgroup);
-            }
-*/
-
         $this->_initialize_caching();
         $this->_set_initialized();
+
+        $ldap = new LDAP_Driver();
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -386,7 +396,7 @@ class OpenLDAP extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME
+        // TODO
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -403,12 +413,19 @@ class OpenLDAP extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: Add winbind stuff
         $shell = new Shell();
         $shell->execute(self::COMMAND_AUTHCONFIG, 
-            '--enableshadow --enablemd5 --enableldap --enableldapauth --disablefingerprint --update', 
+            '--enableshadow --passalgo=sha512 ' .
+            '--enablecache --enablelocauthorize --enablemkhomedir ' .
+            '--enableldap --enableldapauth --disablefingerprint --update', 
             TRUE
         );
+
+        // TODO: the authconfig command seems to break the bind_dn in places (?)
+        // Use the synchronize routine as a workaround.
+
+        $ldap = new LDAP_Driver();
+        $ldap->synchronize();
     }
 
     /**
@@ -425,7 +442,20 @@ class OpenLDAP extends Engine
         try {
             $nslcd = new Nslcd();
             $nslcd->set_boot_state(TRUE);
-            $nslcd->set_running_state(TRUE);
+
+            if ($nslcd->get_running_state())
+                $nslcd->reset(TRUE);
+            else
+                $nslcd->set_running_state(TRUE);
+
+            $nscd = new Nscd();
+            $nscd->set_boot_state(TRUE);
+
+            if ($nscd->get_running_state())
+                $nscd->reset(TRUE);
+            else
+                $nscd->set_running_state(TRUE);
+
         } catch (Engine_Exception $e) {
             // Not fatal
         }

@@ -91,12 +91,6 @@ clearos_load_library('users/User_Manager_Engine');
 class User_Manager_Driver extends User_Manager_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // C O N S T A N T S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    const COMMAND_SYNCUSERS = "/usr/sbin/syncusers";
-
-    ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -159,23 +153,6 @@ class User_Manager_Driver extends User_Manager_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         return $this->_get_details($app, $type);
-    }
-
-    /**
-     * Synchronizes user database.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function synchronize()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $options['background'] = TRUE;
-
-        $shell = new Shell();
-        $shell->execute(self::COMMAND_SYNCUSERS, '', TRUE, $options);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
