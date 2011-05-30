@@ -4,7 +4,7 @@
  * Contact OpenLDAP user extension.
  *
  * @category   Apps
- * @package    Contact_Directory_Extension
+ * @package    Contact_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -73,7 +73,7 @@ clearos_load_library('organization/Organization');
  * Contact OpenLDAP user extension.
  *
  * @category   Apps
- * @package    Contact_Directory_Extension
+ * @package    Contact_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
