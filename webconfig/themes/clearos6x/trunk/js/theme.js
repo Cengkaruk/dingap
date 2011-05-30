@@ -22,6 +22,7 @@ $(function(){
 		}],
 		"bJQueryUI": true,
 		"bPaginate": false,
+		"bFilter": false,
 		"sPaginationType": "full_numbers"
 	});
 
