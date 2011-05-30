@@ -107,6 +107,7 @@ class LDAP_Engine extends Daemon
     const STATUS_ONLINE = 'online';
 
     const PATH_SYNCHRONIZE = '/var/clearos/ldap/synchronize';
+    const COMMAND_OPENSSL = '/usr/bin/openssl';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S

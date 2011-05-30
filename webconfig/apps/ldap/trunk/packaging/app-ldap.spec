@@ -11,6 +11,7 @@ Source: app-ldap-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
 Requires: app-mode-core
+Requires: openssl
 Requires: system-ldap-driver
 
 %description
@@ -28,6 +29,9 @@ cp -r * %{buildroot}/usr/clearos/apps/ldap/
 
 install -d -m 0755 %{buildroot}/var/clearos/ldap
 install -d -m 0755 %{buildroot}/var/clearos/ldap/synchronize
+install -D -m 0755 packaging/ldap-init %{buildroot}/usr/sbin/ldap-init
+install -D -m 0755 packaging/ldap-manager %{buildroot}/usr/sbin/ldap-manager
+install -D -m 0755 packaging/ldap-synchronize %{buildroot}/usr/sbin/ldap-synchronize
 
 %post
 logger -p local6.notice -t installer 'app-ldap-core - installing'
@@ -58,3 +62,6 @@ exit 0
 /usr/clearos/apps/ldap/deploy
 /usr/clearos/apps/ldap/language
 /usr/clearos/apps/ldap/libraries
+/usr/sbin/ldap-init
+/usr/sbin/ldap-manager
+/usr/sbin/ldap-synchronize

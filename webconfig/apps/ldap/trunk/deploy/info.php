@@ -31,10 +31,26 @@ $app['core_only'] = TRUE;
 
 $app['core_requires'] = array(
     'app-mode-core',
+    'openssl',
     'system-ldap-driver', 
 );
 
 $app['core_directory_manifest'] = array(
    '/var/clearos/ldap' => array(),
    '/var/clearos/ldap/synchronize' => array(),
+);
+
+$app['core_file_manifest'] = array(
+   'ldap-init' => array(
+        'target' => '/usr/sbin/ldap-init',
+        'mode' => '0755',
+    ),
+   'ldap-manager' => array(
+        'target' => '/usr/sbin/ldap-manager',
+        'mode' => '0755',
+    ),
+   'ldap-synchronize' => array(
+        'target' => '/usr/sbin/ldap-synchronize',
+        'mode' => '0755',
+    ),
 );
