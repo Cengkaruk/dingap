@@ -40,3 +40,11 @@ $app['core_directory_manifest'] = array(
    '/var/clearos/accounts/drivers' => array(),
    '/var/clearos/accounts/plugins' => array(),
 );
+
+$app['core_file_manifest'] = array(
+   'accounts-init' => array(
+        'target' => '/usr/sbin/accounts-init',
+        'mode' => '0755',
+    ),
+);
+
