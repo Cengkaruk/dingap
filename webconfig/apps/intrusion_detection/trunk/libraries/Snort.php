@@ -58,20 +58,18 @@ clearos_load_language('intrusion_detection');
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Software as Software;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
+clearos_load_library('base/Software');
 
 // Exceptions
 //-----------
 
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
-use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-clearos_load_library('base/Engine_Exception');
-clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,7 +122,7 @@ class Snort extends Daemon
 
         parent::__construct('snort');
 
-        require_once('Snort.inc.php');
+        include clearos_app_base('intrusion_detection') . '/deploy/rule_sets.php';
 
         $this->metadata = $rule_sets;
 
@@ -136,49 +134,22 @@ class Snort extends Daemon
     }
 
     /**
-     * Returns list of active rule sets.
+     * Returns list of installed rule set vendors.
      *
-     * @return array list of active rule sets
+     * @return array list of installed rule set vendors
      * @throws Engine_Exception
      */
 
-    public function get_active_rule_sets()
+    public function get_installed_vendors()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->rule_sets_loaded)
-            $this->_load_rule_sets();
-
-        $active = array();
-
-        foreach ($this->rule_sets as $rule_set => $details) {
-            if ($details['active'] === TRUE)
-                $active[] = $rule_set;
-        }
-
-        return $active;
-    }
-
-    /**
-     * Returns list of installed rule sets.
-     *
-     * @return array list of installed rule sets
-     * @throws Engine_Exception
-     */
-
-    public function get_installed_rule_sets()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->rule_sets_loaded)
-            $this->_load_rule_sets();
+        $rules = $this->get_rule_set_details();
 
         $installed = array();
 
-        foreach ($this->rule_sets as $rule_set => $details) {
-            if ($details['installed'] = TRUE)
-                $installed[] = $rule_set;
-        }
+        foreach ($rules as $vendor => $rule_sets)
+            $installed[] = $vendor;
 
         return $installed;
     }
@@ -215,37 +186,120 @@ class Snort extends Daemon
     }
 
     /**
-     * Sets the status for the given list of rule sets.
+     * Returns vendor information.
      *
-     * @param array $list list of rule sets
+     * @returns array vendor information
+     * @throws Engine_Exception
+     */
+
+    public function get_vendor_information($vendor)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_vendor($vendor));
+
+        $detail_list = $this->get_rule_set_details();
+        $rule_sets = $detail_list[$vendor];
+
+        $info = array();
+        $total_rules = 0;
+        $total_rule_sets = 0;
+
+        foreach ($rule_sets as $rule_set => $details) {
+            if ($details['type'] === self::TYPE_UNSUPPORTED)
+                continue;
+
+            $total_rules += $details['count'];
+            $total_rule_sets++;
+        }
+
+        $software = new Software('snort-' . $vendor . '-rules');
+
+        $info['last_update'] = $software->get_build_time();
+        $info['total_rules'] = $total_rules;
+        $info['total_rule_sets'] = $total_rule_sets;
+
+        return $info;
+    }
+
+    /**
+     * Set state of rule sets.
+     *
+     * If the state of a rule set is not given, it is set to disabled.
+     *
+     * @param string $vendor    vendor
+     * @param array  $rule_sets state of rule sets
      *
      * @returns void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_rule_sets($list)
+    public function set_rule_sets($vendor, $rule_sets)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_rule_set_list($list));
+        Validation_Exception::is_valid($this->validate_vendor($vendor));
+        Validation_Exception::is_valid($this->validate_rule_sets($vendor, $rule_sets));
 
-        $this->_save_rule_sets($list);
+        // Grab current rules and set the new state
+        //-----------------------------------------
+
+        $detail_list = $this->get_rule_set_details();
+        $vendor_list = $detail_list[$vendor];
+        $save_list = array();
+
+        foreach ($vendor_list as $rule_set => $details) {
+            if (array_key_exists($rule_set, $rule_sets))
+                $save_list[$rule_set] = $rule_sets[$rule_set];
+            else
+                $save_list[$rule_set] = FALSE;
+        }
+
+        $this->_save_rule_sets($vendor, $save_list);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N  M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
-    public function validate_rule_set_list($list)
+    /**
+     * Validation for rule set list.
+     *
+     * @param string $vendor vendor code
+     * @param string $list   rule set list
+     *
+     * @return string error message if rule set list is invalid
+     */
+
+    public function validate_rule_sets($vendor, $list)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $rule_sets = $this->get_installed_rule_sets();
+        $detail_list = $this->get_rule_set_details();
+        $vendor_list = $detail_list[$vendor];
 
         foreach ($list as $rule_set => $state) {
-            if (! in_array($rule_set, $rule_sets))
-                return lang('intrusion_detection_validate_rule_set_does_not_exist');
+            if (! array_key_exists($rule_set, $vendor_list))
+                return lang('intrusion_detection_rule_set_does_not_exist');
         }
+    }
+
+    /**
+     * Validation for vendor code.
+     *
+     * @param string $vendor vendor code
+     *
+     * @return string error message if vendor code is invalid
+     */
+
+    public function validate_vendor($vendor)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $vendors = $this->get_installed_vendors();
+
+        if (! in_array($vendor, $vendors))
+            return lang('intrusion_detection_rule_set_vendor_does_not_exist');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -326,9 +380,8 @@ class Snort extends Daemon
         $matches = array();
 
         foreach ($lines as $line) {
-            if (preg_match('/^\s*include\s+\$RULE_PATH\/(.*)\.rules/', $line, $matches)) {
-                $this->rule_sets[$matches[1]]['active'] = TRUE;
-            }
+            if (preg_match('/^\s*include\s+\$RULE_PATH\/(\w+)\/(.*)\.rules/', $line, $matches))
+                $this->rule_sets[$matches[1]][$matches[2]]['active'] = TRUE;
         }
 
         $this->rule_sets_loaded = TRUE;
@@ -337,19 +390,17 @@ class Snort extends Daemon
     /**
      * Saves the current rule set lists.
      *
-     * @param $list list of rule sets
+     * @param string $vendor vendor
+     * @param $list  list of rule sets
      *
      * @access private
      * @return void
      * @throws Engine_Exception
      */
 
-    private function _save_rule_sets($list)
+    protected function _save_rule_sets($vendor, $list)
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->rule_sets_loaded)
-            $this->_load_rule_sets();
 
         // Grab current rules and set the new state
         //-----------------------------------------
@@ -357,7 +408,7 @@ class Snort extends Daemon
         $new_list = $this->get_rule_set_details();
 
         foreach ($list as $rule_set => $state)
-            $new_list[$rule_set]['active'] = $state;
+            $new_list[$vendor][$rule_set]['active'] = $state;
 
         // Add the rule sets to the bottom of the configuration
         //-----------------------------------------------------
@@ -375,9 +426,11 @@ class Snort extends Daemon
                 $new_lines[] = $line;
         }
 
-        foreach ($new_list as $rule => $details) {
-            if ($details['active'])
-                $new_lines[] = 'include $RULE_PATH/' . $rule . '.rules';
+        foreach ($new_list as $vendor => $rules) {
+            foreach ($rules as $rule => $details) {
+                if ($details['active'])
+                    $new_lines[] = 'include $RULE_PATH/' . $vendor . '/' . $rule . '.rules';
+            }
         }
 
         $this->rule_sets_loaded = FALSE;

@@ -35,3 +35,7 @@ $app['core_requires'] = array(
     'snort >= 2.9.0.4',
     'snort-gpl-rules',
 );
+
+$app['core_directory_manifest'] = array(
+    '/var/clearos/intrusion_detection' => array(),
+);

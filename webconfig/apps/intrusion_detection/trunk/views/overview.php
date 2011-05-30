@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Intrusion detection controller.
+ * Intrusion detection summary view.
  *
  * @category   Apps
  * @package    Intrusion_Detection
- * @subpackage Controllers
+ * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -25,46 +25,36 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
+//  
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// C L A S S
+// Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Intrusion detection controller.
- *
- * @category   Apps
- * @package    Intrusion_Detection
- * @subpackage Controllers
- * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_detection/
- */
+$this->lang->load('base');
+$this->lang->load('intrusion_detection');
 
-class Intrusion_Detection extends ClearOS_Controller
-{
-    /**
-     * Intrusion detection server summary view.
-     *
-     * @return view
-     */
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
 
-    function index()
-    {
-        // Load libraries
-        //---------------
+echo form_open('intrusion_detection');
+echo form_header(lang('intrusion_detection_base_rule_set'));
 
-        $this->lang->load('intrusion_detection');
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
 
-        // Load views
-        //-----------
+$last_update_date = strftime('%c', $last_update);
+echo field_input('last_update', $last_update_date, lang('intrusion_detection_last_update'), TRUE);
+echo field_input('total_rule_sets', $total_rule_sets, lang('intrusion_detection_rule_sets'), TRUE);
+echo field_input('total_rules', $total_rules, lang('intrusion_detection_total_number_of_rules'), TRUE);
 
-        $views = array('base/daemon/index/snort', 'intrusion_detection/overview', 'intrusion_detection/settings');
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
 
-        $this->page->view_forms($views, lang('intrusion_detection_intrusion_detection'));
-    }
-}
+echo form_footer();
+echo form_close();

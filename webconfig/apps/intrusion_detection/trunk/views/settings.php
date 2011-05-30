@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Local DNS Server summary view.
+ * Intrusion detection rule set view.
  *
  * @category   Apps
  * @package    Intrusion_Detection

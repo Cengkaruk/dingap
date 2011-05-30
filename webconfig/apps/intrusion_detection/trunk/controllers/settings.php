@@ -65,8 +65,10 @@ class Settings extends ClearOS_Controller
         //-------------------
 
         if ($this->input->post('submit')) {
-            try {
-                $this->snort->set_rule_sets($this->input->post('rule_sets'));
+             try {
+                $this->snort->set_rule_sets('gpl', $this->input->post('rule_sets'));
+                $this->snort->reset(TRUE);
+
                 $this->page->set_status_updated();
             } catch (Exception $e) {
                 $this->page->view_exception($e);

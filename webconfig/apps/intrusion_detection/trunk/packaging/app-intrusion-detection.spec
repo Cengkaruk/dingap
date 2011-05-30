@@ -3,7 +3,7 @@ Name: app-intrusion-detection
 Group: ClearOS/Apps
 Version: 5.9.9.1
 Release: 1%{dist}
-Summary: Translation missing (intrusion_detection_app_summary)
+Summary: Intrusion detection summary..
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,10 +14,10 @@ Requires: app-base
 Requires: app-network
 
 %description
-Translation missing (intrusion_detection_app_long_description)
+Intrusion detection long description...
 
 %package core
-Summary: Translation missing (intrusion_detection_app_summary) - APIs and install
+Summary: Intrusion detection summary.. - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -26,7 +26,7 @@ Requires: snort >= 2.9.0.4
 Requires: snort-gpl-rules
 
 %description core
-Translation missing (intrusion_detection_app_long_description)
+Intrusion detection long description...
 
 This package provides the core API and libraries.
 
@@ -38,6 +38,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/intrusion_detection
 cp -r * %{buildroot}/usr/clearos/apps/intrusion_detection/
 
+install -d -m 0755 %{buildroot}/var/clearos/intrusion_detection
 
 %post
 logger -p local6.notice -t installer 'app-intrusion-detection - installing'
@@ -77,6 +78,7 @@ exit 0
 %exclude /usr/clearos/apps/intrusion_detection/packaging
 %exclude /usr/clearos/apps/intrusion_detection/tests
 %dir /usr/clearos/apps/intrusion_detection
+%dir /var/clearos/intrusion_detection
 /usr/clearos/apps/intrusion_detection/deploy
 /usr/clearos/apps/intrusion_detection/language
 /usr/clearos/apps/intrusion_detection/libraries

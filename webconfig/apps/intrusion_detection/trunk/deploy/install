@@ -1,0 +1,14 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default configuration
+#--------------------------
+
+logger -p local6.notice -t installer "app-intrusion-detection-core - setting default configuration"
+
+if [ -e /etc/snort.conf ]; then
+    cp /etc/snort.conf /var/clearos/intrusion_detection/snort.conf.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/intrusion_detection/deploy/snort.conf /etc/snort.conf

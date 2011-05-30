@@ -1,18 +1,13 @@
 <?php
 
-$lang['intrusion_detection_security'] = 'Security';
-$lang['intrusion_detection_cache_notice'] = 'The report data will be used for the next 5 minutes.';
-$lang['intrusion_detection_events'] = 'Events ';
-$lang['intrusion_detection_events_by'] = 'Events by ';
-$lang['intrusion_detection_hits'] = 'Hits';
-$lang['intrusion_detection_id'] = 'ID';
-$lang['intrusion_detection_intrusion_detection_updates'] = 'Intrusion Detection Updates';
-$lang['intrusion_detection_policy'] = 'Policy';
+$lang['intrusion_detection_app_long_description'] = 'Intrusion detection long description...'; // FIXME
+$lang['intrusion_detection_app_summary'] = 'Intrusion detection summary...'; // FIXME
 
-// Deleted
-// $lang['intrusion_detection_group_name'] = 'Group Name';
-
-// New
+$lang['intrusion_detection_total_number_of_rules'] = 'Total Number of Rules';
+$lang['intrusion_detection_base_rule_set'] = 'Base Rule Set';
+$lang['intrusion_detection_last_update'] = 'Last Update';
+$lang['intrusion_detection_rule_set_does_not_exist'] = 'Rule set does not exist.';
+$lang['intrusion_detection_rule_set_vendor_does_not_exist'] = 'Rule set vendor does not exist.';
 $lang['intrusion_detection_intrusion_detection'] = 'Intrusion Detection';
 $lang['intrusion_detection_rules'] = 'Rules';
 $lang['intrusion_detection_rule_set'] = 'Rule Set';
@@ -28,7 +23,6 @@ $lang['intrusion_detection_rulelist_local'] = 'Custom';
 $lang['intrusion_detection_rulelist_other'] = 'Other'; 
 $lang['intrusion_detection_rulelist_virus'] = 'Virus'; 
 $lang['intrusion_detection_rulelist_unsupported'] = 'Unsupported';
-$lang['intrusion_detection_validate_rule_set_does_not_exist'] = 'Rule set does not exist';
 
 // Keep
 $lang['intrusion_detection_type_alert'] = 'Alerts';
