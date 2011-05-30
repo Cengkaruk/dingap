@@ -355,7 +355,8 @@ class OpenLDAP_Driver extends Engine
         }
 
         // Archive the files (usually in /var/lib/samba)
-        $this->_archive_state_files();
+// FIXME: re-enable
+//        $this->_archive_state_files();
 
         // Set workgroup
         $samba->set_workgroup($domain);

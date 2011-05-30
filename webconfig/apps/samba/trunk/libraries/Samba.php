@@ -1066,15 +1066,12 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $file = new File(Samba::FILE_LOCAL_SYSTEM_INITIALIZED);
-            if ($file->exists())
-                return TRUE;
-            else
-                return FALSE;
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
-        }
+        $file = new File(Samba::FILE_LOCAL_SYSTEM_INITIALIZED);
+
+        if ($file->exists())
+            return TRUE;
+        else
+            return FALSE;
     }
 
     /**
@@ -2248,6 +2245,10 @@ class Samba extends Software
         // TODO: how do we want to present this in the UI without
         // having to constantly ask for winadmin password? Or should we
         // be asking for the password?
+
+        $ldap = new OpenLDAP_Driver();
+        if (! $ldap->is_directory_initialized())
+            return;
 
 /*
 // FIXME

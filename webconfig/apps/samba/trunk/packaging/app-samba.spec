@@ -42,6 +42,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/samba
 cp -r * %{buildroot}/usr/clearos/apps/samba/
 
+install -d -m 0755 %{buildroot}/var/clearos/samba
 install -D -m 0755 packaging/add-samba-directories %{buildroot}/usr/sbin/add-samba-directories
 install -D -m 0644 packaging/smb.ldap.conf %{buildroot}/var/clearos/ldap/synchronize/smb.ldap.conf
 install -D -m 0644 packaging/smb.winbind.conf %{buildroot}/var/clearos/ldap/synchronize/smb.winbind.conf
@@ -84,6 +85,7 @@ exit 0
 %exclude /usr/clearos/apps/samba/packaging
 %exclude /usr/clearos/apps/samba/tests
 %dir /usr/clearos/apps/samba
+%dir /var/clearos/samba
 /usr/clearos/apps/samba/deploy
 /usr/clearos/apps/samba/language
 /usr/clearos/apps/samba/libraries
