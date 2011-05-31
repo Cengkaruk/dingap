@@ -72,6 +72,8 @@ echo form_header('User Information');
 
 echo form_fieldset('Address');
 echo field_dropdown('city', $cities, 'Toronto', 'City');
+echo field_toggle_enable_disable('notify1', 1, 'Email Notify', FALSE);
+echo field_toggle_enable_disable('notify2', 1, 'SMS Notify', FALSE);
 echo field_input('postal_code', '', 'Postal Code');
 echo form_fieldset_close();
 
