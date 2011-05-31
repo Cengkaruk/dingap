@@ -122,16 +122,17 @@ if (! $read_only) {
 // Plugin groups
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('users_plugins'));
+if (! empty($plugins)) {
+    echo form_fieldset(lang('users_plugins'));
 
-foreach ($plugins as $plugin => $details) {
-    $name = "user_info[plugins][$plugin][state]";
-    $value = $user_info['plugins'][$plugin];
-    echo field_toggle_enable_disable($name, $value, $details['nickname'], $read_only);
-echo "<br>"; // FIXME
+    foreach ($plugins as $plugin => $details) {
+        $name = "user_info[plugins][$plugin][state]";
+        $value = $user_info['plugins'][$plugin];
+        echo field_toggle_enable_disable($name, $value, $details['nickname'], $read_only);
+    }
+
+    echo form_fieldset_close();
 }
-
-echo form_fieldset_close();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Extensions
@@ -151,6 +152,9 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
         $name = "user_info[extensions][$extension][$key_name]";
         $value = $user_info['extensions'][$extension][$key_name];
         $description =  $details['description'];
+
+        if (isset($details['field_priority']) && ($details['field_priority'] !== 'normal'))
+            continue;
 
         if ($details['field_type'] === 'list') {
             echo field_dropdown($name, $details['field_options'], $value, $description, $read_only);
