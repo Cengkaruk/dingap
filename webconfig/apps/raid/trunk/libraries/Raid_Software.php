@@ -86,223 +86,226 @@ clearos_load_library('base/Validation_Exception');
 
 class Raid_Software extends Raid
 {
-	///////////////////////////////////////////////////////////////////////////////
-	// V A R I A B L E S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	const CMD_MDADM = '/sbin/mdadm';
-	const CMD_DD = '/bin/dd';
-	protected $interactive = true;
-	protected $mdstat = Array();
+    const CMD_MDADM = '/sbin/mdadm';
+    const CMD_DD = '/bin/dd';
+    protected $interactive = TRUE;
+    protected $mdstat = Array();
 
-	///////////////////////////////////////////////////////////////////////////////
-	// M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * RaidSoftware constructor.
-	 *
-	 */
+    /**
+     * RaidSoftware constructor.
+     *
+     */
 
-	public function __construct()
-	{
+    public function __construct()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		parent::__construct();
+        parent::__construct();
 
-		$this->type = self::TYPE_SOFTWARE;
-	}
+        $this->type = self::TYPE_SOFTWARE;
+    }
 
-	/**
-	 * Returns RAID arrays.
-	 *
-	 * @return Array
-	 * @throws EngineException
-	 */
+    /**
+     * Returns RAID arrays.
+     *
+     * @return Array
+     * @throws Engine_Exception
+     */
 
-	function GetArrays()
-	{
+    function get_arrays()
+    {
 
         clearos_profile(__METHOD__, __LINE__);
 
-		$myarrays = Array();
+        $myarrays = Array();
 
-		$this->_get_md_stat();
+        $this->_get_md_stat();
 
-		$dev = '';
-		$physical_devices = Array();
-		$raid_level = 0;
-		$clean_array = true;
-		foreach ($this->mdstat as $line) {
-			if (ereg("^md([[:digit:]]+)[[:space:]]*:[[:space:]]*(.*)$", $line, $match)) {
-				$dev = '/dev/md' . $match[1];
-				list($state, $level, $device_list) = explode(' ', $match[2], 3);
-				$myarrays[$dev]['state'] = $state; # Always 'active' and not very useful
-				$myarrays[$dev]['status'] = self::STATUS_CLEAN; #Default
-				$myarrays[$dev]['level'] = strtoupper($level);
-				# Try to format for consistency (RAID-1, not RAID1)
-				if (preg_match("/^RAID(\d+)$/", strtoupper($level), $match)) {
-					$myarrays[$dev]['level'] = 'RAID-' . $match[1];
-					$raid_level = $match[1];
-				}
-				
-				$devices = explode(' ', $device_list);
-				$members = Array();
-				foreach ($devices as $device) {
-					if (ereg("^(.*)\\[([[:digit:]]+)\\](.*)$", trim($device), $match))
-						$members[$match[2]] = preg_match("/^\\/dev\\//", $match[1]) ? $match[1] : '/dev/' . $match[1];
-				}
-				ksort($members);
-				foreach ($members as $index => $member) {
-					$myarrays[$dev]['devices'][$index]['dev'] = $member;
-					
-					if (!in_array(preg_replace("/\d+/", "", $member), $physical_devices))
-						$physical_devices[] = preg_replace("/\d+/", "", $member);
-				}
-			} else if (ereg("^[[:space:]]*([[:digit:]]+)[[:space:]]*blocks[[:space:]]*.*\[(.*)\]$", $line, $match)) {
-				$myarrays[$dev]['size'] = $match[1]*1024;
-				$clean_array = false;
-				if (ereg('_', $match[2]))
-					$myarrays[$dev]['status'] = self::STATUS_DEGRADED;
-				$status = str_split($match[2]);
-				$myarrays[$dev]['number'] = count($status);
-				$counter = 0;
-				foreach ($myarrays[$dev]['devices'] as $index => $myarray) {
-					# If in degraded mode, any index greater than or equal to total disk has failed
-					if ($index >= $myarrays[$dev]['number']) {
-						$myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SPARE;
-						continue;
-					} else if ($status[$counter] == "_") {
-						$myarrays[$dev]['devices'][$index]['status'] = self::STATUS_DEGRADED;
-					} else {
-						$myarrays[$dev]['devices'][$index]['status'] = self::STATUS_CLEAN;
-					}
-					$counter++;
-				}
-			} else if (ereg("^[[:space:]]*(.*)recovery =[[:space:]]+([[:digit:]]+\\.[[:digit:]]+)%[[:space:]]*(.*)$", $line, $match)) {
-				$clean_array = false;
-				foreach ($myarrays[$dev]['devices'] as $index => $myarray) {
-					if ($myarrays[$dev]['devices'][$index]['status'] == self::STATUS_DEGRADED) {
-						$myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SYNCING;
-						$myarrays[$dev]['devices'][$index]['recovery'] = $match[2];
-					}
-				}
-			} else if (ereg("^[[:space:]]*(.*)resync =[[:space:]]+([[:digit:]]+\\.[[:digit:]]+)%[[:space:]]*(.*)$", $line, $match)) {
-				$clean_array = false;
-				$this->_SetParameter('copy_mbr', '0');
-				foreach ($myarrays[$dev]['devices'] as $index => $myarray) {
-					$myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SYNCING;
-					$myarrays[$dev]['devices'][$index]['recovery'] = $match[2];
-				}
-			} else if (ereg("^.*resync=DELAYED.*$", $line, $match)) {
-				$clean_array = false;
-				foreach ($myarrays[$dev]['devices'] as $index => $myarray)
-					$myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SYNC_PENDING;
-			}
-		}
-		
-		ksort($myarrays);
-		//if ((!isset($this->config['copy_mbr']) || $this->config['copy_mbr'] == 0) && $raid_level == 1 && $clean_array) {
-		if (false) {
-			sort($physical_devices);
-			$is_first = true;
-			foreach ($physical_devices as $dev) {
-				if ($is_first) {
-					$copy_from = $dev;
-					$is_first = false;
-					continue;
-				}
-				$shell = new Shell();
-				$args = 'if=' . $copy_from . ' of=' . $dev . ' bs=512 count=1';
-				$retval = $shell->execute(self::CMD_DD, $args, true);
-			}
-			$this->_SetParameter('copy_mbr', '1');
-			$this->loaded = false;
-		}
-		return $myarrays;
-	}
+        $dev = '';
+        $physical_devices = Array();
+        $raid_level = 0;
+        $clean_array = TRUE;
+        foreach ($this->mdstat as $line) {
+            if (preg_match("/^md([[:digit:]]+)[[:space:]]*:[[:space:]]*(.*)$/", $line, $match)) {
+                $dev = '/dev/md' . $match[1];
+                list($state, $level, $device_list) = explode(' ', $match[2], 3);
+                // Always 'active' and not very useful
+                $myarrays[$dev]['state'] = $state;
+                $myarrays[$dev]['status'] = self::STATUS_CLEAN;
+                $myarrays[$dev]['level'] = strtoupper($level);
+                // Try to format for consistency (RAID-1, not RAID1)
+                if (preg_match("/^RAID(\d+)$/", strtoupper($level), $match)) {
+                    $myarrays[$dev]['level'] = 'RAID-' . $match[1];
+                    $raid_level = $match[1];
+                }
+                
+                $devices = explode(' ', $device_list);
+                $members = Array();
+                foreach ($devices as $device) {
+                    if (preg_match("/^(.*)\\[([[:digit:]]+)\\](.*)$/", trim($device), $match))
+                        $members[$match[2]] = preg_match("/^\\/dev\\//", $match[1]) ? $match[1] : '/dev/' . $match[1];
+                }
+                ksort($members);
+                foreach ($members as $index => $member) {
+                    $myarrays[$dev]['devices'][$index]['dev'] = $member;
+                    
+                    if (!in_array(preg_replace("/\d+/", "", $member), $physical_devices))
+                        $physical_devices[] = preg_replace("/\d+/", "", $member);
+                }
+            } else if (preg_match("/^[[:space:]]*([[:digit:]]+)[[:space:]]*blocks[[:space:]]*.*\[(.*)\]$/", $line, $match)) {
+                $myarrays[$dev]['size'] = $match[1]*1024;
+                $clean_array = FALSE;
+                if (preg_match("/.*_.*/", $match[2]))
+                    $myarrays[$dev]['status'] = self::STATUS_DEGRADED;
+                $status = str_split($match[2]);
+                $myarrays[$dev]['number'] = count($status);
+                $counter = 0;
+                foreach ($myarrays[$dev]['devices'] as $index => $myarray) {
+                    // If in degraded mode, any index greater than or equal to total disk has failed
+                    if ($index >= $myarrays[$dev]['number']) {
+                        $myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SPARE;
+                        continue;
+                    } else if ($status[$counter] == "_") {
+                        $myarrays[$dev]['devices'][$index]['status'] = self::STATUS_DEGRADED;
+                    } else {
+                        $myarrays[$dev]['devices'][$index]['status'] = self::STATUS_CLEAN;
+                    }
+                    $counter++;
+                }
+            } else if (preg_match("/^[[:space:]]*(.*)recovery =[[:space:]]+([[:digit:]]+\\.[[:digit:]]+)%[[:space:]]*(.*)$/", $line, $match)) {
+                $clean_array = FALSE;
+                foreach ($myarrays[$dev]['devices'] as $index => $myarray) {
+                    if ($myarrays[$dev]['devices'][$index]['status'] == self::STATUS_DEGRADED) {
+                        $myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SYNCING;
+                        $myarrays[$dev]['devices'][$index]['recovery'] = $match[2];
+                    }
+                }
+            } else if (preg_match("/^[[:space:]]*(.*)resync =[[:space:]]+([[:digit:]]+\\.[[:digit:]]+)%[[:space:]]*(.*)$/", $line, $match)) {
+                $clean_array = FALSE;
+                $this->_SetParameter('copy_mbr', '0');
+                foreach ($myarrays[$dev]['devices'] as $index => $myarray) {
+                    $myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SYNCING;
+                    $myarrays[$dev]['devices'][$index]['recovery'] = $match[2];
+                }
+            } else if (preg_match("/^.*resync=DELAYED.*$/", $line, $match)) {
+                $clean_array = FALSE;
+                foreach ($myarrays[$dev]['devices'] as $index => $myarray)
+                    $myarrays[$dev]['devices'][$index]['status'] = self::STATUS_SYNC_PENDING;
+            }
+        }
+        
+        ksort($myarrays);
+        //if ((!isset($this->config['copy_mbr']) || $this->config['copy_mbr'] == 0) && $raid_level == 1 && $clean_array) {
+        if (FALSE) {
+            sort($physical_devices);
+            $is_first = TRUE;
+            foreach ($physical_devices as $dev) {
+                if ($is_first) {
+                    $copy_from = $dev;
+                    $is_first = FALSE;
+                    continue;
+                }
+                $shell = new Shell();
+                $args = 'if=' . $copy_from . ' of=' . $dev . ' bs=512 count=1';
+                $retval = $shell->execute(self::CMD_DD, $args, TRUE);
+            }
+            $this->_SetParameter('copy_mbr', '1');
+            $this->loaded = FALSE;
+        }
+        return $myarrays;
+    }
 
-	/**
-	 * Removes a device from the specified array.
-	 *
-	 * @param string $array the array
-	 * @param string $device the device
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Removes a device from the specified array.
+     *
+     * @param string $array  the array
+     * @param string $device the device
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function RemoveDevice($array, $device)
-	{
+    function remove_device($array, $device)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$shell = new Shell();
-		$args = '-r ' . $array . ' ' . $device;
-		$options['env'] = "LANG=en_US";
-		$retval = $shell->execute(self::CMD_MDADM, $args, true, $options);
-		if ($retval != 0) {
-			$errstr = $shell->GetLastOutputLine();
-			throw new EngineException($errstr, COMMON_WARNING);
-		} else {
-			$this->mdstat = $shell->GetOutput();
-		}
-		#$this->loaded = true;
-	}
+        $shell = new Shell();
+        $args = '-r ' . $array . ' ' . $device;
+        $options['env'] = "LANG=en_US";
+        $retval = $shell->execute(self::CMD_MDADM, $args, TRUE, $options);
+        if ($retval != 0) {
+            $errstr = $shell->get_last_output_line();
+            throw new Engine_Exception($errstr, COMMON_WARNING);
+        } else {
+            $this->mdstat = $shell->get_output();
+        }
+    }
 
-	/**
-	 * Repair an array with the specified device.
-	 *
-	 * @param string $array the array
-	 * @param string $device the device
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Repair an array with the specified device.
+     *
+     * @param string $array  the array
+     * @param string $device the device
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function RepairArray($array, $device)
-	{
+    function repair_array($array, $device)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$shell = new Shell();
-		$args = '-a ' . $array . ' ' . $device;
-		$options['env'] = "LANG=en_US";
-		$retval = $shell->execute(self::CMD_MDADM, $args, true, $options);
-		if ($retval != 0) {
-			$errstr = $shell->GetLastOutputLine();
-			throw new EngineException($errstr, COMMON_WARNING);
-		} else {
-			$this->mdstat = $shell->GetOutput();
-		}
-		#$this->loaded = true;
-	}
+        $shell = new Shell();
+        $args = '-a ' . $array . ' ' . $device;
+        $options['env'] = "LANG=en_US";
+        $retval = $shell->execute(self::CMD_MDADM, $args, TRUE, $options);
+        if ($retval != 0) {
+            $errstr = $shell->get_last_output_line();
+            throw new Engine_Exception($errstr, COMMON_WARNING);
+        } else {
+            $this->mdstat = $shell->get_output();
+        }
+    }
 
 
-	///////////////////////////////////////////////////////////////////////////////
-	// P R I V A T E   M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * @access private
-	 */
-	function _get_md_stat()
-	{
+    /**
+     * Gets the status according to mdstat.
+     *
+     * @access private
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+    function _get_md_stat()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$shell = new Shell();
-		$args = self::FILE_MDSTAT;
-		$options['env'] = "LANG=en_US";
-		$retval = $shell->execute(self::CMD_CAT, $args, false, $options);
-		if ($retval != 0) {
-			$errstr = $shell->GetLastOutputLine();
-			throw new EngineException($errstr, COMMON_WARNING);
-		} else {
-			$this->mdstat = $shell->GetOutput();
-		}
-		#$this->loaded = true;
-	}
+        $shell = new Shell();
+        $args = self::FILE_MDSTAT;
+        $options['env'] = "LANG=en_US";
+        $retval = $shell->execute(self::CMD_CAT, $args, FALSE, $options);
+        if ($retval != 0) {
+            $errstr = $shell->get_last_output_line();
+            throw new Engine_Exception($errstr, COMMON_WARNING);
+        } else {
+            $this->mdstat = $shell->get_output();
+        }
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// V A L I D A T I O N   M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
 }
-// vim: syntax=php ts=4
-?>

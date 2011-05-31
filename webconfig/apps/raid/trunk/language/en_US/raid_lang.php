@@ -22,7 +22,7 @@ $lang['raid_sync_pending'] = 'Sync pending';
 $lang['raid_unit'] = 'Unit';
 $lang['raid_unknown'] = 'Unknown';
 $lang['raid_vendor_3ware'] = '3Ware';
-$lang['raid_vendor_linux'] = 'Linux';
+$lang['raid_vendor_linux'] = 'Linux Kernel Module';
 $lang['raid_vendor_lsi'] = 'LSI Logic';
 // vi: syntax=php ts=4
 ?>
