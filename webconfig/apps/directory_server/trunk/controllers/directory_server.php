@@ -58,7 +58,7 @@ class Directory_Server extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('openldap/LDAP_Driver');
+        $this->load->library('openldap_directory/OpenLDAP');
 
 /*
         $this->load->factory('ldap/LDAP_Factory');
@@ -102,9 +102,12 @@ class Directory_Server extends ClearOS_Controller
 */
 
         try {
-            $data['domain'] = $this->ldap_driver->get_base_internet_domain();
+            $data['domain'] = $this->openldap->get_base_internet_domain();
+/*
             $data['available'] = $this->ldap_driver->is_available();
-            $data['initialized'] = ($reset) ? FALSE : $this->ldap_driver->is_initialized();
+*/
+            $data['initialized'] = ($reset) ? FALSE : $this->openldap->is_initialized();
+ ($reset) ? FALSE : $this->openldap->is_initialized();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -126,15 +129,22 @@ class Directory_Server extends ClearOS_Controller
         //------------------
 
         $this->load->library('openldap_directory/OpenLDAP');
+        $this->load->library('openldap/LDAP_Driver');
 
         // Load view data
         //---------------
 
         try {
-            $data['base_dn'] = $this->openldap->get_base_dn();
-// FIXME
-//            $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
-//            $data['bind_password'] = $this->ldap_driver->get_bind_password();
+            // Low level LDAP information
+            $data['base_dn'] = $this->ldap_driver->get_base_dn();
+            $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
+            $data['bind_password'] = $this->ldap_driver->get_bind_password();
+
+            // Account information
+            $data['computers_container'] = $this->openldap->get_computers_container();
+            $data['groups_container'] = $this->openldap->get_groups_container();
+            $data['users_container'] = $this->openldap->get_users_container();
+
         } catch (Exception $e) {
             $data['code'] = 1;
             $data['error_message'] = clearos_exception_message($e);

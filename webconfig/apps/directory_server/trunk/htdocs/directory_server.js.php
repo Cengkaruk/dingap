@@ -47,7 +47,6 @@ $(document).ready(function() {
                 showDirectoryInfo(payload);
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
-                $("#result").html('Ooops: ' + textStatus);
                 window.setTimeout(getDirectoryInfo, 2000);
             }
         });
