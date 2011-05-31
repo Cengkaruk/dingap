@@ -133,7 +133,7 @@ class OpenLDAP_User_Extension extends Engine
                 ),
                 'required' => FALSE,
                 'validator' => 'validate_home_drive',
-                'validator_class' => 'samba_directory_extension/OpenLDAP_User_Extension',
+                'validator_class' => 'samba_extension/OpenLDAP_User_Extension',
                 'description' => lang('samba_logon_drive'),
                 'object_class' => 'sambaSamAccount',
                 'attribute' => 'sambaHomeDrive'
@@ -143,7 +143,7 @@ class OpenLDAP_User_Extension extends Engine
                 'field_type' => 'text',
                 'required' => FALSE,
                 'validator' => 'validate_home_path',
-                'validator_class' => 'samba_directory_extension/OpenLDAP_User_Extension',
+                'validator_class' => 'samba_extension/OpenLDAP_User_Extension',
                 'description' => lang('samba_logon_path'),
                 'object_class' => 'sambaSamAccount',
                 'attribute' => 'sambaHomePath'
@@ -153,7 +153,7 @@ class OpenLDAP_User_Extension extends Engine
                 'field_type' => 'text',
                 'required' => FALSE,
                 'validator' => 'validate_sid',
-                'validator_class' => 'samba_directory_extension/OpenLDAP_User_Extension',
+                'validator_class' => 'samba_extension/OpenLDAP_User_Extension',
                 'description' => lang('samba_sid'),
                 'object_class' => 'sambaSamAccount',
                 'attribute' => 'sambaSID'
