@@ -120,11 +120,11 @@ class Raid extends Daemon
     const STATUS_REMOVED = 4;
     const STATUS_SPARE = 5;
 
-    protected $interactive = false;
-    protected $config = null;
-    protected $type = null;
-    protected $status = null;
-    protected $is_loaded = false;
+    protected $interactive = FALSE;
+    protected $config = NULL;
+    protected $type = NULL;
+    protected $status = NULL;
+    protected $is_loaded = FALSE;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -151,7 +151,7 @@ class Raid extends Daemon
     {
         $shell = new Shell();
         $options['env'] = "LANG=en_US";
-        $found = false;
+        $found = FALSE;
         $type = array (
             'software' => 0,
             '3ware' => 0,
@@ -163,14 +163,14 @@ class Raid extends Daemon
             if (! $found) {
                 // Test for software RAID
                 $args = self::FILE_MDSTAT;
-                $retval = $shell->execute(self::CMD_CAT, $args, false, $options);
+                $retval = $shell->execute(self::CMD_CAT, $args, FALSE, $options);
 
                 if ($retval == 0) {
                     $lines = $shell->get_output();
                     foreach ($lines as $line) {
-                        if (ereg("^md([[:digit:]]+).*", $line)) {
-                            $type['software'] = true;
-                            $found = true;
+                        if (preg_match("/^md([[:digit:]]+).*/", $line)) {
+                            $type['software'] = TRUE;
+                            $found = TRUE;
                             break;
                         }
                     }
@@ -180,14 +180,14 @@ class Raid extends Daemon
             if (! $found) {
                 // Test for 3WARE
                 $args = 'info';
-                $retval = $shell->execute(self::CMD_TW_CLI, $args, true, $options);
+                $retval = $shell->execute(self::CMD_TW_CLI, $args, TRUE, $options);
 
                 if ($retval == 0) {
                     $lines = $shell->get_output();
                     foreach ($lines as $line) {
-                        if (ereg("^Ctl[[:space:]]+Model.*$", $line)) {
-                            $type['3ware'] = true;
-                            $found = true;
+                        if (preg_match("/^Ctl[[:space:]]+Model.*$/", $line)) {
+                            $type['3ware'] = TRUE;
+                            $found = TRUE;
                             break;
                         }
                     }
@@ -197,785 +197,822 @@ class Raid extends Daemon
             if (! $found) {
                 // Test forLlSI
                 $args = '--autoload';
-                $retval = $shell->execute(self::CMD_MPT_STATUS, $args, true, $options);
+                $retval = $shell->execute(self::CMD_MPT_STATUS, $args, TRUE, $options);
 
                 // Exit code of mpt-status changes depending on status of RAID
                 if ($retval != 1) {
                     $lines = $shell->get_output();
                     foreach ($lines as $line) {
                         if (preg_match("/^ioc(.*)vol_id.*$/", $line)) {
-                            $type['lsi'] = true;
-                            $found = true;
+                            $type['lsi'] = TRUE;
+                            $found = TRUE;
                             break;
                         }
                     }
                 }
             }
         } catch (Exception $e) {
-            # Ignore
+            // Ignore
         }
 
         if ($type['software']) {
             include_once clearos_app_base('raid') . '/libraries/Raid_Software.php';
             return new Raid_Software();
         } else if ($type['3ware']) {
-            require_once(COMMON_CORE_DIR . '/api/Raid3ware.class.php');
+            include_once clearos_app_base('raid') . '/libraries/Raid_3ware.php';
             return new Raid_3Ware();
         } else if ($type['lsi']) {
             include_once clearos_app_base('raid') . '/libraries/Raid_Lsi.php';
             return new Raid_Lsi();
         }
 
-        # Return base class
+        // Return base class
         return new Raid();
     }
 
-	/**
-	 * Returns type of RAID.
-	 *
-	 * @return int
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Returns type of RAID.
+     *
+     * @return int
+     * @throws Engine_Exception
+     */
 
-	function get_type()
-	{
+    function get_type()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		return $this->type;
-	}
+        return $this->type;
+    }
 
-	/**
-	 * Returns whether type of RAID supports interaction - i.e. resync etc.
-	 *
-	 * @return boolean
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Returns whether type of RAID supports interaction - i.e. resync etc.
+     *
+     * @return boolean
+     * @throws Engine_Exception
+     */
 
-	function get_interactive()
-	{
+    function get_interactive()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		return $this->interactive;
-	}
+        return $this->interactive;
+    }
 
-	/**
-	 * Returns type of RAID.
-	 *
-	 * @return array
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Returns type of RAID.
+     *
+     * @return array
+     * @throws Engine_Exception
+     */
 
-	function get_type_details()
-	{
+    function get_type_details()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		switch ($this->type) {
+        switch ($this->type) {
 
-		case self::TYPE_UNKNOWN:
-			return array(
-			           'id' => self::TYPE_UNKNOWN,
-			           'class' => RAID_LANG_UNKNOWN,
-			           'vendor' => RAID_LANG_UNKNOWN
-			       );
+            case self::TYPE_UNKNOWN:
+                return array(
+                           'id' => self::TYPE_UNKNOWN,
+                           'class' => lang('raid_unknown'),
+                           'vendor' => lang('raid_unknown') 
+                       );
 
-		case self::TYPE_SOFTWARE:
-			return array(
-			           'id' => self::TYPE_SOFTWARE,
-			           'class' => RAID_LANG_SOFTWARE,
-			           'vendor' => RAID_LANG_VENDOR_LINUX
-			       );
+            case self::TYPE_SOFTWARE:
+                return array(
+                           'id' => self::TYPE_SOFTWARE,
+                           'class' => lang('raid_software'),
+                           'vendor' => lang('raid_vendor_linux')
+                       );
 
-		case self::TYPE_3WARE:
-			return array(
-			           'id' => self::TYPE_3WARE,
-			           'class' => RAID_LANG_HARDWARE,
-			           'vendor' => RAID_LANG_VENDOR_3WARE
-			       );
+            case self::TYPE_3WARE:
+                return array(
+                           'id' => self::TYPE_3WARE,
+                           'class' => lang('raid_hardware'),
+                           'vendor' => lang('raid_vendor_3ware')
+                       );
 
-		case self::TYPE_LSI:
-			return array(
-			           'id' => self::TYPE_LSI,
-			           'class' => RAID_LANG_HARDWARE,
-			           'vendor' => RAID_LANG_VENDOR_LSI
-			       );
-		}
-	}
+            case self::TYPE_LSI:
+                return array(
+                           'id' => self::TYPE_LSI,
+                           'class' => lang('raid_hardware'),
+                           'vendor' => lang('raid_vendor_lsi')
+                       );
+        }
+    }
 
-	/**
-	 * Returns status of RAID.
-	 *
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Returns status of RAID.
+     *
+     * @return string status
+     * @throws Engine_Exception
+     */
 
-	function get_status()
-	{
+    function get_status()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		return RAID_LANG_UNKNOWN;
+        return lang('raid_unknown');
 
-	}
+    }
 
-	/**
-	 * Returns RAID level.
-	 *
-	 * @returns String the raid level
-	 *
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Returns RAID level.
+     *
+     * @return String the raid level
+     *
+     * @throws Engine_Exception
+     */
 
-	function get_level()
-	{
+    function get_level()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		return RAID_LANG_UNKNOWN;
+        return lang('raid_unknown');
 
-	}
+    }
 
-	/**
-	 * Formats a value into a human readable byte size.
-	 *
-	 * @param float $input the value
-	 * @param int   $dec   number of decimal places
-	 *
-	 * @returns string the byte size suitable for display to end user
-	 */
+    /**
+     * Formats a value into a human readable byte size.
+     *
+     * @param float $input the value
+     * @param int   $dec   number of decimal places
+     *
+     * @return string the byte size suitable for display to end user
+     */
 
-	function get_formatted_bytes($input, $dec)
-	{
+    function get_formatted_bytes($input, $dec)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$prefix_arr = array(" B", "KB", "MB", "GB", "TB");
-		$value = round($input, $dec);
+        $prefix_arr = array(" B", "KB", "MB", "GB", "TB");
+        $value = round($input, $dec);
 
-		$i = 0;
+        $i = 0;
 
-		while ($value>1024) {
-			$value /= 1024;
-			$i++;
-		}
+        while ($value>1024) {
+            $value /= 1024;
+            $i++;
+        }
 
-		$display = round($value, $dec) . " " . $prefix_arr[$i];
-		return $display;
-	}
+        $display = round($value, $dec) . " " . $prefix_arr[$i];
+        return $display;
+    }
 
-	/**
-	 * Returns the mount point.
-	 *
-	 * @param  String  $dev  a device
-	 * @returns  string  the mount point
-	 */
+    /**
+     * Returns the mount point.
+     *
+     * @param String $dev a device
+     *
+     * @return string the mount point
+     * @throws Engine_Exception
+     */
 
-	function get_mount($dev)
-	{
+    function get_mount($dev)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$mount = '';
+        $mount = '';
         $shell = new Shell();
-		$args = $dev;
-		$retval = $shell->Execute(self::CMD_DF, $args);
+        $args = $dev;
+        $retval = $shell->execute(self::CMD_DF, $args);
 
-		if ($retval != 0) {
-			$errstr = $shell->GetLastOutputLine();
+        if ($retval != 0) {
+            $errstr = $shell->get_last_output_line();
             throw new Engine_Exception($errstr, CLEAROS_WARNING);
-		} else {
-			$lines = $shell->GetOutput();
-			foreach ($lines as $line) {
-				if (preg_match("/^" . str_replace('/', "\\/", $dev) . ".*$/", $line)) {
-					$parts = preg_split ("/\s+/", $line);
-					$mount = trim($parts[5]);
-					break;
-				}
-			}
-		}
+        } else {
+            $lines = $shell->get_output();
+            foreach ($lines as $line) {
+                if (preg_match("/^" . str_replace('/', "\\/", $dev) . ".*$/", $line)) {
+                    $parts = preg_split("/\s+/", $line);
+                    $mount = trim($parts[5]);
+                    break;
+                }
+            }
+        }
 
-		return $mount;
-	}
+        return $mount;
+    }
 
-	/**
-	 * Get the notification email.
-	 *
-	 * @return String  notification email
-	 * @throws EngineException
-	 */
+    /**
+     * Get the notification email.
+     *
+     * @return String  notification email
+     * @throws Engine_Exception
+     */
 
-	function get_email()
-	{
+    function get_email()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
+        if (! $this->is_loaded)
+            $this->_load_config();
 
-		return $this->config['email'];
-	}
+        return $this->config['email'];
+    }
 
-	/**
-	 * Get the monitor status.
-	 *
-	 * @return boolean true if monitoring is enabled
-	 */
+    /**
+     * Get the monitor status.
+     *
+     * @return boolean TRUE if monitoring is enabled
+     */
 
-	function get_monitor_status()
-	{
+    function get_monitor_status()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$crontab = new Cron();
-			if ($crontab->ExistsCrondConfiglet(self::FILE_CROND))
-				return true;
-			return false;
-		} catch (Exception $e) {
-			return false;
-		}
-	}
+        try {
+            $crontab = new Cron();
+            if ($crontab->exists_crond_configlet(self::FILE_CROND))
+                return TRUE;
+            return FALSE;
+        } catch (Exception $e) {
+            return FALSE;
+        }
+    }
 
-	/**
-	 * Get the notify status.
-	 *
-	 * @return String  notification email
-	 * @throws EngineException
-	 */
+    /**
+     * Get the notify status.
+     *
+     * @return String  notification email
+     * @throws Engine_Exception
+     */
 
-	function get_notify()
-	{
+    function get_notify()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
+        if (! $this->is_loaded)
+            $this->_load_config();
 
-		return $this->config['notify'];
-	}
+        return $this->config['notify'];
+    }
 
-	/**
-	 * Get the notify status.
-	 *
-	 * @return String  notification email
-	 * @throws EngineException
-	 */
+    /**
+     * Get the notify status.
+     *
+     * @return String  notification email
+     * @throws Engine_Exception
+     */
 
-	function get_devices_in_use()
-	{
+    function get_devices_in_use()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$devicesinuse = array();
+        $devicesinuse = array();
 
-		# Get all block devices in use
+        // Get all block devices in use
 
-		$myarrays = $this->GetArrays();
+        $myarrays = $this->get_arrays();
 
-		foreach ($myarrays as $array) {
-			if (isset($array['devices']) && is_array($array['devices'])) {
-				foreach ($array['devices'] as $device)
-				$devicesinuse[] = $device['dev'];
-			}
-		}
+        foreach ($myarrays as $array) {
+            if (isset($array['devices']) && is_array($array['devices'])) {
+                foreach ($array['devices'] as $device)
+                $devicesinuse[] = $device['dev'];
+            }
+        }
 
-		# Add swap
-		try {
+        // Add swap
+        try {
             $shell = new Shell();
-			$args = '-s';
-			$retval = $shell->Execute(self::CMD_SWAPON, $args);
+            $args = '-s';
+            $retval = $shell->execute(self::CMD_SWAPON, $args);
 
-			if ($retval == 0) {
-				$lines = $shell->GetOutput();
-				foreach ($lines as $line) {
-					if (preg_match("/^\/dev\/(\S*).*$/", $line, $match))
-						$devicesinuse[] = $match[1];
-				}
-			}
-		} catch (Exception $e) {
-			# Ignore
+            if ($retval == 0) {
+                $lines = $shell->get_output();
+                foreach ($lines as $line) {
+                    if (preg_match("/^\/dev\/(\S*).*$/", $line, $match))
+                        $devicesinuse[] = $match[1];
+                }
+            }
+        } catch (Exception $e) {
+            // Ignore
 
-		}
+        }
 
-		return $devicesinuse;
-	}
+        return $devicesinuse;
+    }
 
-	/**
-	 * Get partition table.
-	 *
-	 * @return String  $device  device
-	 * @throws EngineException
-	 */
+    /**
+     * Get partition table.
+     *
+     * @param string $device RAID device
+     *
+     * @return String  $device  device
+     * @throws Engine_Exception
+     */
 
-	function get_partition_table($device)
-	{
+    function get_partition_table($device)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$table = array();
+        $table = array();
 
-		try {
-			$shell = new Shell();
-			$args = '-d ' . $device;
-			$options['env'] = "LANG=en_US";
-			$retval = $shell->Execute(self::CMD_SFDISK, $args, true, $options);
+        try {
+            $shell = new Shell();
+            $args = '-d ' . $device;
+            $options['env'] = "LANG=en_US";
+            $retval = $shell->execute(self::CMD_SFDISK, $args, TRUE, $options);
 
-			if ($retval != 0) {
-				$errstr = $shell->GetLastOutputLine();
+            if ($retval != 0) {
+                $errstr = $shell->get_last_output_line();
                 throw new Engine_Exception($errstr, CLEAROS_WARNING);
-			} else {
-				$lines = $shell->GetOutput();
-				foreach ($lines as $line) {
-					if (preg_match("/^\/dev\/(\S+) : start=\s*(\d+), size=\s*(\d+), Id=(\S+)(,\s*.*$|$)/", $line, $match)) {
-						$table[] = array('size' => $match[3], 'id' => $match[4], 'bootable' => ($match[5]) ? 1 : 0, 'raw' => $line);
-					}
-				}
-			}
+            } else {
+                $lines = $shell->get_output();
+                $regex = "/^\/dev\/(\S+) : start=\s*(\d+), size=\s*(\d+), Id=(\S+)(,\s*.*$|$)/";
+                foreach ($lines as $line) {
+                    if (preg_match($regex, $line, $match)) {
+                        $table[] = array(
+                        'size' => $match[3],
+                        'id' => $match[4],
+                        'bootable' => ($match[5]) ? 1 : 0, 'raw' => $line
+                        );
+                    }
+                }
+            }
 
-			return $table;
-		} catch (Exception $e) {
+            return $table;
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e . " ($device)"), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Copy a partition table from one device to another.
-	 *
-	 * @param string $from from partition device
-	 * @param string $to to partition device
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Copy a partition table from one device to another.
+     *
+     * @param string $from from partition device
+     * @param string $to   to partition device
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function copy_partition_table($from, $to)
-	{
+    function copy_partition_table($from, $to)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$shell = new Shell();
-			$args = '-d ' . $from . ' > ' . COMMON_TEMP_DIR . '/pt.txt';
-			$options['env'] = "LANG=en_US";
-			$retval = $shell->Execute(self::CMD_SFDISK, $args, true, $options);
+        try {
+            $shell = new Shell();
+            $args = '-d ' . $from . ' > ' . COMMON_TEMP_DIR . '/pt.txt';
+            $options['env'] = "LANG=en_US";
+            $retval = $shell->execute(self::CMD_SFDISK, $args, TRUE, $options);
 
-			if ($retval != 0) {
-				$errstr = $shell->GetLastOutputLine();
+            if ($retval != 0) {
+                $errstr = $shell->get_last_output_line();
                 throw new Engine_Exception($errstr, CLEAROS_WARNING);
-			}
+            }
 
-			$args = '-f ' . $to . ' < ' . COMMON_TEMP_DIR . '/pt.txt';
-			$options['env'] = "LANG=en_US";
-			$retval = $shell->Execute(self::CMD_SFDISK, $args, true, $options);
+            $args = '-f ' . $to . ' < ' . COMMON_TEMP_DIR . '/pt.txt';
+            $options['env'] = "LANG=en_US";
+            $retval = $shell->execute(self::CMD_SFDISK, $args, TRUE, $options);
 
-			if ($retval != 0) {
-				$errstr = $shell->GetLastOutputLine();
+            if ($retval != 0) {
+                $errstr = $shell->get_last_output_line();
                 throw new Engine_Exception($errstr, CLEAROS_WARNING);
-			}
-		} catch (Exception $e) {
+            }
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Performs a sanity check on partition table to see it matches.
-	 *
-	 * @param string $array the array to find a device that is clean
-	 * @param string $check the device to check partition against
-	 * @return array
-	 * @throws EngineException
-	 */
+    /**
+     * Performs a sanity check on partition table to see it matches.
+     *
+     * @param string $array the array to find a device that is clean
+     * @param string $check the device to check partition against
+     *
+     * @return array
+     * @throws Engine_Exception
+     */
 
-	function sanity_check_partition($array, $check)
-	{
+    function sanity_check_partition($array, $check)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$partition_match = array('ok' => false);
+        $partition_match = array('ok' => FALSE);
 
-		try {
-			$myarrays = $this->GetArrays();
-			foreach ($myarrays as $dev => $myarray) {
-				if ($dev != $array)
-					continue;
+        try {
+            $myarrays = $this->get_arrays();
+            foreach ($myarrays as $dev => $myarray) {
+                if ($dev != $array)
+                    continue;
 
-				if (isset($myarray['devices']) && is_array($myarray['devices'])) {
-					foreach ($myarray['devices'] as $device) {
-						# Make sure it is clean
+                if (isset($myarray['devices']) && is_array($myarray['devices'])) {
+                    foreach ($myarray['devices'] as $device) {
+                        // Make sure it is clean
 
-						if ($device['status'] != self::STATUS_CLEAN)
-							continue;
+                        if ($device['status'] != self::STATUS_CLEAN)
+                            continue;
 
-						$partition_match['dev'] = preg_replace("/\d/", "", $device['dev']);
-						$good = $this->GetPartitionTable($partition_match['dev']);
-						$check = $this->GetPartitionTable(preg_replace("/\d/", "", $check));
-						$ok = true;
+                        $partition_match['dev'] = preg_replace("/\d/", "", $device['dev']);
+                        $good = $this->GetPartitionTable($partition_match['dev']);
+                        $check = $this->GetPartitionTable(preg_replace("/\d/", "", $check));
+                        $ok = TRUE;
 
-						# Check that the same number of partitions exist
+                        // Check that the same number of partitions exist
 
-						if (count($good) != count($check))
-							$ok = false;
+                        if (count($good) != count($check))
+                            $ok = FALSE;
 
-						$raw = array();
+                        $raw = array();
 
-						for ($index = 0; $index < count($good); $index++) {
-							if ($check[$index]['size'] < $good[$index]['size'])
-								$ok = false;
+                        for ($index = 0; $index < count($good); $index++) {
+                            if ($check[$index]['size'] < $good[$index]['size'])
+                                $ok = FALSE;
 
-							if ($check[$index]['id'] != $good[$index]['id'])
-								$ok = false;
+                            if ($check[$index]['id'] != $good[$index]['id'])
+                                $ok = FALSE;
 
-							if ($check[$index]['bootable'] != $good[$index]['bootable'])
-								$ok = false;
+                            if ($check[$index]['bootable'] != $good[$index]['bootable'])
+                                $ok = FALSE;
 
-							$raw[] = $good[$index]['raw'];
-						}
+                            $raw[] = $good[$index]['raw'];
+                        }
 
-						$partition_match['table'] = $raw;
+                        $partition_match['table'] = $raw;
 
-						if ($ok) {
-							$partition_match['ok'] = true;
-							break;
-						}
-					}
-				}
-			}
+                        if ($ok) {
+                            $partition_match['ok'] = TRUE;
+                            break;
+                        }
+                    }
+                }
+            }
 
-			return $partition_match;
-		} catch (Exception $e) {
+            return $partition_match;
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Checks the change of status of the RAID array.
-	 *
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Checks the change of status of the RAID array.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function check_status_change()
-	{
+    function check_status_change()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$lines = array();
+        $lines = array();
 
-		try {
-			switch ($this->type) {
+        try {
+            switch ($this->type) {
 
-			case self::TYPE_UNKNOWN:
-				return;
+                case self::TYPE_UNKNOWN:
+                    return;
 
-			case self::TYPE_SOFTWARE:
-				$myraid = new RaidSoftware();
-				$lines = $this->_CreateSoftwareRaidReport($myraid);
-				break;
+                case self::TYPE_SOFTWARE:
+                    $myraid = new RaidSoftware();
+                    $lines = $this->_create_software_raid_report($myraid);
+                    break;
 
-			case self::TYPE_3WARE:
-				$myraid = new Raid3ware();
-				$lines = $this->_CreateHardwareRaidReport($myraid);
-				break;
+                case self::TYPE_3WARE:
+                    $myraid = new Raid3ware();
+                    $lines = $this->_create_hardware_raid_report($myraid);
+                    break;
 
-			case self::TYPE_LSI:
-				$myraid = new RaidLsi();
-				$lines = $this->_CreateHardwareRaidReport($myraid);
-				break;
-			}
+                case self::TYPE_LSI:
+                    $myraid = new RaidLsi();
+                    $lines = $this->_create_hardware_raid_report($myraid);
+                    break;
+            }
 
-			$file = new File(COMMON_TEMP_DIR . '/' . self::FILE_RAID_STATUS);
+            $file = new File(COMMON_TEMP_DIR . '/' . self::FILE_RAID_STATUS);
 
-			if ($file->Exists()) {
-				$file->MoveTo(COMMON_TEMP_DIR . '/' . self::FILE_RAID_STATUS . '.orig');
-				$file = new File(COMMON_TEMP_DIR . '/' . self::FILE_RAID_STATUS);
-			}
+            if ($file->exists()) {
+                $file->MoveTo(COMMON_TEMP_DIR . '/' . self::FILE_RAID_STATUS . '.orig');
+                $file = new File(COMMON_TEMP_DIR . '/' . self::FILE_RAID_STATUS);
+            }
 
-			$file->Create("webconfig", "webconfig", 0644);
-			$file->DumpContentsFromArray($lines);
+            $file->Create("webconfig", "webconfig", 0644);
+            $file->DumpContentsFromArray($lines);
 
-			# Diff files to see if notification should be sent
+            // Diff files to see if notification should be sent
 
-			$shell = new Shell();
-			$args = COMMON_TEMP_DIR . '/raid.status ' . COMMON_TEMP_DIR . '/raid.status.orig';
-			$retval = $shell->Execute(self::CMD_DIFF, $args);
+            $shell = new Shell();
+            $args = COMMON_TEMP_DIR . '/raid.status ' . COMMON_TEMP_DIR . '/raid.status.orig';
+            $retval = $shell->execute(self::CMD_DIFF, $args);
 
-			if ($retval != 0)
-				$this->SendStatusChangeNotification($lines);
-		} catch (Exception $e) {
+            if ($retval != 0)
+                $this->send_status_change_notification($lines);
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Sends a status change notification to admin.
-	 *
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Sends a status change notification to admin.
+     *
+     * @param string $lines the message content
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function SendStatusChangeNotification($lines)
-	{
-		if (COMMON_DEBUG_MODE)
-			$this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+    function send_status_change_notification($lines)
+    {
+        if (COMMON_DEBUG_MODE)
+            $this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		try {
-			if (!$this->GetNotify()) {
-				Logger::Syslog(self::LOG_TAG, "RAID status updated...notification disabled.");
-				return;
-			}
+        try {
+            if (!$this->GetNotify()) {
+                Logger::Syslog(self::LOG_TAG, "RAID status updated...notification disabled.");
+                return;
+            }
 
-			$mailer = new Mailer();
-			$hostname = new Hostname();
-			$subject = RAID_LANG_EMAIL_NOTIFICATION . ' - ' . $hostname->Get();
-			$body = "\n\n" . RAID_LANG_EMAIL_NOTIFICATION . ":\n";
-			$body .= str_pad('', strlen(RAID_LANG_EMAIL_NOTIFICATION . ':'), '=') . "\n\n";
-			$ntptime = new NtpTime();
-			date_default_timezone_set($ntptime->GetTimeZone());
+            $mailer = new Mailer();
+            $hostname = new Hostname();
+            $subject = lang('raid_email_notification') . ' - ' . $hostname->get();
+            $body = "\n\n" . lang('raid_email_notification') . ":\n";
+            $body .= str_pad('', strlen(lang('raid_email_notification') . ':'), '=') . "\n\n";
+            $ntptime = new Ntp_Time();
+            date_default_timezone_set($ntptime->get_time_zone());
 
-			$thedate = strftime("%b %e %Y");
-			$thetime = strftime("%T %Z");
-			$body .= str_pad(LOCALE_LANG_DATE . ':', 16) . "\t" . $thedate . ' ' . $thetime . "\n";
-			$body .= str_pad(LOCALE_LANG_STATUS . ':', 16) . "\t" . $this->status . "\n\n";
-			foreach ($lines as $line)
-			$body .= $line . "\n";
-			$mailer->AddRecipient($this->GetEmail());
-			$mailer->SetSubject($subject);
-			$mailer->SetBody($body);
-			// May not be a valid sender...TODO
-			// $mailer->SetSender('alert@' . $hostname->Get());
+            $thedate = strftime("%b %e %Y");
+            $thetime = strftime("%T %Z");
+            $body .= str_pad(lang('base_date') . ':', 16) . "\t" . $thedate . ' ' . $thetime . "\n";
+            $body .= str_pad(lang('base_status') . ':', 16) . "\t" . $this->status . "\n\n";
+            foreach ($lines as $line)
+            $body .= $line . "\n";
+            $mailer->add_recipient($this->get_email());
+            $mailer->set_subject($subject);
+            $mailer->set_body($body);
+            // May not be a valid sender...TODO
+            // $mailer->set_sender('alert@' . $hostname->get());
 
-			$mailer->SetSender($this->GetEmail());
-			$mailer->Send();
-		} catch (Exception $e) {
+            $mailer->set_sender($this->get_email());
+            $mailer->send();
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Set the RAID notificatoin email.
-	 *
-	 * @param string $email a valid email
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Set the RAID notificatoin email.
+     *
+     * @param string $email a valid email
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function SetEmail($email)
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+    function set_email($email)
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
+        if (! $this->is_loaded)
+            $this->_load_config();
 
-		$mailer = new Mailer();
+        $mailer = new Mailer();
 
-		// Validation
-		// ----------
+        // Validation
+        // ----------
 
-		if (!$mailer->IsValidEmail($email))
-			throw new Validation_Exception(MAILER_LANG_RECIPIENT . " - " . LOCALE_LANG_INVALID . ' (' . $email . ')');
+        if (!$mailer->is_valid_email($email))
+            throw new Validation_Exception(
+                lang('mailer_recipient-TODO') . " - " . lang('base_invalid') . ' (' . $email . ')'
+            );
 
-		$this->_SetParameter('email', $email);
-	}
+        $this->_set_parameter('email', $email);
+    }
 
-	/**
-	 * Set RAID monitoring status.
-	 *
-	 * @param boolean  $monitor  toggles monitoring
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Set RAID monitoring status.
+     *
+     * @param boolean $monitor toggles monitoring
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function SetMonitorStatus($monitor)
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-		try {
-			$crontab = new Cron();
-			if ($crontab->ExistsCrondConfiglet(self::FILE_CROND) && $monitor) {
-				return;
-			} else if ($crontab->ExistsCrondConfiglet(self::FILE_CROND) && !$monitor) {
-				$crontab->DeleteCrondConfiglet(self::FILE_CROND);
-			} else if (!$crontab->ExistsCrondConfiglet(self::FILE_CROND) && $monitor) {
-				$payload  = "# Created by API\n";
-				$payload .= self::DEFAULT_CRONTAB_TIME . " root " . self::CMD_RAID_SCRIPT . " >/dev/null 2>&1";
-				$crontab->AddCrondConfiglet(self::FILE_CROND, $payload);
-			}
-		} catch (Exception $e) {
+    function set_monitor_status($monitor)
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        try {
+            $crontab = new Cron();
+            if ($crontab->existsCrondConfiglet(self::FILE_CROND) && $monitor) {
+                return;
+            } else if ($crontab->existsCrondConfiglet(self::FILE_CROND) && !$monitor) {
+                $crontab->DeleteCrondConfiglet(self::FILE_CROND);
+            } else if (!$crontab->existsCrondConfiglet(self::FILE_CROND) && $monitor) {
+                $payload  = "# Created by API\n";
+                $payload .= self::DEFAULT_CRONTAB_TIME . " root " . self::CMD_RAID_SCRIPT . " >/dev/NULL 2>&1";
+                $crontab->AddCrondConfiglet(self::FILE_CROND, $payload);
+            }
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Set RAID notification.
-	 *
-	 * @param boolean  $status  toggles notification
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Set RAID notification.
+     *
+     * @param boolean $status toggles notification
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function SetNotify($status)
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+    function set_notify($status)
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		if (! $this->is_loaded)
-			$this->_LoadConfig();
+        if (! $this->is_loaded)
+            $this->_load_config();
 
-		$this->_SetParameter('notify', (isset($status) && $status ? 1 : 0));
-	}
+        $this->_set_parameter('notify', (isset($status) && $status ? 1 : 0));
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// P R I V A T E   M E T H O D S
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	* Loads configuration files.
-	*
-	* @return void
-	* @throws EngineException
-	*/
+    /**
+    * Loads configuration files.
+    *
+    * @return void
+    * @throws Engine_Exception
+    */
 
-	protected function _LoadConfig()
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+    protected function _load_config()
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		$configfile = new ConfigurationFile(self::FILE_CONFIG);
+        $configfile = new ConfigurationFile(self::FILE_CONFIG);
 
-		try {
-			$this->config = $configfile->Load();
-		} catch (Exception $e) {
+        try {
+            $this->config = $configfile->Load();
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
+        }
 
-		$this->is_loaded = true;
-	}
+        $this->is_loaded = TRUE;
+    }
 
-	/**
-	 * Generic set routine.
-	 *
-	 * @private
-	 * @param  string  $key  key name
-	 * @param  string  $value  value for the key
-	 * @return  void
-	 * @throws EngineException
-	 */
+    /**
+     * Generic set routine.
+     *
+     * @param string $key   key name
+     * @param string $value value for the key
+     *
+     * @return  void
+     * @throws Engine_Exception
+     */
 
-	function _SetParameter($key, $value)
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+    function _set_parameter($key, $value)
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
 
-		try {
-			$file = new File(self::FILE_CONFIG, true);
-			$match = $file->ReplaceLines("/^$key\s*=\s*/", "$key=$value\n");
+        try {
+            $file = new File(self::FILE_CONFIG, TRUE);
+            $match = $file->replace_lines("/^$key\s*=\s*/", "$key=$value\n");
 
-			if (!$match)
-				$file->AddLines("$key=$value\n");
-		} catch (Exception $e) {
+            if (!$match)
+                $file->add_lines("$key=$value\n");
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
+        }
 
-		$this->is_loaded = false;
-	}
+        $this->is_loaded = FALSE;
+    }
 
-	/**
-	 * Report for software RAID.
-	 *
-	 * @return array
-	 * @throws EngineException
-	 */
+    /**
+     * Report for software RAID.
+     *
+     * @param String $myraid System RAID
+     *
+     * @return array
+     * @throws Engine_Exception
+     */
 
-	function _CreateSoftwareRaidReport($myraid)
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+    function _create_software_raid_report($myraid)
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		$this->status = RAID_LANG_CLEAN;
+        $this->status = lang('raid_clean');
 
-		try {
-			$padding = array(10, 10, 10, 10);
-			$lines = array();
-			$lines[] = str_pad(RAID_LANG_ARRAY, $padding[0]) . "\t" . str_pad(RAID_LANG_SIZE, $padding[1]) . "\t" . str_pad(RAID_LANG_MOUNT, $padding[2]) . "\t" . str_pad(RAID_LANG_LEVEL, $padding[3]) . "\t" . LOCALE_LANG_STATUS;
-			$lines[] = str_pad('', strlen($lines[0]) + 4*4, '-');
-			$myarrays = $myraid->GetArrays();
-			foreach ($myarrays as $dev => $myarray) {
-				$status = RAID_LANG_CLEAN;
-				$mount = $this->GetMount($dev);
+        try {
+            $padding = array(10, 10, 10, 10);
+            $lines = array();
+            $lines[] = str_pad(lang('raid_array'), $padding[0]) . "\t" .
+                str_pad(lang('raid_size'), $padding[1]) . "\t" .
+                str_pad(lang('raid_mount'), $padding[2]) . "\t" .
+                str_pad(lang('raid_level'), $padding[3]) . "\t" .
+                lang('base_status');
+            $lines[] = str_pad('', strlen($lines[0]) + 4*4, '-');
+            $myarrays = $myraid->get_arrays();
+            foreach ($myarrays as $dev => $myarray) {
+                $status = lang('raid_clean');
+                $mount = $this->GetMount($dev);
 
-				if ($myarray['status'] != Raid::STATUS_CLEAN) {
-					$status = RAID_LANG_DEGRADED;
-					$this->status = RAID_LANG_DEGRADED;
-				}
+                if ($myarray['status'] != Raid::STATUS_CLEAN) {
+                    $status = lang('raid_degraded');
+                    $this->status = lang('raid_degraded');
+                }
 
-				foreach ($myarray['devices'] as $index => $details) {
-					if ($details['status'] == Raid::STATUS_SYNCING) {
-						$status = RAID_LANG_SYNCING . ' (' . $details['dev'] . ') - ' . $details['recovery'] . '%';
-						$this->status = RAID_LANG_SYNCING;
-					} else if ($details['status'] == Raid::STATUS_SYNC_PENDING) {
-						$status = RAID_LANG_SYNC_PENDING . ' (' . $details['dev'] . ')';
-					} else if ($details['status'] == Raid::STATUS_DEGRADED) {
-						$status = RAID_LANG_DEGRADED . ' (' . $details['dev'] . ' ' . RAID_LANG_FAILED . ')';
-					}
-				}
+                foreach ($myarray['devices'] as $index => $details) {
+                    if ($details['status'] == Raid::STATUS_SYNCING) {
+                        $status = lang('raid_syncing') . ' (' . $details['dev'] . ') - ' . $details['recovery'] . '%';
+                        $this->status = lang('raid_syncing');
+                    } else if ($details['status'] == Raid::STATUS_SYNC_PENDING) {
+                        $status = lang('raid_sync_pending') . ' (' . $details['dev'] . ')';
+                    } else if ($details['status'] == Raid::STATUS_DEGRADED) {
+                        $status = lang('raid_degraded') . ' (' . $details['dev'] . ' ' . lang('raid_failed') . ')';
+                    }
+                }
 
-				$lines[] = str_pad($dev, $padding[0]) . "\t" .
-					str_pad($this->GetFormattedBytes($myarray['size'], 1), $padding[1]) . "\t" .
-					str_pad($mount, $padding[2]) . "\t" . str_pad($myarray['level'], $padding[3]) . "\t" . $status;
-			}
+                $lines[] = str_pad($dev, $padding[0]) . "\t" .
+                    str_pad($this->GetFormattedBytes($myarray['size'], 1), $padding[1]) . "\t" .
+                    str_pad($mount, $padding[2]) . "\t" . str_pad($myarray['level'], $padding[3]) . "\t" . $status;
+            }
 
-			return $lines;
-		} catch (Exception $e) {
+            return $lines;
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Report for hardware RAID.
-	 *
-	 * @return void
-	 * @throws EngineException
-	 */
+    /**
+     * Report for hardware RAID.
+     *
+     * @param String $myraid System RAID
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
 
-	function _CreateHardwareRaidReport($myraid)
-	{
-		if (COMMON_DEBUG_MODE)
-			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+    function _create_hardware_raid_report($myraid)
+    {
+        if (COMMON_DEBUG_MODE)
+            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		$this->status = RAID_LANG_CLEAN;
-		$lines = array();
-		$padding = array(20, 15, 12, 10, 12);
+        $this->status = lang('raid_clean');
+        $lines = array();
+        $padding = array(20, 15, 12, 10, 12);
 
-		try {
-			$controllers = $myraid->GetArrays();
-			$lines[] = str_pad(RAID_LANG_CONTROLLER, $padding[0]) . "\t" . str_pad(RAID_LANG_UNIT, $padding[1]) . "\t" . str_pad(RAID_LANG_SIZE, $padding[2]) . "\t" . str_pad(RAID_LANG_DEVICE, $padding[3]) . "\t" . str_pad(RAID_LANG_LEVEL, $padding[4]) . "\t" . LOCALE_LANG_STATUS;
-			$lines[] = str_pad('', strlen($lines[0]) + 4*5, '-');
+        try {
+            $controllers = $myraid->get_arrays();
+            $lines[] = str_pad(lang('raid_controller'), $padding[0]) . "\t" .
+                str_pad(lang('raid_unit'), $padding[1]) . "\t" .
+                str_pad(lang('raid_size'), $padding[2]) . "\t" .
+                str_pad(lang('raid_device'), $padding[3]) . "\t" .
+                str_pad(lang('raid_level'), $padding[4]) . "\t" .
+                lang('base_status')
+            );
+            $lines[] = str_pad('', strlen($lines[0]) + 4*5, '-');
 
-			foreach ($controllers as $controllerid => $controller) {
-				foreach ($controller['units'] as $unitid => $unit) {
-					$status = RAID_LANG_CLEAN;
-					$mount = $myraid->GetMapping('c' . $controllerid);
+            foreach ($controllers as $controllerid => $controller) {
+                foreach ($controller['units'] as $unitid => $unit) {
+                    $status = lang('raid_clean');
+                    $mount = $myraid->GetMapping('c' . $controllerid);
 
-					if ($unit['status'] != Raid::STATUS_CLEAN) {
-						$status = RAID_LANG_DEGRADED;
-						$this->status = RAID_LANG_DEGRADED;
-					} else if ($unit['status'] == Raid::STATUS_SYNCING) {
-						$status = RAID_LANG_SYNCING;
-						$this->status = RAID_LANG_SYNCING;
-					}
+                    if ($unit['status'] != Raid::STATUS_CLEAN) {
+                        $status = lang('raid_degraded');
+                        $this->status = lang('raid_degraded');
+                    } else if ($unit['status'] == Raid::STATUS_SYNCING) {
+                        $status = lang('raid_syncing');
+                        $this->status = lang('raid_syncing');
+                    }
 
-					foreach ($unit['devices'] as $id => $details) {
-						if ($details['status'] == Raid::STATUS_SYNCING) {
-							# Provide a more detailed status message
-							$status = RAID_LANG_SYNCING . ' (' . RAID_LANG_DISK . ' ' . $id . ') - ' . $details['recovery'] . '%';
-						} else if ($details['status'] == Raid::STATUS_SYNC_PENDING) {
-							# Provide a more detailed status message
-							$status = RAID_LANG_SYNC_PENDING . ' (' . RAID_LANG_DISK . ' ' . $id . ')';
-						} else if ($details['status'] == Raid::STATUS_DEGRADED) {
-							# Provide a more detailed status message
-							$status = RAID_LANG_DEGRADED . ' (' . RAID_LANG_DISK . ' ' . $id . ' ' . RAID_LANG_FAILED . ')';
-						}
-					}
+                    foreach ($unit['devices'] as $id => $details) {
+                        if ($details['status'] == Raid::STATUS_SYNCING) {
+                            // Provide a more detailed status message
+                            $status = lang('raid_syncing') . ' (' . lang('raid_disk') . ' ' . $id . ') - ' .
+                                $details['recovery'] . '%';
+                        } else if ($details['status'] == Raid::STATUS_SYNC_PENDING) {
+                            // Provide a more detailed status message
+                            $status = lang('raid_sync_pending') . ' (' . lang('raid_disk') . ' ' . $id . ')';
+                        } else if ($details['status'] == Raid::STATUS_DEGRADED) {
+                            // Provide a more detailed status message
+                            $status = lang('raid_degraded') . ' (' . lang('raid_disk') . ' ' . $id . ' ' .
+                                lang('raid_failed') . ')';
+                        }
+                    }
 
-					$lines[] = str_pad($controller['model'] . ", " . RAID_LANG_SLOT . " $controllerid", $padding[0]) .
-					   "\t" . str_pad(RAID_LANG_LOGICAL_DISK . " " . $unitid, $padding[1]) . "\t" .
-					   str_pad($this->GetFormattedBytes($unit['size'], 1), $padding[2]) . "\t" .
-					   str_pad($mount, $padding[3], ' ', STR_PAD_RIGHT) . "\t" . str_pad($unit['level'], $padding[4]) .
-					   "\t" . $status;
-				}
-			}
+                    $lines[] = str_pad(
+                        $controller['model'] . ", " . lang('raid_slot') . " $controllerid", $padding[0]
+                    ) .
+                    "\t" . str_pad(lang('raid_logical_disk') . " " . $unitid, $padding[1]) . "\t" .
+                    str_pad($this->GetFormattedBytes($unit['size'], 1), $padding[2]) . "\t" .
+                    str_pad($mount, $padding[3], ' ', STR_PAD_RIGHT) . "\t" . str_pad($unit['level'], $padding[4]) .
+                    "\t" . $status;
+                }
+            }
 
-			return $lines;
-		} catch (Exception $e) {
+            return $lines;
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S
