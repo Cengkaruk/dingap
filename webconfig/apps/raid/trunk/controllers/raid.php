@@ -93,10 +93,10 @@ class Raid extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->raid->set_server_name($this->input->post('server_name'));
-                $this->raid->set_max_instances($this->input->post('max_instances'));
-                $this->raid->set_port($this->input->post('port'));
-                $this->page->set_status_updated();
+   //             $this->raid->set_server_name($this->input->post('server_name'));
+    //            $this->raid->set_max_instances($this->input->post('max_instances'));
+     //           $this->raid->set_port($this->input->post('port'));
+      //          $this->page->set_status_updated();
                 redirect('/raid');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
@@ -108,9 +108,10 @@ class Raid extends ClearOS_Controller
         //---------------
 
         try {
-            $data['server_name'] = $this->raid->get_server_name();
-            $data['max_instances'] = $this->raid->get_max_instances();
-            $data['port'] = $this->raid->get_port();
+            $data['type'] = $this->raid->get_type_details();
+            $data['monitor'] = $this->raid->get_monitor_status();
+            $data['notify'] = $this->raid->get_notify();
+            $data['email'] = $this->raid->get_email();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -119,7 +120,7 @@ class Raid extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('raid', $data, lang('raid_raid'));
+        $this->page->view_form('overview', $data, lang('raid_overview'));
     }
 
 }

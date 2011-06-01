@@ -57,17 +57,23 @@ clearos_load_language('raid');
 
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
+use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\tasks\Cron as Cron;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
+clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Shell');
+clearos_load_library('tasks/Cron');
+clearos_load_library('tasks/Cron_Configlet_Not_Found_Exception');
 
 // Exceptions
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\tasks\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
@@ -149,6 +155,8 @@ class Raid extends Daemon
 
     static function create()
     {
+        clearos_profile(__METHOD__, __LINE__);
+
         $shell = new Shell();
         $options['env'] = "LANG=en_US";
         $found = FALSE;
@@ -422,8 +430,8 @@ class Raid extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $crontab = new Cron();
-            if ($crontab->exists_crond_configlet(self::FILE_CROND))
+            $cron = new Cron();
+            if ($cron->exists_configlet(self::FILE_CROND))
                 return TRUE;
             return FALSE;
         } catch (Exception $e) {
@@ -714,8 +722,7 @@ class Raid extends Daemon
 
     function send_status_change_notification($lines)
     {
-        if (COMMON_DEBUG_MODE)
-            $this->Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             if (!$this->GetNotify()) {
@@ -761,8 +768,7 @@ class Raid extends Daemon
 
     function set_email($email)
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
             $this->_load_config();
@@ -791,18 +797,17 @@ class Raid extends Daemon
 
     function set_monitor_status($monitor)
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
         try {
-            $crontab = new Cron();
-            if ($crontab->existsCrondConfiglet(self::FILE_CROND) && $monitor) {
+            $cron = new Cron();
+            if ($cron->exists_configlet(self::FILE_CROND) && $monitor) {
                 return;
-            } else if ($crontab->existsCrondConfiglet(self::FILE_CROND) && !$monitor) {
-                $crontab->DeleteCrondConfiglet(self::FILE_CROND);
-            } else if (!$crontab->existsCrondConfiglet(self::FILE_CROND) && $monitor) {
+            } else if ($cron->exists_configlet(self::FILE_CROND) && !$monitor) {
+                $cron->DeleteCrondConfiglet(self::FILE_CROND);
+            } else if (!$cron->exists_configlet(self::FILE_CROND) && $monitor) {
                 $payload  = "# Created by API\n";
                 $payload .= self::DEFAULT_CRONTAB_TIME . " root " . self::CMD_RAID_SCRIPT . " >/dev/NULL 2>&1";
-                $crontab->AddCrondConfiglet(self::FILE_CROND, $payload);
+                $cron->AddCrondConfiglet(self::FILE_CROND, $payload);
             }
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -820,8 +825,7 @@ class Raid extends Daemon
 
     function set_notify($status)
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
             $this->_load_config();
@@ -842,10 +846,9 @@ class Raid extends Daemon
 
     protected function _load_config()
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
-        $configfile = new ConfigurationFile(self::FILE_CONFIG);
+        $configfile = new Configuration_File(self::FILE_CONFIG);
 
         try {
             $this->config = $configfile->Load();
@@ -868,8 +871,7 @@ class Raid extends Daemon
 
     function _set_parameter($key, $value)
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, 'called', __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         try {
             $file = new File(self::FILE_CONFIG, TRUE);
@@ -895,8 +897,7 @@ class Raid extends Daemon
 
     function _create_software_raid_report($myraid)
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $this->status = lang('raid_clean');
 
@@ -952,8 +953,7 @@ class Raid extends Daemon
 
     function _create_hardware_raid_report($myraid)
     {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+        clearos_profile(__METHOD__, __LINE__);
 
         $this->status = lang('raid_clean');
         $lines = array();
@@ -967,7 +967,7 @@ class Raid extends Daemon
                 str_pad(lang('raid_device'), $padding[3]) . "\t" .
                 str_pad(lang('raid_level'), $padding[4]) . "\t" .
                 lang('base_status')
-            );
+            ;
             $lines[] = str_pad('', strlen($lines[0]) + 4*5, '-');
 
             foreach ($controllers as $controllerid => $controller) {
