@@ -47,13 +47,15 @@ fi
 # Create default certificates (from bootstrap in /etc/raddb/certs/)
 #------------------------------------------------------------------
 
+# FIXME: this should be part of radius start?  Key generation gets stuck in installer mode (not enough entropy)
+
 SSL_CONF="/etc/raddb/certs/ca.cnf"
 SSL_PATH="/etc/raddb/clearos-certs"
 
 umask 77
 
 cd $SSL_PATH
-openssl dhparam -out dh 1024
+openssl dhparam -out dh1024.pem 1024
 openssl req -new  -out server.csr -keyout key-encrypted.pem -config $SSL_CONF
 openssl req -new -x509 -keyout ca.key -out ca.pem -days `grep default_days $SSL_CONF | sed 's/.*=//;s/^ *//'` -config $SSL_CONF
 touch index.txt
