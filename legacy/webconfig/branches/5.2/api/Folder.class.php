@@ -542,10 +542,11 @@ class Folder extends Engine
 	 *
 	 * The current (.) and and parent (..) entries are not included.
 	 *
+	 * @param array $options options array
 	 * @return  array  file listing
 	 */
 
-	function GetRecursiveListing()
+	function GetRecursiveListing($options)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
@@ -556,9 +557,11 @@ class Folder extends Engine
 		$listing = array();	
 		$fulllist = array();
 
+		$follow_symlinks = (isset($options['follow_symlinks']) && $options['follow_symlinks']) ? '-L' : '';
+
 		try {
 			$shell = new ShellExec();
-			if ($shell->Execute(self::CMD_FIND, "$this->folder -type f", true) != 0)
+			if ($shell->Execute(self::CMD_FIND, "$follow_symlinks $this->folder -type f", true) != 0)
 				throw new FolderException($shell->GetFirstOutputLine());
 			$fulllist = $shell->GetOutput();
 		} catch (Exception $e) {
