@@ -1,7 +1,7 @@
 
 Name: app-simple-mode-core
 Group: ClearOS/Libraries
-Version: 5.9.9.1
+Version: 5.9.9.2
 Release: 1%{dist}
 Summary: Translation missing (simple_mode_app_summary) - APIs and install
 License: LGPLv3

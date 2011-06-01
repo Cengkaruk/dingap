@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory-core
 Group: ClearOS/Libraries
-Version: 5.9.9.1
+Version: 5.9.9.2
 Release: 1%{dist}
 Summary: OpenLDAP Directory Driver - APIs and install
 License: LGPLv3

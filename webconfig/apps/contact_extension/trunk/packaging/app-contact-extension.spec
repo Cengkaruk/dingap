@@ -1,7 +1,7 @@
 
 Name: app-contact-extension-core
 Group: ClearOS/Libraries
-Version: 5.9.9.1
+Version: 5.9.9.2
 Release: 1%{dist}
 Summary: Contact account extension summary - APIs and install
 License: LGPLv3
@@ -11,6 +11,7 @@ Source: app-contact-extension-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
 Requires: app-openldap-directory-core
+Requires: app-organization
 
 %description
 Contact account extension description ... blah blah blah.

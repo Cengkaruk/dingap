@@ -1,7 +1,7 @@
 
 Name: app-ldap-core
 Group: ClearOS/Libraries
-Version: 5.9.9.1
+Version: 5.9.9.2
 Release: 1%{dist}
 Summary: LDAP Manager - APIs and install
 License: LGPLv3

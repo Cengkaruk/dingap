@@ -1,7 +1,7 @@
 
 Name: app-tasks-core
 Group: ClearOS/Libraries
-Version: 5.9.9.1
+Version: 5.9.9.2
 Release: 1%{dist}
 Summary: Task summary - APIs and install
 License: LGPLv3

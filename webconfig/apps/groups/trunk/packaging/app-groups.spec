@@ -1,7 +1,7 @@
 
 Name: app-groups
 Group: ClearOS/Apps
-Version: 5.9.9.1
+Version: 5.9.9.2
 Release: 1%{dist}
 Summary: Group manager
 License: GPLv3
