@@ -1,19 +1,26 @@
-[clearos-dev]
-name=ClearOS Enterprise 6.0.0alpha1 - OS
-baseurl=http://download.clearfoundation.com/clearos/enterprise/6.0.0alpha1/dev/$basearch
+[clearos-buildsys]
+name=ClearOS Enterprise 6.0.0 - Buildsys
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.0.0alpha1
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/clearos-gpg-key
+
+[clearos-current]
+name=ClearOS Enterprise 6.ci - Continuous Integration
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.ci/current/$basearch
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/clearos-gpg-key
+
+[clearos-core]
+name=ClearOS Core - $basearch
+baseurl=http://lordsfam.net/yum/clearcore/repo/
 enabled=1
 gpgcheck=0
 
-[rhel-beta]
-name=Red Hat Enterprise Linux 6 Beta - $basearch
-baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/6/$basearch/os/
+[epel]
+name=Extra Packages for Enterprise Linux 6 - $basearch
+mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
+failovermethod=priority
 enabled=1
 gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta
-
-[rhel-beta-optional]
-name=Red Hat Enterprise Linux 6 Beta (Optional) - $basearch
-baseurl=ftp://ftp.redhat.com/pub/redhat/rhel/beta/6/optional/$basearch/os/
-enabled=1
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta

@@ -1,9 +1,9 @@
 Name: clearos-release
-Version: 6.0.0doh
+Version: 5.9.9.2
 Release: 1%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
-License: GPLv2
+License: GPL
 Source: %{name}-%{version}.tar.gz
 Requires: coreutils
 Requires: sed
@@ -40,8 +40,12 @@ rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/etc
 
 # create /etc/product, /etc/clearos-release and /etc/system-release
+NAME=`grep ^name[[:space:]] config/product | sed 's/.* = //'`
+VERSION=`grep ^version[[:space:]] config/product | sed 's/.* = //'`
+
 install -m 644 config/product $RPM_BUILD_ROOT/etc/
-install -m 644 config/release $RPM_BUILD_ROOT/etc/clearos-release
+
+echo "$NAME release $VERSION" > $RPM_BUILD_ROOT/etc/clearos-release
 ln -s clearos-release $RPM_BUILD_ROOT/etc/system-release
 
 # create /etc/issue and /etc/issue.net
@@ -92,9 +96,5 @@ rm -rf $RPM_BUILD_ROOT
 /usr/share/clearos/release/upgrade
 
 %changelog
-* Mon Mar 28 2011 ClearFoundation <developer@clearfoundation.com> - 6.0.0alpha1.1-1
-- Removed deprecated upgrade routines
-- Changed release to conform to new standard
-
-* Mon Mar 21 2011 ClearFoundation <developer@clearfoundation.com> - 6.0.0alpha1-1.1
-- Import based on spec file from upstream
+* Fri May 20 2011 ClearFoundation <developer@clearfoundation.com> - 5.9.9.1-1
+- Prepped for alpha 1 build
