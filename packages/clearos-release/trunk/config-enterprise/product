@@ -2,6 +2,7 @@
 vendor = clear
 software_id = 10600
 name = ClearOS Enterprise
+version = 6.0.0
 base_version = 6.0.0
 
 # Registration
