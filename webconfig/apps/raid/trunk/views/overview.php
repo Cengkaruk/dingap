@@ -40,7 +40,7 @@ $this->lang->load('raid');
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('raid');
+echo form_open('raid/edit');
 echo form_header(lang('raid_summary'));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,14 +55,16 @@ if ($mode === 'edit') {
     );
 } else {
     $read_only = TRUE;
-    $buttons = array(anchor_edit('/app/raid/edit'));
+    // Only display edit button if RAID is detected/supported
+    if ($is_supported)
+        $buttons = array(anchor_edit('/app/raid/edit'));
 }
 
 echo field_input('type', $type['class'], lang('raid_type'), TRUE);
 echo field_input('vendor', $type['vendor'], lang('raid_vendor'), TRUE);
 echo field_toggle_enable_disable('monitor', $monitor, lang('raid_monitor'), $read_only);
 echo field_toggle_enable_disable('notify', $notify, lang('raid_notify'), $read_only);
-echo field_input('notify_email', $notify_email, lang('raid_notify_email'), $read_only);
+echo field_input('email', $email, lang('raid_notify_email'), $read_only);
 echo button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////

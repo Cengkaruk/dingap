@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\raid\Raid as RaidClass;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -83,9 +89,10 @@ class Raid extends ClearOS_Controller
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('server_name', 'raid/Raid', 'validate_server_name', TRUE);
-        $this->form_validation->set_policy('max_instances', 'raid/Raid', 'validate_max_instances', TRUE);
-        $this->form_validation->set_policy('port', 'raid/Raid', 'validate_port', TRUE);
+        //$this->form_validation->set_policy('type', 'raid/Raid', 'validate_type', TRUE);
+        //$this->form_validation->set_policy('monitor', 'raid/Raid', 'validate_monitor', TRUE);
+        //$this->form_validation->set_policy('notify', 'raid/Raid', 'validate_notify', TRUE);
+        $this->form_validation->set_policy('email', 'raid/Raid', 'validate_email', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -93,10 +100,11 @@ class Raid extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-   //             $this->raid->set_server_name($this->input->post('server_name'));
-    //            $this->raid->set_max_instances($this->input->post('max_instances'));
-     //           $this->raid->set_port($this->input->post('port'));
-      //          $this->page->set_status_updated();
+                //$this->raid->set_type($this->input->post('type'));
+                //$this->raid->set_monitor($this->input->post('monitor'));
+                //$this->raid->set_notify($this->input->post('notify'));
+                $this->raid->set_email($this->input->post('email'));
+                $this->page->set_status_updated();
                 redirect('/raid');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
@@ -108,10 +116,14 @@ class Raid extends ClearOS_Controller
         //---------------
 
         try {
-            $data['type'] = $this->raid->get_type_details();
+            $type = $this->raid->get_type_details();
+            $data['type'] = $type;
             $data['monitor'] = $this->raid->get_monitor_status();
             $data['notify'] = $this->raid->get_notify();
             $data['email'] = $this->raid->get_email();
+            $data['is_supported'] = TRUE;
+            if ($type['id'] != RaidClass::TYPE_UNKNOWN)
+                $data['is_supported'] = TRUE;
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

@@ -915,18 +915,18 @@ class Raid extends Daemon
                 $status = lang('raid_clean');
                 $mount = $this->GetMount($dev);
 
-                if ($myarray['status'] != Raid::STATUS_CLEAN) {
+                if ($myarray['status'] != self::STATUS_CLEAN) {
                     $status = lang('raid_degraded');
                     $this->status = lang('raid_degraded');
                 }
 
                 foreach ($myarray['devices'] as $index => $details) {
-                    if ($details['status'] == Raid::STATUS_SYNCING) {
+                    if ($details['status'] == self::STATUS_SYNCING) {
                         $status = lang('raid_syncing') . ' (' . $details['dev'] . ') - ' . $details['recovery'] . '%';
                         $this->status = lang('raid_syncing');
-                    } else if ($details['status'] == Raid::STATUS_SYNC_PENDING) {
+                    } else if ($details['status'] == self::STATUS_SYNC_PENDING) {
                         $status = lang('raid_sync_pending') . ' (' . $details['dev'] . ')';
-                    } else if ($details['status'] == Raid::STATUS_DEGRADED) {
+                    } else if ($details['status'] == self::STATUS_DEGRADED) {
                         $status = lang('raid_degraded') . ' (' . $details['dev'] . ' ' . lang('raid_failed') . ')';
                     }
                 }
@@ -975,23 +975,23 @@ class Raid extends Daemon
                     $status = lang('raid_clean');
                     $mount = $myraid->GetMapping('c' . $controllerid);
 
-                    if ($unit['status'] != Raid::STATUS_CLEAN) {
+                    if ($unit['status'] != self::STATUS_CLEAN) {
                         $status = lang('raid_degraded');
                         $this->status = lang('raid_degraded');
-                    } else if ($unit['status'] == Raid::STATUS_SYNCING) {
+                    } else if ($unit['status'] == self::STATUS_SYNCING) {
                         $status = lang('raid_syncing');
                         $this->status = lang('raid_syncing');
                     }
 
                     foreach ($unit['devices'] as $id => $details) {
-                        if ($details['status'] == Raid::STATUS_SYNCING) {
+                        if ($details['status'] == self::STATUS_SYNCING) {
                             // Provide a more detailed status message
                             $status = lang('raid_syncing') . ' (' . lang('raid_disk') . ' ' . $id . ') - ' .
                                 $details['recovery'] . '%';
-                        } else if ($details['status'] == Raid::STATUS_SYNC_PENDING) {
+                        } else if ($details['status'] == self::STATUS_SYNC_PENDING) {
                             // Provide a more detailed status message
                             $status = lang('raid_sync_pending') . ' (' . lang('raid_disk') . ' ' . $id . ')';
-                        } else if ($details['status'] == Raid::STATUS_DEGRADED) {
+                        } else if ($details['status'] == self::STATUS_DEGRADED) {
                             // Provide a more detailed status message
                             $status = lang('raid_degraded') . ' (' . lang('raid_disk') . ' ' . $id . ' ' .
                                 lang('raid_failed') . ')';
@@ -1018,4 +1018,19 @@ class Raid extends Daemon
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * Validation routine for email
+     *
+     * @param string $email email
+     *
+     * @return boolean TRUE if email is valid
+     */
+
+    public function validate_email($email)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! preg_match("/^[0-9]+$/", $email))
+            return lang('raid_email_is_invalid');
+    }
 }
