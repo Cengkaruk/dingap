@@ -92,10 +92,23 @@ button {background: white url(../images/button-bg.png) no-repeat top;}
 
 /* Common anchor classes */
 a.theme-anchor { }
-a.theme-anchor-important { color: #333333 !important; }
-a.theme-anchor-unimportant { color: #666666 !important; }
+a.theme-anchor-important { 
+  background: transparent url('../images/button-bg.png') repeat-x;
+  padding-left: 6px;
+  padding-right: 6px;
+  height: 22px;
+  border: 1px solid #d1d3d4;
+}
+a.theme-anchor-unimportant {
+  background: transparent url('../images/transparent.gif') repeat-x;
+  padding-left: 6px;
+  padding-right: 6px;
+  height: 22px;
+  border: 1px solid transparent;
+}
 
 /* Standard anchors */
+/*
 .theme-anchor-add {
 	background: url(../images/green-button-bg.png) repeat-x;
 	border: 1px solid #648e20;
@@ -121,9 +134,9 @@ a.theme-anchor-unimportant { color: #666666 !important; }
 }
 
 a.theme-anchor-edit {margin-right: 10px; }
-a.theme-anchor-cancel {
-	}
+a.theme-anchor-cancel { }
 a.theme-anchor-delete { }
+*/
 
 /* Custom anchor */
 a.theme-anchor-custom { }
@@ -137,7 +150,9 @@ a.theme-anchor-javascript { }
 
 /* Common button class */
 
-.theme-form-submit {
+.theme-form-submit {}
+
+input.theme-form-important { 
   background: transparent url('../images/button-bg.png') repeat-x;
   padding-left: 6px;
   padding-right: 6px;
@@ -145,9 +160,21 @@ a.theme-anchor-javascript { }
   border: 1px solid #d1d3d4;
 }
 
+input.theme-form-unimportant { 
+  background: transparent url('../images/transparent.gif') repeat-x;
+  padding-left: 6px;
+  padding-right: 6px;
+  height: 22px;
+  border: 1px solid transparent;
+}
+input.theme-form-unimportant:hover {color: white;}
+
+
+/*
 .theme-form-submit:hover {
   border: 1px solid #a5a4a4;	
 }
+*/
 
 /*
 .theme-form-submit {
@@ -195,11 +222,6 @@ a.theme-anchor-javascript { }
 	display: inline;
 }
 */
-
-input.theme-form-important { color: #686868 !important; }
-input.theme-form-unimportant { color: #686868 !important; }
-
-input.theme-form-unimportant:hover {color: white;}
 
 
 .theme-button-set .ui-buttonset span { display: none;}
