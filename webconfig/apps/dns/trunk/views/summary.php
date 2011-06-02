@@ -76,8 +76,8 @@ foreach ($hosts as $real_ip => $entry) {
 
     $detail_buttons = button_set(
         array(
-            anchor_edit('/app/dns/edit/' . $ip),
-            anchor_delete('/app/dns/delete/' . $ip)
+            anchor_edit('/app/dns/edit/' . $ip, 'high'),
+            anchor_delete('/app/dns/delete/' . $ip, 'high')
         )
     );
 
