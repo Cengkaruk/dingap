@@ -191,8 +191,8 @@ $wee_items = array();
 for ($i = 1; $i < 11; $i++) {
     $item = array(
         'title' => "example$i.lan",
-        'action' => anchor_edit('/app/devel'),
-        'anchors' => anchor_edit('/app/devel') . anchor_delete('/app/devel'),
+        'action' => anchor_edit('/app/devel', 'high'),
+        'anchors' => anchor_edit('/app/devel', 'high') . anchor_delete('/app/devel', 'high'),
         'details' => array("example$i.lan", "192.168.2.$i"),
     );
 
