@@ -546,7 +546,7 @@ class Folder extends Engine
 	 * @return  array  file listing
 	 */
 
-	function GetRecursiveListing($options)
+	function GetRecursiveListing($options = NULL)
 	{
 		if (COMMON_DEBUG_MODE)
 			$this->Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
