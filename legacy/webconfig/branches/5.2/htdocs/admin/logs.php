@@ -82,7 +82,8 @@ function DisplayVarlogs($logfile, $filter, $allcolumns)
 
 	try {
 		$folder = new Folder($dir, true);
-		$files = $folder->GetRecursiveListing();
+		$options['follow_symlinks'] = TRUE;
+		$files = $folder->GetRecursiveListing($options);
 	} catch (Exception $e) {
 		WebDialogWarning($e->GetMessage());
 		return;
