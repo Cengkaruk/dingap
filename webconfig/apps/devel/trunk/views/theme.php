@@ -107,12 +107,12 @@ opposed to the usual href link shown in a web browser.</p>
 ";
 
 echo "<ul>";
-echo "<li>" . form_submit_add('submit') . "</li>";
-echo "<li>" . form_submit_delete('submit') . "</li>";
-echo "<li>" . form_submit_disable('submit') . "</li>";
-echo "<li>" . form_submit_next('submit') . "</li>";
-echo "<li>" . form_submit_previous('submit') . "</li>";
-echo "<li>" . form_submit_update('submit') . "</li>";
+echo "<li>" . form_submit_add('submit', 'high') . "</li>";
+echo "<li>" . form_submit_delete('submit', 'high') . "</li>";
+echo "<li>" . form_submit_disable('submit', 'high') . "</li>";
+echo "<li>" . form_submit_next('submit', 'high') . "</li>";
+echo "<li>" . form_submit_previous('submit', 'high') . "</li>";
+echo "<li>" . form_submit_update('submit', 'high') . "</li>";
 echo "<li>" . form_submit_custom('submit', 'This is a custom button', 'high') . "</li>";
 echo "</ul>";
 
@@ -122,14 +122,14 @@ echo "
 ";
 
 echo "<ul>";
-echo "<li>" . anchor_add('/app/devel') . "</li>";
-echo "<li>" . anchor_cancel('/app/devel') . "</li>";
-echo "<li>" . anchor_delete('/app/devel') . "</li>";
-echo "<li>" . anchor_edit('/app/devel') . "</li>";
-echo "<li>" . anchor_next('/app/devel') . "</li>";
-echo "<li>" . anchor_ok('/app/devel') . "</li>";
-echo "<li>" . anchor_previous('/app/devel') . "</li>";
-echo "<li>" . anchor_view('/app/devel') . "</li>";
+echo "<li>" . anchor_add('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_cancel('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_delete('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_edit('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_next('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_ok('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_previous('/app/devel', 'high') . "</li>";
+echo "<li>" . anchor_view('/app/devel', 'high') . "</li>";
 echo "<li>" . anchor_custom('/app/devel', 'This is a custom anchor', 'high') . "</li>";
 echo "</ul>";
 
@@ -153,7 +153,7 @@ anchor.  Here's an example:</p>
 ";
 
 echo button_set( array(
-    form_submit_update('submit'),
+    form_submit_update('submit', 'high'),
     anchor_cancel('/app/devel', 'low'),
 ));
 
@@ -161,8 +161,8 @@ echo "<p>Here's the same example, but switched around.  This could be what
 you would see when answering: are you sure want to eat that worm?</p>";
 
 echo button_set( array(
-    form_submit_ok('submit', 'low'),
-    anchor_cancel('/app/devel'),
+    anchor_custom('/app/devel', 'No thanks', 'high'),
+    form_submit_custom('submit', 'I love worms', 'low'),
 ));
 
 
