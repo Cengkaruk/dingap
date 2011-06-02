@@ -55,12 +55,15 @@ if ($mode === 'edit') {
     );
 } else {
     $read_only = TRUE;
-    $buttons = array(anchor_edit('/app/mail_notification/edit'));
+    $buttons = array(
+        anchor_edit('/app/mail_notification/edit'),
+        anchor_custom('/app/mail_notification/test', lang('mail_notification_test'), 'high')
+    );
 }
 
 echo field_input('host', $host, lang('mail_notification_host'), $read_only);
 echo field_input('port', $port, lang('mail_notification_port'), $read_only);
-echo field_toggle_enable_disable('ssl', $ssl, lang('mail_notification_ssl'), $read_only);
+echo field_simple_dropdown('ssl', $ssl_options, $ssl, lang('mail_notification_ssl'), $read_only);
 echo field_input('username', $username, lang('mail_notification_username'), $read_only);
 echo field_input('password', $password, lang('mail_notification_password'), $read_only);
 echo field_input('sender', $sender, lang('mail_notification_sender'), $read_only);

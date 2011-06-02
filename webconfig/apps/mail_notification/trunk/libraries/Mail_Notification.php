@@ -287,6 +287,35 @@ class Mail_Notification
 		}
 	}
 
+	/* Executes a test to see if mail can be sent through the SMTP server.
+	 *
+	 * @param string @email a valid email to send test to
+	 * @return bool
+     * @throws ValidationException, EngineException
+	 */
+
+	function test_relay($email)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		$this->add_recipient($email);
+		$this->set_subject(MAILER_LANG_TEST_EMAIL);
+		$this->set_body(lang('mail_notification_test_success'));
+		$this->send();
+	}
+
+	/* Clears data structures.
+	 *
+	 * @return void
+	 */
+
+	function clear()
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		unset($this->message);
+	}
+
 	/**
      * Parse an email address.
      *
@@ -351,6 +380,27 @@ class Mail_Notification
 		return $email;
 	}
 
+	/* Add an email to the send-to (recipient) address field.
+	 *
+     * @param mixed $recipient a string or array (address, name) representing a recipient's email address
+	 *
+	 * @return void
+     * @throws Validation_Exception
+	 */
+
+	function add_recipient($recipient)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		$address = $this->_parse_email_address($recipient);
+
+		// Validation
+		// ----------
+        Validation_Exception::is_valid($this->validate_email($address['address']));
+		
+		$this->message['recipient'][] = $address;
+	}
+
 	/*
      * Returns sender address.
      *
@@ -367,6 +417,27 @@ class Mail_Notification
 
         return $this->config['sender'];
     }
+
+	/* Get the SSL type options for the SMTP server.
+	 *
+	 * @return array
+	 */
+
+	function get_ssl_options()
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		$options = array(
+			0=>lang('mail_notification_none'),
+			1=>lang('mail_notification_ssl'),
+			2=>lang('mail_notification_tls')
+            // TODO
+			//Swift_Connection_SMTP::ENC_OFF=>lang('mail_notification_none'),
+			//Swift_Connection_SMTP::ENC_SSL=>lang('mail_notification_ssl'),
+			//Swift_Connection_SMTP::ENC_TLS=>lang('mail_notification_tls')
+		);
+		return $options;
+	}
 
 	/*
      * Returns SMTP host.
@@ -388,7 +459,7 @@ class Mail_Notification
 	/*
      * Returns SMTP port.
      *
-     * @return string port
+     * @return int port
      * @throws Engine_Exception
      */
 
@@ -419,27 +490,38 @@ class Mail_Notification
         return $this->config['ssl'];
     }
 
-    /*
-     * Set the sender notification email.
+	/*
+     * Returns SMTP username.
      *
-     * @param string $email a valid email
-     *
-     * @return void
+     * @return string username
      * @throws Engine_Exception
      */
 
-    function set_email($email)
+    function get_username()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
             $this->_load_config();
 
-        // Validation
-        // ----------
-        Validation_Exception::is_valid($this->validate_email($email));
+        return $this->config['username'];
+    }
 
-        $this->_set_parameter('email', $email);
+	/*
+     * Returns SMTP password.
+     *
+     * @return string password
+     * @throws Engine_Exception
+     */
+
+    function get_password()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['password'];
     }
 
 	/* Set the sender email address field.
@@ -458,7 +540,7 @@ class Mail_Notification
 
 		// Validation
 		// ----------
-        Validation_Exception::is_valid($this->validate_email($address));
+        Validation_Exception::is_valid($this->validate_email($address['address']));
 		
 		$this->_set_parameter('sender', $sender);
 	}
@@ -479,7 +561,7 @@ class Mail_Notification
 
 		// Validation
 		// ----------
-        Validation_Exception::is_valid($this->validate_email($address));
+        Validation_Exception::is_valid($this->validate_email($address['address']));
 		
 		$this->_set_parameter('replyto', $replyto);
 	}
@@ -560,11 +642,133 @@ class Mail_Notification
 		$this->_set_parameter('ssl', $ssl);
 	}
 
+	/* Set the SMTP username.
+	 *
+     * @param string $username SMTP username
+	 *
+	 * @return void
+     * @throws Validation_Exception
+	 */
+
+	function set_username($username)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		// Validation
+		// ----------
+        Validation_Exception::is_valid($this->validate_username($username));
+		
+		$this->_set_parameter('username', $username);
+	}
+
+	/* Set the SMTP password.
+	 *
+     * @param string $password SMTP password
+	 *
+	 * @return void
+     * @throws Validation_Exception
+	 */
+
+	function set_password($password)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		// Validation
+		// ----------
+        Validation_Exception::is_valid($this->validate_password($password));
+		
+		$this->_set_parameter('password', $password);
+	}
+
+	/* Set the message body.
+	 *
+     * @param string $body the message body
+	 *
+	 * @return void
+     * @throws ValidationEException
+	 */
+
+	function set_body($body)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		// Validation
+		// ----------
+        Validation_Exception::is_valid($this->validate_body($body));
+
+		$this->message['body'] = $body;
+	}
+
+	/* Set the message HTML body.
+	 *
+     * @param string $html the message HTML body
+	 *
+	 * @return void
+     * @throws Validation_Exception
+	 */
+
+	function set_html_body($html)
+	{
+
+        clearos_profile(__METHOD__, __LINE__);
+
+		// Validation
+		// ----------
+        Validation_Exception::is_valid($this->validate_html_body($html));
+
+		$html = array($html, "text/html");
+		$this->message['parts'][] = $html;
+	}
+
+	/* Set a message part.
+	 *
+     * @param array $part the message part
+	 *
+	 * @return void
+     * @throws Validation_Exception
+	 */
+
+	function set_part($part)
+	{
+        clearos_profile(__METHOD__, __LINE__);
+
+		$this->message['parts'][] = $part;
+	}
+
+	/* Set the message attachments to be sent.
+	 *
+     * @param array $attachments associative array containing the message attachments to be included
+	 * Array ('data', 'filename', 'type', 'encoding', 'disposition')
+	 *
+	 * @return void
+     * @throws Validation_Exception
+	 */
+
+	function set_attachments($attachments)
+	{
+
+        clearos_profile(__METHOD__, __LINE__);
+
+		// Validation
+		// ----------
+		
+		foreach ($attachments as $attachment) {
+            Validation_Exception::is_valid($this->validate_attachment($attachment));
+			if (!isset($attachment['type']))
+				$attachment['type'] = 'application/octet-stream';
+			if (!isset($attachment['encoding']))
+				$attachment['encoding'] = 'base64';
+			if (!isset($attachment['disposition']))
+				$attachment['disposition'] = 'attachment';
+			$this->message['parts'][] = $attachment;
+		}
+	}
+
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
-    /**
+    /*
     * Loads configuration files.
     *
     * @return void
@@ -586,7 +790,7 @@ class Mail_Notification
         $this->is_loaded = TRUE;
     }
 
-    /**
+    /*
      * Generic set routine.
      *
      * @param string $key   key name
@@ -617,23 +821,23 @@ class Mail_Notification
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
 
-    /**
+    /*
      * Validation routine for email.
      *
      * @param string $email email
      *
-     * @return string void if email is valid, errmsg otherwise
+     * @return mixed void if email is valid, errmsg otherwise
      */
 
     public function validate_email($email)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^[a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,5}$/", $email))
+        if (!preg_match("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/i", $email))
             return lang('mail_notification_email_is_invalid');
     }
 
-    /**
+    /*
      * Validation routine for subject.
      *
      * @param string $subject subject
@@ -649,7 +853,7 @@ class Mail_Notification
             return lang('mail_notification_subject_is_invalid');
     }
 
-    /**
+    /*
      * Validation routine for SMTP port.
      *
      * @param int $port SMTP port
@@ -665,7 +869,7 @@ class Mail_Notification
             return lang('mail_notification_port_is_invalid');
     }
 
-    /**
+    /*
      * Validation routine for SMTP host.
      *
      * @param string $host SMTP host
@@ -686,12 +890,12 @@ class Mail_Notification
         }
     }
 
-    /**
+    /*
      * Validation routine for SMTP SSL.
      *
      * @param string $ssl SMTP ssl
      *
-     * @return string void if SMTP ssl is valid, errmsg otherwise
+     * @return mixed void if SMTP ssl is valid, errmsg otherwise
      */
 
     public function validate_ssl($ssl)
@@ -700,5 +904,87 @@ class Mail_Notification
 
         if (is_bool($ssl))
             return lang('mail_notification_ssl_is_invalid');
+    }
+
+    /*
+     * Validation routine for SMTP username.
+     *
+     * @param string $username SMTP username
+     *
+     * @return mixed void if SMTP username is valid, errmsg otherwise
+     */
+
+    public function validate_username($username)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match("/^[A-Z0-9._%+-@]*$/i", $username))
+            return lang('mail_notification_username_is_invalid');
+    }
+
+    /*
+     * Validation routine for SMTP password.
+     *
+     * @param string $password SMTP password
+     *
+     * @return mixed void if SMTP password is valid, errmsg otherwise
+     */
+
+    public function validate_password($password)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match("/^[A-Z0-9._%+-@$\\?\\(\\)]*$/i", $password))
+            return lang('mail_notification_password_is_invalid');
+    }
+
+    /*
+     * Validation routine for message body.
+     *
+     * @param string $body message body
+     *
+     * @return mixed void if body is valid, errmsg otherwise
+     */
+
+    public function validate_body($body)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /*
+     * Validation routine for message HTML body.
+     *
+     * @param string $body message HTML body
+     *
+     * @return mixed void if HTML body is valid, errmsg otherwise
+     */
+
+    public function validate_html_body($html)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+	/*
+     * Validation routine for attachments to be sent with e-mail.
+     *
+     * @param array $attachment - array["/tmp/temp.exe", "temp.exe", "application/octet-stream"]
+     *
+     * @return mixed void if attachment is valid, errmsg otherwise
+     */
+
+    function validate_attachment($attachment)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+		if (!is_array($attachment))
+            return lang('mail_notification_invalid_attachment');
+
+		// If data parameter is set, its OK
+		if (isset($attachment['data']))
+			return;
+	
+		$file = new File($attachment['filename'], true);
+		if (!$file->exists())
+            return lang('mail_notification_attachment_file_not_found') . ' - ' . $attachment['filename'];
     }
 }
