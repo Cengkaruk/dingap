@@ -60,6 +60,7 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\tasks\Cron as Cron;
+use \clearos\apps\mail_notification\Mail_Notification as Mail_Notification;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
@@ -67,6 +68,7 @@ clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Shell');
 clearos_load_library('tasks/Cron');
 clearos_load_library('tasks/Cron_Configlet_Not_Found_Exception');
+clearos_load_library('app/Mail_Notification');
 
 // Exceptions
 //-----------
@@ -730,7 +732,7 @@ class Raid extends Daemon
                 return;
             }
 
-            $mailer = new Mailer();
+            $mailer = new Mail_Notification();
             $hostname = new Hostname();
             $subject = lang('raid_email_notification') . ' - ' . $hostname->get();
             $body = "\n\n" . lang('raid_email_notification') . ":\n";
@@ -763,7 +765,7 @@ class Raid extends Daemon
      * @param string $email a valid email
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception Validation_Exception
      */
 
     function set_email($email)
@@ -773,15 +775,10 @@ class Raid extends Daemon
         if (! $this->is_loaded)
             $this->_load_config();
 
-        $mailer = new Mailer();
-
         // Validation
         // ----------
 
-        if (!$mailer->is_valid_email($email))
-            throw new Validation_Exception(
-                lang('mailer_recipient-TODO') . " - " . lang('base_invalid') . ' (' . $email . ')'
-            );
+        Validation_Exception::is_valid($this->validate_email($email));
 
         $this->_set_parameter('email', $email);
     }
@@ -792,7 +789,7 @@ class Raid extends Daemon
      * @param boolean $monitor toggles monitoring
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception Validation_Exception
      */
 
     function set_monitor_status($monitor)
@@ -1030,7 +1027,12 @@ class Raid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match("/^[0-9]+$/", $email))
+        $notify = new Mail_Notification();
+
+        try {
+//            Validation_Exception::is_valid($notify->validate_email($email));
+        } catch (Validation_Exception $e) {
             return lang('raid_email_is_invalid');
+        }
     }
 }
