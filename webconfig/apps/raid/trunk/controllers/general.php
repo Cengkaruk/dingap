@@ -40,7 +40,7 @@ use \clearos\apps\raid\Raid as RaidClass;
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Raid controller.
+ * Raid general settings controller.
  *
  * @category   Apps
  * @package    Raid
@@ -51,7 +51,7 @@ use \clearos\apps\raid\Raid as RaidClass;
  * @link       http://www.clearfoundation.com/docs/developer/apps/raid/
  */
 
-class Raid extends ClearOS_Controller
+class General extends ClearOS_Controller
 {
 
     /**
@@ -62,27 +62,75 @@ class Raid extends ClearOS_Controller
 
     function index()
     {
+        $this->_view_edit();
+    }
+
+    /**
+     * Raid edit controller
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    function _view_edit($mode = 'view')
+    {
         // Load dependencies
         //------------------
 
         $this->load->library('raid/Raid');
         $this->lang->load('raid');
 
+        $data['mode'] = $mode;
+
+        // Set validation rules
+        //---------------------
+         
+        $this->form_validation->set_policy('monitor', 'raid/Raid', 'validate_monitor', TRUE);
+        $this->form_validation->set_policy('notify', 'raid/Raid', 'validate_notify', TRUE);
+        $this->form_validation->set_policy('email', 'raid/Raid', 'validate_email', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->raid->set_monitor($this->input->post('monitor'));
+                $this->raid->set_notify($this->input->post('notify'));
+                $this->raid->set_email($this->input->post('email'));
+                $this->page->set_status_updated();
+                redirect('/raid');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $type = $this->raid->get_type_details();
+            $data['type'] = $type;
+            $data['monitor'] = $this->raid->get_monitor();
+            $data['notify'] = $this->raid->get_notify();
+            $data['email'] = $this->raid->get_email();
+            $data['is_supported'] = TRUE;
+            if ($type['id'] != RaidClass::TYPE_UNKNOWN)
+                $data['is_supported'] = TRUE;
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
         // Load views
         //-----------
 
-        $views = array('raid/general');
-
-        $type = $this->raid->get_type_details();
-
-        if ($type['id'] == RaidClass::TYPE_SOFTWARE)
-            $views[] = 'raid/software';
-        else if ($type['id'] == RaidClass::TYPE_3WARE)
-            $views[] = 'raid/hardware';
-        else if ($type['id'] == RaidClass::TYPE_LSI)
-            $views[] = 'raid/hardware';
-
-        $this->page->view_forms($views, lang('raid_overview'));
+        $this->page->view_form('general', $data, lang('raid_general_settings'));
     }
 
 }

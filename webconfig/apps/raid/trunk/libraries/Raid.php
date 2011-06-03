@@ -55,27 +55,35 @@ clearos_load_language('raid');
 // Classes
 //--------
 
+use \clearos\apps\date\NTP_Time as NTP_Time;
+use \clearos\apps\Raid3ware as Raid3ware;
+use \clearos\apps\RaidLsi as RaidLsi;
+use \clearos\apps\RaidSoftware as RaidSoftware;
+use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
-use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\tasks\Cron as Cron;
 use \clearos\apps\mail_notification\Mail_Notification as Mail_Notification;
+use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\tasks\Cron as Cron;
 
+clearos_load_library('date/NTP_Time');
+clearos_load_library('raid/Raid3ware');
+clearos_load_library('raid/RaidLsi');
+clearos_load_library('raid/RaidSoftware');
+clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
-clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Shell');
+clearos_load_library('mail_notification/Mail_Notification');
+clearos_load_library('network/Hostname');
 clearos_load_library('tasks/Cron');
-clearos_load_library('tasks/Cron_Configlet_Not_Found_Exception');
-clearos_load_library('app/Mail_Notification');
 
 // Exceptions
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\tasks\Cron_Configlet_Not_Found_Exception as Cron_Configlet_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
@@ -427,7 +435,7 @@ class Raid extends Daemon
      * @return boolean TRUE if monitoring is enabled
      */
 
-    function get_monitor_status()
+    function get_monitor()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -727,17 +735,15 @@ class Raid extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (!$this->GetNotify()) {
-                Logger::Syslog(self::LOG_TAG, "RAID status updated...notification disabled.");
+            if (!$this->get_notify())
                 return;
-            }
 
             $mailer = new Mail_Notification();
             $hostname = new Hostname();
             $subject = lang('raid_email_notification') . ' - ' . $hostname->get();
             $body = "\n\n" . lang('raid_email_notification') . ":\n";
             $body .= str_pad('', strlen(lang('raid_email_notification') . ':'), '=') . "\n\n";
-            $ntptime = new Ntp_Time();
+            $ntptime = new NTP_Time();
             date_default_timezone_set($ntptime->get_time_zone());
 
             $thedate = strftime("%b %e %Y");
@@ -792,7 +798,7 @@ class Raid extends Daemon
      * @throws Engine_Exception Validation_Exception
      */
 
-    function set_monitor_status($monitor)
+    function set_monitor($monitor)
     {
         clearos_profile(__METHOD__, __LINE__);
         try {
@@ -800,11 +806,11 @@ class Raid extends Daemon
             if ($cron->exists_configlet(self::FILE_CROND) && $monitor) {
                 return;
             } else if ($cron->exists_configlet(self::FILE_CROND) && !$monitor) {
-                $cron->DeleteCrondConfiglet(self::FILE_CROND);
+                $cron->delete_configlet(self::FILE_CROND);
             } else if (!$cron->exists_configlet(self::FILE_CROND) && $monitor) {
                 $payload  = "# Created by API\n";
                 $payload .= self::DEFAULT_CRONTAB_TIME . " root " . self::CMD_RAID_SCRIPT . " >/dev/NULL 2>&1";
-                $cron->AddCrondConfiglet(self::FILE_CROND, $payload);
+                $cron->add_configlet(self::FILE_CROND, $payload);
             }
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -1030,9 +1036,35 @@ class Raid extends Daemon
         $notify = new Mail_Notification();
 
         try {
-//            Validation_Exception::is_valid($notify->validate_email($email));
+            Validation_Exception::is_valid($notify->validate_email($email));
         } catch (Validation_Exception $e) {
             return lang('raid_email_is_invalid');
         }
+    }
+
+    /**
+     * Validation routine for monitor setting
+     *
+     * @param boolean $monitor monitor flag
+     *
+     * @return boolean TRUE if monitor is valid
+     */
+
+    public function validate_monitor($monitor)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
+     * Validation routine for notify setting
+     *
+     * @param boolean $notify notify flag
+     *
+     * @return boolean TRUE if notify is valid
+     */
+
+    public function validate_notify($notify)
+    {
+        clearos_profile(__METHOD__, __LINE__);
     }
 }
