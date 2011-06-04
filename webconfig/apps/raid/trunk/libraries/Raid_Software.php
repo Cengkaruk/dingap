@@ -55,18 +55,18 @@ clearos_load_language('raid');
 // Classes
 //--------
 
+use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\raid\Raid as Raid;
 
+clearos_load_library('base/Shell');
 clearos_load_library('raid/Raid');
 
 // Exceptions
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
-use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
-clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S

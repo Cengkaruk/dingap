@@ -82,6 +82,8 @@ class Raid extends ClearOS_Controller
         else if ($type['id'] == RaidClass::TYPE_LSI)
             $views[] = 'raid/hardware';
 
+        $views[] = 'raid/software';
+
         $this->page->view_forms($views, lang('raid_overview'));
     }
 
