@@ -41,15 +41,81 @@ $this->lang->load('raid');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    '',
     lang('raid_array'),
     lang('raid_size'),
     lang('raid_mount'),
     lang('raid_level'),
-    lang('raid_status'),
-    lang('raid_action')
+    lang('raid_status')
 );
 
+///////////////////////////////////////////////////////////////////////////////
+// Row Data
+///////////////////////////////////////////////////////////////////////////////
+
+$help = NULL;
+foreach ($raid_array as $dev => $myarray) {
+    $status = lang('raid_clean');
+    $mount = $raid_software->get_mount($dev);
+    $action = '&#160;';
+    $detail_buttons = '';
+    if ($myarray['status'] != $raid_software::STATUS_CLEAN) {
+        $iconclass = "icondisabled";
+        $status = lang('raid_degraded');
+        if ($software_raid->get_interactive())
+            $detail_buttons = button_set(
+                array(
+                    anchor_custom(lang('raid_repaird'), '/app/raid/software/repair/' . $dev)
+                )
+            );
+    }
+    foreach ($myarray['devices'] as $id => $details) {
+        if ($details['status'] == $raid_software::STATUS_SYNCING) {
+            // Provide a more detailed status message
+            $status = lang('raid_syncing') . ' (' . $details['dev'] . ') - ' . $details['recovery'] . '%';
+        } else if ($details['status'] == $raid_software::STATUS_SYNC_PENDING) {
+            // Provide a more detailed status message
+            $status = lang('raid_sync_pending') . ' (' . $details['dev'] . ')';
+        } else if ($details['status'] == $raid_software::STATUS_DEGRADED) {
+            // Provide a more detailed status message
+            $status = lang('raid_degraded') . ' (' . $details['dev'] . ' ' . lang('raid_failed') . ')';
+            // Check what action applies
+            if ($myarray['number'] >= count($myarray['devices'])) {
+                if ($raid_software->get_interactive())
+                    $detail_buttons = button_set(
+                        array(
+                            anchor_delete('/app/raid/software/remove/' . $dev)
+                        )
+                    );
+            }
+            $help = $details['dev'];
+            
+        }
+    }
+    $row['title'] = $dev;
+    $row['action'] = '/app/raid/FIXME/';
+    $row['anchors'] = $detail_buttons;
+    $row['details'] = array (
+        $dev,
+        $raid_software->get_formatted_bytes($myarray['size'], 1),
+        $mount,
+        $myarray['level'],
+        $status
+    );
+    $rows[] = $row;
+}
+
+// Help box to identify physical device that is degraded
+if ($help != NULL) {
+    try {
+        $storage = new Storage_Device();
+        $block_devices = $storage->get_devices();
+        $info = $block_devices[$help];
+        infobox_highlight($help . ' = ' . $info['vendor'] . ' ' . $info['model']);
+    } catch (Exception $e) {
+        // Ignore
+    }
+}
+WebFormOpen();
 ///////////////////////////////////////////////////////////////////////////////
 // Sumary table
 ///////////////////////////////////////////////////////////////////////////////

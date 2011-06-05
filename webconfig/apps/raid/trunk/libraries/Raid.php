@@ -390,6 +390,7 @@ class Raid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $dev = '/dev/sda1'; //TODO REMOVE ME
         $mount = '';
         $shell = new Shell();
         $args = $dev;

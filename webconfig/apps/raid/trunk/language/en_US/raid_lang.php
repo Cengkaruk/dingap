@@ -1,5 +1,6 @@
 <?php
 
+$lang['raid_raid'] = 'Raid Manager';
 $lang['raid_array'] = 'Array';
 $lang['raid_clean'] = 'Clean';
 $lang['raid_controller'] = 'Controller';
@@ -43,6 +44,8 @@ $lang['raid_partition_warning'] = 'Warning...a compatible partition table was no
 $lang['raid_raid_details'] = 'RAID Details';
 $lang['raid_raid_not_detected'] = 'RAID support was not detected on this system.';
 $lang['raid_raid_summary'] = 'RAID Summary';
+$lang['raid_status'] = 'Status';
+$lang['raid_action'] = 'Action';
 $lang['raid_remove'] = 'Remove';
 $lang['raid_repair'] = 'Repair';
 $lang['raid_repair_partition_table'] = 'Repair Partition Table';
