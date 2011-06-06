@@ -2,7 +2,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2003-2010 ClearFoundation
+// Copyright 2003-2011 ClearFoundation
 //
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -28,7 +28,7 @@
  * @subpackage API
  * @author {@link http://www.clearfoundation.com/ ClearFoundation}
  * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @copyright Copyright 2003-2011 ClearFoundation
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,23 +48,33 @@ require_once($bootstrap . '/bootstrap.php');
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
+clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_library('base/Engine');
-clearos_load_library('base/Folder');
-clearos_load_library('firewall/Firewall');
-clearos_load_library('network/Iface');
-clearos_load_library('network/Network');
+// Classes
+//--------
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Folder as Folder;
-use \clearos\apps\firewall\Firewall as Firewall;
 use \clearos\apps\network\Iface as Iface;
 use \clearos\apps\network\Network as Network;
+use \clearos\apps\network\Role as Role;
+
+clearos_load_library('base/Engine');
+clearos_load_library('base/Folder');
+clearos_load_library('network/Iface');
+clearos_load_library('network/Network');
+clearos_load_library('network/Role');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+
+clearos_load_library('base/Engine_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -86,6 +96,7 @@ class Iface_Manager extends Engine
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
+    const EXTERNAL_ROLE = 'EXTIF'; // TODO: should match firewall/Role constant
     const PATH_NET_CONFIG = '/etc/sysconfig/network-scripts';
     const PCI_ID = '/usr/share/hwdata/pci.ids';
     const USB_ID = '/usr/share/hwdata/usb.ids';
@@ -253,12 +264,12 @@ class Iface_Manager extends Engine
             //---------------
 
             try {
-                $firewall = new Firewall();
-                $role = $firewall->get_interface_role($eth);
-                $rolename = $firewall->get_interface_role_text($eth);
+                $role = new Role();
+                $role_code = $role->get_interface_role($eth);
+                $role_name = $role->get_interface_role_text($eth);
 
-                $ethinfo[$eth]['role'] = $role;
-                $ethinfo[$eth]['roletext'] = $rolename;
+                $ethinfo[$eth]['role'] = $role_code;
+                $ethinfo[$eth]['roletext'] = $role_name;
             } catch (Exception $e) {
                 // keep going
             }
@@ -288,7 +299,6 @@ class Iface_Manager extends Engine
 
         try {
             $network = new Network();
-            $firewall = new Firewall();
             $mode = $network->GetMode();
         } catch (Exception $e) {
             throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
@@ -304,13 +314,13 @@ class Iface_Manager extends Engine
                 continue;
 
             // Gateway mode
-            if (($details['role'] == Firewall::CONSTANT_LAN) && (! empty($details['address'])) && (! empty($details['netmask']))) {
+            if (($details['role'] == Role::ROLE_LAN) && (! empty($details['address'])) && (! empty($details['netmask']))) {
                 $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
             }
 
             // Standalone mode
-            if (($details['role'] == Firewall::CONSTANT_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask'])) &&
+            if (($details['role'] == Role::ROLE_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask'])) &&
                 ($mode == Network::MODE_TRUSTEDSTANDALONE) || ($mode == Network::MODE_STANDALONE)) {
                 $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
@@ -388,7 +398,7 @@ class Iface_Manager extends Engine
 
         foreach ($ethlist as $eth => $info) {
             // Skip non-external interfaces
-            if ($info['role'] != Firewall::CONSTANT_EXTERNAL)
+            if ($info['role'] != Role::ROLE_EXTERNAL)
                 continue;
 
             // Skip interfaces used 'indirectly' (e.g. PPPoE, bonded interfaces)

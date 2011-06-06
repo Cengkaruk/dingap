@@ -552,7 +552,7 @@ class Iface extends Engine
             $match = array();
             
             for ($i = 0; $i < sizeof($output); $i++) {
-                if (eregi('Link detected: ([A-z]*)', $output[$i], $match)) {
+                if (preg_match('/Link detected: ([A-z]*)/', $output[$i], $match)) {
                     $link = ($match[1] == 'yes') ? 1 : 0;
                     break;
                 }
@@ -973,12 +973,12 @@ class Iface extends Engine
             $lines = $file->get_contents_as_array();
 
             foreach ($lines as $line) {
-                $line = eregi_replace('"', '', $line);
+                $line = preg_replace('/"/', '', $line);
 
-                if (ereg('^[[:space:]]*#', $line) || !strlen($line))
+                if (preg_match('/^\s*#/', $line) || !strlen($line))
                     continue;
 
-                $line = split('[=]', $line);
+                $line = preg_split('/=/', $line);
 
                 $netinfo[strtolower($line[0])] = $line[1];
             }
