@@ -217,9 +217,9 @@ function deps($options)
             // Ignore base 'Exception' class since it is built into PHP
             if ($matches[1] !== 'Exception')
                 $detected_classes[] = $matches[1];
+	}
 
-        // Static calls (probably some false positives on this sometimes
-        } else if (preg_match('/\s*([a-zA-Z0-9_]*)::\w+/', $line, $matches)) {
+        if (preg_match('/\s*([a-zA-Z0-9_]*)::\w+/', $line, $matches)) {
             // Ignore parent::xyz and self::xyz
             if (($matches[1] !== 'parent') && ($matches[1] !== 'self'))
                 $detected_classes[] = $matches[1];
