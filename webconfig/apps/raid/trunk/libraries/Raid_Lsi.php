@@ -155,7 +155,7 @@ class Raid_Lsi extends Raid
                 $args = '/proc/scsi/mptsas/' . $id;
                 $shell->execute(self::CMD_CAT, $args, FALSE, $options);
                 // ioc0: LSISAS1068, FwRev=00063200h, Ports=1, MaxQ=511
-                if (preg_match("/^ioc(\d+):\s+LSI(\S+),\s+FwRev=(\S+),\s+Ports=(\d+).*$/", $shell->GetFirstOutputLine(), $match)) {
+                if (preg_match("/^ioc(\d+):\s+LSI(\S+),\s+FwRev=(\S+),\s+Ports=(\d+).*$/", $shell->get_first_output_line(), $match)) {
                     $myarrays[$id]['model'] = $match[2];
                     $myarrays[$id]['ports'] = $match[4];
                 }
@@ -213,8 +213,8 @@ class Raid_Lsi extends Raid
         clearos_profile(__METHOD__, __LINE__);
 
         $id = '';
-        $storage = new StorageDevice();
-        $devices = $storage->GetDevices();
+        $storage = new Storage_Device();
+        $devices = $storage->get_devices();
 
         foreach ($devices as $dev => $device) {
             if ($device['vendor'] != 'Dell') // TODO...What about non-Dell branded cards?

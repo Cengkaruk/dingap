@@ -624,8 +624,8 @@ class Raid extends Daemon
                             continue;
 
                         $partition_match['dev'] = preg_replace("/\d/", "", $device['dev']);
-                        $good = $this->GetPartitionTable($partition_match['dev']);
-                        $check = $this->GetPartitionTable(preg_replace("/\d/", "", $check));
+                        $good = $this->get_partition_table($partition_match['dev']);
+                        $check = $this->get_partition_table(preg_replace("/\d/", "", $check));
                         $ok = TRUE;
 
                         // Check that the same number of partitions exist
@@ -917,7 +917,7 @@ class Raid extends Daemon
             $myarrays = $myraid->get_arrays();
             foreach ($myarrays as $dev => $myarray) {
                 $status = lang('raid_clean');
-                $mount = $this->GetMount($dev);
+                $mount = $this->get_mount($dev);
 
                 if ($myarray['status'] != self::STATUS_CLEAN) {
                     $status = lang('raid_degraded');
@@ -936,7 +936,7 @@ class Raid extends Daemon
                 }
 
                 $lines[] = str_pad($dev, $padding[0]) . "\t" .
-                    str_pad($this->GetFormattedBytes($myarray['size'], 1), $padding[1]) . "\t" .
+                    str_pad($this->get_formatted_bytes($myarray['size'], 1), $padding[1]) . "\t" .
                     str_pad($mount, $padding[2]) . "\t" . str_pad($myarray['level'], $padding[3]) . "\t" . $status;
             }
 
@@ -977,7 +977,7 @@ class Raid extends Daemon
             foreach ($controllers as $controllerid => $controller) {
                 foreach ($controller['units'] as $unitid => $unit) {
                     $status = lang('raid_clean');
-                    $mount = $myraid->GetMapping('c' . $controllerid);
+                    $mount = $myraid->get_mapping('c' . $controllerid);
 
                     if ($unit['status'] != self::STATUS_CLEAN) {
                         $status = lang('raid_degraded');
@@ -1006,7 +1006,7 @@ class Raid extends Daemon
                         $controller['model'] . ", " . lang('raid_slot') . " $controllerid", $padding[0]
                     ) .
                     "\t" . str_pad(lang('raid_logical_disk') . " " . $unitid, $padding[1]) . "\t" .
-                    str_pad($this->GetFormattedBytes($unit['size'], 1), $padding[2]) . "\t" .
+                    str_pad($this->get_formatted_bytes($unit['size'], 1), $padding[2]) . "\t" .
                     str_pad($mount, $padding[3], ' ', STR_PAD_RIGHT) . "\t" . str_pad($unit['level'], $padding[4]) .
                     "\t" . $status;
                 }

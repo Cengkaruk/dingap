@@ -33,7 +33,7 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\raid\Raid as RaidClass;
+use \clearos\apps\raid\Raid as Raid_Class;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -120,7 +120,7 @@ class General extends ClearOS_Controller
             $data['notify'] = $this->raid->get_notify();
             $data['email'] = $this->raid->get_email();
             $data['is_supported'] = TRUE;
-            if ($type['id'] != RaidClass::TYPE_UNKNOWN)
+            if ($type['id'] != Raid_Class::TYPE_UNKNOWN)
                 $data['is_supported'] = TRUE;
         } catch (Exception $e) {
             $this->page->view_exception($e);

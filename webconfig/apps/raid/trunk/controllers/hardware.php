@@ -33,7 +33,7 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\raid\Raid as Raid_Class;
+use \clearos\apps\raid\Raid as Raid;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -51,7 +51,7 @@ use \clearos\apps\raid\Raid as Raid_Class;
  * @link       http://www.clearfoundation.com/docs/developer/apps/raid/
  */
 
-class Raid extends ClearOS_Controller
+class Hardware extends ClearOS_Controller
 {
 
     /**
@@ -60,32 +60,33 @@ class Raid extends ClearOS_Controller
      * @return view
      */
 
-    function index()
+    function index($type)
     {
         // Load dependencies
         //------------------
 
-        $this->load->library('raid/Raid');
+        $this->load->library('raid/Raid_Lsi');
+        $this->load->library('raid/Raid_3ware');
         $this->lang->load('raid');
 
-        // Load views
-        //-----------
+        try {
+            $bob[] = array ('status' => 'OK', 'level' => 1, 'size' => 10240000);
+            $bob[] = array ('status' => 'FAIL', 'level' => 1, 'size' => 10240000);
+            if ($type == Raid::TYPE_3WARE) {
+                $data['raid_array'] = $bob;// TODO $this->raid_3ware->get_arrays();
+                $data['raid_hardware'] = $this->raid_3ware;
+            } else {
+                $data['raid_array'] = $bob;// TODO $this->raid_lsi->get_arrays();
+                $data['raid_hardware'] = $this->raid_3ware;
+            }
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
-        $views = array('raid/general');
+        // Load view
+        //----------
 
-        $type = $this->raid->get_type_details();
-
-        if ($type['id'] == Raid_Class::TYPE_SOFTWARE)
-            $views[] = 'raid/software';
-        else if ($type['id'] == Raid_Class::TYPE_3WARE)
-            $views[] = 'raid/hardware/' . Raid_Class::TYPE_3WARE;
-        else if ($type['id'] == Raid_Class::TYPE_LSI)
-            $views[] = 'raid/hardware/' . Raid_Class::TYPE_LSI;
-
-        // REMOVE ME
-        $views[] = 'raid/hardware/' . Raid_Class::TYPE_LSI;
-
-        $this->page->view_forms($views, lang('raid_overview'));
+        $this->page->view_form('hardware', $data, lang('raid_hardware'));
     }
-
 }
