@@ -77,30 +77,101 @@ class Allow extends ClearOS_Controller
 
 	/**
 	 * Add allow rule.
-	 */
-
-	function add()
-	{
-		$this->_add_edit('add');
-	}
-
-	/**
-	 * Delete rule.
-     *
-     * @param string $network network 
      *
      * @return view
 	 */
 
-	function delete($network)
+	function add()
 	{
-		$this->lang->load('smtp');
+		// Load libraries
+		//---------------
 
-		$data['items'] = $network;
-		$data['ok_anchor'] = '/app/smtp/trusted/destroy/' . $network;
-		$data['cancel_anchor'] = '/app/smtp/trusted';
+		$this->load->library('incoming_firewall/Incoming');
+		$this->lang->load('incoming_firewall');
+		$this->lang->load('base');
 
-        $this->page->view_form('theme/confirm_delete', lang('smtp_trusted_networks'), $data);
+		// Set validation rules
+		//---------------------
+
+        $is_action = FALSE;
+
+        if ($this->input->post('submit_standard')) {
+            $this->form_validation->set_policy('service', 'incoming_firewall/Incoming', 'validate_service', TRUE);
+            $is_action = TRUE;
+        } else if ($this->input->post('submit_port')) {
+            $this->form_validation->set_policy('port_nickname', 'incoming_firewall/Incoming', 'validate_name', TRUE);
+            $this->form_validation->set_policy('port_protocol', 'incoming_firewall/Incoming', 'validate_protocol', TRUE);
+            $this->form_validation->set_policy('port', 'incoming_firewall/Incoming', 'validate_port', TRUE);
+            $is_action = TRUE;
+        } else if ($this->input->post('submit_range')) {
+            $this->form_validation->set_policy('range_nickname', 'incoming_firewall/Incoming', 'validate_name', TRUE);
+            $this->form_validation->set_policy('range_protocol', 'incoming_firewall/Incoming', 'validate_protocol', TRUE);
+            $this->form_validation->set_policy('range_from', 'incoming_firewall/Incoming', 'validate_port', TRUE);
+            $this->form_validation->set_policy('range_to', 'incoming_firewall/Incoming', 'validate_port', TRUE);
+            $is_action = TRUE;
+        }
+
+		// Handle form submit
+		//-------------------
+
+        if ($is_action && $this->form_validation->run()) {
+			try {
+                if ($this->input->post('submit_standard')) {
+                    $this->incoming->add_allow_standard_service($this->input->post('service'));
+                } else if ($this->input->post('submit_port')) {
+                    $this->incoming->add_allow_port(
+                        $this->input->post('port_nickname'),
+                        $this->input->post('port_protocol'),
+                        $this->input->post('port')
+                    );
+                } else if ($this->input->post('submit_range')) {
+                    $this->incoming->add_allow_port_range(
+                        $this->input->post('range_nickname'),
+                        $this->input->post('range_protocol'),
+                        $this->input->post('range_from'),
+                        $this->input->post('range_to')
+                    );
+                }
+
+				$this->incoming->reset(TRUE);
+
+				$this->page->set_status_added();
+				redirect('/incoming_firewall/allow');
+			} catch (Exception $e) {
+				$this->page->view_exception($e);
+				return;
+			}
+		}
+
+		// Load the view data 
+		//------------------- 
+
+		$data['mode'] = $form_mode;
+        $data['services'] = $this->incoming->get_standard_service_list();
+        $data['protocols'] = $this->incoming->get_basic_protocols();
+ 
+		// Load the views
+		//---------------
+
+        $this->page->view_form('incoming_firewall/allow/add_edit', $data, lang('base_edit'));
+	}
+
+	/**
+	 * Delete port rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $port port
+     *
+     * @return view
+	 */
+
+	function delete($protocol, $port)
+	{
+        $confirm_uri = '/app/incoming_firewall/allow/destroy/' . $protocol . '/' . $port;
+        $cancel_uri = '/app/incoming_firewall/allow';
+        $items = array($protocol . ' ' . $port);
+
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
 	}
 
 	/**
@@ -119,34 +190,101 @@ class Allow extends ClearOS_Controller
     }
 
 	/**
-	 * Destroys trusted network.
-     *
-     * @param string $network network 
+	 * Delete PPTP rule.
      *
      * @return view
 	 */
 
-	function destroy($network)
+	function delete_pptp()
+	{
+        $confirm_uri = '/app/incoming_firewall/allow/destroy_pptp';
+        $cancel_uri = '/app/incoming_firewall/allow';
+        $items = array('PPTP');
+
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
+    }
+
+	/**
+	 * Delete port range rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $from     from port
+     * @param integer $to       to port
+     *
+     * @return view
+	 */
+
+	function delete_range($protocol, $from, $to)
+	{
+        $confirm_uri = '/app/incoming_firewall/allow/destroy_range/' . $protocol . '/' . $from . '/' . $to;
+        $cancel_uri = '/app/incoming_firewall/allow';
+        $items = array($protocol . ' ' . $from . ':' . $to);
+
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
+	}
+
+	/**
+	 * Destroys port rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $port port
+     *
+     * @return view
+	 */
+
+	function destroy($protocol, $port)
 	{
 		// Load libraries
 		//---------------
 
-		$this->load->library('smtp/Postfix');
+		$this->load->library('incoming_firewall/Incoming');
 
 		// Handle form submit
 		//-------------------
 
 		try {
-			$this->postfix->delete_trusted_network($network);
-            $this->postfix->reset();
+			$this->incoming->delete_allow_port($protocol, $port);
+            $this->incoming->reset(TRUE);
 
 			$this->page->set_status_deleted();
-            redirect('/smtp/trusted');
+            redirect('/incoming_firewall/allow');
 		} catch (Exception $e) {
 			$this->page->view_exception($e);
 			return;
 		}
-	}
+    }
+
+	/**
+	 * Destroys port range rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $from     from port
+     * @param integer $to       to port
+     *
+     * @return view
+	 */
+
+	function destroy_range($protocol, $from, $to)
+	{
+		// Load libraries
+		//---------------
+
+		$this->load->library('incoming_firewall/Incoming');
+
+		// Handle form submit
+		//-------------------
+
+		try {
+			$this->incoming->delete_allow_port_range($protocol, $from, $to);
+            $this->incoming->reset(TRUE);
+
+			$this->page->set_status_deleted();
+            redirect('/incoming_firewall/allow');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
+		}
+    }
 
 	/**
 	 * Destroys IPsec rule.
@@ -166,7 +304,7 @@ class Allow extends ClearOS_Controller
 
 		try {
 			$this->incoming->set_ipsec_server_state(FALSE);
-            $this->incoming->reset();
+            $this->incoming->reset(TRUE);
 
 			$this->page->set_status_deleted();
             redirect('/incoming_firewall/allow');
@@ -177,73 +315,132 @@ class Allow extends ClearOS_Controller
     }
 
 	/**
-	 * Edit trusted network.
-     *
-     * @param string $network network 
+	 * Destroys PPTP rule.
      *
      * @return view
 	 */
 
-	function edit($network)
-	{
-		$this->_add_edit($network, 'edit');
-	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	// P R I V A T E
-	///////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Trusted network common add/edit form handler.
-     *
-     * @param string $form_mode form mode
-     *
-     * @return view
-	 */
-
-	function _add_edit($form_mode)
+	function destroy_pptp()
 	{
 		// Load libraries
 		//---------------
 
 		$this->load->library('incoming_firewall/Incoming');
-		$this->lang->load('incoming_firewall');
-		$this->lang->load('base');
-
-		// Set validation rules
-		//---------------------
-/*
-
-        $this->form_validation->set_policy('network', 'smtp/Postfix', 'validate_trusted_network', TRUE);
-		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
 		//-------------------
 
-		if ($this->input->post('submit') && ($form_ok === TRUE)) {
-			try {
-				$this->postfix->add_trusted_network($this->input->post('network'));
-				$this->postfix->reset();
+		try {
+			$this->incoming->set_pptp_server_state(FALSE);
+            $this->incoming->reset(TRUE);
 
-				$this->page->set_status_added();
-				redirect('/smtp/trusted');
-			} catch (Exception $e) {
-				$this->page->view_exception($e);
-				return;
-			}
+			$this->page->set_status_deleted();
+            redirect('/incoming_firewall/allow');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
 		}
-*/
+    }
 
-		// Load the view data 
-		//------------------- 
+	/**
+	 * Disables port rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $port port
+     *
+     * @return view
+	 */
 
-		$data['mode'] = $form_mode;
-        $data['services'] = $this->incoming->get_standard_service_list();
-        $data['protocols'] = $this->incoming->get_basic_protocols();
- 
-		// Load the views
-		//---------------
+	function disable($protocol, $port)
+	{
+		try {
+		    $this->load->library('incoming_firewall/Incoming');
 
-        $this->page->view_form('incoming_firewall/allow/add_edit', $data, lang('base_edit'));
-	}
+			$this->incoming->set_allow_port_status(FALSE, $protocol, $port);
+            $this->incoming->reset(TRUE);
+
+			$this->page->set_status_disabled();
+            redirect('/incoming_firewall/allow');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
+		}
+    }
+
+	/**
+	 * Disables range rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $from     from port
+     * @param integer $to       to port
+     *
+     * @return view
+	 */
+
+	function disable_range($protocol, $from, $to)
+	{
+		try {
+		    $this->load->library('incoming_firewall/Incoming');
+
+			$this->incoming->set_allow_port_range_status(FALSE, $protocol, $from, $to);
+            $this->incoming->reset(TRUE);
+
+			$this->page->set_status_disabled();
+            redirect('/incoming_firewall/allow');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
+		}
+    }
+
+	/**
+	 * Enables port rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $port port
+     *
+     * @return view
+	 */
+
+	function enable($protocol, $port)
+	{
+		try {
+		    $this->load->library('incoming_firewall/Incoming');
+
+			$this->incoming->set_allow_port_status(TRUE, $protocol, $port);
+            $this->incoming->reset(TRUE);
+
+			$this->page->set_status_enabled();
+            redirect('/incoming_firewall/allow');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
+		}
+    }
+
+	/**
+	 * Enables range rule.
+     *
+     * @param string  $protocol protocol
+     * @param integer $from     from port
+     * @param integer $to       to port
+     *
+     * @return view
+	 */
+
+	function enable_range($protocol, $from, $to)
+	{
+		try {
+		    $this->load->library('incoming_firewall/Incoming');
+
+			$this->incoming->set_allow_port_range_status(TRUE, $protocol, $from, $to);
+            $this->incoming->reset(TRUE);
+
+			$this->page->set_status_enabled();
+            redirect('/incoming_firewall/allow');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
+		}
+    }
 }

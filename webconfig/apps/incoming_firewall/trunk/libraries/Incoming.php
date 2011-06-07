@@ -584,7 +584,7 @@ class Incoming extends Firewall
     /**
      * Enable/disable a port from the incoming allow list.
      *
-     * @param boolean $enabled  state of rule
+     * @param boolean $status  state of rule
      * @param string  $protocol protocol
      * @param integer $port     port number
      *
@@ -592,7 +592,7 @@ class Incoming extends Firewall
      * @throws Engine_Exception, ValidationException
      */
 
-    public function toggle_enable_allow_port($enabled, $protocol, $port)
+    public function set_allow_port_status($status, $protocol, $port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -610,7 +610,7 @@ class Incoming extends Firewall
 
         $this->delete_rule($rule);
 
-        if ($enabled)
+        if ($status)
             $rule->enable();
         else
             $rule->disable();
@@ -621,7 +621,7 @@ class Incoming extends Firewall
     /**
      * Enable/disable a port range from the incoming allow list.
      *
-     * @param boolean $enabled  state of rule
+     * @param boolean $status   state of rule
      * @param string  $protocol protocol
      * @param integer $from     from port number
      * @param integer $to       to port number
@@ -630,7 +630,7 @@ class Incoming extends Firewall
      * @throws Engine_Exception, ValidationException
      */
 
-    public function toggle_enable_allow_port_range($enabled, $protocol, $from, $to)
+    public function set_allow_port_range_status($status, $protocol, $from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -649,7 +649,7 @@ class Incoming extends Firewall
 
         $this->delete_rule($rule);
 
-        if ($enabled)
+        if ($status)
             $rule->enable();
         else
             $rule->disable();
@@ -660,14 +660,14 @@ class Incoming extends Firewall
     /**
      * Enable/disable incoming host block rule.
      *
-     * @param boolean $enabled state
+     * @param boolean $status  state
      * @param string  $address address
      *
      * @return void
      * @throws Engine_Exception, ValidationException
      */
 
-    public function toggle_enable_block_host($enabled, $address)
+    public function set_enable_block_host_state($status, $address)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -683,7 +683,7 @@ class Incoming extends Firewall
 
         $this->delete_rule($rule);
 
-        if ($enabled)
+        if ($status)
             $rule->enable();
         else
             $rule->disable();

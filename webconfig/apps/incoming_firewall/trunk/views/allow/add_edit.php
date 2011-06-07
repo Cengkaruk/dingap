@@ -40,14 +40,14 @@ $this->lang->load('firewall');
 // Standard service
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('/app/incoming_firewall/allow/add_service');
+echo form_open('incoming_firewall/allow/add');
 echo form_header(lang('firewall_standard_service'));
 
-echo field_dropdown('service', $services, $service, lang('firewall_service'));
+echo field_simple_dropdown('service', $services, $service, lang('firewall_service'));
 
 echo button_set(
     array(
-        form_submit_add('standard', 'high'),
+        form_submit_add('submit_standard', 'high'),
         anchor_cancel('/app/incoming_firewall/allow')
     )
 );
@@ -59,16 +59,16 @@ echo form_close();
 // Port
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('/app/incoming_firewall/allow/add_port');
+echo form_open('incoming_firewall/allow/add');
 echo form_header(lang('firewall_port'));
 
 echo field_input('port_nickname', $port_nickname, lang('firewall_nickname'));
-echo field_dropdown('port_protocol', $protocols, $port_protocol, lang('firewall_protocol'));
+echo field_simple_dropdown('port_protocol', $protocols, $port_protocol, lang('firewall_protocol'));
 echo field_input('port', $port, lang('firewall_port'));
 
 echo button_set(
     array(
-        form_submit_add('port', 'high'),
+        form_submit_add('submit_port', 'high'),
         anchor_cancel('/app/incoming_firewall/allow')
     )
 );
@@ -80,17 +80,17 @@ echo form_close();
 // Port range
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('/app/incoming_firewall/allow/add_range');
+echo form_open('incoming_firewall/allow/add');
 echo form_header(lang('firewall_port_range'));
 
 echo field_input('range_nickname', $range_nickname, lang('firewall_nickname'));
-echo field_dropdown('range_protocol', $protocols, $range_protocol, lang('firewall_protocol'));
+echo field_simple_dropdown('range_protocol', $protocols, $range_protocol, lang('firewall_protocol'));
 echo field_input('range_from', $range_from, lang('base_from'));
 echo field_input('range_to', $range_To, lang('base_to'));
 
 echo button_set(
     array(
-        form_submit_add('port', 'high'),
+        form_submit_add('submit_range', 'high'),
         anchor_cancel('/app/incoming_firewall/allow')
     )
 );

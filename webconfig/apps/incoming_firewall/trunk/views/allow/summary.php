@@ -58,7 +58,7 @@ $anchors = array(anchor_add('/app/incoming_firewall/allow/add'));
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($ports as $rule) {
-    $key = $rule['protocol'] . '|' . $rule['port'];
+    $key = $rule['protocol'] . '/' . $rule['port'];
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 
@@ -83,7 +83,7 @@ foreach ($ports as $rule) {
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($ranges as $rule) {
-    $key = $rule['protocol'] . '|' . $rule['from'] . '|' . $rule['to'];
+    $key = $rule['protocol'] . '/' . $rule['from'] . '/' . $rule['to'];
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 
