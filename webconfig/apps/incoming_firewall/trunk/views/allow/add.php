@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Incomfing firewall add rule view.
+ * Incoming firewall add rule view.
  *
  * @category   ClearOS
  * @package    Incoming_Firewall
