@@ -46,14 +46,14 @@ $app['core_file_manifest'] = array(
    'app-date.cron' => array(
         'target' => '/etc/cron.d/app-date',
         'mode' => '0644',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
     ),
 
    'timesync' => array(
         'target' => '/usr/sbin/timesync',
         'mode' => '0755',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
     ),
 );

@@ -40,7 +40,7 @@ $app['core_file_manifest'] = array(
    'flexshare.conf' => array(
         'target' => '/etc/flexshare.conf',
         'mode' => '0600',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
         'config' => TRUE,
         'config_params' => 'noreplace',
@@ -49,7 +49,7 @@ $app['core_file_manifest'] = array(
    'updateflexperms' => array(
         'target' => '/usr/sbin/updateflexperms',
         'mode' => '0755',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
     ),
 );

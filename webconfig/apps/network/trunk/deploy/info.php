@@ -47,13 +47,13 @@ $app['core_file_manifest'] = array(
    'dhclient-exit-hooks' => array(
         'target' => '/etc/dhclient-exit-hooks',
         'mode' => '0644',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
     ),
    'network' => array(
         'target' => '/etc/network',
         'mode' => '0644',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
         'config' => TRUE,
         'config_params' => 'noreplace',

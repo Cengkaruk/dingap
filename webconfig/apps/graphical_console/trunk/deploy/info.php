@@ -43,13 +43,13 @@ $app['core_file_manifest'] = array(
    'xinitrc' => array(
         'target' => '/var/lib/clearconsole/.xinitrc',
         'mode' => '0644',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
     ),
    'Xdefaults' => array(
         'target' => '/var/lib/clearconsole/.Xdefaults',
         'mode' => '0644',
-        'onwer' => 'root',
+        'owner' => 'root',
         'group' => 'root',
     ),
 );
