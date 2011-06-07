@@ -27,8 +27,6 @@ $app['subcategory'] = lang('base_subcategory_storage');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'app-setup', 
-    'app-base', 
     'app-mail_notification', 
     'app-date', 
     'mdadm',
