@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Incoming firewall controller.
+ * Incoming firewall add block host view.
  *
- * @category   Apps
+ * @category   ClearOS
  * @package    Incoming_Firewall
- * @subpackage Controllers
+ * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -25,44 +25,33 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
+//  
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// C L A S S
+// Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Incoming firewall controller.
- *
- * @category   Apps
- * @package    Incoming_Firewall
- * @subpackage Controllers
- * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/incoming_firewall/
- */
+$this->lang->load('base');
+$this->lang->load('firewall');
 
-class Incoming_Firewall extends ClearOS_Controller
-{
-	/**
-	 * Firewall server overview.
-	 */
+///////////////////////////////////////////////////////////////////////////////
+// Form
+///////////////////////////////////////////////////////////////////////////////
 
-	function index()
-	{
-		// Load libraries
-		//---------------
+echo form_open('incoming_firewall/block/add');
+echo form_header(lang('firewall_host'));
 
-		$this->lang->load('incoming_firewall');
+echo field_input('nickname', $nickname, lang('firewall_nickname'));
+echo field_input('host', $host, lang('firewall_host'));
 
-		// Load views
-		//-----------
+echo button_set(
+    array(
+        form_submit_add('submit', 'high'),
+        anchor_cancel('/app/incoming_firewall/block')
+    )
+);
 
-        $views = array('incoming_firewall/allow', 'incoming_firewall/block');
-
-        $this->page->view_forms($views, lang('incoming_firewall_incoming_firewall'));
-	}
-}
+echo form_footer();
+echo form_close();

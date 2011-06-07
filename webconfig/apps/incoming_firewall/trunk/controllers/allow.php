@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Firewall incoming controller.
+ * Firewall incoming allow controller.
  *
  * @category   Apps
- * @package    System_Firewall
+ * @package    Incoming_Firewall
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -34,10 +34,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Firewall incoming controller.
+ * Firewall incoming allow controller.
  *
  * @category   Apps
- * @package    System_Firewall
+ * @package    Incoming_Firewall
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -48,7 +48,7 @@
 class Allow extends ClearOS_Controller
 {
 	/**
-	 * Incoming overview.
+	 * Incoming allow overview.
 	 */
 
     function index()
@@ -72,7 +72,7 @@ class Allow extends ClearOS_Controller
 		// Load views
 		//-----------
 
-        $this->page->view_form('incoming_firewall/allow/summary', $data, lang('incoming_firewall_allow_incoming'));
+        $this->page->view_form('incoming_firewall/allow/summary', $data, lang('incoming_firewall_allowed_incoming_connections'));
 	}
 
 	/**
@@ -153,7 +153,7 @@ class Allow extends ClearOS_Controller
 		// Load the views
 		//---------------
 
-        $this->page->view_form('incoming_firewall/allow/add_edit', $data, lang('base_edit'));
+        $this->page->view_form('incoming_firewall/allow/add', $data, lang('base_add'));
 	}
 
 	/**

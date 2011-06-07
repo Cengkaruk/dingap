@@ -22,6 +22,15 @@ $app['name'] = lang('incoming_firewall_incoming_firewall');
 $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_firewall');
 
+
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['incoming_firewall']['title'] = lang('incoming_firewall_incoming_firewall');
+$app['controllers']['allow']['title'] = lang('incoming_firewall_allowed_incoming_connections');
+$app['controllers']['block']['title'] = lang('incoming_firewall_blocked_incoming_connections');
+
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////

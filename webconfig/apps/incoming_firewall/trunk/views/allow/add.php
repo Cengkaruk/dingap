@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Organization view.
+ * Incomfing firewall add rule view.
  *
  * @category   ClearOS
- * @package    Organization
+ * @package    Incoming_Firewall
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/organization/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/incoming_firewall/
  */
 
 ///////////////////////////////////////////////////////////////////////////////

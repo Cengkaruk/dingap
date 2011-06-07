@@ -4,7 +4,7 @@
  * Incoming firewall class.
  *
  * @category   Apps
- * @package    System_Firewall
+ * @package    Incoming_Firewall
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2004-2011 ClearFoundation
@@ -78,7 +78,7 @@ clearos_load_library('base/Validation_Exception');
  * Incoming firewall class.
  *
  * @category   Apps
- * @package    System_Firewall
+ * @package    Incoming_Firewall
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2004-2011 ClearFoundation
@@ -667,7 +667,7 @@ class Incoming extends Firewall
      * @throws Engine_Exception, ValidationException
      */
 
-    public function set_enable_block_host_state($status, $address)
+    public function set_block_host_state($status, $address)
     {
         clearos_profile(__METHOD__, __LINE__);
 
