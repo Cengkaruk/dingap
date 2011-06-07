@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Add sudoers entries
+#--------------------
+
+/usr/sbin/addsudo /sbin/mdadm app-raid
+/usr/sbin/addsudo /sbin/sfdisk app-raid
+/usr/sbin/addsudo /usr/sbin/mpt-status app-raid
+/usr/sbin/addsudo /usr/sbin/tw_cli app-raid

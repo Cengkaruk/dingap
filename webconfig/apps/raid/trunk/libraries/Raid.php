@@ -84,9 +84,11 @@ clearos_load_library('tasks/Cron');
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -852,8 +854,8 @@ class Raid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $configfile = new Configuration_File(self::FILE_CONFIG);
-
+            $configfile = new Configuration_File(self::FILE_CONFIG);
+            
         try {
             $this->config = $configfile->Load();
         } catch (Exception $e) {
