@@ -15,3 +15,4 @@ $lang['account_import_upload'] = 'Upload CSV File';
 $lang['account_import_filename'] = 'Filename';
 $lang['account_import_size'] = 'File Size';
 $lang['account_import_start_import'] = 'Start Import';
+$lang['account_import_progress'] = 'Import in progress.';

@@ -36,7 +36,7 @@
 $this->lang->load('base');
 $this->lang->load('account_import');
 
-echo lang('account_import_progress');
+echo "<h2>" . lang('account_import_progress') . "</h2>";
 echo "<br>";
 echo "<br>";
 echo progress_bar('progress', array('input' => 'progress'));
