@@ -52,12 +52,26 @@ clearos_load_language('network');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
-use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,9 +99,9 @@ class Network extends Engine
     const FILE_CONFIG = '/etc/network';
     const MODE_AUTO = 'auto';
     const MODE_GATEWAY = 'gateway';
-    const MODE_TRUSTEDGATEWAY = 'trustedgateway';
     const MODE_STANDALONE = 'standalone';
-    const MODE_TRUSTEDSTANDALONE = 'trustedstandalone';
+    const MODE_TRUSTED_GATEWAY = 'trustedgateway';
+    const MODE_TRUSTED_STANDALONE = 'trustedstandalone';
     const MODE_DMZ = 'dmz';
     const MODE_BRIDGE = 'bridge';
 
@@ -120,8 +134,10 @@ class Network extends Engine
 		try {
 			$config = new File(self::FILE_CONFIG);
 			$retval = $config->lookup_value('/^MODE=/');
+		} catch (File_No_Match_Exception $e) {
+            return self::MODE_TRUSTED_STANDALONE;
 		} catch (File_Not_Found_Exception $e) {
-            return self::MODE_TRUSTEDSTANDALONE;
+            return self::MODE_TRUSTED_STANDALONE;
 		} catch (Exception $e) {
 			throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
 		}
@@ -132,7 +148,7 @@ class Network extends Engine
         try {
             Validation_Exception::is_valid($this->validate_mode($retval));
         } catch (Exception $e) {
-		    $retval = self::MODE_TRUSTEDSTANDALONE;
+		    $retval = self::MODE_TRUSTED_STANDALONE;
         }
 
         return $retval;
@@ -173,9 +189,9 @@ class Network extends Engine
         $modes = array();
         $modes[self::MODE_AUTO] = lang('network_mode_auto');
 		$modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
-		$modes[self::MODE_TRUSTEDGATEWAY] = lang('network_mode_trustedgateway');
+		$modes[self::MODE_TRUSTED_GATEWAY] = lang('network_mode_trustedgateway');
 		$modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
-		$modes[self::MODE_TRUSTEDSTANDALONE] = lang('network_mode_trustedstandalone');
+		$modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
 		$modes[self::MODE_DMZ] = lang('network_mode_dmz');
 		$modes[self::MODE_BRIDGE] = lang('network_mode_bridge');
         return $modes;
@@ -201,9 +217,9 @@ class Network extends Engine
 		{
 		case self::MODE_AUTO:
 		case self::MODE_GATEWAY:
-		case self::MODE_TRUSTEDGATEWAY:
+		case self::MODE_TRUSTED_GATEWAY:
 		case self::MODE_STANDALONE:
-		case self::MODE_TRUSTEDSTANDALONE:
+		case self::MODE_TRUSTED_STANDALONE:
 		case self::MODE_DMZ:
 		case self::MODE_BRIDGE:
             return '';
