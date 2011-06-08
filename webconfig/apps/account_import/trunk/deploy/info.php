@@ -4,21 +4,21 @@
 // General information
 /////////////////////////////////////////////////////////////////////////////
 
-$app['basename'] = 'accounts_import';
+$app['basename'] = 'account_import';
 $app['version'] = '5.9.9.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('accounts_import_policies_app_summary');
-$app['description'] = lang('accounts_import_app_long_description');
+$app['summary'] = lang('account_import_policies_app_summary');
+$app['description'] = lang('account_import_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Account Import';
+$app['name'] = 'Account Import/Export';
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Accounts Manager';
 
