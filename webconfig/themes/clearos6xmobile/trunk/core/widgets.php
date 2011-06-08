@@ -239,6 +239,29 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
     ";
 }
 
+/**
+ * File upload input field.
+ *
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of text input element
+ * @param string $value    value of text input 
+ * @param string $label    label for text input field
+ * @param string $error    validation error message
+ * @param string $input_id input ID
+ * @param array  $options  options
+ *
+ * @return string HTML
+ */
+
+function theme_field_file($name, $value, $label, $error, $input_id, $options = NULL)
+{
+    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, 'file');
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // F I E L D  P A S S W O R D
 ///////////////////////////////////////////////////////////////////////////////
