@@ -33,14 +33,14 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\account_import\Account_Import as Import;
+use \clearos\apps\account_import\Account_Import as Account_Import;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Account Import/Export controller.
+ * File upload controller.
  *
  * @category   Apps
  * @package    Account Import
@@ -51,14 +51,14 @@ use \clearos\apps\account_import\Account_Import as Import;
  * @link       http://www.clearfoundation.com/docs/developer/apps/account_import/
  */
 
-class Account_Import extends ClearOS_Controller
+class Upload extends ClearOS_Controller
 {
 
-    /**
-     * Account_Import default controller
-     *
-     * @return view
-     */
+    function __construct()
+    {
+        parent::__construct();
+        //$this->load->helper(array('form', 'url'));
+    }
 
     function index()
     {
@@ -69,18 +69,37 @@ class Account_Import extends ClearOS_Controller
         $this->load->library('account_import/Account_Import');
         $this->lang->load('account_import');
 
-        $data['import_ready'] = $this->account_import->is_csv_file_uploaded();
+        // Handle form submit
+        //-------------------
 
-        if ($data['import_ready']) {
-            $data['filename'] = IMPORT::FILE_CSV;
-            $data['size'] = byte_format($this->account_import->get_csv_size(), 1);
-            //$data['number_of_records'] = $this->account_import->get_number_of_records();
+        if ($this->input->post('reset')) {
+            try {
+                $this->account_import->delete_csv_file();
+                redirect('/account_import');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        } if ($this->input->post('start')) {
+            redirect('/account_import/progress');
         }
+        $config['upload_path'] = CLEAROS_TEMP_DIR;
+        $config['allowed_types'] = 'csv';
+        $config['overwrite'] = TRUE;
+        $config['file_name'] = Account_Import::FILE_CSV;
 
-        // Load views
-        //-----------
+        $this->load->library('upload', $config);
 
+        if ( ! $this->upload->do_upload('csv_file')) {
+            $data['error'] = $this->upload->display_errors();
+        } else {
+            $upload = $this->upload->data();
+            $this->account_import->set_csv_file($upload['file_name']);
+            $data['filename'] = $upload['file_name'];
+            $data['import_ready'] = TRUE;
+            $data['size'] = byte_format($this->account_import->get_csv_size(), 1);
+//            $data['number_of_records'] = $this->account_import->get_number_of_records();
+        }
         $this->page->view_form('overview', $data, lang('account_import_account_import'));
     }
-
 }

@@ -119,14 +119,9 @@ class Account_Import extends Daemon
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-	const PATH_TEMPLATE = '/usr/share/system/modules/user-import/';
-	const FILE_ODS_TEMPLATE = 'import_template.ods';
-	const FILE_XLS_TEMPLATE = 'import_template.xls';
-	const FILE_CSV_TEMPLATE = 'import_template.csv';
-	const FILE_IMPORT_SCRIPT = '/var/webconfig/scripts/userimport.php';
-	const FILE_IMPORT = '/usr/webconfig/tmp/import.csv';
-
-	protected $csv_file = null;
+    const FILE_CSV_TEMPLATE = 'import_template.csv';
+    const FILE_IMPORT_SCRIPT = '/var/webconfig/scripts/userimport.php';
+    const FILE_CSV = 'import.csv';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -153,277 +148,322 @@ class Account_Import extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
+        try {
             // TODO
-			//return is_import_running();
+            //return is_import_running();
             return TRUE;
-		} catch (Exception $e) {
-			return false;
-		}
+        } catch (Exception $e) {
+            return FALSE;
+        }
     }
 
-	/**
-	 * Perform an account export.
-	 *
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Perform an account export.
+     *
+     * @throws Engine_Exception
+     */
 
-	function export()
-	{
+    function export()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$hostname = new Hostname();
-			$filename = $hostname->get() . '.csv';
-			$file = new File(COMMON_TEMP_DIR . "/" . $filename, false);
+        try {
+            $hostname = new Hostname();
+            $filename = $hostname->get() . '.csv';
+            $file = new File(COMMON_TEMP_DIR . "/" . $filename, FALSE);
 
-			if ($file->exists())
-				$file->delete();
-			$file->create("webconfig", "webconfig", 640);
-			$file->add_lines("username,firstName,lastName,password,street,roomNumber,city,region," .
-				"country,postalCode,organization,unit,telephone,fax,mailFlag,mailquota," .
-				"proxyFlag,openvpnFlag,pptpFlag,sambaFlag,ftpFlag,webFlag,pbxState,pbxPresenceState,pbxExtension,groups" .
-				"\n"
-			);
-			$usermanager = new User_Manager();
-			$groupmanager = new Group_Manager();
-			$userlist = $usermanager->get_all_users();
-			$groups = $groupmanager->get_group_list();
-			foreach ($userlist as $username) {
-				// Reset group list
-				$grouplist = '';
-				$user = new User($username);
-				$userinfo = $user->get_info();
-				foreach ($groups as $group) {
-					if (in_array($username, $group['members']))
-						$grouplist .= $group['group'] . ',';
-				}
+            if ($file->exists())
+                $file->delete();
+            $file->create("webconfig", "webconfig", 640);
+            $file->add_lines("username,firstName,lastName,password,street,roomNumber,city,region," .
+                "country,postalCode,organization,unit,telephone,fax,mailFlag,mailquota," .
+                "proxyFlag,openvpnFlag,pptpFlag,sambaFlag,ftpFlag,webFlag,pbxState,pbxPresenceState,pbxExtension,groups" .
+                "\n"
+            );
+            $usermanager = new User_Manager();
+            $groupmanager = new Group_Manager();
+            $userlist = $usermanager->get_all_users();
+            $groups = $groupmanager->get_group_list();
+            foreach ($userlist as $username) {
+                // Reset group list
+                $grouplist = '';
+                $user = new User($username);
+                $userinfo = $user->get_info();
+                foreach ($groups as $group) {
+                    if (in_array($username, $group['members']))
+                        $grouplist .= $group['group'] . ',';
+                }
 
-				$grouplist = preg_replace('/(.*),$/', '${1}', $grouplist);
-				
-				$file->add_lines(
-					"\"$username\"," .
-					"\"" . $userinfo['firstName'] . "\"," .
-					"\"" . $userinfo['lastName'] . "\"," .
-					"\"\"," . // Password blank for now
-					"\"" . $userinfo['street'] . "\"," .
-					"\"" . $userinfo['roomNumber'] . "\"," .
-					"\"" . $userinfo['city'] . "\"," .
-					"\"" . $userinfo['region'] . "\"," .
-					"\"" . $userinfo['country'] . "\"," .
-					"\"" . $userinfo['postalCode'] . "\"," .
-					"\"" . $userinfo['organization'] . "\"," .
-					"\"" . $userinfo['unit'] . "\"," .
-					"\"" . $userinfo['telephone'] . "\"," .
-					"\"" . $userinfo['fax'] . "\"," .
-					((isset($userinfo['mailFlag']) && $userinfo['mailFlag']) ? "TRUE" : "FALSE") . "," .
-					"\"" . $userinfo['mailquota'] . "\"," .
-					((isset($userinfo['proxyFlag']) && $userinfo['proxyFlag']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['openvpnFlag']) && $userinfo['openvpnFlag']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['pptpFlag']) && $userinfo['pptpFlag']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['sambaFlag']) && $userinfo['sambaFlag']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['ftpFlag']) && $userinfo['ftpFlag']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['webFlag']) && $userinfo['webFlag']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['pbxState']) && $userinfo['pbxState']) ? "TRUE" : "FALSE") . "," .
-					((isset($userinfo['pbxPresenceState']) && $userinfo['pbxPresenceState']) ? "TRUE" : "FALSE") . "," .
-					"\"" . $userinfo['pbxExtension'] . "\"," .
-					"\"" . $grouplist . "\"" .
-					"\n"
-				);
-			}
-			return $filename;
-		} catch (Exception $e) {
+                $grouplist = preg_replace('/(.*),$/', '${1}', $grouplist);
+                
+                $file->add_lines(
+                    "\"$username\"," .
+                    "\"" . $userinfo['firstName'] . "\"," .
+                    "\"" . $userinfo['lastName'] . "\"," .
+                    "\"\"," . // Password blank for now
+                    "\"" . $userinfo['street'] . "\"," .
+                    "\"" . $userinfo['roomNumber'] . "\"," .
+                    "\"" . $userinfo['city'] . "\"," .
+                    "\"" . $userinfo['region'] . "\"," .
+                    "\"" . $userinfo['country'] . "\"," .
+                    "\"" . $userinfo['postalCode'] . "\"," .
+                    "\"" . $userinfo['organization'] . "\"," .
+                    "\"" . $userinfo['unit'] . "\"," .
+                    "\"" . $userinfo['telephone'] . "\"," .
+                    "\"" . $userinfo['fax'] . "\"," .
+                    ((isset($userinfo['mailFlag']) && $userinfo['mailFlag']) ? "TRUE" : "FALSE") . "," .
+                    "\"" . $userinfo['mailquota'] . "\"," .
+                    ((isset($userinfo['proxyFlag']) && $userinfo['proxyFlag']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['openvpnFlag']) && $userinfo['openvpnFlag']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['pptpFlag']) && $userinfo['pptpFlag']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['sambaFlag']) && $userinfo['sambaFlag']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['ftpFlag']) && $userinfo['ftpFlag']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['webFlag']) && $userinfo['webFlag']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['pbxState']) && $userinfo['pbxState']) ? "TRUE" : "FALSE") . "," .
+                    ((isset($userinfo['pbxPresenceState']) && $userinfo['pbxPresenceState']) ? "TRUE" : "FALSE") . "," .
+                    "\"" . $userinfo['pbxExtension'] . "\"," .
+                    "\"" . $grouplist . "\"" .
+                    "\n"
+                );
+            }
+            return $filename;
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Perform an account import.
-	 *
-	 * @throws Engine_Exception
-	 */
+    /**
+     * Perform an account import.
+     *
+     * @throws Engine_Exception
+     */
 
-	function import()
-	{
+    function import()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		if (is_import_running())
-			throw new Engine_Exception(lang('account_import_running'), CLEAROS_ERROR);
+        if (is_import_running())
+            throw new Engine_Exception(lang('account_import_running'), CLEAROS_ERROR);
 
-		try {
-			if ($this->csv_file == null)
-				throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-			$file = new File($this->csv_file, true);
+        try {
+            $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
+            if (!$file->exists())
+                throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
 
-			if (!$file->exists())
-				throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-
-			$file->move_to(self::FILE_IMPORT);
-			try {
-				$options = array();
-				$options['background'] = true;
-				$shell = new Shell_Exec;
-				$shell->Execute(self::FILE_IMPORT_SCRIPT, '', true, $options);
-			} catch (Exception $e) {
+            try {
+                $options = array();
+                $options['background'] = true;
+                $shell = new Shell_Exec;
+                $shell->execute(self::FILE_IMPORT_SCRIPT, 'TODO - Add filename', true, $options);
+            } catch (Exception $e) {
                 throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-			}
-		} catch (File_Not_Found_Exception $e) {
+            }
+        } catch (File_Not_Found_Exception $e) {
             throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Set the internal CSV filename.
-     * @param string $filename import filename
-	 *
-	 * @throws Engine_Exception, File_Not_Found_Exception
-	 */
+    /**
+     * Put the CSV file in the cache directory, ready for import begin.
+     *
+     * @filename string CSV filename
+     * @return void
+     * @throws Engine_Exception, File_Not_Found_Exception
+     */
 
-	function set_csv_file($filename)
-	{
+    function set_csv_file($filename)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$file = new File($filename, true);
-			if (!$file->exists())
-				throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-			$this->csv_file = $filename;
-		} catch (File_Not_Found_Exception $e) {
+        try {
+            $file = new File(CLEAROS_TEMP_DIR . '/' . $filename, TRUE);
+            if (!$file->exists())
+                throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+
+            // Move uploaded file to cache
+            $file->move_to(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV);
+            $file->chown('root','root'); 
+            $file->chmod(600);
+        } catch (File_Not_Found_Exception $e) {
             throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Get the number of records.
-	 *
-	 * @return integer the number of records
-	 * @throws Engine_Exception, File_Not_Found_Exception
-	 */
+    /**
+     * Is CSV file uploaded.
+     *
+     * @return boolean true/FALSE
+     * @throws Engine_Exception, File_Not_Found_Exception
+     */
 
-	function get_number_of_records()
-	{
+    function is_csv_file_uploaded()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			if ($this->csv_file == null)
-				throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-			$csv = new File_CSV_DataSource();
-			$csv->load($this->csv_file);
-			return $csv->countRows();
-		} catch (File_Not_Found_Exception $e) {
-            throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		} catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        try {
+            $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
+            if (!$file->exists())
+                return FALSE;
+            return TRUE;
+        } catch (Exception $e) {
+            return FALSE;
+        }
+    }
 
-	/**
-	 * Get the size of the CSV file.
-	 *
-	 * @return string the size of the file
-	 * @throws EngineException
-	 */
+    /**
+     * Resets (deletes) the CSV file.
+     *
+     * @return void
+     * @throws Engine_Exception, File_Not_Found_Exception
+     */
 
-	function get_size()
-	{
+    function delete_csv_file()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-            $this->load->helper('number');
-			if ($this->csv_file == null)
-				throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-			$file = new File($this->csv_file, true);
-			return byte_format($file->get_size(), 1);
-		} catch (File_Not_Found_Exception $e) {
+        try {
+            $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
+            if (!$file->exists())
+                throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
+            $file->delete();
+        } catch (File_Not_Found_Exception $e) {
             throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Add a user.
-	 *
-	 * @param array $userinfo array of user info
-	 * @throws User_Already_Exists_Exception Validation_Exception
-	 */
+    /**
+     * Resets (deletes) the CSV file.
+     *
+     * @return integer size 
+     * @throws Engine_Exception, File_Not_Found_Exception
+     */
 
-	function add_user($userinfo)
-	{
+    function get_csv_size()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$this->_convert_flags($userinfo);
+        try {
+            $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
+            if (!$file->exists())
+                throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
+            return $file->get_size();
+        } catch (File_Not_Found_Exception $e) {
+            throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+    }
 
-			// Need to pop a few variables into place
-			$username = strtolower($userinfo['username']);
-			unset($userinfo['username']);
-			// Add password verification
-			$userinfo['verify'] = $userinfo['password'];
-			$userinfo['webconfigFlag'] = true;
-			$user = new User($username);
+    /**
+     * Get the number of records.
+     *
+     * @return integer the number of records
+     * @throws Engine_Exception, File_Not_Found_Exception
+     */
 
-			try {
-				$user->Add($userinfo);
-			} catch (User_Already_Exists_Exception $e) {
-				throw new User_Already_Exists_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-			} catch (Exception $e) {
-				$errors = $user->get_validation_errors();
-				throw new Validation_Exception($errors[0]);
-			}
+    function get_number_of_records()
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-		} catch (User_Already_Exists_Exception $e) {
+        try {
+            $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
+            if (!$file->exists())
+                throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
+            $csv = new File_CSV_DataSource();
+            $csv->load(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV);
+            return $csv->countRows();
+        } catch (File_Not_Found_Exception $e) {
+            throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+    }
+
+    /**
+     * Add a user.
+     *
+     * @param array $userinfo array of user info
+     * @throws User_Already_Exists_Exception Validation_Exception
+     */
+
+    function add_user($userinfo)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $this->_convert_flags($userinfo);
+
+            // Need to pop a few variables into place
+            $username = strtolower($userinfo['username']);
+            unset($userinfo['username']);
+            // Add password verification
+            $userinfo['verify'] = $userinfo['password'];
+            $userinfo['webconfigFlag'] = true;
+            $user = new User($username);
+
+            try {
+                $user->Add($userinfo);
+            } catch (User_Already_Exists_Exception $e) {
+                throw new User_Already_Exists_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            } catch (Exception $e) {
+                $errors = $user->get_validation_errors();
+                throw new Validation_Exception($errors[0]);
+            }
+
+        } catch (User_Already_Exists_Exception $e) {
             throw new User_Already_Exists_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Validation_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Add a user to a group.
-	 *
-	 * @param string $username username
-	 * @param string $group    group
-	 * @throws Engine_Exception, Group_Not_Found_Exception
-	 */
+    /**
+     * Add a user to a group.
+     *
+     * @param string $username username
+     * @param string $group    group
+     * @throws Engine_Exception, Group_Not_Found_Exception
+     */
 
-	function add_user_to_group($username, $group)
-	{
+    function add_user_to_group($username, $group)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		// We do this on a group by group basis so we can log individual errors
-		try {
-			$group = new Group($group);
-			$group->add_member($username);
-		} catch (Group_Not_Found_Exception $e) {
+        // We do this on a group by group basis so we can log individual errors
+        try {
+            $group = new Group($group);
+            $group->add_member($username);
+        } catch (Group_Not_Found_Exception $e) {
             throw new Group_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
-	}
+        }
+    }
 
-	/**
-	 * Returns template type options.
-	 *
-	 * @return array
-	 */
+    /**
+     * Returns template type options.
+     *
+     * @return array
+     */
 
-	public function get_template_types()
-	{
+    public function get_template_types()
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		$options = array(
-			self::FILE_ODS_TEMPLATE => lang('account_import_type_ods'),
-			self::FILE_XLS_TEMPLATE => lang('account_import_type_xls'),
-			self::FILE_CSV_TEMPLATE => lang('account_import_type_csv')
-		);
+        $options = array(
+            self::FILE_ODS_TEMPLATE => lang('account_import_type_ods'),
+            self::FILE_XLS_TEMPLATE => lang('account_import_type_xls'),
+            self::FILE_CSV_TEMPLATE => lang('account_import_type_csv')
+        );
 
-		return $options;
-	}
+        return $options;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
@@ -437,37 +477,37 @@ class Account_Import extends Daemon
     * @throws Engine_Exception
     */
 
-	protected function _convert_flags(&$userinfo)
-	{
+    protected function _convert_flags(&$userinfo)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		// Convert empty strings to null
-		foreach ($userinfo as $key => $value) {
-			if (empty($value))
-				$userinfo[$key] = NULL;
-		}
+        // Convert empty strings to null
+        foreach ($userinfo as $key => $value) {
+            if (empty($value))
+                $userinfo[$key] = NULL;
+        }
 
-		// Convert to booleans
-		$attribute_list = array(
-			'ftpFlag',
-			'mailFlag',
-			'openvpnFlag',
-			'pptpFlag',
-			'sambaFlag',
-			'webFlag',
-			'webconfigFlag',
-			'proxyFlag',
-			'pbxState',
-			'pbxPresenceState'
-		);
+        // Convert to booleans
+        $attribute_list = array(
+            'ftpFlag',
+            'mailFlag',
+            'openvpnFlag',
+            'pptpFlag',
+            'sambaFlag',
+            'webFlag',
+            'webconfigFlag',
+            'proxyFlag',
+            'pbxState',
+            'pbxPresenceState'
+        );
 
-		foreach ($attribute_list as $attribute) {
-			if (isset($userinfo[$attribute]) && $userinfo[$attribute] && !eregi('false|no', $userinfo[$attribute]))
-				$userinfo[$attribute] = true;
-			else
-				$userinfo[$attribute] = false;
-		}
-	}
+        foreach ($attribute_list as $attribute) {
+            if (isset($userinfo[$attribute]) && $userinfo[$attribute] && !eregi('FALSE|no', $userinfo[$attribute]))
+                $userinfo[$attribute] = true;
+            else
+                $userinfo[$attribute] = FALSE;
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Account Import/Export overview.
+ * Account Import progress.
  *
  * @category   Apps
  * @package    Account Import
@@ -36,44 +36,14 @@
 $this->lang->load('base');
 $this->lang->load('account_import');
 
-if ($error)
-   echo infobox_critical(lang('account_import_upload_error'), $error);
+echo lang('account_import_progress');
+echo "<br>";
+echo "<br>";
+echo progress_bar('progress', array('input' => 'progress'));
+echo "<br>";
+echo "<br>";
+echo "<div id='details'></div>";
 
-///////////////////////////////////////////////////////////////////////////////
-// Form open
-///////////////////////////////////////////////////////////////////////////////
-
-
-echo form_open_multipart('account_import/upload');
-echo form_header(lang('account_import_users'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-
-if ($import_ready)
-    $buttons = array(
-        form_submit_custom('start', lang('account_import_start_import'), 'high'),
-        form_submit_custom('reset', lang('base_reset'), 'high')
-    );
-else
-    $buttons = array(
-        form_submit_custom('upload', lang('account_import_upload'), 'high')
-    );
-
-echo field_file('csv_file', $filename, lang('account_import_csv_file'), $import_ready);
-
-if ($import_ready) {
-    echo field_file('size', $size, lang('account_import_size'), $import_ready);
-    echo field_file('number', $number_of_records, lang('account_import_number_of_records'), $import_ready);
-}
-
-echo button_set($buttons);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_footer();
-echo form_close();
+echo "<script type='text/javascript'>";
+echo "get_progress();";
+echo "</script>\n";

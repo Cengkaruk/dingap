@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Account import/export controller.
+ * Account import progress controller.
  *
  * @category   Apps
  * @package    Account Import
@@ -33,14 +33,12 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\account_import\Account_Import as Import;
-
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Account Import/Export controller.
+ * Account Import progress controller.
  *
  * @category   Apps
  * @package    Account Import
@@ -51,11 +49,11 @@ use \clearos\apps\account_import\Account_Import as Import;
  * @link       http://www.clearfoundation.com/docs/developer/apps/account_import/
  */
 
-class Account_Import extends ClearOS_Controller
+class Progress extends ClearOS_Controller
 {
 
     /**
-     * Account_Import default controller
+     * Progress default controller
      *
      * @return view
      */
@@ -65,22 +63,13 @@ class Account_Import extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->helper('number');
         $this->load->library('account_import/Account_Import');
         $this->lang->load('account_import');
-
-        $data['import_ready'] = $this->account_import->is_csv_file_uploaded();
-
-        if ($data['import_ready']) {
-            $data['filename'] = IMPORT::FILE_CSV;
-            $data['size'] = byte_format($this->account_import->get_csv_size(), 1);
-            //$data['number_of_records'] = $this->account_import->get_number_of_records();
-        }
 
         // Load views
         //-----------
 
-        $this->page->view_form('overview', $data, lang('account_import_account_import'));
+        $this->page->view_form('progress', $data, lang('account_import_account_import'));
     }
 
 }
