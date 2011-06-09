@@ -1,7 +1,7 @@
 <?php
 
-$lang['organization_app_summary'] = 'Organization app summary';
-$lang['organization_app_long_description'] = 'Organization long description';
+$lang['organization_app_summary'] = 'Organization app summary'; // FIXME
+$lang['organization_app_long_description'] = 'Organization long description'; // FIXME
 $lang['organization_organization'] = 'Organization';
 
 $lang['organization_city'] = 'City';
