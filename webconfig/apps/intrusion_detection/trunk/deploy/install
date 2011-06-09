@@ -12,3 +12,12 @@ if [ -e /etc/snort.conf ]; then
 fi
 
 cp /usr/clearos/apps/intrusion_detection/deploy/snort.conf /etc/snort.conf
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-intrusion-detection-core - enabling intrusion detection server"
+chkconfig snort on
+
+logger -p local6.notice -t installer "app-intrusion-detection-core - starting intrusion detection server"
+service snort start
