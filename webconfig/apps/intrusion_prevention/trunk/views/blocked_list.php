@@ -50,6 +50,7 @@ $headers = array(
 // Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
+// FIXME: add delete all button / action
 $anchors = array();
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,6 +60,7 @@ $anchors = array();
 foreach ($blocked as $id => $details) {
 
     $ip = $details['blocked_ip'];
+    $order_ip = "<span style='display: none'>" . sprintf("%032b", ip2long($ip)) . "</span>$ip";
     $sid = $details['sid'];
     $timestamp = strftime("%c", $details['timestamp']);
 
@@ -77,13 +79,11 @@ foreach ($blocked as $id => $details) {
     // Item details
     ///////////////////////////////////////////////////////////////////////////
 
-    // FIXME: is IP column in the proper sort order?
-
     $item['title'] = $ip;
     $item['action'] = '/app/intrusion_prevention/blocked_list/delete/' . $ip;
     $item['anchors'] = $detail_buttons;
     $item['details'] = array(
-        $ip,
+        $order_ip,
         $sid,
         $timestamp,
     );

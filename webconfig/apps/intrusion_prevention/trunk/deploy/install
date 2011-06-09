@@ -1,4 +1,15 @@
 #!/bin/sh
 
 # Add sudoers entries
+#--------------------
 /usr/sbin/addsudo /usr/bin/snortsam-state app-intrusion-prevention-core
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-intrusion-prevention-core - enabling intrusion prevention server"
+chkconfig snortsam on
+
+logger -p local6.notice -t installer "app-intrusion-prevention-core - starting intrusion prevention server"
+service snortsam start
+~                         

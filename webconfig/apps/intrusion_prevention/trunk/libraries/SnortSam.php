@@ -319,8 +319,8 @@ class SnortSam extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: add call to network utils
-        // return lang('network_validate_ip_invalid');
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('network_ip_is_invalid');
     }
 
     /**
