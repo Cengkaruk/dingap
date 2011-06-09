@@ -81,7 +81,7 @@ class Antiphishing extends ClearOS_Controller
                 $this->clamav->set_phishing_always_block_cloak($this->input->post('block_cloak'));
                 $this->clamav->set_phishing_always_block_ssl_mismatch($this->input->post('block_ssl_mismatch'));
 
-                $this->clamav->reset();
+                $this->clamav->reset(TRUE);
 
                 $this->page->set_status_updated();
             } catch (Exception $e) {

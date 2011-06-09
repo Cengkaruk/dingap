@@ -47,10 +47,10 @@ echo form_header(lang('base_settings'));
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_toggle_enable_disable('signatures', $signatures, lang('antivirus_signature_engine'));
-echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antivirus_heuristics_engine'));
-echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antivirus_block_ssl_mismatch'));
-echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antivirus_block_cloaked'));
+echo field_toggle_enable_disable('signatures', $signatures, lang('antiphishing_signature_engine'));
+echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antiphishing_heuristics_engine'));
+echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antiphishing_block_ssl_mismatch'));
+echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antiphishing_block_cloaked'));
 
 echo button_set( array( form_submit_update('submit', 'high') ));
 
