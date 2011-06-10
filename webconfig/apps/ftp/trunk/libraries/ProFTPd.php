@@ -64,10 +64,8 @@ clearos_load_library('base/File');
 // Exceptions
 //-----------
 
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,8 +110,7 @@ class ProFTPd extends Daemon
     /**
      * Returns max instances.
      *
-     *
-     * @return int max instances
+     * @return integer max instances
      * @throws Engine_Exception
      */
 
@@ -122,6 +119,7 @@ class ProFTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
+
         $retval = $file->lookup_value("/^MaxInstances\s+/i");
 
         return $retval;
@@ -130,7 +128,7 @@ class ProFTPd extends Daemon
     /**
      * Returns port number.
      *
-     * @return int port
+     * @return integer port
      * @throws Engine_Exception
      */
 
@@ -139,6 +137,7 @@ class ProFTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
+
         $retval = $file->lookup_value("/^Port\s+/i");
 
         return $retval;
@@ -156,6 +155,7 @@ class ProFTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
+
         $retval = $file->lookup_value("/^ServerName\s+/i");
         $retval = preg_replace("/\"/", "", $retval);
 
@@ -165,29 +165,30 @@ class ProFTPd extends Daemon
     /**
      * Sets max instances.
      *
-     * @param int $maxinstances max instances
+     * @param integer $max_instances max instances
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function set_max_instances($maxinstances)
+    public function set_max_instances($max_instances)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_max_instances($maxinstances));
+        Validation_Exception::is_valid($this->validate_max_instances($max_instances));
 
         $file = new File(self::FILE_CONFIG);
-        $match = $file->replace_lines("/^MaxInstances\s+/i", "MaxInstances $maxinstances\n");
+
+        $match = $file->replace_lines("/^MaxInstances\s+/i", "MaxInstances $max_instances\n");
 
         if (! $match)
-            $file->add_lines_after("MaxInstances $maxinstances\n", "/^[^#]/");
+            $file->add_lines_after("MaxInstances $max_instances\n", "/^[^#]/");
     }
 
     /**
      * Sets port number.
      *
-     * @param int $port port
+     * @param integer $port port
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
@@ -200,6 +201,7 @@ class ProFTPd extends Daemon
         Validation_Exception::is_valid($this->validate_port($port));
 
         $file = new File(self::FILE_CONFIG);
+
         $match = $file->replace_lines("/^Port\s+/i", "Port $port\n");
 
         if (! $match)
@@ -209,23 +211,24 @@ class ProFTPd extends Daemon
     /**
      * Sets server name.
      *
-     * @param string $servername server name
+     * @param string $server_name server name
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function set_server_name($servername)
+    public function set_server_name($server_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_server_name($servername));
+        Validation_Exception::is_valid($this->validate_server_name($server_name));
 
         $file = new File(self::FILE_CONFIG);
-        $match = $file->replace_lines("/^ServerName\s+/i", "ServerName \"$servername\"\n");
+
+        $match = $file->replace_lines("/^ServerName\s+/i", "ServerName \"$server_name\"\n");
 
         if (! $match)
-            $file->add_lines_after("ServerName \"$servername\"\n", "/^[^#]/");
+            $file->add_lines_after("ServerName \"$server_name\"\n", "/^[^#]/");
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -233,34 +236,34 @@ class ProFTPd extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validation routine for servername
+     * Validation routine for server_name
      *
-     * @param string $servername server name
+     * @param string $server_name server name
      *
-     * @return boolean TRUE if servername is valid
+     * @return boolean TRUE if server_name is valid
      */
 
-    public function validate_server_name($servername)
+    public function validate_server_name($server_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match("/^[A-Za-z0-9\.\- ]+$/", $servername))
+        if (! preg_match("/^[A-Za-z0-9\.\- ]+$/", $server_name))
             return lang('ftp_server_name_is_invalid');
     }
 
     /**
-     * Validation routine for maxinstances
+     * Validation routine for max_instances
      *
-     * @param string $maxinstances max instances
+     * @param string $max_instances max instances
      *
-     * @return boolean TRUE if maxinstances is valid
+     * @return boolean TRUE if max_instances is valid
      */
 
-    public function validate_max_instances($maxinstances)
+    public function validate_max_instances($max_instances)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match("/^[0-9]+$/", $maxinstances))
+        if (! preg_match("/^[0-9]+$/", $max_instances))
             return lang('ftp_maximum_instances_is_invalid');
     }
 
@@ -268,7 +271,7 @@ class ProFTPd extends Daemon
     /**
      * Validation routine for port
      *
-     * @param int $port port
+     * @param integer $port port
      *
      * @return boolean TRUE if port is valid
      */

@@ -4,7 +4,7 @@
  * FTP manager view.
  *
  * @category   ClearOS
- * @package    Ftp
+ * @package    FTP
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -37,14 +37,7 @@ $this->lang->load('base');
 $this->lang->load('ftp');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_open('ftp/edit');
-echo form_header(lang('base_general_settings'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form Fields and Buttons
+// Form modes
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($mode === 'edit') {
@@ -55,14 +48,23 @@ if ($mode === 'edit') {
     );
 } else {
     $read_only = TRUE;
-    $buttons = array(anchor_edit('/app/ftp/edit'));
+    $buttons = array(anchor_edit('/app/ftp/settings/edit'));
 }
 
-echo form_fieldset(lang('base_general_settings'));
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_open('ftp/settings/edit');
+echo form_header(lang('base_settings'));
+
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
+
 echo field_input('server_name', $server_name, lang('ftp_server_name'), $read_only);
 echo field_input('max_instances', $max_instances, lang('ftp_max_instances'), $read_only);
 echo field_input('port', $port, lang('ftp_port'), $read_only);
-echo form_fieldset_close();
 
 echo button_set($buttons);
 

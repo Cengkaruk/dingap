@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Ftp controller.
+ * FTP controller.
  *
  * @category   Apps
- * @package    Ftp
+ * @package    FTP
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/pptpd/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,92 +34,37 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Ftp controller.
+ * FTP controller.
  *
  * @category   Apps
- * @package    Ftp
+ * @package    FTP
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/pptpd/
  */
 
-class Ftp extends ClearOS_Controller
+class FTP extends ClearOS_Controller
 {
-
     /**
-     * Ftp default controller
+     * FTP server summary view.
      *
      * @return view
      */
 
     function index()
     {
-        $this->_view_edit('view');
-    }
-
-    /**
-     * Ftp edit controller
-     *
-     * @return view
-     */
-
-    function edit()
-    {
-        $this->_view_edit('edit');
-    }
-
-    function _view_edit($mode = null)
-    {
-        // Load dependencies
-        //------------------
-
-        $this->load->library('ftp/ProFTPd');
-        $this->lang->load('ftp');
-
-        $data['mode'] = $mode;
-
-        // Set validation rules
-        //---------------------
-         
-        $this->form_validation->set_policy('server_name', 'ftp/ProFTPd', 'validate_server_name', TRUE);
-        $this->form_validation->set_policy('max_instances', 'ftp/ProFTPd', 'validate_max_instances', TRUE);
-        $this->form_validation->set_policy('port', 'ftp/ProFTPd', 'validate_port', TRUE);
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                $this->proftpd->set_server_name($this->input->post('server_name'));
-                $this->proftpd->set_max_instances($this->input->post('max_instances'));
-                $this->proftpd->set_port($this->input->post('port'));
-                $this->page->set_status_updated();
-                redirect('/ftp');
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load view data
+        // Load libraries
         //---------------
 
-        try {
-            $data['server_name'] = $this->proftpd->get_server_name();
-            $data['max_instances'] = $this->proftpd->get_max_instances();
-            $data['port'] = $this->proftpd->get_port();
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
+        $this->lang->load('ftp');
 
         // Load views
         //-----------
 
-        $this->page->view_form('ftp', $data, lang('ftp_ftp'));
-    }
+        $views = array('base/daemon/index/proftpd', 'ftp/settings');
 
+        $this->page->view_forms($views, lang('ftp_ftp_server'));
+    }
 }
