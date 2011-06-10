@@ -123,7 +123,7 @@ class Port_Forwarding extends ClearOS_Controller
             try {
                 if ($this->input->post('submit_standard')) {
                     $this->port_forwarding->add_standard_service(
-                        $this->input->post('service'),
+                        preg_replace('/\//', '_', $this->input->post('service')),
                         $this->input->post('service'),
                         $this->input->post('service_ip')
                     );
