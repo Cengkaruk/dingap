@@ -17,6 +17,6 @@ clearos_load_language('ftp_plugin');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-$plugin['name'] = lang('ftp_plugin_ftp_server_directory_plugin');
+$plugin['name'] = lang('ftp_plugin_ftp_server_accounts_plugin');
 $plugin['nickname'] = lang('ftp_plugin_ftp_server');
-$plugin['description'] = 'The FTP server directory extension ... blah blah blah.'; // FIXME: translate
+$plugin['description'] = lang('ftp_plugin_app_summary');

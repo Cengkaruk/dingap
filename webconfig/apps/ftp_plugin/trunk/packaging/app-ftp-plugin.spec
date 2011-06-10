@@ -3,7 +3,7 @@ Name: app-ftp-plugin-core
 Group: ClearOS/Libraries
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: PPTP Server Directory Plugin - APIs and install
+Summary: FTP Plugin summary - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,7 +13,7 @@ Requires: app-base-core
 Requires: app-accounts-core
 
 %description
-The PPTP server plugin ... blah blah blah.
+FTP Plugin long description
 
 This package provides the core API and libraries.
 
