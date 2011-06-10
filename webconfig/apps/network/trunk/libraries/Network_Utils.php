@@ -356,14 +356,14 @@ class Network_Utils extends Engine
         if (Network_Utils::is_valid_ip($from) === FALSE || Network_Utils::is_valid_ip($to) === FALSE)
             return FALSE;
 
-        // Convert IP addresses to hexadecimal
-        $fromhex = inet_pton($from);
-        $tohex = inet_pton($to);
+        // Convert IP addresses to hexadecimal for comparison
+        $from_hex = inet_pton($from);
+        $to_hex = inet_pton($to);
 
-        if (strcmp($fromhex, $tohex) <= 0)
-            return FALSE;
+        if (strcmp($from_hex, $to_hex) <= 0)
+            return TRUE;
 
-        return TRUE;
+        return FALSE;
     }
 
     /**
