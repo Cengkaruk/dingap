@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Dnsmasq class.
+ * Dnsmasq DHCP class.
  *
  * @category   Apps
  * @package    DHCP
@@ -109,7 +109,8 @@ class Dnsmasq extends Daemon
 
     const FILE_DHCP = '/etc/dnsmasq.d/dhcp.conf';
     const FILE_CONFIG = '/etc/dnsmasq.conf';
-    const FILE_LEASES = '/var/lib/misc/dnsmasq.leases'; // FIXME: moved 
+    const FILE_LEASES = '/var/lib/dnsmasq/dnsmasq.leases';
+
     const DEFAULT_LEASETIME = '12'; // in hours
     const CONSTANT_UNLIMITED_LEASE = 'infinite';
 
@@ -159,47 +160,30 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $isvalid = TRUE;
-        $network = new Network_Utils();
+        Validation_Exception::is_valid($this->validate_mac($mac));
+        Validation_Exception::is_valid($this->validate_ip($ip));
 
-        if ($network->ValidateMac($mac))
-            $isvalid = FALSE;
-
-        if ($network->ValidateIp($ip))
-            $isvalid = FALSE;
-
-        if (! $isvalid)
-            throw new Validation_Exception(LOCALE_LANG_INVALID);
-
-        try {
-            $ethers = new Ethers();
-            $exists = $ethers->GetHostnameByMac($mac);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $ethers = new Ethers();
+        $exists = $ethers->get_hostname_by_mac($mac);
 
         if (!empty($exists))
-            throw new Engine_Exception(ETHERS_LANG_MAC_ALREADY_EXISTS, CLEAROS_ERROR);
+            throw new Validation_Exception(lang('dhcp_mac_address_already_exists'));
 
-        try {
-            $ethers->AddEther($mac, $ip);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $ethers->add_ether($mac, $ip);
     }
 
     /**
      * Adds info for specific network subnet.
      *
-     * @param string $interface network interface
-     * @param string $start starting IP for DHCP range
-     * @param string $end ending IP for DHCP range
-     * @param int $lease_time lease time in hours
-     * @param string $gateway gateway IP address
-     * @param array $dns_list DNS server list
-     * @param string $wins WINS server
-     * @param string $tftp TFTP server
-     * @param string $ntp NTP server
+     * @param string  $interface  network interface
+     * @param string  $start      starting IP for DHCP range
+     * @param string  $end        ending IP for DHCP range
+     * @param integer $lease_time lease time in hours
+     * @param string  $gateway    gateway IP address
+     * @param array   $dns_list   DNS server list
+     * @param string  $wins       WINS server
+     * @param string  $tftp       TFTP server
+     * @param string  $ntp        NTP server
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -212,10 +196,18 @@ class Dnsmasq extends Daemon
         Validation_Exception::is_valid($this->validate_ip_range($interface, $start, $end));
         Validation_Exception::is_valid($this->validate_lease_time($lease_time));
         Validation_Exception::is_valid($this->validate_gateway($gateway));
-        Validation_Exception::is_valid($this->validate_wins_server($wins));
-        Validation_Exception::is_valid($this->validate_tftp_server($tftp));
-        Validation_Exception::is_valid($this->validate_ntp_server($ntp));
-        Validation_Exception::is_valid($this->validate_dns_server_list($dns_list));
+
+        if (! empty($wins))
+            Validation_Exception::is_valid($this->validate_wins_server($wins));
+
+        if (! empty($tftp))
+            Validation_Exception::is_valid($this->validate_tftp_server($tftp));
+
+        if (! empty($ntp))
+            Validation_Exception::is_valid($this->validate_ntp_server($ntp));
+
+        if (! empty($dns_list))
+            Validation_Exception::is_valid($this->validate_dns_server_list($dns_list));
 
         if (! $this->is_loaded)
             $this->_load_config();
@@ -233,15 +225,11 @@ class Dnsmasq extends Daemon
             $dns_line = implode(",", $dns_array);
         }
 
-        try {
-            $network = new Network_Utils();
-            $ethinfo = new Iface($interface);
-            $ip = $ethinfo->GetLiveIp();
-            $netmask = $ethinfo->GetLiveNetmask();
-            $broadcast = $network->GetBroadcastAddress($ip, $netmask);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $ethinfo = new Iface($interface);
+
+        $ip = $ethinfo->get_live_ip();
+        $netmask = $ethinfo->get_live_netmask();
+        $broadcast = Network_Utils::get_broadcast_address($ip, $netmask);
 
         if (isset($this->config['dhcp-range']['count']))
             $range_count = $this->config['dhcp-range']['count'];
@@ -381,14 +369,14 @@ class Dnsmasq extends Daemon
 
         $interfaces = new Iface_Manager();
 
-        $ethlist = $interfaces->GetInterfaces(TRUE, TRUE);
+        $ethlist = $interfaces->get_interfaces(TRUE, TRUE);
         $validlist = array();
 
         foreach ($ethlist as $eth) {
             $ethinfo = new Iface($eth);
 
             // Skip non-configurable interfaces
-            if (! $ethinfo->IsConfigurable())
+            if (! $ethinfo->is_configurable())
                 continue;
 
             // Skip virtual interfaces... for now
@@ -442,6 +430,28 @@ class Dnsmasq extends Daemon
     }
 
     /**
+     * Returns lease information.
+     *
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return array array containing lease data
+     * @throws Engine_Exception
+     */
+
+    public function get_lease($mac, $ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $leases = $this->get_leases();
+
+        foreach ($leases as $lease) {
+            if (($lease['mac'] === $mac) && ($lease['ip'] === $ip))
+                return $lease;
+        }
+    }
+
+    /**
      * Returns merged list of active and static leases.
      *
      * Lease data is keyed by MAC address, but sorted by IP.
@@ -467,16 +477,18 @@ class Dnsmasq extends Daemon
          * would look similar to 3232236157.112233445566.
          */
 
-        $active = $this->get_active_leases();
-        $static = $this->get_static_leases();
+        $active = $this->_get_active_leases();
+        $static = $this->_get_ethers_data();
         $leases = array();
         $ip_ndx = array();
 
         foreach ($static as $mac => $details) {
             $key = sprintf("%u.%s", ip2long($details['ip']), hexdec(preg_replace("/\:/", "", $mac)) );
 
-            $leases[$key]['static_mac'] = $mac;
-            $leases[$key]['static_ip'] = $details['ip'];
+            $leases[$key]['mac'] = $mac;
+            $leases[$key]['ip'] = $details['ip'];
+            $leases[$key]['end'] = 0;
+            $leases[$key]['is_active'] = TRUE;
             $leases[$key]['is_static'] = TRUE;
             $leases[$key]['hostname'] = $details['hostname'];
         }
@@ -484,70 +496,25 @@ class Dnsmasq extends Daemon
         foreach ($active as $mac => $details) {
             $key = sprintf("%u.%s", ip2long($details['ip']), hexdec(preg_replace("/\:/", "", $mac)) );
 
-            $leases[$key]['active_mac'] = $mac;
-            $leases[$key]['active_ip'] = $details['ip'];
-            $leases[$key]['active_end'] = $details['end'];
+            $leases[$key]['mac'] = $mac;
+            $leases[$key]['ip'] = $details['ip'];
+            $leases[$key]['end'] = $details['end'];
             $leases[$key]['is_active'] = TRUE;
+            $leases[$key]['is_static'] = FALSE;
             $leases[$key]['hostname'] = $details['hostname'];
         }
 
         ksort($leases);
 
-        // Go through array and set missing indexes
-        foreach ($leases as $key => $details) {
-            $leases[$key]['static_mac'] = isset($leases[$key]['static_mac']) ? $leases[$key]['static_mac'] : "";
-            $leases[$key]['static_ip'] = isset($leases[$key]['static_ip']) ? $leases[$key]['static_ip'] : "";
-            $leases[$key]['is_static'] = isset($leases[$key]['is_static']) ? $leases[$key]['is_static'] : FALSE;
-            $leases[$key]['active_mac'] = isset($leases[$key]['active_mac']) ? $leases[$key]['active_mac'] : "";
-            $leases[$key]['active_ip'] = isset($leases[$key]['active_ip']) ? $leases[$key]['active_ip'] : "";
-            $leases[$key]['active_end'] = isset($leases[$key]['active_end']) ? $leases[$key]['active_end'] : "";
-            $leases[$key]['is_active'] = isset($leases[$key]['is_active']) ? $leases[$key]['is_active'] : FALSE;
-        }
-
         return $leases;
     }
 
     /**
-     * Returns active leases.
+     * Returns static leases.
+     *
+     * Lease data is keyed by MAC address, but sorted by IP.
      *
      * @return array array containing lease data
-     * @throws Engine_Exception
-     */
-
-    public function get_active_leases()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $leases = array();
-        $leasefile = new File(self::FILE_LEASES);
-
-        try {
-            if (! $leasefile->exists())
-                return array();
-
-            $leasedata = $leasefile->get_contents_as_array();
-
-            foreach ($leasedata as $line) {
-                $parts = preg_split('/[\s]+/', $line);
-
-                $key = $parts[1];
-
-                $leases[$key]['end'] = isset($parts[0]) ? $parts[0] : "";
-                $leases[$key]['ip'] = isset($parts[2]) ? $parts[2] : "";
-                $leases[$key]['hostname'] = isset($parts[3]) ? $parts[3] : "";
-            }
-
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
-
-        return $leases;
-    }
-
-    /**
-     * Returns static leases from /etc/ethers.
-     *
-     * @return array lease data keyed by MAC and sorted by IP
      * @throws Engine_Exception
      */
 
@@ -555,53 +522,18 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $leases = array();
-        $ip_ndx = array();
+        $leases = $this->get_leases();
 
-        // Bail if read-ethers feature is disabled
-        if (! isset($this->config['read-ethers']))
-            return array();
+// echo "<pre>";
+// print_r($leases);
+        $statics = array();
 
-        $network = new Network_Utils();
-        $ethers = new Ethers();
-        $mac_ip_pairs = $ethers->get_ethers();
-
-        foreach($mac_ip_pairs as $mac => $host_or_ip) {
-
-            // Find a hostname for IP address entries
-            // Find an IP for hostname entries
-
-            if (! $network->ValidateIp($host_or_ip)) {
-                $ip = $host_or_ip;
-                $hostname = gethostbyaddr($host_or_ip);
-                if ($hostname == $host_or_ip)    
-                    $hostname = "";
-            } else {
-                $hostname = $host_or_ip;
-                $ip = gethostbyname($host_or_ip);
-                if ($ip == $host_or_ip)    
-                    $ip = "";
-            }
-
-            // Keep an index to sort by IP
-
-            $ip_long = sprintf("%u", ip2long($ip));
-            $ip_ndx[$ip_long] = $mac;
-
-            $leases[$mac]['ip'] = $ip;
-            $leases[$mac]['hostname'] = $hostname;
+        foreach ($leases as $lease => $details) {
+            if ($details['is_static'])
+                $statics[$lease] = $details;
         }
 
-        ksort($ip_ndx);
-
-        $sortedleases = array();
-
-        foreach($ip_ndx as $ip => $mac) {
-            $sortedleases[$mac]['ip'] = $leases[$mac]['ip'];
-            $sortedleases[$mac]['hostname'] = $leases[$mac]['hostname'];
-        }
-
-        return $sortedleases;
+        return $statics;
     }
 
     /**
@@ -645,21 +577,17 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $netcheck = new Network_Utils();
-            $ethinfo = new Iface($iface);
-            $network = new Network();
-            $routes = new Routes();
+        $ethinfo = new Iface($iface);
+        $routes = new Routes();
+        $network_obj = new Network();
 
-            $ip = $ethinfo->GetLiveIp();
-            $netmask = $ethinfo->GetLiveNetmask();
-            $network = $netcheck->GetNetworkAddress($ip, $netmask);
-            $broadcast = $netcheck->GetBroadcastAddress($ip, $netmask);
-            $mode = $network->get_mode();
-            $defroute = $routes->GetDefault();
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $ip = $ethinfo->get_live_ip();
+        $netmask = $ethinfo->get_live_netmask();
+        $network = Network_Utils::get_network_address($ip, $netmask);
+        $broadcast = Network_Utils::get_broadcast_address($ip, $netmask);
+
+        $mode = $network_obj->get_mode();
+        $defroute = $routes->get_default();
 
         // Calculate some intelligent defaults
         //------------------------------------
@@ -707,15 +635,16 @@ class Dnsmasq extends Daemon
             if (!isset($this->subnets[$eth]["isconfigured"])) {
                 try {
                     $ethinfo = new Iface($eth);
-                    $ethip = $ethinfo->GetLiveIp();
+                    $ethip = $ethinfo->get_live_ip();
+
                     // Bail on interface if no IP exists
                     if (! $ethip)
                         continue;
-                    $netcheck = new Network_Utils();
-                    $ethnetmask = $ethinfo->GetLiveNetmask();
-                    $ethnetwork = $netcheck->GetNetworkAddress($ethip, $ethnetmask);
+
+                    $ethnetmask = $ethinfo->get_live_netmask();
+                    $ethnetwork = Network_Utils::get_network_address($ethip, $ethnetmask);
                 } catch (Engine_Exception $e) {
-                    WebDialogWarning($e->get_message());
+                    // Keep going
                 }
 
                 $subnets[$eth]["network"] = $ethnetwork;
@@ -742,8 +671,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool)
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID);
+        Validation_Exception::is_valid($this->validate_authoritative_state($state));
 
         if (! $this->is_loaded)
             $this->_load_config();
@@ -753,7 +681,7 @@ class Dnsmasq extends Daemon
             unset($this->config['dhcp-authoritative']);
 
         if ($state)
-            $this->config['dhcp-authoritative']['line'][1] = "";
+            $this->config['dhcp-authoritative']['line'][1] = '';
 
         $this->_save_config();
     }
@@ -770,8 +698,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID);
+        Validation_Exception::is_valid($this->validate_dhcp_state($state));
 
         if (! $this->is_loaded)
             $this->_load_config();
@@ -798,8 +725,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ValidateDomain($domain))
-            throw new Validation_Exception("FIXME: bad domain dude");
+        Validation_Exception::is_valid($this->validate_domain($domain));
 
         // Cleans out invalid duplicates
         if (! $this->is_loaded)
@@ -816,18 +742,39 @@ class Dnsmasq extends Daemon
     /**
      * Updates subnet.
      *
+     * @param string  $interface  network interface
+     * @param string  $start      starting IP for DHCP range
+     * @param string  $end        ending IP for DHCP range
+     * @param integer $lease_time lease time in hours
+     * @param string  $gateway    gateway IP address
+     * @param array   $dns_list   DNS server list
+     * @param string  $wins       WINS server
+     * @param string  $tftp       TFTP server
+     * @param string  $ntp        NTP server
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function update_subnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time = self::DEFAULT_LEASETIME, $tftp="", $ntp="")
+    public function update_subnet($interface, $start, $end, $lease_time = self::DEFAULT_LEASETIME, $gateway = NULL, $dns_list = NULL, $wins = NULL, $tftp = NULL, $ntp = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $errmsg = $this->ValidateSubnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
+        Validation_Exception::is_valid($this->validate_ip_range($interface, $start, $end));
+        Validation_Exception::is_valid($this->validate_lease_time($lease_time));
+        Validation_Exception::is_valid($this->validate_gateway($gateway));
 
-        if ($errmsg)
-            throw new Validation_Exception($errmsg);
+        if (! empty($wins))
+            Validation_Exception::is_valid($this->validate_wins_server($wins));
+
+        if (! empty($tftp))
+            Validation_Exception::is_valid($this->validate_tftp_server($tftp));
+
+        if (! empty($ntp))
+            Validation_Exception::is_valid($this->validate_ntp_server($ntp));
+
+        if (! empty($dns_list))
+            Validation_Exception::is_valid($this->validate_dns_server_list($dns_list));
             
         if (! $this->is_loaded)
             $this->_load_config();
@@ -836,6 +783,106 @@ class Dnsmasq extends Daemon
             $this->delete_subnet($interface);
 
         $this->add_subnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns active leases.
+     *
+     * @access private
+     * @return array array containing lease data
+     * @throws Engine_Exception
+     */
+
+    protected function _get_active_leases()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $leases = array();
+        $leasefile = new File(self::FILE_LEASES);
+
+        if (! $leasefile->exists())
+            return array();
+
+        $leasedata = $leasefile->get_contents_as_array();
+
+        foreach ($leasedata as $line) {
+            $parts = preg_split('/[\s]+/', $line);
+
+            $key = $parts[1];
+
+            $leases[$key]['end'] = isset($parts[0]) ? $parts[0] : "";
+            $leases[$key]['ip'] = isset($parts[2]) ? $parts[2] : "";
+            $leases[$key]['hostname'] = isset($parts[3]) ? $parts[3] : "";
+        }
+
+        return $leases;
+    }
+
+    /**
+     * Returns static leases from /etc/ethers.
+     *
+     * @access private
+     * @return array lease data keyed by MAC and sorted by IP
+     * @throws Engine_Exception
+     */
+
+    protected function _get_ethers_data()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $leases = array();
+        $ip_ndx = array();
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        // Bail if read-ethers feature is disabled
+        if (! isset($this->config['read-ethers']))
+            return array();
+
+        $ethers = new Ethers();
+        $mac_ip_pairs = $ethers->get_ethers();
+
+        foreach ($mac_ip_pairs as $mac => $host_or_ip) {
+
+            // Find a hostname for IP address entries
+            // Find an IP for hostname entries
+
+            if (Network_Utils::is_valid_ip($host_or_ip)) {
+                $ip = $host_or_ip;
+                $hostname = gethostbyaddr($host_or_ip);
+                if ($hostname == $host_or_ip)    
+                    $hostname = '';
+            } else {
+                $hostname = $host_or_ip;
+                $ip = gethostbyname($host_or_ip);
+                if ($ip == $host_or_ip)    
+                    $ip = '';
+            }
+
+            // Keep an index to sort by IP
+
+            $ip_long = sprintf("%u", ip2long($ip));
+            $ip_ndx[$ip_long] = $mac;
+
+            $leases[$mac]['ip'] = $ip;
+            $leases[$mac]['hostname'] = $hostname;
+        }
+
+        ksort($ip_ndx);
+
+        $sorted_leases = array();
+
+        foreach ($ip_ndx as $ip => $mac) {
+            $sorted_leases[$mac]['ip'] = $leases[$mac]['ip'];
+            $sorted_leases[$mac]['hostname'] = $leases[$mac]['hostname'];
+        }
+
+        return $sorted_leases;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -850,12 +897,28 @@ class Dnsmasq extends Daemon
      * @return string error message if authoritative state is invalid
      */
 
-    public function validate_authoritative($state)
+    public function validate_authoritative_state($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_bool($state))
+        if (! clearos_is_valid_boolean($state))
             return lang('dhcp_authoritative_state_invalid');
+    }
+
+    /*
+     * Validates DHCP state
+     *
+     * @param boolean $state DHCP state
+     *
+     * @return string error message if DHCP state is invalid
+     */
+
+    public function validate_dhcp_state($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! clearos_is_valid_boolean($state))
+            return lang('dhcp_dhcp_state_invalid');
     }
 
     /**
@@ -870,9 +933,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($dns))
+        if (! Network_Utils::is_valid_ip($dns))
             return lang('dhcp_dns_server_invalid');
     }
 
@@ -892,7 +953,7 @@ class Dnsmasq extends Daemon
             return lang('dhcp_dns_server_list_invalid');
 
         foreach ($dns_list as $dns) {
-           if ($this->validate_dns_server($dns))
+           if (!empty($dns) && $this->validate_dns_server($dns))
                 return lang('dhcp_dns_server_list_invalid');
         }
     }
@@ -909,9 +970,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_domain($domain))
+        if (! Network_Utils::is_valid_domain($domain))
             return lang('dhcp_domain_invalid');
     }
 
@@ -933,6 +992,22 @@ class Dnsmasq extends Daemon
     }
 
     /**
+     * Validates IP.
+     *
+     * @param string $ip IP address
+     *
+     * @return string error message if IP is invalid
+     */
+
+    public function validate_ip($ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('dhcp_ip_address_is_invalid');
+    }
+
+    /**
      * Validates DHCP IP range.
      *
      * @param string $interface network interface
@@ -946,15 +1021,13 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
         // TODO: should we make sure range is valid for given interface?
         // Or, are there real world scenarios where out-of-range is used?
 
         if ($this->validate_interface($interface))
             return lang('dhcp_network_interface_invalid');
 
-        if ($network->validate_ip_range($start, $end))
+        if (! Network_Utils::is_valid_ip_range($start, $end))
             return lang('dhcp_ip_range_invalid');
     }
 
@@ -975,6 +1048,22 @@ class Dnsmasq extends Daemon
     }
 
     /**
+     * Validates MAC address
+     *
+     * @param string $mac MAC address
+     *
+     * @return string error message if MAC address is invalid
+     */
+
+    public function validate_mac($mac)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_mac($mac))
+            return lang('dhcp_mac_address_is_invalid');
+    }
+
+    /**
      * Validates start IP in DHCP range.
      *
      * @param string $start start IP
@@ -986,9 +1075,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($start))
+        if (! Network_Utils::is_valid_ip($start))
             return lang('dhcp_start_ip_invalid');
     }
 
@@ -1004,9 +1091,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($end))
+        if (! Network_Utils::is_valid_ip($end))
             return lang('dhcp_end_ip_invalid');
     }
 
@@ -1022,9 +1107,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($gateway))
+        if (! Network_Utils::is_valid_ip($gateway))
             return lang('dhcp_gateway_invalid');
     }
 
@@ -1040,9 +1123,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($ntp))
+        if (! Network_Utils::is_valid_ip($ntp))
             return lang('dhcp_ntp_server_invalid');
     }
 
@@ -1058,9 +1139,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($tftp))
+        if (! Network_Utils::is_valid_ip($tftp))
             return lang('dhcp_tftp_server_invalid');
     }
 
@@ -1076,9 +1155,7 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
-
-        if ($network->validate_ip($wins))
+        if (! Network_Utils::is_valid_ip($wins))
             return lang('dhcp_wins_server_invalid');
     }
 
@@ -1132,19 +1209,13 @@ class Dnsmasq extends Daemon
 
         $lines = array();
 
-        try {
-            $dhcpfile = new File(self::FILE_DHCP);
-            $dnsmasqfile = new File(self::FILE_CONFIG);
+        $dhcp_file = new File(self::FILE_DHCP);
+        $dnsmasq_file = new File(self::FILE_CONFIG);
 
-            $lines = $dnsmasqfile->get_contents_as_array();
+        $lines = $dnsmasq_file->get_contents_as_array();
 
-            if ($dhcpfile->exists())
-                $lines = array_merge($lines, $dhcpfile->get_contents_as_array());
-
-        } catch (Engine_Exception $e) {
-            // FIXME: localize 
-            throw new Engine_Exception("Unable to load configuration file: " . $e->get_message(), CLEAROS_ERROR);
-        }
+        if ($dhcp_file->exists())
+            $lines = array_merge($lines, $dhcp_file->get_contents_as_array());
 
         $matches = array();
 
@@ -1226,11 +1297,9 @@ class Dnsmasq extends Daemon
          * $subnet[interface][isvalid]
          */
 
-        $netcheck = new Network_Utils();
-
         foreach ($this->subnets as $eth => $subnetinfo) {
             if (isset($this->subnets[$eth]['start']) && isset($this->subnets[$eth]['netmask'])) {
-                $configured_network = $netcheck->GetNetworkAddress($this->subnets[$eth]['start'], $this->subnets[$eth]['netmask']);
+                $configured_network = Network_Utils::get_network_address($this->subnets[$eth]['start'], $this->subnets[$eth]['netmask']);
                 $this->subnets[$eth]['network'] = $configured_network;
             } else {
                 $configured_network = "";
@@ -1240,9 +1309,9 @@ class Dnsmasq extends Daemon
 
             try {
                 $ethinfo = new Iface($eth);
-                $ethip = $ethinfo->GetLiveIp();
-                $ethnetmask = $ethinfo->GetLiveNetmask();
-                $ethnetwork = $netcheck->GetNetworkAddress($ethip, $ethnetmask);
+                $ethip = $ethinfo->get_live_ip();
+                $ethnetmask = $ethinfo->get_live_netmask();
+                $ethnetwork = Network_Utils::get_network_address($ethip, $ethnetmask);
 
                 if ($ethnetwork == $configured_network)
                     $this->subnets[$eth]["isvalid"] = TRUE;
@@ -1275,24 +1344,20 @@ class Dnsmasq extends Daemon
         $dhcp_comments = array();
         $dnsmasq_comments = array();
 
-        try {
-            if ($dhcp_file->exists()) {
-                $lines = $dhcp_file->get_contents_as_array();
-                foreach ($lines as $line) {
-                    if (preg_match("/^#/", $line))
-                        $dhcp_comments[] = $line;
-                }
+        if ($dhcp_file->exists()) {
+            $lines = $dhcp_file->get_contents_as_array();
+            foreach ($lines as $line) {
+                if (preg_match("/^#/", $line))
+                    $dhcp_comments[] = $line;
             }
+        }
 
-            if ($dnsmasq_file->exists()) {
-                $lines = $dnsmasq_file->get_contents_as_array();
-                foreach ($lines as $line) {
-                    if (preg_match("/^#/", $line))
-                        $dnsmasq_comments[] = $line;
-                }
+        if ($dnsmasq_file->exists()) {
+            $lines = $dnsmasq_file->get_contents_as_array();
+            foreach ($lines as $line) {
+                if (preg_match("/^#/", $line))
+                    $dnsmasq_comments[] = $line;
             }
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
         }
 
         // The DHCP options in Dnsmasq go into a separate dhcp.conf file.  The
@@ -1345,25 +1410,23 @@ class Dnsmasq extends Daemon
         $dhcp_lines = array_merge($dhcp_lines, $dhcp_comments);
 
         // Write out the files
+        //--------------------
 
-        try {
-            if (! $dhcp_file->exists())
-                $dhcp_file->create("root", "root", "0644");
+        if (! $dhcp_file->exists())
+            $dhcp_file->create("root", "root", "0644");
 
-            if (! $dnsmasq_file->exists())
-                $dnsmasq_file->create("root", "root", "0644");
+        if (! $dnsmasq_file->exists())
+            $dnsmasq_file->create("root", "root", "0644");
 
-            sort($dnsmasq_lines);
-            sort($dhcp_lines);
+        sort($dnsmasq_lines);
+        sort($dhcp_lines);
 
-            $dhcp_file->dump_contents_from_array($dhcp_lines);
-            $dnsmasq_file->dump_contents_from_array($dnsmasq_lines);
-
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $dhcp_file->dump_contents_from_array($dhcp_lines);
+        $dnsmasq_file->dump_contents_from_array($dnsmasq_lines);
 
         // Reset our internal data structures
+        //-----------------------------------
+
         $this->is_loaded = FALSE;
         $this->config = array();
         $this->subnets = array();

@@ -48,7 +48,7 @@ if ($form_type === 'edit') {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('dhcp/general'); 
-echo form_fieldset(lang('dhcp_dhcp') . ' - ' . lang('base_general_settings'));
+echo form_fieldset(lang('dhcp_dhcp') . ' - ' . lang('base_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields

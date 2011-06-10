@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * DHCP subnets controller.
+ *
+ * @category   Apps
+ * @package    DHCP
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,31 +25,24 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * DHCP server subnets management.
- *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
- */
-
 ///////////////////////////////////////////////////////////////////////////////
-// C O N T R O L L E R
+// C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * DHCP server subnets management.
+ * DHCP subnets controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
+ * @category   Apps
+ * @package    DHCP
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
  */
 
 class Subnets extends ClearOS_Controller
@@ -52,46 +53,27 @@ class Subnets extends ClearOS_Controller
 
 	function index($view = 'page')
 	{
-		// Handle theme mode redirects
-		//----------------------------
-
-		if ($view === 'page') {
-			if ($this->session->userdata['theme_mode'] === 'normal')
-				redirect('/dhcp');
-		}
-
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/Dnsmasq');
+		$this->load->library('dhcp/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Load view data
 		//---------------
 
 		try {
-			$data['subnets'] = $this->dnsmasq->GetSubnets();
-			$data['ethlist'] = $this->dnsmasq->GetDhcpInterfaces();
+			$data['subnets'] = $this->dnsmasq->get_subnets();
+			$data['ethlist'] = $this->dnsmasq->get_dhcp_interfaces();
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage(), $view);
+			$this->page->view_exception($e);
 			return;
 		}
  
 		// Load views
 		//-----------
 
-		if ($view == 'form') {
-
-			$this->load->view('dhcp/subnets/summary', $data);
-
-		} else if ($view == 'page') {
-			
-			$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets'));
-
-			$this->load->view('theme/header');
-			$this->load->view('dhcp/subnets/summary', $data);
-			$this->load->view('theme/footer');
-		}
+        $this->page->view_form('dhcp/subnets/summary', $data);
 	}
 
 	/**
@@ -102,35 +84,25 @@ class Subnets extends ClearOS_Controller
 
 	function add($iface)
 	{
-		// Use common add/edit form
-		$this->_addedit($iface, 'add');
+		$this->_add_edit($iface, 'add');
 	}
 
 	/**
 	 * DHCP server delete subnet view.
 	 *
-	 * @param string $iface interface
+	 * @param string $iface   interface
+     * @param string $network network
+     *
 	 * @return view
 	 */
 
-	function delete($iface)
+	function delete($iface, $network)
 	{
-		// Load libraries
-		//---------------
+        $confirm_uri = '/app/dhcp/subnets/destroy/' . $iface;
+        $cancel_uri = '/app/dhcp/subnets';
+        $items = array($iface . ' - ' . $network);
 
-		$this->lang->load('dhcp');
-
-		// Load views
-		//-----------
-
-		$this->page->set_title(lang('dhcp_subnet'));
-		$data['message'] = sprintf(lang('dhcp_confirm_delete'), $iface);
-		$data['ok_anchor'] = '/app/dhcp/subnets/destroy/' . $iface;
-		$data['cancel_anchor'] = '/app/dhcp/subnets';
-	
-		$this->load->view('theme/header');
-		$this->load->view('theme/confirm', $data);
-		$this->load->view('theme/footer');
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
 	}
 
 	/**
@@ -141,26 +113,17 @@ class Subnets extends ClearOS_Controller
 
 	function destroy($iface)
 	{
-		// Load libraries
-		//---------------
-
-		$this->load->library('dns/Dnsmasq');
-
-		// Handle form submit
-		//-------------------
-
 		try {
-			$this->dnsmasq->deletesubnet($iface);
-			$this->page->set_success(lang('base_deleted'));
+            $this->load->library('dhcp/Dnsmasq');
+    
+			$this->dnsmasq->delete_subnet($iface);
+
+			$this->page->set_status_deleted();
+		    redirect('/dhcp/subnets');
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage());
+			$this->page->view_exception($e);
 			return;
 		}
-
-		// Redirect
-		//---------
-
-		redirect('/dhcp/subnets');
 	}
 
 	/**
@@ -171,8 +134,7 @@ class Subnets extends ClearOS_Controller
 
 	function edit($iface = null)
 	{
-		// Use common add/edit form
-		$this->_addedit($iface, 'edit');
+		$this->_add_edit($iface, 'edit');
 	}
 
 	///////////////////////////////////////////////////////////////////////////////
@@ -185,29 +147,28 @@ class Subnets extends ClearOS_Controller
 	 * @return string
 	 */
 
-	function _addedit($iface, $form_type)
+	function _add_edit($iface, $form_type)
 	{
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/Dnsmasq');
+		$this->load->library('dhcp/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Set validation rules
 		//---------------------
 
-		// TODO: Review the messy dns1/2/3 handling
 		$this->load->library('form_validation');
-		$this->form_validation->set_policy('gateway', 'dns_Dnsmasq_ValidateGateway', TRUE);
-		$this->form_validation->set_policy('lease_time', 'dns_Dnsmasq_ValidateLeaseTime', TRUE);
-		$this->form_validation->set_policy('start', 'dns_Dnsmasq_ValidateStartIp', TRUE);
-		$this->form_validation->set_policy('end', 'dns_Dnsmasq_ValidateEndIp', TRUE);
-		$this->form_validation->set_policy('dns1', 'dns_Dnsmasq_ValidateDns');
-		$this->form_validation->set_policy('dns2', 'dns_Dnsmasq_ValidateDns');
-		$this->form_validation->set_policy('dns3', 'dns_Dnsmasq_ValidateDns');
-		$this->form_validation->set_policy('wins', 'dns_Dnsmasq_ValidateWins');
-		$this->form_validation->set_policy('tftp', 'dns_Dnsmasq_ValidateTftp');
-		$this->form_validation->set_policy('ntp', 'dns_Dnsmasq_ValidateNtp');
+		$this->form_validation->set_policy('gateway', 'dhcp/Dnsmasq', 'validate_gateway', TRUE);
+		$this->form_validation->set_policy('lease_time', 'dhcp/Dnsmasq', 'validate_lease_time', TRUE);
+		$this->form_validation->set_policy('start', 'dhcp/Dnsmasq', 'validate_start_ip', TRUE);
+		$this->form_validation->set_policy('end', 'dhcp/Dnsmasq', 'validate_end_ip', TRUE);
+		$this->form_validation->set_policy('dns1', 'dhcp/Dnsmasq', 'validate_dns_server');
+		$this->form_validation->set_policy('dns2', 'dhcp/Dnsmasq', 'validate_dns_server');
+		$this->form_validation->set_policy('dns3', 'dhcp/Dnsmasq', 'validate_dns_server');
+		$this->form_validation->set_policy('wins', 'dhcp/Dnsmasq', 'validate_wins_server');
+		$this->form_validation->set_policy('tftp', 'dhcp/Dnsmasq', 'validate_tftp_server');
+		$this->form_validation->set_policy('ntp', 'dhcp/Dnsmasq', 'validate_ntp_server');
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
@@ -229,25 +190,39 @@ class Subnets extends ClearOS_Controller
 			);
 
 			try {
-				$this->dnsmasq->UpdateSubnet(
-					$iface,
-					$subnet['gateway'],
-					$subnet['start'],
-					$subnet['end'],
-					$subnet['dns'],
-					$subnet['wins'],
-					$subnet['lease_time'],
-					$subnet['tftp'],
-					$subnet['ntp']
-				);
+                if ($form_type === 'add') {
+                    $this->dnsmasq->add_subnet(
+                        $iface,
+                        $subnet['start'],
+                        $subnet['end'],
+                        $subnet['lease_time'],
+                        $subnet['gateway'],
+                        $subnet['dns'],
+                        $subnet['wins'],
+                        $subnet['tftp'],
+                        $subnet['ntp']
+                    );
+                } else {
+                    $this->dnsmasq->update_subnet(
+                        $iface,
+                        $subnet['start'],
+                        $subnet['end'],
+                        $subnet['lease_time'],
+                        $subnet['gateway'],
+                        $subnet['dns'],
+                        $subnet['wins'],
+                        $subnet['tftp'],
+                        $subnet['ntp']
+                    );
+                }
 
-				$this->dnsmasq->Reset();
+				$this->dnsmasq->reset(TRUE);
 
 				// Return to summary page with status message
-				$this->page->set_success(lang('base_system_updated'));
+                $this->page->set_status_added();
 				redirect('/dhcp/subnets');
 			} catch (Exception $e) {
-				$this->page->view_exception($e->GetMessage(), $view);
+				$this->page->view_exception($e);
 				return;
 			}
 		}
@@ -257,11 +232,11 @@ class Subnets extends ClearOS_Controller
 
 		try {
 			if ($form_type === 'add') 
-				$subnet = $this->dnsmasq->GetSubnetDefault($iface);
+				$subnet = $this->dnsmasq->get_subnet_default($iface);
 			else
-				$subnet = $this->dnsmasq->GetSubnet($iface);
+				$subnet = $this->dnsmasq->get_subnet($iface);
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage(), $view);
+			$this->page->view_exception($e);
 			return;
 		}
 
@@ -290,17 +265,11 @@ class Subnets extends ClearOS_Controller
 		$data['lease_times'][336] = 2 . " " . lang('base_weeks');
 		$data['lease_times'][504] = 3 . " " . lang('base_weeks');
 		$data['lease_times'][672] = 4 . " " . lang('base_weeks');
-		$data['lease_times'][Dnsmasq::CONSTANT_UNLIMITED_LEASE] = lang('base_unlimited');
+		$data['lease_times'][\clearos\apps\dhcp\Dnsmasq::CONSTANT_UNLIMITED_LEASE] = lang('base_unlimited');
  
 		// Load the views
 		//---------------
 
-		$this->page->set_title(lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets'));
-
-		$this->load->view('theme/header');
-		$this->load->view('dhcp/subnets/add_edit', $data);
-		$this->load->view('theme/footer');
+		$this->page->view_form('dhcp/subnets/add_edit', $data, lang('dhcp_subnets'));
 	}
 }
-
-?>

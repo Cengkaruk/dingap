@@ -1,5 +1,11 @@
 <?php
 
+$lang['dhcp_never'] = 'Never';
+$lang['dhcp_dynamic_leases'] = 'Dynamic Leases';
+$lang['dhcp_static_leases'] = 'Static Leases';
+$lang['dhcp_change_to_static'] = 'Change to Static';
+$lang['dhcp_expires'] = 'Expires';
+
 $lang['dhcp_authoritative'] = "Authoritative";
 $lang['dhcp_domain'] = "Domain";
 $lang['dhcp_dns'] = "DNS";

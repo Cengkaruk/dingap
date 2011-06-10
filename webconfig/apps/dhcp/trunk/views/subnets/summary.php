@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2010 ClearFoundation
-//
+/**
+ * DHCP subnets view.
+ *
+ * @category   ClearOS
+ * @package    DHCP
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -18,16 +26,13 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
-//////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->load->helper('form');
-$this->load->helper('url');
-$this->load->library('form_validation');
 $this->lang->load('network');
 $this->lang->load('dhcp');
 
@@ -56,18 +61,18 @@ foreach ($subnets as $interface => $subnetinfo) {
 	if (! $subnetinfo["isvalid"]) {
 		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
 		$action = "/app/dhcp/subnets/edit/" . $interface;
-		$buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface));
+		$buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface . '/' . $subnetinfo['network']));
 	} else if ($subnetinfo["isconfigured"]) {
 		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
 		$action = "/app/dhcp/subnets/edit/" . $interface;
 		$buttons = array(
 				anchor_edit('/app/dhcp/subnets/edit/' . $interface),
-				anchor_delete('/app/dhcp/subnets/delete/' . $interface)
+				anchor_delete('/app/dhcp/subnets/delete/' . $interface . '/' . $subnetinfo['network'])
 			);
 	} else {
 		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
 		$action = "/app/dhcp/subnets/add/" . $interface;
-		$buttons = array(anchor_add('/app/dhcp/subnets/add/' . $interface));
+		$buttons = array(anchor_configure('/app/dhcp/subnets/add/' . $interface));
 	}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -98,5 +103,3 @@ echo summary_table(
 	$headers,
 	$items
 );
-
-// vim: ts=4 syntax=php

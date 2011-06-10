@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * DHCP subnets view.
+ *
+ * @category   ClearOS
+ * @package    DHCP
+ * @subpackage Views
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,13 +25,9 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //
 ///////////////////////////////////////////////////////////////////////////////
-
-// FIXME: what to do with read-only form values?
-// FIXME: what to do with validating IP ranges and its ilk
 
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
@@ -55,10 +59,10 @@ if ($form_type === 'edit') {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open($form_path . '/' . $interface);
-echo form_fieldset(lang('dhcp_subnet'));
+echo form_header(lang('dhcp_subnet'));
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
 echo field_input('interface', $interface, lang('dhcp_network_interface'), TRUE);
@@ -74,17 +78,11 @@ echo field_input('wins', $wins, lang('dhcp_wins'));
 echo field_input('tftp', $tftp, lang('dhcp_tftp'));
 echo field_input('ntp', $ntp, lang('dhcp_ntp'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
-
 echo button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset_close();
+echo form_footer();
 echo form_close();
-
-// vim: ts=4 syntax=php

@@ -33,3 +33,11 @@ for ETH in $ETHS; do
 		fi
 	done
 done
+
+# Move leases file
+#-----------------
+
+if [ -e "/var/lib/misc/dnsmasq.leases" ]; then
+    logger -p local6.notice -t installer "app-dhcp-core - migrating DHCP leases"
+    mv /var/lib/misc/dnsmasq.leases /var/lib/dnsmasq/dnsmasq.leases
+fi

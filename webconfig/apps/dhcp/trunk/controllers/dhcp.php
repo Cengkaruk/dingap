@@ -52,7 +52,7 @@ class Dhcp extends ClearOS_Controller
 
 	function index()
 	{
-        $views = array('dhcp/general', 'dhcp/subnets', 'dhcp/leases');
+        $views = array('dhcp/settings', 'dhcp/subnets', 'dhcp/dynamic_leases', 'dhcp/static_leases');
 
         $this->page->view_forms($views, lang('dhcp_dhcp_server'));
 	}

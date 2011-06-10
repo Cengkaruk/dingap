@@ -1,7 +1,7 @@
 <?php
 
 /**
- * DHCP leases view.
+ * DHCP edit lease view.
  *
  * @category   ClearOS
  * @package    DHCP
@@ -30,70 +30,77 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// Copyright 2010 ClearFoundation
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('network');
+$this->lang->load('base');
 $this->lang->load('dhcp');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Headers
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-$headers = array(
-	lang('network_ip'),
-	lang('network_mac_address'),
-	lang('network_hostname'),
-	lang('dhcp_expires'),
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Anchors 
-///////////////////////////////////////////////////////////////////////////////
-
-$anchors = array();
-
-///////////////////////////////////////////////////////////////////////////////
-// Items
-///////////////////////////////////////////////////////////////////////////////
-
-foreach ($leases as $key => $details) {
-	$key = $details['mac'] . "/" . $details['ip'];
-    $order_ip = "<span style='display: none'>" . sprintf("%032b", ip2long($details['ip'])) . "</span>" . $details['ip'];
-
-    if ($details['end'] == 0)
-        $order_date = lang('dhcp_never');
-    else
-        $order_date = "<span style='display: none'>" . $details['end'] . "</span>" . strftime('%c', $details['end']);
-
-	$item['title'] = $order_ip;
-	$item['action'] = anchor_edit('/app/dhcp/leases/edit/' . $key, 'high');
-	$item['anchors'] = button_set(
-        array(
-            anchor_edit('/app/dhcp/leases/edit/' . $key, 'high'),
-            anchor_delete('/app/dhcp/leases/delete/' . $key, 'low')
-        )
-    );
-	$item['details'] = array(
-		$order_ip,
-		$details['mac'],
-		$details['hostname'],
-		$order_date,
-		$full_actions
-	);
-
-	$items[] = $item;
+if ($lease['is_static'] === TRUE) {
+    $read_only = FALSE;
+    $expires = lang('dhcp_never');
+    $action = 'update_static';
+} else {
+    $read_only = TRUE;
+    $expires = strftime('%c', $lease['end']);
+    $action = 'update_dynamic';
 }
 
-sort($items);
-
 ///////////////////////////////////////////////////////////////////////////////
-// Summary table
+// Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo summary_table(
-	lang('dhcp_dynamic_leases'),
-	$anchors,
-	$headers,
-	$items
+echo form_open('dhcp/general'); 
+echo form_header('dhcp_edit_lease');
+
+print_r($lease);
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
+
+echo field_input('mac', $lease['mac'], lang('network_mac_address'), TRUE);
+echo field_input('ip', $lease['ip'], lang('network_ip'), $read_only);
+echo field_input('end', $expires, lang('dhcp_expires'), TRUE);
+
+echo button_set(
+    array(
+        form_submit_update($action, 'high'),
+        anchor_cancel('/app/dhcp/')
+    )
 );
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_footer(); 
+echo form_close();

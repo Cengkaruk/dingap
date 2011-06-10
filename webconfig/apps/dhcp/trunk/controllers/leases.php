@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * DHCP leases controller.
+ *
+ * @category   Apps
+ * @package    DHCP
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,31 +25,24 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * DHCP server subnets management.
- *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
- */
-
 ///////////////////////////////////////////////////////////////////////////////
-// C O N T R O L L E R
+// C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * DHCP server subnets management.
+ * DHCP leases controller.
  *
- * @package Frontend
- * @author {@link http://www.clearfoundation.com ClearFoundation}
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
- * @copyright Copyright 2010, ClearFoundation
+ * @category   Apps
+ * @package    DHCP
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
  */
 
 class Leases extends ClearOS_Controller
@@ -52,25 +53,17 @@ class Leases extends ClearOS_Controller
 
 	function index($view = 'page')
 	{
-		// Handle theme mode redirects
-		//----------------------------
-
-		if ($view === 'page') {
-			if ($this->session->userdata['theme_mode'] === 'normal')
-				redirect('/dhcp');
-		}
-
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/Dnsmasq');
+		$this->load->library('dhcp/Dnsmasq');
 		$this->lang->load('dhcp');
 
 		// Load view data
 		//---------------
 
 		try {
-			$data['leases'] = $this->dnsmasq->GetLeases();
+			$data['leases'] = $this->dnsmasq->get_leases();
 		} catch (Exception $e) {
 			$this->page->view_exception($e);
 			return;
@@ -79,32 +72,99 @@ class Leases extends ClearOS_Controller
 		// Load views
 		//-----------
 
-        $this->page->view_form('dhcp/leases/summary', $data, lang('dhcp_leases'));
+        $this->page->view_form('dhcp/leases/summary', $data);
 	}
 
 	/**
-	 * DHCP server add subnet.
+	 * Edit lease view.
 	 *
 	 * @return string
 	 */
 
-	function add($iface)
+	function edit($mac, $ip)
 	{
-		// Use common add/edit form
-		$this->_addedit($iface, 'add');
+		// Load libraries
+		//---------------
+
+		$this->load->library('dhcp/Dnsmasq');
+		$this->lang->load('dhcp');
+
+		// Set validation rules
+		//---------------------
+
+		$this->form_validation->set_policy('ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
+		$this->form_validation->set_policy('mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
+		$form_ok = $this->form_validation->run();
+
+		// Handle form submit
+		//-------------------
+
+		if ($this->input->post('update_static') && ($form_ok === TRUE)) {
+			try {
+                $this->dnsmasq->add_static_lease(
+                    $this->input->post('ip'),
+                    $this->input->post('mac')
+                );
+
+				$this->dnsmasq->reset(TRUE);
+
+				// Return to summary page with status message
+                $this->page->set_status_updated();
+			} catch (Exception $e) {
+				$this->page->view_exception($e);
+				return;
+			}
+
+        } else if ($this->input->post('submit') && ($form_ok === TRUE)) {
+			try {
+                $this->dnsmasq->add_static_lease(
+                    $this->input->post('ip'),
+                    $this->input->post('mac')
+                );
+
+				$this->dnsmasq->reset(TRUE);
+
+				// Return to summary page with status message
+                $this->page->set_status_updated();
+                redirect('/dhcp/leases');
+			} catch (Exception $e) {
+				$this->page->view_exception($e);
+				return;
+			}
+		}
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['lease'] = $this->dnsmasq->get_lease($mac, $ip);
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('dhcp/leases/edit', $data, lang('base_edit'));
 	}
 
 	/**
-	 * DHCP server delete leases view.
+	 * DHCP server delete subnet view.
 	 *
-	 * @param string $mac MAC address
-	 * @param string $ip IP address
-	 * @return string
+	 * @param string $iface   interface
+     * @param string $network network
+     *
+	 * @return view
 	 */
 
-	function delete($mac, $ip)
+	function delete($iface, $network)
 	{
-		echo "not yet implemented";
+        $confirm_uri = '/app/dhcp/leases/destroy/' . $iface;
+        $cancel_uri = '/app/dhcp/leases';
+        $items = array($iface . ' - ' . $network);
+
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
 	}
 
 	/**
@@ -115,165 +175,60 @@ class Leases extends ClearOS_Controller
 
 	function destroy($iface)
 	{
-		// Load libraries
-		//---------------
+		try {
+            $this->load->library('dhcp/Dnsmasq');
+    
+			$this->dnsmasq->delete_subnet($iface);
 
-		$this->load->library('dns/Dnsmasq');
-
-		// Handle form submit
-		//-------------------
-
-		$this->dnsmasq->deletesubnet($iface);
-
-		// Redirect
-		//---------
-
-		$this->status->success(lang('base_deleted'));
-		redirect('/dhcp/subnets');
+			$this->page->set_status_deleted();
+		    redirect('/dhcp/leases');
+		} catch (Exception $e) {
+			$this->page->view_exception($e);
+			return;
+		}
 	}
 
 	/**
-	 * DHCP server edit subnet.
+	 * Converts a dynamic lease to a static lease.
 	 *
 	 * @return string
 	 */
 
-	function edit($iface = null)
-	{
-		// Use common add/edit form
-		$this->_addedit($iface, 'edit');
-	}
-
-	///////////////////////////////////////////////////////////////////////////////
-	// P R I V A T E
-	///////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * DHCP server common add/edit form handler.
-	 *
-	 * @return string
-	 */
-
-	function _addedit($iface, $formtype)
+	function to_static($mac, $ip)
 	{
 		// Load libraries
 		//---------------
 
-		$this->load->library('dns/Dnsmasq');
+		$this->load->library('dhcp/Dnsmasq');
 		$this->lang->load('dhcp');
-		$this->lang->load('base');
 
 		// Set validation rules
 		//---------------------
 
-		$this->load->library('form_validation');
-		$this->load->helper('url');
-
-		// TODO: Review the messy dns1/2/3 handling
-		$this->form_validation->set_rules('gateway', lang('dhcp_gateway'), 'required|api_dns_Dnsmasq_ValidateGateway');
-		$this->form_validation->set_rules('lease_time', lang('dhcp_lease_time'), 'required');
-		$this->form_validation->set_rules('start', lang('dhcp_ip_range_start'), 'required|api_dns_Dnsmasq_ValidateStartIp');
-		$this->form_validation->set_rules('end', lang('dhcp_ip_range_end'), 'required|api_dns_Dnsmasq_ValidateEndIp');
-		$this->form_validation->set_rules('dns1', lang('dhcp_dns'), 'api_dns_Dnsmasq_ValidateDns');
-		$this->form_validation->set_rules('dns2', lang('dhcp_dns'), 'api_dns_Dnsmasq_ValidateDns');
-		$this->form_validation->set_rules('dns3', lang('dhcp_dns'), 'api_dns_Dnsmasq_ValidateDns');
-		$this->form_validation->set_rules('wins', lang('dhcp_wins'), 'api_dns_Dnsmasq_ValidateWins');
-		$this->form_validation->set_rules('tftp', lang('dhcp_tftp'), 'api_dns_Dnsmasq_ValidateTftp');
-		$this->form_validation->set_rules('ntp', lang('dhcp_ntp'), 'api_dns_Dnsmasq_ValidateNtp');
+		$this->form_validation->set_policy('dynamic_ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
+		$this->form_validation->set_policy('dynamic_mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
 		$form_ok = $this->form_validation->run();
 
 		// Handle form submit
 		//-------------------
 
-		// FIXME: should bomb out if already exists (someone hacking URL)
 		if ($this->input->post('submit') && ($form_ok === TRUE)) {
-			$subnet['network'] = $this->input->post('network');
-			$subnet['gateway'] = $this->input->post('gateway');
-			$subnet['start'] = $this->input->post('start');
-			$subnet['end'] = $this->input->post('end');
-			$subnet['wins'] = $this->input->post('wins');
-			$subnet['tftp'] = $this->input->post('tftp');
-			$subnet['ntp'] = $this->input->post('ntp');
-			$subnet['lease_time'] = $this->input->post('lease_time');
-			$subnet['dns'] = array(
-				$this->input->post('dns1'),
-				$this->input->post('dns2'),
-				$this->input->post('dns3'),
-			);
-
 			try {
-				$this->dnsmasq->UpdateSubnet(
-					$iface,
-					$subnet['gateway'],
-					$subnet['start'],
-					$subnet['end'],
-					$subnet['dns'],
-					$subnet['wins'],
-					$subnet['lease_time'],
-					$subnet['tftp'],
-					$subnet['ntp']
-				);
+                $this->dnsmasq->add_static_lease(
+                    $this->input->post('dynamic_ip'),
+                    $this->input->post('dynamic_mac')
+                );
 
-				$this->dnsmasq->Reset();
+				$this->dnsmasq->reset(TRUE);
 
 				// Return to summary page with status message
-				$this->status->success(lang('base_system_updated'));
-				redirect('/dhcp/subnets');
+                $this->page->set_status_updated();
 			} catch (Exception $e) {
-				$header['fatal_error'] = $e->GetMessage();
+				$this->page->view_exception($e);
+				return;
 			}
 		}
 
-		// Load the view data 
-		//------------------- 
-
-		try {
-			if ($formtype === 'add') 
-				$subnet = $this->dnsmasq->GetSubnetDefault($iface);
-			else
-				$subnet = $this->dnsmasq->GetSubnet($iface);
-		} catch (Exception $e) {
-			// FIXME: exception handling
-			// FIXME: multiple fatal exceptions?
-			echo "dude " . $e->GetMessage();
-		}
-
-		$data['formtype'] = $formtype;
-
-		$data['interface'] = $iface;
-		$data['network'] = (isset($subnet['network'])) ? $subnet['network'] : '';
-		$data['gateway'] = (isset($subnet['gateway'])) ? $subnet['gateway'] : '';
-		$data['start'] = (isset($subnet['start'])) ? $subnet['start'] : '';
-		$data['end'] = (isset($subnet['end'])) ? $subnet['end'] : '';
-		$data['dns'] = (isset($subnet['dns'])) ? $subnet['dns'] : '';
-		$data['wins'] = (isset($subnet['wins'])) ? $subnet['wins'] : '';
-		$data['tftp'] = (isset($subnet['tftp'])) ? $subnet['tftp'] : '';
-		$data['ntp'] = (isset($subnet['ntp'])) ? $subnet['ntp'] : '';
-		$data['lease_time'] = (isset($subnet['lease_time'])) ? $subnet['lease_time'] : '';
-
-		$data['lease_times'] = array();
-		$data['lease_times'][12] = 12 . " " . lang('base_hours');
-		$data['lease_times'][24] = 24 . " " . lang('base_hours');
-		$data['lease_times'][48] = 2 . " " . lang('base_days');
-		$data['lease_times'][72] = 3 . " " . lang('base_days');
-		$data['lease_times'][96] = 4 . " " . lang('base_days');
-		$data['lease_times'][120] = 5 . " " . lang('base_days');
-		$data['lease_times'][144] = 6 . " " . lang('base_days');
-		$data['lease_times'][168] = 7 . " " . lang('base_days');
-		$data['lease_times'][336] = 2 . " " . lang('base_weeks');
-		$data['lease_times'][504] = 3 . " " . lang('base_weeks');
-		$data['lease_times'][672] = 4 . " " . lang('base_weeks');
-		$data['lease_times'][Dnsmasq::CONSTANT_UNLIMITED_LEASE] = lang('base_unlimited');
- 
-		// Load the views
-		//---------------
-
-		$header['title'] = lang('dhcp_dhcp') . ' - ' . lang('dhcp_subnets');
-
-		$this->load->view('theme/header', $header);
-		$this->load->view('dhcp/subnets/add_edit', $data);
-		$this->load->view('theme/footer');
+        redirect('/dhcp/leases');
 	}
 }
-
-?>
