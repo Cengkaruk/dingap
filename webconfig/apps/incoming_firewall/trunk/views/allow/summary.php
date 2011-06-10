@@ -41,10 +41,10 @@ $this->lang->load('firewall');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('firewall_nickname'),
-	lang('firewall_service'),
-	lang('firewall_protocol'),
-	lang('firewall_port')
+    lang('firewall_nickname'),
+    lang('firewall_service'),
+    lang('firewall_protocol'),
+    lang('firewall_port')
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,20 +62,22 @@ foreach ($ports as $rule) {
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 
-	$item['title'] = $rule['name'];
-	$item['action'] = '/app/incoming_firewall/allow/delete/' . $key;
-	$item['anchors'] = button_set(array(
-        $state_anchor('/app/incoming_firewall/allow/' . $state . '/' . $key, 'high'),
-        anchor_delete('/app/incoming_firewall/allow/delete/' . $key, 'low')
-    ));
-	$item['details'] = array(
+    $item['title'] = $rule['name'];
+    $item['action'] = '/app/incoming_firewall/allow/delete/' . $key;
+    $item['anchors'] = button_set(
+        array(
+            $state_anchor('/app/incoming_firewall/allow/' . $state . '/' . $key, 'high'),
+            anchor_delete('/app/incoming_firewall/allow/delete/' . $key, 'low')
+        )
+    );
+    $item['details'] = array(
         $rule['name'],
         $rule['service'],
         $rule['protocol'],
         $rule['port'],
     );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,20 +89,22 @@ foreach ($ranges as $rule) {
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 
-	$item['title'] = $rule['name'];
-	$item['action'] = '/app/incoming_firewall/allow/delete_range/' . $key;
-	$item['anchors'] = button_set(array(
-        $state_anchor('/app/incoming_firewall/allow/' . $state . '_range/' . $key, 'high'),
-        anchor_delete('/app/incoming_firewall/allow/delete_range/' . $key, 'low')
-    ));
-	$item['details'] = array(
+    $item['title'] = $rule['name'];
+    $item['action'] = '/app/incoming_firewall/allow/delete_range/' . $key;
+    $item['anchors'] = button_set(
+        array(
+            $state_anchor('/app/incoming_firewall/allow/' . $state . '_range/' . $key, 'high'),
+            anchor_delete('/app/incoming_firewall/allow/delete_range/' . $key, 'low')
+        )
+    );
+    $item['details'] = array(
         $rule['name'],
         $rule['service'],
         $rule['protocol'],
         $rule['from'] . ':' . $rule['to'],
     );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,35 +112,31 @@ foreach ($ranges as $rule) {
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($ipsec) {
-	$item['title'] = 'IPsec';
-	$item['action'] = '/app/incoming_firewall/allow/delete_ipsec';
-	$item['anchors'] = button_set(array(
-        anchor_delete('/app/incoming_firewall/allow/delete_ipsec')
-    ));
-	$item['details'] = array(
+    $item['title'] = 'IPsec';
+    $item['action'] = '/app/incoming_firewall/allow/delete_ipsec';
+    $item['anchors'] = anchor_delete('/app/incoming_firewall/allow/delete_ipsec');
+    $item['details'] = array(
         'IPsec',
         'IPsec',
         'ESP/AH + UDP',
         '500',
     );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 if ($pptp) {
-	$item['title'] = 'PPTP';
-	$item['action'] = '/app/incoming_firewall/allow/delete_pptp';
-	$item['anchors'] = button_set(array(
-        anchor_delete('/app/incoming_firewall/allow/delete_pptp')
-    ));
-	$item['details'] = array(
+    $item['title'] = 'PPTP';
+    $item['action'] = '/app/incoming_firewall/allow/delete_pptp';
+    $item['anchors'] = anchor_delete('/app/incoming_firewall/allow/delete_pptp');
+    $item['details'] = array(
         'PPTP',
         'PPTP',
         'GRE + TCP',
         '1723',
     );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,8 +146,8 @@ if ($pptp) {
 sort($items);
 
 echo summary_table(
-	lang('incoming_firewall_allowed_incoming_connections'),
-	$anchors,
-	$headers,
-	$items
+    lang('incoming_firewall_allowed_incoming_connections'),
+    $anchors,
+    $headers,
+    $items
 );

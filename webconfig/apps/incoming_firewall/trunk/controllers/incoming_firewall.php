@@ -47,22 +47,24 @@
 
 class Incoming_Firewall extends ClearOS_Controller
 {
-	/**
-	 * Firewall server overview.
-	 */
+    /**
+     * Firewall server overview.
+     *
+     * @return view
+     */
 
-	function index()
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        // Load libraries
+        //---------------
 
-		$this->lang->load('incoming_firewall');
+        $this->lang->load('incoming_firewall');
 
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
         $views = array('incoming_firewall/allow', 'incoming_firewall/block');
 
         $this->page->view_forms($views, lang('incoming_firewall_incoming_firewall'));
-	}
+    }
 }

@@ -41,8 +41,8 @@ $this->lang->load('firewall');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('firewall_nickname'),
-	lang('firewall_host'),
+    lang('firewall_nickname'),
+    lang('firewall_host'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,18 +60,20 @@ foreach ($hosts as $rule) {
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 
-	$item['title'] = $rule['name'];
-	$item['action'] = '/app/incoming_firewall/block/delete/' . $key;
-	$item['anchors'] = button_set(array(
-        $state_anchor('/app/incoming_firewall/block/' . $state . '/' . $key, 'high'),
-        anchor_delete('/app/incoming_firewall/block/delete/' . $key, 'low')
-    ));
-	$item['details'] = array(
+    $item['title'] = $rule['name'];
+    $item['action'] = '/app/incoming_firewall/block/delete/' . $key;
+    $item['anchors'] = button_set(
+        array(
+            $state_anchor('/app/incoming_firewall/block/' . $state . '/' . $key, 'high'),
+            anchor_delete('/app/incoming_firewall/block/delete/' . $key, 'low')
+        )
+    );
+    $item['details'] = array(
         $rule['name'],
         $rule['host'],
     );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 sort($items);
@@ -81,8 +83,8 @@ sort($items);
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-	lang('incoming_firewall_blocked_incoming_connections'),
-	$anchors,
-	$headers,
-	$items
+    lang('incoming_firewall_blocked_incoming_connections'),
+    $anchors,
+    $headers,
+    $items
 );

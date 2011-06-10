@@ -584,7 +584,7 @@ class Incoming extends Firewall
     /**
      * Enable/disable a port from the incoming allow list.
      *
-     * @param boolean $status  state of rule
+     * @param boolean $status   state of rule
      * @param string  $protocol protocol
      * @param integer $port     port number
      *
