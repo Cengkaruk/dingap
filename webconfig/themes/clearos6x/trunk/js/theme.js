@@ -27,18 +27,27 @@ $(function(){
 	});
 
 	// Summary tables
-    var summaryCount = $('.theme-summary-table tr').length;
-    var summaryExtras = (summaryCount > 10) ? true : false;
-
-	$(".theme-summary-table").dataTable({
+	$(".theme-summary-table-small").dataTable({
 		"aoColumnDefs": [{ 
 			"bSortable": false, "aTargets": [ -1 ] 
 		}],
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
-        "bInfo": summaryExtras,
-        "bPaginate": summaryExtras,
-        "bFilter": summaryExtras,
+        "bInfo": false,
+        "bPaginate": false,
+        "bFilter": false,
+	});
+
+
+	$(".theme-summary-table-large").dataTable({
+		"aoColumnDefs": [{ 
+			"bSortable": false, "aTargets": [ -1 ] 
+		}],
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+        "bInfo": true,
+        "bPaginate": true,
+        "bFilter": true,
 	});
 
     // Charts

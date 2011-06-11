@@ -651,8 +651,14 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
         $item_html .= "\t</tr>\n";
     }
 
+    // Size
+    //-----
+
+    $size_class = (count($items) >= 10) ? 'theme-summary-table-large' : 'theme-summary-table-small';
+
     // Summary table
     //--------------
+
     return "
 
 <div class='theme-summary-table-container ui-widget'>
@@ -660,7 +666,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     <div class='theme-summary-table-title'>$title</div>
     <div class='theme-summary-table-action'>$add_html</div>
   </div>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table display'>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table $size_class display'>
    <thead>
     <tr>$header_html
     </tr>
