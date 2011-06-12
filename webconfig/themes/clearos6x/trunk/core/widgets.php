@@ -137,7 +137,7 @@ function theme_form_submit($name, $text, $importance, $class, $options)
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
     $text = htmlspecialchars($text, ENT_QUOTES);
 
-    return "<div style='height: 22px; display: inline;'><input type='submit' name='$name'$id value='$text' class='theme-form-submit ui-corner-all $class $importance_class' /><span class='theme-form-input'></span></div>\n";
+    return "<div style='height: 22px; display: inline;'><input type='submit' name='$name'$id value='$text' class='theme-form-submit ui-corner-all $class $importance_class' /><span class='theme-form-input'>&nbsp; </span></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
