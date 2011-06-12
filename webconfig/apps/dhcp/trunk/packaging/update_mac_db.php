@@ -1,11 +1,16 @@
+#!/usr/clearos/webconfig/usr/bin/php
 <?php
 
 /**
- * DHCP controller.
+ * MAC address update.
+ *
+ * A list of MAC addresses is publicly available from 
+ * http://standards.ieee.org/develop/regauth/oui/public.html.
+ * This tool converts the oui.txt file to a PHP array.
  *
  * @category   Apps
  * @package    DHCP
- * @subpackage Controllers
+ * @subpackage Scripts
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -29,34 +34,22 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// C L A S S
-///////////////////////////////////////////////////////////////////////////////
+$contents = preg_split("/\n/", file_get_contents('oui.txt'));
 
-/**
- * DHCP controller.
- *
- * @category   Apps
- * @package    DHCP
- * @subpackage Controllers
- * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
- */
+echo "<?php\n\n";
+echo "// See http://standards.ieee.org/develop/regauth/oui/public.html\n\n";
+echo "\$mac_database = array(\n";
 
-class DHCP extends ClearOS_Controller
-{
-    /**
-     * DHCP server overview.
-     *
-     * @return view
-     */
+foreach ($contents as $line) {
+    $matches = array();
 
-    function index()
-    {
-        $views = array('dhcp/settings', 'dhcp/subnets', 'dhcp/leases');
+    if (preg_match("/^([0-9A-F]{1,2}-[0-9A-F]{1,2}-[0-9A-F]{1,2})\s+(\(.*\))\s+(.*)/", $line, $matches)) {
+        $mac_prefix = preg_replace('/-/', ':', $matches[1]);
+        $company = preg_replace("/'/", "\'", $matches[3]);
+        $company = ucwords(strtolower($company));
 
-        $this->page->view_forms($views, lang('dhcp_dhcp_server'));
+        echo "'" . $mac_prefix . "' => '" . $company . "',\n";
     }
 }
+
+echo ");\n";

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * DHCP leases view.
+ * DHCP settings view.
  *
  * @category   ClearOS
  * @package    DHCP
@@ -33,74 +33,46 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('network');
 $this->lang->load('dhcp');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Headers
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-$headers = array(
-	lang('network_ip'),
-	lang('network_mac_address'),
-	lang('network_hostname'),
-	lang('dhcp_vendor'),
-	lang('dhcp_expires')
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Anchors 
-///////////////////////////////////////////////////////////////////////////////
-
-$anchors = array(anchor_add('/app/dhcp/leases/add'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Items
-///////////////////////////////////////////////////////////////////////////////
-
-foreach ($leases as $key => $details) {
-	$key = $details['mac'] . "/" . $details['ip'];
-    $order_ip = "<span style='display: none'>" . sprintf("%032b", ip2long($details['ip'])) . "</span>" . $details['ip'];
-
-    if ($details['end'] == 0)
-        $order_date = lang('dhcp_never');
-    else
-        $order_date = "<span style='display: none'>" . $details['end'] . "</span>" . strftime('%c', $details['end']);
-
-    if (strlen($details['vendor']) > 20)
-        $vendor = substr($details['vendor'], 0, 20) . "...";
-    else
-        $vendor = $details['vendor'];
-
-	$item['title'] = $order_ip;
-	$item['action'] = anchor_edit('/app/dhcp/leases/edit/' . $key, 'high');
-	$item['anchors'] = button_set(
-        array(
-            anchor_edit('/app/dhcp/leases/edit/' . $key, 'high'),
-            anchor_delete('/app/dhcp/leases/delete/' . $key, 'low')
-        )
-    );
-	$item['details'] = array(
-		$order_ip,
-		$details['mac'],
-		$details['hostname'],
-		$vendor,
-		$order_date,
-		$full_actions
+if ($form_type === 'edit') {
+	$read_only = FALSE;
+	$buttons = array(
+		form_submit_update('submit'),
+		anchor_cancel('/app/dhcp')
 	);
-
-	$items[] = $item;
+} else {
+	$read_only = TRUE;
+	$buttons = array(anchor_edit('/app/dhcp/settings/edit'));
 }
 
-sort($items);
-
 ///////////////////////////////////////////////////////////////////////////////
-// Summary table
+// Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo summary_table(
-	lang('dhcp_leases'),
-	$anchors,
-	$headers,
-	$items
-);
+echo form_open('dhcp/settings'); 
+echo form_header(lang('base_settings'));
+
+///////////////////////////////////////////////////////////////////////////////
+// Form fields
+///////////////////////////////////////////////////////////////////////////////
+
+echo field_toggle_enable_disable('authoritative', $authoritative, lang('dhcp_authoritative'), $read_only);
+echo field_input('domain', $domain, lang('dhcp_domain'), $read_only);
+
+///////////////////////////////////////////////////////////////////////////////
+// Buttons
+///////////////////////////////////////////////////////////////////////////////
+
+echo button_set($buttons);
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_footer(); 
+echo form_close();

@@ -72,6 +72,8 @@ class Settings extends ClearOS_Controller
     /**
      * Common view/edit form.
      *
+     * @param string $form_type form type
+     *
      * @return view
      */
 
@@ -104,7 +106,7 @@ class Settings extends ClearOS_Controller
                  $this->page->set_status_updated();
                 redirect('/dhcp/');
             } catch (Exception $e) {
-                $this->page->view_exception($e->GetMessage(), $view);
+                $this->page->view_exception($e);
                 return;
             }
         }

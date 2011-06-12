@@ -29,7 +29,7 @@ $app['subcategory'] = lang('base_subcategory_infrastructure');
 $app['controllers']['dhcp']['title'] = lang('dhcp_dhcp_server');
 $app['controllers']['settings']['title'] = lang('base_settings');
 $app['controllers']['subnets']['title'] = lang('dhcp_subnets');
-// $app['controllers']['leases']['title'] = lang('dhcp_leases');
+$app['controllers']['leases']['title'] = lang('dhcp_leases');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

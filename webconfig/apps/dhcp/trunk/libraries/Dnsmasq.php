@@ -78,9 +78,11 @@ clearos_load_library('network/Routes');
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\network\Ethers_Not_Found_Exception as Ethers_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
+clearos_load_library('network/Ethers_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -114,6 +116,9 @@ class Dnsmasq extends Daemon
     const DEFAULT_LEASETIME = '12'; // in hours
     const CONSTANT_UNLIMITED_LEASE = 'infinite';
 
+    const TYPE_STATIC = 'static';
+    const TYPE_DYNAMIC = 'dynamic';
+
     const OPTION_SUBNET_MASK = 1;
     const OPTION_GATEWAY = 3;
     const OPTION_DNS = 6;
@@ -130,6 +135,7 @@ class Dnsmasq extends Daemon
     protected $is_loaded = FALSE;
     protected $config = array();
     protected $subnets = array();
+    protected $types = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -144,13 +150,18 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct('dnsmasq');
+
+        $this->types = array(
+            self::TYPE_STATIC => lang('dhcp_static'),
+            self::TYPE_DYNAMIC => lang('dhcp_dynamic')
+        );
     }
 
     /**
      * Adds a static lease to DHCP server.
      *
      * @param string $mac MAC address
-     * @param string $ip IP address
+     * @param string $ip  IP address
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -164,10 +175,6 @@ class Dnsmasq extends Daemon
         Validation_Exception::is_valid($this->validate_ip($ip));
 
         $ethers = new Ethers();
-        $exists = $ethers->get_hostname_by_mac($mac);
-
-        if (!empty($exists))
-            throw new Validation_Exception(lang('dhcp_mac_address_already_exists'));
 
         $ethers->add_ether($mac, $ip);
     }
@@ -189,7 +196,17 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function add_subnet($interface, $start, $end, $lease_time = self::DEFAULT_LEASETIME, $gateway = NULL, $dns_list = NULL, $wins = NULL, $tftp = NULL, $ntp = NULL)
+    public function add_subnet(
+        $interface, 
+        $start, 
+        $end, 
+        $lease_time = self::DEFAULT_LEASETIME,
+        $gateway = NULL,
+        $dns_list = NULL,
+        $wins = NULL,
+        $tftp = NULL,
+        $ntp = NULL
+    )
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -216,7 +233,7 @@ class Dnsmasq extends Daemon
         $dns_line = '';
 
         if (count($dns_list) > 0) {
-            // FIXME: purges empty array elements.  Move to controller.
+            // TODO: purges empty array elements.  Move to controller.
             foreach ($dns_list as $server) {
                 if (!empty($server))
                     $dns_array[] = $server;
@@ -273,25 +290,28 @@ class Dnsmasq extends Daemon
     }
 
     /**
-     * Deletes a static lease from DHCP server.
+     * Deletes a lease from DHCP server.
      *
      * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function delete_static_lease($mac)
+    public function delete_lease($mac, $ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ethers = new Ethers();
-        $ethers->delete_ether($mac);
+        $this->_delete_static_lease($mac);
+        $this->_delete_dynamic_lease($mac, $ip);
     }
 
     /**
      * Removes DHCP subnet from configuration file.
      *
      * @param string $interface network interface
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
@@ -317,6 +337,7 @@ class Dnsmasq extends Daemon
      * Determines if subnet already exists.
      *
      * @param string $interface network interface
+     *
      * @return boolean TRUE if subnet exists
      * @throws Engine_Exception
      */
@@ -464,7 +485,11 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        /* The MAC/IP pair in the static leases (/etc/ethers) and active
+        // Pull in MAC address database
+        include clearos_app_base('dhcp') . '/deploy/mac_database.php';
+
+        /**
+         * The MAC/IP pair in the static leases (/etc/ethers) and active
          * leases (/var/lib/misc/dnsmasq.leases) could be different.  For
          * example, a machine may grab a dynamic lease at first but an
          * administrator could later add a static entry for future use.
@@ -483,24 +508,28 @@ class Dnsmasq extends Daemon
         $ip_ndx = array();
 
         foreach ($static as $mac => $details) {
-            $key = sprintf("%u.%s", ip2long($details['ip']), hexdec(preg_replace("/\:/", "", $mac)) );
+            $key = sprintf("%u.%s", ip2long($details['ip']), hexdec(preg_replace("/\:/", "", $mac)));
+            $mac_prefix = strtoupper(substr($mac, 0, 8));
 
+            $leases[$key]['vendor'] = isset($mac_database[$mac_prefix]) ? $mac_database[$mac_prefix] : '';
             $leases[$key]['mac'] = $mac;
             $leases[$key]['ip'] = $details['ip'];
             $leases[$key]['end'] = 0;
             $leases[$key]['is_active'] = TRUE;
-            $leases[$key]['is_static'] = TRUE;
+            $leases[$key]['type'] = self::TYPE_STATIC;
             $leases[$key]['hostname'] = $details['hostname'];
         }
 
         foreach ($active as $mac => $details) {
-            $key = sprintf("%u.%s", ip2long($details['ip']), hexdec(preg_replace("/\:/", "", $mac)) );
+            $key = sprintf("%u.%s", ip2long($details['ip']), hexdec(preg_replace("/\:/", "", $mac)));
+            $mac_prefix = strtoupper(substr($mac, 0, 8));
 
+            $leases[$key]['vendor'] = isset($mac_database[$mac_prefix]) ? $mac_database[$mac_prefix] : '';
             $leases[$key]['mac'] = $mac;
             $leases[$key]['ip'] = $details['ip'];
             $leases[$key]['end'] = $details['end'];
             $leases[$key]['is_active'] = TRUE;
-            $leases[$key]['is_static'] = FALSE;
+            $leases[$key]['type'] = self::TYPE_DYNAMIC;
             $leases[$key]['hostname'] = $details['hostname'];
         }
 
@@ -524,12 +553,10 @@ class Dnsmasq extends Daemon
 
         $leases = $this->get_leases();
 
-// echo "<pre>";
-// print_r($leases);
         $statics = array();
 
         foreach ($leases as $lease => $details) {
-            if ($details['is_static'])
+            if ($details['type'] === self::TYPE_STATIC)
                 $statics[$lease] = $details;
         }
 
@@ -538,6 +565,8 @@ class Dnsmasq extends Daemon
 
     /**
      * Returns subnet information for a given interface.
+     *
+     * @param string $iface network interface
      *
      * @return array subnet information
      * @throws Engine_Exception
@@ -568,6 +597,8 @@ class Dnsmasq extends Daemon
      *
      * This method will return default subnet information based on
      * the configured IP address.
+     *
+     * @param string $iface network interface
      *
      * @return array subnet information
      * @throws Engine_Exception
@@ -601,7 +632,7 @@ class Dnsmasq extends Daemon
             $subnet['gateway'] = $ip;
 
         $subnet['network'] = $network;
-        $subnet['start'] = long2ip($long_bc - round(($long_bc - $long_nw )* 3 / 5,0) - 2);
+        $subnet['start'] = long2ip($long_bc - round(($long_bc - $long_nw) * 3 / 5,0) - 2);
         $subnet['end'] = long2ip($long_bc - 1);
         $subnet['lease_time'] = "24";
         $subnet['dns'] = array($ip);
@@ -660,9 +691,24 @@ class Dnsmasq extends Daemon
     }
 
     /**
+     * Returns lease types.
+     *
+     * @return array lease types
+     * @throws Engine_Exception
+     */
+
+    public function get_types()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->types;
+    }
+
+    /**
      * Sets state of authoritative flag.
      *
      * @param boolean $state authoritative state
+     *
      * @return void
      * @throws Engine_Exception
      */
@@ -690,6 +736,7 @@ class Dnsmasq extends Daemon
      * Sets state of DHCP server.
      *
      * @param boolean $state DHCP server state
+     *
      * @return void
      * @throws Engine_Exception
      */
@@ -717,6 +764,7 @@ class Dnsmasq extends Daemon
      * Sets global domain name.
      *
      * @param string $domain domain name
+     *
      * @return void
      * @throws Engine_Exception
      */
@@ -785,9 +833,102 @@ class Dnsmasq extends Daemon
         $this->add_subnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
     }
 
+    /**
+     * Updates an existing lease.
+     *
+     * @param string $mac  MAC address
+     * @param string $ip   IP address
+     * @param string $type lease type
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function update_lease($mac, $ip, $type)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_mac($mac));
+        Validation_Exception::is_valid($this->validate_ip($ip));
+        Validation_Exception::is_valid($this->validate_lease_type($type));
+
+        $this->_delete_static_lease($mac);
+        $this->_delete_dynamic_lease($mac);
+
+        if ($type === self::TYPE_STATIC)
+            $this->add_static_lease($mac, $ip);
+        else
+            $this->_add_dynamic_lease($mac, $ip);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E  M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Adds a dynamiuc lease to DHCP server.
+     *
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    protected function _add_dynamic_lease($mac, $ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_mac($mac));
+        Validation_Exception::is_valid($this->validate_ip($ip));
+
+        $file = new File(self::FILE_LEASES);
+
+        $lease_time = time() + 3600;
+
+        $file->add_lines($lease_time . ' ' . strtolower($mac) . ' ' . $ip . " * *\n");
+    }
+
+    /**
+     * Deletes a dynamic lease from DHCP server.
+     *
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _delete_dynamic_lease($mac, $ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_LEASES);
+
+        $file->delete_lines("/[0-9]*\s+$mac\s+$ip/i");
+    }
+
+    /**
+     * Deletes a static lease from DHCP server.
+     *
+     * @param string $mac MAC address
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _delete_static_lease($mac)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ethers = new Ethers();
+
+        try {
+            $ethers->delete_ether($mac);
+        } catch (Ethers_Not_Found_Exception $e) {
+            // Not fatal
+        }
+    }
 
     /**
      * Returns active leases.
@@ -905,7 +1046,7 @@ class Dnsmasq extends Daemon
             return lang('dhcp_authoritative_state_invalid');
     }
 
-    /*
+    /**
      * Validates DHCP state
      *
      * @param boolean $state DHCP state
@@ -918,7 +1059,7 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($state))
-            return lang('dhcp_dhcp_state_invalid');
+            return lang('dhcp_state_invalid');
     }
 
     /**
@@ -986,9 +1127,10 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: call IFace class 
-        // return lang('dhcp_network_interface_invalid');
-        return '';
+        $iface = new Iface($interface);
+
+        if (! $iface->is_valid());
+            return lang('network_interface_is_invalid');
     }
 
     /**
@@ -1004,15 +1146,15 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_ip($ip))
-            return lang('dhcp_ip_address_is_invalid');
+            return lang('network_ip_is_invalid');
     }
 
     /**
      * Validates DHCP IP range.
      *
      * @param string $interface network interface
-     * @param string $start start IP
-     * @param string $end end IP
+     * @param string $start     start IP
+     * @param string $end       end IP
      *
      * @return string error message if IP range is invalid
      */
@@ -1048,6 +1190,22 @@ class Dnsmasq extends Daemon
     }
 
     /**
+     * Validates lease type.
+     *
+     * @param string $type lease type
+     *
+     * @return string error message if lease type is invalid
+     */
+
+    public function validate_lease_type($type)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($type, $this->types))
+            return lang('dhcp_lease_type_invalid');
+    }
+
+    /**
      * Validates MAC address
      *
      * @param string $mac MAC address
@@ -1060,7 +1218,7 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_mac($mac))
-            return lang('dhcp_mac_address_is_invalid');
+            return lang('network_mac_address_is_invalid');
     }
 
     /**
@@ -1203,7 +1361,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function _load_config()
+    protected function _load_config()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1290,8 +1448,9 @@ class Dnsmasq extends Daemon
         }
 
         /**
-         * Calculate network setting
-         * Check to see if configuration is valid for given interface
+         * Calculates network setting.
+         *
+         * Check to see if configuration is valid for given interface.
          *
          * $subnet[interface][network]
          * $subnet[interface][isvalid]
@@ -1331,7 +1490,7 @@ class Dnsmasq extends Daemon
      * @throws Engine_Exception
      */
 
-    public function _save_config()
+    protected function _save_config()
     {
         clearos_profile(__METHOD__, __LINE__);
 

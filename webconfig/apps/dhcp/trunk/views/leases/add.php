@@ -1,11 +1,11 @@
 <?php
 
 /**
- * DHCP controller.
+ * DHCP add lease view.
  *
- * @category   Apps
+ * @category   ClearOS
  * @package    DHCP
- * @subpackage Controllers
+ * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -25,38 +25,41 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// C L A S S
+// Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * DHCP controller.
- *
- * @category   Apps
- * @package    DHCP
- * @subpackage Controllers
- * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/dhcp/
- */
+$this->lang->load('network');
+$this->lang->load('dhcp');
 
-class DHCP extends ClearOS_Controller
-{
-    /**
-     * DHCP server overview.
-     *
-     * @return view
-     */
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
 
-    function index()
-    {
-        $views = array('dhcp/settings', 'dhcp/subnets', 'dhcp/leases');
+echo form_open('dhcp/leases/add');
+echo form_header(lang('dhcp_static_lease'));
 
-        $this->page->view_forms($views, lang('dhcp_dhcp_server'));
-    }
-}
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
+
+echo field_input('mac', $lease['mac'], lang('network_mac_address'));
+echo field_input('ip', $lease['ip'], lang('network_ip'));
+
+echo button_set(
+    array(
+        form_submit_add('submit', 'high'),
+        anchor_cancel('/app/dhcp/leases')
+    )
+);
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_footer(); 
+echo form_close();

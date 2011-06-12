@@ -47,149 +47,160 @@
 
 class Subnets extends ClearOS_Controller
 {
-	/**
-	 * DHCP server overview.
-	 */
+    /**
+     * DHCP server overview.
+     *
+     * @return view
+     */
 
-	function index($view = 'page')
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        // Load libraries
+        //---------------
 
-		$this->load->library('dhcp/Dnsmasq');
-		$this->lang->load('dhcp');
+        $this->load->library('dhcp/Dnsmasq');
+        $this->lang->load('dhcp');
 
-		// Load view data
-		//---------------
+        // Load view data
+        //---------------
 
-		try {
-			$data['subnets'] = $this->dnsmasq->get_subnets();
-			$data['ethlist'] = $this->dnsmasq->get_dhcp_interfaces();
-		} catch (Exception $e) {
-			$this->page->view_exception($e);
-			return;
-		}
+        try {
+            $data['subnets'] = $this->dnsmasq->get_subnets();
+            $data['ethlist'] = $this->dnsmasq->get_dhcp_interfaces();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
  
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
         $this->page->view_form('dhcp/subnets/summary', $data);
-	}
+    }
 
-	/**
-	 * DHCP server add subnet.
-	 *
-	 * @return string
-	 */
+    /**
+     * DHCP server add subnet.
+     *
+     * @param string $iface network interface
+     *
+     * @return view
+     */
 
-	function add($iface)
-	{
-		$this->_add_edit($iface, 'add');
-	}
+    function add($iface)
+    {
+        $this->_add_edit($iface, 'add');
+    }
 
-	/**
-	 * DHCP server delete subnet view.
-	 *
-	 * @param string $iface   interface
+    /**
+     * DHCP server delete subnet view.
+     *
+     * @param string $iface   interface
      * @param string $network network
      *
-	 * @return view
-	 */
+     * @return view
+     */
 
-	function delete($iface, $network)
-	{
+    function delete($iface, $network)
+    {
         $confirm_uri = '/app/dhcp/subnets/destroy/' . $iface;
         $cancel_uri = '/app/dhcp/subnets';
         $items = array($iface . ' - ' . $network);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
-	}
+    }
 
-	/**
-	 * Destroys DHCP server subnet.
-	 *
-	 * @return view
-	 */
+    /**
+     * Destroys DHCP server subnet.
+     *
+     * @param string $iface network interface
+     *
+     * @return view
+     */
 
-	function destroy($iface)
-	{
-		try {
+    function destroy($iface)
+    {
+        try {
             $this->load->library('dhcp/Dnsmasq');
     
-			$this->dnsmasq->delete_subnet($iface);
+            $this->dnsmasq->delete_subnet($iface);
 
-			$this->page->set_status_deleted();
-		    redirect('/dhcp/subnets');
-		} catch (Exception $e) {
-			$this->page->view_exception($e);
-			return;
-		}
-	}
+            $this->page->set_status_deleted();
+            redirect('/dhcp/subnets');
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+    }
 
-	/**
-	 * DHCP server edit subnet.
-	 *
-	 * @return string
-	 */
+    /**
+     * DHCP server edit subnet.
+     *
+     * @param string $iface network interface
+     *
+     * @return view
+     */
 
-	function edit($iface = null)
-	{
-		$this->_add_edit($iface, 'edit');
-	}
+    function edit($iface)
+    {
+        $this->_add_edit($iface, 'edit');
+    }
 
-	///////////////////////////////////////////////////////////////////////////////
-	// P R I V A T E
-	///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E
+    ///////////////////////////////////////////////////////////////////////////////
 
-	/**
-	 * DHCP server common add/edit form handler.
-	 *
-	 * @return string
-	 */
+    /**
+     * DHCP server common add/edit form handler.
+     *
+     * @param string $iface     network interface
+     * @param string $form_type form type
+     *
+     * @return view
+     */
 
-	function _add_edit($iface, $form_type)
-	{
-		// Load libraries
-		//---------------
+    function _add_edit($iface, $form_type)
+    {
+        // Load libraries
+        //---------------
 
-		$this->load->library('dhcp/Dnsmasq');
-		$this->lang->load('dhcp');
+        $this->load->library('dhcp/Dnsmasq');
+        $this->lang->load('dhcp');
 
-		// Set validation rules
-		//---------------------
+        // Set validation rules
+        //---------------------
 
-		$this->load->library('form_validation');
-		$this->form_validation->set_policy('gateway', 'dhcp/Dnsmasq', 'validate_gateway', TRUE);
-		$this->form_validation->set_policy('lease_time', 'dhcp/Dnsmasq', 'validate_lease_time', TRUE);
-		$this->form_validation->set_policy('start', 'dhcp/Dnsmasq', 'validate_start_ip', TRUE);
-		$this->form_validation->set_policy('end', 'dhcp/Dnsmasq', 'validate_end_ip', TRUE);
-		$this->form_validation->set_policy('dns1', 'dhcp/Dnsmasq', 'validate_dns_server');
-		$this->form_validation->set_policy('dns2', 'dhcp/Dnsmasq', 'validate_dns_server');
-		$this->form_validation->set_policy('dns3', 'dhcp/Dnsmasq', 'validate_dns_server');
-		$this->form_validation->set_policy('wins', 'dhcp/Dnsmasq', 'validate_wins_server');
-		$this->form_validation->set_policy('tftp', 'dhcp/Dnsmasq', 'validate_tftp_server');
-		$this->form_validation->set_policy('ntp', 'dhcp/Dnsmasq', 'validate_ntp_server');
-		$form_ok = $this->form_validation->run();
+        $this->load->library('form_validation');
+        $this->form_validation->set_policy('gateway', 'dhcp/Dnsmasq', 'validate_gateway', TRUE);
+        $this->form_validation->set_policy('lease_time', 'dhcp/Dnsmasq', 'validate_lease_time', TRUE);
+        $this->form_validation->set_policy('start', 'dhcp/Dnsmasq', 'validate_start_ip', TRUE);
+        $this->form_validation->set_policy('end', 'dhcp/Dnsmasq', 'validate_end_ip', TRUE);
+        $this->form_validation->set_policy('dns1', 'dhcp/Dnsmasq', 'validate_dns_server');
+        $this->form_validation->set_policy('dns2', 'dhcp/Dnsmasq', 'validate_dns_server');
+        $this->form_validation->set_policy('dns3', 'dhcp/Dnsmasq', 'validate_dns_server');
+        $this->form_validation->set_policy('wins', 'dhcp/Dnsmasq', 'validate_wins_server');
+        $this->form_validation->set_policy('tftp', 'dhcp/Dnsmasq', 'validate_tftp_server');
+        $this->form_validation->set_policy('ntp', 'dhcp/Dnsmasq', 'validate_ntp_server');
+        $form_ok = $this->form_validation->run();
 
-		// Handle form submit
-		//-------------------
+        // Handle form submit
+        //-------------------
 
-		if ($this->input->post('submit') && ($form_ok === TRUE)) {
-			$subnet['network'] = $this->input->post('network');
-			$subnet['gateway'] = $this->input->post('gateway');
-			$subnet['start'] = $this->input->post('start');
-			$subnet['end'] = $this->input->post('end');
-			$subnet['wins'] = $this->input->post('wins');
-			$subnet['tftp'] = $this->input->post('tftp');
-			$subnet['ntp'] = $this->input->post('ntp');
-			$subnet['lease_time'] = $this->input->post('lease_time');
-			$subnet['dns'] = array(
-				$this->input->post('dns1'),
-				$this->input->post('dns2'),
-				$this->input->post('dns3'),
-			);
+        if ($this->input->post('submit') && ($form_ok === TRUE)) {
+            $subnet['network'] = $this->input->post('network');
+            $subnet['gateway'] = $this->input->post('gateway');
+            $subnet['start'] = $this->input->post('start');
+            $subnet['end'] = $this->input->post('end');
+            $subnet['wins'] = $this->input->post('wins');
+            $subnet['tftp'] = $this->input->post('tftp');
+            $subnet['ntp'] = $this->input->post('ntp');
+            $subnet['lease_time'] = $this->input->post('lease_time');
+            $subnet['dns'] = array(
+                $this->input->post('dns1'),
+                $this->input->post('dns2'),
+                $this->input->post('dns3'),
+            );
 
-			try {
+            try {
                 if ($form_type === 'add') {
                     $this->dnsmasq->add_subnet(
                         $iface,
@@ -216,60 +227,60 @@ class Subnets extends ClearOS_Controller
                     );
                 }
 
-				$this->dnsmasq->reset(TRUE);
+                $this->dnsmasq->reset(TRUE);
 
-				// Return to summary page with status message
+                // Return to summary page with status message
                 $this->page->set_status_added();
-				redirect('/dhcp/subnets');
-			} catch (Exception $e) {
-				$this->page->view_exception($e);
-				return;
-			}
-		}
+                redirect('/dhcp/subnets');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
 
-		// Load the view data 
-		//------------------- 
+        // Load the view data 
+        //------------------- 
 
-		try {
-			if ($form_type === 'add') 
-				$subnet = $this->dnsmasq->get_subnet_default($iface);
-			else
-				$subnet = $this->dnsmasq->get_subnet($iface);
-		} catch (Exception $e) {
-			$this->page->view_exception($e);
-			return;
-		}
+        try {
+            if ($form_type === 'add') 
+                $subnet = $this->dnsmasq->get_subnet_default($iface);
+            else
+                $subnet = $this->dnsmasq->get_subnet($iface);
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
-		$data['form_type'] = $form_type;
+        $data['form_type'] = $form_type;
 
-		$data['interface'] = $iface;
-		$data['network'] = (isset($subnet['network'])) ? $subnet['network'] : '';
-		$data['gateway'] = (isset($subnet['gateway'])) ? $subnet['gateway'] : '';
-		$data['start'] = (isset($subnet['start'])) ? $subnet['start'] : '';
-		$data['end'] = (isset($subnet['end'])) ? $subnet['end'] : '';
-		$data['dns'] = (isset($subnet['dns'])) ? $subnet['dns'] : '';
-		$data['wins'] = (isset($subnet['wins'])) ? $subnet['wins'] : '';
-		$data['tftp'] = (isset($subnet['tftp'])) ? $subnet['tftp'] : '';
-		$data['ntp'] = (isset($subnet['ntp'])) ? $subnet['ntp'] : '';
-		$data['lease_time'] = (isset($subnet['lease_time'])) ? $subnet['lease_time'] : '';
+        $data['interface'] = $iface;
+        $data['network'] = (isset($subnet['network'])) ? $subnet['network'] : '';
+        $data['gateway'] = (isset($subnet['gateway'])) ? $subnet['gateway'] : '';
+        $data['start'] = (isset($subnet['start'])) ? $subnet['start'] : '';
+        $data['end'] = (isset($subnet['end'])) ? $subnet['end'] : '';
+        $data['dns'] = (isset($subnet['dns'])) ? $subnet['dns'] : '';
+        $data['wins'] = (isset($subnet['wins'])) ? $subnet['wins'] : '';
+        $data['tftp'] = (isset($subnet['tftp'])) ? $subnet['tftp'] : '';
+        $data['ntp'] = (isset($subnet['ntp'])) ? $subnet['ntp'] : '';
+        $data['lease_time'] = (isset($subnet['lease_time'])) ? $subnet['lease_time'] : '';
 
-		$data['lease_times'] = array();
-		$data['lease_times'][12] = 12 . " " . lang('base_hours');
-		$data['lease_times'][24] = 24 . " " . lang('base_hours');
-		$data['lease_times'][48] = 2 . " " . lang('base_days');
-		$data['lease_times'][72] = 3 . " " . lang('base_days');
-		$data['lease_times'][96] = 4 . " " . lang('base_days');
-		$data['lease_times'][120] = 5 . " " . lang('base_days');
-		$data['lease_times'][144] = 6 . " " . lang('base_days');
-		$data['lease_times'][168] = 7 . " " . lang('base_days');
-		$data['lease_times'][336] = 2 . " " . lang('base_weeks');
-		$data['lease_times'][504] = 3 . " " . lang('base_weeks');
-		$data['lease_times'][672] = 4 . " " . lang('base_weeks');
-		$data['lease_times'][\clearos\apps\dhcp\Dnsmasq::CONSTANT_UNLIMITED_LEASE] = lang('base_unlimited');
+        $data['lease_times'] = array();
+        $data['lease_times'][12] = 12 . " " . lang('base_hours');
+        $data['lease_times'][24] = 24 . " " . lang('base_hours');
+        $data['lease_times'][48] = 2 . " " . lang('base_days');
+        $data['lease_times'][72] = 3 . " " . lang('base_days');
+        $data['lease_times'][96] = 4 . " " . lang('base_days');
+        $data['lease_times'][120] = 5 . " " . lang('base_days');
+        $data['lease_times'][144] = 6 . " " . lang('base_days');
+        $data['lease_times'][168] = 7 . " " . lang('base_days');
+        $data['lease_times'][336] = 2 . " " . lang('base_weeks');
+        $data['lease_times'][504] = 3 . " " . lang('base_weeks');
+        $data['lease_times'][672] = 4 . " " . lang('base_weeks');
+        $data['lease_times'][\clearos\apps\dhcp\Dnsmasq::CONSTANT_UNLIMITED_LEASE] = lang('base_unlimited');
  
-		// Load the views
-		//---------------
+        // Load the views
+        //---------------
 
-		$this->page->view_form('dhcp/subnets/add_edit', $data, lang('dhcp_subnets'));
-	}
+        $this->page->view_form('dhcp/subnets/add_edit', $data, lang('dhcp_subnets'));
+    }
 }

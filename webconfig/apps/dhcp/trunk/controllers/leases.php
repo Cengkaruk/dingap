@@ -47,97 +47,134 @@
 
 class Leases extends ClearOS_Controller
 {
-	/**
-	 * DHCP server overview.
-	 */
+    /**
+     * DHCP server overview.
+     *
+     * @return view
+     */
 
-	function index($view = 'page')
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        // Load libraries
+        //---------------
 
-		$this->load->library('dhcp/Dnsmasq');
-		$this->lang->load('dhcp');
+        $this->load->library('dhcp/Dnsmasq');
+        $this->lang->load('dhcp');
 
-		// Load view data
-		//---------------
+        // Load view data
+        //---------------
 
-		try {
-			$data['leases'] = $this->dnsmasq->get_leases();
-		} catch (Exception $e) {
-			$this->page->view_exception($e);
-			return;
-		}
+        try {
+            $data['leases'] = $this->dnsmasq->get_leases();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
  
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
         $this->page->view_form('dhcp/leases/summary', $data);
-	}
+    }
 
-	/**
-	 * Edit lease view.
-	 *
-	 * @return string
-	 */
+    /**
+     * Add lease view.
+     *
+     * @return view
+     */
 
-	function edit($mac, $ip)
-	{
-		// Load libraries
-		//---------------
+    function add()
+    {
+        // Load libraries
+        //---------------
 
-		$this->load->library('dhcp/Dnsmasq');
-		$this->lang->load('dhcp');
+        $this->load->library('dhcp/Dnsmasq');
+        $this->lang->load('dhcp');
 
-		// Set validation rules
-		//---------------------
+        // Set validation rules
+        //---------------------
 
-		$this->form_validation->set_policy('ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
-		$this->form_validation->set_policy('mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
-		$form_ok = $this->form_validation->run();
+        $this->form_validation->set_policy('ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
+        $this->form_validation->set_policy('mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
+        $form_ok = $this->form_validation->run();
 
-		// Handle form submit
-		//-------------------
+        // Handle form submit
+        //-------------------
 
-		if ($this->input->post('update_static') && ($form_ok === TRUE)) {
-			try {
+        if ($this->input->post('submit') && ($form_ok === TRUE)) {
+            try {
                 $this->dnsmasq->add_static_lease(
-                    $this->input->post('ip'),
-                    $this->input->post('mac')
+                    $this->input->post('mac'),
+                    $this->input->post('ip')
                 );
 
-				$this->dnsmasq->reset(TRUE);
+                $this->dnsmasq->reset(TRUE);
 
-				// Return to summary page with status message
-                $this->page->set_status_updated();
-			} catch (Exception $e) {
-				$this->page->view_exception($e);
-				return;
-			}
-
-        } else if ($this->input->post('submit') && ($form_ok === TRUE)) {
-			try {
-                $this->dnsmasq->add_static_lease(
-                    $this->input->post('ip'),
-                    $this->input->post('mac')
-                );
-
-				$this->dnsmasq->reset(TRUE);
-
-				// Return to summary page with status message
+                // Return to summary page with status message
                 $this->page->set_status_updated();
                 redirect('/dhcp/leases');
-			} catch (Exception $e) {
-				$this->page->view_exception($e);
-				return;
-			}
-		}
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        $this->page->view_form('dhcp/leases/add', array(), lang('dhcp_lease'));
+    }
+
+    /**
+     * Edit lease view.
+     *
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return view
+     */
+
+    function edit($mac, $ip)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('dhcp/Dnsmasq');
+        $this->lang->load('dhcp');
+
+        // Set validation rules
+        //---------------------
+
+        $this->form_validation->set_policy('ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
+        $this->form_validation->set_policy('mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
+        $this->form_validation->set_policy('type', 'dhcp/Dnsmasq', 'validate_lease_type', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if ($this->input->post('submit') && ($form_ok === TRUE)) {
+            try {
+                $this->dnsmasq->update_lease(
+                    $this->input->post('mac'),
+                    $this->input->post('ip'),
+                    $this->input->post('type')
+                );
+
+                $this->dnsmasq->reset(TRUE);
+
+                // Return to summary page with status message
+                $this->page->set_status_updated();
+                redirect('/dhcp/leases');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
 
         // Load view data
         //---------------
 
         try {
             $data['lease'] = $this->dnsmasq->get_lease($mac, $ip);
+            $data['types'] = $this->dnsmasq->get_types();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -147,88 +184,47 @@ class Leases extends ClearOS_Controller
         //-----------
 
         $this->page->view_form('dhcp/leases/edit', $data, lang('base_edit'));
-	}
+    }
 
-	/**
-	 * DHCP server delete subnet view.
-	 *
-	 * @param string $iface   interface
-     * @param string $network network
+    /**
+     * DHCP server delete lease view.
      *
-	 * @return view
-	 */
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return view
+     */
 
-	function delete($iface, $network)
-	{
-        $confirm_uri = '/app/dhcp/leases/destroy/' . $iface;
+    function delete($mac, $ip)
+    {
+        $confirm_uri = '/app/dhcp/leases/destroy/' . $mac . '/' . $ip;
         $cancel_uri = '/app/dhcp/leases';
-        $items = array($iface . ' - ' . $network);
+        $items = array($mac . ' - ' . $ip);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
-	}
+    }
 
-	/**
-	 * Destroys DHCP server subnet.
-	 *
-	 * @return view
-	 */
+    /**
+     * Destroys DHCP server lease
+     *
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return view
+     */
 
-	function destroy($iface)
-	{
-		try {
+    function destroy($mac, $ip)
+    {
+        try {
             $this->load->library('dhcp/Dnsmasq');
     
-			$this->dnsmasq->delete_subnet($iface);
+            $this->dnsmasq->delete_lease($mac, $ip);
 
-			$this->page->set_status_deleted();
-		    redirect('/dhcp/leases');
-		} catch (Exception $e) {
-			$this->page->view_exception($e);
-			return;
-		}
-	}
-
-	/**
-	 * Converts a dynamic lease to a static lease.
-	 *
-	 * @return string
-	 */
-
-	function to_static($mac, $ip)
-	{
-		// Load libraries
-		//---------------
-
-		$this->load->library('dhcp/Dnsmasq');
-		$this->lang->load('dhcp');
-
-		// Set validation rules
-		//---------------------
-
-		$this->form_validation->set_policy('dynamic_ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
-		$this->form_validation->set_policy('dynamic_mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
-		$form_ok = $this->form_validation->run();
-
-		// Handle form submit
-		//-------------------
-
-		if ($this->input->post('submit') && ($form_ok === TRUE)) {
-			try {
-                $this->dnsmasq->add_static_lease(
-                    $this->input->post('dynamic_ip'),
-                    $this->input->post('dynamic_mac')
-                );
-
-				$this->dnsmasq->reset(TRUE);
-
-				// Return to summary page with status message
-                $this->page->set_status_updated();
-			} catch (Exception $e) {
-				$this->page->view_exception($e);
-				return;
-			}
-		}
-
-        redirect('/dhcp/leases');
-	}
+            $this->page->set_status_deleted();
+            redirect('/dhcp/leases');
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+    }
 }

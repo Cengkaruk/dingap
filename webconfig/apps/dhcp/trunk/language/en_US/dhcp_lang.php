@@ -1,9 +1,11 @@
 <?php
 
+$lang['dhcp_lease_type_invalid'] = 'Lease type is invalid.';
+$lang['dhcp_state_invalid'] = 'State is invalid';
+
+$lang['dhcp_static_lease'] = 'Static Lease';
+$lang['dhcp_vendor'] = 'Vendor';
 $lang['dhcp_never'] = 'Never';
-$lang['dhcp_dynamic_leases'] = 'Dynamic Leases';
-$lang['dhcp_static_leases'] = 'Static Leases';
-$lang['dhcp_change_to_static'] = 'Change to Static';
 $lang['dhcp_expires'] = 'Expires';
 
 $lang['dhcp_authoritative'] = "Authoritative";
@@ -22,12 +24,10 @@ $lang['dhcp_tftp'] = "TFTP";
 $lang['dhcp_wins'] = "WINS";
 
 $lang['dhcp_leases'] = 'Leases';
-$lang['dhcp_active'] = 'Active';
+$lang['dhcp_lease'] = 'Lease';
 $lang['dhcp_dynamic'] = 'Dynamic';
 $lang['dhcp_static'] = 'Static';
-$lang['dhcp_dhcp'] = 'DHCP';
 $lang['dhcp_dhcp_server'] = 'DHCP Server';
-$lang['dhcp_confirm_delete'] = 'Are you sure you want to delete DHCP settings for the %s network interface?';
 
 $lang['dhcp_authoritative_state_invalid'] = 'Authoritative state is invalid.';
 $lang['dhcp_dns_server_invalid'] = 'DNS server is invalid.';
