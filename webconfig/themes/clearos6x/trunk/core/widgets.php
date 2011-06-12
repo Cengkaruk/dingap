@@ -654,7 +654,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     // Size
     //-----
 
-    $size_class = (count($items) >= 10) ? 'theme-summary-table-large' : 'theme-summary-table-small';
+    $size_class = (count($items) > 10) ? 'theme-summary-table-large' : 'theme-summary-table-small';
 
     // Summary table
     //--------------
