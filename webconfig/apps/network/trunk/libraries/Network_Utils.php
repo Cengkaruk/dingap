@@ -415,11 +415,9 @@ class Network_Utils extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: No need to uppercase this, using case-insensitive pattern below
         $mac = strtoupper($mac);
 
-        // TODO: Replace eregi with preg_match
-        if (!(eregi("^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$", $mac)))
+        if (!(preg_match("/^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$/", $mac)))
             return FALSE;
 
         return TRUE;

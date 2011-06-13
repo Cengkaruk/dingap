@@ -1,4 +1,7 @@
 <?php
+$lang['network_role'] = 'Role';
+$lang['network_type'] = 'Type';
+$lang['network_network_interface_is_invalid'] = 'Network interface is invalid.';
 $lang['network_broadcast'] = 'Broadcast Address';
 $lang['network_connected'] = 'Connected';
 $lang['network_connection_status'] = 'Connection Status';
@@ -34,6 +37,7 @@ $lang['network_domain_is_invalid'] = 'Internet domain is invalid.';
 $lang['network_domain_must_have_a_period'] = 'Internet domain must have at least one period.';
 $lang['network_ip_is_invalid'] = 'IP address is invalid.';
 $lang['network_ip_not_part_of_network'] = 'IP address is not part of the network.';
+
 $lang['network_mac_address_is_invalid'] = 'MAC address is invalid.';
 $lang['network_ip_range_is_invalid'] = 'IP range is invalid.';
 $lang['network_ip_range_is_reversed'] = 'IP range is reversed.';

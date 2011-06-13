@@ -1,15 +1,23 @@
 <?php
 
+/**
+ * Network settings controller.
+ *
+ * @category   Apps
+ * @package    Network
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2010 ClearFoundation
-//
-///////////////////////////////////////////////////////////////////////////////
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,13 +25,16 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
+
 /**
- * Network controller.
+ * Network settings controller.
  *
  * @category   Apps
  * @package    Network
@@ -31,35 +42,45 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
-///////////////////////////////////////////////////////////////////////////////
-// C O N T R O L L E R
-///////////////////////////////////////////////////////////////////////////////
- 
-/**
- * Network controller.
- *
- * @category   Apps
- * @package    Network
- * @subpackage Controllers
- * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
- * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/smtp/
- */
-
-class General extends ClearOS_Controller
+class Settings extends ClearOS_Controller
 {
-	/**
-	 * Basic network overview.
-	 */
+    /**
+     * General settings overview.
+     *
+     * @return view
+     */
 
-    function index($mode = 'edit')
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * General settings edit view.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Common view/edit form
+     *
+     * @param string $form_type form type
+     *
+     * @return view
+     */
+
+    function _view_edit($form_type)
+    {
+        // Load libraries
+        //---------------
 
         $this->load->library('network/Network');
         $this->load->library('network/Hostname');
@@ -71,11 +92,13 @@ class General extends ClearOS_Controller
          
         $this->form_validation->set_policy('network_mode', 'network/Network', 'validate_mode', TRUE);
         $this->form_validation->set_policy('hostname', 'network/Hostname', 'validate_hostname', TRUE);
+
         for ($dns_id = 1; $dns_id < 3; $dns_id++) {
             $field = sprintf('dns%d', $dns_id);
             if (strlen($this->input->post($field)) == 0) continue;
             $this->form_validation->set_policy($field, 'network/Resolver', 'validate_ip', TRUE);
         }
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -105,7 +128,7 @@ class General extends ClearOS_Controller
         //---------------
 
         try {
-            $data['mode'] = $mode;
+            $data['form_type'] = $form_type;
             $data['network_mode'] = $this->network->get_mode();
             $data['network_modes'] = $this->network->get_modes();
             $data['hostname'] = $this->hostname->get();
@@ -119,9 +142,9 @@ class General extends ClearOS_Controller
             return;
         }
 
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
-        $this->page->view_form('general/view_edit', $data);
-	}
+        $this->page->view_form('settings/view_edit', $data);
+    }
 }

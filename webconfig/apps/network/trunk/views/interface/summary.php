@@ -14,10 +14,10 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,8 +25,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,12 +33,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->load->helper('form');
-$this->load->helper('url');
-$this->load->library('form_validation');
 $this->lang->load('network');
 $this->lang->load('base');
-$this->lang->load('firewall');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
@@ -47,8 +42,8 @@ $this->lang->load('firewall');
 
 $headers = array(
 	lang('network_interface'),
-	lang('firewall_role'),
-	lang('firewall_type'),
+	lang('network_role'),
+	lang('network_type'),
 	lang('network_ip'),
 	lang('network_interface_link'),
 	lang('network_interface_speed')
