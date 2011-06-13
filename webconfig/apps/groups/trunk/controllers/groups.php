@@ -89,7 +89,6 @@ class Groups extends ClearOS_Controller
 
     function add($group_name)
     {
-        // Use common add/edit form
         $this->_add_edit_view($group_name, 'add');
     }
 
@@ -173,7 +172,6 @@ class Groups extends ClearOS_Controller
 
     function view($group_name)
     {
-        // Use common add/edit form
         $this->_add_edit_view($group_name, 'view');
     }
 
@@ -207,7 +205,6 @@ class Groups extends ClearOS_Controller
         // $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
 
         $form_ok = $this->form_validation->run();
-$form_ok = FALSE;
 
         // Handle form submit
         //-------------------
@@ -229,7 +226,8 @@ $form_ok = FALSE;
         //------------------- 
 
         try {
-            $data['group_info'] = $this->group->get_info();
+            if ($form_type !== 'add')
+                $data['group_info'] = $this->group->get_info();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
