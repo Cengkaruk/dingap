@@ -6,7 +6,7 @@
 
 $app['basename'] = 'ftp';
 $app['version'] = '5.9.9.2';
-$app['release'] = '1';
+$app['release'] = '2.2';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
@@ -39,3 +39,6 @@ $app['core_requires'] = array(
 $app['core_directory_manifest'] = array(
     '/var/clearos/ftp' => array(),
 );
+
+
+// FIXME: need default configuration file

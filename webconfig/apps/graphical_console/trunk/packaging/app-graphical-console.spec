@@ -2,7 +2,7 @@
 Name: app-graphical-console
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 1%{dist}
+Release: 2.2%{dist}
 Summary: Graphical console tool
 License: GPLv3
 Packager: ClearFoundation
