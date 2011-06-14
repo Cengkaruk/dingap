@@ -885,7 +885,7 @@ sub UpdateDyndns() {
     $g_dns_retry = 0;
 
     if (! -e "$CMD_DYNDNS") {
-        LogMsg("info", "system", "dynamic DNS command not installed\n");
+        LogMsg("debug", "system", "dynamic DNS client not installed\n") if $config{debug};
         return;
     }
 
