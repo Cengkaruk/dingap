@@ -12,4 +12,3 @@ chkconfig snortsam on
 
 logger -p local6.notice -t installer "app-intrusion-prevention-core - starting intrusion prevention server"
 service snortsam start
-~                         
