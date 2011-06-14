@@ -884,10 +884,15 @@ sub CheckWanNetwork() {
 sub UpdateDyndns() {
 	$g_dns_retry = 0;
 
+    if (! -e "$CMD_DYNDNS") {
+		LogMsg("info", "system", "dynamic DNS command not installed\n");
+        return;
+    }
+
 	my $force = "";
 	$force = "force" if ($g_first_dyndns == $STATUS_YES);
 
-	my $dns = `$CMD_DYNDNS $force`;
+    my $dns = `$CMD_DYNDNS $force`;
 
 	chomp($dns);
 
