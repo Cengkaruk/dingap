@@ -1,0 +1,2102 @@
+#!/usr/bin/perl -wT
+
+###############################################################################
+#
+# Copyright 2000-2008 Point Clark Networks.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+###############################################################################
+
+use strict;
+use Net::Ping;
+use HTTP::Request;
+use LWP::UserAgent;
+use POSIX;
+
+$SIG{'HUP'}  = 'SignalReload';
+$SIG{'INT'}  = 'SignalInterrupt';
+$SIG{'TERM'} = 'SignalInterrupt';
+$SIG{'USR1'} = 'SignalSystemCheck';
+$SIG{'USR2'} = 'SignalNetworkChange';
+$SIG{'NUM63'} = 'SignalClusterChange';
+$SIG{'NUM61'} = 'SignalCupsWorkaround';
+$SIG{'CHLD'} = sub { wait };
+
+$ENV {'PATH'}  = '/sbin:/usr/bin:/bin';
+$ENV {'SHELL'} = '/bin/sh';
+delete @ENV {'ENV', 'BASH_ENV'};  # Perl security stuff - see "man perlsec"
+
+
+###############################################################################
+#
+# Function Definitions
+#
+###############################################################################
+
+# Core 
+sub Daemonize();
+sub SignalReload();
+sub LogMsg($$$);
+sub ReadConfig();
+sub SignalInterrupt();
+sub SleepHeartbeat();
+
+# Network watch
+sub CheckWanConnection();
+sub CheckWanNetwork();
+sub CheckIpChanges();
+sub GetClusterState();
+sub GetIp($);
+sub GetRoute($);
+sub GetNetworkInfo();
+sub GetPingServers();
+sub ManageCluster();
+sub RestartNetwork();
+sub RestartFirewall();
+sub RestartIntrusionDetection();
+sub UpdateDyndns();
+sub ValidateIp($);
+sub SynchronizeTime();
+sub SignalClusterChange();
+
+# Automagic system fixes
+sub CheckUpgrade();
+sub CheckResolv(); # PPPoE ... sigh
+sub CheckWhitelistConfig();
+sub CheckFirewallConf();
+sub CheckNetworkBakFiles();
+sub CheckClamAv();
+sub CheckSecurityAudit();
+sub ManageSslCertificates();
+sub ResetSuvaDeviceName();
+sub ResetDaemons();
+sub RestartWebconfig();
+sub UpdateWhitelist();
+
+
+###############################################################################
+#
+# Constants
+#
+###############################################################################
+
+my $DIR_IDS      = "/etc/snort";
+my $DIR_STATE    = "/var/lib/syswatch";
+my $DIR_SECAUD   = "/var/lib/suvlets/SecurityAudit/db";
+my $FILE_WS      = "/usr/share/system/modules/services/config";
+my $FILE_SUVA_OK = "/usr/share/system/modules/services/suva";
+my $FILE_PID     = "/var/run/syswatch.pid";
+my $FILE_LOG     = "/var/log/syswatch";
+my $FILE_CFG     = "/etc/syswatch";
+my $FILE_FW      = "/etc/firewall";
+my $FILE_DNS     = "/etc/resolv.conf";
+my $FILE_IDSCFG  = "/etc/snortsam.conf";
+my $FILE_IDSLIST = "system-autowhitelist.conf";
+my $FILE_STATE   = "$DIR_STATE/state";
+my $FILE_CLAMDB  = "/var/lib/clamav/*.cvd";
+my $FILE_SALIST  = "/etc/postfix/filters/sa-blacklist";
+my $FILE_HA      = "/var/lib/syswatch/ha";
+my $FILE_SECAUD  = "$DIR_SECAUD/aide.db";
+my $FILE_SECAUDN = "$DIR_SECAUD/aide.db.new";
+my $CMD_PPP      = "/usr/share/system/modules/ppp/upgrade";
+my $CMD_IDS      = "/etc/rc.d/init.d/snortsam condrestart >/dev/null 2>&1";
+my $CMD_MD5SUM   = "/usr/bin/md5sum";
+my $CMD_DYNDNS   = "/usr/sbin/dnsupdate";
+my $CMD_VPNUPDATE = "/usr/sbin/vpnupdate";
+my $CMD_TIMESYNC = "/usr/sbin/timesync";
+my $CMD_SETSUVA  = "/usr/sbin/setdevicename";
+my $CMD_WANUPDATE = "/usr/sbin/syswatch.local";
+my $STATE_ENABLED = "enabled";
+my $STATE_DISABLED = "disabled";
+my $STATE_UNKNOWN = "unknown";
+my $STATE_STARTUP = "startup";
+my $STATE_ACTIVE = "active";
+my $STATE_BACKUP = "backup";
+my $TYPE_STATIC = "static";
+my $TYPE_PPPOE = "pppoe";
+my $TYPE_DHCP = "dhcp";
+my $STATUS_OK = 0;
+my $STATUS_WARN = 1;
+my $STATUS_DOWN = 2;
+my $STATUS_INIT = 3;
+my $STATUS_BORKED = 20;
+my $STATUS_CHANGED = 30;
+my $STATUS_UNCHANGED = 31;
+my $STATUS_NO = 40;
+my $STATUS_YES = 41;
+my @CONDRESTART_DAEMON_LIST = ('ldap', 'nmb', 'winbind', 'smb', 'squid', 'vpnwatchd', 'proftpd', 'cups', 'dansguardian-av');
+
+my %BASE_CERTS;
+$BASE_CERTS{'cert'} = "/etc/ssl/sys-0-cert.pem";
+$BASE_CERTS{'key'} = "/etc/ssl/private/sys-0-key.pem";
+$BASE_CERTS{'ca'} = "/etc/ssl/ca-cert.pem";
+$BASE_CERTS{'dh'} = "/etc/ssl/dh1024.pem";
+
+my %FILE_CERTS;
+$FILE_CERTS{'postfix'}->{'basedir'} = '/etc/postfix';
+$FILE_CERTS{'postfix'}->{'cert'} = '/etc/postfix/cert.pem';
+$FILE_CERTS{'postfix'}->{'key'} = '/etc/postfix/key.pem';
+$FILE_CERTS{'postfix'}->{'owner'} = 'root';
+$FILE_CERTS{'postfix'}->{'group'} = 'root';
+$FILE_CERTS{'postfix'}->{'perms'} = '0600';
+$FILE_CERTS{'postfix'}->{'daemon'} = 'postfix';
+$FILE_CERTS{'cyrus'}->{'basedir'} = '/etc/imapd.d';
+$FILE_CERTS{'cyrus'}->{'cert'} = '/etc/imapd.d/cert.pem';
+$FILE_CERTS{'cyrus'}->{'key'} = '/etc/imapd.d/key.pem';
+$FILE_CERTS{'cyrus'}->{'ca_config'} = '/etc/imapd.conf';
+$FILE_CERTS{'cyrus'}->{'ca_param'} = 'tls_ca_file';
+$FILE_CERTS{'cyrus'}->{'group'} = 'mail';
+$FILE_CERTS{'cyrus'}->{'owner'} = 'cyrus';
+$FILE_CERTS{'cyrus'}->{'perms'} = '0600';
+$FILE_CERTS{'cyrus'}->{'daemon'} = 'cyrus-imapd';
+$FILE_CERTS{'webconfig'}->{'basedir'} = '/usr/webconfig/conf';
+$FILE_CERTS{'webconfig'}->{'cert'} = '/usr/webconfig/conf/server.crt';
+$FILE_CERTS{'webconfig'}->{'key'} = '/usr/webconfig/conf/server.key';
+$FILE_CERTS{'webconfig'}->{'owner'} = 'webconfig';
+$FILE_CERTS{'webconfig'}->{'group'} = 'root';
+$FILE_CERTS{'webconfig'}->{'perms'} = '0600';
+$FILE_CERTS{'webconfig'}->{'daemon'} = 'webconfig';
+$FILE_CERTS{'cups'}->{'basedir'} = '/etc/cups/ssl';
+$FILE_CERTS{'cups'}->{'cert'} = '/etc/cups/ssl/server.crt';
+$FILE_CERTS{'cups'}->{'key'} = '/etc/cups/ssl/server.key';
+$FILE_CERTS{'cups'}->{'owner'} = 'root';
+$FILE_CERTS{'cups'}->{'group'} = 'lp';
+$FILE_CERTS{'cups'}->{'perms'} = '600';
+$FILE_CERTS{'cups'}->{'daemon'} = 'cups';
+$FILE_CERTS{'radiusd'}->{'basedir'} = '/etc/raddb/clearos-certs';
+$FILE_CERTS{'radiusd'}->{'cert'} = '/etc/raddb/clearos-certs/cert.pem';
+$FILE_CERTS{'radiusd'}->{'key'} = '/etc/raddb/clearos-certs/key.pem';
+$FILE_CERTS{'radiusd'}->{'ca'} = '/etc/raddb/clearos-certs/ca.pem';
+$FILE_CERTS{'radiusd'}->{'dh'} = '/etc/raddb/clearos-certs/dh1024.pem';
+$FILE_CERTS{'radiusd'}->{'owner'} = 'root';
+$FILE_CERTS{'radiusd'}->{'group'} = 'radiusd';
+$FILE_CERTS{'radiusd'}->{'perms'} = '640';
+$FILE_CERTS{'radiusd'}->{'daemon'} = 'radiusd';
+
+###############################################################################
+#
+# Configuration Variables (globals)
+#
+###############################################################################
+
+# Override these settings in /etc/syswatch.  Booleans: 0 = disabled, 1 = enabled
+#------------------------------------------
+
+my @config_ping_servers;
+my @config_sdn_servers;
+my %config;
+$config{debug} = 0;  # debug 0 = no debug, 1 - some debug
+$config{retries} = 5;  # number of ping retries before taking action
+$config{interval} = 60;  # ping interval (in seconds)
+$config{heartbeat} = 10;  # number of intervals between writing a "heartbeat" in the log file
+$config{force_get_ip} = $STATE_DISABLED; 	# use remote server to determine IP
+$config{failedinterval} = 10;  # ping interval (in seconds) when 'net is down
+$config{ping_servers_autodetect} = $STATE_ENABLED; 
+$config{try_pinging_gateway} = $STATUS_YES;
+$config{is_multiwan} = $STATE_DISABLED;
+
+# TODO: Alternate ping servers are hard-coded IPs.  We cannot use hostname
+# since we want to avoid inevitable DNS issues.  However, the hard-coded IP
+# addresses here should be replaced by some kind of update when connected.
+$config{ping_server1_default} = "69.90.141.72";
+$config{ping_server2_default} = "67.18.166.2";
+
+# Real globals
+#--------------
+
+my %g_extifs;  # Interface data structure
+my $g_dns_retry = 0;
+
+# "Fake" globals
+#---------------
+# The following are really static local variables (not supported in Perl?),
+# or variables in the main loop.
+
+my $g_internet_update = $STATE_ENABLED;
+my $g_ids_md5 = $STATE_STARTUP; # Should be local static variable
+my $g_active_wans = $STATE_STARTUP; # Should be local static variable
+my $g_heartbeatcount = 0; # Should be local static variable
+my $g_first_dyndns = $STATUS_YES; # Should be local static variable
+my $g_first_time = $STATUS_YES; # Should be local static variable
+my $g_do_timesync = $STATUS_YES; # Should be local static variable
+
+
+##############################################################################
+#
+# Let's update a few things on startup...
+#
+##############################################################################
+
+LogMsg("info", "system", "syswatch started\n");
+Daemonize();
+CheckUpgrade();
+CheckFirewallConf();
+CheckNetworkBakFiles();
+ReadConfig();
+GetNetworkInfo();
+GetPingServers();
+ManageSslCertificates();
+CheckClamAv();
+CheckSecurityAudit();
+ResetDaemons();
+
+
+##############################################################################
+#
+# Main loop
+#
+##############################################################################
+
+
+while (1) {
+
+	#------------------------------------------------------------------------
+	# WAN connection check
+	#------------------------------------------------------------------------
+	#
+	# Ping remote servers
+	#
+	#-----------------------------------------------------------------------
+
+	my $wan_connection = CheckWanConnection();
+
+
+	#------------------------------------------------------------------------
+	# WAN connection down
+	#------------------------------------------------------------------------
+	#
+	# If a WAN connection is down
+	#   + Try to bring up any interfaces that are down
+	#   + Load the latest network information
+	#
+	#------------------------------------------------------------------------
+
+	if ($wan_connection != $STATUS_OK) { 
+		RestartNetwork();
+		GetNetworkInfo();
+	}
+
+	# Re-check the connection status if a WAN IP has changed
+
+	my $wan_ip_state = CheckIpChanges();
+
+	if ($wan_ip_state == $STATUS_CHANGED) {
+		$wan_connection = CheckWanConnection();
+	}
+
+	#------------------------------------------------------------------------
+	# WAN changes check
+	#------------------------------------------------------------------------
+	#
+	# If a WAN IP changes
+	#  + Set the g_internet_update flag
+	#  + Restart the firewall
+	#  + Load the current network settings
+	#  + Reset servers used for ping testing
+	#
+	#------------------------------------------------------------------------
+
+	my $wan_network_state = CheckWanNetwork();
+
+	if ( ($wan_ip_state == $STATUS_CHANGED) || ($wan_network_state == $STATUS_CHANGED)) {
+		$g_internet_update = $STATE_ENABLED;
+		RestartFirewall();
+		GetNetworkInfo();
+		GetPingServers();
+		UpdateWhitelist();
+		RestartIntrusionDetection();
+	}
+
+
+	#------------------------------------------------------------------------
+	# Other Web Services update
+	#------------------------------------------------------------------------
+	#
+	# When an IP changes, perform some updates... wait for Internet connection
+	#
+	#------------------------------------------------------------------------
+
+	if (($g_internet_update eq $STATE_ENABLED) && ($wan_connection != $STATUS_DOWN)) {
+		$g_internet_update = $STATE_DISABLED;
+		CheckWhitelistConfig();
+		SynchronizeTime();
+		UpdateDyndns();
+		ResetSuvaDeviceName();
+	}
+
+	SleepHeartbeat();
+}
+
+
+###############################################################################
+# F U N C T I O N S
+###############################################################################
+
+###############################################################################
+#
+# Daemonize: turns this into a daemon
+#
+###############################################################################
+
+sub Daemonize() {
+
+	my $anaconda = `/sbin/pidof loader`;
+	chomp($anaconda);
+
+	if ($anaconda) {
+		LogMsg("warn", "system", "syswatch does not run in install environment");
+		exit 1;
+	}
+
+	if (-e $FILE_PID) {
+		my $isup = `/sbin/pidof syswatch`;
+		chomp($isup);
+		if ($isup) {
+			LogMsg("warn", "system", "syswatch already running? $FILE_PID");
+			exit 1;
+		} else {
+			LogMsg("warn", "system", "cleaning up old PID file");
+			unlink($FILE_PID);
+		}
+	}
+
+	if (fork()) { exit; }
+	setsid();
+	open(FILE_PID, ">$FILE_PID");
+	printf FILE_PID "%d\n", getpid();
+	close(FILE_PID);
+
+	$0 = "syswatch";
+}
+
+
+###############################################################################
+#
+# SleepHeartbeat: 
+#
+###############################################################################
+
+sub SleepHeartbeat() {
+
+	# If there is a connection problem, "sleep" for a short period of time
+	my $allok = $STATUS_OK;
+	foreach my $extif (keys %g_extifs) {
+		if ($g_extifs{$extif}->{status} != $STATUS_OK) {
+			$allok = $STATUS_DOWN;
+			LogMsg("debug", $extif, "using failed interval time (sec) - " . $config{failedinterval} . "\n") if $config{debug};
+			last;
+		}
+	}
+
+	if ($allok == $STATUS_OK) {
+		sleep $config{interval};
+	} else {
+		sleep $config{failedinterval};
+	}
+
+	# Log heartbeat from time to time
+	$g_heartbeatcount++;
+
+	if ($g_heartbeatcount == $config{heartbeat}) {
+		$g_heartbeatcount = 0;
+		LogMsg("info", "system", "heartbeat...\n");
+		UpdateDyndns() if ($g_dns_retry); # set when a previous dyndns update failed
+		ResetSuvaDeviceName();
+	}
+}
+
+
+###############################################################################
+#
+# CheckWanConnection: Check to see if the Internet is up
+#
+###############################################################################
+
+sub CheckWanConnection() {
+
+	foreach my $extif (keys %g_extifs) {
+
+		my $gwcheck = 0;
+		my $ping_server1 = $g_extifs{$extif}->{ping_server1};
+		my $ping_server2 = $g_extifs{$extif}->{ping_server2};
+
+		# If we are a backup node in the cluster, bail
+		#---------------------------------------------
+
+		if ((-e $FILE_HA) && (GetClusterState() eq $STATE_BACKUP)) {
+			LogMsg("debug", $extif, "ping check - skipped for backup node in cluster\n") if $config{debug};
+			$g_extifs{$extif}->{status} = $STATUS_DOWN;
+			next;
+		}
+
+		# If we don't have an IP, bail right away
+		#----------------------------------------
+
+		if ($g_extifs{$extif}->{ip} eq $STATE_UNKNOWN) {
+			LogMsg("info", $extif, "ping check - no IP available\n");
+			$g_extifs{$extif}->{status} = $STATUS_DOWN;
+			next;
+		}
+
+		# If we don't have a gateway, bail right away
+		#--------------------------------------------
+
+		if ($g_extifs{$extif}->{gateway} eq $STATE_UNKNOWN) {
+			LogMsg("info", $extif, "ping check - no gateway found\n");
+			$g_extifs{$extif}->{status} = $STATUS_DOWN;
+			next;
+		}
+
+		# Initialize ping request, bail if we can't bind to interface
+		#------------------------------------------------------------
+
+		my $ping_object;
+		eval { 
+			$ping_object = Net::Ping->new("icmp", 5, 1, $extif);
+			$ping_object->bind($g_extifs{$extif}->{ip}); 
+		};
+		if ($@) {
+			LogMsg("warn", $extif, "network interface disappeared - " . $g_extifs{$extif}->{ip} . "\n");
+			$g_extifs{$extif}->{status} = $STATUS_DOWN;
+			next;
+		}
+
+		# If connection is down, update ARP table (multiwan)
+		#---------------------------------------------------
+
+		if ($g_extifs{$extif}->{status} != $STATUS_OK) {
+			LogMsg("debug", $extif, "updating ARP table\n") if $config{debug};
+			if ($g_extifs{$extif}->{conntype} eq $TYPE_PPPOE) {
+				LogMsg("debug", $extif, "skipping ARP nud on PPPoE\n") if $config{debug};
+			} else {
+				my $mygateway = $1 if ($g_extifs{$extif}->{gateway} =~ /^(.*)$/); # Untaint (already validated)
+				my $mac = `/bin/cat /proc/net/arp | /bin/grep $mygateway | /bin/grep $extif | /bin/awk \'{ print \$4 }\'`;
+				if (($mac =~ /^(.*)$/) && $mac){
+					$mac = $1;
+					$ping_server1 = $1 if ($ping_server1 =~ /^(.*)$/);  # Untaint (already validated)
+					$ping_server2 = $1 if ($ping_server2 =~ /^(.*)$/);  # Untaint (already validated)
+					if ($ping_server1 ne $g_extifs{$extif}->{gateway}) {
+						`/sbin/ip neigh replace $ping_server1 lladdr $mac nud permanent dev $extif 2>/dev/null`;
+						LogMsg("debug", $extif, "added ARP nud - $mac / $ping_server1\n") if $config{debug};
+					}
+					if ($ping_server2 ne $g_extifs{$extif}->{gateway}) {
+						`/sbin/ip neigh replace $ping_server2 lladdr $mac nud permanent dev $extif 2>/dev/null`;
+						LogMsg("debug", $extif, "added ARP nud - $mac / $ping_server2\n") if $config{debug};
+					}
+				} else {
+					LogMsg("debug", $extif, "could not add ARP nud\n") if $config{debug};
+				}
+			}
+		}
+
+		# If connection is down, ping gateway first
+		#------------------------------------------
+
+		if (($g_extifs{$extif}->{status} != $STATUS_OK) && ($config{try_pinging_gateway} == $STATUS_YES)) {
+			LogMsg("debug", $extif, "ping check on gateway - " . $g_extifs{$extif}->{gateway} . "\n") if $config{debug};
+			$gwcheck = $ping_object->ping($g_extifs{$extif}->{gateway}, 2);
+			if ($gwcheck == 0) {
+				LogMsg("info", $extif, "ping check on gateway failed - " . $g_extifs{$extif}->{gateway} . "\n");
+			} else {
+				LogMsg("debug", $extif, "ping check on gateway passed\n") if $config{debug};
+			}
+		}
+
+		# Sanity checks are done... start the ping check
+		#-----------------------------------------------
+
+		LogMsg("debug", $extif, "ping check started - " . $ping_server1 . "\n") if $config{debug};
+
+		my $check = $ping_object->ping($ping_server1, 2);
+	
+		if ($check == 0) {
+			LogMsg("info", $extif, "ping check on server #1 failed - " . $ping_server1 . "\n");
+			sleep 3;
+			$g_extifs{$extif}->{downcount1}++;
+			$check = $ping_object->ping($ping_server2, 2);
+
+			if ($check == 0) {
+				$g_extifs{$extif}->{downcount2} = 0 if (! defined($g_extifs{$extif}->{downcount2}));
+				$g_extifs{$extif}->{downcount2}++;
+				LogMsg("info", $extif, "ping check on server #2 failed - " . $ping_server2 . "\n");
+				LogMsg("debug", $extif, "ping check down count - " . $g_extifs{$extif}->{downcount2} . "\n") if $config{debug};
+				if  ($g_extifs{$extif}->{downcount2} >= $config{retries}) {
+					if ($gwcheck != 0) {
+						LogMsg("warn", $extif, "upstream connection problems with your ISP\n");
+					} else {
+						LogMsg("warn", $extif, "connection is down\n");
+					}
+					$g_extifs{$extif}->{status} = $STATUS_DOWN;
+				} else {
+					LogMsg("warn", $extif, "connection warning\n");
+					$g_extifs{$extif}->{status} = $STATUS_WARN;
+				}
+			} else {
+				LogMsg("info", $extif, "ping check on server #2 passed - " . $ping_server2 . "\n");
+				$g_extifs{$extif}->{downcount2} = 0;
+				$g_extifs{$extif}->{status} = $STATUS_OK;
+			}
+
+			# A small minority of ISPs block ping on the next hop.  We track the number
+			# of failed pings on the next hop with downcount1/downcount2.  If the count
+			# gets above a certain number, we use a pointclark.net server.
+
+			if ( ($g_extifs{$extif}->{downcount1} == 15) && ($g_extifs{$extif}->{downcount2} == 0) ) {
+				if ($g_extifs{$extif}->{ping_server1} eq $g_extifs{$extif}->{gateway}) {
+					LogMsg("info", $extif, "ping blocked on gateway " . $g_extifs{$extif}->{ping_server1} . " - using alternate\n");
+					$config{try_pinging_gateway} = $STATUS_NO;
+				} else {
+					LogMsg("info", $extif, "ping blocked on " . $g_extifs{$extif}->{ping_server1} . " - using alternate\n");
+				}
+				$g_extifs{$extif}->{ping_server1} = $config{ping_server1_default};
+			}
+	
+		} else { 
+			if ($g_extifs{$extif}->{downcount1} && ($g_extifs{$extif}->{downcount1} > 0)) {
+				LogMsg("info", $extif, "ping check on server #1 passed - " . $ping_server1 . "\n");
+			} else {
+				LogMsg("debug", $extif, "ping check on server #1 passed - " . $ping_server1 . "\n") if $config{debug};
+			}
+			$g_extifs{$extif}->{downcount1} = 0;
+			$g_extifs{$extif}->{downcount2} = 0;
+			$g_extifs{$extif}->{status} = $STATUS_OK;
+		}
+
+		$ping_object->close();
+	}
+
+	# Log connection summary
+	#-----------------------
+
+	my $total_connections = keys %g_extifs;
+	my $up_connections = 0;
+	my $down_connections = 0;
+	my $warn_connections = 0;
+	foreach my $extif (keys %g_extifs) {
+		$up_connections++ if ($g_extifs{$extif}->{status} == $STATUS_OK);
+		$down_connections++ if ($g_extifs{$extif}->{status} == $STATUS_DOWN);
+		$warn_connections++ if ($g_extifs{$extif}->{status} == $STATUS_WARN);
+	}
+
+	LogMsg("debug", "system", "connection summary (up:down:warn = total) - " . 
+		$up_connections . ":" . $down_connections . ":" . $warn_connections . " = " . 
+		$total_connections . "\n") if $config{debug};
+
+	if ($up_connections == 0) {
+		return $STATUS_DOWN;
+	} elsif ($up_connections == $total_connections) {
+		return $STATUS_OK;
+	} else {
+		return $STATUS_WARN;
+	}
+}
+
+
+###############################################################################
+#
+# RestartFirewall: Restart the firewall
+#
+###############################################################################
+
+sub RestartFirewall() {
+	LogMsg("info", "system", "restarting firewall\n");
+	`/etc/rc.d/init.d/firewall restart 2>/dev/null`; 
+}
+
+###############################################################################
+#
+# RestartIntrusionDetection: Restart intrusion detection/prevention
+#
+# PPPOEKLUDGE: When a network interface (read: PPPoE) disappears, it will 
+# take Snort down with it.  Syswatch is responsible for restarting it.
+#
+###############################################################################
+
+sub RestartIntrusionDetection() {
+	LogMsg("info", "system", "resetting intrusion detection\n");
+
+	foreach my $extif (keys %g_extifs) {
+		if ($g_extifs{$extif}->{status} == $STATUS_OK) {
+			if (! -e "/var/run/snort_$extif.pid") {
+				LogMsg("info", "system", "enabling intrusion detection on $extif\n");
+				`/etc/rc.d/init.d/snort restart 2>/dev/null` if (-e "/etc/rc3.d/S99snort");
+				return; # No need to check other interfaces at this point
+			} else {
+				LogMsg("debug", "system", "intrusion detection enabled for $extif\n") if $config{debug};
+			}
+		}
+	}
+}
+
+###############################################################################
+#
+# RestartNetwork: Restart the Internet connection
+#
+###############################################################################
+
+sub RestartNetwork() {
+
+	# Bail if this a backup node in a cluster
+	#----------------------------------------
+
+	if (GetClusterState() eq $STATE_BACKUP) {
+		LogMsg("info", "system", "cluster node is backup - on standby\n");
+		return;
+	}
+
+	foreach my $extif (keys %g_extifs) {
+
+		# Bail if network status is ok
+		#-----------------------------
+
+		next if ($g_extifs{$extif}->{status} != $STATUS_DOWN);
+
+		# Bail if gateway IP is still ping-able
+		#--------------------------------------
+
+		if ($g_extifs{$extif}->{gateway} ne $STATE_UNKNOWN) {
+			my $ping_object;
+			eval { 
+				$ping_object = Net::Ping->new("icmp", 5, 64, $extif);
+				$ping_object->bind($g_extifs{$extif}->{ip}); 
+			};
+			if (! $@) {
+				my $gwcheck = $ping_object->ping($g_extifs{$extif}->{gateway}, 2);
+				if ($gwcheck != 0) {
+					LogMsg("debug", $extif, "ping check on gateway passed - skipping network restart\n") if $config{debug};
+					next;
+				}
+			}
+		}
+
+		# Reconnect for DHCP
+		#-------------------
+	
+		if ($g_extifs{$extif}->{conntype} eq $TYPE_DHCP) {
+			LogMsg("info", $extif, "restarting DHCP connection\n");
+			system("/sbin/ifdown $extif >/dev/null 2>/dev/null");
+			system("/sbin/ifup $extif >/dev/null 2>/dev/null");
+	
+	
+		# Reconnect for PPPoE
+		#--------------------
+	
+		} elsif ($g_extifs{$extif}->{conntype} eq $TYPE_PPPOE) {
+
+			# PPPOEKLUDGE: See how simple static and DHCP connections are?  Not so with PPPoE.
+			#
+			# KLUDGE 1: PPPoE will sometimes leave a hanging ppp0 interface.  On 
+			# a box with a single PPPoE interface, we bring down everything just
+			# to make sure ppp1 does not cause grief.  We do not have this
+			# luxury with multi-WAN/multi-PPPoE connections. 
+			#
+			# KLUDGE 2: PPPoE seems to like putting a 0.0.0.0 name server into
+			# /etc/resolv.conf sometimes.  Not good.  We have a workaround to
+			# detect this issue.
+
+			LogMsg("info", $extif, "restarting PPPoE connection\n");
+			system("/sbin/ifdown $extif >/dev/null 2>&1");
+			sleep 5;
+
+			my $locked_on_dev = `/bin/ps axwww | /bin/grep $extif | /bin/grep -v grep | /bin/awk '{ print \$1 }'`;
+
+			if ($locked_on_dev) {
+				LogMsg("info", $extif, "Old PPPoE connection locked $extif\n");
+				# Untaint
+				$locked_on_dev =~ s/\s/ /g;
+				$locked_on_dev = $1 if ($locked_on_dev =~ /^([\d ]*)$/);
+				system("/bin/kill $locked_on_dev >/dev/null 2>&1");
+			}
+
+			sleep 2;
+			system("/sbin/ifup $extif >/dev/null 2>&1");
+			sleep 25; # Give PPPoE some time
+
+			CheckResolv(); # see kludge notes above
+	
+		# Reconnect for static
+		#---------------------
+	
+		} elsif ($g_extifs{$extif}->{conntype} eq $TYPE_STATIC) {
+			if (defined($g_extifs{$extif}->{is_wifi}) && ($g_extifs{$extif}->{is_wifi} == $STATUS_YES)) {
+				LogMsg("info", $extif, "restarting static wireless connection\n");
+				system("/sbin/ifdown $extif >/dev/null 2>/dev/null");
+				system("/sbin/ifup $extif >/dev/null 2>/dev/null");
+			} else {
+				# Restart network if we are a cluster
+				if (-e $FILE_HA) {
+					LogMsg("info", $extif, "restarting static IP network\n");
+					system("/sbin/ifdown $extif >/dev/null 2>/dev/null");
+					system("/sbin/ifup $extif >/dev/null 2>/dev/null");
+				} else {
+					LogMsg("info", $extif, "waiting for static IP reconnect\n");
+				}
+			}
+		} 
+	}
+}
+
+
+###############################################################################
+#
+# CheckWanNetwork: Handle routing and WAN state based on current status
+#
+###############################################################################
+
+sub CheckWanNetwork() {
+
+	my $active_wans = ""; # All WAN interfaces that can reach the Internet
+	my $backup_wans = ""; # Backup WAN interfaces that can reach the Internet
+	my $nonbackup_wans = ""; # Non-backup WAN interfaces that can reach the Internet
+	my $firewall_wans = "";  # List of WANs for the firewall
+	my $wan_state = $STATUS_UNCHANGED;
+
+	foreach my $extif (keys %g_extifs) {
+		# Lots of debug logging for now
+		if (($g_extifs{$extif}->{status} == $STATUS_OK) || ($g_extifs{$extif}->{status} == $STATUS_WARN)) {
+			my $logline = $g_extifs{$extif}->{status} == $STATUS_OK ? "up" : "unstable";
+			if (defined($g_extifs{$extif}->{backup}) && ($g_extifs{$extif}->{backup} eq $STATE_ENABLED)) {
+				LogMsg("debug", $extif, "backup network is $logline\n") if $config{debug};
+				$backup_wans = "$extif $backup_wans";
+			} else {
+				LogMsg("debug", $extif, "network is $logline\n") if $config{debug};
+				$nonbackup_wans = "$extif $nonbackup_wans";
+			}
+			$active_wans = "$extif $active_wans";
+		} elsif ($g_extifs{$extif}->{status} == $STATUS_DOWN) {
+			LogMsg("debug", $extif, "network is down\n") if $config{debug};
+		} else {
+			LogMsg("debug", $extif, "network is in unknown state\n") if $config{debug};
+		}
+	}
+
+	chop($active_wans);
+	chop($backup_wans);
+	chop($nonbackup_wans);
+
+	if ((!$nonbackup_wans) && (!$backup_wans)) {
+		LogMsg("debug", "system", "no WANS available for multiwan\n") if $config{debug};
+	} elsif ((!$nonbackup_wans) && $backup_wans) {
+		LogMsg("debug", "system", "backup WAN(s) now in use - $backup_wans\n") if $config{debug};
+		$firewall_wans = $backup_wans;
+	} else {
+		$firewall_wans = $nonbackup_wans;
+	}
+
+	if (($g_active_wans eq $STATE_STARTUP) && ($active_wans eq "")) {
+		LogMsg("info", "system", "WAN network is not up\n");
+		if (-x $CMD_WANUPDATE) {
+			LogMsg("info", "system", "running custom failover event handler\n");
+			system($CMD_WANUPDATE);
+		}
+		return $STATUS_UNCHANGED;
+	} elsif ($g_active_wans ne $active_wans) {
+		$wan_state = $STATUS_CHANGED;
+		my $active_wans_print = $active_wans;
+		my $g_active_wans_print = $g_active_wans;
+
+		$active_wans_print = "none" if (!$active_wans);
+		$g_active_wans_print = "none" if (!$g_active_wans);
+		LogMsg("info", "system", "changing active WAN list - $active_wans_print (was $g_active_wans_print)\n");
+		if ($firewall_wans) {
+			LogMsg("info", "system", "current WANs in use - $firewall_wans\n");
+		} else {
+			LogMsg("info", "system", "current WANs in use - none\n");
+		}
+
+		if (open(FILE_STATE, ">$FILE_STATE")) {
+			print FILE_STATE "SYSWATCH_WANIF=\"$firewall_wans\"\n";
+			print FILE_STATE "SYSWATCH_WANOK=\"$active_wans\"\n";
+			close(FILE_STATE);
+			$g_active_wans = $active_wans;
+		} else {
+			LogMsg("warn", "system", "failed to open state file $FILE_STATE - $!\n");
+		}
+
+		if (-x $CMD_WANUPDATE) {
+			LogMsg("info", "system", "running custom failover event handler\n");
+			system($CMD_WANUPDATE . " " . $firewall_wans);
+		}
+	}
+
+	# Check to see if default route is still valid
+	# Check to see if default route still exists in multi-WAN
+
+	if ((keys %g_extifs) >= 2) {
+
+		my $gatewaycheck = `/sbin/ip route | /bin/grep ^default | /bin/awk \'{ print \$5 }\'`;
+		chomp($gatewaycheck);
+		if ($gatewaycheck) {
+			$_ = $firewall_wans;
+			if (/$gatewaycheck/) {
+				LogMsg("debug", "system", "default route still valid - $gatewaycheck\n") if $config{debug};
+				return $wan_state;
+			} else {
+				LogMsg("warn", "system", "default route is not active... removing - $gatewaycheck\n");
+				`/sbin/ip route del default >/dev/null 2>&1`;
+				RestartFirewall();
+				RestartIntrusionDetection();
+			}
+		}
+
+		# We now have a blank default gateway.
+
+		if ($firewall_wans) {
+			my $gatewaydev = $firewall_wans;
+			$gatewaydev =~ s/\s.*//;
+			LogMsg("info", "system", "default route vanished - using $gatewaydev\n");
+			my $defaultroute = GetRoute($gatewaydev);
+			if ($defaultroute eq $STATE_UNKNOWN) {
+				LogMsg("warn", "system", "no default gateway found\n");
+			} else {
+				LogMsg("info", "system", "setting default route to $defaultroute\n");
+				$defaultroute = $1 if ($defaultroute =~ /^(.*)$/);  # Untaint (GetRoute validates it)
+				`/sbin/ip route add default via $defaultroute`;
+				RestartFirewall();
+				RestartIntrusionDetection();
+			}
+		}
+	}
+
+	return $wan_state;
+}
+
+
+###############################################################################
+#
+# UpdateDyndns: Update the DNS record via the SDN
+#
+###############################################################################
+
+sub UpdateDyndns() {
+	$g_dns_retry = 0;
+
+	my $force = "";
+	$force = "force" if ($g_first_dyndns == $STATUS_YES);
+
+	my $dns = `$CMD_DYNDNS $force`;
+
+	chomp($dns);
+
+	if ($dns =~ /exit_code.0/) {
+		system($CMD_VPNUPDATE) if (-e $CMD_VPNUPDATE);
+		LogMsg("info", "system", "dynamic DNS updated\n");
+		$g_first_dyndns = $STATUS_NO if ($g_first_dyndns == $STATUS_YES);
+
+	# Host key does not exist at pointclark.net... no need to retry
+	#--------------------------------------------------------------
+
+	} elsif ($dns =~ /exit_code.20/) {
+		LogMsg("info", "system", "dynamic DNS not updated - not registered\n");
+
+	# All other errors (database, connection...) are logged
+	# and we'll try again on the next call to SleepHeartbeat().
+	#---------------------------------------------------------
+
+	} else {
+		LogMsg("warn", "system", "dynamic DNS update failed - see system log\n");
+		LogMsg("info", "system", "DNS update will try again on next heartbeat\n");
+		$g_dns_retry = 1;
+	}
+}
+
+
+###############################################################################
+#
+# SynchronizeTime: Synchronize the time on the system on boot (or a syswatch restart).
+#
+###############################################################################
+
+sub SynchronizeTime() {
+	return if ($g_do_timesync == $STATUS_NO);
+
+	if (-x $CMD_TIMESYNC) {
+		LogMsg("info", "system", "synchronizing time with NTP servers\n");
+		system($CMD_TIMESYNC);
+	}
+
+	$g_do_timesync = $STATUS_NO;
+}
+
+
+###############################################################################
+#
+# GetPingServers
+#
+###############################################################################
+
+sub GetPingServers() {
+
+	# We let the user override the test servers (in /etc/syswatch).
+	#-----------------------------------------------------------------------
+
+	foreach my $extif (keys %g_extifs) {
+		if ($config{ping_servers_autodetect} eq $STATE_DISABLED) {
+			LogMsg("debug", $extif, "ping server specified in configuration file\n") if $config{debug};
+			$g_extifs{$extif}->{ping_server1} = $config_ping_servers[0];
+			$g_extifs{$extif}->{ping_server2} = $config_ping_servers[1];
+		} elsif ((keys %g_extifs) >= 2) {
+			LogMsg("debug", $extif, "ping server for multi-wan mode for $extif\n") if $config{debug};
+			$g_extifs{$extif}->{ping_server1} = $config{ping_server1_default};
+			$g_extifs{$extif}->{ping_server2} = $config{ping_server2_default}; 
+		} else {
+			LogMsg("debug", $extif, "ping server automatically detected\n") if $config{debug};
+			my $defaultroute = GetRoute($extif);
+			if ($defaultroute eq $STATE_UNKNOWN) {
+				LogMsg("warn", $extif, "no default gateway found\n");
+				$g_extifs{$extif}->{ping_server1} = $config{ping_server1_default} 
+			} else {
+				$g_extifs{$extif}->{ping_server1} = $defaultroute;
+			}
+
+			$g_extifs{$extif}->{ping_server2} = $config{ping_server1_default};
+		}
+
+		LogMsg("debug", $extif, "ping server #1 - " . $g_extifs{$extif}->{ping_server1} . "\n") if $config{debug};
+		LogMsg("debug", $extif, "ping server #2 - " . $g_extifs{$extif}->{ping_server2} . "\n") if $config{debug};
+	}
+}
+
+
+###############################################################################
+#
+# GetRoute: Get route for a given network interface
+#
+###############################################################################
+
+sub GetRoute($) {
+	my $extif = $_[0];
+	my $gateway = $STATE_UNKNOWN;
+
+	if ($g_extifs{$extif}->{ip} eq $STATE_UNKNOWN) {
+		$gateway = $STATE_UNKNOWN;   # No IP ... don't bother looking for the gateway
+	} elsif ($g_extifs{$extif}->{conntype} eq $TYPE_STATIC) {
+		$gateway = `/bin/grep "^GATEWAY=" /etc/sysconfig/network-scripts/ifcfg-$extif | /bin/sed 's/.*=//' | /bin/sed 's/"//g'`;
+	} elsif ($g_extifs{$extif}->{conntype} eq $TYPE_PPPOE) {
+		$gateway = `LANG=en_US /sbin/ip addr ls $extif 2>/dev/null | /bin/grep peer | /bin/awk \'{ print \$4 }\' | /bin/sed 's/\\/.*//'`;
+	} elsif ($g_extifs{$extif}->{conntype} eq $TYPE_DHCP) {
+		if (-e "/var/lib/dhclient/$extif.routers") {
+			$gateway = `/bin/cat /var/lib/dhclient/$extif.routers 2>/dev/null`;
+		} else {
+			LogMsg("debug", $extif, "network - gateway not found in DHCP state file\n") if $config{debug};
+			$gateway = `/sbin/route -n | /usr/bin/tail -n 1 | /bin/grep $extif | /bin/awk {\'print \$2\'}`;
+			chomp($gateway);
+			if ((!$gateway) || ($gateway eq "0.0.0.0") || ($gateway eq "Gateway")) {
+				$gateway = $STATE_UNKNOWN;
+			} else {
+				LogMsg("debug", $extif, "network - gateway not found in DHCP state file\n") if $config{debug};
+			}
+		}
+	} else {
+		LogMsg("debug", $extif, "network - unable to lookup route\n") if $config{debug};
+	}
+	chomp($gateway);
+
+	if (ValidateIp($gateway) == $STATUS_BORKED) {
+		return $STATE_UNKNOWN;
+	} else {
+		return $gateway;
+	}
+}
+
+
+###############################################################################
+#
+# GetIp: Try to get the IP address of our Internet connection
+#
+###############################################################################
+
+sub GetIp($) {
+	my $extif = $_[0];
+	my $ip = $STATE_UNKNOWN;
+
+	# Use SDN network to detect IP address.
+	#--------------------------------------------------------------------
+	# Noisy if statement ... do an IP referrer update if:
+	# - interface is up
+	# - multiwan is disabled
+	# - and syswatch is configured to always use IP referrer -OR- interface is a LAN IP
+	#--------------------------------------------------------------------
+
+	if ( (defined($g_extifs{$extif}->{status}) &&($g_extifs{$extif}->{status} == $STATUS_OK)) &&
+		($config{is_multiwan} eq $STATE_DISABLED) &&
+		(($config{force_get_ip} eq $STATE_ENABLED) ||
+		(defined($g_extifs{$extif}->{use_get_ip}) && ($g_extifs{$extif}->{use_get_ip} eq $STATE_ENABLED))) 
+	    ) {
+	    my $payload;
+	    my $useragent = new LWP::UserAgent;
+
+		my $hostkey = `/bin/grep -m 1 "^[[:space:]]*<hostkey" /etc/suvad.conf | /bin/sed 's/^[[:space:]]*<hostkey>//' | /bin/sed 's/<.hostkey>.*//'`;
+		chomp($hostkey);
+
+		if (! $hostkey) {
+			LogMsg("info", "system", "using old suva configuration format\n");
+			$hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[;"]//g'`;
+			chomp($hostkey);
+		}
+
+	    my $vendor = `/bin/cat /usr/share/system/settings/vendor 2>/dev/null | /bin/sed 's/.*= //'`; # hack
+	    chomp($vendor);
+	    my $post = "?hostkey=$hostkey";
+		$ip = $g_extifs{$extif}->{ip}  if ($g_extifs{$extif}->{ip}); # default previous IP
+
+	    $useragent->timeout(20);
+
+	    foreach my $sdn (@config_sdn_servers) {
+			LogMsg("debug", $extif, "sending IP referrer request to $sdn\n") if $config{debug};
+			my $request = new HTTP::Request(GET => "$sdn/ipreferrer.php" . $post);
+			my $result = $useragent->request($request);
+			if ($result->is_success) {
+				$payload = $result->content;
+				$payload =~ s/\n/ /g;
+				chomp($payload);
+				LogMsg("debug", $extif, "received IP referrer payload $payload\n") if $config{debug};
+				if ($payload =~ /exit_code\|0/) {
+					$payload =~ s/exit_code\|0\s*//g;
+					chomp($payload);
+					LogMsg("debug", $extif, "received IP referrer ip $payload\n") if $config{debug};
+					$ip = $payload;
+					last;
+		    	}
+			} else {
+			    LogMsg("debug", $extif, "SDN $sdn: " . $result->status_line) if $config{debug};
+			}
+	    }
+
+	# Use ifconfig information to detect IP information
+	#--------------------------------------------------
+
+	} else {
+		my $ifconfig = `LANG=en_US /sbin/ifconfig 2>/dev/null | /bin/grep -A1 ^$extif`;
+
+		if ($ifconfig) {
+			my @lines = split(/\n/, $ifconfig);
+			$ip = $lines[1];
+			$ip =~ s/^[^:]+:\s*//;
+			$ip =~ s/\s+.*//;
+			$ip =~ s/\s//g;
+		}
+	}
+
+	# Untaint hack - ValidateIp does the real validation
+	$ip = $1 if ($ip =~ /^(.*)$/);
+
+	if (ValidateIp($ip) == $STATUS_BORKED) {
+		LogMsg("debug", $extif, "unable to determine IP address\n") if $config{debug};
+		$ip = $STATE_UNKNOWN;
+	}
+
+	return $ip;
+}
+
+
+###############################################################################
+#
+# CheckIpChanges: Check to see if the IP has changed.  
+#
+###############################################################################
+
+sub CheckIpChanges() {
+
+	my $isnew = $STATUS_UNCHANGED;
+
+	foreach my $extif (keys %g_extifs) {
+		LogMsg("debug", $extif, "checking IP address for changes\n") if $config{debug};
+
+		if (
+			($config{is_multiwan} eq $STATE_DISABLED) &&
+			(($config{force_get_ip} eq $STATE_ENABLED) ||
+			(defined($g_extifs{$extif}->{use_get_ip}) && ($g_extifs{$extif}->{use_get_ip} eq $STATE_ENABLED)))
+			) {
+			if (!defined($g_extifs{$extif}->{use_get_ip_count})) {
+				LogMsg("debug", $extif, "initializing get_ip count\n") if $config{debug};
+				$g_extifs{$extif}->{use_get_ip_count} = 0;
+			} elsif ($g_extifs{$extif}->{use_get_ip_count} == 10) {
+				LogMsg("debug", $extif, "allowing get_ip request\n") if $config{debug};
+				$g_extifs{$extif}->{use_get_ip_count} = 0;
+			} else {
+				LogMsg("debug", $extif, "skipping check on get_ip request - count $g_extifs{$extif}->{use_get_ip_count}\n") if $config{debug};
+				$g_extifs{$extif}->{use_get_ip_count}++;
+				next;
+			}
+		}
+
+		my $ip = GetIp($extif);
+		my $oldip;
+	
+		if (open(DIR_STATE, "$DIR_STATE/$extif")) {
+			$oldip = <DIR_STATE>;
+			chomp($oldip);
+			close(DIR_STATE);
+		} else {
+			if (open(DIR_STATE, ">$DIR_STATE/$extif")) {
+				LogMsg("info", $extif, "creating IP cache - $ip\n");
+				print DIR_STATE "$ip\n";
+				close(DIR_STATE);
+			} else {
+				LogMsg("warn", $extif, "failed to open IP cache file $DIR_STATE/$extif - $!\n");
+			}
+		}
+	
+		if (($oldip) && ($ip) && ($ip ne $oldip)) {
+			if ($ip eq $STATE_UNKNOWN) {
+				LogMsg("info", $extif, "setting IP address cache to unknown\n");
+			} else {
+				LogMsg("info", $extif, "new IP address detected - $ip\n");
+			}
+			$isnew = $STATUS_CHANGED;
+			if (open(DIR_STATE, ">$DIR_STATE/$extif")) {
+				LogMsg("debug", $extif, "updating IP cache file\n") if $config{debug};
+				print DIR_STATE "$ip\n";
+				close(DIR_STATE);
+			} else {
+				LogMsg("warn", $extif, "failed to open IP cache file $DIR_STATE/$extif - $!\n");
+			}
+		}
+	}
+
+	return $isnew;
+}
+
+###############################################################################
+#
+# CheckNetworkBakFiles: Removes annoying .bak network configuration files
+#
+###############################################################################
+
+sub CheckNetworkBakFiles() {
+	my @ifaces = ('eth0', 'eth1');
+	foreach my $iface (@ifaces) {
+		if (-e "/etc/sysconfig/network-scripts/ifcfg-$iface.bak") {
+			LogMsg("info", "system", "removing system generated backup file ifcfg-$iface.bak\n");
+			system("/bin/rm -f /etc/sysconfig/network-scripts/ifcfg-$iface.bak") 
+		}
+	}
+}
+
+###############################################################################
+#
+# CheckFirewallConf: Sanity checks firewall configuration
+#
+###############################################################################
+
+sub CheckFirewallConf() {
+	if (!open(FWCONF, $FILE_FW)) {
+		LogMsg("warn", "system", "failed to open file $FILE_FW: $!\n");
+		return;
+	}
+
+	my @interfacesraw;
+
+	while (<FWCONF>) {
+		if ((/^EXTIF/) || (/^LANIF/) || (/^DMZIF/)) {
+			s/"//g;
+			s/.*=//;
+			chomp();
+			my @interfaces = split;
+			foreach my $configuredif (@interfaces) {
+				push(@interfacesraw, $configuredif);
+			}
+		}
+	}
+
+	close(FWCONF);
+
+	foreach my $configuredif (@interfacesraw) {
+		LogMsg("debug", "system", "checking interface role - $configuredif\n") if $config{debug};
+		if ($configuredif =~ /^([a-z0-9\.]+)$/) {
+			$configuredif = $1; # Untainted
+
+			if (!(-e "/etc/sysconfig/network-scripts/ifcfg-$configuredif")) {
+				LogMsg("info", "system", "firewall configuration has undefined interface - $configuredif\n");
+				RemoveFirewallRole($configuredif);
+			} else {
+				my $onboot = `/bin/grep ONBOOT.*no* /etc/sysconfig/network-scripts/ifcfg-$configuredif`;
+				if ($onboot) {
+					LogMsg("info", "system", "firewall configuration has inactive interface - $configuredif\n");
+				}
+			}
+		}
+	}
+}
+
+sub RemoveFirewallRole($) {
+	my $interface = $_[0];
+
+	if (!open(FWCONF, $FILE_FW)) {
+		LogMsg("warn", "system", "failed to open file $FILE_FW: $!\n");
+		return;
+	}
+
+	if (!open(FWCONFNEW, ">$FILE_FW.new")) {
+		LogMsg("warn", "system", "failed to open file $FILE_FW.new: $!\n");
+		return;
+	}
+
+	while (<FWCONF>) {
+		if ((/^EXTIF/) || (/^LANIF/) || (/^DMZIF/)) {
+			s/$interface //g;
+			s/ $interface//g;
+			s/$interface//g;
+			print FWCONFNEW $_;
+		} else {
+			print FWCONFNEW $_;
+		}
+	}
+
+	close(FWCONFNEW);
+	close(FWCONF);
+
+	system("/bin/mv $FILE_FW.new $FILE_FW");
+}
+
+
+###############################################################################
+#
+# CheckClamAv: Sanity checks ClamAv setup
+#
+###############################################################################
+
+sub CheckClamAv() {
+	if (-e $FILE_CLAMDB) {
+		LogMsg("info", "system", "deleting invalid antivirus database\n");
+		system("/bin/rm -f '$FILE_CLAMDB'") 
+	}
+}
+
+###############################################################################
+#
+# CheckSecurityAudit: Temporary workaround for security audit
+#
+###############################################################################
+
+sub CheckSecurityAudit() {
+	if (-d $DIR_SECAUD) {
+		if ((! -e $FILE_SECAUD) || (-z $FILE_SECAUD)) {
+			LogMsg("info", "system", "updating security audit database\n");
+			system("echo \"\@\@begin_db\" > $FILE_SECAUD");
+			system("echo \"\@\@db_spec name lname attr perm uid gid size mtime ctime inode lcount md5 sha1\" >> $FILE_SECAUD");
+			system("echo \"\@\@end_db\" >> $FILE_SECAUD");
+			system("/bin/chmod 660 $FILE_SECAUD");
+			system("/bin/chown root:suva $FILE_SECAUD");
+		}
+
+		if (! -e $FILE_SECAUDN) {
+			LogMsg("info", "system", "initializing security audit database\n");
+			system("/bin/touch $FILE_SECAUDN");
+		}
+
+		system("/bin/chmod 660 $FILE_SECAUDN");
+		system("/bin/chown root:suva $FILE_SECAUDN");
+	}
+}
+
+###############################################################################
+#
+# CheckUpgrade: Workaround for upgrades (temporary)
+#
+###############################################################################
+
+sub CheckUpgrade() {
+	system("$CMD_PPP") if (-e $CMD_PPP);
+	if (-d "/etc/postfix") {
+		system("/bin/touch /etc/postfix/transport") if (! -e "/etc/postfix/transport");
+		if ((-e "/usr/sbin/postmap") && (! -e "/etc/postfix/transport.db")) {
+			system("/usr/sbin/postmap /etc/postfix/transport") 
+		}
+	}
+
+	if ((-e "/usr/sbin/eziod") && (! -e "/etc/rc1.d/K60eziod")) {
+		LogMsg("info", "system", "enabling eziod\n");
+		system("/sbin/chkconfig --add eziod");
+	}
+}
+
+
+###############################################################################
+#
+# CheckResolv
+#
+###############################################################################
+
+sub CheckResolv() {
+
+	# This is a last minute hack to deal with a mysterious 
+	# "nameserver 0.0.0.0" in /etc/resolv.conf.
+
+	my $fixit = 0;
+
+	if (open(RESOLV, "/etc/resolv.conf")) {
+		while (<RESOLV>) {
+			if (/nameserver.*0\.0\.0\.0/) {
+				$fixit = 1;		
+			}
+		}
+		close(RESOLV);
+
+		if ($fixit) {
+			LogMsg("info", "system", "fixing broken /etc/resolv.conf\n");
+			system("/bin/grep -v \"nameserver.*0\.0\.0\.0\" /etc/resolv.conf > /etc/resolv.conf.fixed");
+			system("/bin/mv /etc/resolv.conf.fixed /etc/resolv.conf");
+			system("/bin/rm -f /etc/resolv.conf.save") if (-e "/etc/resolv.conf.save");
+		}
+	}
+}
+
+
+###############################################################################
+#
+# CheckWhitelistConfig
+# 
+###############################################################################
+
+sub CheckWhitelistConfig() {
+
+	# Bail if DNS server list is missing
+	#-----------------------------------
+
+	return if (! -e $FILE_DNS);
+
+	# Check for auto-whitelist config
+	#--------------------------------
+
+	return if (! -e $FILE_IDSCFG);
+
+	if (! open(CONFIG, "$FILE_IDSCFG")) {
+		LogMsg("warn", "system", "failed to open file  $FILE_IDSCFG: $!\n");
+		return;
+	}
+
+	# Check to see if our auto-whitelist is already configured
+	#---------------------------------------------------------
+
+	my $match = 0;
+	while (<CONFIG>) {
+		$match = 1 if (/^include\s+$DIR_IDS\/$FILE_IDSLIST/);
+	}
+	close(CONFIG);
+
+	if ($match) {
+		LogMsg("debug", "system", "intrusion prevention already configured\n") if $config{debug};
+		return;
+	}
+
+	# Add our configuration
+	#----------------------
+
+	if (! open(CONFIG, ">>$FILE_IDSCFG")) {
+		LogMsg("warn", "system", "failed to open file  $FILE_IDSCFG: $!\n");
+		return;
+	}
+
+	LogMsg("info", "system", "configuring intrusion prevention auto-whitelist\n");
+	print CONFIG "include $DIR_IDS/$FILE_IDSLIST\n";
+	close(CONFIG);
+}
+
+
+###############################################################################
+#
+# UpdateWhitelist
+# 
+###############################################################################
+
+sub UpdateWhitelist() {
+
+	return if (! -e $FILE_IDSCFG);
+	
+	# Bail if DNS server list is missing
+	#-----------------------------------
+
+	if (! -e $FILE_DNS) {
+		LogMsg("debug", "system", "skipped intrusion prevention whitelist\n") if $config{debug};
+		return;
+	}
+
+	# Bail if intrusion detection config directory is missing
+	#--------------------------------------------------------
+
+	if (! -d $DIR_IDS) {
+		LogMsg("debug", "system", "skipped intrusion prevention whitelist\n") if $config{debug};
+		return;
+	}
+
+	# Bail if md5sum is missing
+	#--------------------------
+
+	if (! -x $CMD_MD5SUM) {
+		LogMsg("debug", "system", "unable to generate md5sum for intrusion prevention whitelist\n") if $config{debug};
+		return;
+	}
+
+	# Create whitelist file
+	#----------------------
+
+	LogMsg("info", "system", "updating intrusion prevention whitelist\n");
+
+	unlink("$DIR_IDS/$FILE_IDSLIST") if (-e "$DIR_IDS/$FILE_IDSLIST");
+	if (! open(WHITELIST, ">$DIR_IDS/$FILE_IDSLIST")) {
+		LogMsg("warn", "system", "could not write $DIR_IDS/$FILE_IDSLIST: $!\n");
+		return;
+	}
+
+	if (! open(RESOLV, $FILE_DNS)) {
+		LogMsg("warn", "system", "could not read $FILE_DNS: $!\n");
+		return;
+	}
+
+	
+	print WHITELIST "# This file is auto-generated by syswatch\n";
+
+	# Add ping servers
+	#------------------
+
+	my %serverlist;
+	foreach my $extif (keys %g_extifs) {
+		$serverlist{$g_extifs{$extif}->{ping_server1}} = "yes";
+		$serverlist{$g_extifs{$extif}->{ping_server2}} = "yes";
+	}
+	
+	print WHITELIST "# Ping servers\n";
+	foreach my $server (keys %serverlist) {
+		print WHITELIST "dontblock $server\n";
+		LogMsg("info", "system", "adding ping server $server\n");
+	}
+
+	# Add DNS servers to whitelist
+	#-----------------------------	
+
+	print WHITELIST "# DNS servers\n";
+	while(<RESOLV>) {
+		if (/^nameserver/) {
+			my $nameserver = $_;
+			$nameserver =~ s/^nameserver\s+//g;
+			chomp($nameserver);
+			print WHITELIST "dontblock $nameserver\n";
+			LogMsg("info", "system", "adding DNS server $nameserver\n");
+		}
+	}
+
+	# Add local IPs to whitelist
+	#---------------------------
+
+	my $ifconfig = `LANG=en_US /sbin/ifconfig 2>/dev/null`;
+
+	if ($ifconfig) {
+		my @lines = split(/\n/, $ifconfig);
+		print WHITELIST "# System IP addresses\n";
+		foreach my $line (@lines) {
+			next if (!($line =~ /inet addr:/));
+			next if ($line =~ /inet addr:.*127.0.0.1/);
+
+			$line =~ s/^[^:]+:\s*//;
+			$line =~ s/\s+.*//;
+			$line =~ s/\s//g;
+			print WHITELIST "dontblock $line\n";
+		}
+	}
+
+	close(WHITELIST);
+	close(RESOLV);
+
+	# Restart intrusion prevention system if file has changed (see note above)
+	#--------------------------------------------------------
+
+	my $newmd5 = `$CMD_MD5SUM "$DIR_IDS/$FILE_IDSLIST"`;
+	$newmd5 =~ s/\s+.*//;
+	chomp($newmd5);
+	LogMsg("debug", "system", "intrusion prevention whitelist md5sum (old/new) $g_ids_md5/$newmd5\n") if $config{debug};
+	if ($newmd5 ne $g_ids_md5) {
+		LogMsg("info", "system", "reloading intrusion prevention system\n");
+		$g_ids_md5 = $newmd5;
+		system($CMD_IDS);
+	}
+}
+
+###############################################################################
+#
+# ManageCluster
+#
+###############################################################################
+
+sub ManageCluster()
+{
+	next if (! -e $FILE_HA);
+
+	my $state = GetClusterState();
+
+	if ($state eq $STATE_BACKUP) {
+		# TODO: add support for other network connections
+		foreach my $extif (keys %g_extifs) {
+			LogMsg("info", "system", "cluster node is backup - disabling network\n");
+			system("/sbin/ifdown $extif >/dev/null 2>/dev/null");
+		}
+	}
+}
+
+###############################################################################
+#
+# GetClusterState
+#
+###############################################################################
+
+sub GetClusterState()
+{
+	my $state = $STATE_UNKNOWN;
+
+	if (-e $FILE_HA) {
+		if (open(HA, $FILE_HA)) {
+			while(<HA>) {
+				if (/^SYSWATCH_HA=/) {
+					$state = $_;
+					$state =~ s/SYSWATCH_HA=//;
+					$state =~ s/"//g;
+					chomp($state);
+				}
+				
+			}
+		} else {
+			LogMsg("info", "system", "cluster state file is not readable\n");
+		}
+
+	}
+
+	LogMsg("debug", "system", "cluster state is $state\n") if $config{debug};
+
+	return $state;
+}
+
+###############################################################################
+#
+# ResetSuvaDeviceName
+#
+###############################################################################
+
+sub ResetSuvaDeviceName()
+{
+	if ((! -e $FILE_SUVA_OK) && (-e $CMD_SETSUVA)) {
+		system("$CMD_SETSUVA >/dev/null 2>&1");
+	}
+}
+
+###############################################################################
+#
+# ResetDaemons
+#
+###############################################################################
+
+sub ResetDaemons()
+{
+	foreach my $service (@CONDRESTART_DAEMON_LIST) {
+		if (-e "/etc/rc.d/init.d/$service") {
+			LogMsg("info", "system", "conditionally restarting $service\n");
+			system("/etc/rc.d/init.d/$service condrestart >/dev/null 2>&1");
+		}
+	}
+}
+
+###############################################################################
+#
+# RestartWebconfig
+#
+###############################################################################
+
+sub RestartWebconfig() {
+	LogMsg("info", "system", "restart webconfig\n");
+	system("/etc/rc.d/init.d/webconfig restart >/dev/null 2>&1");
+}
+
+###############################################################################
+#
+# ManageSslCertificates
+# TODO: move this to API
+#
+###############################################################################
+
+sub ManageSslCertificates() {
+	sleep 5;
+
+	if (! ((-e $BASE_CERTS{'key'}) && (-e $BASE_CERTS{'cert'})) ) {
+		LogMsg("debug", "system", "secure server certificates not yet created\n") if $config{debug};
+		return;
+	}
+
+	LogMsg("debug", "system", "checking secure server certificates and keys\n") if $config{debug};
+
+	my $certmd5 = `$CMD_MD5SUM "$BASE_CERTS{'cert'}"`;
+	my $keymd5 = `$CMD_MD5SUM "$BASE_CERTS{'key'}"`;
+	my $camd5 = `$CMD_MD5SUM "$BASE_CERTS{'ca'}"`;
+	my $dhmd5 = `$CMD_MD5SUM "$BASE_CERTS{'dh'}"`;
+	
+	$certmd5 =~ s/\s+.*//;
+	$keymd5 =~ s/\s+.*//;
+	$camd5 =~ s/\s+.*//;
+	$dhmd5 =~ s/\s+.*//;
+
+	chomp($certmd5);
+	chomp($keymd5);
+	chomp($camd5);
+	chomp($dhmd5);
+
+	my %sslmd5s;
+	$sslmd5s{'cert'} = $certmd5;
+	$sslmd5s{'key'} = $keymd5;
+	$sslmd5s{'ca'} = $camd5;
+	$sslmd5s{'dh'} = $dhmd5;
+
+	foreach my $service (keys %FILE_CERTS) {
+		my $basedir = $FILE_CERTS{$service}->{'basedir'};
+		my $owner = $FILE_CERTS{$service}->{'owner'};
+		my $group = $FILE_CERTS{$service}->{'group'};
+		my $perms = $FILE_CERTS{$service}->{'perms'};
+
+		my $key = $FILE_CERTS{$service}->{'key'};
+
+		my $restart_daemon = $STATE_DISABLED;
+		my @ssltypes = ('cert', 'key', 'ca', 'dh');
+
+		if (! -d $basedir) { 
+			LogMsg("debug", "system", "certificate base directory does not exist: $basedir\n") if $config{debug};
+			next;
+		}
+
+		foreach my $certtype (@ssltypes) {
+			if (defined($FILE_CERTS{$service}->{$certtype})) {
+				my $source = $BASE_CERTS{$certtype};
+				my $target = $FILE_CERTS{$service}->{$certtype};
+				my $md5 = `$CMD_MD5SUM "$target" 2>/dev/null`;
+
+				$md5 =~ s/\s+.*//;
+				chomp($md5);
+
+				if ($md5 eq $sslmd5s{$certtype}) {
+					LogMsg("debug", "system", "secure server certificate is up-to-date: $target\n") if $config{debug};
+				} else {
+					LogMsg("info", "system", "updating secure server certificate: $target\n");
+					system("/bin/cp -a $source $target");
+					system("/bin/chown $owner.$group $target >/dev/null 2>&1");
+					system("/bin/chmod $perms $target >/dev/null 2>&1");
+					$restart_daemon = $STATE_ENABLED;
+				}
+			}
+		}
+
+		# This is a bit kludgy.
+		if (defined($FILE_CERTS{$service}->{'ca_config'}) && (-e "$FILE_CERTS{$service}->{'ca_config'}")) {
+		my $cmd = "/bin/grep ^" . $FILE_CERTS{$service}->{'ca_param'} . " " . $FILE_CERTS{$service}->{'ca_config'};
+			my $ca_configured = `$cmd`;
+			if (! $ca_configured) {
+				LogMsg("info", "system", "adding secure server certificate authority for $service\n");
+				system("echo $FILE_CERTS{$service}->{'ca_param'}: /etc/ssl/ca-cert.pem >> /etc/imapd.conf");
+			}
+		}
+
+		if ($restart_daemon eq $STATE_ENABLED) {
+			LogMsg("info", "system", "resetting daemon " . $FILE_CERTS{$service}->{'daemon'} . "\n");
+			system("/sbin/service " . $FILE_CERTS{$service}->{'daemon'} . " condrestart >/dev/null 2>&1");
+		}
+	}
+}
+
+
+###############################################################################
+#
+# LogMsg: Log a message
+#
+###############################################################################
+
+sub LogMsg($$$) {
+	my $date = localtime;
+
+	if (open(INFO, ">>$FILE_LOG")) {
+		my $summary = sprintf("$date %5s: %7s - %s", $_[0], $_[1], $_[2]);
+		print INFO $summary;
+		close INFO;
+	}
+}
+
+
+##############################################################################
+#
+# GetNetworkInfo: Grab interface definitions
+# 
+# g_extif
+#  - interface_name (eth0)
+#     - ip
+#     - status
+#     - conntype
+#     - use_get_ip
+#     - is_wifi
+#
+##############################################################################
+
+sub GetNetworkInfo()  {
+
+	my $log_it = $config{debug};
+	my $log_level = "debug";
+
+	if ($g_first_time == $STATUS_YES) {
+		$log_level = "info";
+		$log_it = 1;
+	}
+
+	foreach my $extif (keys %g_extifs) {
+
+		# Do not reload working interfaces
+		#---------------------------------
+
+		if (defined($g_extifs{$extif}->{status}) && ($g_extifs{$extif}->{status} eq $STATUS_OK)) {
+			LogMsg($log_level, $extif, "network - ok\n") if $log_it;
+			next;
+		}
+
+		# Determine connection type
+		#--------------------------
+
+		my $conntype = $TYPE_STATIC;
+
+		$g_extifs{$extif}->{is_wifi} = $STATUS_NO;
+
+		if ($extif =~ /^ppp/) {
+			$conntype = $TYPE_PPPOE;
+		} elsif (open(ETH, "/etc/sysconfig/network-scripts/ifcfg-$extif")) {
+			while (<ETH>) {
+				if (/^bootproto=.*dhcp/i) { $conntype = $TYPE_DHCP; }
+				if (/^essid=/i) {
+					LogMsg($log_level, $extif, "network - interface is wireless\n") if $log_it;
+					$g_extifs{$extif}->{is_wifi} = $STATUS_YES;
+				}
+			}
+			close(ETH);
+		}
+
+		$g_extifs{$extif}->{conntype} = $conntype;
+		LogMsg($log_level, $extif, "network - interface type - $conntype\n") if $log_it;
+
+		# Grab IP information (if available)
+		#-----------------------------------
+
+		my $ip = GetIp($extif);
+		$g_extifs{$extif}->{ip} = $ip;
+		LogMsg($log_level, $extif, "network - IP address - $ip\n") if $log_it;
+
+		# Grab gateway information (if available)
+		#----------------------------------------
+
+		my $gateway = GetRoute($extif);
+		$g_extifs{$extif}->{gateway} = $gateway;
+		LogMsg($log_level, $extif, "network - gateway - " . $g_extifs{$extif}->{gateway} . "\n") if $log_it;
+
+		# Detect public/private network
+		#------------------------------
+
+		if ($ip eq $STATE_UNKNOWN) {
+			$g_extifs{$extif}->{use_get_ip} = $STATE_DISABLED;
+			LogMsg($log_level, $extif, "network - type - to be determined\n") if $log_it;
+		} elsif (($ip =~ /^192\.168/) || ($ip =~ /^172\.16/) || ($ip =~ /^10\./)) {
+			$g_extifs{$extif}->{use_get_ip} = $STATE_ENABLED;
+			LogMsg($log_level, $extif, "network - type - private IP range\n") if $log_it;
+		} else {
+			$g_extifs{$extif}->{use_get_ip} = $STATE_DISABLED;
+			LogMsg($log_level, $extif, "network - type - public IP range\n") if $log_it;
+		}
+
+		# Set status to down on startup
+		#------------------------------
+
+		if (!defined($g_extifs{$extif}->{status})) {
+			$g_extifs{$extif}->{status} = $STATUS_DOWN;
+			$g_extifs{$extif}->{downcount2} = 99;
+			# TODO: use some kind of "init" flag instead of 99 hack above
+		}
+	}
+
+	$g_first_time = $STATUS_NO;
+
+	return 0;
+}
+
+
+##############################################################################
+#
+# ReadConfig: Grab configuration file info
+#
+##############################################################################
+
+sub ReadConfig() {
+	my $deprecated_servtype;
+	my $deprecated_conntype;
+	my $pingserverlist;
+
+	my $config_interval;
+	my $config_retries;
+	my $config_heartbeat;
+
+
+	#====================================================================
+	# Read main config - /etc/syswatch
+	#====================================================================
+
+	if (open(FILE_CFG, "$FILE_CFG")) {
+		while (<FILE_CFG>) {
+			if (/^conntype=/)       { ($deprecated_conntype) = /^conntype=(.*)/; }
+			if (/^servtype=/)       { ($deprecated_servtype) = /^servtype=(.*)/; }
+			if (/^retries=/)        { ($config_retries) = /^retries=(.*)/; }
+			if (/^heartbeat=/)      { ($config_heartbeat) = /^heartbeat=(.*)/; }
+			if (/^interval=/)       { ($config_interval) = /^interval=(.*)/; }
+			if (/^use_get_ip=/)     { ($config{force_get_ip}) = /^use_get_ip=(.*)/; }
+			if (/^debug=/)          { ($config{debug}) = /^debug=(.*)/; }
+			if (/^failedinterval=/) { ($config{failedinterval}) = /^failedinterval=(.*)/; }
+			if (/^ping_servers=/) { 
+				$config{ping_servers_autodetect} = $STATE_DISABLED;
+				($pingserverlist) = /^ping_servers=(.*)/; 
+				@config_ping_servers = split(/[,\s]+/, $pingserverlist);
+			}
+			if (/^try_pinging_gateway=no/) { ($config{try_pinging_gateway}) = $STATUS_NO; }
+		}
+		close(FILE_CFG);
+	}
+
+	#====================================================================
+	# Read Service Delivery Network config
+	#====================================================================
+
+	my $prefix = "sdn";
+	my $domain = "clearsdn.com";
+	my $servers = "4";
+	my $sdnversion = "4.01";
+	@config_sdn_servers = ();
+
+	if ((-e $FILE_WS) && (open(FILE_WS, "$FILE_WS"))) {
+		while (<FILE_WS>) {
+		    if (/^sdn_prefix/)    { ($prefix) = /sdn_prefix\s*=\s*(.*)/; }
+		    if (/^sdn_domain/)    { ($domain) = /sdn_domain\s*=\s*(.*)/; }
+		    if (/^sdn_servers/)    { ($servers) = /sdn_servers\s*=\s*(.*)/; }
+		    if (/^sdn_version/)    { ($sdnversion) = /sdn_version\s*=\s*(.*)/; }
+		}
+		close(FILE_WS);
+	}
+
+	for (my $inx = 1; $inx <= $servers; $inx++) {
+		my $url = "https://$prefix$inx.$domain/$sdnversion";
+		push (@config_sdn_servers, $url);
+	}
+
+
+	#====================================================================
+	# Read network config
+	#====================================================================
+
+	# Open firewall configuration and grab a list of WAN interfaces
+	#--------------------------------------------------------------
+
+	my @ext_interfaces;
+	my @backup_interfaces;
+
+	if (! open(FILE_FW, "$FILE_FW")) {
+		LogMsg("warn", "config", "failed to open file $FILE_FW: $!\n");
+	} else {
+		while (<FILE_FW>) {
+			if (/^EXTIF=/) {
+				s/"//g;
+				s/.*=//;
+				chomp();
+				@ext_interfaces = split;
+			}
+			if (/^EXTIF_BACKUP=/) {
+				s/"//g;
+				s/.*=//;
+				chomp();
+				@backup_interfaces = split;
+			}
+		}
+		close(FILE_FW);
+	}
+
+	# WAN interface: validate, determine connection type, find IP
+	#------------------------------------------------------------
+
+	foreach my $backupif (@backup_interfaces) {
+		if (!($backupif =~ /^([a-z0-9\.]+)$/)) {
+			LogMsg("warn", "config", "invalid backup WAN interface - $backupif\n");
+		} else {
+			$backupif = $1; # Untainted
+			$g_extifs{$backupif}->{backup} = $STATE_ENABLED;
+		}
+	}
+
+	foreach my $extif (@ext_interfaces) {
+		if (!($extif =~ /^([a-z0-9\.]+)$/)) {
+			LogMsg("warn", "config", "invalid WAN interface - $extif\n");
+		} else {
+			$extif = $1; # Untainted
+			$g_extifs{$extif}->{init} = "true";
+		}
+	}
+
+	#====================================================================
+	# Set sane defaults based on number of WANS
+	# Handle deprecated parameters
+	#====================================================================
+
+	# Handle deprecated directives
+	#-----------------------------
+
+	if ($deprecated_servtype) {
+		LogMsg("warn", "config", "using obsolete directive - servtype\n");
+		$config{force_get_ip} = $STATE_ENABLED if ($deprecated_servtype eq "onlan");
+	}
+
+	LogMsg("warn", "config", "using obsolete directive - conntype\n") if ($deprecated_conntype);
+
+	# Set sane defaults (1-WAN vs Multi-WAN)
+	#--------------------------------------
+
+	my $numwans = keys %g_extifs;
+
+	if (defined($config_interval)) {
+		$config{interval} = $config_interval;
+	} else {
+		$config{interval} = 20 if ($numwans >= 2);
+	}
+
+	if (defined($config_retries)) {
+		$config{retries} = $config_retries;
+	} else {
+		$config{retries} = 3 if ($numwans >= 2);
+	}
+
+	if (defined($config_heartbeat)) {
+		$config{heartbeat} = $config_heartbeat;
+	} else {
+		$config{heartbeat} = 15 if ($numwans >= 2);
+	}
+
+	# Sanity check - no SDN lookups on multi-WAN systems
+	#--------------------------------------------------------
+
+	if ($numwans >= 2)  {
+		$config{is_multiwan} = $STATE_ENABLED;
+		$config{force_get_ip} = $STATE_DISABLED;
+		LogMsg("info", "config", "IP lookups via SDN disabled in multi-WAN\n");
+	}
+
+
+	#====================================================================
+	# Log our configuration
+	#====================================================================
+
+	LogMsg("info", "config", "debug level - " . $config{debug} . "\n");
+	LogMsg("info", "config", "retries - " . $config{retries} . "\n");
+	LogMsg("info", "config", "heartbeat - " . $config{heartbeat} . "\n");
+	LogMsg("info", "config", "interval - " . $config{interval} . " seconds\n");
+	LogMsg("info", "config", "offline interval - " . $config{failedinterval} . " seconds\n");
+	LogMsg("info", "config", "always use remote server for IP detection - " . $config{force_get_ip} . "\n");
+	LogMsg("info", "config", "ping server auto-detect - " . $config{ping_servers_autodetect} . "\n");
+
+	if ($config{try_pinging_gateway} eq $STATUS_YES) {
+		LogMsg("info", "config", "try pinging gateway - yes\n");
+	} else {
+		LogMsg("info", "config", "try pinging gateway - no\n");
+	}
+
+	if ($config{ping_servers_autodetect} eq $STATE_DISABLED) {
+		foreach my $server (@config_ping_servers) {
+			LogMsg("info", "config", "ping server - $server\n");
+		}
+	}
+
+	foreach my $url (@config_sdn_servers) {
+		LogMsg("info", "config", "cluster server added - $url\n");
+	}
+
+	LogMsg("info", "config", "number of external networks - $numwans\n");
+	foreach my $extif (keys %g_extifs) {
+		if (defined($g_extifs{$extif}->{backup}) && ($g_extifs{$extif}->{backup} eq  $STATE_ENABLED)) {
+			LogMsg("info", "config", "monitoring external network (backup only) - $extif\n");
+		} else {
+			LogMsg("info", "config", "monitoring external network - $extif\n");
+		}
+	}
+}
+
+
+###############################################################################
+#
+# ValidateIp: validate an IP address
+#
+###############################################################################
+
+sub ValidateIp($) {
+	my $ip = $_[0];
+
+	return $STATUS_BORKED if (!$ip);
+
+	my (@parts) = split(/\./, $ip);
+
+	return $STATUS_BORKED if ($#parts != 3);
+
+	foreach my $part (@parts) {
+		return $STATUS_BORKED if ($part =~ /\D/);
+		return $STATUS_BORKED if (($part > 255) || ($part < 0));
+	}
+
+	return $STATUS_OK;
+}
+
+
+###############################################################################
+#
+# SignalInterrupt: Signal catcher
+#
+###############################################################################
+
+sub SignalInterrupt() {
+	unlink($FILE_PID);
+	LogMsg("info", "system", "syswatch terminated\n");
+	system("/bin/rm -f $FILE_STATE") if (-e $FILE_STATE);
+
+	exit 0;
+}
+
+sub SignalReload() {
+	LogMsg("info", "system", "resetting syswatch\n");
+	ReadConfig();
+	GetPingServers();
+}
+
+sub SignalSystemCheck() {
+	LogMsg("info", "system", "checking system configuration\n");
+	ManageSslCertificates();
+	RestartWebconfig();
+}
+
+sub SignalNetworkChange() {
+	LogMsg("info", "system", "restarting firewall due to network change\n");
+	RestartFirewall();
+	LogMsg("info", "system", "updating daemons due to network change\n");
+	ResetDaemons();
+}
+
+sub SignalClusterChange() {
+	LogMsg("info", "system", "cluster change detected\n");
+	ManageCluster();
+}
+
+sub SignalCupsWorkaround() {
+	LogMsg("info", "system", "cups startup workaround requested\n");
+	system("/sbin/service cups start");
+}

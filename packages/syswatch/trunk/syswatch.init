@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Startup script for the Syswatch daemon.
+#
+# chkconfig: 2345 99 01
+# description: This daemon keeps an eye on your Internet connection \
+#			  and other critical systems.
+# processname: syswatch
+# pidfile: /var/run/syswatch.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ ${NETWORKING} = "no" ] && exit 0
+
+prog="syswatch"
+RETVAL=0
+
+# See how we were called.
+case "$1" in
+  start)
+	echo -n $"Starting $prog: "
+	daemon /usr/sbin/syswatch
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/syswatch
+	;;
+  stop)
+	echo -n $"Stopping $prog: "
+	killproc syswatch
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/syswatch
+	;;
+  status)
+	status syswatch
+	RETVAL=$?
+	;;
+  reload)
+	echo -n $"Reloading $prog: "
+	killproc syswatch -HUP
+	RETVAL=$?
+	echo
+	;;
+  condrestart)
+	if [ -e /var/lock/subsys/syswatch ]; then
+		$0 stop
+		$0 start
+		RETVAL=$?
+	fi
+	;;
+  restart)
+	$0 stop
+	$0 start
+	RETVAL=$?
+	;;
+  *)
+	echo "Usage: $prog {start|stop|restart|condrestart|reload|status}"
+	exit 1
+esac
+
+exit $RETVAL

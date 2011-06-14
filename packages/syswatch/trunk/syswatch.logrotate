@@ -1,0 +1,9 @@
+/var/log/syswatch {
+   notifempty
+   missingok
+}
+
+/var/log/monitor {
+   notifempty
+   missingok
+}
