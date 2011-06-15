@@ -83,4 +83,22 @@ class Account_Import extends ClearOS_Controller
         $this->page->view_form('overview', $data, lang('account_import_account_import'));
     }
 
+    /**
+     * Account_Import download template controller
+     *
+     * @return view
+     */
+
+    function template()
+    {
+        header('Content-type: application/csv');
+        header('Content-Disposition: attachment; filename=import2.csv');
+        //header('Content-Disposition: inline; filename=import.csv');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        readfile('/var/clearos/framework/cache/import2.csv');
+
+    }
+
 }

@@ -67,19 +67,19 @@ clearos_load_library('users/User_Manager_Factory');
 
 use \clearos\apps\File_CSV_DataSource as File_CSV_DataSource;
 use \clearos\apps\Shell_Exec as Shell_Exec;
-use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
 use \clearos\apps\groups\Group_Manager as Group_Manager;
 use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\base\Engine as Engine;
 
 clearos_load_library('/File_CSV_DataSource');
 clearos_load_library('/Shell_Exec;');
-clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
 clearos_load_library('groups/Group_Manager');
 clearos_load_library('network/Hostname');
+clearos_load_library('base/Engine');
 
 // Exceptions
 //-----------
@@ -113,7 +113,7 @@ clearos_load_library('users/User_Already_Exists_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/account_import/
  */
 
-class Account_Import extends Daemon
+class Account_Import extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -134,8 +134,6 @@ class Account_Import extends Daemon
     function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        parent::__construct('account_import');
     }
 
     /**

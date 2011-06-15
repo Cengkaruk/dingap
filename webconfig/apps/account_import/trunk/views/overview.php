@@ -59,7 +59,8 @@ if ($import_ready)
     );
 else
     $buttons = array(
-        form_submit_custom('upload', lang('account_import_upload'), 'high')
+        form_submit_custom('upload', lang('account_import_upload'), 'high'),
+        anchor_custom('account_import/template', lang('account_import_download_template'), 'low')
     );
 
 echo field_file('csv_file', $filename, lang('account_import_csv_file'), $import_ready);
