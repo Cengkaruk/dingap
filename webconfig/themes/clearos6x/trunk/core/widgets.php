@@ -882,6 +882,26 @@ function theme_infobox($type, $title, $message)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// C O N F I R M  A C T I O N  B O X
+///////////////////////////////////////////////////////////////////////////////
+
+function theme_confirm($confirm_uri, $cancel_uri, $message, $options)
+{
+    $class = 'ui-state-highlight';
+    $iconclass = 'ui-icon-info';
+
+    return "
+        <div class='ui-widget'>
+            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+                <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
+                $message
+                <div>" . anchor_ok($confirm_uri) . anchor_cancel($cancel_uri) . "</div>
+            </div>
+        </div>
+    ";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // C O N F I R M  D E L E T E  B O X
 ///////////////////////////////////////////////////////////////////////////////
 
