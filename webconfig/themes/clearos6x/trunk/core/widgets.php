@@ -845,7 +845,6 @@ function theme_dialog_warning($message)
  * Displays a standard infobox.
  *
  * Infobox types:
- * - critical (not good... not good at all)
  * - warning  (bad, but we can cope)
  * - highlight (here's something you should know...)
  *
@@ -859,12 +858,9 @@ function theme_dialog_warning($message)
 
 function theme_infobox($type, $title, $message)
 {
-    if ($type === 'critical') {
+    if ($type === 'warning') {
         $class = 'ui-state-error';
         $iconclass = 'ui-icon-alert';
-    } else if ($type === 'warning') {
-        $class = 'ui-state-highlight';
-        $iconclass = 'ui-icon-info';
     } else if ($type === 'highlight') {
         $class = 'ui-state-default';
         $iconclass = 'ui-icon-info';

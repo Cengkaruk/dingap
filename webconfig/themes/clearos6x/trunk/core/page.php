@@ -154,6 +154,7 @@ function _report_page($page)
 		<div class='theme-core-content'>
 		" .  _get_left_menu($page, $menus) . "
         <div id='theme-content-container'>
+		" . _get_message() . "
         " . $page['app_view'] . "
 		</div>
 		</div>
@@ -182,6 +183,7 @@ function _splash_page($page)
 <div class='login'>
 <div class='logo-login'></div>
 		<div class='theme-form-container'>
+		" . _get_message() . "
         " . $page['app_view'] . "
 		</div>
 </div>
@@ -236,6 +238,24 @@ function _wizard_page($page)
 // L A Y O U T  H E L P E R S
 //////////////////////////////////////////////////////////////////////////////
 
+function _get_message()
+{
+    $framework =& get_instance();
+
+    if (! $framework->session->userdata('message_text'))
+        return;
+
+    $message = $framework->session->userdata('message_text');
+    $type =  $framework->session->userdata('message_code');
+    $title = $framework->session->userdata('message_title');
+
+    $framework->session->unset_userdata('message_text');
+    $framework->session->unset_userdata('message_code');
+    $framework->session->unset_userdata('message_title');
+
+    return theme_infobox($type, $title, $message);
+}
+
 function _get_app($page)
 {
     return "
@@ -254,6 +274,7 @@ function _get_app($page)
 		<div class='sidebar-bottom'></div>
     	</div>
 		<div id='theme-content-left'>
+		" . _get_message() . "
         " . $page['app_view'] . "
         </div>
 		
