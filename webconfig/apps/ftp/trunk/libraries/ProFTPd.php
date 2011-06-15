@@ -65,8 +65,10 @@ clearos_load_library('base/File');
 //-----------
 
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 
 clearos_load_library('base/Validation_Exception');
+clearos_load_library('base/File_No_Match_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -138,7 +140,11 @@ class ProFTPd extends Daemon
 
         $file = new File(self::FILE_CONFIG);
 
-        $retval = $file->lookup_value("/^Port\s+/i");
+        try {
+            $retval = $file->lookup_value("/^Port\s+/i");
+        } catch (File_No_Match_Exception $e) {
+            return 21;
+        }
 
         return $retval;
     }
