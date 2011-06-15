@@ -37,7 +37,7 @@ $this->lang->load('base');
 $this->lang->load('account_import');
 
 if ($error)
-   echo infobox_critical(lang('account_import_upload_error'), $error);
+   echo infobox_warning(lang('account_import_upload_error'), $error);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
