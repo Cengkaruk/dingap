@@ -319,9 +319,8 @@ echo "
 <p>The following info boxes are used to display short informationation messages.</p>
 ";
 
-echo infobox_critical("This is a critical notice.");
-echo infobox_warning("This is a warning.");
-echo infobox_highlight("This is some bit of information worth highlighting.");
+echo infobox_warning("Warning", "This is a warning.");
+echo infobox_highlight("Info", "This is some bit of information worth highlighting.");
 
 
 ///////////////////////////////////////////////////////////////////////////////
