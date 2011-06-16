@@ -106,22 +106,28 @@ clearos_load_library('network/Network_Utils');
 class Iface extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // M E M B E R S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
+    // Commands
+    const COMMAND_ETHTOOL = '/sbin/ethtool ';
+    const COMMAND_IFCONFIG = '/sbin/ifconfig ';
+    const COMMAND_IFDOWN = '/sbin/ifdown ';
+    const COMMAND_IFUP = '/sbin/ifup ';
+    const COMMAND_IWCONFIG = '/sbin/iwconfig';
+
+    // Files and paths
+    const FILE_LOG = '/var/log/messages';
+    const PATH_SYSCONF = '/etc/sysconfig';
+
+    // Boot protocols
     const BOOTPROTO_BOOTP = 'bootp';
     const BOOTPROTO_DHCP = 'dhcp';
     const BOOTPROTO_DIALUP = 'dialup';
     const BOOTPROTO_PPPOE = 'pppoe';
     const BOOTPROTO_STATIC = 'static';
-    const CMD_ETHTOOL = '/sbin/ethtool ';
-    const CMD_IFCONFIG = '/sbin/ifconfig ';
-    const CMD_IFDOWN = '/sbin/ifdown ';
-    const CMD_IFUP = '/sbin/ifup ';
-    const CMD_IWCONFIG = '/sbin/iwconfig';
-    const FILE_LOG = '/var/log/messages';
-    const PATH_SYSCONF = '/etc/sysconfig';
-    const PROC_DEV = '/proc/net/dev';
+
+    // Network types
     const TYPE_BONDED = 'Bonded';
     const TYPE_BONDED_SLAVE = 'BondedChild';
     const TYPE_BRIDGED = 'Bridge';
@@ -133,6 +139,7 @@ class Iface extends Engine
     const TYPE_VLAN = 'VLAN';
     const TYPE_WIRELESS = 'Wireless';
 
+    // Flags
     const IFF_UP = 0x1;
     const IFF_BROADCAST = 0x2;
     const IFF_DEBUG = 0x4;
@@ -155,6 +162,7 @@ class Iface extends Engine
     /**
      * @var network interface name
      */
+
     protected $iface = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -175,60 +183,40 @@ class Iface extends Engine
     }
 
     /**
-     * Pseudo-constructor, for SOAP callers
-     *
-     * @param   string $iface Interface name
-     * @return  void
-     * @throws  Exception
-     */
-
-    public function set_interface($iface)
-    {
-        $this->iface = $iface;
-        if (! $this->is_valid())
-            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID . " - " . $this->iface, CLEAROS_ERROR);
-    }
-
-    /**
      * Deletes interface configuration.
      *
-     * @param   string $iface Interface name (optional)
-     * @return  void
-     * @throws  Exception
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function delete_config($iface = NULL)
+    public function delete_config()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if($iface != NULL) $this->iface = $iface;
+//        Validation_Exception::is_valid($this->validate_interface($interface));
 
-        // More PPPoE crap
+        // KLUDGE: more PPPoE crap
 
-        try {
-            $info = $this->get_interface_info();
+        $info = $this->get_interface_info();
 
-            if (isset($info['ifcfg']['user'])) {
-                $chap = new Chap();
-                $chap->delete_secret($info['ifcfg']['user']);
-            }
-
-            if (isset($info['ifcfg']['eth'])) {
-                $pppoedev = new Iface($info['ifcfg']['eth']);
-                $pppoedev->delete_config();
-            }
-
-            $this->disable();
-
-            sleep(2); // Give it a chance to disappear
-
-            $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
-
-            if ($file->exists())
-                $file->delete();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+        if (isset($info['ifcfg']['user'])) {
+            $chap = new Chap();
+            $chap->delete_secret($info['ifcfg']['user']);
         }
+
+        if (isset($info['ifcfg']['eth'])) {
+            $pppoedev = new Iface($info['ifcfg']['eth']);
+            $pppoedev->delete_config();
+        }
+
+        $this->disable();
+
+        sleep(2); // Give it a chance to disappear
+
+        $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
+
+        if ($file->exists())
+            $file->delete();
     }
 
     /**
@@ -248,11 +236,11 @@ class Iface extends Engine
             return;
 
         $shell = new Shell();
-        $retval = $shell->execute(self::CMD_IFDOWN, $this->iface, TRUE);
+        $retval = $shell->execute(self::COMMAND_IFDOWN, $this->iface, TRUE);
 
         if ($retval != 0) {
             // Really force it down if ifdown fails.  Don't bother logging errors...
-            $retval = $shell->execute(self::CMD_IFCONFIG, $this->iface . ' down', TRUE);
+            $retval = $shell->execute(self::COMMAND_IFCONFIG, $this->iface . ' down', TRUE);
         }
 
         $file = new File(self::PATH_SYSCONF . '/network-scripts/ifcfg-' . $this->iface);
@@ -277,11 +265,11 @@ class Iface extends Engine
 
         try {
             $shell = new Shell();
-            $retval = $shell->execute(self::CMD_IFDOWN, $this->iface, TRUE);
+            $retval = $shell->execute(self::COMMAND_IFDOWN, $this->iface, TRUE);
 
             if ($retval != 0) {
                 // Really force it down if ifdown fails.  Don't bother logging errors...
-                $retval = $shell->execute(self::CMD_IFCONFIG, $this->iface . ' down', TRUE);
+                $retval = $shell->execute(self::COMMAND_IFCONFIG, $this->iface . ' down', TRUE);
             }
         } catch (Exception $e) {
             throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
@@ -307,7 +295,7 @@ class Iface extends Engine
                     $options['background'] = TRUE;
 
             $shell = new Shell();
-            $retval = $shell->execute(self::CMD_IFUP, $this->iface, TRUE, $options);
+            $retval = $shell->execute(self::COMMAND_IFUP, $this->iface, TRUE, $options);
 
             if ($retval != 0)
                 throw new Engine_Exception($shell->get_first_output_line(), COMMON_WARNING);
@@ -376,91 +364,87 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            if (! $this->is_valid())
-                throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_NOTICE);
+        if (! $this->is_valid())
+            throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, COMMON_NOTICE);
 
-            // Using ioctl(2) calls (from custom extension ifconfig.so).
+        // Using ioctl(2) calls (from custom extension ifconfig.so).
 
-            if (! extension_loaded('ifconfig')) {
-                if (!@dl('ifconfig.so')) {
-                    throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_ERROR);
-                }
+        if (! extension_loaded('ifconfig')) {
+            if (!@dl('ifconfig.so')) {
+                throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_ERROR);
             }
-
-            $info = array();
-            $handle = @ifconfig_init();
-            $info['address'] = @ifconfig_address($handle, $this->iface);
-            $info['netmask'] = @ifconfig_netmask($handle, $this->iface);
-            $info['broadcast'] = @ifconfig_broadcast($handle, $this->iface);
-            $info['hwaddress'] = @ifconfig_hwaddress($handle, $this->iface);
-            $info['mtu'] = @ifconfig_mtu($handle, $this->iface);
-            $info['metric'] = @ifconfig_metric($handle, $this->iface) + 1;
-            $info['flags'] = @ifconfig_flags($handle, $this->iface);
-            $info['debug'] = @ifconfig_debug($handle, $this->iface);
-
-            // TODO: the existence of an IP address has always been used
-            // to determine the "state" of the network interface.  This
-            // policy should be changed and the $info['state'] should be
-            // explicitly defined.
-
-            // TODO II: on a DHCP connection, the interface can have an IP
-            // (an old one) and be "up" during the DHCP lease renewal process
-            // (even if it fails).  This should be added to the state flag?
-
-            try {
-                $info['link'] = $this->get_link_status();
-            } catch (Exception $e) {
-                // Keep going?
-            }
-
-            try {
-                $info['speed'] = $this->get_speed();
-            } catch (Exception $e) {
-                // Keep going?
-            }
-
-            try {
-                $info['type'] = $this->get_type();
-                $info['typetext'] = $this->get_type_text();
-            } catch (Exception $e) {
-                // Keep going?
-            }
-
-            if (preg_match('/^[a-z]+\d+:/', $this->iface)) {
-                $info['virtual'] = TRUE;
-
-                $virtualnum = preg_replace('/[a-z]+\d+:/', '', $this->iface);
-
-                if ($virtualnum >= Firewall::CONSTANT_ONE_TO_ONE_NAT_START)
-                    $info['one-to-one-nat'] = TRUE;
-                else
-                    $info['one-to-one-nat'] = FALSE;
-            } else {
-                $info['virtual'] = FALSE;
-                $info['one-to-one-nat'] = FALSE;
-            }
-
-            if ($this->is_configurable())
-                $info['configurable'] = TRUE;
-            else
-                $info['configurable'] = FALSE;
-
-            if ($this->is_configured()) {
-                try {
-                    $info['configured'] = TRUE;
-                    $info['ifcfg'] = $this->read_config();
-                } catch (Exception $e) {
-                    // Keep going?
-                }
-            } else {
-                $info['configured'] = FALSE;
-            }
-
-            return $info;
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
+
+        $info = array();
+        $handle = @ifconfig_init();
+        $info['address'] = @ifconfig_address($handle, $this->iface);
+        $info['netmask'] = @ifconfig_netmask($handle, $this->iface);
+        $info['broadcast'] = @ifconfig_broadcast($handle, $this->iface);
+        $info['hwaddress'] = @ifconfig_hwaddress($handle, $this->iface);
+        $info['mtu'] = @ifconfig_mtu($handle, $this->iface);
+        $info['metric'] = @ifconfig_metric($handle, $this->iface) + 1;
+        $info['flags'] = @ifconfig_flags($handle, $this->iface);
+        $info['debug'] = @ifconfig_debug($handle, $this->iface);
+
+        // TODO: the existence of an IP address has always been used
+        // to determine the "state" of the network interface.  This
+        // policy should be changed and the $info['state'] should be
+        // explicitly defined.
+
+        // TODO II: on a DHCP connection, the interface can have an IP
+        // (an old one) and be "up" during the DHCP lease renewal process
+        // (even if it fails).  This should be added to the state flag?
+
+        try {
+            $info['link'] = $this->get_link_status();
+        } catch (Exception $e) {
+            // Keep going?
+        }
+
+        try {
+            $info['speed'] = $this->get_speed();
+        } catch (Exception $e) {
+            // Keep going?
+        }
+
+        try {
+            $info['type'] = $this->get_type();
+            $info['typetext'] = $this->get_type_text();
+        } catch (Exception $e) {
+            // Keep going?
+        }
+
+        if (preg_match('/^[a-z]+\d+:/', $this->iface)) {
+            $info['virtual'] = TRUE;
+
+            $virtualnum = preg_replace('/[a-z]+\d+:/', '', $this->iface);
+
+            if ($virtualnum >= Firewall::CONSTANT_ONE_TO_ONE_NAT_START)
+                $info['one-to-one-nat'] = TRUE;
+            else
+                $info['one-to-one-nat'] = FALSE;
+        } else {
+            $info['virtual'] = FALSE;
+            $info['one-to-one-nat'] = FALSE;
+        }
+
+        if ($this->is_configurable())
+            $info['configurable'] = TRUE;
+        else
+            $info['configurable'] = FALSE;
+
+        if ($this->is_configured()) {
+            try {
+                $info['configured'] = TRUE;
+                $info['ifcfg'] = $this->read_config();
+            } catch (Exception $e) {
+                // Keep going?
+            }
+        } else {
+            $info['configured'] = FALSE;
+        }
+
+        return $info;
     }
 
     /**
@@ -542,7 +526,7 @@ class Iface extends Engine
             }
 
             $shell = new Shell();
-            $retval = $shell->execute(self::CMD_ETHTOOL, $realiface, TRUE);
+            $retval = $shell->execute(self::COMMAND_ETHTOOL, $realiface, TRUE);
 
             if ($retval != 0)
                 return -1;
@@ -718,7 +702,7 @@ class Iface extends Engine
 
             if ($type == self::TYPE_WIRELESS) {
                 $shell = new Shell();
-                $shell->execute(self::CMD_IWCONFIG, $this->iface, FALSE);
+                $shell->execute(self::COMMAND_IWCONFIG, $this->iface, FALSE);
                 $output = $shell->get_output();
                 $matches = array();
                 
@@ -742,7 +726,7 @@ class Iface extends Engine
                 }
 
                 $shell = new Shell();
-                $retval = $shell->execute(self::CMD_ETHTOOL, $realiface, TRUE);
+                $retval = $shell->execute(self::COMMAND_ETHTOOL, $realiface, TRUE);
                 $output = $shell->get_output();
                 $matches = array();
 
@@ -792,7 +776,7 @@ class Iface extends Engine
         if (! $isconfigured) {
             try {
                 $shell = new Shell();
-                $shell->execute(self::CMD_IWCONFIG, $this->iface, FALSE);
+                $shell->execute(self::COMMAND_IWCONFIG, $this->iface, FALSE);
                 $output = $shell->get_output();
             } catch (Exception $e) {
                 throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
@@ -1411,7 +1395,7 @@ class Iface extends Engine
             throw new Engine_Exception(IFACE_LANG_ERRMSG_INVALID, CLEAROS_ERROR);
 
         $shell = new Shell();
-        $shell->execute(self::CMD_IFCONFIG, $this->iface, TRUE);
+        $shell->execute(self::COMMAND_IFCONFIG, $this->iface, TRUE);
 
         $output = $shell->get_output();
 

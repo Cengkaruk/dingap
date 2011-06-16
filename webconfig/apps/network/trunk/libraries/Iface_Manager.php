@@ -287,6 +287,66 @@ class Iface_Manager extends Engine
     }
 
     /**
+     * Returns an array of LAN IP addresses.
+     *
+     * @returns array
+     * @throws Engine_Exception
+     */
+
+    public function get_lan_ips()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ips = array();
+
+// FIXME: test this
+        $role_object = new Role();
+        $network = new Network();
+        $iface_manager = new Iface_Manager();
+
+        $mode = $network->get_mode();
+        $ifaces = $iface_manager->get_interfaces(FALSE, TRUE);
+
+        foreach ($ifaces as $if) {
+            $iface = new Iface($if);
+            $ifinfo = $iface->get_interface_info();
+
+            // If the interface is down, ignore it
+            if (! ($ifinfo['flags'] & IFF_UP))
+                continue;
+
+            // Determine role of interface
+            if (isset($ifinfo["ifcfg"]["device"]))
+                $ifcfg = $ifinfo["ifcfg"]["device"];
+
+            $role = $role_object->get_interface_role($ifcfg);
+
+            switch ($role) {
+                case Role::ROLE_DMZ:
+                    break;
+
+                case Role::ROLE_LAN:
+                    $ips[] = $ifinfo["address"];
+                    break;
+
+                case Role::ROLE_EXTERNAL:
+                    switch ($mode) {
+                        case Network::MODE_STANDALONE:
+                            $ips[] = $ifinfo["address"];
+                            break;
+                        case Network::MODE_TRUSTED+STANDALONE:
+                            $ips[] = $ifinfo["address"];
+                            break;
+                    }
+
+                    break;
+            }
+        }
+
+        return $ips;
+    }
+
+    /**
      * Returns list of available LAN networks.
      *
      * @return array list of available LAN networks.
