@@ -165,12 +165,13 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id,
 {
     $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field'] . "'";
     $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label'] . "'";
+    $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
 
     if (($name !== NULL) || ($value != NULL))
         $hidden_input = "<input type='hidden' name='$name' id='$input_id' value='$value'>";
 
     return "
-        <div$field_id_html class='theme-fieldview'>
+        <div$field_id_html class='theme-fieldview" . $hide_field . "'>
             <label for='$input_id'$label_id_html>$label</label>
             <span>$text</span>$hidden_input
         </div>
