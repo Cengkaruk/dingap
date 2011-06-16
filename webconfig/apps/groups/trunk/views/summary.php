@@ -33,6 +33,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\groups\Group_Engine as Group;
+
 $this->lang->load('groups');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,83 +42,86 @@ $this->lang->load('groups');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('groups_group'),
-	lang('groups_description'),
+    lang('groups_group'),
+    lang('groups_description'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array();
-
-$view_only = TRUE;
+$normal_anchors = array(anchor_add('/app/groups/add'));
+$plugin_anchors = array();
+$windows_anchors = array();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Normal groups
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($normal_groups as $group_name => $info) {
+foreach ($groups as $group_name => $info) {
 
-    if ($view_only) {
+    if ($info['type'] === Group::TYPE_NORMAL) {
         $buttons = array(
-            anchor_view('/app/groups/view/' . $group_name),
+            anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
+            anchor_edit('/app/groups/edit/' . $group_name, 'low'),
+            anchor_delete('/app/groups/delete/' . $group_name, 'low')
         );
     } else {
         $buttons = array(
-            anchor_edit('/app/groups/edit/' . $group_name),
-            anchor_delete('/app/groups/delete/' . $group_name)
+            anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
+            anchor_edit('/app/groups/edit/' . $group_name, 'low'),
         );
     }
 
-	$item['title'] = $group_name;
-	$item['action'] = '/app/groups/edit/' . $group_name;
-	$item['anchors'] = button_set($buttons);
-	$item['details'] = array(
-		$group_name,
-		$info['description'],
-	);
+    $item['title'] = $group_name;
+    $item['action'] = '/app/groups/edit/' . $group_name;
+    $item['anchors'] = button_set($buttons);
+    $item['details'] = array(
+        $group_name,
+        $info['description'],
+    );
 
-	$items[] = $item;
+    if ($info['type'] === Group::TYPE_NORMAL)
+        $normal_items[] = $item;
+    else if ($info['type'] === Group::TYPE_PLUGIN)
+        $plugin_items[] = $item;
+    else if ($info['type'] === Group::TYPE_WINDOWS)
+        $windows_items[] = $item;
 }
 
-sort($items);
+sort($normal_items);
+sort($plugin_items);
+sort($windows_items);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Windows groups
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: translate
-
 echo summary_table(
-	'User-defined Groups',
-	$anchors,
-	$headers,
-	$items
+    lang('groups_user_defined_groups'),
+    $normal_anchors,
+    $headers,
+    $normal_items
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Plugin groups
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: translate
-
 echo summary_table(
-    'Plugin Groups',
-	$anchors,
-	$headers,
-	$items
+    lang('groups_plugin_groups'),
+    $plugin_anchors,
+    $headers,
+    $plugin_items
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Windows groups
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: translate
-
 echo summary_table(
-    'Windows Groups',
-	$anchors,
-	$headers,
-	$items
+    lang('groups_windows_groups'),
+    $windows_anchors,
+    $headers,
+    $windows_items
 );

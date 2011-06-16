@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/kolab/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/groups/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,7 +74,7 @@ clearos_load_library('openldap/Utilities');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/kolab/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/groups/
  */
 
 class OpenLDAP_User_Extension extends Engine
@@ -102,6 +102,8 @@ class OpenLDAP_User_Extension extends Engine
 
     /**
      * Runs delete procedure.
+     *
+     * @return void
      */
 
     public function delete_hook()

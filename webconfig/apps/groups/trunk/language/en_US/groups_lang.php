@@ -1,16 +1,17 @@
 <?php
-$lang['groups_all'] = 'All';
-$lang['groups_builtin_groups'] = 'Built-in Groups';
-$lang['groups_edit'] = 'Edit Group';
-$lang['groups_group_id'] = 'Group ID';
-$lang['groups_description'] = 'Description';
-$lang['groups_group'] = 'Group';
-$lang['groups_members'] = 'Group Members';
-$lang['groups_system'] = 'System';
-$lang['groups_type'] = 'Group';
-$lang['groups_user'] = 'User';
-$lang['groups_user_defined_groups'] = 'User Defined Groups';
 
+$lang['groups_app_summary'] = 'Group summary'; // FIXME
+$lang['groups_app_long_description'] = 'Group long description'; // FIXME
+$lang['groups_edit_members'] = 'Edit Members';
+$lang['groups_group_name'] = 'Group Name';
+$lang['groups_description'] = 'Description';
+$lang['groups_group_members'] = 'Group Members';
+$lang['groups_user_defined_groups'] = 'User Defined Groups';
+$lang['groups_builtin_groups'] = 'Built-in Groups';
+$lang['groups_plugin_groups'] = 'Plugin Groups';
+$lang['groups_windows_groups'] = 'Windows Groups';
+
+$lang['groups_group'] = 'Group';
 $lang['groups_groups'] = 'Groups';
 $lang['groups_group_manager'] = 'Group Manager';
 
@@ -22,5 +23,4 @@ $lang['groups_group_is_reserved_for_system'] = 'Group is reserved for the system
 $lang['groups_description_is_invalid'] = 'Description is invalid.'; 
 $lang['groups_group_name_is_invalid'] = 'Group name is invalid.'; 
 $lang['groups_username_does_not_exist'] = 'Username does not exist.';
-
 

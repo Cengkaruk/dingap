@@ -11,8 +11,8 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Group manager'; // FIXME: translate
-$app['description'] = 'Group manager description blah blah...'; // FIXME: translate
+$app['summary'] = lang('groups_app_summary');
+$app['description'] = lang('groups_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
