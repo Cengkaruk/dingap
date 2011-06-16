@@ -91,7 +91,7 @@ class Upload extends ClearOS_Controller
         $this->load->library('upload', $config);
 
         if ( ! $this->upload->do_upload('csv_file')) {
-            $data['error'] = $this->upload->display_errors();
+            $this->page->set_message($this->upload->display_errors());
         } else {
             $upload = $this->upload->data();
             $this->account_import->set_csv_file($upload['file_name']);
