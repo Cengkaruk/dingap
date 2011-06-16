@@ -196,33 +196,6 @@ class Utilities extends Engine
     }
 
     /**
-     * Returns DN for given user ID (username).
-     *
-     * @param string $uid user ID
-     *
-     * @return string DN
-     * @throws Engine_Exception
-     */
-
-// FIXME: remove this function from other classes
-    public static function get_dn_for_uid($uid)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $ldaph = self::get_ldap_handle();
-
-        $ldaph->search('(&(objectclass=clearAccount)(uid=' . $ldaph->escape($uid) . '))');
-        $entry = $ldaph->get_first_entry();
-
-        $dn = '';
-
-        if ($entry)
-            $dn = $ldaph->get_dn($entry);
-
-        return $dn;
-    }
-
-    /**
      * Creates an LDAP connection handle.
      *
      * Many libraries that use OpenLDAP need to:
@@ -259,7 +232,6 @@ class Utilities extends Engine
      * @return void
      */
 
-// FIXME: remove this function from other classes
     public static function get_usermap_by_dn()
     {
         clearos_profile(__METHOD__, __LINE__);

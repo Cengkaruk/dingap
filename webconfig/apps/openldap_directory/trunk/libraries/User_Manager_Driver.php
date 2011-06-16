@@ -59,6 +59,7 @@ clearos_load_language('users');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
@@ -67,6 +68,7 @@ use \clearos\apps\users\User_Manager_Engine as User_Manager_Engine;
 clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User_Engine');
@@ -191,40 +193,18 @@ class User_Manager_Driver extends User_Manager_Engine
 
         while ($entry) {
             $attributes = $this->ldaph->get_attributes($entry);
-            $dn = $this->ldaph->get_dn($entry);
-            $uid = $attributes['uidNumber'][0];
             $username = $attributes['uid'][0];
 
-            $process = FALSE;
+            // FIXME - implement type
 
-            if (($type === User_Engine::TYPE_NORMAL) 
-                && ($uid >= User_Driver::UID_RANGE_NORMAL_MIN)
-                && ($uid <= User_Driver::UID_RANGE_NORMAL_MAX)
-            ) {
-                $process = TRUE;
-            } else if (($type === User_Engine::TYPE_BUILTIN) 
-                && ($uid >= User_Driver::UID_RANGE_BUILTIN_MIN)
-                && ($uid <= User_Driver::UID_RANGE_BUILTIN_MAX)
-            ) {
-                $process = TRUE;
-            } else if (($type === User_Engine::TYPE_SYSTEM) 
-                && ($uid >= User_Driver::UID_RANGE_SYSTEM_MIN)
-                && ($uid <= User_Driver::UID_RANGE_SYSTEM_MAX)
-            ) {
-                $process = TRUE;
-            } else if ($type === User_Engine::TYPE_ALL) {
-                $process = TRUE;
-            }
+            $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
-            if ($process) {
-                $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+            // FIXME: review this for Active Directory
+            if (! isset($userinfo['full_name']))
+                $userinfo['full_name'] = $userinfo['first_name'] . ' ' . $userinfo['last_name'];
 
-                // FIXME: review this for Active Directory
-                if (! isset($userinfo['full_name']))
-                    $userinfo['full_name'] = $userinfo['first_name'] . ' ' . $userinfo['last_name'];
-
+            if ($username !== Group_Driver::CONSTANT_NO_MEMBERS_USERNAME)
                 $userlist[$username] = $userinfo;
-            }
 
             $entry = $this->ldaph->next_entry($entry);
         }

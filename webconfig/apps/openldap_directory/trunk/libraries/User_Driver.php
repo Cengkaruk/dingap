@@ -62,6 +62,7 @@ use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Plugin_Driver as Plugin_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
@@ -73,6 +74,7 @@ clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/Group_Manager_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/Plugin_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User_Engine');
@@ -230,13 +232,15 @@ class User_Driver extends User_Engine
 
         $this->ldaph->add($dn, $ldap_object);
 
-        // FIXME: run plugin handler
-        // for every plugin, add user to the plugin group
+        // Handle plugins
+        //---------------
+
+        $this->_handle_plugins($user_info);
 
         // Run post-add processing hook
         //-----------------------------
 
-        $this->_add_post_processing_hook();
+        $this->_add_post_processing_hook($user_info);
 
         // Ping the synchronizer
         //----------------------
@@ -381,7 +385,7 @@ class User_Driver extends User_Engine
 
         $groups = new Group_Manager_Driver();
 
-        $groups_info = $groups->get_details();
+        $groups_info = $groups->get_details(Group_Driver::TYPE_ALL);
 
         $group_list = array();
 
@@ -427,7 +431,7 @@ class User_Driver extends User_Engine
         $groups = $this->get_group_memberships();
 
         foreach ($this->_get_plugins() as $plugin => $details) {
-            $plugin_name = 'plugin-' . $plugin;
+            $plugin_name = $plugin . '_plugin';
             $state = (in_array($plugin_name, $groups)) ? TRUE : FALSE;
             $info['plugins'][$plugin] = $state;
         }
@@ -486,7 +490,7 @@ class User_Driver extends User_Engine
         //-------------------------------
 
         foreach ($this->_get_plugins() as $plugin => $details) {
-            $plugin_name = 'plugin-' . $plugin;
+            $plugin_name = $plugin . '_plugin';
             $info_map['plugins'][] = $plugin;
         }
 
@@ -726,7 +730,8 @@ class User_Driver extends User_Engine
         // Handle plugins
         //---------------
 
-// print_r($ldap_object);
+        $this->_handle_plugins($user_info);
+
         // Ping the synchronizer
         //----------------------
 
@@ -1017,7 +1022,12 @@ return;
         return $ldap_object;
     }
 
-    protected function _add_post_processing_hook()
+    /**
+     * Runs post-processing hook.
+     *
+     * @param array $user_info user info
+     */
+    protected function _add_post_processing_hook($user_info)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1025,7 +1035,7 @@ return;
             $extension = $this->_load_extension($details);
 
             if (method_exists($extension, 'add_post_processing_hook'))
-                $extension->add_post_processing_hook();
+                $extension->add_post_processing_hook($this->username, $user_info);
         }
     }
 
@@ -1413,6 +1423,29 @@ return;
     }
 
     /**
+     * Handles plugin attributes.
+     *
+     * @param array $user_info user info array
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _handle_plugins($user_info)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($user_info['plugins'] as $plugin_name => $info) {
+            $plugin = new Plugin_Driver($plugin_name);
+
+            if ($info['state'])
+                $plugin->add_member($this->username);
+            else
+                $plugin->delete_member($this->username);
+        }
+    }
+
+    /**
      * Merges two LDAP object class lists.
      *
      * @param array $array1 LDAP object class list
@@ -1480,6 +1513,6 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO
+        // FIXME: reload nscd
     }
 }

@@ -341,7 +341,7 @@ class Group_Manager_Driver extends Engine
 
             $group_info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
-            if (preg_match('/-plugin/', $group_name))
+            if (preg_match('/_plugin$/', $group_name))
                 $group_info['type'] = Group_Engine::TYPE_PLUGIN;
             else if (in_array($group_name, Group_Driver::$windows_list))
                 $group_info['type'] = Group_Engine::TYPE_WINDOWS;

@@ -150,14 +150,6 @@ class Group_Driver extends Group_Engine
 
     const GID_RANGE_SYSTEM_MIN = '0';
     const GID_RANGE_SYSTEM_MAX = '499';
-    const GID_RANGE_NORMAL_MIN = '60000';
-    const GID_RANGE_NORMAL_MAX = '62999';
-    const GID_RANGE_BUILTIN_MIN = '63000';
-    const GID_RANGE_BUILTIN_MAX = '63999';
-    const GID_RANGE_PLUGIN_MIN = '900000';
-    const GID_RANGE_PLUGIN_MAX = '999999';
-    const GID_RANGE_WINDOWS_MIN = '1000000';
-    const GID_RANGE_WINDOWS_MAX = '1001000';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -764,7 +756,13 @@ class Group_Driver extends Group_Engine
         if ($this->usermap_dn === NULL)
             $this->_load_usermap_from_ldap();
 
+        $info['members'] = array();
+        $nomember_cn = 'cn=' . self::CONSTANT_NO_MEMBERS_DN . ',' . OpenLDAP::get_users_container();
+
         foreach ($raw_members as $membercn) {
+            if ($membercn === $nomember_cn)
+                continue;
+
             if (!empty($this->usermap_dn[$membercn]))
                 $info['members'][] = $this->usermap_dn[$membercn];
         }
@@ -778,16 +776,14 @@ class Group_Driver extends Group_Engine
             $info['sambaSID'] = $info['sambaSID'];
         */
 
-        if (($info['gid_number'] >= self::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] < self::GID_RANGE_NORMAL_MAX))
-            $info['type'] = Group_Engine::TYPE_NORMAL;
-        else if (($info['gid_number'] >= self::GID_RANGE_BUILTIN_MIN) && ($info['gid_number'] < self::GID_RANGE_BUILTIN_MAX))
-            $info['type'] = Group_Engine::TYPE_BUILTIN;
-        else if (($info['gid_number'] >= self::GID_RANGE_WINDOWS_MIN) && ($info['gid_number'] < self::GID_RANGE_WINDOWS_MAX))
-            $info['type'] = Group_Engine::TYPE_WINDOWS;
-        else if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] < self::GID_RANGE_SYSTEM_MAX))
-            $info['type'] = Group_Engine::TYPE_SYSTEM;
+        if (preg_match('/_plugin$/', $this->group_name))
+            $group_info['type'] = Group_Engine::TYPE_PLUGIN;
+        else if (in_array($this->group_name, Group_Driver::$windows_list))
+            $group_info['type'] = Group_Engine::TYPE_WINDOWS;
+        else if (in_array($this->group_name, Group_Driver::$builtin_list))
+            $group_info['type'] = Group_Engine::TYPE_BUILTIN;
         else
-            $info['type'] = Group_Engine::TYPE_UNKNOWN;
+            $group_info['type'] = Group_Engine::TYPE_NORMAL;
 
         return $info;
     }
@@ -826,13 +822,8 @@ class Group_Driver extends Group_Engine
         // Sanity check: check for non-compliant group ID
         //-----------------------------------------------
 
-// FIXME: - no USER_MIN anymore
         if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] <= self::GID_RANGE_SYSTEM_MAX)) {
             $info['type'] = Group_Engine::TYPE_SYSTEM;
-        } else if (($info['gid_number'] >= self::GID_RANGE_USER_MIN) && ($info['gid_number'] <= self::GID_RANGE_USER_MAX)) {
-            $info['type'] = Group_Engine::TYPE_NORMAL;
-        } else if (($info['gid_number'] >= self::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] <= self::GID_RANGE_NORMAL_MAX)) {
-            $info['type'] = Group_Engine::TYPE_UNKNOWN;
         } else {
             $info['type'] = Group_Engine::TYPE_UNKNOWN;
         }
