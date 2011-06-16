@@ -1,4 +1,8 @@
 #!/bin/sh
 
+# Sudoers entry
 /usr/sbin/addsudo /usr/sbin/add-samba-directories app-samba-core
 /usr/sbin/addsudo /usr/bin/smbpasswd app-samba-core
+
+# LDAP synchronize trigger
+[ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize
