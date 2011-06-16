@@ -194,8 +194,8 @@ function theme_button_set($buttons, $options)
 
 function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id, $options = NULL)
 {
-    $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field_id'] . "'";
+    $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label_id'] . "'";
 
     if (($name !== NULL) || ($value != NULL))
         $hidden_input = "<input type='hidden' name='$name' value='$value'>";
