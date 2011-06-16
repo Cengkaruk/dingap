@@ -856,7 +856,7 @@ function theme_dialog_warning($message)
  * @return string HTML
  */
 
-function theme_infobox($type, $title, $message)
+function theme_infobox($type, $title, $message, $options = NULL)
 {
     if ($type === 'warning') {
         $class = 'ui-state-error';
@@ -866,8 +866,10 @@ function theme_infobox($type, $title, $message)
         $iconclass = 'ui-icon-info';
     }
 
+    $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+
     return "
-        <div class='ui-widget'>
+        <div class='ui-widget' $id>
             <div class='ui-corner-all info-regular $class' style=' padding: 0 .7em;'>
                 <h2>$title</h2>
                 
