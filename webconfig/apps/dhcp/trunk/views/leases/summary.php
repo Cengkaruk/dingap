@@ -41,11 +41,11 @@ $this->lang->load('dhcp');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('network_ip'),
-	lang('network_mac_address'),
-	lang('network_hostname'),
-	lang('dhcp_vendor'),
-	lang('dhcp_expires')
+   lang('network_ip'),
+   lang('network_mac_address'),
+   lang('network_hostname'),
+   lang('dhcp_vendor'),
+   lang('dhcp_expires')
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,7 +59,7 @@ $anchors = array(anchor_add('/app/dhcp/leases/add'));
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($leases as $key => $details) {
-	$key = $details['mac'] . "/" . $details['ip'];
+    $key = $details['mac'] . "/" . $details['ip'];
     $order_ip = "<span style='display: none'>" . sprintf("%032b", ip2long($details['ip'])) . "</span>" . $details['ip'];
 
     if ($details['end'] == 0)
@@ -72,24 +72,24 @@ foreach ($leases as $key => $details) {
     else
         $vendor = $details['vendor'];
 
-	$item['title'] = $order_ip;
-	$item['action'] = anchor_edit('/app/dhcp/leases/edit/' . $key, 'high');
-	$item['anchors'] = button_set(
+    $item['title'] = $order_ip;
+    $item['action'] = anchor_edit('/app/dhcp/leases/edit/' . $key, 'high');
+    $item['anchors'] = button_set(
         array(
             anchor_edit('/app/dhcp/leases/edit/' . $key, 'high'),
             anchor_delete('/app/dhcp/leases/delete/' . $key, 'low')
         )
     );
-	$item['details'] = array(
-		$order_ip,
-		$details['mac'],
-		$details['hostname'],
-		$vendor,
-		$order_date,
-		$full_actions
-	);
+    $item['details'] = array(
+        $order_ip,
+        $details['mac'],
+        $details['hostname'],
+        $vendor,
+        $order_date,
+        $full_actions
+    );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 sort($items);
@@ -99,8 +99,8 @@ sort($items);
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-	lang('dhcp_leases'),
-	$anchors,
-	$headers,
-	$items
+    lang('dhcp_leases'),
+    $anchors,
+    $headers,
+    $items
 );

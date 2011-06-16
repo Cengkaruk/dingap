@@ -1,5 +1,8 @@
 <?php
 
+$lang['dhcp_app_summary'] = 'DHCP Server summary';// FIXME
+$lang['dhcp_app_long_description'] = 'DHCP Server long description';// FIXME
+
 $lang['dhcp_lease_type_invalid'] = 'Lease type is invalid.';
 $lang['dhcp_state_invalid'] = 'State is invalid';
 

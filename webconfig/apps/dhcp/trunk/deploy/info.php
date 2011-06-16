@@ -11,8 +11,8 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'DHCP Server';
-$app['description'] = 'The DHCP server...'; // FIXME translate
+$app['summary'] = lang('dhcp_app_summary');
+$app['description'] = lang('dhcp_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories

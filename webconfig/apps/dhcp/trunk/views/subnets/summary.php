@@ -41,9 +41,9 @@ $this->lang->load('dhcp');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('network_interface'),
-	lang('network_network'),
-	lang('base_status')
+    lang('network_interface'),
+    lang('network_network'),
+    lang('base_status')
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,37 +58,37 @@ $anchors = array();
 
 foreach ($subnets as $interface => $subnetinfo) {
 
-	if (! $subnetinfo["isvalid"]) {
-		$status = "<span class='alert'>" . lang('base_invalid') . "</span>";
-		$action = "/app/dhcp/subnets/edit/" . $interface;
-		$buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface . '/' . $subnetinfo['network']));
-	} else if ($subnetinfo["isconfigured"]) {
-		$status = "<span class='ok'>" . lang('base_enabled') . "</span>";
-		$action = "/app/dhcp/subnets/edit/" . $interface;
-		$buttons = array(
-				anchor_edit('/app/dhcp/subnets/edit/' . $interface),
-				anchor_delete('/app/dhcp/subnets/delete/' . $interface . '/' . $subnetinfo['network'])
-			);
-	} else {
-		$status = "<span class='alert'>" . lang('base_disabled') . "</span>";
-		$action = "/app/dhcp/subnets/add/" . $interface;
-		$buttons = array(anchor_configure('/app/dhcp/subnets/add/' . $interface));
-	}
+    if (! $subnetinfo["isvalid"]) {
+        $status = "<span class='alert'>" . lang('base_invalid') . "</span>";
+        $action = "/app/dhcp/subnets/edit/" . $interface;
+        $buttons = array(anchor_delete('/app/dhcp/subnets/delete/' . $interface . '/' . $subnetinfo['network']));
+    } else if ($subnetinfo["isconfigured"]) {
+        $status = "<span class='ok'>" . lang('base_enabled') . "</span>";
+        $action = "/app/dhcp/subnets/edit/" . $interface;
+        $buttons = array(
+                anchor_edit('/app/dhcp/subnets/edit/' . $interface),
+                anchor_delete('/app/dhcp/subnets/delete/' . $interface . '/' . $subnetinfo['network'])
+            );
+    } else {
+        $status = "<span class='alert'>" . lang('base_disabled') . "</span>";
+        $action = "/app/dhcp/subnets/add/" . $interface;
+        $buttons = array(anchor_configure('/app/dhcp/subnets/add/' . $interface));
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Item details
     ///////////////////////////////////////////////////////////////////////////
 
-	$item['title'] = "$interface / " .  $subnetinfo['network'];
-	$item['action'] = $action;
-	$item['anchors'] = button_set($buttons);
-	$item['details'] = array(
-		$interface,
-		$subnetinfo['network'],
-		$status
-	);
+    $item['title'] = "$interface / " .  $subnetinfo['network'];
+    $item['action'] = $action;
+    $item['anchors'] = button_set($buttons);
+    $item['details'] = array(
+        $interface,
+        $subnetinfo['network'],
+        $status
+    );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 sort($items);
@@ -98,8 +98,8 @@ sort($items);
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-	lang('dhcp_subnets'),
-	$anchors,
-	$headers,
-	$items
+    lang('dhcp_subnets'),
+    $anchors,
+    $headers,
+    $items
 );

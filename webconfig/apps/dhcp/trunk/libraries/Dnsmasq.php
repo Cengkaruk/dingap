@@ -197,9 +197,9 @@ class Dnsmasq extends Daemon
      */
 
     public function add_subnet(
-        $interface, 
-        $start, 
-        $end, 
+        $interface,
+        $start,
+        $end,
         $lease_time = self::DEFAULT_LEASETIME,
         $gateway = NULL,
         $dns_list = NULL,
@@ -632,7 +632,7 @@ class Dnsmasq extends Daemon
             $subnet['gateway'] = $ip;
 
         $subnet['network'] = $network;
-        $subnet['start'] = long2ip($long_bc - round(($long_bc - $long_nw) * 3 / 5,0) - 2);
+        $subnet['start'] = long2ip($long_bc - round(($long_bc - $long_nw) * 3 / 5, 0) - 2);
         $subnet['end'] = long2ip($long_bc - 1);
         $subnet['lease_time'] = "24";
         $subnet['dns'] = array($ip);

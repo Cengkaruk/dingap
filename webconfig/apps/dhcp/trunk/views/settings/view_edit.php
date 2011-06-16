@@ -40,14 +40,14 @@ $this->lang->load('dhcp');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($form_type === 'edit') {
-	$read_only = FALSE;
-	$buttons = array(
-		form_submit_update('submit'),
-		anchor_cancel('/app/dhcp')
-	);
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/dhcp')
+    );
 } else {
-	$read_only = TRUE;
-	$buttons = array(anchor_edit('/app/dhcp/settings/edit'));
+    $read_only = TRUE;
+    $buttons = array(anchor_edit('/app/dhcp/settings/edit'));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

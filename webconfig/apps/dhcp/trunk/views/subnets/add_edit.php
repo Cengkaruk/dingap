@@ -40,18 +40,18 @@ $this->lang->load('dhcp');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($form_type === 'edit') {
-	$form_path = '/dhcp/subnets/edit';
-	$buttons = array(
-		form_submit_update('submit'),
-		anchor_cancel('/app/dhcp/subnets/'),
-		anchor_delete('/app/dhcp/subnets/delete/' . $interface)
-	);
+    $form_path = '/dhcp/subnets/edit';
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/dhcp/subnets/'),
+        anchor_delete('/app/dhcp/subnets/delete/' . $interface)
+    );
 } else {
-	$form_path = '/dhcp/subnets/add';
-	$buttons = array(
-		form_submit_add('submit'),
-		anchor_cancel('/app/dhcp/subnets/')
-	);
+    $form_path = '/dhcp/subnets/add';
+    $buttons = array(
+        form_submit_add('submit'),
+        anchor_cancel('/app/dhcp/subnets/')
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
