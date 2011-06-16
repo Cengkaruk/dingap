@@ -79,7 +79,7 @@ echo form_header(lang('users_user'));
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_general_settings'));
+echo form_fieldset(lang('users_name'));
 echo field_input('username', $username, lang('users_username'), $username_read_only);
 
 foreach ($info_map['core'] as $key_name => $details) {
@@ -139,6 +139,10 @@ if (! empty($plugins)) {
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($info_map['extensions'] as $extension => $parameters) {
+
+    // FIXME: skip Samba for now
+    if ($extension === 'samba')
+        continue;
 
     // Use the extension name for the title
     //-------------------------------------
