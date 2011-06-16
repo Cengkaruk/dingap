@@ -322,6 +322,10 @@ echo "
 echo infobox_warning("Warning", "This is a warning.");
 echo infobox_highlight("Info", "This is some bit of information worth highlighting.");
 
+echo "<br clear='all'>";
+echo infobox_warning("Warning", "This is a warning.");
+echo "<br clear='all'>";
+echo infobox_highlight("Info", "This is some bit of information worth highlighting.");
 
 ///////////////////////////////////////////////////////////////////////////////
 // Dialog Box
