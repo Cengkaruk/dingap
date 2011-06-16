@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
+clearos_load_language('groups');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -55,18 +55,16 @@ clearos_load_language('base');
 // Classes
 //--------
 
-use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
-use \clearos\apps\groups\Group as Group;
+use \clearos\apps\groups\Group_Engine as Group_Engine;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\User_Manager_Driver as User_Manager_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\samba\Samba as Samba;
 
-clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('groups/Group');
+clearos_load_library('groups/Group_Engine');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/User_Manager_Driver');
@@ -123,23 +121,19 @@ clearos_load_library('groups/Group_Not_Found_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
-class Group_Driver extends Engine
+class Group_Driver extends Group_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    protected $ldaph = NULL;
-    protected $group_name = NULL;
-    protected $info_map = array();
-    protected $usermap_dn = NULL;
-    protected $usermap_username = NULL;
-    public $hidden_list = array();
-    public $builtin_list = array();
-    public $windows_list = array();
+    // Files and paths
+    //----------------
 
-    const LOG_TAG = 'group';
     const FILE_CONFIG = '/etc/group';
+
+    // Internal constants
+    //-------------------
 
     const CONSTANT_NO_MEMBERS_USERNAME = 'nomembers';
     const CONSTANT_NO_MEMBERS_DN = 'No Members';
@@ -166,6 +160,16 @@ class Group_Driver extends Engine
     const GID_RANGE_WINDOWS_MAX = '1001000';
 
     ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $ldaph = NULL;
+    protected $group_name = NULL;
+    protected $info_map = array();
+    protected $usermap_dn = NULL;
+    protected $usermap_username = NULL;
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -182,42 +186,6 @@ class Group_Driver extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $this->group_name = $group_name;
-
-        $this->builtin_list = array(
-            'allusers',
-            'domain_admins',
-            'domain_users'
-        );
-
-        $this->hidden_list = array(
-            'account_operators',
-            'administrators',
-            'backup_operators',
-            'domain_computers',
-            'domain_controllers',
-            'domain_guests',
-            'guests',
-            'power_users',
-            'print_operators',
-            'server_operators',
-            'users'
-        );
-
-        $this->windows_list = array(
-            'account_operators',
-            'administrators',
-            'backup_operators',
-            'domain_admins',
-            'domain_computers',
-            'domain_controllers',
-            'domain_guests',
-            'domain_users',
-            'guests',
-            'power_users',
-            'print_operators',
-            'server_operators',
-            'users'
-        );
 
         include clearos_app_base('openldap_directory') . '/deploy/group_map.php';
 
@@ -245,11 +213,11 @@ class Group_Driver extends Engine
         if ($this->exists()) {
             $info = $this->_load_group_info();
 
-            if ($info['type'] == Group::TYPE_WINDOWS)
+            if ($info['type'] == Group_Engine::TYPE_WINDOWS)
                 $warning = lang('groups_group_is_reserved_for_windows');
-            else if ($info['type'] == Group::TYPE_BUILTIN)
+            else if ($info['type'] == Group_Engine::TYPE_BUILTIN)
                 $warning = lang('groups_group_is_reserved_for_system');
-            else if ($info['type'] == Group::TYPE_SYSTEM)
+            else if ($info['type'] == Group_Engine::TYPE_SYSTEM)
                 $warning = lang('groups_group_is_reserved_for_system');
             else
                 $warning = lang('groups_group_already_exists');
@@ -811,15 +779,15 @@ class Group_Driver extends Engine
         */
 
         if (($info['gid_number'] >= self::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] < self::GID_RANGE_NORMAL_MAX))
-            $info['type'] = Group::TYPE_NORMAL;
+            $info['type'] = Group_Engine::TYPE_NORMAL;
         else if (($info['gid_number'] >= self::GID_RANGE_BUILTIN_MIN) && ($info['gid_number'] < self::GID_RANGE_BUILTIN_MAX))
-            $info['type'] = Group::TYPE_BUILTIN;
+            $info['type'] = Group_Engine::TYPE_BUILTIN;
         else if (($info['gid_number'] >= self::GID_RANGE_WINDOWS_MIN) && ($info['gid_number'] < self::GID_RANGE_WINDOWS_MAX))
-            $info['type'] = Group::TYPE_WINDOWS;
+            $info['type'] = Group_Engine::TYPE_WINDOWS;
         else if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] < self::GID_RANGE_SYSTEM_MAX))
-            $info['type'] = Group::TYPE_SYSTEM;
+            $info['type'] = Group_Engine::TYPE_SYSTEM;
         else
-            $info['type'] = Group::TYPE_UNKNOWN;
+            $info['type'] = Group_Engine::TYPE_UNKNOWN;
 
         return $info;
     }
@@ -860,15 +828,13 @@ class Group_Driver extends Engine
 
 // FIXME: - no USER_MIN anymore
         if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] <= self::GID_RANGE_SYSTEM_MAX)) {
-            $info['type'] = Group::TYPE_SYSTEM;
+            $info['type'] = Group_Engine::TYPE_SYSTEM;
         } else if (($info['gid_number'] >= self::GID_RANGE_USER_MIN) && ($info['gid_number'] <= self::GID_RANGE_USER_MAX)) {
-            $info['type'] = Group::TYPE_NORMAL;
+            $info['type'] = Group_Engine::TYPE_NORMAL;
         } else if (($info['gid_number'] >= self::GID_RANGE_NORMAL_MIN) && ($info['gid_number'] <= self::GID_RANGE_NORMAL_MAX)) {
-            $info['type'] = Group::TYPE_UNKNOWN;
-            // Logger::Syslog(self::LOG_TAG, "Posix group ID in LDAP group range: " . $info['gid_number']);
+            $info['type'] = Group_Engine::TYPE_UNKNOWN;
         } else {
-            $info['type'] = Group::TYPE_UNKNOWN;
-            // Logger::Syslog(self::LOG_TAG, "Posix group ID out of range: " . $info['gid_number']);
+            $info['type'] = Group_Engine::TYPE_UNKNOWN;
         }
 
         return $info;

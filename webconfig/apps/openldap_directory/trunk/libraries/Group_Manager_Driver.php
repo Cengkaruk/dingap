@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('base');
+clearos_load_language('groups');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -57,17 +57,18 @@ clearos_load_language('base');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
-use \clearos\apps\groups\Group as Group;
+use \clearos\apps\groups\Group_Engine as Group_Engine;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('groups/Group');
+clearos_load_library('groups/Group_Engine');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Utilities');
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -141,7 +142,7 @@ class Group_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_list($type = Group::TYPE_NORMAL)
+    public function get_list($type = Group_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -164,7 +165,7 @@ class Group_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_details($type = Group::TYPE_NORMAL)
+    public function get_details($type = Group_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -182,7 +183,7 @@ class Group_Manager_Driver extends Engine
      */
 
 /*
-    public function get_group_memberships($username, $type = Group::TYPE_NORMAL)
+    public function get_group_memberships($username, $type = Group_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -290,7 +291,7 @@ class Group_Manager_Driver extends Engine
 
         $ldap_data = $this->_get_details_from_ldap($type);
 
-        if (($type === Group::TYPE_SYSTEM) || ($type === Group::TYPE_ALL))
+        if (($type === Group_Engine::TYPE_SYSTEM) || ($type === Group_Engine::TYPE_ALL))
             $posix_data = $this->_get_details_from_posix($type);
 
         $data = array_merge($ldap_data, $posix_data);
@@ -331,79 +332,43 @@ class Group_Manager_Driver extends Engine
         while ($entry) {
             $attributes = $this->ldaph->get_attributes($entry);
             $gid = $attributes['gidNumber'][0];
+            $group_name = $attributes['cn'][0];
 
-            $process = FALSE;
+            // Convert LDAP attributes to PHP array
+            //-------------------------------------
 
-            if (($type === Group::TYPE_NORMAL)
-                && ($gid >= Group_Driver::GID_RANGE_NORMAL_MIN)
-                && ($gid <= Group_Driver::GID_RANGE_NORMAL_MAX)
-            ) {
-                $process = TRUE;
-            } else if (($type === Group::TYPE_BUILTIN)
-                && ($gid >= Group_Driver::GID_RANGE_BUILTIN_MIN)
-                && ($gid <= Group_Driver::GID_RANGE_BUILTIN_MAX)
-            ) {
-                $process = TRUE;
-            } else if (($type === Group::TYPE_PLUGIN)
-                && ($gid >= Group_Driver::GID_RANGE_PLUGIN_MIN)
-                && ($gid <= Group_Driver::GID_RANGE_PLUGIN_MAX)
-            ) {
-                $process = TRUE;
-            } else if (($type === Group::TYPE_SYSTEM)
-                && ($gid >= Group_Driver::GID_RANGE_SYSTEM_MIN)
-                && ($gid <= Group_Driver::GID_RANGE_SYSTEM_MAX)
-            ) {
-                $process = TRUE;
-            } else if (($type === Group::TYPE_WINDOWS)
-                && ($gid >= Group_Driver::GID_RANGE_WINDOWS_MIN)
-                && ($gid <= Group_Driver::GID_RANGE_WINDOWS_MAX)
-            ) {
-                $process = TRUE;
-            } else if ($type === Group::TYPE_ALL) {
-                $process = TRUE;
+            $group_info = array();
+
+            $group_info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+
+            if (preg_match('/-plugin/', $group_name))
+                $group_info['type'] = Group_Engine::TYPE_PLUGIN;
+            else if (in_array($group_name, Group_Driver::$windows_list))
+                $group_info['type'] = Group_Engine::TYPE_WINDOWS;
+            else if (in_array($group_name, Group_Driver::$builtin_list))
+                $group_info['type'] = Group_Engine::TYPE_BUILTIN;
+            else
+                $group_info['type'] = Group_Engine::TYPE_NORMAL;
+
+            // Handle membership
+            //------------------
+            // Convert RFC2307BIS CN member list to username member list
+
+            $raw_members = $attributes['member'];
+            array_shift($raw_members);
+
+            $usermap_dn = Utilities::get_usermap_by_dn();
+
+            foreach ($raw_members as $membercn) {
+                if (!empty($usermap_dn[$membercn]))
+                    $group_info['members'][] = $usermap_dn[$membercn];
             }
 
-            if ($process) {
+            // Add group to list
+            //------------------
 
-                // Convert LDAP attributes to PHP array
-                //-------------------------------------
-
-                $group_info = array();
-
-                $group_info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
-
-                if (($gid >= Group_Driver::GID_RANGE_NORMAL_MIN) && ($gid <= Group_Driver::GID_RANGE_NORMAL_MAX))
-                    $group_info['type'] = Group::TYPE_NORMAL;
-                else if (($gid >= Group_Driver::GID_RANGE_BUILTIN_MIN) && ($gid <= Group_Driver::GID_RANGE_BUILTIN_MAX))
-                    $group_info['type'] = Group::TYPE_BUILTIN;
-                else if (($gid >= Group_Driver::GID_RANGE_PLUGIN_MIN) && ($gid <= Group_Driver::GID_RANGE_PLUGIN_MAX))
-                    $group_info['type'] = Group::TYPE_PLUGIN;
-                else if (($gid >= Group_Driver::GID_RANGE_SYSTEM_MIN) && ($gid <= Group_Driver::GID_RANGE_SYSTEM_MAX))
-                    $group_info['type'] = Group::TYPE_SYSTEM;
-                else if (($gid >= Group_Driver::GID_RANGE_WINDOWS_MIN) && ($gid <= Group_Driver::GID_RANGE_WINDOWS_MAX))
-                    $group_info['type'] = Group::TYPE_WINDOWS;
-                else
-                    $group_info['type'] = Group::TYPE_UNKNOWN;
-
-                // Handle membership
-                //------------------
-                // Convert RFC2307BIS CN member list to username member list
-
-                $raw_members = $attributes['member'];
-                array_shift($raw_members);
-
-                $usermap_dn = Utilities::get_usermap_by_dn();
-
-                foreach ($raw_members as $membercn) {
-                    if (!empty($usermap_dn[$membercn]))
-                        $group_info['members'][] = $usermap_dn[$membercn];
-                }
-
-                // Add group to list
-                //------------------
-
+            if (($type === Group_Engine::TYPE_ALL) || ($type === $group_info['type']))
                 $group_list[$group_info['group_name']] = $group_info;
-            }
 
             $entry = $this->ldaph->next_entry($entry);
         }
@@ -435,7 +400,7 @@ class Group_Manager_Driver extends Engine
 
             if (($gid >= Group_Driver::GID_RANGE_SYSTEM_MIN) && ($gid <= Group_Driver::GID_RANGE_SYSTEM_MAX)) {
                 $assoc_data['group_name'] = $data[0];
-                $assoc_data['type'] = Group::TYPE_SYSTEM;
+                $assoc_data['type'] = Group_Engine::TYPE_SYSTEM;
                 $assoc_data['description'] = '';
                 $assoc_data['members'] = explode(',', $data[3]);
                 $group_data[$data[0]] = $assoc_data;
