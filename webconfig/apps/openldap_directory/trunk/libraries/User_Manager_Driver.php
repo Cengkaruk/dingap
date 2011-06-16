@@ -218,6 +218,11 @@ class User_Manager_Driver extends User_Manager_Engine
 
             if ($process) {
                 $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+
+                // FIXME: review this for Active Directory
+                if (! isset($userinfo['full_name']))
+                    $userinfo['full_name'] = $userinfo['first_name'] . ' ' . $userinfo['last_name'];
+
                 $userlist[$username] = $userinfo;
             }
 
