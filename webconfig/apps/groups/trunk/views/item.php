@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Group manager view.
+ * Group item view.
  *
- * @category   ClearOS
+ * @category   Apps
  * @package    Groups
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
@@ -33,8 +33,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
 $this->lang->load('groups');
+$this->lang->load('users');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form modes
@@ -44,45 +44,43 @@ if ($form_type === 'edit') {
     $read_only = FALSE;
     $group_name_read_only = TRUE;
 
-	$form_path = '/groups/edit';
-	$buttons = array(
-		form_submit_update('submit'),
-		anchor_cancel('/app/groups/'),
-		anchor_delete('/app/groups/delete/' . $group_name)
-	);
+    $form_path = '/groups/edit/' . $group_info['group_name'];
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_custom('/app/groups/edit_members/' . $group_info['group_name'], lang('groups_edit_members'), 'low'),
+        anchor_cancel('/app/groups/'),
+        anchor_delete('/app/groups/delete/' . $group_info['group_name'])
+    );
 } else if ($form_type === 'view') {
     $read_only = TRUE;
     $group_name_read_only = TRUE;
 
-	$form_path = '/groups/view';
-	$buttons = array(
-		anchor_cancel('/app/groups/')
-	);
+    $form_path = '/groups/view/' . $group_info['group_name'];
+    $buttons = array(
+        anchor_cancel('/app/groups/')
+    );
 } else {
     $read_only = FALSE;
     $group_name_read_only = FALSE;
 
-	$form_path = '/groups/add';
-	$buttons = array(
-		form_submit_add('submit'),
-		anchor_cancel('/app/groups/')
-	);
+    $form_path = '/groups/add';
+    $buttons = array(
+        form_submit_add('submit'),
+        anchor_cancel('/app/groups/')
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Main form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open($form_path . '/' . $group_name);
-echo form_header(lang('users_user'));
+echo form_open($form_path);
+echo form_header(lang('groups_group'));
 
-echo "<pre>";
-print_r($group_info);
-echo "</pre>";
+echo field_input('group_name', $group_info['group_name'], lang('groups_group_name'), $group_name_read_only);
+echo field_input('description', $group_info['description'], lang('groups_description'), $read_only);
 
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo button_set($buttons);
 
 echo form_footer();
 echo form_close();

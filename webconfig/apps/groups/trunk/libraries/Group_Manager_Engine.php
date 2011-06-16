@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ClearOS user manager factory.
+ * ClearOS group manager engine.
  *
  * @category   Apps
  * @package    Groups
@@ -52,13 +52,8 @@ clearos_load_language('groups');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
-use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\base\Engine as Engine;
 
-clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,7 +61,7 @@ clearos_load_library('base/Engine');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS user manager factory.
+ * ClearOS groups manager engine.
  *
  * @category   Apps
  * @package    Groups
@@ -77,58 +72,18 @@ clearos_load_library('base/Engine');
  * @link       http://www.clearfoundation.com/docs/developer/apps/groups/
  */
 
-class Group_Manager extends Engine
+class Group_Manager_Engine extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Group manager constructor.
+     * Group_Manager_Engine constructor.
      */
 
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-    }
-
-    /**
-     * Creates a user manager instance via the factory framwork.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public static function create()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $driver_location = Accounts_Configuration::get_driver_location();
-
-        clearos_load_library($driver_location . '/Group_Manager_Driver');
-
-        $class = '\clearos\apps\\' . $driver_location . '\\Group_Manager_Driver';
-
-        return new $class();
-    }
-
-    /**
-     * Returns the driver name for use in the framework.
-     *
-     * This method is used by the web framework to create a factory object.
-     * Though the method is public, it is only intended for the web framework.
-     *
-     * @access private
-     * @return string driver name
-     * @throws Engine_Exception
-     */
-
-    public function framework_create()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $driver_location = Accounts_Configuration::get_driver_location();
-
-        return $driver_location . '/Group_Manager_Driver';
     }
 }

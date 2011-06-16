@@ -80,23 +80,8 @@ clearos_load_library('base/Engine');
  * @link       http://www.clearfoundation.com/docs/developer/apps/groups/
  */
 
-class Group extends Engine
+class Group_Factory extends Engine
 {
-    ///////////////////////////////////////////////////////////////////////////////
-    // C O N S T A N T S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    // Group types
-    //------------
-
-    const TYPE_BUILTIN = 'builtin';
-    const TYPE_NORMAL = 'normal';
-    const TYPE_SYSTEM = 'system';
-    const TYPE_WINDOWS = 'windows';
-    const TYPE_PLUGIN = 'plugin';
-    const TYPE_UNKNOWN = 'unknown';
-    const TYPE_ALL = 'all';
-
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
