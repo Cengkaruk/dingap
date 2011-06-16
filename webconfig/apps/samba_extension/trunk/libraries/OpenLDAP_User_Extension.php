@@ -57,12 +57,14 @@ clearos_load_language('samba');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\samba\OpenLDAP_Driver as OpenLDAP_Driver;
 use \clearos\apps\samba\Samba as Samba;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
+clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('samba/OpenLDAP_Driver');
 clearos_load_library('samba/Samba');
@@ -120,45 +122,10 @@ class OpenLDAP_User_Extension extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: field_type_options
-        $this->info_map = array(
-            'home_drive' => array(
-                'type' => 'string',
-                'field_type' => 'list',
-                'field_options' => array(
-                    'D:', 'E:', 'F:', 'G:', 'H:', 'I:',
-                    'J:', 'K:', 'L:', 'M:', 'N:', 'O:',
-                    'P:', 'Q:', 'R:', 'S:', 'T:', 'U:',
-                    'V:', 'W:', 'X:', 'Y:', 'Z:'
-                ),
-                'required' => FALSE,
-                'validator' => 'validate_home_drive',
-                'validator_class' => 'samba_extension/OpenLDAP_User_Extension',
-                'description' => lang('samba_logon_drive'),
-                'object_class' => 'sambaSamAccount',
-                'attribute' => 'sambaHomeDrive'
-            ),
-            'home_path' => array(
-                'type' => 'string',
-                'field_type' => 'text',
-                'required' => FALSE,
-                'validator' => 'validate_home_path',
-                'validator_class' => 'samba_extension/OpenLDAP_User_Extension',
-                'description' => lang('samba_logon_path'),
-                'object_class' => 'sambaSamAccount',
-                'attribute' => 'sambaHomePath'
-            ),
-            'sid' => array(
-                'type' => 'string',
-                'field_type' => 'text',
-                'required' => FALSE,
-                'validator' => 'validate_sid',
-                'validator_class' => 'samba_extension/OpenLDAP_User_Extension',
-                'description' => lang('samba_sid'),
-                'object_class' => 'sambaSamAccount',
-                'attribute' => 'sambaSID'
-            ),
-        );
+        include clearos_app_base('samba_extension') . '/deploy/user_map.php';
+
+        $this->name = lang('samba_extension_windows_account_extension');
+        $this->info_map = $info_map;
     }
 
     /** 
@@ -196,22 +163,10 @@ class OpenLDAP_User_Extension extends Engine
         $samba = new Samba();
 
         $sid = $samba->get_domain_sid();
-        $pdc = $samba->get_netbios_name();
-        $drive = $samba->get_logon_drive();
         $domain = $samba->get_workgroup();
-        $home_path = $samba->get_logon_path();
 
         // Set defaults
         //-------------
-
-        if (! isset($user_info['samba']['home_drive']))
-            $user_info['samba']['home_drive'] = $drive;
-
-        // TODO: review logic
-        if (isset($user_info['samba']['home_path_state']) && $user_info['samba']['home_path_state']) {
-            if (! isset($user_info['samba']['home_path']))
-                $user_info['samba']['home_path'] = '\\\\' . $pdc . '\\profiles\\' . $user_info['core']['username'];
-        }
 
         if (! isset($user_info['samba']['sid'])) {
             $rid = ($ldap_object['uidNumber'] < self::CONSTANT_SPECIAL_RID_MAX) ? self::CONSTANT_SPECIAL_RID_OFFSET + $ldap_object['uidNumber'] : $ldap_object['uidNumber'];
@@ -245,6 +200,26 @@ class OpenLDAP_User_Extension extends Engine
     }
 
     /**
+     * Runs after adding a user.
+     *
+     * Adds a user to Domain Users group.
+     *
+     * @param string $username  username
+     * @param array  $user_info user information in hash array
+     *
+     * @return void
+     */
+
+    public function add_post_processing_hook($username, $user_info)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $group = new Group_Driver('domain_users');
+
+        $group->add_member($username);
+    }
+
+    /**
      * Returns user info hash array.
      *
      * @param array $attributes LDAP attributes
@@ -265,30 +240,40 @@ class OpenLDAP_User_Extension extends Engine
         if (!$samba_driver->is_directory_initialized())
             return;
 
-        // Return info array
-        //------------------
+        // Generate info array
+        //--------------------
 
         $info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
-        /*
-        FIXME
-            // The 'D' flag indicates a disabled account
-            if (isset($attributes['sambaAcctFlags']) && !preg_match('/D/', $attributes['sambaAcctFlags'][0]))
-                $userinfo['sambaFlag'] = TRUE;
-            else
-                $userinfo['sambaFlag'] = FALSE;
+        // Handle special flag attributes
+        //-------------------------------
 
-            // The 'L' flag indicates a locaked account
-            if (isset($attributes['sambaAcctFlags']) && preg_match('/L/', $attributes['sambaAcctFlags'][0]))
-                $userinfo['sambaAccountLocked'] = TRUE;
-            else
-                $userinfo['sambaAccountLocked'] = FALSE;
-        */
-        $info['disabled'] = FALSE;
-        $info['locked'] = TRUE;
+        // The 'D' flag indicates a disabled account
+        if (isset($attributes['sambaAcctFlags']) && preg_match('/D/', $attributes['sambaAcctFlags'][0]))
+            $info['disabled'] = TRUE;
+        else
+            $info['disabled'] = FALSE;
+
+        // The 'L' flag indicates a locaked account
+        if (isset($attributes['sambaAcctFlags']) && preg_match('/L/', $attributes['sambaAcctFlags'][0]))
+            $info['locked'] = TRUE;
+        else
+            $info['locked'] = FALSE;
+
+        // Return info array
+        //------------------
 
         return $info;
     }
+
+    /** 
+     * Returns user info hash array.
+     *
+     * @param array $attributes LDAP attributes
+     *
+     * @return array user info array
+     * @throws Engine_Exception
+     */
 
     public function get_info_map_hook()
     {
@@ -336,12 +321,7 @@ class OpenLDAP_User_Extension extends Engine
         // Handle special flag attributes
         //-------------------------------
 
-        if (isset($user_info['samba']['flags_disabled'])) {
-            if ($user_info['samba']['flags_disabled'])
-                $attributes['sambaAcctFlags'] = '[UD         ]';
-            else
-                $attributes['sambaAcctFlags'] = '[U          ]';
-        }
+        // TODO: see if this is really required
 
         return $attributes;
     }
@@ -395,20 +375,6 @@ class OpenLDAP_User_Extension extends Engine
         }
 
 */
-    }
-
-    public function validate_home_drive($drive)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-  //      return "das ist bad drive.";
-    }
-
-    public function validate_home_path($path)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-//        return "das ist bad path.";
     }
 
     public function validate_sid($sid)
