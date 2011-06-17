@@ -645,7 +645,7 @@ class OpenLDAP_Driver extends Engine
 
         $shell = new Shell();
 
-        $shell->execute(Samba::CMD_NET, '-s ' . CLEAROS_TEMP_DIR . '/smb.conf ' . $param, TRUE);
+        $shell->execute(Samba::COMMAND_NET, '-s ' . CLEAROS_TEMP_DIR . '/smb.conf ' . $param, TRUE);
 
         $sid = $shell->get_last_output_line();
         $sid = preg_replace('/.*: /', '', $sid);
