@@ -260,11 +260,12 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
     $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field_id'] . "'";
     $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label_id'] . "'";
     $error_id_html = (is_null($options['error_id'])) ? '' : " id='" . $options['error_id'] . "'";
+    $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
 
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html class='theme-field-password'>
+        <div$field_id_html class='theme-field-password" . $hide_field . "'>
             <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
            <div class='right-field-content input-box'> <input type='$type' name='$name' value='$value' id='$input_id'> $error_html</div>
         </div>
