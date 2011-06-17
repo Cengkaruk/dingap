@@ -1190,6 +1190,9 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   margin: auto;
   display: inline-block;
 }
+.theme-hidden {
+	display: none;
+}
 /* Standard buttons */
 input.theme-form-submit-add { }
 input.theme-form-submit-delete { }
