@@ -1,0 +1,23 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default configuration
+#--------------------------
+
+logger -p local6.notice -t installer "app-pptpd-core - setting default configuration"
+
+if [ -e /etc/ppp/options.pptpd ]; then
+    cp /etc/ppp/options.pptpd /var/clearos/pptpd/options.pptpd.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/pptpd/deploy/options.pptpd /etc/ppp/options.pptpd
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-pptpd-core - enabling PPTP server"
+chkconfig pptpd on
+
+logger -p local6.notice -t installer "app-pptpd-core - starting PPTP server"
+service pptpd start

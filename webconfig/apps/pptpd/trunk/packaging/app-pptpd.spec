@@ -3,7 +3,7 @@ Name: app-pptpd
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 2.2%{dist}
-Summary: PPTP VPN Server
+Summary: PPTP Server app summary
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,10 +17,10 @@ Requires: app-users
 Requires: app-network
 
 %description
-The PPTP provides a VPN server for end users.
+PPTP Server app long description
 
 %package core
-Summary: PPTP VPN Server - APIs and install
+Summary: PPTP Server app summary - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -29,7 +29,7 @@ Requires: app-pptpd-plugin-core
 Requires: pptpd >= 1.3.4
 
 %description core
-The PPTP provides a VPN server for end users.
+PPTP Server app long description
 
 This package provides the core API and libraries.
 
@@ -41,6 +41,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/pptpd
 cp -r * %{buildroot}/usr/clearos/apps/pptpd/
 
+install -d -m 0755 %{buildroot}/var/clearos/pptpd
 
 %post
 logger -p local6.notice -t installer 'app-pptpd - installing'
@@ -80,6 +81,7 @@ exit 0
 %exclude /usr/clearos/apps/pptpd/packaging
 %exclude /usr/clearos/apps/pptpd/tests
 %dir /usr/clearos/apps/pptpd
+%dir /var/clearos/pptpd
 /usr/clearos/apps/pptpd/deploy
 /usr/clearos/apps/pptpd/language
 /usr/clearos/apps/pptpd/libraries

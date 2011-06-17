@@ -1,5 +1,8 @@
 <?php
 
+$lang['pptpd_app_summary'] = 'PPTP Server app summary'; // FIXME
+$lang['pptpd_app_long_description'] = 'PPTP Server app long description'; // FIXME
+
 $lang['pptpd_pptp_server'] = 'PPTP Server';
 $lang['pptpd_wins_server_is_invalid'] = 'WINS server is invalid.';
 $lang['pptpd_dns_server_is_invalid'] = 'DNS server is invalid.';
