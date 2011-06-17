@@ -95,6 +95,8 @@ class Port_Forwarding extends Firewall
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        parent::__construct();
     }
 
     /**

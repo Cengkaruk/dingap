@@ -99,6 +99,8 @@ class Incoming extends Firewall
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        parent::__construct();
     }
 
     /**
