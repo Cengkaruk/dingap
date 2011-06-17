@@ -233,7 +233,7 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id,
 
 function theme_field_input($name, $value, $label, $error, $input_id, $options = NULL)
 {
-    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, 'text');
+    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options, 'text');
 }
 
 /**
@@ -292,7 +292,7 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
 
 function theme_field_file($name, $value, $label, $error, $input_id, $options = NULL)
 {
-    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, 'file');
+    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options, 'file');
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -319,7 +319,7 @@ function theme_field_file($name, $value, $label, $error, $input_id, $options = N
 
 function theme_field_password($name, $value, $label, $error, $input_id, $options = NULL)
 {
-    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, 'password');
+    return _theme_field_input_password($name, $value, $label, $error, $input_id, $options, 'password');
 }
 
 ///////////////////////////////////////////////////////////////////////////////
