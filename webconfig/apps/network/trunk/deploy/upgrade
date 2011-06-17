@@ -1,5 +1,41 @@
 #!/bin/sh
 
+# Add sudoers entries
+#--------------------
+
+/usr/sbin/addsudo /bin/hostname app-network-core
+/usr/sbin/addsudo /sbin/ethtool app-network-core
+/usr/sbin/addsudo /sbin/ifdown app-network-core
+/usr/sbin/addsudo /sbin/ifup app-network-core
+/usr/sbin/addsudo /sbin/ip app-network-core
+/usr/sbin/addsudo /sbin/iwconfig app-network-core
+
+# Migrate /etc/firewall
+#----------------------
+
+source /etc/firewall
+
+PARAMS="MODE EXTIF LANIF DMZIF HOTIF"
+
+for PARAM in $PARAMS; do
+    CHECK=`grep ^$PARAM= /etc/firewall 2>/dev/null`
+    if [ -n "$CHECK" ]; then
+        EXISTS=`grep ^$PARAM= /etc/clearos/network 2>/dev/null`
+        if [ -n "$EXISTS" ]; then
+		    logger -p local6.notice -t installer "app-network-core - migrating /etc/firewall parameter $PARAM"
+            sed -i -e "s/^$PARAM=.*/$CHECK/" /etc/clearos/network
+        else
+		    logger -p local6.notice -t installer "app-network-core - adding /etc/firewall parameter $PARAM"
+            echo $CHECK >> /etc/clearos/network
+        fi
+
+        sed -i -e "s/^$PARAM=.*/# $PARAM migrated to \/etc\/clearos\/network/" /etc/firewall
+    fi
+done
+
+# Fix quotation marks
+#--------------------
+
 CONFIGS=`ls /etc/sysconfig/network-scripts/ifcfg-*`
 
 for CONFIG in $CONFIGS; do

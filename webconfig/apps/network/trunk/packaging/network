@@ -1,1 +1,8 @@
-MODE=trustedstandalone
+# Network mode
+MODE="trustedstandalone"
+
+# Network interface roles
+EXTIF=""
+LANIF=""
+DMZIF=""
+HOTIF=""

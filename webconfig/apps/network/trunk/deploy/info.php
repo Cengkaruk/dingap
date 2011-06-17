@@ -51,7 +51,7 @@ $app['core_file_manifest'] = array(
         'group' => 'root',
     ),
    'network' => array(
-        'target' => '/etc/network',
+        'target' => '/etc/clearos/network',
         'mode' => '0644',
         'owner' => 'root',
         'group' => 'root',

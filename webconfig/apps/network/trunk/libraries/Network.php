@@ -96,7 +96,7 @@ class Network extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_CONFIG = '/etc/network';
+    const FILE_CONFIG = '/etc/clearos/network';
     const MODE_AUTO = 'auto';
     const MODE_GATEWAY = 'gateway';
     const MODE_STANDALONE = 'standalone';
@@ -139,7 +139,7 @@ class Network extends Engine
 		} catch (File_Not_Found_Exception $e) {
             return self::MODE_TRUSTED_STANDALONE;
 		} catch (Exception $e) {
-			throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+			throw new Engine_Exception($e->get_message());
 		}
 
 		$retval = preg_replace('/"/', '', $retval);
@@ -174,7 +174,7 @@ class Network extends Engine
 			if (! $match)
 				$config->add_lines_after("MODE=\"$mode\"\n", '/^[^#]/');
 		} catch (Exception $e) {
-			throw new Engine_Exception($e->get_message(), CLEAROS_WARNING);
+			throw new Engine_Exception($e->get_message());
 		}
 	}
 
