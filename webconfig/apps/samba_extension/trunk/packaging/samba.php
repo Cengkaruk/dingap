@@ -19,5 +19,5 @@ clearos_load_language('samba_extension');
 
 $extension['extension'] = 'samba';
 $extension['app'] = 'samba_extension';
-$extension['name'] = lang('samba_extension_samba_accounts_extension');
-$extension['nickname'] = lang('samba_extension_samba');
+$extension['name'] = lang('samba_extension_samba_account_extension');
+$extension['nickname'] = lang('samba_extension_windows_networking');

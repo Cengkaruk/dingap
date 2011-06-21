@@ -124,7 +124,7 @@ class OpenLDAP_User_Extension extends Engine
 
         include clearos_app_base('samba_extension') . '/deploy/user_map.php';
 
-        $this->name = lang('samba_extension_windows_account_extension');
+        $this->name = lang('samba_extension_windows_networking');
         $this->info_map = $info_map;
     }
 
