@@ -42,7 +42,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/network
 cp -r * %{buildroot}/usr/clearos/apps/network/
 
 install -D -m 0644 packaging/dhclient-exit-hooks %{buildroot}/etc/dhclient-exit-hooks
-install -D -m 0644 packaging/network %{buildroot}/etc/network
+install -D -m 0644 packaging/network %{buildroot}/etc/clearos/network
 
 %post
 logger -p local6.notice -t installer 'app-network - installing'
@@ -86,4 +86,4 @@ exit 0
 /usr/clearos/apps/network/language
 /usr/clearos/apps/network/libraries
 /etc/dhclient-exit-hooks
-%config(noreplace) /etc/network
+%config(noreplace) /etc/clearos/network

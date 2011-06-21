@@ -13,8 +13,6 @@
 # Migrate /etc/firewall
 #----------------------
 
-source /etc/firewall
-
 PARAMS="MODE EXTIF LANIF DMZIF HOTIF"
 
 for PARAM in $PARAMS; do
@@ -22,10 +20,10 @@ for PARAM in $PARAMS; do
     if [ -n "$CHECK" ]; then
         EXISTS=`grep ^$PARAM= /etc/clearos/network 2>/dev/null`
         if [ -n "$EXISTS" ]; then
-		    logger -p local6.notice -t installer "app-network-core - migrating /etc/firewall parameter $PARAM"
+            logger -p local6.notice -t installer "app-network-core - migrating /etc/firewall parameter $PARAM"
             sed -i -e "s/^$PARAM=.*/$CHECK/" /etc/clearos/network
         else
-		    logger -p local6.notice -t installer "app-network-core - adding /etc/firewall parameter $PARAM"
+            logger -p local6.notice -t installer "app-network-core - moving /etc/firewall parameter $PARAM"
             echo $CHECK >> /etc/clearos/network
         fi
 
@@ -39,11 +37,11 @@ done
 CONFIGS=`ls /etc/sysconfig/network-scripts/ifcfg-*`
 
 for CONFIG in $CONFIGS; do
-	CHECK=`grep DEVICE=\" $CONFIG 2>/dev/null`
-	if [ -n "$CHECK" ]; then
-		logger -p local6.notice -t installer "app-network - fixing quotations in $CONFIG"
-		sed -i -e "s/DEVICE=\"\(.*\)\"/DEVICE=\1/" $CONFIG
-	fi
+    CHECK=`grep DEVICE=\" $CONFIG 2>/dev/null`
+    if [ -n "$CHECK" ]; then
+        logger -p local6.notice -t installer "app-network - fixing quotations in $CONFIG"
+        sed -i -e "s/DEVICE=\"\(.*\)\"/DEVICE=\1/" $CONFIG
+    fi
 done
 
 # FIXME: re-enable when API is ready
