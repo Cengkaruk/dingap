@@ -96,7 +96,7 @@ class Network extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_CONFIG = '/etc/clearos/network';
+    const FILE_CONFIG = '/etc/clearos/network.conf';
     const MODE_AUTO = 'auto';
     const MODE_GATEWAY = 'gateway';
     const MODE_STANDALONE = 'standalone';

@@ -20,16 +20,16 @@ PARAMS="MODE EXTIF LANIF DMZIF HOTIF"
 for PARAM in $PARAMS; do
     CHECK=`grep ^$PARAM= /etc/firewall 2>/dev/null`
     if [ -n "$CHECK" ]; then
-        EXISTS=`grep ^$PARAM= /etc/clearos/network 2>/dev/null`
+        EXISTS=`grep ^$PARAM= /etc/clearos/network.conf 2>/dev/null`
         if [ -n "$EXISTS" ]; then
             logger -p local6.notice -t installer "app-network-core - migrating /etc/firewall parameter $PARAM"
-            sed -i -e "s/^$PARAM=.*/$CHECK/" /etc/clearos/network
+            sed -i -e "s/^$PARAM=.*/$CHECK/" /etc/clearos/network.conf
         else
             logger -p local6.notice -t installer "app-network-core - moving /etc/firewall parameter $PARAM"
-            echo $CHECK >> /etc/clearos/network
+            echo $CHECK >> /etc/clearos/network.conf
         fi
 
-        sed -i -e "s/^$PARAM=.*/# $PARAM migrated to \/etc\/clearos\/network/" /etc/firewall
+        sed -i -e "s/^$PARAM=.*/# $PARAM migrated to \/etc\/clearos\/network.conf/" /etc/firewall
     fi
 done
 

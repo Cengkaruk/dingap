@@ -101,7 +101,7 @@ class Role extends Engine
     ///////////////////////////////////////////////////////////////////////////
 
     // Files and paths
-    const FILE_CONFIG = '/etc/clearos/network';
+    const FILE_CONFIG = '/etc/clearos/network.conf';
 
     // Roles
     const ROLE_EXTERNAL = 'EXTIF';
