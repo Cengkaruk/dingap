@@ -3,7 +3,7 @@ Name: app-dhcp
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 2.2%{dist}
-Summary: DHCP Server
+Summary: DHCP Server summary
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,10 +14,10 @@ Requires: app-base
 Requires: app-network
 
 %description
-The DHCP server...
+DHCP Server long description
 
 %package core
-Summary: DHCP Server - APIs and install
+Summary: DHCP Server summary - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -27,7 +27,7 @@ Requires: dnsmasq >= 2.48
 Requires: iptables
 
 %description core
-The DHCP server...
+DHCP Server long description
 
 This package provides the core API and libraries.
 
