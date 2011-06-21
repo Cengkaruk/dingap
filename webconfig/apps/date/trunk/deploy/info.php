@@ -38,10 +38,6 @@ $app['core_requires'] = array(
     'ntpdate >= 4.2.4p8'
 );
 
-$app['core_directory_manifest'] = array(
-    '/etc/clearos/date' => array(),
-);
-
 $app['core_file_manifest'] = array( 
    'app-date.cron' => array(
         'target' => '/etc/cron.d/app-date',

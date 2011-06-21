@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# FIXME - just temporary for the 6.0.0 alpha/beta - remove
+if [ -d /etc/clearos/date ]; then
+    rm -rf /etc/clearos/date
+fi
+
 # Add sudoers entries
 /usr/sbin/addsudo /sbin/hwclock app-date-core
 /usr/sbin/addsudo /usr/sbin/ntpdate app-date-core

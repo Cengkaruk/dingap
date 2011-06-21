@@ -105,7 +105,7 @@ class NTP_Time extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CROND = 'app-date';
-    const FILE_CONFIG = '/etc/clearos/date/ntpdate';
+    const FILE_CONFIG = '/etc/clearos/date';
     const DEFAULT_SERVER = 'time.clearsdn.com';
     const DEFAULT_CRONTAB_TIME = '2 2 * * *';
     const COMMAND_NTPDATE = '/usr/sbin/ntpdate';
@@ -159,7 +159,7 @@ class NTP_Time extends Engine
 
         try {
             $config = new File(self::FILE_CONFIG);
-            $time_server = $config->lookup_value('/^ntp_syncserver\s*=\s*/');
+            $time_server = $config->lookup_value('/^ntp_server\s*=\s*/');
         } catch (File_Not_Found_Exception $e) {
             // Not fatal
         } catch (File_No_Match_Exception $e) {
@@ -268,11 +268,11 @@ class NTP_Time extends Engine
         $config = new File(self::FILE_CONFIG);
 
         if ($config->exists()) {
-            if ($config->replace_lines("/^ntp_syncserver\s*=\s*/", "ntp_syncserver = {$time_server}\n") === 0)
-                $config->add_lines("ntp_syncserver = $time_server\n");
+            if ($config->replace_lines("/^ntp_server\s*=\s*/", "ntp_server = {$time_server}\n") === 0)
+                $config->add_lines("ntp_server = $time_server\n");
         } else {
             $config->create('root', 'root', '0644');
-            $config->add_lines("ntp_syncserver = $time_server\n");
+            $config->add_lines("ntp_server = $time_server\n");
         }
     }
 

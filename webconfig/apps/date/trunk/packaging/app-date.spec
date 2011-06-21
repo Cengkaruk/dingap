@@ -37,7 +37,6 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/date
 cp -r * %{buildroot}/usr/clearos/apps/date/
 
-install -d -m 0755 %{buildroot}/etc/clearos/date
 install -D -m 0644 packaging/app-date.cron %{buildroot}/etc/cron.d/app-date
 install -D -m 0755 packaging/timesync %{buildroot}/usr/sbin/timesync
 
@@ -79,7 +78,6 @@ exit 0
 %exclude /usr/clearos/apps/date/packaging
 %exclude /usr/clearos/apps/date/tests
 %dir /usr/clearos/apps/date
-%dir /etc/clearos/date
 /usr/clearos/apps/date/deploy
 /usr/clearos/apps/date/language
 /usr/clearos/apps/date/libraries
