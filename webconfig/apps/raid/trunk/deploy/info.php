@@ -27,8 +27,13 @@ $app['subcategory'] = lang('base_subcategory_storage');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'app-mail_notification', 
-    'app-date', 
+    'app-mail-notification', 
+);
+
+$app['core_requires'] = array(
+    'app-date-core', 
+    'app-mail-notification-core', 
+    'app-tasks-core', 
     'mdadm',
     'mpt-status >= 1.2.0',
     'tw_cli >= 9.5.0',
@@ -36,12 +41,13 @@ $app['core_requires'] = array(
     'vixie-cron',
     'udev'
 );
+
 $app['core_file_manifest'] = array( 
    'raid.conf' => array(
-        'target' => '/etc/system/raid.conf',
+        'target' => '/etc/clearos/raid.conf',
         'mode' => '0644',
-        'owner' => 'webconfig',
-        'group' => 'webconfig',
+        'owner' => 'root',
+        'group' => 'root',
         'config' => TRUE,
         'config_params' => 'noreplace',
     )

@@ -113,7 +113,7 @@ class Raid extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     const LOG_TAG = 'raid';
-    const FILE_CONFIG = '/etc/system/raid.conf';
+    const FILE_CONFIG = '/etc/clearos/raid.conf';
     const FILE_MDSTAT = '/proc/mdstat';
     const FILE_RAID_STATUS = 'raid.status';
     const FILE_CROND = "app-raid";
@@ -854,13 +854,9 @@ class Raid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-            $configfile = new Configuration_File(self::FILE_CONFIG);
+        $configfile = new Configuration_File(self::FILE_CONFIG);
             
-        try {
-            $this->config = $configfile->Load();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $this->config = $configfile->Load();
 
         $this->is_loaded = TRUE;
     }
@@ -881,10 +877,10 @@ class Raid extends Daemon
 
         try {
             $file = new File(self::FILE_CONFIG, TRUE);
-            $match = $file->replace_lines("/^$key\s*=\s*/", "$key=$value\n");
+            $match = $file->replace_lines("/^$key\s*=\s*/", "$key = $value\n");
 
             if (!$match)
-                $file->add_lines("$key=$value\n");
+                $file->add_lines("$key = $value\n");
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }

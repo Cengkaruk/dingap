@@ -1,6 +1,6 @@
 <?php
 
-$lang['raid_raid'] = 'Raid Manager';
+$lang['raid_raid'] = 'RAID Manager';
 $lang['raid_array'] = 'Array';
 $lang['raid_clean'] = 'Clean';
 $lang['raid_controller'] = 'Controller';
