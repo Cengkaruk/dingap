@@ -22,8 +22,7 @@ Summary: FTP summary - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-ftp-plugin
-Requires: ntpdate >= 4.2.4p8
+Requires: app-ftp-plugin-core
 
 %description core
 FTP long description

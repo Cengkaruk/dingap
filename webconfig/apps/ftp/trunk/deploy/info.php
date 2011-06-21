@@ -32,8 +32,7 @@ $app['requires'] = array(
 );
 
 $app['core_requires'] = array(
-    'app-ftp-plugin',
-    'ntpdate >= 4.2.4p8'
+    'app-ftp-plugin-core',
 );
 
 $app['core_directory_manifest'] = array(
