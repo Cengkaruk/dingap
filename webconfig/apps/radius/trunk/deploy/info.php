@@ -23,6 +23,13 @@ $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_infrastructure');
 
 /////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['radius']['title'] = $app['name'];
+$app['controllers']['settings']['title'] = lang('base_settings');
+
+/////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
@@ -36,6 +43,7 @@ $app['requires'] = array(
 $app['core_requires'] = array(
     'app-network-core',
     'app-openldap-directory-core',
+    'app-samba-extension-core',
     'freeradius',
     'freeradius-ldap',
     'freeradius-utils',

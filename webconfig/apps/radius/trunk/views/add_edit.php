@@ -43,18 +43,18 @@ $this->load->language('radius');
 
 if ($form_type === 'edit') {
     $read_only = TRUE;
-    $form_path = '/radius/edit';
+    $form_path = '/radius/settings/edit/' . $ip;
     $buttons = array(
         form_submit_update('submit'),
-        anchor_cancel('/app/radius/'),
-        anchor_delete('/app/radius/delete/' . $ip)
+        anchor_cancel('/app/radius/settings'),
+        anchor_delete('/app/radius/settings/delete/' . $ip)
     );
 } else {
     $read_only = FALSE;
-    $form_path = '/radius/add';
+    $form_path = '/radius/settings/add';
     $buttons = array(
         form_submit_add('submit'),
-        anchor_cancel('/app/radius/')
+        anchor_cancel('/app/radius/settings')
     );
 }
 
@@ -62,20 +62,16 @@ if ($form_type === 'edit') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open($form_path . '/' . $ip);
-echo form_header(lang('radius_radius_server'));
+echo form_open($form_path);
+echo form_header(lang('radius_client'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('radius_client'));
-
 echo field_input('ip', $ip, lang('network_ip'), $read_only);
 echo field_input('nickname', $nickname, lang('radius_nickname'));
 echo field_input('password', $password, lang('base_password'));
-
-echo form_fieldset_close();
 
 echo button_set($buttons);
 

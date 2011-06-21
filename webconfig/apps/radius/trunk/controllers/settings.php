@@ -100,8 +100,8 @@ class Settings extends ClearOS_Controller
 
     function delete($ip = NULL)
     {
-        $confirm_uri = '/app/radius/destroy/' . $ip;
-        $cancel_uri = '/app/radius';
+        $confirm_uri = '/app/radius/settings/destroy/' . $ip;
+        $cancel_uri = '/app/radius/settings';
         $items = array($ip);
     
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
@@ -197,7 +197,7 @@ class Settings extends ClearOS_Controller
                 else
                     $this->freeradius->add_client($ip, $password, $nickname);
 
-                $this->freeradius->reset();
+                $this->freeradius->reset(TRUE);
 
                 // Return to summary page with status message
                 $this->page->set_status_added();
