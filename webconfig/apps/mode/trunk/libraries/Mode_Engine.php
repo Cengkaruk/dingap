@@ -94,7 +94,7 @@ class Mode_Engine extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_CONFIG = '/etc/mode.conf';
+    const FILE_CONFIG = '/etc/clearos/mode.conf';
 
     const MODE_SIMPLE_MASTER = 'simple_master';
     const MODE_SIMPLE_SLAVE = 'simple_slave';
