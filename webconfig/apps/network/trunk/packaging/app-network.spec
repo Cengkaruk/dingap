@@ -41,6 +41,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/network
 cp -r * %{buildroot}/usr/clearos/apps/network/
 
+install -d -m 0755 %{buildroot}/var/clearos/network
+install -d -m 0755 %{buildroot}/var/clearos/network/backup
 install -D -m 0644 packaging/dhclient-exit-hooks %{buildroot}/etc/dhclient-exit-hooks
 install -D -m 0644 packaging/network %{buildroot}/etc/clearos/network
 
@@ -82,6 +84,8 @@ exit 0
 %exclude /usr/clearos/apps/network/packaging
 %exclude /usr/clearos/apps/network/tests
 %dir /usr/clearos/apps/network
+%dir /var/clearos/network
+%dir /var/clearos/network/backup
 /usr/clearos/apps/network/deploy
 /usr/clearos/apps/network/language
 /usr/clearos/apps/network/libraries

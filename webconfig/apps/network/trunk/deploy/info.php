@@ -43,6 +43,11 @@ $app['core_requires'] = array(
     'rp-pppoe',
 );
 
+$app['core_directory_manifest'] = array(
+    '/var/clearos/network' => array(),
+    '/var/clearos/network/backup' => array(),
+);
+
 $app['core_file_manifest'] = array(
    'dhclient-exit-hooks' => array(
         'target' => '/etc/dhclient-exit-hooks',
