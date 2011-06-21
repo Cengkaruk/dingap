@@ -20,6 +20,7 @@ Requires: app-network-core
 Requires: app-openldap-core
 Requires: app-samba-core
 Requires: app-users-core
+Requires: authconfig
 Requires: nss-pam-ldapd
 Requires: nscd
 Requires: openldap >= 2.4.19

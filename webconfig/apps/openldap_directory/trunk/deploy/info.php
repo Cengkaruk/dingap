@@ -43,6 +43,7 @@ $app['core_requires'] = array(
     'app-openldap-core',
     'app-samba-core',
     'app-users-core',
+    'authconfig',
     'nss-pam-ldapd',
     'nscd',
     'openldap >= 2.4.19',
