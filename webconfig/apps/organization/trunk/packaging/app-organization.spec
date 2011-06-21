@@ -34,6 +34,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/organization
 cp -r * %{buildroot}/usr/clearos/apps/organization/
 
+install -D -m 0644 packaging/organization.conf %{buildroot}/etc/clearos/organization.conf
 
 %post
 logger -p local6.notice -t installer 'app-organization - installing'
@@ -76,3 +77,4 @@ exit 0
 /usr/clearos/apps/organization/deploy
 /usr/clearos/apps/organization/language
 /usr/clearos/apps/organization/libraries
+%config(noreplace) /etc/clearos/organization.conf

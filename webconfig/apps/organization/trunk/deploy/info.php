@@ -25,3 +25,14 @@ $app['subcategory'] = lang('base_subcategory_settings');
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
+
+$app['core_file_manifest'] = array(
+   'organization.conf' => array(
+        'target' => '/etc/clearos/organization.conf',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
+);
