@@ -1234,7 +1234,7 @@ input.theme-form-submit-delete { }
 /* Miscellaneous items */
 
 .login {
-	width: 450px;
+	width: 500px;
 	margin-left: auto;
 	margin-right: auto;
 	position: relative;
@@ -1346,7 +1346,7 @@ input.theme-form-submit-delete { }
 .login .theme-form-wrapper {
 	padding-bottom: 11px;
 	float: left;
-	max-width: 250px;
+	max-width: 300px;
 	padding-top: 35px;
 }
 
@@ -1380,7 +1380,7 @@ input.theme-form-submit-delete { }
 }
 
 .login .theme-form-container {
-	width: 270px;
+	width: 320px;
 	float: left;
 }
 
