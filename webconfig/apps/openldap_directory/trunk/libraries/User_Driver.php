@@ -273,8 +273,13 @@ class User_Driver extends User_Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
+        try {
+            $attributes = $this->_get_user_attributes();
+        } catch (User_Not_Found_Exception $e) {
+            return FALSE;
+        }
+
         $sha_password = '{sha}' . $this->_calculate_sha_password($password);
-        $attributes = $this->_get_user_attributes();
 
         if (isset($attributes['userPassword'][0]) && ($sha_password === $attributes['userPassword'][0]))
             return TRUE;
