@@ -24,8 +24,6 @@
 
 use strict;
 use Net::Ping;
-use HTTP::Request;
-use LWP::UserAgent;
 use POSIX;
 
 $SIG{'HUP'}  = 'SignalReload';
@@ -98,7 +96,6 @@ sub UpdateWhitelist();
 my $DIR_IDS      = "/etc/snort";
 my $DIR_STATE    = "/var/lib/syswatch";
 my $DIR_SECAUD   = "/var/lib/suvlets/SecurityAudit/db";
-my $FILE_WS      = "/usr/share/system/modules/services/config";
 my $FILE_SUVA_OK = "/usr/share/system/modules/services/suva";
 my $FILE_PID     = "/var/run/syswatch.pid";
 my $FILE_LOG     = "/var/log/syswatch";
@@ -110,11 +107,10 @@ my $FILE_IDSCFG  = "/etc/snortsam.conf";
 my $FILE_IDSLIST = "system-autowhitelist.conf";
 my $FILE_STATE   = "$DIR_STATE/state";
 my $FILE_CLAMDB  = "/var/lib/clamav/*.cvd";
-my $FILE_SALIST  = "/etc/postfix/filters/sa-blacklist";
 my $FILE_HA      = "/var/lib/syswatch/ha";
 my $FILE_SECAUD  = "$DIR_SECAUD/aide.db";
 my $FILE_SECAUDN = "$DIR_SECAUD/aide.db.new";
-my $CMD_PPP      = "/usr/share/system/modules/ppp/upgrade";
+my $CMD_GETIP   = "/usr/sbin/getip";
 my $CMD_IDS      = "/etc/rc.d/init.d/snortsam condrestart >/dev/null 2>&1";
 my $CMD_MD5SUM   = "/usr/bin/md5sum";
 my $CMD_DYNDNS   = "/usr/sbin/dnsupdate";
@@ -199,19 +195,19 @@ $FILE_CERTS{'radiusd'}->{'daemon'} = 'radiusd';
 #------------------------------------------
 
 my @config_ping_servers;
-my @config_sdn_servers;
 my %config;
+
 $config{debug} = 0;  # debug 0 = no debug, 1 - some debug
 $config{retries} = 5;  # number of ping retries before taking action
 $config{interval} = 60;  # ping interval (in seconds)
 $config{heartbeat} = 10;  # number of intervals between writing a "heartbeat" in the log file
-$config{force_get_ip} = $STATE_DISABLED;     # use remote server to determine IP
-$config{failedinterval} = 10;  # ping interval (in seconds) when 'net is down
+$config{use_get_ip} = $STATE_ENABLED;     # use remote server to determine IP
+$config{failed_interval} = 10;  # ping interval (in seconds) when 'net is down
 $config{ping_servers_autodetect} = $STATE_ENABLED; 
 $config{try_pinging_gateway} = $STATUS_YES;
 $config{is_multiwan} = $STATE_DISABLED;
 
-# TODO: Alternate ping servers are hard-coded IPs.  We cannot use hostname
+# FIXME: Alternate ping servers are hard-coded IPs.  We cannot use hostname
 # since we want to avoid inevitable DNS issues.  However, the hard-coded IP
 # addresses here should be replaced by some kind of update when connected.
 $config{ping_server1_default} = "69.90.141.72";
@@ -399,7 +395,7 @@ sub SleepHeartbeat() {
     foreach my $extif (keys %g_extifs) {
         if ($g_extifs{$extif}->{status} != $STATUS_OK) {
             $allok = $STATUS_DOWN;
-            LogMsg("debug", $extif, "using failed interval time (sec) - " . $config{failedinterval} . "\n") if $config{debug};
+            LogMsg("debug", $extif, "using failed interval time (sec) - " . $config{failed_interval} . "\n") if $config{debug};
             last;
         }
     }
@@ -407,7 +403,7 @@ sub SleepHeartbeat() {
     if ($allok == $STATUS_OK) {
         sleep $config{interval};
     } else {
-        sleep $config{failedinterval};
+        sleep $config{failed_interval};
     }
 
     # Log heartbeat from time to time
@@ -1032,58 +1028,23 @@ sub GetIp($) {
     my $extif = $_[0];
     my $ip = $STATE_UNKNOWN;
 
-    # Use SDN network to detect IP address.
-    #--------------------------------------------------------------------
-    # Noisy if statement ... do an IP referrer update if:
-    # - interface is up
-    # - multiwan is disabled
-    # - and syswatch is configured to always use IP referrer -OR- interface is a LAN IP
-    #--------------------------------------------------------------------
+	# Use IP referrer if appropriate
+	#-------------------------------
 
-    if ( (defined($g_extifs{$extif}->{status}) &&($g_extifs{$extif}->{status} == $STATUS_OK)) &&
-        ($config{is_multiwan} eq $STATE_DISABLED) &&
-        (($config{force_get_ip} eq $STATE_ENABLED) ||
-        (defined($g_extifs{$extif}->{use_get_ip}) && ($g_extifs{$extif}->{use_get_ip} eq $STATE_ENABLED))) 
+    if ( (defined($g_extifs{$extif}->{status}) && ($g_extifs{$extif}->{status} == $STATUS_OK)) &&
+         (defined($g_extifs{$extif}->{use_get_ip}) && ($g_extifs{$extif}->{use_get_ip} eq $STATE_ENABLED)) &&
+         ($config{use_get_ip} eq $STATE_ENABLED)
         ) {
-        my $payload;
-        my $useragent = new LWP::UserAgent;
 
-        my $hostkey = `/bin/grep -m 1 "^[[:space:]]*<hostkey" /etc/suvad.conf | /bin/sed 's/^[[:space:]]*<hostkey>//' | /bin/sed 's/<.hostkey>.*//'`;
-        chomp($hostkey);
+        $ip = $g_extifs{$extif}->{ip} if ($g_extifs{$extif}->{ip}); # default previous IP
+        my $detected_ip = `$CMD_GETIP $extif`;
 
-        if (! $hostkey) {
-            LogMsg("info", "system", "using old suva configuration format\n");
-            $hostkey = `/bin/grep "^[[:space:]]*device-hostkey" /etc/suvad.conf | /bin/sed 's/.*=[[:space:]]*//' | /bin/sed 's/[;"]//g'`;
-            chomp($hostkey);
-        }
-
-        my $vendor = `/bin/cat /usr/share/system/settings/vendor 2>/dev/null | /bin/sed 's/.*= //'`; # hack
-        chomp($vendor);
-        my $post = "?hostkey=$hostkey";
-        $ip = $g_extifs{$extif}->{ip}  if ($g_extifs{$extif}->{ip}); # default previous IP
-
-        $useragent->timeout(20);
-
-        foreach my $sdn (@config_sdn_servers) {
-            LogMsg("debug", $extif, "sending IP referrer request to $sdn\n") if $config{debug};
-            my $request = new HTTP::Request(GET => "$sdn/ipreferrer.php" . $post);
-            my $result = $useragent->request($request);
-            if ($result->is_success) {
-                $payload = $result->content;
-                $payload =~ s/\n/ /g;
-                chomp($payload);
-                LogMsg("debug", $extif, "received IP referrer payload $payload\n") if $config{debug};
-                if ($payload =~ /exit_code\|0/) {
-                    $payload =~ s/exit_code\|0\s*//g;
-                    chomp($payload);
-                    LogMsg("debug", $extif, "received IP referrer ip $payload\n") if $config{debug};
-                    $ip = $payload;
-                    last;
-                }
-            } else {
-                LogMsg("debug", $extif, "SDN $sdn: " . $result->status_line) if $config{debug};
-            }
-        }
+		if (length($detected_ip) > 0) {
+			LogMsg("debug", $extif, "detected IP address: $detected_ip\n") if $config{debug};
+			$ip = $detected_ip;
+		} else {
+			LogMsg("debug", $extif, "detected IP address was not found\n") if $config{debug};
+		}
 
     # Use ifconfig information to detect IP information
     #--------------------------------------------------
@@ -1127,7 +1088,7 @@ sub CheckIpChanges() {
 
         if (
             ($config{is_multiwan} eq $STATE_DISABLED) &&
-            (($config{force_get_ip} eq $STATE_ENABLED) ||
+            (($config{use_get_ip} eq $STATE_ENABLED) ||
             (defined($g_extifs{$extif}->{use_get_ip}) && ($g_extifs{$extif}->{use_get_ip} eq $STATE_ENABLED)))
             ) {
             if (!defined($g_extifs{$extif}->{use_get_ip_count})) {
@@ -1320,7 +1281,6 @@ sub CheckSecurityAudit() {
 ###############################################################################
 
 sub CheckUpgrade() {
-    system("$CMD_PPP") if (-e $CMD_PPP);
     if (-d "/etc/postfix") {
         system("/bin/touch /etc/postfix/transport") if (! -e "/etc/postfix/transport");
         if ((-e "/usr/sbin/postmap") && (! -e "/etc/postfix/transport.db")) {
@@ -1846,14 +1806,11 @@ sub GetNetworkInfo()  {
 ##############################################################################
 
 sub ReadConfig() {
-    my $deprecated_servtype;
-    my $deprecated_conntype;
     my $pingserverlist;
 
     my $config_interval;
     my $config_retries;
     my $config_heartbeat;
-
 
     #====================================================================
     # Read main config - /etc/syswatch
@@ -1861,14 +1818,12 @@ sub ReadConfig() {
 
     if (open(FILE_CFG, "$FILE_CFG")) {
         while (<FILE_CFG>) {
-            if (/^conntype=/)       { ($deprecated_conntype) = /^conntype=(.*)/; }
-            if (/^servtype=/)       { ($deprecated_servtype) = /^servtype=(.*)/; }
             if (/^retries=/)        { ($config_retries) = /^retries=(.*)/; }
             if (/^heartbeat=/)      { ($config_heartbeat) = /^heartbeat=(.*)/; }
             if (/^interval=/)       { ($config_interval) = /^interval=(.*)/; }
-            if (/^use_get_ip=/)     { ($config{force_get_ip}) = /^use_get_ip=(.*)/; }
+            if (/^use_get_ip=/)     { ($config{use_get_ip}) = /^use_get_ip=(.*)/; }
             if (/^debug=/)          { ($config{debug}) = /^debug=(.*)/; }
-            if (/^failedinterval=/) { ($config{failedinterval}) = /^failedinterval=(.*)/; }
+            if (/^failed_interval=/) { ($config{failed_interval}) = /^failed_interval=(.*)/; }
             if (/^ping_servers=/) { 
                 $config{ping_servers_autodetect} = $STATE_DISABLED;
                 ($pingserverlist) = /^ping_servers=(.*)/; 
@@ -1878,32 +1833,6 @@ sub ReadConfig() {
         }
         close(FILE_CFG);
     }
-
-    #====================================================================
-    # Read Service Delivery Network config
-    #====================================================================
-
-    my $prefix = "sdn";
-    my $domain = "clearsdn.com";
-    my $servers = "4";
-    my $sdnversion = "4.01";
-    @config_sdn_servers = ();
-
-    if ((-e $FILE_WS) && (open(FILE_WS, "$FILE_WS"))) {
-        while (<FILE_WS>) {
-            if (/^sdn_prefix/)    { ($prefix) = /sdn_prefix\s*=\s*(.*)/; }
-            if (/^sdn_domain/)    { ($domain) = /sdn_domain\s*=\s*(.*)/; }
-            if (/^sdn_servers/)    { ($servers) = /sdn_servers\s*=\s*(.*)/; }
-            if (/^sdn_version/)    { ($sdnversion) = /sdn_version\s*=\s*(.*)/; }
-        }
-        close(FILE_WS);
-    }
-
-    for (my $inx = 1; $inx <= $servers; $inx++) {
-        my $url = "https://$prefix$inx.$domain/$sdnversion";
-        push (@config_sdn_servers, $url);
-    }
-
 
     #====================================================================
     # Read network config
@@ -1970,18 +1899,7 @@ sub ReadConfig() {
 
     #====================================================================
     # Set sane defaults based on number of WANS
-    # Handle deprecated parameters
     #====================================================================
-
-    # Handle deprecated directives
-    #-----------------------------
-
-    if ($deprecated_servtype) {
-        LogMsg("warn", "config", "using obsolete directive - servtype\n");
-        $config{force_get_ip} = $STATE_ENABLED if ($deprecated_servtype eq "onlan");
-    }
-
-    LogMsg("warn", "config", "using obsolete directive - conntype\n") if ($deprecated_conntype);
 
     # Set sane defaults (1-WAN vs Multi-WAN)
     #--------------------------------------
@@ -2006,15 +1924,25 @@ sub ReadConfig() {
         $config{heartbeat} = 15 if ($numwans >= 2);
     }
 
-    # Sanity check - no SDN lookups on multi-WAN systems
-    #--------------------------------------------------------
+    # Sanity check - disable IP referrer lookups on multi-WAN systems
+    #----------------------------------------------------------------
 
     if ($numwans >= 2)  {
         $config{is_multiwan} = $STATE_ENABLED;
-        $config{force_get_ip} = $STATE_DISABLED;
-        LogMsg("info", "config", "IP lookups via SDN disabled in multi-WAN\n");
+        $config{use_get_ip} = $STATE_DISABLED;
+        LogMsg("info", "config", "IP referrer disabled in multi-WAN\n");
     }
 
+    #====================================================================
+    # See if getip IP referrer tool is installed
+    #====================================================================
+
+    if (-e $CMD_GETIP) {
+        LogMsg("info", "config", "IP referrer tool is installed\n");
+    } else {
+        $config{use_get_ip} = $STATE_DISABLED;
+        LogMsg("info", "config", "IP referrer tool is not installed\n");
+	}
 
     #====================================================================
     # Log our configuration
@@ -2024,8 +1952,8 @@ sub ReadConfig() {
     LogMsg("info", "config", "retries - " . $config{retries} . "\n");
     LogMsg("info", "config", "heartbeat - " . $config{heartbeat} . "\n");
     LogMsg("info", "config", "interval - " . $config{interval} . " seconds\n");
-    LogMsg("info", "config", "offline interval - " . $config{failedinterval} . " seconds\n");
-    LogMsg("info", "config", "always use remote server for IP detection - " . $config{force_get_ip} . "\n");
+    LogMsg("info", "config", "offline interval - " . $config{failed_interval} . " seconds\n");
+    LogMsg("info", "config", "referrer IP detection - " . $config{use_get_ip} . "\n");
     LogMsg("info", "config", "ping server auto-detect - " . $config{ping_servers_autodetect} . "\n");
 
     if ($config{try_pinging_gateway} eq $STATUS_YES) {
@@ -2038,10 +1966,6 @@ sub ReadConfig() {
         foreach my $server (@config_ping_servers) {
             LogMsg("info", "config", "ping server - $server\n");
         }
-    }
-
-    foreach my $url (@config_sdn_servers) {
-        LogMsg("info", "config", "cluster server added - $url\n");
     }
 
     LogMsg("info", "config", "number of external networks - $numwans\n");
