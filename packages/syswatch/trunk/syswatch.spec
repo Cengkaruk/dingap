@@ -1,6 +1,6 @@
 Name: syswatch
-Version: 5.9.9.1
-Release: 2%{dist}
+Version: 5.9.9.2
+Release: 3%{dist}
 Summary: Network and system monitor module
 License: GPL
 Group: System Environment/Daemons
