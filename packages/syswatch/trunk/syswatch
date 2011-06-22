@@ -78,7 +78,7 @@ sub SignalClusterChange();
 sub CheckUpgrade();
 sub CheckResolv(); # PPPoE ... sigh
 sub CheckWhitelistConfig();
-sub CheckFirewallConf();
+sub CheckNetworkConf();
 sub CheckNetworkBakFiles();
 sub CheckClamAv();
 sub CheckSecurityAudit();
@@ -103,7 +103,8 @@ my $FILE_SUVA_OK = "/usr/share/system/modules/services/suva";
 my $FILE_PID     = "/var/run/syswatch.pid";
 my $FILE_LOG     = "/var/log/syswatch";
 my $FILE_CFG     = "/etc/syswatch";
-my $FILE_FW      = "/etc/firewall";
+my $FILE_MULTIWAN = "/etc/clearos/multiwan.conf";
+my $FILE_NETWORK = "/etc/clearos/network.conf";
 my $FILE_DNS     = "/etc/resolv.conf";
 my $FILE_IDSCFG  = "/etc/snortsam.conf";
 my $FILE_IDSLIST = "system-autowhitelist.conf";
@@ -245,7 +246,7 @@ my $g_do_timesync = $STATUS_YES; # Should be local static variable
 LogMsg("info", "system", "syswatch started\n");
 Daemonize();
 CheckUpgrade();
-CheckFirewallConf();
+CheckNetworkConf();
 CheckNetworkBakFiles();
 ReadConfig();
 GetNetworkInfo();
@@ -1197,19 +1198,19 @@ sub CheckNetworkBakFiles() {
 
 ###############################################################################
 #
-# CheckFirewallConf: Sanity checks firewall configuration
+# CheckNetworkConf: Sanity checks network configuration
 #
 ###############################################################################
 
-sub CheckFirewallConf() {
-    if (!open(FWCONF, $FILE_FW)) {
-        LogMsg("warn", "system", "failed to open file $FILE_FW: $!\n");
+sub CheckNetworkConf() {
+    if (!open(NETCONF, $FILE_NETWORK)) {
+        LogMsg("warn", "system", "failed to open file $FILE_NETWORK: $!\n");
         return;
     }
 
     my @interfacesraw;
 
-    while (<FWCONF>) {
+    while (<NETCONF>) {
         if ((/^EXTIF/) || (/^LANIF/) || (/^DMZIF/)) {
             s/"//g;
             s/.*=//;
@@ -1221,7 +1222,7 @@ sub CheckFirewallConf() {
         }
     }
 
-    close(FWCONF);
+    close(NETCONF);
 
     foreach my $configuredif (@interfacesraw) {
         LogMsg("debug", "system", "checking interface role - $configuredif\n") if $config{debug};
@@ -1229,46 +1230,46 @@ sub CheckFirewallConf() {
             $configuredif = $1; # Untainted
 
             if (!(-e "/etc/sysconfig/network-scripts/ifcfg-$configuredif")) {
-                LogMsg("info", "system", "firewall configuration has undefined interface - $configuredif\n");
-                RemoveFirewallRole($configuredif);
+                LogMsg("info", "system", "network configuration has undefined interface - $configuredif\n");
+                RemoveNetworkRole($configuredif);
             } else {
                 my $onboot = `/bin/grep ONBOOT.*no* /etc/sysconfig/network-scripts/ifcfg-$configuredif`;
                 if ($onboot) {
-                    LogMsg("info", "system", "firewall configuration has inactive interface - $configuredif\n");
+                    LogMsg("info", "system", "network configuration has inactive interface - $configuredif\n");
                 }
             }
         }
     }
 }
 
-sub RemoveFirewallRole($) {
+sub RemoveNetworkRole($) {
     my $interface = $_[0];
 
-    if (!open(FWCONF, $FILE_FW)) {
-        LogMsg("warn", "system", "failed to open file $FILE_FW: $!\n");
+    if (!open(NETCONF, $FILE_NETWORK)) {
+        LogMsg("warn", "system", "failed to open file $FILE_NETWORK: $!\n");
         return;
     }
 
-    if (!open(FWCONFNEW, ">$FILE_FW.new")) {
-        LogMsg("warn", "system", "failed to open file $FILE_FW.new: $!\n");
+    if (!open(NETCONFNEW, ">$FILE_NETWORK.new")) {
+        LogMsg("warn", "system", "failed to open file $FILE_NETWORK.new: $!\n");
         return;
     }
 
-    while (<FWCONF>) {
+    while (<NETCONF>) {
         if ((/^EXTIF/) || (/^LANIF/) || (/^DMZIF/)) {
             s/$interface //g;
             s/ $interface//g;
             s/$interface//g;
-            print FWCONFNEW $_;
+            print NETCONFNEW $_;
         } else {
-            print FWCONFNEW $_;
+            print NETCONFNEW $_;
         }
     }
 
-    close(FWCONFNEW);
-    close(FWCONF);
+    close(NETCONFNEW);
+    close(NETCONF);
 
-    system("/bin/mv $FILE_FW.new $FILE_FW");
+    system("/bin/mv $FILE_NETWORK.new $FILE_NETWORK");
 }
 
 
@@ -1908,22 +1909,34 @@ sub ReadConfig() {
     # Read network config
     #====================================================================
 
-    # Open firewall configuration and grab a list of WAN interfaces
+    # Open network configuration and grab a list of WAN interfaces
     #--------------------------------------------------------------
 
     my @ext_interfaces;
-    my @backup_interfaces;
 
-    if (! open(FILE_FW, "$FILE_FW")) {
-        LogMsg("warn", "config", "failed to open file $FILE_FW: $!\n");
+    if (! open(FILE_NETWORK, "$FILE_NETWORK")) {
+        LogMsg("warn", "config", "failed to open file $FILE_NETWORK: $!\n");
     } else {
-        while (<FILE_FW>) {
+        while (<FILE_NETWORK>) {
             if (/^EXTIF=/) {
                 s/"//g;
                 s/.*=//;
                 chomp();
                 @ext_interfaces = split;
             }
+        }
+        close(FILE_NETWORK);
+    }
+
+    # Multi-WAN backup interfaces
+    #----------------------------
+
+    my @backup_interfaces;
+
+    if (! open(FILE_MULTIWAN, "$FILE_MULTIWAN")) {
+        LogMsg("debug", "config", "failed to open file $FILE_MULTIWAN: $!\n") if $config{debug};
+    } else {
+        while (<FILE_MULTIWAN>) {
             if (/^EXTIF_BACKUP=/) {
                 s/"//g;
                 s/.*=//;
@@ -1931,7 +1944,7 @@ sub ReadConfig() {
                 @backup_interfaces = split;
             }
         }
-        close(FILE_FW);
+        close(FILE_MULTIWAN);
     }
 
     # WAN interface: validate, determine connection type, find IP
