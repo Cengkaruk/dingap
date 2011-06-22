@@ -262,7 +262,7 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
     $error_id_html = (is_null($options['error_id'])) ? '' : " id='" . $options['error_id'] . "'";
     $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
 
-    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
         <div$field_id_html class='theme-field-password" . $hide_field . "'>
@@ -872,10 +872,10 @@ function theme_infobox($type, $title, $message, $options = NULL)
 
     return "
         <div class='ui-widget' $id>
-            <div class='ui-corner-all info-regular $class' style=' padding: 0 .7em;'>
+            <div class='ui-corner-all info-regular $class' style=' '>
                 <h2>$title</h2>
                 
-                $message
+                <div class='info-regular-text'>$message</div>
             </div>
         </div>
     ";
