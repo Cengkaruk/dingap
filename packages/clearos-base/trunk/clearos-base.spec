@@ -1,6 +1,6 @@
 Name: clearos-base
 Version: 5.9.9.1
-Release: 1%{dist}
+Release: 2.1%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
@@ -27,6 +27,7 @@ Requires: selinux-policy-targeted
 Requires: sudo
 Requires: rsyslog
 Requires: telnet
+Requires: yum
 # Common tools used in install and upgrade scripts for app-* packages
 Requires: bc
 Requires: chkconfig
@@ -172,6 +173,14 @@ if [ -n "$CHECK" ]; then
 		echo "PRUNEFS = \"auto afs iso9660 sfs udf\"" > /etc/updatedb.conf
 		echo "PRUNEPATHS = \"/afs /media /net /sfs /tmp /udev /var/spool/cups /var/spool/squid /var/tmp\"" >> /etc/updatedb.conf
 	fi
+fi
+
+# Postfix should be disabled unless specifically required
+#--------------------------------------------------------
+
+if [ $1 -eq 1 ]; then
+    logger -p local6.notice -t installer "clearos-base - disabling outbound mailer for now"
+    /sbin/chkconfig postfix off >/dev/null 2>&1
 fi
 
 exit 0
