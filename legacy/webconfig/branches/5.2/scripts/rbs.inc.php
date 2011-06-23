@@ -510,6 +510,9 @@ class RemoteBackupService extends WebconfigScript
 	// Maximum control socket command/reply length
 	const MAX_CMD_LENGTH = 8192;
 
+	// Maximum rsync retries
+	const MAX_RSYNC_RETRIES = 30;
+
 	// Suva/2 socket path
 	const PATH_RBSDATA = '/var/lib/rbs';
 
@@ -551,7 +554,7 @@ class RemoteBackupService extends WebconfigScript
 	const FORMAT_IO_SCHEDULER = '/sys/block/%s/queue/scheduler';
 
 	// Check file-system with automatic repair
-	const FORMAT_FSCK = '/sbin/fsck -f -t %s -y /dev/mapper/%s';
+	const FORMAT_FSCK = '/sbin/fsck -t %s -y /dev/mapper/%s';
 
 	// iSCSI device name
 	const FORMAT_ISCSI = '/dev/%s';
@@ -641,7 +644,7 @@ class RemoteBackupService extends WebconfigScript
 	const RSYNC_URI = 'rsync://127.0.0.1:3250/rbs';
 
 	// Rsync backup format
-	const FORMAT_RSYNC_BACKUP = '%s -a%s --exclude-from=%s -r --files-from=%s --delete --numeric-ids --stats %s %s';
+	const FORMAT_RSYNC_BACKUP = '%s -a%s --exclude-from=%s -r --files-from=%s --delete-during --numeric-ids --stats %s %s';
 
 	// Rsync restore format
 	const FORMAT_RSYNC_RESTORE = '%s -a%s --exclude-from=%s -r --files-from=%s --numeric-ids --stats %s %s';
@@ -1355,6 +1358,7 @@ class RemoteBackupService extends WebconfigScript
 	// Rsync data
 	public final function RsyncData($src, $dst = self::VOLUME_MOUNT_POINT, $link_dest = null, $status = self::STATUS_RSYNC)
 	{
+		$retries = 0;
 		$exitcode = 0;
 
 		try {
@@ -1377,10 +1381,21 @@ class RemoteBackupService extends WebconfigScript
 			}
 
 			$additional_flags .= ($this->debug ? ' -v' : ' -q');
-			$exitcode = $this->ExecProcess('rsync',
-				sprintf($this->IsRestoreMode() ? self::FORMAT_RSYNC_RESTORE : self::FORMAT_RSYNC_BACKUP,
-				self::PATH_RSYNC, $additional_flags,
-				self::PATH_RSYNC_EXCLUDE, self::PATH_RSYNC_INCLUDE, $src, $dst), $env, true);
+
+			while (true) {
+				$exitcode = $this->ExecProcess('rsync',
+					sprintf($this->IsRestoreMode() ?
+						self::FORMAT_RSYNC_RESTORE : self::FORMAT_RSYNC_BACKUP,
+					self::PATH_RSYNC, $additional_flags,
+					self::PATH_RSYNC_EXCLUDE, self::PATH_RSYNC_INCLUDE, $src, $dst), $env, true);
+
+				if ($exitcode != 12) break;
+				$this->LogMessage("Data sync failed with error code: " .
+					"$exitcode, retries: $retries", LOG_WARNING);
+				if ($retries++ >= self::MAX_RSYNC_RETRIES) break;
+				sleep(60);
+			}
+
 		} catch (ServiceException $e) {
 			throw new ServiceException($e->getCode());
 		} catch (Exception $e) {
