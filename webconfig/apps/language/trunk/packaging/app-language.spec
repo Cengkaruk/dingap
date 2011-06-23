@@ -3,7 +3,7 @@ Name: app-language
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 2.2%{dist}
-Summary: Language summary
+Summary: Language
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,16 +13,16 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Language long description
+This software is provided in many different languages.  Use this tool to set the default language for the system.
 
 %package core
-Summary: Language summary - APIs and install
+Summary: Language - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 
 %description core
-Language long description
+This software is provided in many different languages.  Use this tool to set the default language for the system.
 
 This package provides the core API and libraries.
 
