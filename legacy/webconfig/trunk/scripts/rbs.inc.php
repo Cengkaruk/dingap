@@ -640,7 +640,7 @@ class RemoteBackupService extends WebconfigScript
 	const RSYNC_URI = 'rsync://127.0.0.1:3250/rbs';
 
 	// Rsync backup format
-	const FORMAT_RSYNC_BACKUP = '%s -a%s --exclude-from=%s -r --files-from=%s --delete --numeric-ids --stats %s %s';
+	const FORMAT_RSYNC_BACKUP = '%s -a%s --exclude-from=%s -r --files-from=%s --delete-during --numeric-ids --stats %s %s';
 
 	// Rsync restore format
 	const FORMAT_RSYNC_RESTORE = '%s -a%s --exclude-from=%s -r --files-from=%s --numeric-ids --stats %s %s';
