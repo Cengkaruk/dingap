@@ -328,8 +328,13 @@ try {
 				// XXX: Database dumps must be done before files/mail
 				$rbs->BackupDatabases();
 
+				// Purge previous failed backup snapshots
+				$rbs->ControlPurgeFailedSnapshots();
+
+				// Notify SDN that a backup is starting now...
 				$rbs->ControlBackupStart();
 
+				// Load data retention policy and execute plan
 				$policy = unserialize(trim(base64_decode($config['auto-backup-schedule']), '"'));
 				$backup_plan = $rbs->ControlRetentionPrepare($policy);
 				foreach ($backup_plan as $snapshot) {
