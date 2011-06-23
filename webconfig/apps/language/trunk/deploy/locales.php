@@ -4,6 +4,17 @@
 
 $locales = array(
 
+    'ca_ES' => array(
+        'base_code' => 'ca', 
+        'description' => lang('base_language_ca_es'),
+        'native_description' => 'Català',
+        'default_keyboard' => 'es',
+        'default_time_zone' => 'Europe/Madrid',
+        'text_direction' => 'LTR',
+        'encoding' => 'UTF-8',
+        'enabled' => TRUE
+    ),
+
     'cs_CZ' => array(
         'base_code' => 'cs', 
         'description' => lang('base_language_cs_cz'),
