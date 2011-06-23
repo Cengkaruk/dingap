@@ -472,7 +472,7 @@ class ClamAV extends Daemon
         $max = (int)$max;
 
         if ((!is_int($max)) || ($max <= 0) || ($max > self::CONSTANT_MAX_FILES))
-            return lang('antivirus_max_files_invalid');
+            return lang('antivirus_maximum_files_invalid');
     }
 
     /**
@@ -490,7 +490,7 @@ class ClamAV extends Daemon
         $max = (int)$max;
 
         if ((!is_int($max)) || ($max <= 0) || ($max > self::CONSTANT_MAX_FILE_SIZE))
-            return lang('antivirus_max_file_size_invalid');
+            return lang('antivirus_maximum_file_size_invalid');
     }
 
     /**
@@ -508,7 +508,7 @@ class ClamAV extends Daemon
         $max = (int)$max;
 
         if ((!is_int($max)) || ($max < 0) || ($max > self::CONSTANT_MAX_RECURSION))
-            return lang('antivirus_max_recursion_invalid');
+            return lang('antivirus_maximum_recursion_invalid');
     }
 
     /**

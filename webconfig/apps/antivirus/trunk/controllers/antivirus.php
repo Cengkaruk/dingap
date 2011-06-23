@@ -110,6 +110,6 @@ class Antivirus extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('antivirus', $data, lang('antivirus_gateway_antivirus'));
+        $this->page->view_form('antivirus', $data, lang('antivirus_app_name'));
     }
 }
