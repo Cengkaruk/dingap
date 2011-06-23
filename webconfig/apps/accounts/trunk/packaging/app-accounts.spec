@@ -22,6 +22,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-mode-core
+Requires: app-storage-core
 Requires: system-accounts-driver
 
 %description core
@@ -41,6 +42,8 @@ install -d -m 0755 %{buildroot}/var/clearos/accounts
 install -d -m 0755 %{buildroot}/var/clearos/accounts/drivers
 install -d -m 0755 %{buildroot}/var/clearos/accounts/plugins
 install -D -m 0755 packaging/accounts-init %{buildroot}/usr/sbin/accounts-init
+install -D -m 0644 packaging/storage-home-default.conf %{buildroot}/etc/clearos/storage.d/home-default.conf
+install -D -m 0644 packaging/storage-home.php %{buildroot}/var/clearos/storage/plugins/home.php
 
 %post
 logger -p local6.notice -t installer 'app-accounts - installing'
@@ -87,3 +90,5 @@ exit 0
 /usr/clearos/apps/accounts/language
 /usr/clearos/apps/accounts/libraries
 /usr/sbin/accounts-init
+/etc/clearos/storage.d/home-default.conf
+/var/clearos/storage/plugins/home.php
