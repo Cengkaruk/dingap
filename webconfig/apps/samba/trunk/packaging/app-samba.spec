@@ -2,7 +2,7 @@
 Name: app-samba
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3%{dist}
+Release: 3.1%{dist}
 Summary: Translation missing (samba_app_summary)
 License: GPLv3
 Packager: ClearFoundation
