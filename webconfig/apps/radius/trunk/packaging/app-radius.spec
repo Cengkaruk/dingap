@@ -26,6 +26,7 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
 Requires: app-openldap-directory-core
+Requires: app-samba-extension-core
 Requires: freeradius
 Requires: freeradius-ldap
 Requires: freeradius-utils
