@@ -3,7 +3,7 @@ Name: app-antivirus
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 2.2%{dist}
-Summary: Gateway Antivirus app summary..
+Summary: Gateway Antivirus
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,10 +14,10 @@ Requires: app-base
 Requires: app-network
 
 %description
-Gateway Antivirus long description...
+Gateway Antivirus provides protection from your network and server.
 
 %package core
-Summary: Gateway Antivirus app summary.. - APIs and install
+Summary: Gateway Antivirus - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -25,7 +25,7 @@ Requires: app-network-core
 Requires: clamd
 
 %description core
-Gateway Antivirus long description...
+Gateway Antivirus provides protection from your network and server.
 
 This package provides the core API and libraries.
 
