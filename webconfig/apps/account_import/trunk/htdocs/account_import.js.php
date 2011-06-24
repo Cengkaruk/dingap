@@ -43,14 +43,13 @@ header('Content-Type: application/x-javascript');
 
 echo "
 
-function get_progress(type, id, domid) {
+function get_progress() {
     $.ajax({
         type: 'POST',
         dataType: 'json',
-        url: '/app/account_manager/ajax/get_progress',
-        data: 'type=' + type + '&id=' + id,
+        url: '/app/account_import/ajax/get_progress',
+        data: '',
         success: function(data) {
-            $('#' + domid).attr('src', data.location);
         },
         error: function(xhr, text, err) {
             // Don't display any errors if ajax request was aborted due to page redirect/reload

@@ -93,12 +93,38 @@ class Account_Import extends ClearOS_Controller
     {
         header('Content-type: application/csv');
         header('Content-Disposition: attachment; filename=import2.csv');
-        //header('Content-Disposition: inline; filename=import.csv');
+        header('Content-Disposition: inline; filename=import.csv');
         header('Pragma: no-cache');
         header('Expires: 0');
 
-        readfile('/var/clearos/framework/cache/import2.csv');
+        $this->load->factory('users/User_Factory', NULL);
+        $info_map = $this->user->get_info_map();
+        $csv = '';
+        // Core
+        $hide_core = array(
+            'home_directory', 
+            'login_shell', 
+            'uid_number', 
+            'gid_number'
+        );
+        $csv .= "core.username" . ",";
+        $csv .= "core.password" . ",";
+        foreach ($info_map['core'] as $key_name => $details) {
+            if (in_array($key_name, $hide_core))
+                continue;
+            $csv .= "core.$key_name" . ",";
+        }
 
+        // Extensions
+        foreach ($info_map['extensions'] as $key_name => $extensions) {
+            foreach($extensions as $key => $extension)
+                $csv .= "extensions." . $key_name . "." . $key . ",";
+        }
+
+        // Plugins
+        foreach ($info_map['plugins'] as $plugin => $name) {
+            $csv .= "plugins.$name" . ",";
+        }
+        echo substr($csv, 0, strlen($csv) - 1);
     }
-
 }

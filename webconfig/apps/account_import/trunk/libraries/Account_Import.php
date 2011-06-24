@@ -120,7 +120,7 @@ class Account_Import extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CSV_TEMPLATE = 'import_template.csv';
-    const FILE_IMPORT_SCRIPT = '/var/webconfig/scripts/userimport.php';
+    const FILE_IMPORT_SCRIPT = '/var/clearos/account_import/import.php';
     const FILE_CSV = 'import.csv';
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -233,31 +233,22 @@ class Account_Import extends Engine
     /**
      * Perform an account import.
      *
-     * @throws Engine_Exception
+     * @throws Engine_Exception, File_Not_Found_Exception
      */
 
     function import()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_import_running())
-            throw new Engine_Exception(lang('account_import_running'), CLEAROS_ERROR);
+        $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
+        if (!$file->exists())
+            throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
 
         try {
-            $file = new File(CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, TRUE);
-            if (!$file->exists())
-                throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-
-            try {
-                $options = array();
-                $options['background'] = true;
-                $shell = new Shell_Exec;
-                $shell->execute(self::FILE_IMPORT_SCRIPT, 'TODO - Add filename', true, $options);
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-            }
-        } catch (File_Not_Found_Exception $e) {
-            throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            $options = array();
+            $options['background'] = true;
+            $shell = new Shell_Exec;
+            $shell->execute(self::FILE_IMPORT_SCRIPT, CLEAROS_CACHE_DIR . '/' . self::FILE_CSV, true, $options);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
