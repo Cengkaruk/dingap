@@ -4,9 +4,9 @@
 
 $lang['organization_app_description'] = 'Information about your organization is used to generate security certificates and other software defaults.';
 $lang['organization_app_name'] = 'Organization';
-$lang['organization_city'] = 'City';
+$lang['organization_city'] = 'Ville';
 $lang['organization_city_invalid'] = 'City is invalid.';
-$lang['organization_country'] = 'Country';
+$lang['organization_country'] = 'Pays';
 $lang['organization_country_invalid'] = 'Country is invalid.';
 $lang['organization_organization'] = 'Organization';
 $lang['organization_organization'] = 'Organization';
