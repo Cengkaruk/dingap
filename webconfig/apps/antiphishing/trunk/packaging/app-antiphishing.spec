@@ -2,7 +2,7 @@
 Name: app-antiphishing
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 2.2%{dist}
+Release: 3%{dist}
 Summary: Gateway Antiphishing
 License: GPLv3
 Packager: ClearFoundation

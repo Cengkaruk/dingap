@@ -5,8 +5,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'samba_extension';
-$app['version'] = '5.9.9.1';
-$app['release'] = '1';
+$app['version'] = '5.9.9.2';
+$app['release'] = '3';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';

@@ -6,7 +6,7 @@
 
 $app['basename'] = 'pptpd';
 $app['version'] = '5.9.9.2';
-$app['release'] = '2.2';
+$app['release'] = '3';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
@@ -21,6 +21,13 @@ $app['description'] = lang('pptpd_app_long_description');
 $app['name'] = lang('pptpd_pptp_server');
 $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_vpn');
+
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['radius']['title'] = $app['name'];
+$app['controllers']['settings']['title'] = lang('base_settings');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

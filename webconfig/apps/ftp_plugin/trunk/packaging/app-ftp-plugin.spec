@@ -2,7 +2,7 @@
 Name: app-ftp-plugin-core
 Group: ClearOS/Libraries
 Version: 5.9.9.2
-Release: 2.2%{dist}
+Release: 3%{dist}
 Summary: FTP Plugin summary - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
