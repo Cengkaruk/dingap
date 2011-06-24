@@ -23,6 +23,7 @@ Requires: openssh-server
 Requires: openssh-clients
 Requires: postfix
 Requires: perl
+Requires: rootfiles
 Requires: selinux-policy-targeted
 Requires: sudo
 Requires: rsyslog
