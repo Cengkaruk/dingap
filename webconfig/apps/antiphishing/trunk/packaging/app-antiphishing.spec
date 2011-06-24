@@ -3,7 +3,7 @@ Name: app-antiphishing
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 2.2%{dist}
-Summary: Antiphishing app summary...
+Summary: Gateway Antiphishing
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,17 +14,17 @@ Requires: app-base
 Requires: app-antivirus
 
 %description
-Antiphishing description...
+Gateway Antivirus provides protection from your network and server.
 
 %package core
-Summary: Antiphishing app summary... - APIs and install
+Summary: Gateway Antiphishing - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-antivirus-core
 
 %description core
-Antiphishing description...
+Gateway Antivirus provides protection from your network and server.
 
 This package provides the core API and libraries.
 
