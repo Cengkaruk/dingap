@@ -98,7 +98,7 @@ class Date extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('date', $data, lang('date_date'));
+        $this->page->view_form('date', $data, lang('date_app_name'));
     }
 
     /**
