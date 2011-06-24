@@ -3,7 +3,7 @@ Name: app-organization
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 2.2%{dist}
-Summary: Organization app summary
+Summary: Organization
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,16 +13,16 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Organization long description
+Information about your organization is used to generate security certificates and other software defaults.
 
 %package core
-Summary: Organization app summary - APIs and install
+Summary: Organization - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 
 %description core
-Organization long description
+Information about your organization is used to generate security certificates and other software defaults.
 
 This package provides the core API and libraries.
 

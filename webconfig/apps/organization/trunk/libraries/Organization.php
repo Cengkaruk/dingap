@@ -380,7 +380,7 @@ class Organization extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $city))
-            return lang('organization_city_is_invalid');
+            return lang('organization_city_invalid');
     }
 
     /**
@@ -399,7 +399,7 @@ class Organization extends Engine
         $countries = $country_object->get_list();
 
         if (! array_key_exists($country, $countries))
-            return lang('organization_country_is_invalid');
+            return lang('organization_country_invalid');
     }
 
     /**
@@ -415,7 +415,7 @@ class Organization extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $organization))
-            return lang('organization_organization_is_invalid');
+            return lang('organization_organization_invalid');
     }
 
     /**
@@ -431,7 +431,7 @@ class Organization extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $postal_code))
-            return lang('organization_postal_code_is_invalid');
+            return lang('organization_postal_code_invalid');
     }
 
     /**
@@ -447,7 +447,7 @@ class Organization extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $region))
-            return lang('organization_region_is_invalid');
+            return lang('organization_region_invalid');
     }
 
     /**
@@ -463,7 +463,7 @@ class Organization extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $street))
-            return lang('organization_street_address_is_invalid');
+            return lang('organization_street_address_invalid');
     }
 
     /**
@@ -479,7 +479,7 @@ class Organization extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $unit))
-            return lang('organization_unit_is_invalid');
+            return lang('organization_unit_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

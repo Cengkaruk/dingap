@@ -114,6 +114,6 @@ class Organization extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('organization', $data, lang('organization_organization'));
+        $this->page->view_form('organization', $data, lang('organization_app_name'));
     }
 }
