@@ -284,11 +284,11 @@ function _get_app($page)
 
 function _get_footer($page) 
 {
+    // FIXME <b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
     return "
     <!-- Footer -->
     <div id='theme-footer-container'>
         Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
-        <b><a href='/app/base/theme/set/clearos6xmobile'>Mobile View</a></b>
     </div>
     ";
 }
