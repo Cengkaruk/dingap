@@ -72,10 +72,10 @@ clearos_load_library('base/Engine_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Directory_Unavailable_Exception extends Engine_Exception
+class Accounts_Unavailable_Exception extends Engine_Exception
 {
     /**
-     * Directory_Unavailable_Exception constructor.
+     * Accounts_Unavailable_Exception constructor.
      */
 
     public function __construct()

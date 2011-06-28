@@ -61,6 +61,13 @@ use \clearos\apps\base\Engine as Engine;
 clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
 
+// Exceptions
+//-----------
+
+use \clearos\apps\accounts\Accounts_Unavailable_Exception as Accounts_Unavailable_Exception;
+
+clearos_load_library('accounts/Accounts_Unavailable_Exception');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,6 +141,9 @@ class User_Factory extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $driver_location = Accounts_Configuration::get_driver_location();
+
+        if (empty($driver_location))
+            throw new Accounts_Unavailable_Exception();
 
         clearos_load_library($driver_location . '/User_Driver');
 
