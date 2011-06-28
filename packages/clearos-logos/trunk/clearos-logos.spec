@@ -15,8 +15,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 Conflicts: anaconda-images <= 10
 Provides: system-logos = %{version}-%{release}
-# TODO: should this be removed?
-Obsoletes: desktop-backgrounds-basic <= 60.0.1-1
+Obsoletes: redhat-logos
+Obsoletes: desktop-backgrounds-basic <= 60.0.1-1.el6
 Provides: desktop-backgrounds-basic = %{version}-%{release}
 Requires(post): coreutils
 
@@ -40,12 +40,19 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/pixmaps
 for i in pixmaps/* ; do
   install -p -m 644 $i $RPM_BUILD_ROOT%{_datadir}/pixmaps
 done
+
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/plymouth/themes/rings
+for i in plymouth/rings/* ; do
+  install -p -m 644 $i $RPM_BUILD_ROOT%{_datadir}/plymouth/themes/rings
+done
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 
 %files
 %defattr(-, root, root, -)
+%{_datadir}/plymouth/themes/rings/
 %{_datadir}/pixmaps/*
 /boot/grub/splash.xpm.gz
 
