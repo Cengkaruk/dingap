@@ -1,6 +1,6 @@
 Name: clearos-base
 Version: 5.9.9.2
-Release: 2%{dist}
+Release: 4%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
