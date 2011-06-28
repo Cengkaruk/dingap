@@ -1687,6 +1687,13 @@ ccThreadLogin::ccThreadLogin(const string &user, const string &passwd)
 
 void *ccThreadLogin::Entry(void)
 {
+    sigset_t sigset;
+    sigemptyset(&sigset);
+
+    sigaddset(&sigset, SIGCHLD);
+
+    pthread_sigmask(SIG_UNBLOCK, &sigset, NULL);
+
     FILE *ph = popen(PATH_SUDO " " PATH_APP_PASSWD, "w");
     if (!ph) {
         ccEventFault *event = new ccEventFault("Access denied");
