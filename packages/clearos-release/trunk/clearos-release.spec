@@ -1,5 +1,5 @@
 Name: clearos-release
-Version: 5.9.9.2
+Version: 6.0.0.2
 Release: 1%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
@@ -46,6 +46,7 @@ VERSION=`grep ^version[[:space:]] config/product | sed 's/.* = //'`
 install -m 644 config/product $RPM_BUILD_ROOT/etc/
 
 echo "$NAME release $VERSION" > $RPM_BUILD_ROOT/etc/clearos-release
+ln -s clearos-release $RPM_BUILD_ROOT/etc/redhat-release
 ln -s clearos-release $RPM_BUILD_ROOT/etc/system-release
 
 # create /etc/issue and /etc/issue.net
@@ -60,6 +61,10 @@ install -m 644 rpm-gpg/clearos-gpg-key $RPM_BUILD_ROOT/etc/pki/rpm-gpg
 install -m 644 rpm-gpg/pointclark-gpg-key $RPM_BUILD_ROOT/etc/pki/rpm-gpg
 install -m 644 rpm-gpg/RPM-GPG-KEY-CentOS-5 $RPM_BUILD_ROOT/etc/pki/rpm-gpg
 install -m 644 config/product-gpg-key $RPM_BUILD_ROOT/etc/pki/rpm-gpg
+
+# RPM macros
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/rpm
+install -m 644 config/macros.dist $RPM_BUILD_ROOT/etc/rpm/macros.dist
 
 # Software repository
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/yum.repos.d
@@ -88,13 +93,15 @@ rm -rf $RPM_BUILD_ROOT
 /etc/issue.net
 /etc/clearos-release
 /etc/product
+/etc/redhat-release
 /etc/system-release
 %dir /etc/pki/rpm-gpg
 /etc/pki/rpm-gpg
+/etc/rpm/macros.dist
 /etc/yum.repos.d/base.repo
 %dir /usr/share/clearos/release
 /usr/share/clearos/release/upgrade
 
 %changelog
-* Fri May 20 2011 ClearFoundation <developer@clearfoundation.com> - 5.9.9.1-1
+* Mon Jun 27 2011 ClearFoundation <developer@clearfoundation.com> - 6.0.0.2-1
 - Prepped for alpha 1 build

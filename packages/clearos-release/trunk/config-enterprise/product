@@ -2,8 +2,8 @@
 vendor = clear
 software_id = 10600
 name = ClearOS Enterprise
-version = 6.0.0.alpha2
-base_version = 6.0.0.alpha2
+version = 6.1.0.alpha1
+base_version = 6.1.0.alpha1
 
 # Registration
 free_trial = 1

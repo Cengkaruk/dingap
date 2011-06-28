@@ -1,20 +1,49 @@
-[clearos-buildsys]
-name=ClearOS Enterprise 6.0.0 - Buildsys
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.0.0alpha1
+[clearos-dev]
+name=ClearOS Enterprise 6 - Developer
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/dev/$basearch
+enabled=1
+gpgcheck=0
+
+[clearos-extras]
+name=ClearOS Enterprise 6 - Extras
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/extras/$basearch
+enabled=1
+gpgcheck=0
+
+[clearos-os]
+name=ClearOS Enterprise 6 - OS
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/os/$basearch
+enabled=1
+gpgcheck=0
+
+[clearos-test]
+name=ClearOS Enterprise 6 - Test
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/test/$basearch
+enabled=1
+gpgcheck=0
+
+[clearos-updates]
+name=ClearOS Enterprise 6 - Updates
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/updates/$basearch
+enabled=1
+gpgcheck=0
+
+[clearos-updates-testing]
+name=ClearOS Enterprise 6 - Updates Testing
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/updates-testing/$basearch
+enabled=1
+gpgcheck=0
+
+[clearos-ci]
+name=ClearOS Enterprise 6 - Continuous Integration
+baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.ci
 enabled=1
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/clearos-gpg-key
 
-[clearos-current]
-name=ClearOS Enterprise 6.ci - Continuous Integration
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.ci/current/$basearch
-enabled=1
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/clearos-gpg-key
-
-[clearos-core]
-name=ClearOS Core - $basearch
-baseurl=http://lordsfam.net/yum/clearcore/repo/
+[sl6-rolling]
+name=SL6 Rolling
+baseurl=http://ftp.scientificlinux.org/linux/scientific/6rolling/i386/os
 enabled=1
 gpgcheck=0
 
@@ -22,5 +51,5 @@ gpgcheck=0
 name=Extra Packages for Enterprise Linux 6 - $basearch
 mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch
 failovermethod=priority
-enabled=1
+enabled=0
 gpgcheck=0
