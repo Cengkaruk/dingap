@@ -328,20 +328,6 @@ $html = "
         <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
         <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
     </div>
-	
-    <!-- Menu Javascript -->
-    <script type='text/javascript'> 
-        $(document).ready(function() { 
-            $('#theme-top-menu-list').superfish({
-                delay: 800,
-                pathLevels: 0
-            });
-        });
-
-        $(document).ready(function(){
-            $('#theme-left-menu').accordion({ autoHeight: false, active: $active_category_number, collapsible: false });
-        });
-    </script>
 
     <!-- Top Menu -->
     <div id='theme-top-menu-container'>
@@ -433,8 +419,10 @@ function _get_menu($menu_pages) {
             if ($page['category'] == $highlight['category']) {
                 $active_category_number = $category_count;
                 $class = 'sfCurrent';
+                $left_menu_class = ' theme-left-menu-category-active';
             } else {
                 $class = '';
+                $left_menu_class = '';
             }
 
             // Don't close top menu category on first run
@@ -444,7 +432,7 @@ function _get_menu($menu_pages) {
                 $top_menu .= "\t\t\t</ul>\n";
                 $top_menu .= "\t\t</li>\n";
 
-                $left_menu .= "\t\t\t</ul>\n";
+                $left_menu .= "\t\t\t\t\t</ul>\n\t\t\t\t</li>\n\t\t\t</ul>\n";
                 $left_menu .= "\t\t</div>\n";
             }
 
@@ -459,7 +447,7 @@ function _get_menu($menu_pages) {
             // Left Menu
             //----------
 
-            $left_menu .= "\t\t<h3 class='theme-left-menu-category'><a href='#'>{$page['category']}</a></h3>\n";
+            $left_menu .= "\t\t<h3 class='theme-left-menu-category{$left_menu_class}'><a href='#'>{$page['category']}</a></h3>\n";
             $left_menu .= "\t\t<div>\n";
             $left_menu .= "\t\t\t<ul class='theme-left-menu-list'>\n";
 
@@ -468,14 +456,26 @@ function _get_menu($menu_pages) {
 
             $current_category = $page['category'];
             $category_count++;
+            $current_subcategory = '';
         }
         
         // Subcategory transition
         //-----------------------
 
         if ($current_subcategory != $page['subcategory']) {
+            if (!empty($current_subcategory)) {
+              $left_menu .= "\t\t\t\t\t</ul>\n\t\t\t\t</li>\n";
+            }
+            
+            if ($highlight['subcategory'] == ($page['category'].$page['subcategory'])) {
+              $class = ' theme-left-menu-subcategory-active';
+            } else {
+              $class = '';
+            }
+            
             $current_subcategory = $page['subcategory'];
-            $left_menu .= "\t\t\t\t<li class='theme-left-menu-subcategory'>{$page['subcategory']}</li>\n";
+            $left_menu .= "\t\t\t\t<li class='theme-left-menu-subcategory{$class}'><a href='#'>{$page['subcategory']}</a>\n";
+            $left_menu .= "\t\t\t\t\t<ul class='theme-left-menu-subcategory-container'>\n";
             $top_menu .= "\t\t\t\t<li class='theme-top-menu-subcategory'>{$page['subcategory']}</li>\n";
         }
 
@@ -485,7 +485,7 @@ function _get_menu($menu_pages) {
         $activeClass = ($url == $highlight['page']) ? 'menu-item-active' : '';
 
         $top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-        $left_menu .= "\t\t\t\t<li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
+        $left_menu .= "\t\t\t\t\t\t<li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
     }
 
     // Close out open HTML tags
