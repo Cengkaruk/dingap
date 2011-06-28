@@ -6,7 +6,7 @@
 
 $app['basename'] = 'graphical_console';
 $app['version'] = '5.9.9.2';
-$app['release'] = '3.1';
+$app['release'] = '4';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
@@ -40,6 +40,18 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array( 
+   'graphical_console' => array(
+        'target' => '/var/clearos/base/access_control/public/graphical_console',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+    ),
+   'hushlogin' => array(
+        'target' => '/var/lib/clearconsole/.hushlogin',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+    ),
    'xinitrc' => array(
         'target' => '/var/lib/clearconsole/.xinitrc',
         'mode' => '0644',

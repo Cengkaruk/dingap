@@ -67,6 +67,9 @@ class Graphical_Console extends ClearOS_Controller
 
     function shutdown()
     {
+        if ($_SERVER["REMOTE_ADDR"] !== '127.0.0.1')
+            return;
+
         // Load libraries
         //---------------
 

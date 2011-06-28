@@ -2,7 +2,7 @@
 Name: app-graphical-console
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
+Release: 4%{dist}
 Summary: Graphical console tool
 License: GPLv3
 Packager: ClearFoundation
@@ -43,6 +43,8 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/graphical_console
 cp -r * %{buildroot}/usr/clearos/apps/graphical_console/
 
 install -D -m 0644 packaging/Xdefaults %{buildroot}/var/lib/clearconsole/.Xdefaults
+install -D -m 0644 packaging/graphical_console %{buildroot}/var/clearos/base/access_control/public/graphical_console
+install -D -m 0644 packaging/hushlogin %{buildroot}/var/lib/clearconsole/.hushlogin
 install -D -m 0644 packaging/xinitrc %{buildroot}/var/lib/clearconsole/.xinitrc
 
 %post
@@ -87,4 +89,6 @@ exit 0
 /usr/clearos/apps/graphical_console/language
 /usr/clearos/apps/graphical_console/libraries
 /var/lib/clearconsole/.Xdefaults
+/var/clearos/base/access_control/public/graphical_console
+/var/lib/clearconsole/.hushlogin
 /var/lib/clearconsole/.xinitrc
