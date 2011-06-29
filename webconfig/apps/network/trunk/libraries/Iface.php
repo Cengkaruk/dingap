@@ -1372,7 +1372,7 @@ class Iface extends Engine
         $interfaces = $iface_manager->get_interfaces(FALSE, FALSE);
 
         foreach ($interfaces as $iface) {
-            if (! strcasecmp($this->iface, $iface))
+            if ($this->iface === $iface)
                 return TRUE;
         }
 

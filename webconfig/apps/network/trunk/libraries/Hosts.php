@@ -362,7 +362,7 @@ class Hosts extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_hostname_alias($alias))
-            return lang('network_hostname_alias_is_invalid');
+            return lang('network_hostname_alias_invalid');
     }
 
     /**
@@ -378,7 +378,7 @@ class Hosts extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_hostname($hostname))
-            return lang('network_hostname_is_invalid');
+            return lang('network_hostname_invalid');
     }
 
     /**
@@ -395,7 +395,7 @@ class Hosts extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_ip($ip))
-            return lang('network_ip_is_invalid');
+            return lang('network_ip_invalid');
 
         if ($check_exists) {
             if ($this->entry_exists($ip))

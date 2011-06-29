@@ -454,7 +454,7 @@ class Resolver extends Engine
 
         if (Network_Utils::is_valid_ip($ip) === FALSE) {
             throw new Validation_Exception(
-                lang('network_ip_is_invalid'), CLEAROS_ERROR);
+                lang('network_ip_invalid'), CLEAROS_ERROR);
         }
     }
 

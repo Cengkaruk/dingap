@@ -215,7 +215,7 @@ class Hostname extends Engine
 
         if (Network_Utils::is_valid_hostname($hostname) === FALSE) {
             throw new Validation_Exception(
-                lang('network_hostname_is_invalid'), CLEAROS_ERROR);
+                lang('network_hostname_invalid'), CLEAROS_ERROR);
         }
 
         // Update tag if it exists
@@ -255,6 +255,6 @@ class Hostname extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_hostname($hostname))
-            return lang('network_hostname_is_invalid');
+            return lang('network_hostname_invalid');
     }
 }

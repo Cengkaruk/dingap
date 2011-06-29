@@ -494,7 +494,7 @@ class Role extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // FIXME
-        // return lang('network_network_device_is_invalid');
+        // return lang('network_network_device_invalid');
     }
 
     /**
@@ -510,6 +510,6 @@ class Role extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! array_key_exists($role, $this->roles))
-            return lang('network_network_role_is_invalid');
+            return lang('network_role_invalid');
     }
 }

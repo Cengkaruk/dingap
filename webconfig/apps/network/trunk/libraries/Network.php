@@ -225,6 +225,6 @@ class Network extends Engine
             return '';
 		}
 
-        return lang('network_mode_is_invalid');
+        return lang('network_mode_invalid');
     }
 }

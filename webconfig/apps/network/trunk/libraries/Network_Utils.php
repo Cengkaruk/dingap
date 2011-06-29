@@ -117,10 +117,10 @@ class Network_Utils extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (Network_Utils::is_valid_ip($ip) === FALSE)
-            throw new Validation_Exception(lang('network_validate_ip_invalid'));
+            throw new Validation_Exception(lang('network_ip_invalid'));
 
         if (Network_Utils::is_valid_netmask($netmask) === FALSE)
-            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
+            throw new Validation_Exception(lang('network_netmask_invalid'));
 
         // TODO: IPv6 support (replace ip2long with inet_pton)
         $ip_long = ip2long($ip);
@@ -150,7 +150,7 @@ class Network_Utils extends Engine
         if (isset($prefix_list[$prefix]))
             return $prefix_list[$prefix];
         else 
-            throw new Validation_Exception(lang('network_validate_prefix_invalid'));
+            throw new Validation_Exception(lang('network_prefix_invalid'));
     }
 
     /**
@@ -168,10 +168,10 @@ class Network_Utils extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (Network_Utils::is_valid_ip($ip) === FALSE)
-            throw new Validation_Exception(lang('network_validate_ip_invalid'));
+            throw new Validation_Exception(lang('network_ip_invalid'));
 
         if (Network_Utils::is_valid_netmask($netmask) === FALSE)
-            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
+            throw new Validation_Exception(lang('network_netmask_invalid'));
 
         // TODO: IPv6 support (replace ip2long with inet_pton)
         $ip_long = ip2long($ip);
@@ -199,7 +199,7 @@ class Network_Utils extends Engine
         if (isset($netmask_list[$netmask]))
             return $netmask_list[$netmask];
         else 
-            throw new Validation_Exception(lang('network_validate_netmask_invalid'));
+            throw new Validation_Exception(lang('network_netmask_invalid'));
     }
 
     /**
@@ -216,7 +216,7 @@ class Network_Utils extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (Network_Utils::is_valid_ip($ip) === FALSE)
-            throw new Validation_Exception(lang('network_validate_ip_invalid'));
+            throw new Validation_Exception(lang('network_ip_invalid'));
 
         $ip_long = ip2long($ip);
 

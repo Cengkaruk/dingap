@@ -91,7 +91,8 @@ foreach ($network_interface as $interface => $detail) {
 		$link = '';
 	}
 
-	$buttons = array(anchor_edit('/app/network/interface/edit/' . $interface));
+//	$buttons = array(anchor_edit('/app/network/interface/edit/' . $interface));
+	$buttons = array();
 
     ///////////////////////////////////////////////////////////////////////////
     // Item details
