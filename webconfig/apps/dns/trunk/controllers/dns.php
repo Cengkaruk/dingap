@@ -74,7 +74,7 @@ class Dns extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('dns/summary', $data, lang('dns_dns_server'));
+        $this->page->view_form('dns/summary', $data, lang('dns_app_name'));
     }
 
     /**
