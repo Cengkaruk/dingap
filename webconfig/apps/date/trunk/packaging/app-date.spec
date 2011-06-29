@@ -2,7 +2,7 @@
 Name: app-date
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
+Release: 4%{dist}
 Summary: Date and Time
 License: GPLv3
 Packager: ClearFoundation

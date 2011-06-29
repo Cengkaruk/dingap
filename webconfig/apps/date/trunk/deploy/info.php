@@ -6,12 +6,11 @@
 
 $app['basename'] = 'date';
 $app['version'] = '5.9.9.2';
-$app['release'] = '3.1';
+$app['release'] = '4';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('date_app_name');
 $app['description'] = lang('date_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
