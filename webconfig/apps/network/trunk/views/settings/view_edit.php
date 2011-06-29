@@ -70,7 +70,7 @@ echo field_input('dns1', $dns1, lang('network_dns_server') . ' #1', $read_only);
 if ($dns2 || !$read_only)
     echo field_input('dns2', $dns2, lang('network_dns_server') . ' #2', $read_only);
 
-echo button_set($buttons);
+// echo button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
