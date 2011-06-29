@@ -63,7 +63,7 @@ class Shutdown extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('shutdown', array(), lang('shutdown_shutdown_and_restart'));
+        $this->page->view_form('shutdown', array(), lang('shutdown_app_name'));
     }
 
     /**
@@ -93,7 +93,7 @@ class Shutdown extends ClearOS_Controller
             $this->system->shutdown(); 
             $data['action'] = 'shutdown';
 
-            $this->page->view_form('shutdown', $data, lang('shutdown_shutdown_and_restart'));
+            $this->page->view_form('shutdown', $data, lang('shutdown_app_name'));
         }
     }
 
@@ -124,7 +124,7 @@ class Shutdown extends ClearOS_Controller
             $this->system->restart(); 
             $data['action'] = 'restart';
 
-            $this->page->view_form('shutdown', $data, lang('shutdown_shutdown_and_restart'));
+            $this->page->view_form('shutdown', $data, lang('shutdown_app_name'));
         }
     }
 }
