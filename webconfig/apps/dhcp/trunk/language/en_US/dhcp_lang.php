@@ -1,7 +1,7 @@
 <?php
 
-$lang['dhcp_app_summary'] = 'DHCP Server summary';// FIXME
-$lang['dhcp_app_long_description'] = 'DHCP Server long description';// FIXME
+$lang['dhcp_app_name'] = 'DHCP Server';
+$lang['dhcp_app_description'] = 'The DHCP (Dynamic Host Configuration Protocol) Server provides automatic IP settings to devices on your network.';
 
 $lang['dhcp_lease_type_invalid'] = 'Lease type is invalid.';
 $lang['dhcp_state_invalid'] = 'State is invalid';
@@ -30,7 +30,6 @@ $lang['dhcp_leases'] = 'Leases';
 $lang['dhcp_lease'] = 'Lease';
 $lang['dhcp_dynamic'] = 'Dynamic';
 $lang['dhcp_static'] = 'Static';
-$lang['dhcp_dhcp_server'] = 'DHCP Server';
 
 $lang['dhcp_authoritative_state_invalid'] = 'Authoritative state is invalid.';
 $lang['dhcp_dns_server_invalid'] = 'DNS server is invalid.';

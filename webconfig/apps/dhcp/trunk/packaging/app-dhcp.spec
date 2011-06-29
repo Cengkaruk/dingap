@@ -3,7 +3,7 @@ Name: app-dhcp
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 3.1%{dist}
-Summary: DHCP Server summary
+Summary: DHCP Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,10 +14,10 @@ Requires: app-base
 Requires: app-network
 
 %description
-DHCP Server long description
+The DHCP (Dynamic Host Configuration Protocol) Server provides automatic IP settings to devices on your network.
 
 %package core
-Summary: DHCP Server summary - APIs and install
+Summary: DHCP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -27,7 +27,7 @@ Requires: dnsmasq >= 2.48
 Requires: iptables
 
 %description core
-DHCP Server long description
+The DHCP (Dynamic Host Configuration Protocol) Server provides automatic IP settings to devices on your network.
 
 This package provides the core API and libraries.
 

@@ -57,6 +57,6 @@ class DHCP extends ClearOS_Controller
     {
         $views = array('dhcp/settings', 'dhcp/subnets', 'dhcp/leases');
 
-        $this->page->view_forms($views, lang('dhcp_dhcp_server'));
+        $this->page->view_forms($views, lang('dhcp_app_name'));
     }
 }

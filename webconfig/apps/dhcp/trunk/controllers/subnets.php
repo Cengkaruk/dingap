@@ -186,6 +186,7 @@ class Subnets extends ClearOS_Controller
         //-------------------
 
         if ($this->input->post('submit') && ($form_ok === TRUE)) {
+            $subnet['interface'] = $this->input->post('interface');
             $subnet['network'] = $this->input->post('network');
             $subnet['gateway'] = $this->input->post('gateway');
             $subnet['start'] = $this->input->post('start');
@@ -203,7 +204,7 @@ class Subnets extends ClearOS_Controller
             try {
                 if ($form_type === 'add') {
                     $this->dnsmasq->add_subnet(
-                        $iface,
+                        $subnet['interface'],
                         $subnet['start'],
                         $subnet['end'],
                         $subnet['lease_time'],

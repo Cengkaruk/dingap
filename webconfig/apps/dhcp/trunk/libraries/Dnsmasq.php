@@ -853,7 +853,7 @@ class Dnsmasq extends Daemon
         Validation_Exception::is_valid($this->validate_lease_type($type));
 
         $this->_delete_static_lease($mac);
-        $this->_delete_dynamic_lease($mac);
+        $this->_delete_dynamic_lease($mac, $ip);
 
         if ($type === self::TYPE_STATIC)
             $this->add_static_lease($mac, $ip);
@@ -884,6 +884,9 @@ class Dnsmasq extends Daemon
 
         $file = new File(self::FILE_LEASES);
 
+        if (! $file->exists())
+            $file->create('root', 'root', '0644');
+
         $lease_time = time() + 3600;
 
         $file->add_lines($lease_time . ' ' . strtolower($mac) . ' ' . $ip . " * *\n");
@@ -905,7 +908,9 @@ class Dnsmasq extends Daemon
 
         $file = new File(self::FILE_LEASES);
 
-        $file->delete_lines("/[0-9]*\s+$mac\s+$ip/i");
+        // FIXME: do we need the IP?
+        if ($file->exists()) 
+            $file->delete_lines("/[0-9]*\s+$mac\s+/i");
     }
 
     /**
@@ -951,6 +956,9 @@ class Dnsmasq extends Daemon
         $leasedata = $leasefile->get_contents_as_array();
 
         foreach ($leasedata as $line) {
+            if (empty($line))
+                continue;
+
             $parts = preg_split('/[\s]+/', $line);
 
             $key = $parts[1];
@@ -1129,7 +1137,7 @@ class Dnsmasq extends Daemon
 
         $iface = new Iface($interface);
 
-        if (! $iface->is_valid());
+        if (! $iface->is_valid())
             return lang('network_interface_is_invalid');
     }
 
