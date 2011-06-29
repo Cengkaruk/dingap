@@ -55,8 +55,17 @@ class Graphical_Console extends ClearOS_Controller
 
     function index()
     {
-        // FIXME
-        echo "show something here";
+        // Load libraries
+        //---------------
+
+        $this->lang->load('graphical_console');
+
+        // Load views
+        //-----------
+
+        $page['type'] = MY_Page::TYPE_SPLASH;
+
+        $this->page->view_form('summary', array(), lang('graphical_console_network_configuration_console'), $page);
     }
 
     /**
