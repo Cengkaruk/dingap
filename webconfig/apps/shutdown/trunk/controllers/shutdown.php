@@ -58,34 +58,73 @@ class Shutdown extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('shutdown/System');
         $this->lang->load('shutdown');
-
-        // Handle form submit
-        //-------------------
-
-        $data = array();
-
-        if ($this->input->post('shutdown') || $this->input->post('restart')) {
-            try {
-                if ($this->input->post('shutdown')) {
-                    $this->system->shutdown();
-                    $data['action'] = 'shutdown';
-                } else {
-                    $this->system->restart();
-                    $data['action'] = 'restart';
-                }
-
-                $this->page->set_status_updated();
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
 
         // Load views
         //-----------
 
-        $this->page->view_form('shutdown', $data, lang('shutdown_shutdown_and_restart'));
+        $this->page->view_form('shutdown', array(), lang('shutdown_shutdown_and_restart'));
+    }
+
+    /**
+     * Shutdown view confirm view.
+     *
+     * @return view
+     */
+
+    function confirm_shutdown($confirm = '')
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('shutdown/System');
+        $this->lang->load('shutdown');
+
+        // Handle action
+        //--------------
+
+        if (empty($confirm)) {
+            $confirm_uri = '/app/shutdown/confirm_shutdown/confirmed';
+            $cancel_uri = '/app/shutdown';
+            $items = array();
+
+            $this->page->view_confirm(lang('shutdown_confirm_shutdown'), $confirm_uri, $cancel_uri, $items);
+        } else {
+            $this->system->shutdown(); 
+            $data['action'] = 'shutdown';
+
+            $this->page->view_form('shutdown', $data, lang('shutdown_shutdown_and_restart'));
+        }
+    }
+
+    /**
+     * Restart view confirm view.
+     *
+     * @return view
+     */
+
+    function confirm_restart($confirm = '')
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('shutdown/System');
+        $this->lang->load('shutdown');
+
+        // Handle action
+        //--------------
+
+        if (empty($confirm)) {
+            $confirm_uri = '/app/shutdown/confirm_restart/confirmed';
+            $cancel_uri = '/app/shutdown';
+            $items = array();
+
+            $this->page->view_confirm(lang('shutdown_confirm_restart'), $confirm_uri, $cancel_uri, $items);
+        } else {
+            $this->system->restart(); 
+            $data['action'] = 'restart';
+
+            $this->page->view_form('shutdown', $data, lang('shutdown_shutdown_and_restart'));
+        }
     }
 }

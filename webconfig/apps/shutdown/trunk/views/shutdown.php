@@ -51,8 +51,8 @@ if ($action === 'shutdown') {
 } else if ($action === 'restart') {
     echo lang('shutdown_system_is_restarting');
 } else {
-    echo form_submit_custom('shutdown', lang('shutdown_shutdown'), 'high');
-    echo form_submit_custom('restart', lang('shutdown_restart'), 'high');
+    echo anchor_custom('/app/shutdown/confirm_shutdown', lang('shutdown_shutdown'), 'high');
+    echo anchor_custom('/app/shutdown/confirm_restart', lang('shutdown_restart'), 'high');
 }
 
 ///////////////////////////////////////////////////////////////////////////////
