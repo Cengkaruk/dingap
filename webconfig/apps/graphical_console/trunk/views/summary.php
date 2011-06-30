@@ -30,11 +30,20 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 echo "
-<p>We want users to start accessing ClearOS from a remote web browser right away.
-The only thing that will be done from the console is network configuration.  So 
-what do we need to show here?  A helpful blurb and graphic showing the user
-the URL to login to webconfig (e.g. https://192.168.3.11:81).  If they need
-to configure their network, a link to login should be shown.
-</p>
-<p>Note: the page resolution be less than 800x600.</p>
+<p>Welcome to ClearOS Enterprise 6!  ClearOS Enterprise is configured over the network 
+via a web-browser.  Here's what you need to do:</p>
+
+<p><b>Step 1. Check Network Settings</b></p>
+
+<p>The IP address of this system is 1.2.3.4.  If you need to change this, please login 
+<a href='blah''>here</a> to access the Network Console.</p>
+
+<p><b>Step 2. Use Your Web Browser</b></p>
+
+<p>Start your web browser and type the following for the web address:</p>
+
+
+<p>Aaron, put the images in the htdocs directory and use the following URL</p>
+<img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
+
 ";
