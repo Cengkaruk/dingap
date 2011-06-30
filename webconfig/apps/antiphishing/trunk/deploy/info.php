@@ -11,7 +11,6 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('antiphishing_app_name');
 $app['description'] = lang('antiphishing_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
