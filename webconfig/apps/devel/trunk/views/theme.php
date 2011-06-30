@@ -86,6 +86,10 @@ echo button_set( array(
     form_submit_update('submit'),
     anchor('/dhcp', 'Cancel'),
 ));
+echo button_set( array(
+    form_submit_custom('submit', 'Custom Broken'),
+    anchor('/dhcp', 'Cancel'),
+));
 
 echo form_footer();
 echo form_close();
