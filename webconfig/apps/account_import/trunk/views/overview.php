@@ -40,7 +40,6 @@ $this->lang->load('account_import');
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-
 echo form_open_multipart('account_import/upload');
 echo form_header(lang('account_import_users'));
 
@@ -52,7 +51,7 @@ echo form_header(lang('account_import_users'));
 if ($import_ready)
     $buttons = array(
         form_submit_custom('start', lang('account_import_start_import'), 'high'),
-        form_submit_custom('reset', lang('base_reset'), 'high')
+        form_submit_custom('reset', lang('base_reset'), 'low')
     );
 else
     $buttons = array(

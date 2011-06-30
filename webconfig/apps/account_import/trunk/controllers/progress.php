@@ -69,6 +69,7 @@ class Progress extends ClearOS_Controller
         // Load views
         //-----------
 
+        $data = array();
         $this->page->view_form('progress', $data, lang('account_import_account_import'));
     }
 
