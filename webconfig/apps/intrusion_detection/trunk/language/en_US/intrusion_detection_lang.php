@@ -1,7 +1,7 @@
 <?php
 
-$lang['intrusion_detection_app_long_description'] = 'Intrusion detection long description...'; // FIXME
-$lang['intrusion_detection_app_summary'] = 'Intrusion detection summary...'; // FIXME
+$lang['intrusion_detection_app_description'] = 'The advanced Intrusion Detection system performs security scanning at the network level in real-time.';
+$lang['intrusion_detection_app_name'] = 'Intrusion Detection';
 
 $lang['intrusion_detection_total_number_of_rules'] = 'Total Number of Rules';
 $lang['intrusion_detection_base_rule_set'] = 'Base Rule Set';

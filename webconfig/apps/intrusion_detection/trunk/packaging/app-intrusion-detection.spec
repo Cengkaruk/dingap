@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-Intrusion detection long description...
+The advanced Intrusion Detection system performs security scanning at the network level in real-time.
 
 %package core
 Summary: Intrusion Detection - APIs and install
@@ -26,7 +26,7 @@ Requires: snort >= 2.9.0.4
 Requires: snort-gpl-rules
 
 %description core
-Intrusion detection long description...
+The advanced Intrusion Detection system performs security scanning at the network level in real-time.
 
 This package provides the core API and libraries.
 

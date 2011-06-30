@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('intrusion_detection_app_summary');
-$app['description'] = lang('intrusion_detection_app_long_description');
+$app['description'] = lang('intrusion_detection_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('intrusion_detection_intrusion_detection');
+$app['name'] = lang('intrusion_detection_app_name');
 $app['category'] = lang('base_category_gateway');
 $app['subcategory'] = lang('base_subcategory_intrusion_protection');
 
