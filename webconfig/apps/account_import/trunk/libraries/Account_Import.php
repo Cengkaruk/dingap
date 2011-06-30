@@ -121,7 +121,7 @@ class Account_Import extends Engine
 
     const FILE_CSV = 'import.csv';
     const FILE_CSV_TEMPLATE = 'import_template.csv';
-    const COMMAND_IMPORT = '/usr/sbin/account_import';
+    const COMMAND_IMPORT = '/usr/sbin/account-import';
     const COMMAND_PS = '/bin/ps';
     const FOLDER_ACCOUNT_IMPORT = '/var/clearos/account_import';
 
