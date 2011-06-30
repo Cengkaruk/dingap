@@ -29,21 +29,32 @@
 //  
 ///////////////////////////////////////////////////////////////////////////////
 
+$ip = $_SERVER['SERVER_ADDR'];
+
 echo "
-<p>Welcome to ClearOS Enterprise 6!  ClearOS Enterprise is configured over the network 
+<div align='left'>
+<p>Welcome to ClearOS Enterprise 6.1.0 Alpha 1!  ClearOS Enterprise is configured over the network 
 via a web-browser.  Here's what you need to do:</p>
 
-<p><b>Step 1. Check Network Settings</b></p>
+<p><b>Step 1. Check Your Network Settings</b></p>
 
-<p>The IP address of this system is 1.2.3.4.  If you need to change this, please login 
-<a href='blah''>here</a> to access the Network Console.</p>
+<p>The IP address of this system is <b style='color: #98BB60'>$ip</b>.  If you need to change your
+network settings, please login to access the Network Console (not available in the alpha... sorry!).</p>
 
 <p><b>Step 2. Use Your Web Browser</b></p>
 
 <p>Start your web browser and type the following for the web address:</p>
 
+<p><b style='color: #98BB60'>https://$ip:81/</b></p>
 
-<p>Aaron, put the images in the htdocs directory and use the following URL</p>
-<img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
+<p><b>Okay, okay...</b></p>
+<p>You can still login to the web-based administration tool from the 
+console, but the experience won't be as pleasant as it could be.  To login, go ahead and click <b><a style='background: transparent; border: none; float: none; padding: 0; margin: 0;' href='/app/base/session/login'>here</a></b>.</p>
+
+</div>
 
 ";
+/*
+<p>Aaron, put the images in the htdocs directory and use the following URL</p>
+<img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
+*/
