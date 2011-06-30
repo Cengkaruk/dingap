@@ -65,6 +65,6 @@ class Incoming_Firewall extends ClearOS_Controller
 
         $views = array('incoming_firewall/allow', 'incoming_firewall/block');
 
-        $this->page->view_forms($views, lang('incoming_firewall_incoming_firewall'));
+        $this->page->view_forms($views, lang('incoming_firewall_app_name'));
     }
 }
