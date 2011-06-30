@@ -181,6 +181,9 @@ class Iface_Manager extends Engine
             if ($ignore_ppp && preg_match('/^pp/', $iface))
                 continue;
 
+            if (preg_match('/^imq/', $iface))
+                continue;
+
             if ($ignore_lo && $iface == 'lo')
                 continue;
 
