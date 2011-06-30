@@ -53,6 +53,7 @@ $lang['network_mtu'] = 'MTU';
 $lang['network_netmask_invalid'] = 'Netmask is invalid.';
 $lang['network_netmask_invalid'] = 'Netmask is invalid.';
 $lang['network_netmask'] = 'Netmask';
+$lang['network_network'] = 'Network';
 $lang['network_network_device_invalid'] = 'Network device is invalid.';
 $lang['network_network_interface_invalid'] = 'Network interface is invalid.';
 $lang['network_offline'] = 'Offline';
