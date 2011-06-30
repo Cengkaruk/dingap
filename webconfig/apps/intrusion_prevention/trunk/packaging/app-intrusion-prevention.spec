@@ -2,8 +2,8 @@
 Name: app-intrusion-prevention
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Intrusion Prevention app summary..
+Release: 4%{dist}
+Summary: Intrusion Prevention
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -18,7 +18,7 @@ Requires: app-network
 Intrusion Prevention long description
 
 %package core
-Summary: Intrusion Prevention app summary.. - APIs and install
+Summary: Intrusion Prevention - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

@@ -2,8 +2,8 @@
 Name: app-groups
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Group summary
+Release: 4%{dist}
+Summary: Group Manager
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -18,7 +18,7 @@ Requires: app-users
 Group long description
 
 %package core
-Summary: Group summary - APIs and install
+Summary: Group Manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

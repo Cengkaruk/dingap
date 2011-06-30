@@ -2,8 +2,8 @@
 Name: app-ftp
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: FTP summary
+Release: 4%{dist}
+Summary: FTP Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -18,7 +18,7 @@ Requires: proftpd >= 1.3.3e
 FTP long description
 
 %package core
-Summary: FTP summary - APIs and install
+Summary: FTP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

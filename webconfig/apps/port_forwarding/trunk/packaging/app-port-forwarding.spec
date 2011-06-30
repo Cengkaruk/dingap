@@ -2,8 +2,8 @@
 Name: app-port-forwarding
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Port Forwarding summary
+Release: 4%{dist}
+Summary: Port Forwarding
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-network
 Port Forwarding long description
 
 %package core
-Summary: Port Forwarding summary - APIs and install
+Summary: Port Forwarding - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

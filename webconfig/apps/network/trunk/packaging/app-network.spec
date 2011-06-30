@@ -2,8 +2,8 @@
 Name: app-network
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Network configuration tool
+Release: 4%{dist}
+Summary: IP Settings
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 Network description... blah blah
 
 %package core
-Summary: Network configuration tool - APIs and install
+Summary: IP Settings - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

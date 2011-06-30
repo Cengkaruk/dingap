@@ -1,9 +1,9 @@
 
 Name: app-shutdown
 Group: ClearOS/Apps
-Version: 5.9.9.1
-Release: 1%{dist}
-Summary: Translation missing (shutdown_app_summary)
+Version: 5.9.9.2
+Release: 4%{dist}
+Summary: Shutdown - Restart
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,16 +13,16 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Translation missing (shutdown_app_long_description)
+A simple tool to shutdown or restart your system.
 
 %package core
-Summary: Translation missing (shutdown_app_summary) - APIs and install
+Summary: Shutdown - Restart - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 
 %description core
-Translation missing (shutdown_app_long_description)
+A simple tool to shutdown or restart your system.
 
 This package provides the core API and libraries.
 

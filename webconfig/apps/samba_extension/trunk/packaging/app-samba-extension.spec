@@ -2,8 +2,8 @@
 Name: app-samba-extension-core
 Group: ClearOS/Libraries
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Contact account extension summary - APIs and install
+Release: 4%{dist}
+Summary: Samba Account Extension - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation

@@ -2,8 +2,8 @@
 Name: app-intrusion-detection
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Intrusion detection summary..
+Release: 4%{dist}
+Summary: Intrusion Detection
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-network
 Intrusion detection long description...
 
 %package core
-Summary: Intrusion detection summary.. - APIs and install
+Summary: Intrusion Detection - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

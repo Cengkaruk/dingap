@@ -2,8 +2,8 @@
 Name: app-pptpd
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: PPTP Server app summary
+Release: 4%{dist}
+Summary: PPTP Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -20,7 +20,7 @@ Requires: app-network
 PPTP Server app long description
 
 %package core
-Summary: PPTP Server app summary - APIs and install
+Summary: PPTP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

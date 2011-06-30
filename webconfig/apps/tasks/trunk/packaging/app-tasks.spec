@@ -2,8 +2,8 @@
 Name: app-tasks-core
 Group: ClearOS/Libraries
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Task summary - APIs and install
+Release: 4%{dist}
+Summary: Translation missing (tasks_tasks_scheduler) - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation

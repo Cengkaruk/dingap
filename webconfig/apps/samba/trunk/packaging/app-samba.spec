@@ -2,8 +2,8 @@
 Name: app-samba
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Translation missing (samba_app_summary)
+Release: 4%{dist}
+Summary: Windows Settings
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -21,7 +21,7 @@ Requires: samba >= 3.5.4
 Translation missing (samba_app_long_description)
 
 %package core
-Summary: Translation missing (samba_app_summary) - APIs and install
+Summary: Windows Settings - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

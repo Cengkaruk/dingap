@@ -2,8 +2,8 @@
 Name: app-accounts
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Accounts base engine
+Release: 4%{dist}
+Summary: Account Manager
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-mode-core
 The accounts base engine provides... blah blah blah
 
 %package core
-Summary: Accounts base engine - APIs and install
+Summary: Account Manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

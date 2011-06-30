@@ -2,7 +2,7 @@
 Name: app-antivirus
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
+Release: 4%{dist}
 Summary: Gateway Antivirus
 License: GPLv3
 Packager: ClearFoundation

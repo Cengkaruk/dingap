@@ -2,8 +2,8 @@
 Name: app-incoming-firewall
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: Incoming Firewall summary
+Release: 4%{dist}
+Summary: Incoming Firewall
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-network
 Incoming Firewall long description
 
 %package core
-Summary: Incoming Firewall summary - APIs and install
+Summary: Incoming Firewall - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

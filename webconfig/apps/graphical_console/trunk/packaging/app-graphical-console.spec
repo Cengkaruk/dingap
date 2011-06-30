@@ -3,7 +3,7 @@ Name: app-graphical-console
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 4%{dist}
-Summary: Graphical console tool
+Summary: Graphical Console
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 Graphical console tool for configuring the network.
 
 %package core
-Summary: Graphical console tool - APIs and install
+Summary: Graphical Console - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

@@ -2,8 +2,8 @@
 Name: app-users
 Group: ClearOS/Apps
 Version: 5.9.9.2
-Release: 3.1%{dist}
-Summary: User manager
+Release: 4%{dist}
+Summary: User Manager
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -18,7 +18,7 @@ Requires: app-groups
 User manager description blah blah blah ...
 
 %package core
-Summary: User manager - APIs and install
+Summary: User Manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
