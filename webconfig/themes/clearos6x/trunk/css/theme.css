@@ -180,6 +180,7 @@ input.theme-form-unimportant {
 input.theme-form-unimportant:hover {color: #98bb60;}
 
 
+
 /*
 .theme-form-submit:hover {
   border: 1px solid #a5a4a4;	
@@ -406,7 +407,8 @@ border-radius: 9px;
 	height: 15px;
 	float: left;
   margin-bottom: 15px;
-  ^height: 15px;	
+  ^height: 15px;
+  width: 100%;	
 }
 
 .theme-field-toggle select {
@@ -524,7 +526,7 @@ border-radius: 9px;
 
 .help-assets-icons {
 	float: right;
-	
+	padding-bottom: 1px;
 	
 }
 
@@ -534,6 +536,7 @@ border-radius: 9px;
 	margin-left: 18px;
 	margin-right: 5px;
 	padding-top: 1px;
+	padding-bottom: 2px;
 }
 
 .user-guide a:hover {
@@ -550,6 +553,7 @@ border-radius: 9px;
 	background: url(../images/help.png) no-repeat top left;
 	padding-left: 25px;
 	padding-top: 1px;
+	padding-bottom: 2px;
 }
 
 .support a:hover {
@@ -1264,7 +1268,8 @@ input.theme-form-submit-delete { }
 	margin-left: auto;
 	margin-right: auto;
 	position: relative;
-	top: 30%
+	top: 30%;
+	top: 270px\9;
 }
 
 .login h2 {
@@ -1283,6 +1288,8 @@ input.theme-form-submit-delete { }
   padding-top: 10px;
   border-top-left-radius: 9px;
   border-top-right-radius: 9px;
+  ^border-top-left-radius: 9px;
+  ^border-top-right-radius: 9px;
 }
 
 .login, x:-moz-any-link, x:default {
@@ -1378,6 +1385,7 @@ input.theme-form-submit-delete { }
 	padding-bottom: 11px;
 	float: left;
 	max-width: 300px;
+	^width: 315px;
 	padding-top: 35px;
 }
 
@@ -1421,6 +1429,7 @@ input.theme-form-submit-delete { }
 
 .login .theme-form-header {
 	text-align: left;
+	^width: 315px;
 }
 
 .login .theme-fieldset {
@@ -1429,7 +1438,7 @@ input.theme-form-submit-delete { }
 }
 
 .login .ui-widget {
-	border-radius: 9px;	
+	border-radius: 9px;
 }
 
 
