@@ -54,6 +54,10 @@ console, but the experience won't be as pleasant as it could be.  To login, go a
 </div>
 
 ";
+
+if (is_console())
+    echo anchor_custom('/app/graphical_console/shutdown', lang('base_exit_to_console'), 'low');
+
 /*
 <p>Aaron, put the images in the htdocs directory and use the following URL</p>
 <img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
