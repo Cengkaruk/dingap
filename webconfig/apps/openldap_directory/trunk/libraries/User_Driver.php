@@ -608,7 +608,7 @@ class User_Driver extends User_Engine
 
             foreach ($output as $line) {
                 if (preg_match("/Invalid credentials/", $line))
-                    $error_message = lang('users_old_password_is_invalid');
+                    $error_message = lang('users_old_password_invalid');
                 else if (preg_match("/Password is in history of old passwords/", $line))
                     $error_message = lang('users_password_in_history');
                 else if (preg_match("/Password is not being changed from existing value/", $line))
@@ -760,7 +760,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $name))
-            return lang('users_first_name_is_invalid');
+            return lang('users_first_name_invalid');
     }
 
     /**
@@ -776,7 +776,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^[0-9]+$/', $gid_number))
-            return lang('users_group_id_is_invalid');
+            return lang('users_group_id_invalid');
     }
 
     /**
@@ -792,7 +792,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;#!@])/", $homedir))
-            return lang('users_home_directory_is_invalid');
+            return lang('users_home_directory_invalid');
     }
 
     /**
@@ -808,7 +808,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/([:;\/#!@])/", $name))
-            return lang('users_last_name_is_invalid');
+            return lang('users_last_name_invalid');
     }
 
     /**
@@ -827,7 +827,7 @@ class User_Driver extends User_Engine
         $login_list = $login_shell->get_list();
 
         if (! in_array($shell, $login_list))
-            return lang('users_login_shell_is_invalid');
+            return lang('users_login_shell_invalid');
     }
 
     /**
@@ -843,7 +843,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/[\|;\*]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password))
-            return lang('users_password_is_invalid');
+            return lang('users_password_invalid');
     }
 
     /**
@@ -896,9 +896,9 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^[0-9]+$/', $uid_number))
-            return lang('users_user_id_is_invalid');
+            return lang('users_user_id_invalid');
         else if ($uid_number > self::UID_RANGE_NORMAL_MAX)
-            return lang('users_user_id_is_invalid');
+            return lang('users_user_id_invalid');
     }
 
     /**
@@ -916,7 +916,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match("/^([a-z0-9_\-\.\$]+)$/", $username))
-            return lang('users_username_is_invalid');
+            return lang('users_username_invalid');
 
         if ($check_reserved && in_array($username, $this->reserved_usernames))
             return lang('users_username_is_reserved');
@@ -951,7 +951,7 @@ class User_Driver extends User_Engine
         //---------------------
 
         if (!is_array($user_info))
-            throw new Validation_Exception(lang('users_user_information_is_invalid'));
+            throw new Validation_Exception(lang('users_user_information_invalid'));
 
         // Validate user information using validator defined in $this->info_map
         //--------------------------------------------------------------------
