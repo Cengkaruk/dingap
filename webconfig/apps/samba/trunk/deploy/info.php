@@ -48,8 +48,13 @@ $app['core_file_manifest'] = array(
         'target' => '/usr/sbin/add-samba-directories',
         'mode' => '0755',
     ),
+    'samba-init' => array(
+        'target' => '/usr/sbin/samba-init',
+        'mode' => '0755',
+    ),
 );
 
 $app['core_directory_manifest'] = array(
    '/var/clearos/samba' => array(),
+   '/var/clearos/samba/backup' => array(),
 );

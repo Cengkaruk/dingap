@@ -1,0 +1,14 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default configuration
+#--------------------------
+
+logger -p local6.notice -t installer "app-samba-core - setting default configuration"
+
+if [ -e /etc/samba/smb.conf ]; then
+    mv /etc/samba/smb.conf /var/clearos/samba/backup/smb.conf.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/samba/deploy/smb.conf /etc/samba/smb.conf
