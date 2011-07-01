@@ -220,9 +220,6 @@ class LDAP_Client extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->bound)
-            $this->_bind();
-
         return ldap_error($this->connection);
     }
 
