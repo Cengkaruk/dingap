@@ -21,6 +21,7 @@ $app['description'] = 'The accounts base engine provides... blah blah blah'; // 
 $app['name'] = 'Account Manager';
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Accounts Manager';
+$app['menu_enabled'] = 'False';
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
