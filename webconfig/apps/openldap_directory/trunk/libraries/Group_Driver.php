@@ -558,7 +558,7 @@ class Group_Driver extends Group_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^([\w \.\-]*)$/', $description))
-            return lang('groups_description_is_invalid');
+            return lang('groups_description_invalid');
     }
 
     /**
@@ -576,7 +576,7 @@ class Group_Driver extends Group_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^([a-zA-Z]+[0-9a-zA-Z\.\-_\s]*)$/', $group_name))
-            return lang('groups_group_name_is_invalid');
+            return lang('groups_group_name_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

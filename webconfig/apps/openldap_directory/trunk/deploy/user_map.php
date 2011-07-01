@@ -80,7 +80,6 @@ $info_map = array(
         'description' => lang('users_last_name'),
         'object_class' => 'clearAccount',
         'attribute' => 'sn',
-        'locale' => lang('directory_last_name')
     ),
 
     'home_directory' => array(

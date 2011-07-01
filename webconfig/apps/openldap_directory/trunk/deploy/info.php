@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'OpenLDAP Directory Driver.';
-$app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: translate
+$app['description'] = lang('openldap_directory_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Directory';
+$app['name'] = lang('openldap_directory_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
 $app['menu_enabled'] = FALSE;

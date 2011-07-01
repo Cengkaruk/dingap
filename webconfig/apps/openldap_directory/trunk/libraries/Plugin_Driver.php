@@ -296,7 +296,7 @@ class Plugin_Driver extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^([\w \.\-]*)$/', $description))
-            return lang('groups_description_is_invalid');
+            return lang('groups_description_invalid');
     }
 
     /**
@@ -314,6 +314,6 @@ class Plugin_Driver extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^([a-zA-Z]+[0-9a-zA-Z\.\-_\s]*)$/', $plugin_name))
-            return lang('groups_plugin_name_is_invalid');
+            return lang('groups_plugin_name_invalid');
     }
 }
