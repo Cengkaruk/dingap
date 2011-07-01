@@ -42,5 +42,4 @@ $lang['dhcp_gateway_invalid'] = 'Gateway is invalid.';
 $lang['dhcp_ntp_server_invalid'] = 'NTP server is invalid.';
 $lang['dhcp_tftp_server_invalid'] = 'TFTP server is invalid.';
 $lang['dhcp_wins_server_invalid'] = 'WINS server is invalid.';
-$lang['dhcp_network_interface_invalid'] = 'Network interface is invalid.';
 $lang['dhcp_ip_range_invalid'] = 'IP range is invalid.';

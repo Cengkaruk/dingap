@@ -1138,7 +1138,7 @@ class Dnsmasq extends Daemon
         $iface = new Iface($interface);
 
         if (! $iface->is_valid())
-            return lang('network_interface_is_invalid');
+            return lang('network_network_interface_invalid');
     }
 
     /**
@@ -1154,7 +1154,7 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_ip($ip))
-            return lang('network_ip_is_invalid');
+            return lang('network_ip_invalid');
     }
 
     /**
@@ -1175,7 +1175,7 @@ class Dnsmasq extends Daemon
         // Or, are there real world scenarios where out-of-range is used?
 
         if ($this->validate_interface($interface))
-            return lang('dhcp_network_interface_invalid');
+            return lang('network_network_interface_invalid');
 
         if (! Network_Utils::is_valid_ip_range($start, $end))
             return lang('dhcp_ip_range_invalid');
@@ -1226,7 +1226,7 @@ class Dnsmasq extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_mac($mac))
-            return lang('network_mac_address_is_invalid');
+            return lang('network_mac_address_invalid');
     }
 
     /**
