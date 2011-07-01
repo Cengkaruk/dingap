@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-Incoming Firewall long description
+Keep the bad guys out by using the firewall to allow or block connections to your system and network.
 
 %package core
 Summary: Incoming Firewall - APIs and install
@@ -25,7 +25,7 @@ Requires: app-firewall-core
 Requires: app-network-core
 
 %description core
-Incoming Firewall long description
+Keep the bad guys out by using the firewall to allow or block connections to your system and network.
 
 This package provides the core API and libraries.
 
