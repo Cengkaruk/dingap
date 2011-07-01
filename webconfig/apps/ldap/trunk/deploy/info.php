@@ -41,6 +41,14 @@ $app['core_directory_manifest'] = array(
 );
 
 $app['core_file_manifest'] = array(
+   'prestart-ldap' => array(
+        'target' => '/usr/sbin/prestart-ldap',
+        'mode' => '0755',
+    ),
+   'poststart-ldap' => array(
+        'target' => '/usr/sbin/poststart-ldap',
+        'mode' => '0755',
+    ),
    'ldap-init' => array(
         'target' => '/usr/sbin/ldap-init',
         'mode' => '0755',

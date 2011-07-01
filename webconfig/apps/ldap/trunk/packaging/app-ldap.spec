@@ -32,6 +32,8 @@ install -d -m 0755 %{buildroot}/var/clearos/ldap/synchronize
 install -D -m 0755 packaging/ldap-init %{buildroot}/usr/sbin/ldap-init
 install -D -m 0755 packaging/ldap-manager %{buildroot}/usr/sbin/ldap-manager
 install -D -m 0755 packaging/ldap-synchronize %{buildroot}/usr/sbin/ldap-synchronize
+install -D -m 0755 packaging/poststart-ldap %{buildroot}/usr/sbin/poststart-ldap
+install -D -m 0755 packaging/prestart-ldap %{buildroot}/usr/sbin/prestart-ldap
 
 %post
 logger -p local6.notice -t installer 'app-ldap-core - installing'
@@ -65,3 +67,5 @@ exit 0
 /usr/sbin/ldap-init
 /usr/sbin/ldap-manager
 /usr/sbin/ldap-synchronize
+/usr/sbin/poststart-ldap
+/usr/sbin/prestart-ldap

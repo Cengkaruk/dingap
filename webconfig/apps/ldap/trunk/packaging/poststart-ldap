@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# FIXME: alpha only
+[ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize
+[ -x /usr/sbin/samba-init ] && /usr/sbin/samba-init
