@@ -1,0 +1,14 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default configuration
+#--------------------------
+
+logger -p local6.notice -t installer "app-ftp-core - setting default configuration"
+
+if [ -e /etc/proftpd.conf ]; then
+    mv /etc/proftpd.conf /var/clearos/ftp/backup/proftpd.conf.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/ftp/deploy/proftpd.conf /etc/proftpd.conf
