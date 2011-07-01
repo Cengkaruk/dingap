@@ -306,7 +306,7 @@ class FreeRADIUS extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_ip($ip))
-            return lang('network_ip_is_invalid');
+            return lang('network_ip_invalid');
     }
 
     /**
