@@ -11,14 +11,14 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'User manager'; // FIXME: translate
-$app['description'] = 'User manager description blah blah blah ...'; // FIXME: translate
+$app['summary'] = lang('users_app_name');
+$app['description'] = lang('users_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('users_user_manager');
+$app['name'] = lang('users_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_accounts');
 
