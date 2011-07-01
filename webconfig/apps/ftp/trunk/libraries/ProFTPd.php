@@ -254,7 +254,7 @@ class ProFTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match("/^[A-Za-z0-9\.\- ]+$/", $server_name))
-            return lang('ftp_server_name_is_invalid');
+            return lang('ftp_server_name_invalid');
     }
 
     /**
@@ -270,7 +270,7 @@ class ProFTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match("/^[0-9]+$/", $max_instances))
-            return lang('ftp_maximum_instances_is_invalid');
+            return lang('ftp_maximum_instances_invalid');
     }
 
 
@@ -287,6 +287,6 @@ class ProFTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match("/^[0-9]+$/", $port))
-            return lang('ftp_port_is_invalid');
+            return lang('ftp_port_invalid');
     }
 }

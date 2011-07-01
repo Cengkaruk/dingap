@@ -65,6 +65,6 @@ class FTP extends ClearOS_Controller
 
         $views = array('base/daemon/index/proftpd', 'ftp/settings');
 
-        $this->page->view_forms($views, lang('ftp_ftp_server'));
+        $this->page->view_forms($views, lang('ftp_app_name'));
     }
 }

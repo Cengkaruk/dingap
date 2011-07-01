@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('ftp_app_summary');
-$app['description'] = lang('ftp_app_long_description');
+$app['description'] = lang('ftp_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('ftp_ftp_server');
+$app['name'] = lang('ftp_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_file');
 
@@ -37,6 +36,7 @@ $app['core_requires'] = array(
 
 $app['core_directory_manifest'] = array(
     '/var/clearos/ftp' => array(),
+    '/var/clearos/ftp/backup/' => array(),
 );
 
 

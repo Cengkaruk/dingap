@@ -38,6 +38,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/ftp
 cp -r * %{buildroot}/usr/clearos/apps/ftp/
 
 install -d -m 0755 %{buildroot}/var/clearos/ftp
+install -d -m 0755 %{buildroot}/var/clearos/ftp/backup/
 
 %post
 logger -p local6.notice -t installer 'app-ftp - installing'
@@ -78,6 +79,7 @@ exit 0
 %exclude /usr/clearos/apps/ftp/tests
 %dir /usr/clearos/apps/ftp
 %dir /var/clearos/ftp
+%dir /var/clearos/ftp/backup/
 /usr/clearos/apps/ftp/deploy
 /usr/clearos/apps/ftp/language
 /usr/clearos/apps/ftp/libraries
