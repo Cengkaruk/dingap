@@ -960,7 +960,7 @@ class Postfix extends Daemon
             return;
 
         if (! (empty($maps) || $maps === self::DEFAULT_LOCAL_RECIPIENT_MAPS) )
-            throw new Validation_Exception(lang('smtp_recipient_mapping_is_invalid'));
+            throw new Validation_Exception(lang('smtp_recipient_mapping_invalid'));
 
         $this->_set_parameter('local_recipient_maps', $maps);    
     }
