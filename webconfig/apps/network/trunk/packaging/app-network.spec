@@ -27,6 +27,7 @@ Requires: ethtool
 Requires: net-tools
 Requires: ppp
 Requires: rp-pppoe
+Requires: wireless-tools
 
 %description core
 Network description... blah blah

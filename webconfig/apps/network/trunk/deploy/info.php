@@ -41,6 +41,7 @@ $app['core_requires'] = array(
     'net-tools',
     'ppp',
     'rp-pppoe',
+    'wireless-tools',
 );
 
 $app['core_directory_manifest'] = array(
