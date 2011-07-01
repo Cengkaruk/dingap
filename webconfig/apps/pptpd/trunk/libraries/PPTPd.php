@@ -371,7 +371,7 @@ class PPTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         // FIXME: improve interface
-        //    return lang('pptpd_ip_range_is_invalid');
+        //    return lang('pptpd_ip_range_invalid');
     }
 
     /**
@@ -387,7 +387,7 @@ class PPTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (($server !== '') && (! Network_Utils::is_valid_ip($server)))
-            return lang('pptpd_wins_server_is_invalid');
+            return lang('pptpd_wins_server_invalid');
     }
 
     /**
@@ -403,7 +403,7 @@ class PPTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (($server !== '') && (! Network_Utils::is_valid_ip($server)))
-            return lang('pptpd_dns_server_is_invalid');
+            return lang('pptpd_dns_server_invalid');
     }
 
     /**
@@ -419,7 +419,7 @@ class PPTPd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (($domain !== '') && (! Network_Utils::is_valid_domain($domain)))
-            return lang('pptpd_internet_domain_is_invalid');
+            return lang('pptpd_internet_domain_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

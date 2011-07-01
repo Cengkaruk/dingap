@@ -63,9 +63,9 @@ class PPTPd extends ClearOS_Controller
         // Load views
         //-----------
 
-//        $views = array('base/daemon/index/pptpd', 'pptpd/settings');
-        $views = array('pptpd/server', 'pptpd/settings');
+        $views = array('base/daemon/index/pptpd', 'pptpd/settings');
+//        $views = array('pptpd/server', 'pptpd/settings');
 
-        $this->page->view_forms($views, lang('pptpd_pptp_server'));
+        $this->page->view_forms($views, lang('pptpd_app_name'));
     }
 }
