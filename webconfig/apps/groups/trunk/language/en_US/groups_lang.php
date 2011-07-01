@@ -1,7 +1,7 @@
 <?php
 
-$lang['groups_app_summary'] = 'Group summary'; // FIXME
-$lang['groups_app_long_description'] = 'Group long description'; // FIXME
+$lang['groups_app_name'] = 'Groups';
+$lang['groups_app_description'] = 'This is the group manager.  Testers: the final release will not display all those Windows groups so prominently since that is too noisy (Print Operators).'; // FIXME
 $lang['groups_edit_members'] = 'Edit Members';
 $lang['groups_group_name'] = 'Group Name';
 $lang['groups_description'] = 'Description';
@@ -11,6 +11,7 @@ $lang['groups_builtin_groups'] = 'Built-in Groups';
 $lang['groups_plugin_groups'] = 'Plugin Groups';
 $lang['groups_windows_groups'] = 'Windows Groups';
 
+$lang['groups_members'] = 'Members';
 $lang['groups_group'] = 'Group';
 $lang['groups_groups'] = 'Groups';
 $lang['groups_group_manager'] = 'Group Manager';
@@ -20,7 +21,5 @@ $lang['groups_group_already_exists'] = 'Group already exists.';
 $lang['groups_group_is_reserved_for_windows'] = 'Group is reserved for Windows integration.';
 $lang['groups_group_is_reserved_for_system'] = 'Group is reserved for the system.';
 
-$lang['groups_description_is_invalid'] = 'Description is invalid.'; 
-$lang['groups_group_name_is_invalid'] = 'Group name is invalid.'; 
-$lang['groups_username_does_not_exist'] = 'Username does not exist.';
-
+$lang['groups_description_invalid'] = 'Description is invalid.'; 
+$lang['groups_group_name_invalid'] = 'Group name is invalid.'; 
