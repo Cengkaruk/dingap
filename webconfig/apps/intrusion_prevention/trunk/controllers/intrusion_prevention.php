@@ -69,6 +69,6 @@ class Intrusion_Prevention extends ClearOS_Controller
             'intrusion_prevention/blocked_list'
         );
 
-        $this->page->view_forms($views, lang('intrusion_prevention_intrusion_prevention'));
+        $this->page->view_forms($views, lang('intrusion_prevention_app_name'));
     }
 }
