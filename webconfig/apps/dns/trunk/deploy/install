@@ -12,3 +12,6 @@ cp /usr/clearos/apps/dns/deploy/dnsmasq.conf /etc/dnsmasq.conf
 # Set boot policy
 logger -p local6.notice -t installer "app-dns-core - enabling dnsmasq server"
 /sbin/chkconfig dnsmasq on
+
+# FIXME: just to demo in the alpha - remove please
+cp /usr/clearos/apps/dns/deploy/hosts /etc/hosts
