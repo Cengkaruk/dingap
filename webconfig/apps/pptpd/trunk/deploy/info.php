@@ -42,6 +42,7 @@ $app['requires'] = array(
 $app['core_requires'] = array(
     'app-network-core',
     'app-pptpd-plugin-core',
+    'app-samba-extension-core',
     'pptpd >= 1.3.4',
 );
 
