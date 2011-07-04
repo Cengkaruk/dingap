@@ -26,6 +26,7 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
 Requires: app-pptpd-plugin-core
+Requires: app-samba-extension-core
 Requires: pptpd >= 1.3.4
 
 %description core
