@@ -288,7 +288,7 @@ function _get_footer($page)
     return "
     <!-- Footer -->
     <div id='theme-footer-container'>
-        Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
+        Web Theme - Copyright &copy; 2000-2011 ClearFoundation. All Rights Reserved.
     </div>
     ";
 }

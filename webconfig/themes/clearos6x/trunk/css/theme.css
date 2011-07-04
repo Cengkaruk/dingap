@@ -92,30 +92,58 @@ button {background: white url(../images/button-bg.png) no-repeat top;}
 
 /* Common anchor classes */
 a.theme-anchor { 
-	  border-radius: 9px;
+	  border-radius: 5px;
 	  padding-bottom: 0px;
-	
 }
+
+a.theme-anchor:hover {
+	color: #e1852e;
+}
+
 a.theme-anchor-important { 
   background: transparent url('../images/button-bg.png') repeat-x;
   padding-left: 6px;
   padding-right: 6px;
-  padding-top: 2px;
-  height: 18px;
+  padding-top: 3px;
+  height: 17px;
   border: 1px solid #d1d3d4;
+  font-size: 8pt;
+  color: #e1852e;
 }
 
 a.theme-anchor-important:hover {
-  color: #98bb60;
+  border: 1px solid #a5a4a4;
+  color: #e1852e;
+}
+
+.login a.theme-anchor-important {
+	height: 16px;
+	padding-top: 4px;
 }
 
 a.theme-anchor-unimportant {
-  background: transparent url('../images/transparent.gif') repeat-x;
+  background: transparent url('../images/button-bg.png') repeat-x;
   padding-left: 6px;
   padding-right: 6px;
-  height: 22px;
-  border: 1px solid transparent;
+  height: 17px;
+  height: 17px\9;
+  border: 1px solid #d1d3d4;
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  padding-top: 3px;
+  padding-top: 3px\9;
+  top: 1px\9;
 }
+
+a.theme-anchor-unimportant:hover {
+  border: 1px solid #a5a4a4;
+}
+
+a.theme-anchor-unimportant, x:-moz-any-link, x:default {
+  padding-top: 3px;
+  height: 17px;	 
+}
+
 
 /* Standard anchors */
 /*
@@ -149,10 +177,12 @@ a.theme-anchor-delete { }
 */
 
 /* Custom anchor */
-a.theme-anchor-custom { }
 
-/* Javascript anchor */
-a.theme-anchor-javascript { }
+a.theme-anchor-custom {color: #e1852e;}
+
+a.theme-anchor-custom:hover {color: #e1852e; }
+
+
 
 /* ------------------------------------------------------------------------- */
 /* Buttons */
@@ -168,18 +198,26 @@ input.theme-form-important {
   padding-right: 6px;
   height: 22px;
   border: 1px solid #d1d3d4;
+  font-size: 8pt;
+  color: #e1852e;
 }
 
 input.theme-form-unimportant { 
-  background: transparent url('../images/transparent.gif') repeat-x;
+  background: transparent url('../images/button-bg.png') repeat-x;
   padding-left: 6px;
   padding-right: 6px;
   height: 22px;
-  border: 1px solid transparent;
+  border: 1px solid #d1d3d4;
+  font-size: 8pt;
+  color: #e1852e;
 }
-input.theme-form-unimportant:hover {color: #98bb60;}
 
+input.theme-form-important:hover {border: 1px solid #a5a4a4; color: #e1852e;}
 
+input.theme-form-unimportant:hover {border: 1px solid #a5a4a4; color: #e1852e;}
+
+/* Javascript anchor */
+a.theme-anchor-javascript {padding-top: 4px; height: 16px; }
 
 /*
 .theme-form-submit:hover {
@@ -241,7 +279,7 @@ input.theme-form-unimportant:hover {color: #98bb60;}
 
 
 /* Custom button */
-input.theme-form-submit-custom { margin-top: 4px; float: right; margin-right: 15px;}
+.login input.theme-form-submit-custom { margin-top: 4px; float: right; margin-right: 15px; }
 
 #indiv_install {padding-left: 5px; padding-right: 4px;}
 #add_review {padding-left: 5px; padding-right: 0px; font-size: 10px; top: 1px;}
@@ -517,7 +555,7 @@ border-radius: 9px;
 	border: 1px solid #e1e1e1;
 	padding: 5px;
 	border-radius: 9px;
-	width: 245px;
+	width: 225px;
 	height: 15px
 	clear: both;
 	margin-right: 15px;
@@ -548,6 +586,9 @@ border-radius: 9px;
 	color: #62799a;
 }
 
+.user-guide a, x:-moz-any-link, x:default {
+	padding-bottom: 1px;
+}
 
 .support a {
 	background: url(../images/help.png) no-repeat top left;
@@ -561,6 +602,10 @@ border-radius: 9px;
 	padding-left: 25px;
 	padding-top: 1px;
 	color: #62799a;
+}
+
+.support a, x:-moz-any-link, x:default {
+	padding-bottom: 1px;
 }
 
 .help-sides {
@@ -641,7 +686,7 @@ border-radius: 9px;
 
 .ui-progressbar {
   background: url(../images/progressbar-bg.jpg) repeat-x;
-  border-radius: 9px; 
+  border-radius: 5px; 
   height: 20px;
   border: 1px solid #d1d3d4;
 }
@@ -652,7 +697,7 @@ border-radius: 9px;
   top: 1px;
   height: 24px;
   margin-top: 0px;
-  border-radius: 9px;
+  border-radius: 5px;
 }
 
 /* REDO */
@@ -702,7 +747,11 @@ background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%
 background: #FFFFFF url(../images/main-nav-hover.png) repeat-x scroll 50% 50%;
 border-top-right-radius: 10px;
 border-top-left-radius: 10px;
-color: white;
+color: #e1852e;
+}
+
+.ui-state-hover {
+	color: #e1852e;
 }
 
 .ui-tabs .ui-tabs-nav li a, .ui-tabs.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-selected a { cursor: pointer; } /* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
@@ -995,7 +1044,7 @@ color: white;
 
 .info-regular-text {margin-bottom: 5px;}
 
-.ui-state-error {border-radius: 0px; border: 1px solid red;}
+.ui-state-error {border-radius: 0px; border: 1px solid red; margin-bottom: 10px;}
 
 .ui-state-highlight {border-radius: 0px; border: 1px solid #e5d33e;}
 
@@ -1063,7 +1112,7 @@ ul#theme-top-menu-list ul {
 }
 
 ul#theme-top-menu-list li li a:hover {
-  color: #7DAE32;
+  color: #e1852e;
   ^z-index: 999;
 }
 
@@ -1183,23 +1232,25 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   font-size: 1em;
   padding-top: .5em;
   padding-left: .5em
-  padding-top: .5em;
-  padding-bottom: .5em;
+  padding-bottom: 5px;
   background-image: url(../images/small-arrow-down.png);
   background-repeat: no-repeat;
-  background-position: 170px 5px; 
+  background-position: right 10px; 
+  width: 180px;
 }
 
 .theme-left-menu-category-active {
   background-image: url(../images/small-arrow-up.png);
+  background-position: right 8px;
 }
 
 .theme-left-menu-category a {
   color: #686868;
   font-size: 13px;
   border-bottom: 1px solid #f1f0f0;
-  width: 200px;
+  width: 180px;
   display: block;
+  padding-bottom: 5px;
 }
 
 .theme-left-menu-subcategory {
@@ -1251,14 +1302,22 @@ input.theme-form-submit-delete { }
 .theme-list-table-container input.theme-form-submit-update  {
 	background: url(../images/green-button-bg.png) repeat-x;
 	border: 1px solid #648e20;
-	color: #686868; 
+	color: #e1852e; 
 	padding-bottom: 2px;
-	margin-top: 1px;}
+	margin-top: 1px;
+	padding-top: 2px;
+	font-size: 8pt;
+	}
 .theme-list-table-container input.theme-form-submit-update:hover {
 	background: url(../images/green-button-bg-hover.png) repeat-x;
 	border: 1px solid #98bb60;
 	
 }
+
+.theme-list-table-container input.theme-form-submit-update, x:-moz-any-link, x:default {
+	padding-top:0px;
+}
+
 
 
 /* Miscellaneous items */
@@ -1313,7 +1372,7 @@ input.theme-form-submit-delete { }
 	float: right;
 	margin-right: 14px;
 	background: url(../images/button-bg-large.png) repeat-x;
-	border-radius: 9px;
+	border-radius: 5px;
 	border: 1px solid #e1e1e1;
 	padding-right: 6px;
 	padding-left: 6px;
@@ -1438,7 +1497,7 @@ input.theme-form-submit-delete { }
 }
 
 .login .ui-widget {
-	border-radius: 9px;
+	border-radius: 5px;
 }
 
 
@@ -1453,3 +1512,8 @@ input.theme-form-submit-delete { }
 #prevent_review {padding-left: 6px; padding-right: 6px;}
 
 #tabs-versions {margin-bottom: 10px;}
+
+
+.theme-anchor-important .ui-button  {
+	border: blue 5px solid;
+}
