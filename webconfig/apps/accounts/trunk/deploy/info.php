@@ -11,17 +11,16 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Accounts base engine'; // FIXME: translate
-$app['description'] = 'The accounts base engine provides... blah blah blah'; // FIXME: translate
+$app['description'] = lang('accounts_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Account Manager';
+$app['name'] = lang('accounts_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Accounts Manager';
-$app['menu_enabled'] = 'False';
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

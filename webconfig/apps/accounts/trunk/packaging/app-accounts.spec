@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-mode-core
 
 %description
-The accounts base engine provides... blah blah blah
+Account manager - wordsmith
 
 %package core
 Summary: Account Manager - APIs and install
@@ -26,7 +26,7 @@ Requires: app-storage-core
 Requires: system-accounts-driver
 
 %description core
-The accounts base engine provides... blah blah blah
+Account manager - wordsmith
 
 This package provides the core API and libraries.
 

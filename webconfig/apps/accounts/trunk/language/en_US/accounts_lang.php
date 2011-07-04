@@ -1,5 +1,10 @@
 <?php
 
+$lang['accounts_app_description'] = 'Account manager - wordsmith'; // FIXME
+$lang['accounts_app_name'] = 'Account Manager'; // FIXME
+$lang['accounts_connector'] = 'Connector';
+
+
 $lang['accounts_accounts_driver_is_invalid'] = 'Accounts driver is invalid';
 $lang['accounts_account_information_is_unavailable'] = 'Account information is unavailable.';
 $lang['accounts_extension'] = 'Extension';
