@@ -428,7 +428,7 @@ function spec($options)
     //-------------------------------------------------------
 
     $app['package_name'] = 'app-' . preg_replace('/_/', '-', $app['basename']);
-    $app['summary'] = preg_replace('/\.$/', '', $app['summary']); // No period: an RPM policy (shrug).
+    $app['name'] = preg_replace('/\.$/', '', $app['name']); // No period: an RPM policy (shrug).
 
     // Build file manifest
     //--------------------
@@ -529,7 +529,7 @@ Name: {$app['package_name']}
 Group: ClearOS/Apps
 Version: {$app['version']}
 Release: {$app['release']}%{dist}
-Summary: {$app['summary']}
+Summary: {$app['name']}
 License: {$app['license']}
 Packager: {$app['packager']}
 Vendor: {$app['vendor']}
@@ -542,7 +542,7 @@ Buildarch: noarch
 {$app['description']}
 
 %package core
-Summary: {$app['summary']} - APIs and install
+Summary: {$app['name']} - APIs and install
 Group: ClearOS/Libraries
 License: {$app['license_core']}
 " . $core_provides . $core_requires . "
@@ -613,7 +613,7 @@ Name: {$app['package_name']}-core
 Group: ClearOS/Libraries
 Version: {$app['version']}
 Release: {$app['release']}%{dist}
-Summary: {$app['summary']} - APIs and install
+Summary: {$app['name']} - APIs and install
 License: {$app['license_core']}
 Packager: {$app['packager']}
 Vendor: {$app['vendor']}
