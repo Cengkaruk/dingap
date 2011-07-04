@@ -15,7 +15,7 @@ Requires: app-network
 Requires: proftpd >= 1.3.3e
 
 %description
-FTP long description
+FTP description goes here... wordsmith required.
 
 %package core
 Summary: FTP Server - APIs and install
@@ -25,7 +25,7 @@ Requires: app-base-core
 Requires: app-ftp-plugin-core
 
 %description core
-FTP long description
+FTP description goes here... wordsmith required.
 
 This package provides the core API and libraries.
 
