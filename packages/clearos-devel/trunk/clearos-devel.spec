@@ -1,6 +1,6 @@
 Name: clearos-devel
-Version: 5.9.9.0
-Release: 1%{dist}
+Version: 5.9.9.2
+Release: 4%{dist}
 Summary: ClearOS developer tools
 License: GPLv3
 Group: ClearOS/Tools
