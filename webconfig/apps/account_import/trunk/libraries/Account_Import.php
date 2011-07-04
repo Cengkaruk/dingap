@@ -121,7 +121,8 @@ class Account_Import extends Engine
 
     const FILE_CSV = 'import.csv';
     const FILE_CSV_TEMPLATE = 'import_template.csv';
-    const COMMAND_IMPORT = '/usr/sbin/account-import';
+    //const COMMAND_IMPORT = '/usr/sbin/account-import';
+    const COMMAND_IMPORT = '/home/peter/clearos/webconfig/apps/account_import/trunk/packaging/account-import';
     const COMMAND_PS = '/bin/ps';
     const FOLDER_ACCOUNT_IMPORT = '/var/clearos/account_import';
 
@@ -269,7 +270,7 @@ class Account_Import extends Engine
             $options = array();
         //    $options['background'] = TRUE;
             $shell = new Shell;
-            $shell->execute(self::COMMAND_IMPORT, NULL, TRUE, $options);
+            $shell->execute(self::COMMAND_IMPORT, '', FALSE, $options);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
