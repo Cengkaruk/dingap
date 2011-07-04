@@ -1,5 +1,7 @@
 <?php
 
+$lang['network_app_description'] = 'IP settings - read only and wordsmith required.'; // FIXME
+$lang['network_app_name'] = 'IP Settings';
 $lang['network_bootproto_bootp'] = 'BootP';
 $lang['network_bootproto_dhcp'] = 'DHCP';
 $lang['network_bootproto_pppoe'] = 'PPPoE';
@@ -36,7 +38,6 @@ $lang['network_ip_not_part_of_network'] = 'IP address is not part of the network
 $lang['network_ip_range_invalid'] = 'IP range is invalid.';
 $lang['network_ip_range'] = 'IP Address Range';
 $lang['network_ip_range_is_reversed'] = 'IP range is reversed.';
-$lang['network_ip_settings'] = 'IP Settings';
 $lang['network_lan'] = 'LAN';
 $lang['network_mac_address_invalid'] = 'MAC address is invalid.';
 $lang['network_mac_address'] = 'MAC Address';

@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Network configuration tool.';
-$app['description'] = 'Network description... blah blah';
+$app['description'] = lang('network_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('network_ip_settings');
+$app['name'] = lang('network_app_name');
 $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_settings');
 
@@ -26,13 +25,14 @@ $app['subcategory'] = lang('base_subcategory_settings');
 // Controller info
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['general']['title'] = 'General Settings';
-$app['controllers']['iface']['title'] = 'Network Interfaces';
+$app['controllers']['general']['title'] = lang('base_settings');
+$app['controllers']['iface']['title'] = lang('network_network_interfaces');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+// FIXME add 'wireless-tools',
 $app['core_requires'] = array(
     'avahi',
     'bind-utils',
@@ -41,7 +41,6 @@ $app['core_requires'] = array(
     'net-tools',
     'ppp',
     'rp-pppoe',
-    'wireless-tools',
 );
 
 $app['core_directory_manifest'] = array(
