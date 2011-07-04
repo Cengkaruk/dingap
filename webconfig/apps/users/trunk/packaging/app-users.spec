@@ -3,7 +3,7 @@ Name: app-users
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 4%{dist}
-Summary: User Manager
+Summary: Users
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -15,10 +15,10 @@ Requires: app-accounts
 Requires: app-groups
 
 %description
-User manager description blah blah blah ...
+This is the user manager.  Testers: you will see a handful of built-in users here; these will not be shown in the final release.
 
 %package core
-Summary: User Manager - APIs and install
+Summary: Users - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -26,7 +26,7 @@ Requires: app-accounts-core
 Requires: system-users-driver
 
 %description core
-User manager description blah blah blah ...
+This is the user manager.  Testers: you will see a handful of built-in users here; these will not be shown in the final release.
 
 This package provides the core API and libraries.
 
