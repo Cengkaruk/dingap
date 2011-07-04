@@ -4,7 +4,7 @@
 Name: clearos-logos
 Summary: ClearOS-related icons and pictures
 Version: 60.0.14
-Release: 1%{?dist}
+Release: 1%{?dist}.1
 Group: System Environment/Base
 # No upstream, do in dist-cvs
 Source0: clearos-logos-%{version}.tar.gz
