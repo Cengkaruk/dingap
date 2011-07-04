@@ -344,7 +344,7 @@ class OpenLDAP extends Engine
         if ($file->exists())
             return TRUE;
         else
-            return TRUE;
+            return FALSE;
     }
 
     /**
