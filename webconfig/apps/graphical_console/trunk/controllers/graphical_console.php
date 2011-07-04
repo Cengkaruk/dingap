@@ -59,13 +59,24 @@ class Graphical_Console extends ClearOS_Controller
         //---------------
 
         $this->lang->load('graphical_console');
+        $this->load->library('network/Iface_Manager');
+
+        // Grab network info
+        //------------------
+
+        try {
+            $data['lan_ips'] = $this->iface_manager->get_lan_ips();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Load views
         //-----------
 
         $page['type'] = MY_Page::TYPE_SPLASH;
 
-        $this->page->view_form('summary', array(), lang('graphical_console_network_configuration_console'), $page);
+        $this->page->view_form('summary', $data, lang('graphical_console_network_configuration_console'), $page);
     }
 
     /**

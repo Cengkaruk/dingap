@@ -29,7 +29,12 @@
 //  
 ///////////////////////////////////////////////////////////////////////////////
 
-$ip = $_SERVER['SERVER_ADDR'];
+/* FIXME: wait until page is styled
+if (! is_console())
+	redirect('/base/session/login');
+*/
+
+$ip = $lan_ips['0']; // FIXME: handle more scenarios
 
 echo "
 <div align='left'>
@@ -49,14 +54,13 @@ network settings, please login to access the Network Console (not available in t
 
 <p><b>Okay, okay...</b></p>
 <p>You can still login to the web-based administration tool from the 
-console, but the experience won't be as pleasant as it could be.  To login, go ahead and click <b><a style='background: transparent; border: none; float: none; padding: 0; margin: 0;' href='/app/base/session/login'>here</a></b>.</p>
+console, but the experience won't be as pleasant as it could be.  To login, go ahead and click <b><a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #98BB60' href='/app/base/session/login'>here</a></b>.</p>
 
 </div>
 
 ";
 
-if (is_console())
-    echo anchor_custom('/app/graphical_console/shutdown', lang('base_exit_to_console'), 'low');
+echo anchor_custom('/app/graphical_console/shutdown', lang('base_exit_to_console'), 'low');
 
 /*
 <p>Aaron, put the images in the htdocs directory and use the following URL</p>
