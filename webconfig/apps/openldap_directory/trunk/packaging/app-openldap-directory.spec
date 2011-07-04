@@ -31,7 +31,7 @@ Requires: samba-winbind-clients
 Requires: webconfig-php-ldap
 
 %description
-OpenLDAP directory driver... blah blah.
+OpenLDAP Directory description...
 
 This package provides the core API and libraries.
 
