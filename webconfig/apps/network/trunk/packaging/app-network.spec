@@ -13,7 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Network description... blah blah
+IP settings - read only and wordsmith required.
 
 %package core
 Summary: IP Settings - APIs and install
@@ -29,7 +29,7 @@ Requires: ppp
 Requires: rp-pppoe
 
 %description core
-Network description... blah blah
+IP settings - read only and wordsmith required.
 
 This package provides the core API and libraries.
 
