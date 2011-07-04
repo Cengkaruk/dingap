@@ -17,7 +17,7 @@ Requires: app-users
 Requires: app-network
 
 %description
-PPTP Server app long description
+PPTP Server description... wordsmith please.
 
 %package core
 Summary: PPTP Server - APIs and install
@@ -29,7 +29,7 @@ Requires: app-pptpd-plugin-core
 Requires: pptpd >= 1.3.4
 
 %description core
-PPTP Server app long description
+PPTP Server description... wordsmith please.
 
 This package provides the core API and libraries.
 
