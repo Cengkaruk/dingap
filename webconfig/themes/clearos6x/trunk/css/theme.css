@@ -1227,6 +1227,45 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   margin-top: -6px;	
 }
 
+/* ------------------------- */
+/* FIXME: revert to old menu */
+/* ------------------------- */
+
+#theme-left-menu.ui-accordion {
+  width: 213px;
+}
+
+.theme-left-menu-category {
+  margin: 0;
+  padding: 0;
+}
+
+.theme-left-menu-subcategory {
+  font-weight: bold;
+  color: #686868;
+  list-style-image:url('../images/transparent.gif');
+  padding: 4px 0 0 0;
+}
+
+.theme-left-menu-list {
+  margin: 0;
+  padding: 0;
+}
+
+.theme-left-menu-item {
+  list-style: none;
+  margin: 0;
+  padding-left: 10px;
+  background-image: url(../images/small-left-arrow.png);
+  background-repeat: no-repeat;
+  background-position: 0 4px;
+}
+
+/* ---------------------------- */
+/* FIXME: new menu CSS is below */
+/* ---------------------------- */
+
+/*
 .theme-left-menu-category {
   margin: 0;
   font-size: 1em;
@@ -1284,6 +1323,7 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   padding-left: 10px;
   list-style-image:url('../images/transparent.gif');
 }
+*/
 
 .theme-loading {
   background-image: url(../images/loading.gif);
