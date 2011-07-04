@@ -267,9 +267,9 @@ class Account_Import extends Engine
 
         try {
             $options = array();
-            $options['background'] = true;
+        //    $options['background'] = TRUE;
             $shell = new Shell;
-            $shell->execute(self::COMMAND_IMPORT, NULL, FALSE, $options);
+            $shell->execute(self::COMMAND_IMPORT, NULL, TRUE, $options);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -306,7 +306,7 @@ class Account_Import extends Engine
     /**
      * Is CSV file uploaded.
      *
-     * @return boolean true/FALSE
+     * @return boolean TRUE/FALSE
      * @throws Engine_Exception, File_Not_Found_Exception
      */
 
@@ -414,7 +414,7 @@ class Account_Import extends Engine
             unset($userinfo['username']);
             // Add password verification
             $userinfo['verify'] = $userinfo['password'];
-            $userinfo['webconfigFlag'] = true;
+            $userinfo['webconfigFlag'] = TRUE;
             $user = new User($username);
 
             try {
@@ -494,7 +494,7 @@ class Account_Import extends Engine
 
         foreach ($attribute_list as $attribute) {
             if (isset($userinfo[$attribute]) && $userinfo[$attribute] && !eregi('FALSE|no', $userinfo[$attribute]))
-                $userinfo[$attribute] = true;
+                $userinfo[$attribute] = TRUE;
             else
                 $userinfo[$attribute] = FALSE;
         }
