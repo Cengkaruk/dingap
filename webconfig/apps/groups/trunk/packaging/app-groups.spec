@@ -3,7 +3,7 @@ Name: app-groups
 Group: ClearOS/Apps
 Version: 5.9.9.2
 Release: 4%{dist}
-Summary: Group Manager
+Summary: Groups
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -15,10 +15,10 @@ Requires: app-accounts
 Requires: app-users
 
 %description
-Group long description
+This is the group manager.  Testers: the final release will not display all those Windows groups so prominently since that is too noisy (Print Operators).
 
 %package core
-Summary: Group Manager - APIs and install
+Summary: Groups - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -26,7 +26,7 @@ Requires: app-accounts-core
 Requires: system-groups-driver
 
 %description core
-Group long description
+This is the group manager.  Testers: the final release will not display all those Windows groups so prominently since that is too noisy (Print Operators).
 
 This package provides the core API and libraries.
 
