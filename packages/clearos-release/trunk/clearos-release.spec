@@ -1,6 +1,6 @@
 Name: clearos-release
 Version: 6.0.0.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: ClearOS product release information
 Group: System Environment/Base
 License: GPL

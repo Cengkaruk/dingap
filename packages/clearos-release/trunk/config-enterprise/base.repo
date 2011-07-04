@@ -41,9 +41,9 @@ enabled=1
 gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/clearos-gpg-key
 
-[sl6-rolling]
-name=SL6 Rolling
-baseurl=http://ftp.scientificlinux.org/linux/scientific/6rolling/i386/os
+[clearos-core-current]
+name=ClearOS Core Experimental
+baseurl=http://enterprise-610-testing.clearfoundation.com/yum/clearcore/stage/build
 enabled=1
 gpgcheck=0
 
