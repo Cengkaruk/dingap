@@ -50,10 +50,15 @@ function get_progress() {
         url: '/app/account_import/ajax/get_progress',
         data: '',
         success: function(json) {
-            $('#progress').progressbar({
-                value: Math.round(json.progress)
-            });
-            window.setTimeout(get_progress, 2000);
+            if (json.code != 0) {
+                clearos_alert('errmsg', json.errmsg);
+            } else {
+                $('#msg').html(json.msg);
+                $('#progress').progressbar({
+                    value: Math.round(json.progress)
+                });
+                window.setTimeout(get_progress, 2000);
+            }
         },
         error: function(xhr, text, err) {
             // Don't display any errors if ajax request was aborted due to page redirect/reload
@@ -64,6 +69,22 @@ function get_progress() {
     });
 }
 
+function clearos_alert(id, message) {
+  $('#theme-page-container').append('<div id=\"' + id + '\" title=\"" . lang('base_warning') . "\">' +
+      '<p>' +
+        '<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>' + message +
+      '</p>' +
+    '</div>'
+  );
+  $('#' + id).dialog({
+    modal: true,
+    buttons: {
+      '" . lang('base_close') . "': function() {
+        $(this).dialog('close');
+      }
+    }
+  });
+}
 ";
 
 // vim: syntax=php ts=4

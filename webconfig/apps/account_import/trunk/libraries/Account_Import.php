@@ -74,7 +74,7 @@ use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\base\Engine as Engine;
 
 clearos_load_library('/File_CSV_DataSource');
-clearos_load_library('base/Shell;');
+clearos_load_library('base/Shell');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
 clearos_load_library('groups/Group_Manager');
@@ -122,8 +122,7 @@ class Account_Import extends Engine
     const FILE_CSV = 'import.csv';
     const FILE_CSV_TEMPLATE = 'import_template.csv';
     const FILE_STATUS = 'account_import.json';
-    //const COMMAND_IMPORT = '/usr/sbin/account-import';
-    const COMMAND_IMPORT = '/home/benjamin/clearos/webconfig/apps/account_import/trunk/packaging/account-import';
+    const COMMAND_IMPORT = '/usr/sbin/account-import';
     const COMMAND_PS = '/bin/ps';
     const FOLDER_ACCOUNT_IMPORT = '/var/clearos/account_import';
 
@@ -153,19 +152,20 @@ class Account_Import extends Engine
 
         try {
             $shell = new Shell();
-            $exitcode = $shell->execute(self::COMMAND_PS, " afx | grep " . addslashes(self::COMMAND_IMPORT) . " & echo $!", FALSE);
+            $exe = pathinfo(self::COMMAND_IMPORT, PATHINFO_FILENAME);
+            $exitcode = $shell->execute(self::COMMAND_PS, " afx | grep $exe & echo $!", FALSE);
             if ($exitcode != 0)
                 throw new Engine_Exception(lang('account_import_unable_to_determine_running_state'), CLEAROS_WARNING);
             $rows = $shell->get_output();
             $pid = -1;
             foreach ($rows as $row) {
                 if ($pid < 0) {
-                    $pid = $row;
+                    $pid = trim($row);
                     continue;
                 }
                 if (preg_match('/^([0-9]+)\s+.*/', $row, $match)) {
                     // Bit of a hack...looking at PIDs
-                    if ((intval($match[1]) + 3) < $pid || $match[1] > $pid)
+                    if ((intval($match[1]) + 4) < $pid || $match[1] > $pid)
                         return TRUE;
                 }
             }
@@ -187,8 +187,6 @@ class Account_Import extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (!$this->is_import_in_progress())
-                throw new Engine_Exception(lang('account_import_import_not_running'), CLEAROS_WARNING);
             $file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_STATUS, FALSE);
             if (!$file->exists())
                 throw new Engine_Exception(lang('account_import_progress_unknown'), CLEAROS_WARNING);
@@ -285,20 +283,16 @@ class Account_Import extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->is_import_in_progress())
-            throw new Engine_Exception(lang('account_import_in_progress'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('account_import_already_in_progress'), CLEAROS_ERROR);
             
         $file = new File(self::FOLDER_ACCOUNT_IMPORT . '/' . self::FILE_CSV, TRUE);
         if (!$file->exists())
             throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
 
-        $file = new File(CLEAROS_TEMP_DIR . '/' . self::FILE_STATUS, TRUE);
-        if ($file->exists())
-            $file->delete();
-
         try {
             $options = array();
             $options['background'] = TRUE;
-            $shell = new Shell;
+            $shell = new Shell();
             $shell->execute(self::COMMAND_IMPORT, '', FALSE, $options);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);

@@ -81,8 +81,13 @@ class Upload extends ClearOS_Controller
                 return;
             }
         } if ($this->input->post('start')) {
-            $this->account_import->import();
-            redirect('/account_import/progress');
+            try {
+                $this->account_import->import();
+                redirect('/account_import/progress');
+            } catch (Exception $e) {
+                $this->page->set_message(clearos_exception_message($e));
+                redirect('/account_import/progress');
+            }
         }
         $config['upload_path'] = CLEAROS_TEMP_DIR;
         $config['allowed_types'] = 'csv';
