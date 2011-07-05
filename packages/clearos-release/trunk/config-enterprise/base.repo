@@ -1,41 +1,11 @@
-[clearos-dev]
-name=ClearOS Enterprise 6 - Developer
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/dev/$basearch
-enabled=1
-gpgcheck=0
-
-[clearos-extras]
-name=ClearOS Enterprise 6 - Extras
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/extras/$basearch
-enabled=1
-gpgcheck=0
-
-[clearos-os]
-name=ClearOS Enterprise 6 - OS
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/os/$basearch
-enabled=1
-gpgcheck=0
-
-[clearos-test]
-name=ClearOS Enterprise 6 - Test
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/test/$basearch
-enabled=1
-gpgcheck=0
-
-[clearos-updates]
-name=ClearOS Enterprise 6 - Updates
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/updates/$basearch
-enabled=1
-gpgcheck=0
-
-[clearos-updates-testing]
-name=ClearOS Enterprise 6 - Updates Testing
-baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.buildsys/updates-testing/$basearch
+[clearos-alpha1]
+name=ClearOS Enterprise 6.1.0 Alpha 1
+baseurl=http://download.clearfoundation.com/clearos/enterprise/6.1.0alpha1/snapshot/i386
 enabled=1
 gpgcheck=0
 
 [clearos-ci]
-name=ClearOS Enterprise 6 - Continuous Integration
+name=ClearOS Enterprise 6 Continuous Integration
 baseurl=http://gateway-toronto.clearcenter.com/clearos/enterprise/6.ci
 enabled=1
 gpgcheck=0
@@ -44,7 +14,7 @@ gpgkey=file:///etc/pki/rpm-gpg/clearos-gpg-key
 [clearos-core-current]
 name=ClearOS Core Experimental
 baseurl=http://enterprise-610-testing.clearfoundation.com/yum/clearcore/stage/build
-enabled=1
+enabled=0
 gpgcheck=0
 
 [epel]
