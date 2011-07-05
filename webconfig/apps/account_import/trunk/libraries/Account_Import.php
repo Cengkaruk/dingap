@@ -121,8 +121,9 @@ class Account_Import extends Engine
 
     const FILE_CSV = 'import.csv';
     const FILE_CSV_TEMPLATE = 'import_template.csv';
+    const FILE_STATUS = 'account_import.json';
     //const COMMAND_IMPORT = '/usr/sbin/account-import';
-    const COMMAND_IMPORT = '/home/peter/clearos/webconfig/apps/account_import/trunk/packaging/account-import';
+    const COMMAND_IMPORT = '/home/benjamin/clearos/webconfig/apps/account_import/trunk/packaging/account-import';
     const COMMAND_PS = '/bin/ps';
     const FOLDER_ACCOUNT_IMPORT = '/var/clearos/account_import';
 
@@ -175,6 +176,30 @@ class Account_Import extends Engine
     }
 
     /**
+     * Returns int indicating progress of import currently running.
+     *
+     * @return int
+     * @throws Engine_Exception, File_Not_Found_Exception
+     */
+
+    function get_progress()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            if (!$this->is_import_in_progress())
+                throw new Engine_Exception(lang('account_import_import_not_running'), CLEAROS_WARNING);
+            $file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_STATUS, FALSE);
+            if (!$file->exists())
+                throw new Engine_Exception(lang('account_import_progress_unknown'), CLEAROS_WARNING);
+            $contents = $file->get_contents_as_array();
+            return end($contents);
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+    }
+
+    /**
      * Perform an account export.
      *
      * @throws Engine_Exception
@@ -187,7 +212,7 @@ class Account_Import extends Engine
         try {
             $hostname = new Hostname();
             $filename = $hostname->get() . '.csv';
-            $file = new File(COMMON_TEMP_DIR . "/" . $filename, FALSE);
+            $file = new File(CLEAROS_TEMP_DIR . "/" . $filename, FALSE);
 
             if ($file->exists())
                 $file->delete();
@@ -266,9 +291,13 @@ class Account_Import extends Engine
         if (!$file->exists())
             throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
 
+        $file = new File(CLEAROS_TEMP_DIR . '/' . self::FILE_STATUS, TRUE);
+        if ($file->exists())
+            $file->delete();
+
         try {
             $options = array();
-        //    $options['background'] = TRUE;
+            $options['background'] = TRUE;
             $shell = new Shell;
             $shell->execute(self::COMMAND_IMPORT, '', FALSE, $options);
         } catch (Exception $e) {

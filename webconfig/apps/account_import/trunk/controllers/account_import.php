@@ -127,4 +127,25 @@ class Account_Import extends ClearOS_Controller
         }
         echo substr($csv, 0, strlen($csv) - 1);
     }
+
+    /**
+     * Progress controller
+     *
+     * @return view
+     */
+
+    function progress()
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('account_import/Account_Import');
+        $this->lang->load('account_import');
+
+        // Load views
+        //-----------
+
+        $data = array();
+        $this->page->view_form('progress', $data, lang('account_import_account_import'));
+    }
 }

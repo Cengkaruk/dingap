@@ -30,7 +30,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-//echo putenv('CLEAROS_BOOTSTRAP=/home/peter/clearos/webconfig/framework/trunk/shared');
+putenv('CLEAROS_BOOTSTRAP=/home/benjamin/clearos/webconfig/framework/trunk/shared');
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -116,13 +116,15 @@ try {
 function import()
 {
     global $account_import;
-    for ($index = 0; $index < 3; $index++) {
+    for ($index = 0; $index <= 100; $index++) {
         $status = array (
             'code' => 0,
             'timestamp' => time(),
-            'message' => 'Counter = ' . $index
+            'progress' => $index
         );
-        file_put_contents('/tmp/test-ben.txt', json_encode($status) . "\n", FILE_APPEND);
+        //file_put_contents('/tmp/test-ben.txt', json_encode($status) . "\n", FILE_APPEND);
+        file_put_contents(CLEAROS_TEMP_DIR . "/" . Account_Import::FILE_STATUS, json_encode($status) . "\n", FILE_APPEND);
+        //file_put_contents("/var/clearos/framework/tmp/" . Account_Import::FILE_STATUS, json_encode($status) . "\n", FILE_APPEND);
         sleep(1);
     }
 }

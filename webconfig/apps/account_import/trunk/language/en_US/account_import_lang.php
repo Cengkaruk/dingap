@@ -17,3 +17,4 @@ $lang['account_import_size'] = 'File Size';
 $lang['account_import_start_import'] = 'Start Import';
 $lang['account_import_progress'] = 'Progress';
 $lang['account_import_unable_to_determine_running_state'] = 'Unable to determine if import is running.';
+$lang['account_import_import_not_running'] = 'Account import is not running.';

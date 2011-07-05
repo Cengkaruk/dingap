@@ -49,12 +49,17 @@ function get_progress() {
         dataType: 'json',
         url: '/app/account_import/ajax/get_progress',
         data: '',
-        success: function(data) {
+        success: function(json) {
+            $('#progress').progressbar({
+                value: Math.round(json.progress)
+            });
+            window.setTimeout(get_progress, 2000);
         },
         error: function(xhr, text, err) {
             // Don't display any errors if ajax request was aborted due to page redirect/reload
             if (obj['abort'] == null)
                 clearos_alert('errmsg', xhr.responseText.toString());
+            window.setTimeout(get_progress, 2000);
         }
     });
 }
