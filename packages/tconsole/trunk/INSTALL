@@ -6,7 +6,7 @@ Installation Notes
 - Run ./configure
 - Create dist-gzip and copy to RPM directory:
   # make dist-gzip
-  # cp tconsole-x.y-z.tar.gz ~/<rpmbuild directory>/SOURCES
+  # cp tconsole-x.y.tar.gz ~/<rpmbuild directory>/SOURCES
 - Run rpmbuild -ba tconsole.spec
 - Submit SRPM to build system (ex: clearos6x):
   # plague-client build tconsole /home/dsokoloski/rpmbuild/SRPMS/tconsole-x.y-z.v6.src.rpm clearos-6-core
