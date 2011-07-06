@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/base/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,7 +69,7 @@ clearos_load_library('base/Engine_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/base/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Ethers_Not_Found_Exception extends Engine_Exception

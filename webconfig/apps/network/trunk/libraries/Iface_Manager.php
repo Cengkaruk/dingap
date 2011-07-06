@@ -1,9 +1,17 @@
 <?php
 
-///////////////////////////////////////////////////////////////////////////////
-//
-// Copyright 2003-2011 ClearFoundation
-//
+/**
+ * Network interface manager class.
+ *
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 //
 // This program is free software: you can redistribute it and/or modify
@@ -21,16 +29,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * Network interface manager class.
- *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2011 ClearFoundation
- */
-
 ///////////////////////////////////////////////////////////////////////////////
 // N A M E S P A C E
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,8 +39,8 @@ namespace clearos\apps\network;
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
@@ -83,11 +81,13 @@ clearos_load_library('base/Engine_Exception');
 /**
  * Network interface manager class.
  *
- * @package ClearOS
- * @subpackage API
- * @author {@link http://www.clearfoundation.com/ ClearFoundation}
- * @license http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @copyright Copyright 2003-2010 ClearFoundation
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Iface_Manager extends Engine
@@ -102,7 +102,7 @@ class Iface_Manager extends Engine
     const USB_ID = '/usr/share/hwdata/usb.ids';
     const SYS_CLASS_NET = '/sys/class/net';
 
-    protected $is_loaded = false;
+    protected $is_loaded = FALSE;
     protected $ethinfo = array();
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -121,8 +121,9 @@ class Iface_Manager extends Engine
     /**
      * Returns array of interfaces (real and dynamic).
      *
-     * @param bool $ignore_ppp ignore PPP interfaces
-     * @param bool $ignore_lo ignore loopback interfaces
+     * @param boolean $ignore_ppp ignore PPP interfaces
+     * @param boolean $ignore_lo  ignore loopback interfaces
+     *
      * @return array list of network devices (using ifconfig.so)
      * @throws Engine_Exception
      */
@@ -232,7 +233,7 @@ class Iface_Manager extends Engine
     /**
      * Returns detailed information on all network interfaces.
      *
-     * @returns array information on all network interfaces.
+     * @return array information on all network interfaces.
      * @throws Engine_Exception
      */
 
@@ -244,7 +245,7 @@ class Iface_Manager extends Engine
             return $this->ethinfo;
 
         $slaveif = array();
-        $ethlist = $this->get_interfaces(false, true);
+        $ethlist = $this->get_interfaces(FALSE, TRUE);
 
         foreach ($ethlist as $eth) {
 
@@ -284,7 +285,7 @@ class Iface_Manager extends Engine
         }
 
         $this->ethinfo = $ethinfo;
-        $this->is_loaded = true;
+        $this->is_loaded = TRUE;
 
         return $ethinfo;
     }
@@ -292,7 +293,7 @@ class Iface_Manager extends Engine
     /**
      * Returns an array of LAN IP addresses.
      *
-     * @returns array
+     * @return array LAN IPs
      * @throws Engine_Exception
      */
 
@@ -302,7 +303,7 @@ class Iface_Manager extends Engine
 
         $ips = array();
 
-// FIXME: test this
+        // FIXME: test this
         $role_object = new Role();
         $network = new Network();
         $iface_manager = new Iface_Manager();
@@ -383,8 +384,9 @@ class Iface_Manager extends Engine
             }
 
             // Standalone mode
-            if (($details['role'] == Role::ROLE_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask'])) &&
-                ($mode == Network::MODE_TRUSTEDSTANDALONE) || ($mode == Network::MODE_STANDALONE)) {
+            if (($details['role'] == Role::ROLE_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask']))
+                && ($mode == Network::MODE_TRUSTEDSTANDALONE) || ($mode == Network::MODE_STANDALONE)
+            ) {
                 $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
             }
@@ -418,6 +420,7 @@ class Iface_Manager extends Engine
     /**
      * Returns the external IP address
      *
+     * @return external IP address
      * @throws Engine_Exception
      */
 
@@ -425,13 +428,14 @@ class Iface_Manager extends Engine
     {
         $interface = $this->get_external_interface();
 
-        if ($interface != null)
+        if ($interface != NULL)
             return $interface['address'];
     }
 
     /**
-     * Returns the external interface
+     * Returns the external interface.
      *
+     * @return external interface
      * @throws Engine_Exception
      */
 
@@ -449,10 +453,12 @@ class Iface_Manager extends Engine
      * Returns a list of interfaces configured with the given role.
      *
      * @param boolean $exclude_virtual exclude virtual interfaces
+     *
+     * @return array list of external interfaces
      * @throws Engine_Exception
      */
 
-    public function get_external_interfaces($exclude_virtual = true)
+    public function get_external_interfaces($exclude_virtual = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 

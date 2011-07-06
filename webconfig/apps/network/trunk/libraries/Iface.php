@@ -3,13 +3,13 @@
 /**
  * Network interface class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,8 +57,8 @@ namespace clearos\apps\network;
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
@@ -94,13 +94,13 @@ clearos_load_library('network/Network_Utils');
 /**
  * Network interface class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Iface extends Engine
@@ -159,10 +159,6 @@ class Iface extends Engine
     const IFF_LOWER_UP = 0x10000;
     const IFF_DORMANT = 0x20000;
 
-    /**
-     * @var network interface name
-     */
-
     protected $iface = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -172,7 +168,7 @@ class Iface extends Engine
     /**
      * Iface constructor.
      *
-     * @param  string  $iface  the interface
+     * @param string $iface interface
      */
 
     public function __construct($iface = NULL)
@@ -193,7 +189,7 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-//        Validation_Exception::is_valid($this->validate_interface($interface));
+        // Validation_Exception::is_valid($this->validate_interface($interface));
 
         // KLUDGE: more PPPoE crap
 
@@ -230,7 +226,7 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        list($device, $metric) = split(':', $this->iface, 5);
+        list($device, $metric) = preg_split('/:/', $this->iface, 5);
 
         if (!strlen($metric))
             return;
@@ -253,6 +249,7 @@ class Iface extends Engine
      * Takes interface down.
      *
      * @param string $iface Interface name (optional)
+     *
      * @return  void
      * @throws Engine_Exception
      */
@@ -280,6 +277,7 @@ class Iface extends Engine
      * Brings interface up.
      *
      * @param boolean $background perform enable in the background
+     *
      * @return void
      * @throws Engine_Exception
      */
@@ -549,8 +547,10 @@ class Iface extends Engine
     }
 
     /**
-     * @return  string  IP of interface
-     * @throws  Engine_Exception, Engine_Exception
+     * Returns the live IP address of the interface.
+     *
+     * @return string IP of interface
+     * @throws Engine_Exception, Engine_Exception
      */
 
     public function get_live_ip()
@@ -713,8 +713,8 @@ class Iface extends Engine
                     }
                 }
 
-            // Non-wireless interfaces
-            //------------------------
+                // Non-wireless interfaces
+                //------------------------
 
             } else {
                 // PPPOEKLUDGE -- get speed from underlying PPPoE interface.  Sigh.
@@ -828,8 +828,11 @@ class Iface extends Engine
     }
 
     /**
+     * Returns type text.
+     *
      * @deprecated
      * @see get_type_text
+     * @return string type text
      */
 
     public function get_type_name()
@@ -880,6 +883,7 @@ class Iface extends Engine
      * If MAC address is empty, the MAC address for live network interface is configured.
      *
      * @param string $mac MAC address
+     *
      * @return void
      * @throws Engine_Exception
      */
@@ -911,7 +915,8 @@ class Iface extends Engine
     /**
      * Sets network MTU.
      *
-     * @param int mtu Interface MTU
+     * @param integer $mtu interface network MTU
+     *
      * @return void
      * @throws Engine_Exception
      */
@@ -995,8 +1000,10 @@ class Iface extends Engine
     /**
      * Writes interface configuration file.
      *
-     * @return  boolean TRUE if write succeeds
-     * @throws  Engine_Exception
+     * @param array $netinfo network information
+     *
+     * @return boolean TRUE if write succeeds
+     * @throws Engine_Exception
      */
 
     public function write_config($netinfo)
@@ -1009,9 +1016,9 @@ class Iface extends Engine
             if ($file->exists())
                 $file->delete();
 
-            $file->Create('root', 'root', '0600');
+            $file->create('root', 'root', '0600');
 
-            foreach($netinfo as $key => $value) {
+            foreach ($netinfo as $key => $value) {
                 // The underlying network scripts do not like quotes on DEVICE
                 if ($key == 'DEVICE')
                     $file->add_lines(strtoupper($key) . '=' . $value . "\n");
@@ -1029,12 +1036,14 @@ class Iface extends Engine
     /**
      * Creates a PPPoE configuration.
      *
-     * @param  string  $eth  ethernet interface to use
-     * @param  string  $username  username
-     * @param  string  $password  password
-     * @param  integer  $mtu  MTU
-     * @returns string New/current PPPoE interface name
-     * @throws  Engine_Exception
+     * @param string  $eth      ethernet interface to use
+     * @param string  $username username
+     * @param string  $password password
+     * @param integer $mtu      MTU
+     * @param boolean $peerdns  set DNS servers
+     *
+     * @return string New/current PPPoE interface name
+     * @throws Engine_Exception
      */
 
     public function save_pppoe_config($eth, $username, $password, $mtu = NULL, $peerdns = TRUE)
@@ -1134,14 +1143,15 @@ class Iface extends Engine
     /**
      * Creates a standard ethernet configuration.
      *
-     * @param  string  $isdhcp  set to TRUE if DHCP
-     * @param  boolean $peerdns set to TRUE if you want to use the DHCP peer DNS settings
-     * @param  string  $ip  IP address (for static only)
-     * @param  string  $netmask  netmask (for static only)
-     * @param  string  $gateway  gate (for static only)
-     * @param  string  $hostname optional DHCP hostname (for DHCP only)
-     * @param  boolean $gateway_required flag if gateway setting is required
-     * @returns void
+     * @param string  $isdhcp           set to TRUE if DHCP
+     * @param string  $ip               IP address (for static only)
+     * @param string  $netmask          netmask (for static only)
+     * @param string  $gateway          gate (for static only)
+     * @param string  $hostname         optional DHCP hostname (for DHCP only)
+     * @param boolean $peerdns          set to TRUE if you want to use the DHCP peer DNS settings
+     * @param boolean $gateway_required flag if gateway setting is required
+     *
+     * @return void
      * @throws  Engine_Exception
      */
 
@@ -1172,9 +1182,9 @@ class Iface extends Engine
                 if ($gateway_required) {
                     $this->AddValidationError(NETWORK_LANG_GATEWAY . ' - ' . LOCALE_LANG_MISSING, __METHOD__, __LINE__);
                         $isvalid = FALSE;
-                    }
                 }
             }
+        }
 
         if (! $isvalid)
             throw new ValidationException(LOCALE_LANG_INVALID);
@@ -1216,10 +1226,11 @@ class Iface extends Engine
     /**
      * Creates a virtual ethernet configuration.
      *
-     * @param  string  $ip  IP address
-     * @param  string  $ip  IP address
-     * @returns  string  name of virtual interface
-     * @throws  Engine_Exception, Engine_Exception
+     * @param string $ip      IP address
+     * @param string $netmask netmask
+     *
+     * @return string  name of virtual interface
+     * @throws Engine_Exception, Engine_Exception
      */
 
     public function save_virtual_config($ip, $netmask)
@@ -1243,7 +1254,7 @@ class Iface extends Engine
             throw new ValidationException(LOCALE_LANG_INVALID);
 
         try {
-            list($device, $metric) = split('\:', $this->iface, 5);
+            list($device, $metric) = preg_split('/:/', $this->iface, 5);
 
             if (! strlen($metric)) {
                 // Find next free virtual metric
@@ -1279,17 +1290,18 @@ class Iface extends Engine
     /**
      * Create a wireless network configuration.
      *
-     * @param  string  $isdhcp  set to TRUE if DHCP
-     * @param  string  $ip  IP address (for static only)
-     * @param  string  $netmask  netmask (for static only)
-     * @param  string  $gateway  gateway (for static only)
-     * @param  string  $essid  ESSID
-     * @param  string  $channel  channel
-     * @param  string  $mode  mode
-     * @param  string  $key  key
-     * @param  string  $rate  rate
-     * @param  boolean $peerdns set to TRUE if you want to use the DHCP peer DNS settings
-     * @returns void
+     * @param string  $isdhcp  set to TRUE if DHCP
+     * @param string  $ip      IP address (for static only)
+     * @param string  $netmask netmask (for static only)
+     * @param string  $gateway gateway (for static only)
+     * @param string  $essid   ESSID
+     * @param string  $channel channel
+     * @param string  $mode    mode
+     * @param string  $key     key
+     * @param string  $rate    rate
+     * @param boolean $peerdns set to TRUE if you want to use the DHCP peer DNS settings
+     *
+     * @return void
      * @throws  Engine_Exception, Engine_Exception
      */
 
@@ -1423,14 +1435,13 @@ class Iface extends Engine
 
         // PPPoE interfaces are configurable, bug only if they already configured.
 
-        if (
-            preg_match('/^eth/', $this->iface) ||
-            preg_match('/^wlan/', $this->iface) ||
-            preg_match('/^ath/', $this->iface) ||
-            preg_match('/^br/', $this->iface) ||
-            preg_match('/^bond/', $this->iface) ||
-            (preg_match('/^ppp/', $this->iface) && $this->is_configured())
-            ) {
+        if (preg_match('/^eth/', $this->iface)
+            || preg_match('/^wlan/', $this->iface)
+            || preg_match('/^ath/', $this->iface)
+            || preg_match('/^br/', $this->iface) 
+            || preg_match('/^bond/', $this->iface)
+            || (preg_match('/^ppp/', $this->iface) && $this->is_configured())
+        ) {
             return TRUE;
         } else {
             return FALSE;

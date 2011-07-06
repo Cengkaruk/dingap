@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2002-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ clearos_load_library('network/Ethers_Already_Exists_Exception');
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2002-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
 class Ethers extends Engine
