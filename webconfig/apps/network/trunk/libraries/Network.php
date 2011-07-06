@@ -131,52 +131,53 @@ class Network extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$config = new File(self::FILE_CONFIG);
-			$retval = $config->lookup_value('/^MODE=/');
-		} catch (File_No_Match_Exception $e) {
+        try {
+            $config = new File(self::FILE_CONFIG);
+            $retval = $config->lookup_value('/^MODE=/');
+        } catch (File_No_Match_Exception $e) {
             return self::MODE_TRUSTED_STANDALONE;
-		} catch (File_Not_Found_Exception $e) {
+        } catch (File_Not_Found_Exception $e) {
             return self::MODE_TRUSTED_STANDALONE;
-		} catch (Exception $e) {
-			throw new Engine_Exception($e->get_message());
-		}
+        } catch (Exception $e) {
+            throw new Engine_Exception($e->get_message());
+        }
 
-		$retval = preg_replace('/"/', '', $retval);
-		$retval = preg_replace('/\s.*/', '', $retval);
+        $retval = preg_replace('/"/', '', $retval);
+        $retval = preg_replace('/\s.*/', '', $retval);
 
         try {
             Validation_Exception::is_valid($this->validate_mode($retval));
         } catch (Exception $e) {
-		    $retval = self::MODE_TRUSTED_STANDALONE;
+            $retval = self::MODE_TRUSTED_STANDALONE;
         }
 
         return $retval;
     }
 
-	/**
-	 * Set network mode.
-	 *
-	 * @param string mode Network mode
-	 * @return void
-	 * @throws Exception, Validation_Exception
-	 */
+    /**
+     * Set network mode.
+     *
+     * @param string $mode Network mode
+     *
+     * @return void
+     * @throws Exception, Validation_Exception
+     */
 
-	public function set_mode($mode)
-	{
+    public function set_mode($mode)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_mode($mode));
 
-		try {
-		    $config = new File(self::FILE_CONFIG);
-			$match = $config->replace_lines("/^MODE=/", "MODE=\"$mode\"\n");
-			if (! $match)
-				$config->add_lines_after("MODE=\"$mode\"\n", '/^[^#]/');
-		} catch (Exception $e) {
-			throw new Engine_Exception($e->get_message());
-		}
-	}
+        try {
+            $config = new File(self::FILE_CONFIG);
+            $match = $config->replace_lines("/^MODE=/", "MODE=\"$mode\"\n");
+            if (! $match)
+                $config->add_lines_after("MODE=\"$mode\"\n", '/^[^#]/');
+        } catch (Exception $e) {
+            throw new Engine_Exception($e->get_message());
+        }
+    }
 
     /**
      * Return an array of all network modes.
@@ -187,13 +188,15 @@ class Network extends Engine
     public function get_modes()
     {
         $modes = array();
+
         $modes[self::MODE_AUTO] = lang('network_mode_auto');
-		$modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
-		$modes[self::MODE_TRUSTED_GATEWAY] = lang('network_mode_trustedgateway');
-		$modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
-		$modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
-		$modes[self::MODE_DMZ] = lang('network_mode_dmz');
-		$modes[self::MODE_BRIDGE] = lang('network_mode_bridge');
+        $modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
+        $modes[self::MODE_TRUSTED_GATEWAY] = lang('network_mode_trustedgateway');
+        $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
+        $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
+        $modes[self::MODE_DMZ] = lang('network_mode_dmz');
+        $modes[self::MODE_BRIDGE] = lang('network_mode_bridge');
+
         return $modes;
     }
 
@@ -213,17 +216,16 @@ class Network extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		switch ($mode)
-		{
-		case self::MODE_AUTO:
-		case self::MODE_GATEWAY:
-		case self::MODE_TRUSTED_GATEWAY:
-		case self::MODE_STANDALONE:
-		case self::MODE_TRUSTED_STANDALONE:
-		case self::MODE_DMZ:
-		case self::MODE_BRIDGE:
-            return '';
-		}
+        switch ($mode) {
+            case self::MODE_AUTO:
+            case self::MODE_GATEWAY:
+            case self::MODE_TRUSTED_GATEWAY:
+            case self::MODE_STANDALONE:
+            case self::MODE_TRUSTED_STANDALONE:
+            case self::MODE_DMZ:
+            case self::MODE_BRIDGE:
+                return '';
+        }
 
         return lang('network_mode_invalid');
     }

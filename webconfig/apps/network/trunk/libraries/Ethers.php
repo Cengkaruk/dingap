@@ -3,13 +3,13 @@
 /**
  * Ethers class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,8 +39,8 @@ namespace clearos\apps\network;
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
@@ -84,13 +84,13 @@ clearos_load_library('network/Ethers_Already_Exists_Exception');
 /**
  * Ethers class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 class Ethers extends Engine
@@ -119,18 +119,19 @@ class Ethers extends Engine
     /**
      * Create a new /etc/ethers file.
      *
-     * @param   boolean $force delete the existing file if true
-     * @return  void
-     * @throws  Exception
+     * @param boolean $force delete the existing file if TRUE
+     *
+     * @return void
+     * @throws Exception
      */
 
-    public function reset_ethers($force = false)
+    public function reset_ethers($force = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $file = new File(self::FILE_CONFIG);
 
-        if ($force == true) {
+        if ($force == TRUE) {
             if ($file->exists())
                 $file->delete();
         }
@@ -149,10 +150,11 @@ class Ethers extends Engine
     /**
      * Add a MAC/IP pair to the /etc/ethers file.
      *
-     * @param   string $mac   MAC address
-     * @param   string $ip    IP address
-     * @return  void
-     * @throws  Exception, Validation_Exception, Ethers_Already_Exists_Exception
+     * @param string $mac MAC address
+     * @param string $ip  IP address
+     *
+     * @return void
+     * @throws Exception, Validation_Exception, Ethers_Already_Exists_Exception
      */
 
     public function add_ether($mac, $ip)
@@ -185,9 +187,10 @@ class Ethers extends Engine
     /**
      * Delete a MAC/HOSTNAME pair from the /etc/ethers file.
      *
-     * @param   string $mac MAC address
-     * @return  void
-     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
+     * @param string $mac MAC address
+     *
+     * @return void
+     * @throws Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
 
     public function delete_ether($mac)
@@ -202,11 +205,11 @@ class Ethers extends Engine
         $file = new File(self::FILE_CONFIG);
         $contents = $file->get_contents_as_array();
 
-        $write_out = false;
+        $write_out = FALSE;
         foreach ($contents as $key => $line) {
             if (preg_match("/$mac/", $line)) {
                 unset($contents[$key]);
-                $write_out = true;
+                $write_out = TRUE;
                 break;
             }
         }
@@ -220,9 +223,10 @@ class Ethers extends Engine
     /**
      * Returns the hostname for the given MAC address.
      *
-     * @param   string $mac MAC address
-     * @return  string hostname
-     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
+     * @param string $mac MAC address
+     *
+     * @return string hostname
+     * @throws Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
 
     public function get_hostname_by_mac($mac)
@@ -250,9 +254,10 @@ class Ethers extends Engine
     /**
      * Returns the MAC address for the given hostname.
      *
-     * @param   string $hostname hostname
-     * @return  string MAC address if found
-     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
+     * @param string $hostname hostname
+     *
+     * @return string MAC address if found
+     * @throws Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
 
     public function get_mac_by_hostname($hostname)
@@ -296,7 +301,7 @@ class Ethers extends Engine
         $contents = $file->get_contents_as_array();
 
         if (! is_array($contents)) {
-            $this->reset_ethers(true);
+            $this->reset_ethers(TRUE);
             $contents = $file->get_contents_as_array();
             if (! is_array($contents))
                 $contents = array();
@@ -328,33 +333,31 @@ class Ethers extends Engine
     /**
      * Updates hostname for a given MAC address.
      *
-     * @param   string $mac MAC address
-     * @param   string $hostname hostname
-     * @return  void
-     * @throws  Exception, Validation_Exception, Ethers_Not_Found_Exception
+     * @param string $mac      MAC address
+     * @param string $hostname hostname
+     *
+     * @return void
+     * @throws Exception, Validation_Exception, Ethers_Not_Found_Exception
      */
     
     public function update_ether($mac, $hostname)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (Network_Utils::is_valid_mac($mac) === FALSE) {
-            throw new Validation_Exception(
-                lang('network_mac_address_invalid'), CLEAROS_ERROR);
-        }
-        if (Network_Utils::is_valid_hostname($hostname) === FALSE) {
-            throw new Validation_Exception(
-                lang('network_hostname_invalid'), CLEAROS_ERROR);
-        }
+        if (Network_Utils::is_valid_mac($mac) === FALSE)
+            throw new Validation_Exception(lang('network_mac_address_invalid'));
+       
+        if (Network_Utils::is_valid_hostname($hostname) === FALSE)
+            throw new Validation_Exception(lang('network_hostname_invalid'));
 
         $file = new File(self::FILE_CONFIG);
         $contents = $file->get_contents_as_array();
 
-        $write_out = false;
+        $write_out = FALSE;
         foreach ($contents as $key => $line) {
             if (preg_match("/$mac/", $line)) {
                 $contents[$key] = "$mac $hostname";
-                $write_out = true;
+                $write_out = TRUE;
                 break;
             }
         }

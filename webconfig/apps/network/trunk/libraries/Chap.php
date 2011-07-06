@@ -3,13 +3,13 @@
 /**
  * CHAP/PAP secrets configuration class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,8 +39,8 @@ namespace clearos\apps\network;
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = isset($_ENV['CLEAROS_BOOTSTRAP']) ? $_ENV['CLEAROS_BOOTSTRAP'] : '/usr/clearos/framework/shared';
-require_once($bootstrap . '/bootstrap.php');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // T R A N S L A T I O N S
@@ -75,13 +75,13 @@ clearos_load_library('base/Engine_Exception');
 /**
  * CHAP/PAP secrets configuration class.
  *
- * @category    Apps
- * @package     Network
- * @subpackage  Libraries
- * @author      {@link http://www.clearfoundation.com/ ClearFoundation}
- * @copyright   Copyright 2002-2010 ClearFoundation
- * @license     http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link        http://www.clearfoundation.com/docs/developer/apps/network/
+ * @category   Apps
+ * @package    Network
+ * @subpackage Libraries
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2002-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/date/
  */
 
 class Chap extends Engine
@@ -106,7 +106,7 @@ class Chap extends Engine
     /**
      * @var configuration loaded flag
      */
-    protected $is_loaded = false;
+    protected $is_loaded = FALSE;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -124,13 +124,14 @@ class Chap extends Engine
     /**
      * Sets a username/password in the CHAP/PAP secrets file.
      *
-     * @param       string $username  username
-     * @param       string $password  password
-     * @param       string $server    server name
-     * @param       string $ip        IP address
-     * @deprecated  deprecated since framework version 6.0, use add_secret() instead.
-     * @return      void
-     * @throws      Exception
+     * @param string $username username
+     * @param string $password password
+     * @param string $server   server name
+     * @param string $ip       IP address
+     *
+     * @deprecated deprecated since framework version 6.0, use add_secret() instead.
+     * @return     void
+     * @throws     Exception
      */
 
     public function add_user($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
@@ -143,12 +144,13 @@ class Chap extends Engine
     /**
      * Add a secret to the CHAP/PAP secrets file.
      *
-     * @param   string $username  username
-     * @param   string $password  password
-     * @param   string $server    server name
-     * @param   string $ip        IP address
-     * @return  void
-     * @throws  Exception
+     * @param string $username username
+     * @param string $password password
+     * @param string $server   server name
+     * @param string $ip       IP address
+     *
+     * @return void
+     * @throws Exception
      */
 
     public function add_secret($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
@@ -172,9 +174,10 @@ class Chap extends Engine
     /**
      * Deletes a username from the CHAP/PAP secrets file. 
      * 
-     * @param       string $username username
-     * @deprecated  deprecated since framework version 6.0, use delete_secret() instead.
-     * @return      void
+     * @param string $username username
+     *
+     * @deprecated deprecated since framework version 6.0, use delete_secret() instead.
+     * @return void
      */
 
     public function delete_user($username)
@@ -187,7 +190,8 @@ class Chap extends Engine
     /**
      * Deletes a secret from the CHAP/PAP secrets file. 
      * 
-     * @param   string $username username
+     * @param string $username username
+     *
      * @return  void
      */
 
@@ -249,11 +253,11 @@ class Chap extends Engine
      * @throws Exception
      */
 
-    private function _load()
+    protected function _load()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->loaded = false;
+        $this->loaded = FALSE;
         $this->secrets = array();
 
         $file = new File(self::FILE_SECRETS_CHAP);
@@ -278,29 +282,31 @@ class Chap extends Engine
             $linecount++;
         }
 
-        $this->loaded = true;
+        $this->loaded = TRUE;
     }
 
     /**
      * Saves local array to CHAP/PAP secrets file.
      *
-     * @access  private
-     * @returns void
-     * @throws  Exception
+     * @access private
+     * @return void
+     * @throws Exception
      */
 
-    private function _save()
+    protected function _save()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $filedata = '';
-        $this->loaded = false;
+
+        $this->loaded = FALSE;
 
         foreach ($this->secrets as $username => $value) {
             if (isset($this->secrets[$username]['linestate'])
-                && ($this->secrets[$username]['linestate'] == self::LINE_DELETE))
+                && ($this->secrets[$username]['linestate'] == self::LINE_DELETE)
+            ) {
                 continue;
-            else {
+            } else {
                 $filedata .= $this->_format_line(
                     $username, 
                     $this->secrets[$username]['password'],
@@ -331,15 +337,16 @@ class Chap extends Engine
     /**
      * Returns the line entry with the proper formatting.
      *
-     * @access  private
-     * @param   string $username    username
-     * @param   string $password    password
-     * @param   string $server      server name
-     * @param   string $ip          IP address
-     * @return  string              formatted CHAP/PAP line
+     * @param string $username username
+     * @param string $password password
+     * @param string $server   server name
+     * @param string $ip       IP address
+     *
+     * @access private
+     * @return string formatted CHAP/PAP line
      */
 
-    private function _format_line($username, $password, $server, $ip)
+    protected function _format_line($username, $password, $server, $ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 

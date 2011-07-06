@@ -77,8 +77,8 @@ class Ethers_Already_Exists_Exception extends Engine_Exception
     /**
      * Ethers_Already_Exists_Exception constructor.
      *
-     * @param string $what      MAC address or hostname
-     * @param int    $code      error code
+     * @param string  $what MAC address or hostname
+     * @param integer $code error code
      */
 
     public function __construct($what, $code)
