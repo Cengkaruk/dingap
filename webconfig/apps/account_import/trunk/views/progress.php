@@ -37,10 +37,9 @@ $this->lang->load('base');
 $this->lang->load('account_import');
 
 echo "<h2>" . lang('account_import_progress') . "</h2>";
-echo "<br>";
 echo progress_bar('progress', array('input' => 'progress'));
-echo "<br>";
-echo "<div id='msg'></div>";
+echo "<h2>" . lang('account_import_import_summary') . "</h2>";
+echo "<div id='summary'></div>";
 
 echo "<script type='text/javascript'>";
 echo "get_progress();";

@@ -69,6 +69,10 @@ class Account_Import extends ClearOS_Controller
         $this->load->library('account_import/Account_Import');
         $this->lang->load('account_import');
 
+        if ($this->account_import->is_import_in_progress()) {
+            redirect('/account_import/progress');
+            return;
+        }
         $data['import_ready'] = $this->account_import->is_csv_file_uploaded();
 
         if ($data['import_ready']) {

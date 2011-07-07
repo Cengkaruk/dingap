@@ -30,7 +30,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#putenv('CLEAROS_BOOTSTRAP=/home/benjamin/clearos/webconfig/framework/trunk/shared');
+putenv('CLEAROS_BOOTSTRAP=/home/benjamin/clearos/webconfig/framework/trunk/shared');
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -104,32 +104,21 @@ if ($help) {
 }
 
 try {
-
     // Initialize status
     $status = new File(CLEAROS_TEMP_DIR . "/" . Account_Import::FILE_STATUS, FALSE);
 
     if ($account_import->is_import_in_progress() && $output == 'stdout') {
-        echo "Account import is already in progress.\n";
+        update_status(0, 0, lang('account_import_already_in_progress'));
         exit(0);
     } else if (!$account_import->is_import_in_progress()) {
         if ($status->exists())
             $status->delete();
-        $status->create('webconfig', 'webconfig', 0644);
+        $status->create('webconfig', 'webconfig', 644);
     }
 
     import();
 } catch (Exception $e) {
-    if ($output == 'stdout') {
-        echo "Error..." . clearos_exception_message($e) . "\n";
-    } else {
-        $info = array (
-            'code' => -1,
-            'timestamp' => time(),
-            'progress' => 0,
-            'msg' =>clearos_exception_message($e)
-        );
-        $status->add_lines(json_encode($info) . "\n"); 
-    }
+    update_status(-1, 0, clearos_exception_message($e));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,19 +135,8 @@ function import()
     // Grab CSV file to see how many users we're adding
     $total = count(file($filename)) - 1;
     if ($total <= 0) {
-        if ($output == 'stdout') {
-            echo lang('account_import_zero_entries') . "\n";
-            exit(-1);
-        } else {
-            $info = array (
-                'code' => -1,
-                'timestamp' => time(),
-                'progress' => $index,
-                'msg' => lang('account_import_zero_entries')
-            );
-            $status->add_lines(json_encode($info) . "\n"); 
-            return;
-        }
+       update_status(-1, 0, lang('account_import_zero_entries'));
+       return;
     }
     if (($handle = fopen($filename, "r")) !== FALSE) {
         $is_header = TRUE;
@@ -179,38 +157,40 @@ function import()
                 else
                     $user_info[$user_fields[0]][$user_fields[1]][$user_fields[2]] = $data[$counter];
             }
-            //print_r($user_info);
-            $msg = lang('account_import_in_progress') . ' ' . $user_info['core']['username'] . '.';
-            $info = array (
-                'code' => 0,
-                'timestamp' => time(),
-                'progress' => $user_no / $total,
-                'msg' => $msg
-            );
-            if ($output == 'stdout')
-                echo $msg . "\n";
-            else
-                $status->add_lines(json_encode($info) . "\n"); 
+            $msg = lang('account_import_currently_importing') . ' ' . $user_info['core']['username'] . '.';
+            update_status(0, $user_no / $total * 100, $msg);
             $user = User_Factory::create($user_info['core']['username']);
             try {
                 $user->add($user_info, $user_info['core']['password']);
+                $user_no++;
             } catch (Exception $e) {
                 // Remove period and add some info about user
                 $msg = preg_replace("/\\.$/", "", clearos_exception_message($e)) . ' (' . $user_info['core']['username'] . ').';
-                $info = array (
-                    'code' => 0,
-                    'timestamp' => time(),
-                    'progress' => $user_no / $total,
-                    'msg' => $msg
-                );
-                if ($output == 'stdout')
-                    echo $msg . "\n";
-                else
-                    $status->add_lines(json_encode($info) . "\n"); 
+                $user_no++;
+                update_status(1, $user_no / $total * 100, $msg);
             }
         }
     }
+
+    update_status(100, 100, lang('account_import_complete'));
     fclose($handle);
 }
 
+function update_status($code, $progress, $msg)
+{
+    global $status;
+    global $output;
+    sleep(1);
+    if ($output == 'stdout') {
+        echo $msg . "\n";
+    } else {
+        $info = array (
+            'code' => $code,
+            'timestamp' => time(),
+            'progress' => $progress,
+            'msg' => $msg
+        );
+        $status->add_lines(json_encode($info) . "\n"); 
+    }
+}
 // vim: syntax=php

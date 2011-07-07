@@ -176,10 +176,10 @@ class Account_Import extends Engine
     }
 
     /**
-     * Returns int indicating progress of import currently running.
+     * Returns JSON-encoded data indicating progress of import currently running.
      *
-     * @return int
-     * @throws Engine_Exception, File_Not_Found_Exception
+     * @return String
+     * @throws Engine_Exception
      */
 
     function get_progress()
@@ -188,10 +188,13 @@ class Account_Import extends Engine
 
         try {
             $file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_STATUS, FALSE);
-            if (!$file->exists())
-                throw new Engine_Exception(lang('account_import_progress_unknown'), CLEAROS_WARNING);
+            if (!$file->exists()) {
+                $status = array();
+                $status[] = json_encode(array ('code' => 0, 'msg' => lang('account_import_initializing'), 'progress' => 0));
+                return $status;
+            }
             $contents = $file->get_contents_as_array();
-            return end($contents);
+            return $contents;
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -293,7 +296,8 @@ class Account_Import extends Engine
             $options = array();
             $options['background'] = TRUE;
             $shell = new Shell();
-            $shell->execute(self::COMMAND_IMPORT, '', FALSE, $options);
+            $shell->execute(self::COMMAND_IMPORT, '', TRUE, $options);
+        clearos_profile(__METHOD__, __LINE__, 'WATCHME ' . serialize($shell->get_output()));
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }

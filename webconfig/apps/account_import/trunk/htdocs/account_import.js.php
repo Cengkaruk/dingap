@@ -50,21 +50,33 @@ function get_progress() {
         url: '/app/account_import/ajax/get_progress',
         data: '',
         success: function(json) {
-            if (json.code != 0) {
+            if (json == undefined || json.code == null) {
+                    $('#progress').progressbar({
+                        value: 0
+                    });
+                    window.setTimeout(get_progress, 1000);
+                    return;
+            }
+                
+            if (json.code < 0) {
                 clearos_alert('errmsg', json.errmsg);
             } else {
-                $('#msg').html(json.msg);
+                $('#summary').html('');
+                for (var i = 0; i < json.summary.length; i++)
+                    $('#summary').prepend('<div>' + json.summary[i] + '</div>');
                 $('#progress').progressbar({
                     value: Math.round(json.progress)
                 });
-                window.setTimeout(get_progress, 2000);
+                // 100 code means end of import
+                if (json.code != 100)
+                    window.setTimeout(get_progress, 1000);
             }
         },
         error: function(xhr, text, err) {
             // Don't display any errors if ajax request was aborted due to page redirect/reload
-            if (obj['abort'] == null)
+            if (xhr['abort'] == undefined)
                 clearos_alert('errmsg', xhr.responseText.toString());
-            window.setTimeout(get_progress, 2000);
+            window.setTimeout(get_progress, 1000);
         }
     });
 }
