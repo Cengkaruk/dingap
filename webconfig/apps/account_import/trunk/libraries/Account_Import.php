@@ -211,65 +211,7 @@ class Account_Import extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $hostname = new Hostname();
-            $filename = $hostname->get() . '.csv';
-            $file = new File(CLEAROS_TEMP_DIR . "/" . $filename, FALSE);
-
-            if ($file->exists())
-                $file->delete();
-            $file->create("webconfig", "webconfig", 640);
-            $file->add_lines("username,firstName,lastName,password,street,roomNumber,city,region," .
-                "country,postalCode,organization,unit,telephone,fax,mailFlag,mailquota," .
-                "proxyFlag,openvpnFlag,pptpFlag,sambaFlag,ftpFlag,webFlag,pbxState,pbxPresenceState,pbxExtension,groups" .
-                "\n"
-            );
-            $usermanager = new User_Manager();
-            $groupmanager = new Group_Manager();
-            $userlist = $usermanager->get_all_users();
-            $groups = $groupmanager->get_group_list();
-            foreach ($userlist as $username) {
-                // Reset group list
-                $grouplist = '';
-                $user = new User($username);
-                $userinfo = $user->get_info();
-                foreach ($groups as $group) {
-                    if (in_array($username, $group['members']))
-                        $grouplist .= $group['group'] . ',';
-                }
-
-                $grouplist = preg_replace('/(.*),$/', '${1}', $grouplist);
-                
-                $file->add_lines(
-                    "\"$username\"," .
-                    "\"" . $userinfo['firstName'] . "\"," .
-                    "\"" . $userinfo['lastName'] . "\"," .
-                    "\"\"," . // Password blank for now
-                    "\"" . $userinfo['street'] . "\"," .
-                    "\"" . $userinfo['roomNumber'] . "\"," .
-                    "\"" . $userinfo['city'] . "\"," .
-                    "\"" . $userinfo['region'] . "\"," .
-                    "\"" . $userinfo['country'] . "\"," .
-                    "\"" . $userinfo['postalCode'] . "\"," .
-                    "\"" . $userinfo['organization'] . "\"," .
-                    "\"" . $userinfo['unit'] . "\"," .
-                    "\"" . $userinfo['telephone'] . "\"," .
-                    "\"" . $userinfo['fax'] . "\"," .
-                    ((isset($userinfo['mailFlag']) && $userinfo['mailFlag']) ? "TRUE" : "FALSE") . "," .
-                    "\"" . $userinfo['mailquota'] . "\"," .
-                    ((isset($userinfo['proxyFlag']) && $userinfo['proxyFlag']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['openvpnFlag']) && $userinfo['openvpnFlag']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['pptpFlag']) && $userinfo['pptpFlag']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['sambaFlag']) && $userinfo['sambaFlag']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['ftpFlag']) && $userinfo['ftpFlag']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['webFlag']) && $userinfo['webFlag']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['pbxState']) && $userinfo['pbxState']) ? "TRUE" : "FALSE") . "," .
-                    ((isset($userinfo['pbxPresenceState']) && $userinfo['pbxPresenceState']) ? "TRUE" : "FALSE") . "," .
-                    "\"" . $userinfo['pbxExtension'] . "\"," .
-                    "\"" . $grouplist . "\"" .
-                    "\n"
-                );
-            }
-            return $filename;
+            // TODO
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -297,7 +239,6 @@ class Account_Import extends Engine
             $options['background'] = TRUE;
             $shell = new Shell();
             $shell->execute(self::COMMAND_IMPORT, '', TRUE, $options);
-        clearos_profile(__METHOD__, __LINE__, 'WATCHME ' . serialize($shell->get_output()));
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -413,72 +354,9 @@ class Account_Import extends Engine
             $file = new File(self::FOLDER_ACCOUNT_IMPORT . '/' . self::FILE_CSV, TRUE);
             if (!$file->exists())
                 throw new File_Not_Found_Exception(lang('account_import_csv_not_uploaded'), CLEAROS_ERROR);
-            $csv = new File_CSV_DataSource();
-            $csv->load(self::FOLDER_ACCOUNT_IMPORT . '/' . self::FILE_CSV);
-            return $csv->countRows();
+            return count($file->get_contents_as_array()) - 1;
         } catch (File_Not_Found_Exception $e) {
             throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-    }
-
-    /**
-     * Add a user.
-     *
-     * @param array $userinfo array of user info
-     * @throws User_Already_Exists_Exception Validation_Exception
-     */
-
-    function add_user($userinfo)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $this->_convert_flags($userinfo);
-
-            // Need to pop a few variables into place
-            $username = strtolower($userinfo['username']);
-            unset($userinfo['username']);
-            // Add password verification
-            $userinfo['verify'] = $userinfo['password'];
-            $userinfo['webconfigFlag'] = TRUE;
-            $user = new User($username);
-
-            try {
-                $user->Add($userinfo);
-            } catch (User_Already_Exists_Exception $e) {
-                throw new User_Already_Exists_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-            } catch (Exception $e) {
-                $errors = $user->get_validation_errors();
-                throw new Validation_Exception($errors[0]);
-            }
-
-        } catch (User_Already_Exists_Exception $e) {
-            throw new User_Already_Exists_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        } catch (Exception $e) {
-            throw new Validation_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-    }
-
-    /**
-     * Add a user to a group.
-     *
-     * @param string $username username
-     * @param string $group    group
-     * @throws Engine_Exception, Group_Not_Found_Exception
-     */
-
-    function add_user_to_group($username, $group)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // We do this on a group by group basis so we can log individual errors
-        try {
-            $group = new Group($group);
-            $group->add_member($username);
-        } catch (Group_Not_Found_Exception $e) {
-            throw new Group_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -487,46 +365,6 @@ class Account_Import extends Engine
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-    * Loads configuration files.
-    *
-    * @param array $userinfo array of user info
-    * @return void
-    * @throws Engine_Exception
-    */
-
-    protected function _convert_flags(&$userinfo)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Convert empty strings to null
-        foreach ($userinfo as $key => $value) {
-            if (empty($value))
-                $userinfo[$key] = NULL;
-        }
-
-        // Convert to booleans
-        $attribute_list = array(
-            'ftpFlag',
-            'mailFlag',
-            'openvpnFlag',
-            'pptpFlag',
-            'sambaFlag',
-            'webFlag',
-            'webconfigFlag',
-            'proxyFlag',
-            'pbxState',
-            'pbxPresenceState'
-        );
-
-        foreach ($attribute_list as $attribute) {
-            if (isset($userinfo[$attribute]) && $userinfo[$attribute] && !eregi('FALSE|no', $userinfo[$attribute]))
-                $userinfo[$attribute] = TRUE;
-            else
-                $userinfo[$attribute] = FALSE;
-        }
-    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S

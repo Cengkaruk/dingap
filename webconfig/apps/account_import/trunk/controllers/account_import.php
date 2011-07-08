@@ -78,7 +78,7 @@ class Account_Import extends ClearOS_Controller
         if ($data['import_ready']) {
             $data['filename'] = IMPORT::FILE_CSV;
             $data['size'] = byte_format($this->account_import->get_csv_size(), 1);
-            //$data['number_of_records'] = $this->account_import->get_number_of_records();
+            $data['number_of_records'] = $this->account_import->get_number_of_records();
         }
 
         // Load views

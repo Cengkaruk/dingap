@@ -104,7 +104,7 @@ class Upload extends ClearOS_Controller
             $data['filename'] = $upload['file_name'];
             $data['import_ready'] = TRUE;
             $data['size'] = byte_format($this->account_import->get_csv_size(), 1);
-//            $data['number_of_records'] = $this->account_import->get_number_of_records();
+            $data['number_of_records'] = $this->account_import->get_number_of_records();
         }
         $this->page->view_form('overview', $data, lang('account_import_account_import'));
     }

@@ -11,17 +11,21 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('account_import_policies_app_summary');
+$app['summary'] = lang('account_import_app_summary');
 $app['description'] = lang('account_import_app_long_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Account Import/Export';
+$app['name'] = lang('account_import_account_import');
 $app['category'] = lang('base_category_system');
-$app['subcategory'] = 'Accounts Manager';
+$app['subcategory'] = lang('base_subcategory_accounts_manager');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
+
+$app['requires'] = array(
+    'app-users',
+);

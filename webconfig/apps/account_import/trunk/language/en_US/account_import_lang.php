@@ -1,6 +1,6 @@
 <?php
 
-$lang['account_import_import_export'] = 'Account Import/Export';
+$lang['account_import_account_import'] = 'Account Import/Export';
 $lang['account_import_added'] = 'Record added.';
 $lang['account_import_users'] = 'Import Users';
 $lang['account_import_duplicate_user'] = 'duplicate username and/or full name';
@@ -24,3 +24,4 @@ $lang['account_import_complete'] = 'Import complete.';
 $lang['account_import_currently_importing'] = 'Importing user';
 $lang['account_import_progress_unknown'] = 'Import progress unknown.';
 $lang['account_import_import_summary'] = 'Import Summary';
+$lang['account_import_app_long_description'] = 'Perform bulk import of users to the system using the Account Import/Export app.';

@@ -30,7 +30,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-putenv('CLEAROS_BOOTSTRAP=/home/benjamin/clearos/webconfig/framework/trunk/shared');
+//TODO Devel environment requirement
+//putenv('CLEAROS_BOOTSTRAP=/home/benjamin/clearos/webconfig/framework/trunk/shared');
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -180,7 +181,6 @@ function update_status($code, $progress, $msg)
 {
     global $status;
     global $output;
-    sleep(1);
     if ($output == 'stdout') {
         echo $msg . "\n";
     } else {
@@ -192,5 +192,7 @@ function update_status($code, $progress, $msg)
         );
         $status->add_lines(json_encode($info) . "\n"); 
     }
+    // TODO - REMOVEME
+    sleep(1);
 }
 // vim: syntax=php
