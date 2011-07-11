@@ -3,4 +3,4 @@
 # Add sudoers entries
 #--------------------
 
-/usr/sbin/addsudo /user/sbin/account-import app-account-import
+/usr/sbin/addsudo /usr/sbin/account-import app-account-import
