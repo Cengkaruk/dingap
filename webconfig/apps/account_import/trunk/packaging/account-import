@@ -108,10 +108,11 @@ try {
     // Initialize status
     $status = new File(CLEAROS_TEMP_DIR . "/" . Account_Import::FILE_STATUS, FALSE);
 
-    if ($account_import->is_import_in_progress() && $output == 'stdout') {
+    $in_progress = $account_import->is_import_in_progress();
+    if ($in_progress && $output == 'stdout') {
         update_status(0, 0, lang('account_import_already_in_progress'));
         exit(0);
-    } else if (!$account_import->is_import_in_progress()) {
+    } else if (!$in_progress( {
         if ($status->exists())
             $status->delete();
         $status->create('webconfig', 'webconfig', 644);
