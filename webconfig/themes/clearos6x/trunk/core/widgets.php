@@ -173,9 +173,11 @@ function theme_button_set($buttons, $options)
 
         if ($count === 1)
             $implant_first = 'theme-button-set-first ';
-        else if ($count === $button_total)
+
+        if ($count === $button_total)
             $implant_last = 'theme-button-set-last ';
-        else
+
+        if (($count !== 1) && ($count !== $button_total))
             $implant_middle = 'theme-button-set-middle ';
 
         // KLUDGE: implant button set order
