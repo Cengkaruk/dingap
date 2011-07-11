@@ -29,6 +29,16 @@ $app['subcategory'] = lang('base_subcategory_accounts_manager');
 $app['requires'] = array(
     'app-users',
 );
+
+$app['core_file_manifest'] = array(
+   'account-import' => array(
+        'target' => '/usr/sbin/account-import',
+        'mode' => '0755',
+        'owner' => 'root',
+        'group' => 'root',
+    )
+);
+
 $app['core_directory_manifest'] = array(
    '/var/clearos/account_import' => array('mode' => '755', 'owner' => 'webconfig', 'group' => 'webconfig')
 );
