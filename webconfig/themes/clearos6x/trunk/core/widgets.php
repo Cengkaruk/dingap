@@ -162,8 +162,26 @@ function theme_button_set($buttons, $options)
 
     $button_html = '';
 
-    foreach ($buttons as $button)
+    $button_total = count($buttons);
+    $count = 0;
+
+    foreach ($buttons as $button) {
+        $implant_first = '';
+        $implant_middle = '';
+        $implant_last = '';
+        $count++;
+
+        if ($count === 1)
+            $implant_first = 'theme-button-set-first ';
+        else if ($count === $button_total)
+            $implant_last = 'theme-button-set-last ';
+        else
+            $implant_middle = 'theme-button-set-middle ';
+
+        // KLUDGE: implant button set order
+        $button = preg_replace("/class='/", "class='$implant_first$implant_middle$implant_last", $button);
         $button_html .= "\n" . trim($button);
+    }
 
     return "
         <div class='theme-button-set'$id>$button_html
