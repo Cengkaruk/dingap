@@ -211,6 +211,17 @@ $locales = array(
         'enabled' => TRUE
     ),
 
+    'tl_PH' => array(
+        'base_code' => 'tl', 
+        'description' => lang('base_language_tl_ph'),
+        'native_description' => 'Tagalog',
+        'default_keyboard' => 'us',
+        'default_time_zone' => 'Asia/Manila',
+        'text_direction' => 'LTR',
+        'encoding' => 'UTF-8',
+        'enabled' => TRUE
+    ),
+
     'tr_TR' => array(
         'base_code' => 'tr', 
         'description' => lang('base_language_tr_tr'),
