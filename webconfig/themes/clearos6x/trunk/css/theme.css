@@ -1552,8 +1552,6 @@ input.theme-form-submit-delete { }
 
 #app_description {width: 490px;}
 
-#pagination a {font-size: 11px;}
-
 #prevent_review {padding-left: 6px; padding-right: 6px;}
 
 #tabs-versions {margin-bottom: 10px;}
@@ -1561,6 +1559,8 @@ input.theme-form-submit-delete { }
 #search_and_install div {float:right;}
 
 #search_and_install input {border: 1px solid #d1d3d4; border-radius: 5px; padding: 3px 5px; color: #686868; float: right;}
+#pagination-top {float: right;}
+#pagination-bottom {float: right;}
 
 /* 
  * Style looks strange when there are empty 'cells' and screw up width.
