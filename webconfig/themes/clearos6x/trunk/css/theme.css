@@ -1562,8 +1562,11 @@ input.theme-form-submit-delete { }
 
 #search_and_install input {border: 1px solid #d1d3d4; border-radius: 5px; padding: 3px 5px; color: #686868; float: right;}
 
+/* 
+ * Style looks strange when there are empty 'cells' and screw up width.
 #app_list {border-left: 1px solid #d1d3d4; border-top: 1px solid #d1d3d4; padding: 0px;}
 
 #app_list tbody {padding: 0px; margin: 0px; border-spacing: 0px; border-collapse: collapse; border: none;}
 
 #app_list td { width: 50px; border: none; border-right: 1px solid #d1d3d4; border-bottom: 1px solid #d1d3d4; padding: 0px; margin: 0; border-collapse: collapse; border-spacing: 0px;}
+*/
