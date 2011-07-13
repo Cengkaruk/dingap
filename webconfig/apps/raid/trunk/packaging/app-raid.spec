@@ -1,9 +1,9 @@
 
 Name: app-raid
 Group: ClearOS/Apps
-Version: 5.9.9.1
+Version: 5.9.9.3
 Release: 1%{dist}
-Summary: ClearOS Raid Manager
+Summary: RAID Manager
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 RAID....
 
 %package core
-Summary: ClearOS Raid Manager - APIs and install
+Summary: RAID Manager - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
