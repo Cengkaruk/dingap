@@ -2,7 +2,7 @@
 Name: theme-clearos6x
 Group: Applications/Themes
 Version: 5.9.9.2
-Release: 3%{dist}
+Release: 4%{dist}
 Summary: ClearOS Enterprise 6.x theme
 License: Copyright 2011 ClearFoundation
 Packager: ClearFoundation
