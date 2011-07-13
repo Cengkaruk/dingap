@@ -7,6 +7,7 @@ TIMESTAMP=`date "+%b-%d-%Y-%T"`
 
 /usr/sbin/addsudo /bin/hostname app-network-core
 /usr/sbin/addsudo /sbin/ethtool app-network-core
+/usr/sbin/addsudo /sbin/ifconfig app-network-core
 /usr/sbin/addsudo /sbin/ifdown app-network-core
 /usr/sbin/addsudo /sbin/ifup app-network-core
 /usr/sbin/addsudo /sbin/ip app-network-core

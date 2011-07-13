@@ -208,7 +208,7 @@ class Role extends Engine
      * Returns network interface role.
      *
      * The network needs to know which interface performs which role. 
-     * If you pass the interface device into this method, it will return the
+     * If you pass the interface into this method, it will return the
      * interface's role.  The interface roles are defined as follows:
      *
      *  Role::ROLE_EXTERNAL
@@ -216,22 +216,22 @@ class Role extends Engine
      *  Role::ROLE_LAN
      *  Role::ROLE_DMZ
      *
-     * @param string $device interface name
+     * @param string $interface interface name
      *
      * @return string $interface network role
      * @throws Engine_Exception
      */
 
-    public function get_interface_role($device)
+    public function get_interface_role($interface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_device($device));
+        Validation_Exception::is_valid($this->validate_interface($interface));
 
-        if (strpos($device, ":") === FALSE)
-            $ifname = $device;
+        if (strpos($interface, ":") === FALSE)
+            $ifname = $interface;
         else
-            list($ifname, $unit) = preg_split('/:/', $device, 5);
+            list($ifname, $unit) = preg_split('/:/', $interface, 5);
 
         $iface = '';
         $key = Role::ROLE_DMZ;
@@ -285,39 +285,77 @@ class Role extends Engine
     /**
      * Returns network interface role in text.
      *
-     * @param string $device interface name
+     * @param string $interface interface name
      *
      * @return string interface role
      * @throws Engine_Exception
      */
 
-    public function get_interface_role_text($device)
+    public function get_interface_role_text($interface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_device($device));
+        Validation_Exception::is_valid($this->validate_interface($interface));
 
-        $role = $this->get_interface_role($device);
+        $role = $this->get_interface_role($interface);
 
         return $this->roles[$role];
+    }
+
+    /**
+     * Returns possible interface roles for given interface.
+     *
+     * @param string $interface interface name
+     *
+     * @return array interface roles
+     */
+
+    public function get_interface_roles($interface)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_interface($interface));
+
+        // One day, there may be a need to filter items using the interface name.
+        // For now, return them all.
+
+        $network = new Network();
+
+        $mode = $network->get_mode();
+
+        if (($mode === Network::MODE_STANDALONE) || ($mode === Network::MODE_TRUSTED_STANDALONE)) {
+            $roles = array(
+                Role::ROLE_EXTERNAL => lang('network_external'),
+                Role::ROLE_LAN => lang('network_lan'),
+            );
+        } else {
+            $roles = array(
+                Role::ROLE_LAN => lang('network_lan'),
+                Role::ROLE_HOT_LAN => lang('network_hot_lan'),
+                Role::ROLE_EXTERNAL => lang('network_external'),
+                Role::ROLE_DMZ => lang('network_dmz'),
+            );
+        }
+
+        return $roles;
     }
 
     /**
      * Set network interface role.  The interface is first removed from it's
      * previous role (if any).
      *
-     * @param string $device interface name
+     * @param string $interface interface name
      * @param string $role   interface role
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function set_interface_role($device, $role)
+    public function set_interface_role($interface, $role)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_device($device));
+        Validation_Exception::is_valid($this->validate_interface($interface));
         Validation_Exception::is_valid($this->validate_role($role));
 
         $file = new File(Network::FILE_CONFIG);
@@ -335,7 +373,7 @@ class Role extends Engine
                 $value = "";
 
                 foreach ($list as $iface)
-                    if ($iface != $device) $value .= "$iface ";
+                    if ($iface != $interface) $value .= "$iface ";
 
                 $value = rtrim($value);
 
@@ -356,7 +394,7 @@ class Role extends Engine
                 $value = "";
 
                 foreach ($list as $iface)
-                    if ($iface != $device) $value .= "$iface ";
+                    if ($iface != $interface) $value .= "$iface ";
 
                 $value = rtrim($value);
 
@@ -377,7 +415,7 @@ class Role extends Engine
                 $value = "";
 
                 foreach ($list as $iface)
-                    if ($iface != $device) $value .= "$iface ";
+                    if ($iface != $interface) $value .= "$iface ";
 
                 $value = rtrim($value);
 
@@ -398,7 +436,7 @@ class Role extends Engine
                 $value = "";
 
                 foreach ($list as $iface)
-                    if ($iface != $device) $value .= "$iface ";
+                    if ($iface != $interface) $value .= "$iface ";
 
                 $value = rtrim($value);
 
@@ -420,7 +458,7 @@ class Role extends Engine
 
         $value = preg_replace("/\"/", "", $value);
         $allifs = preg_split("/\s+/", $value);
-        $allifs[] = $device;
+        $allifs[] = $interface;
         sort($allifs);
         $value = implode(" ", array_unique($allifs));
         $value = ltrim($value);
@@ -434,19 +472,19 @@ class Role extends Engine
      * The interface is removed from any role variables
      * if it has been previously assigned a role.
      *
-     * @param string $device interface name
+     * @param string $interface interface name
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function remove_interface_role($device)
+    public function remove_interface_role($interface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_device($device));
+        Validation_Exception::is_valid($this->validate_interface($interface));
 
-        $remove[] = $device;
+        $remove[] = $interface;
         $file = new File(Network::FILE_CONFIG);
 
         for ($i = 0; $i < 4; $i++) {
@@ -482,19 +520,19 @@ class Role extends Engine
     ///////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validation routine for network device.
+     * Validation routine for network interface.
      *
-     * @param string $device network device
+     * @param string $interface network interface
      *
-     * @return string error message if network device is invalid
+     * @return string error message if network interface is invalid
      */
 
-    public function validate_device($device)
+    public function validate_interface($interface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // FIXME
-        // return lang('network_network_device_invalid');
+        // return lang('network_network_interface_invalid');
     }
 
     /**

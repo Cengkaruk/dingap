@@ -46,6 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
+clearos_load_language('base');
 clearos_load_language('network');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,14 +94,15 @@ clearos_load_library('base/Engine_Exception');
 class Iface_Manager extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
     const EXTERNAL_ROLE = 'EXTIF'; // TODO: should match firewall/Role constant
     const PATH_NET_CONFIG = '/etc/sysconfig/network-scripts';
-    const PCI_ID = '/usr/share/hwdata/pci.ids';
-    const USB_ID = '/usr/share/hwdata/usb.ids';
-    const SYS_CLASS_NET = '/sys/class/net';
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
 
     protected $is_loaded = FALSE;
     protected $ethinfo = array();
@@ -134,7 +136,7 @@ class Iface_Manager extends Engine
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_WARNING);
+                throw new Engine_Exception(lang('base_something_weird_happened'));
         }
 
         $handle = @ifconfig_init();
@@ -155,17 +157,13 @@ class Iface_Manager extends Engine
         // Configured interfaces
         //----------------------
 
-        try {
-            $matches = array();
-            $folder = new Folder(self::PATH_NET_CONFIG);
-            $listing = $folder->get_listing();
+        $matches = array();
+        $folder = new Folder(self::PATH_NET_CONFIG);
+        $listing = $folder->get_listing();
 
-            foreach ($listing as $netconfig) {
-                if (preg_match('/^ifcfg-(.*)/', $netconfig, $matches))
-                    $rawlist[] = $matches[1];
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
+        foreach ($listing as $netconfig) {
+            if (preg_match('/^ifcfg-(.*)/', $netconfig, $matches))
+                $rawlist[] = $matches[1];
         }
 
         // Purge unwanted interfaces
@@ -207,7 +205,7 @@ class Iface_Manager extends Engine
 
         if (!extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, CLEAROS_WARNING);
+                throw new Engine_Exception(lang('base_something_weird_happened'));
         }
 
         $count = 0;
@@ -250,7 +248,7 @@ class Iface_Manager extends Engine
         foreach ($ethlist as $eth) {
 
             $interface = new Iface($eth);
-            $ifdetails = $interface->get_interface_info();
+            $ifdetails = $interface->get_info();
 
             foreach ($ifdetails as $key => $value)
                 $ethinfo[$eth][$key] = $value;
@@ -313,7 +311,7 @@ class Iface_Manager extends Engine
 
         foreach ($ifaces as $if) {
             $iface = new Iface($if);
-            $ifinfo = $iface->get_interface_info();
+            $ifinfo = $iface->get_info();
 
             // If the interface is down, ignore it
             if (! ($ifinfo['flags'] & IFF_UP))
@@ -361,12 +359,8 @@ class Iface_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $network = new Network();
-            $mode = $network->GetMode();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
-        }
+        $network = new Network();
+        $mode = $network->get_mode();
 
         $ethlist = $this->get_interface_details();
 
@@ -491,8 +485,4 @@ class Iface_Manager extends Engine
 
         return $ifaces;
     }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
 }

@@ -122,26 +122,6 @@ class Chap extends Engine
     }
 
     /**
-     * Sets a username/password in the CHAP/PAP secrets file.
-     *
-     * @param string $username username
-     * @param string $password password
-     * @param string $server   server name
-     * @param string $ip       IP address
-     *
-     * @deprecated deprecated since framework version 6.0, use add_secret() instead.
-     * @return     void
-     * @throws     Exception
-     */
-
-    public function add_user($username, $password, $server = self::CONSTANT_ANY, $ip = self::CONSTANT_ANY)
-    {
-        clearos_deprecated(__METHOD__, __LINE__, 'deprecated; use add_secret()');
-
-        $this->add_secret($username, $password, $server, $ip);
-    }
-
-    /**
      * Add a secret to the CHAP/PAP secrets file.
      *
      * @param string $username username
@@ -169,22 +149,6 @@ class Chap extends Engine
         $this->secrets[$username]['linestate'] = self::LINE_ADD;
 
         $this->_save();
-    }
-
-    /**
-     * Deletes a username from the CHAP/PAP secrets file. 
-     * 
-     * @param string $username username
-     *
-     * @deprecated deprecated since framework version 6.0, use delete_secret() instead.
-     * @return void
-     */
-
-    public function delete_user($username)
-    {
-        clearos_deprecated(__METHOD__, __LINE__, 'deprecated; use delete_secret()');
-
-        $this->delete_secret($username);
     }
 
     /**
