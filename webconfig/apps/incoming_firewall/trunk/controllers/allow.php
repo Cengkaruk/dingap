@@ -55,6 +55,9 @@ class Allow extends ClearOS_Controller
 
     function index()
     {
+        // Load dependencies
+        //------------------
+
         $this->load->library('incoming_firewall/Incoming');
         $this->lang->load('incoming_firewall');
 
@@ -148,7 +151,6 @@ class Allow extends ClearOS_Controller
         // Load the view data 
         //------------------- 
 
-        $data['mode'] = $form_mode;
         $data['services'] = $this->incoming->get_standard_service_list();
         $data['protocols'] = $this->incoming->get_basic_protocols();
  
