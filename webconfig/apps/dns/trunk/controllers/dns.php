@@ -87,7 +87,7 @@ class Dns extends ClearOS_Controller
 
     function add($ip = NULL)
     {
-        $this->_addedit($ip, 'add');
+        $this->_item($ip, 'add');
     }
 
     /**
@@ -117,7 +117,7 @@ class Dns extends ClearOS_Controller
 
     function edit($ip = NULL)
     {
-        $this->_addedit($ip, 'edit');
+        $this->_item($ip, 'edit');
     }
 
     /**
@@ -156,7 +156,7 @@ class Dns extends ClearOS_Controller
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * DNS entry rommon add/edit form handler.
+     * DNS entry common add/edit form handler.
      *
      * @param string $ip        IP address
      * @param string $form_type form type
@@ -164,7 +164,7 @@ class Dns extends ClearOS_Controller
      * @return view
      */
 
-    function _addedit($ip, $form_type)
+    function _item($ip, $form_type)
     {
         // Load libraries
         //---------------
