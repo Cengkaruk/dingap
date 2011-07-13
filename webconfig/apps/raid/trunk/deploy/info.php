@@ -35,8 +35,7 @@ $app['core_requires'] = array(
     'app-mail-notification-core', 
     'app-tasks-core', 
     'mdadm',
-    'mpt-status >= 1.2.0',
-    'tw_cli >= 9.5.0',
+    'tw_cli >= 9.5.3',
     'util-linux',
     'vixie-cron',
     'udev'
