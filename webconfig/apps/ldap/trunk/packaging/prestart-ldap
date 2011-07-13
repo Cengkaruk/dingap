@@ -6,8 +6,8 @@ if [ -d /etc/openldap/slapd.d ]; then
 fi
 
 # Initialize LDAP
-[ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize
-[ -x /usr/sbin/ldap-init ] && /usr/sbin/ldap-init
+[ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize >/dev/null 2>&1
+[ -x /usr/sbin/ldap-init ] && /usr/sbin/ldap-init >/dev/null 2>&1
 
 # FIXME: Initialize Accounts - alpha only
-[ -x /usr/sbin/accounts-init ] && /usr/sbin/accounts-init
+[ -x /usr/sbin/accounts-init ] && /usr/sbin/accounts-init >/dev/null 2>&1
