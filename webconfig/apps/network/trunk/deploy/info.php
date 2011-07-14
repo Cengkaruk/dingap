@@ -25,7 +25,8 @@ $app['subcategory'] = lang('base_subcategory_settings');
 // Controller info
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['general']['title'] = lang('base_settings');
+$app['controllers']['network']['title'] = lang('network_app_name');
+$app['controllers']['settings']['title'] = lang('base_settings');
 $app['controllers']['iface']['title'] = lang('network_network_interfaces');
 
 /////////////////////////////////////////////////////////////////////////////

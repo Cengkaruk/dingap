@@ -64,13 +64,12 @@ echo form_header(lang('base_settings'));
 
 echo field_dropdown('network_mode', $network_modes, $network_mode, lang('network_mode'), $read_only);
 echo field_input('hostname', $hostname, lang('network_hostname'), $read_only);
-
 echo field_input('dns1', $dns1, lang('network_dns_server') . ' #1', $read_only);
 
 if ($dns2 || !$read_only)
     echo field_input('dns2', $dns2, lang('network_dns_server') . ' #2', $read_only);
 
-// echo button_set($buttons);
+echo button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
