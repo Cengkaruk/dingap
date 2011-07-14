@@ -75,7 +75,7 @@ class Language extends ClearOS_Controller
                 $this->locale->set_locale($this->input->post('code'));
 
                 if ($this->input->post('session'))
-                    $this->login_session->set_locale($this->input->post('code'));
+                    $this->login_session->set_language($this->input->post('code'));
 
                 $this->page->set_status_updated();
 
