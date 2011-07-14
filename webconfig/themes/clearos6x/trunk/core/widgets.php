@@ -285,7 +285,7 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
     $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html class='theme-field-password" . $hide_field . "'>
+        <div$field_id_html class='theme-field-$type" . $hide_field . "'>
             <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
            <div class='right-field-content input-box'> <input type='$type' name='$name' value='$value' id='$input_id'> $error_html</div>
         </div>
