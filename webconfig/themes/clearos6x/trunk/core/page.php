@@ -180,12 +180,11 @@ function _splash_page($page)
 <body>
 
 <!-- Page Container -->
-<div class='login'>
-<div class='logo-login'></div>
-		<div class='theme-form-container'>
+<div id='theme-page-container'>
+    <div id='theme-content-splash-container'>
 		" . _get_message() . "
         " . $page['app_view'] . "
-		</div>
+    </div>
 </div>
 </body>
 </html>

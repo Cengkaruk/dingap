@@ -940,8 +940,10 @@ color: #e1852e;
 }
 
 #theme-content-splash-container {
-  width: 500px;
-  margin: 0 auto;
+  margin-top: 50px;
+  width: 700px;
+  margin-left: auto;
+  margin-right: auto;
   text-align: left;
   position: relative;
 }
