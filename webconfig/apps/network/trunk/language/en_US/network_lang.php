@@ -1,5 +1,7 @@
 <?php
 
+$lang['network_automatic_dns_servers'] = 'Automatic DNS Servers';
+
 $lang['network_app_description'] = 'IP settings - read only and wordsmith required.'; // FIXME
 $lang['network_app_name'] = 'IP Settings';
 $lang['network_bootproto_bootp'] = 'BootP';

@@ -130,7 +130,7 @@ class Settings extends ClearOS_Controller
         try {
             $data['form_type'] = $form_type;
             $data['network_mode'] = $this->network->get_mode();
-            $data['network_modes'] = $this->network->get_modes();
+            $data['network_modes'] = $this->network->get_supported_modes();
             $data['hostname'] = $this->hostname->get();
 
             $dns_id = 1;

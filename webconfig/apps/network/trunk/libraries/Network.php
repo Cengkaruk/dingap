@@ -57,9 +57,11 @@ clearos_load_language('network');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+clearos_load_library('network/Iface_Manager');
 
 // Exceptions
 //-----------
@@ -196,6 +198,28 @@ class Network extends Engine
         $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
         $modes[self::MODE_DMZ] = lang('network_mode_dmz');
         $modes[self::MODE_BRIDGE] = lang('network_mode_bridge');
+
+        return $modes;
+    }
+
+    /**
+     * Return an array of supported network modes.
+     *
+     * @return array of network modes
+     */
+
+    public function get_supported_modes()
+    {
+        $modes = array();
+
+        $iface_manager = new Iface_Manager();
+        $iface_count = $iface_manager->get_interface_count();
+
+        if ($iface_count > 1)
+            $modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
+
+        $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
+        $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
 
         return $modes;
     }
