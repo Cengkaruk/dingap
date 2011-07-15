@@ -104,20 +104,20 @@ function _configuration_page($page)
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-		<div class='green-stroke-top'></div>
-		<div class='green-stroke-left'></div>
-		<div class='green-stroke-right'></div>
-		</div>
-		<div class='theme-core-content'>
-		" .
+        <div class='green-stroke-top'></div>
+        <div class='green-stroke-left'></div>
+        <div class='green-stroke-right'></div>
+        </div>
+        <div class='theme-core-content'>
+        " .
             _get_left_menu($page, $menus) .
             _get_app($page) .
             _get_sidebar($page) .
         "
-		</div>
-		" .
-		_get_footer($page) .
-		"
+        </div>
+        " .
+        _get_footer($page) .
+        "
     </div>
 </div>
 </body>
@@ -149,17 +149,17 @@ function _report_page($page)
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-		<div class='green-stroke-top'></div>
-		<div class='green-stroke-left'></div>
-		<div class='green-stroke-right'></div>
-		</div>
-		<div class='theme-core-content'>
-		" .  _get_left_menu($page, $menus) . "
+        <div class='green-stroke-top'></div>
+        <div class='green-stroke-left'></div>
+        <div class='green-stroke-right'></div>
+        </div>
+        <div class='theme-core-content'>
+        " .  _get_left_menu($page, $menus) . "
         <div id='theme-content-container'>
-		" . _get_message() . "
+        " . _get_message() . "
         " . $page['app_view'] . "
-		</div>
-		</div>
+        </div>
+        </div>
     </div>
 </div>
 </body>
@@ -184,10 +184,10 @@ function _login_page($page)
 <!-- Page Container -->
 <div class='login'>
 <div class='logo-login'></div>
-		<div class='theme-form-container'>
-		" . _get_message() . "
+        <div class='theme-form-container'>
+        " . _get_message() . "
         " . $page['app_view'] . "
-		</div>
+        </div>
 </div>
 </body>
 </html>
@@ -211,7 +211,7 @@ function _splash_page($page)
 <!-- Page Container -->
 <div id='theme-page-container'>
     <div id='theme-content-splash-container'>
-		" . _get_message() . "
+        " . _get_message() . "
         " . $page['app_view'] . "
     </div>
 </div>
@@ -242,19 +242,19 @@ function _wizard_page($page)
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-		<div class='green-stroke-top'></div>
-		<div class='green-stroke-left'></div>
-		<div class='green-stroke-right'></div>
-		</div>
-		<div class='theme-core-content'>
-		" .
+        <div class='green-stroke-top'></div>
+        <div class='green-stroke-left'></div>
+        <div class='green-stroke-right'></div>
+        </div>
+        <div class='theme-core-content'>
+        " .
             _get_wizard_menu($page) .
             _get_app($page) .
         "
-		</div>
-		" .
-		_get_footer($page) .
-		"
+        </div>
+        " .
+        _get_footer($page) .
+        "
     </div>
 </div>
 </body>
@@ -289,24 +289,24 @@ function _get_app($page)
     return "
         <!-- Content -->
         <div id='theme-content-container'>
-		<div id='theme-content-help'>
-		<div class='help-sides'>
-		" . $page['page_help'] . "
-		</div>
-		
-		</div>
-		<div id='theme-sidebar-container'>
-		<div class='sidebar-top'></div>
+        <div id='theme-content-help'>
+        <div class='help-sides'>
+        " . $page['page_help'] . "
+        </div>
+        
+        </div>
+        <div id='theme-sidebar-container'>
+        <div class='sidebar-top'></div>
         " . $page['page_summary'] . "
         " . $page['page_report'] . "
-		<div class='sidebar-bottom'></div>
-    	</div>
-		<div id='theme-content-left'>
-		" . _get_message() . "
+        <div class='sidebar-bottom'></div>
+        </div>
+        <div id='theme-content-left'>
+        " . _get_message() . "
         " . $page['app_view'] . "
         </div>
-		
-		</div>
+        
+        </div>
     ";
 }
 
@@ -335,7 +335,7 @@ function _get_splash_banner($page, $menus)
 <div id='theme-banner-container'>
     <div id='theme-banner-background'></div>
     <div id='theme-banner-logo'></div>
-	<div class='name-holder'>
+    <div class='name-holder'>
         <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
         <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
     </div>
@@ -352,11 +352,11 @@ $html = "
 <div id='theme-banner-container'>
     <div id='theme-banner-background'></div>
     <div id='theme-banner-logo'></div>
-	<div class='name-holder'>
+    <div class='name-holder'>
         <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
         <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
     </div>
-	
+    
     <!-- Menu Javascript -->
     <script type='text/javascript'> 
         $(document).ready(function() { 
