@@ -43,14 +43,14 @@ via a web-browser.  Here's what you need to do:</p>
 
 <p><b>Step 1. Check Your Network Settings</b></p>
 
-<p>The IP address of this system is <b style='color: #98BB60'>$ip</b>.  If you need to change your
-network settings, please login to access the Network Console (not available in the alpha... sorry!).</p>
+<p>The IP address of this system is <b>$ip</b>.  If you need to change your
+network settings, you can <b><a  style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #8BB60' href='/app/graphical_console'>login to access the Network Console</a></b>.</p>
 
 <p><b>Step 2. Use Your Web Browser</b></p>
 
 <p>Start your web browser and type the following for the web address:</p>
 
-<p><b style='color: #98BB60'>https://$ip:81/</b></p>
+<p>https://$ip:81/</p>
 
 <p><b>Okay, okay...</b></p>
 <p>You can still login to the web-based administration tool from the 
