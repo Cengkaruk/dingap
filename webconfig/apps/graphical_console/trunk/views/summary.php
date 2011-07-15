@@ -44,7 +44,7 @@ via a web-browser.  Here's what you need to do:</p>
 <p><b>Step 1. Check Your Network Settings</b></p>
 
 <p>The IP address of this system is <b>$ip</b>.  If you need to change your
-network settings, you can <b><a  style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #8BB60' href='/app/graphical_console'>login to access the Network Console</a></b>.</p>
+network settings, you can <b><a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #8BB60' href='/app/network'>login to access the Network Console</a></b>.</p>
 
 <p><b>Step 2. Use Your Web Browser</b></p>
 
