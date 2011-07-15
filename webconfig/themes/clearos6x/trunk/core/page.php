@@ -74,6 +74,8 @@ function theme_page($page)
         return _report_page($page);
     else if ($page['type'] == MY_Page::TYPE_SPLASH)
         return _splash_page($page);
+    else if ($page['type'] == MY_Page::TYPE_LOGIN)
+        return _login_page($page);
     else if ($page['type'] == MY_Page::TYPE_WIZARD)
         return _wizard_page($page);
 }
@@ -159,6 +161,33 @@ function _report_page($page)
 		</div>
 		</div>
     </div>
+</div>
+</body>
+</html>
+";
+}
+
+/**
+ * Returns the login type page.
+ *
+ * @param array $page page data   
+ *
+ * @return string HTML output
+ */   
+
+function _login_page($page)
+{
+    return "
+<!-- Body -->
+<body>
+
+<!-- Page Container -->
+<div class='login'>
+<div class='logo-login'></div>
+		<div class='theme-form-container'>
+		" . _get_message() . "
+        " . $page['app_view'] . "
+		</div>
 </div>
 </body>
 </html>
