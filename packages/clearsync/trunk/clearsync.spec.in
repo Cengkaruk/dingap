@@ -1,0 +1,40 @@
+# ClearSync RPM spec
+Name: @PACKAGE_TARNAME@
+Version: @PACKAGE_VERSION@
+Release: 1%{dist}
+Vendor: ClearFoundation
+License: GPL
+Group: System Environment/Daemons
+Packager: ClearFoundation
+Source: %{name}-%{version}.tar.gz
+BuildRoot: /var/tmp/%{name}-%{version}
+Requires: sudo
+Summary: ClearSync system sychronization tool
+BuildRequires: expat-devel
+
+%description
+ClearSync system synchronization tool
+Report bugs to: @PACKAGE_BUGREPORT@
+
+# Build
+%prep
+%setup -q
+%{configure}
+
+%build
+make %{?_smp_mflags}
+
+# Install
+%install
+make install DESTDIR=$RPM_BUILD_ROOT
+
+# Clean-up
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+# Files
+%files
+%defattr(-,root,root)
+%{_sbindir}/clearsyncd
+%{_libdir}
+
