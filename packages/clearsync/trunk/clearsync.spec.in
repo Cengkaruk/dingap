@@ -19,6 +19,7 @@ Report bugs to: @PACKAGE_BUGREPORT@
 %package devel
 Summary: ClearSync plugin development files
 Group: Development/Libraries
+Requires: @PACKAGE_TARNAME@ = @PACKAGE_VERSION@
 
 %description devel
 ClearSync plugin development files
@@ -35,6 +36,9 @@ make %{?_smp_mflags}
 # Install
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d
+mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
+cp -v doc/clearsync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}
 
 # Clean-up
 %clean
@@ -43,6 +47,7 @@ make install DESTDIR=$RPM_BUILD_ROOT
 # Files
 %files
 %defattr(-,root,root)
+%{_sysconfdir}
 %{_sbindir}/clearsyncd
 %{_libdir}
 

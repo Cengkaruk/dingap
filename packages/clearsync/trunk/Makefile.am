@@ -2,7 +2,11 @@ AUTOMAKE_OPTIONS = foreign
 
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = ${CXXFLAGS} -I./include
+
 EXTRA_DIST = csmain.h
+
+docdir = $(datadir)/doc/@PACKAGE@
+doc_DATA = LICENSE
 
 lib_LTLIBRARIES = libclearsync.la
 
