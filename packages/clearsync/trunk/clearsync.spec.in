@@ -16,6 +16,14 @@ BuildRequires: expat-devel
 ClearSync system synchronization tool
 Report bugs to: @PACKAGE_BUGREPORT@
 
+%package devel
+Summary: ClearSync plugin development files
+Group: Development/Libraries
+
+%description devel
+ClearSync plugin development files
+Report bugs to: @PACKAGE_BUGREPORT@
+
 # Build
 %prep
 %setup -q
@@ -37,4 +45,9 @@ make install DESTDIR=$RPM_BUILD_ROOT
 %defattr(-,root,root)
 %{_sbindir}/clearsyncd
 %{_libdir}
+
+# Developer files
+%files devel
+%defattr(-,root,root)
+%{_includedir}/clearsync
 

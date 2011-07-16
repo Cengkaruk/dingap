@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -57,7 +57,7 @@ public:
     virtual void *Entry(void);
 
 protected:
-	sigset_t signal_set;
+    sigset_t signal_set;
     csEventClient *parent;
 };
 
