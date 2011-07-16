@@ -47,7 +47,7 @@ cp -v doc/clearsync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}
 # Files
 %files
 %defattr(-,root,root)
-%{_sysconfdir}
+%{_sysconfdir}/clearsync.conf
 %{_sbindir}/clearsyncd
 %{_libdir}
 
