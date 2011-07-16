@@ -32,15 +32,17 @@ start() {
 	echo -n "Starting $prog: "
     daemon $prog
     RETVAL=$?
-	touch /var/lock/subsys/$prog
+	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
+	echo
 	return $RETVAL
 }	
 
 stop() {
-	echo -n "Shutting down <servicename>: "
+	echo -n "Shutting down $prog: "
 	killproc $prog
     RETVAL=$?
-	rm -f /var/lock/subsys/$prog
+	[ $RETVAL -eq 0 ] && rm -f rm -f /var/lock/subsys/$prog
+    echo
 	return $RETVAL
 }
 
