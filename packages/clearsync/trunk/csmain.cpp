@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef _HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -142,8 +142,8 @@ void csMainXmlParser::ParseElementOpen(csXmlTag *tag)
                 tag->GetParamValue("stack-size").c_str());
             if (stack_size < PTHREAD_STACK_MIN)
                 stack_size = PTHREAD_STACK_MIN;
-            else if (stack_size % getpagesize())
-                stack_size += (stack_size % getpagesize());
+            else if (stack_size % ::csGetPageSize())
+                stack_size += (stack_size % ::csGetPageSize());
         }
 
         map<string, csPluginLoader *>::iterator i;
@@ -447,7 +447,7 @@ void csMain::Usage(bool version)
         csLog::Log(csLog::Info,
             "  License version 3, or (at your option) any later version.");
 #ifdef PACKAGE_BUGREPORT
-        csLog(csLog::Info, "Report bugs to: %s", PACKAGE_BUGREPORT);
+        csLog::Log(csLog::Info, "Report bugs to: %s", PACKAGE_BUGREPORT);
 #endif
     }
     else {
@@ -464,7 +464,7 @@ void csMain::Usage(bool version)
         csLog::Log(csLog::Info,
             "  -d, --debug");
         csLog::Log(csLog::Info,
-            "    Enable debugging messages and remain in the foregound.");
+            "    Enable debugging messages and remain in the foreground.");
     }
 
     throw csUsageException();

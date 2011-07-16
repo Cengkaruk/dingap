@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -26,17 +26,17 @@ using namespace std;
 class csThread : public csEventClient
 {
 public:
-	csThread(size_t stack_size = _CS_THREAD_STACK_SIZE);
-	virtual ~csThread() { };
+    csThread(size_t stack_size = _CS_THREAD_STACK_SIZE);
+    virtual ~csThread() { };
 
-	virtual void Start(void);
-	virtual void *Entry(void) = 0;
+    virtual void Start(void);
+    virtual void *Entry(void) = 0;
 
 protected:
-	pthread_t id;
-	pthread_attr_t attr;
+    pthread_t id;
+    pthread_attr_t attr;
 
-	void Join(void);
+    void Join(void);
 };
 
 #endif // _CSTHREAD_H

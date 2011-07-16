@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -47,7 +47,7 @@ public:
 
     Type GetType(void) { return type; };
     FILE *GetStream(void) { return fh; };
-	bool operator!=(csLog *log) { return bool(log != this); };
+    bool operator!=(csLog *log) { return bool(log != this); };
 
     virtual ~csLog();
 

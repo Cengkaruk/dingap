@@ -43,5 +43,5 @@ AC_CHECK_FUNCS([clock_gettime endpwent getpagesize gettimeofday localtime_r mems
 
 AC_SUBST([CFLAGS])
 
-AC_CONFIG_FILES([Makefile plugin/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef _HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -63,8 +63,12 @@ void csCriticalSection::Unlock(void)
 
 long csGetPageSize(void)
 {
-    // TODO: ...
+#ifdef HAVE_GETPAGESIZE
+    // TODO: sysconf
     return getpagesize();
+#else
+    return 4096;
+#endif
 }
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

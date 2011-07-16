@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef _HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 

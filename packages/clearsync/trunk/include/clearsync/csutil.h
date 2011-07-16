@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify

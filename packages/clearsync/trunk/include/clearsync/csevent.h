@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -102,8 +102,8 @@ protected:
     csEvent *EventPopWait(time_t wait_ms = 0);
 
     pthread_mutex_t event_queue_mutex;
-	pthread_cond_t event_condition;
-	pthread_mutex_t event_condition_mutex;
+    pthread_cond_t event_condition;
+    pthread_mutex_t event_condition_mutex;
 
     vector<csEvent *> event_queue;
 

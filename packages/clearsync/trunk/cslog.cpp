@@ -1,4 +1,4 @@
-// TODO: Program name/short-description
+// ClearSync: system synchronization daemon.
 // Copyright (C) 2011 ClearFoundation <http://www.clearfoundation.com>
 //
 // This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifdef _HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
@@ -95,7 +95,7 @@ csLog::~csLog()
         size_t logger_count = (size_t)csLog::logger.size();
         pthread_mutex_unlock(csLog::logger_mutex);
         if (logger_count == 0) {
-	        pthread_mutex_destroy(csLog::logger_mutex);
+            pthread_mutex_destroy(csLog::logger_mutex);
             delete csLog::logger_mutex;
             csLog::logger_mutex = NULL;
         }
@@ -123,17 +123,17 @@ void csLog::Log(Level level, const char *format, ...)
     if (!(level & csLog::logger_mask) ||
         csLog::logger_mutex == NULL) return;
 
-	pthread_mutex_lock(csLog::logger_mutex);
+    pthread_mutex_lock(csLog::logger_mutex);
 
     csLog *handler = csLog::logger.back();
     if (!handler) {
         // XXX: Should *never* be...
-	    pthread_mutex_unlock(csLog::logger_mutex);
+        pthread_mutex_unlock(csLog::logger_mutex);
         return;
     }
 
-	va_list ap;
-	va_start(ap, format);
+    va_list ap;
+    va_start(ap, format);
 
     if (handler->GetType() == csLog::StdOut ||
         handler->GetType() == csLog::LogFile) {
@@ -163,11 +163,11 @@ void csLog::Log(Level level, const char *format, ...)
         else if ((level & csLog::Debug))
             fputs("[Debug]: ", stream);
 
-		vfprintf(stream, format, ap);
+        vfprintf(stream, format, ap);
         fputc('\n', stream);
     }
     else if (handler->GetType() == csLog::Syslog) {
-	    int priority;
+        int priority;
         if ((level & csLog::Warning))
             priority = LOG_WARNING;
         else if ((level & csLog::Error))
@@ -180,7 +180,7 @@ void csLog::Log(Level level, const char *format, ...)
         vsyslog(priority, format, ap);
     }
 
-	va_end(ap);
+    va_end(ap);
     pthread_mutex_unlock(csLog::logger_mutex);
 }
 
@@ -196,7 +196,7 @@ void csLog::Initialize(void)
 {
     if (csLog::logger_mutex == NULL) {
         csLog::logger_mutex = new pthread_mutex_t;
-	    pthread_mutex_init(logger_mutex, NULL);
+        pthread_mutex_init(logger_mutex, NULL);
     }
     pthread_mutex_lock(csLog::logger_mutex);
     csLog::logger.push_back(this);
