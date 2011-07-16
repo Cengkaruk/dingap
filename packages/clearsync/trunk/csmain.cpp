@@ -88,13 +88,6 @@ void *csSignalHandler::Entry(void)
             if (sig >= SIGRTMIN && sig <= SIGRTMAX) {
                 csTimer *timer = reinterpret_cast<csTimer *>
                     (si.si_value.sival_ptr);
-#if 0
-                if (timer->GetId() == 900) {
-                    EventBroadcast(new csEvent(csEVENT_QUIT,
-                        csEvent::Sticky | csEvent::HighPriority));
-                    return NULL;
-                }
-#endif
                 csEventClient *target = timer->GetTarget();
                 if (target == NULL) target = parent;
                 EventDispatch(new csTimerEvent(timer), target);
@@ -414,15 +407,6 @@ void csMain::Run(void)
             conf->Reload();
             break;
 
-        case csEVENT_TIMER:
-            csLog::Log(csLog::Debug, "Timer alarm: %lu",
-                static_cast<csTimerEvent *>(event)->GetTimer()->GetId());
-            if (static_cast<csTimerEvent *>(event)->GetTimer()->GetId() == 200) {
-                delete static_cast<csTimerEvent *>(event)->GetTimer();
-                csTimer *cs_timer = new csTimer(200, 10, 10, this);
-            }
-            break;
-
         default:
             csLog::Log(csLog::Debug, "Unhandled event: %u", event->GetId());
             break;
@@ -477,11 +461,6 @@ int main(int argc, char *argv[])
 
     try {
         cs_main = new csMain(argc, argv);
-
-        csTimer *cs_timer1 = new csTimer(100, 5, 5, cs_main);
-        csTimer *cs_timer2 = new csTimer(200, 7, 7, cs_main);
-        csTimer *cs_timer3 = new csTimer(300, 2, 10, cs_main);
-        csTimer *cs_timer4 = new csTimer(900, 15, 15, cs_main);
 
         cs_main->Run();
 

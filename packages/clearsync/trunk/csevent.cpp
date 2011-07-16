@@ -147,8 +147,6 @@ void csEventClient::EventDispatch(csEvent *event, csEventClient *dst)
         else {
             csLog::Log(csLog::Warning,
                 "Destination event client not found: %p", dst);
-            for (i = event_client.begin(); i != event_client.end(); i++)
-                csLog::Log(csLog::Debug, "client: %p", (*i));
             delete event;
         }
     }
