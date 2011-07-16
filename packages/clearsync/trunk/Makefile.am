@@ -5,9 +5,6 @@ AM_CXXFLAGS = ${CXXFLAGS} -I./include
 
 EXTRA_DIST = csmain.h
 
-docdir = $(datadir)/doc/@PACKAGE@
-doc_DATA = LICENSE
-
 lib_LTLIBRARIES = libclearsync.la
 
 libclearsync_la_SOURCES = csconf.cpp csevent.cpp cslog.cpp csplugin.cpp \

@@ -17,6 +17,7 @@
 
 
 
+
 VPATH = @srcdir@
 pkgdatadir = $(datadir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
@@ -78,6 +79,7 @@ am__base_list = \
   sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
   sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" \
+	"$(DESTDIR)$(docdir)" \
 	"$(DESTDIR)$(libclearsync_la_includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libclearsync_la_LIBADD =
@@ -112,6 +114,7 @@ CXXLINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
 	$(LDFLAGS) -o $@
 SOURCES = $(libclearsync_la_SOURCES) $(clearsyncd_SOURCES)
 DIST_SOURCES = $(libclearsync_la_SOURCES) $(clearsyncd_SOURCES)
+DATA = $(doc_DATA)
 HEADERS = $(libclearsync_la_include_HEADERS)
 ETAGS = etags
 CTAGS = ctags
@@ -210,7 +213,7 @@ build_vendor = @build_vendor@
 builddir = @builddir@
 datadir = @datadir@
 datarootdir = @datarootdir@
-docdir = @docdir@
+docdir = $(datadir)/doc/@PACKAGE@
 dvidir = @dvidir@
 exec_prefix = @exec_prefix@
 host = @host@
@@ -245,6 +248,7 @@ AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = ${CXXFLAGS} -I./include
 EXTRA_DIST = csmain.h
+doc_DATA = LICENSE
 lib_LTLIBRARIES = libclearsync.la
 libclearsync_la_SOURCES = csconf.cpp csevent.cpp cslog.cpp csplugin.cpp \
 	csthread.cpp cstimer.cpp csutil.cpp
@@ -503,6 +507,26 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-docDATA: $(doc_DATA)
+	@$(NORMAL_INSTALL)
+	test -z "$(docdir)" || $(MKDIR_P) "$(DESTDIR)$(docdir)"
+	@list='$(doc_DATA)'; test -n "$(docdir)" || list=; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(docdir)'"; \
+	  $(INSTALL_DATA) $$files "$(DESTDIR)$(docdir)" || exit $$?; \
+	done
+
+uninstall-docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(doc_DATA)'; test -n "$(docdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	test -n "$$files" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(docdir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(docdir)" && rm -f $$files
 install-libclearsync_la_includeHEADERS: $(libclearsync_la_include_HEADERS)
 	@$(NORMAL_INSTALL)
 	test -z "$(libclearsync_la_includedir)" || $(MKDIR_P) "$(DESTDIR)$(libclearsync_la_includedir)"
@@ -725,9 +749,10 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(DATA) $(HEADERS) \
+		config.h
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(libclearsync_la_includedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(sbindir)" "$(DESTDIR)$(docdir)" "$(DESTDIR)$(libclearsync_la_includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -779,7 +804,8 @@ info: info-am
 
 info-am:
 
-install-data-am: install-libclearsync_la_includeHEADERS
+install-data-am: install-docDATA \
+	install-libclearsync_la_includeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -827,7 +853,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES \
+uninstall-am: uninstall-docDATA uninstall-libLTLIBRARIES \
 	uninstall-libclearsync_la_includeHEADERS \
 	uninstall-sbinPROGRAMS
 
@@ -840,16 +866,17 @@ uninstall-am: uninstall-libLTLIBRARIES \
 	distclean distclean-compile distclean-generic distclean-hdr \
 	distclean-libtool distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
-	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-libclearsync_la_includeHEADERS \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-sbinPROGRAMS install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-libLTLIBRARIES \
+	install install-am install-data install-data-am \
+	install-docDATA install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-libLTLIBRARIES \
+	install-libclearsync_la_includeHEADERS install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-sbinPROGRAMS \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags uninstall uninstall-am \
+	uninstall-docDATA uninstall-libLTLIBRARIES \
 	uninstall-libclearsync_la_includeHEADERS \
 	uninstall-sbinPROGRAMS
 
