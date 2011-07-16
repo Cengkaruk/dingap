@@ -38,7 +38,9 @@ make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d
 mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
+mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/var/run/clearsync
 cp -v doc/clearsync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}
+cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsyncd
 
 # Clean-up
 %clean
@@ -47,8 +49,10 @@ cp -v doc/clearsync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}
 # Files
 %files
 %defattr(-,root,root)
+%{_sysconfdir}/init.d/clearsyncd
 %{_sysconfdir}/clearsync.conf
 %{_sysconfdir}/clearsync.d
+%{_sysconfdir}/var/run/clearsync
 %{_sbindir}/clearsyncd
 %{_libdir}
 

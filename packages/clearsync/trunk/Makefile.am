@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = ${CXXFLAGS} -I./include
 
-EXTRA_DIST = csmain.h doc/clearsync.conf
+EXTRA_DIST = csmain.h doc/clearsync.conf doc/clearsyncd.init
 
 lib_LTLIBRARIES = libclearsync.la
 

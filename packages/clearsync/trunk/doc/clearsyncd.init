@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# clearsyncd	Start up the ClearSync server daemon
+#
+# chkconfig: 2345 55 25
+# description: ClearSync synchronization daemon
+#
+# processname: clearsyncd
+# config: /etc/clearsync.conf
+# pidfile: /var/run/clearsync/clearsyncd.pid
+
+### BEGIN INIT INFO
+# Provides: clearsyncd
+# Required-Start: $local_fs $network $syslog
+# Required-Stop: $local_fs $syslog
+# Should-Start: $syslog
+# Should-Stop: $network $syslog
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start up the ClearSync server daemon
+# Description: ClearSync synchronization daemon
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+RETVAL=0
+prog="clearsyncd"
+PID_FILE=/var/run/clearsync/clearsyncd.pid
+
+start() {
+	echo -n "Starting $prog: "
+    daemon $prog
+    RETVAL=$?
+	touch /var/lock/subsys/$prog
+	return $RETVAL
+}	
+
+stop() {
+	echo -n "Shutting down <servicename>: "
+	killproc $prog
+    RETVAL=$?
+	rm -f /var/lock/subsys/$prog
+	return $RETVAL
+}
+
+case "$1" in
+    start)
+        start
+	;;
+    stop)
+        stop
+	;;
+    status)
+        status $prog
+	;;
+    restart)
+        stop
+        start
+	;;
+    reload)
+        kill -HUP $(cat $PID_FILE)
+	;;
+    condrestart)
+        [ -f /var/lock/subsys/$prog ] && restart || :
+    ;;
+    *)
+	echo "Usage: $prog {start|stop|status|reload|restart|condrestart"
+	exit 1
+	;;
+esac
+exit $?
