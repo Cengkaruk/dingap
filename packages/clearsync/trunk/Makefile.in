@@ -244,7 +244,7 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = ${CXXFLAGS} -I./include
-EXTRA_DIST = csmain.h
+EXTRA_DIST = csmain.h doc/clearsync.conf
 lib_LTLIBRARIES = libclearsync.la
 libclearsync_la_SOURCES = csconf.cpp csevent.cpp cslog.cpp csplugin.cpp \
 	csthread.cpp cstimer.cpp csutil.cpp
