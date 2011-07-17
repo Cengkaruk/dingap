@@ -32,6 +32,7 @@ protected:
 };
 
 long csGetPageSize(void);
+int csExecute(const string &command);
 
 #endif // _CSUTIL_H
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

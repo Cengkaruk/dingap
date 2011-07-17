@@ -22,6 +22,7 @@
 #include <stdexcept>
 
 #include <unistd.h>
+#include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
@@ -69,6 +70,16 @@ long csGetPageSize(void)
 #else
     return 4096;
 #endif
+}
+
+int csExecute(const string &command)
+{
+    FILE *ph = popen(command.c_str(), "r");
+    if (ph == NULL) return errno;
+    char buffer[::csGetPageSize()];
+    while (!feof(ph))
+        fgets(buffer, ::csGetPageSize(), ph);
+    return pclose(ph);
 }
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4
