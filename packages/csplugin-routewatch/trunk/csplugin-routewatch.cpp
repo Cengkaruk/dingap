@@ -120,7 +120,7 @@ void *csPluginRouteWatch::Entry(void)
     if (fd_netlink == -1) return NULL;
 
     ssize_t len;
-    char buf[4096];
+    char buf[::csGetPageSize()];
     struct iovec iov = { buf, sizeof(buf) };
     struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
     struct nlmsghdr *nh;
@@ -221,7 +221,8 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         tag->SetData((void *)table);
 
         csLog::Log(csLog::Debug,
-            "Watching routing table %d for changes.", table);
+            "%s: Watching routing table %d for changes.",
+            _conf->parent->name.c_str(), table);
     }
 }
 
@@ -236,8 +237,9 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
         if (!text.size())
             ParseError("missing value for tag: " + tag->GetName());
 
-        csLog::Log(csLog::Debug, "%s: %s",
-        tag->GetName().c_str(), text.c_str());
+        csLog::Log(csLog::Debug, "%s: %s: %s",
+            _conf->parent->name.c_str(),
+            tag->GetName().c_str(), text.c_str());
 
         _conf->parent->table[(int)tag->GetData()] = text;
     }
