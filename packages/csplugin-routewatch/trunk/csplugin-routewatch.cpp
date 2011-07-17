@@ -26,7 +26,6 @@
 
 #include <clearsync/csplugin.h>
 
-class csPluginConf;
 class csPluginXmlParser : public csXmlParser
 {
 public:
@@ -56,27 +55,6 @@ void csPluginConf::Reload(void)
     parser->Parse();
 }
 
-void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
-{
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
-}
-
-void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
-{
-    string text = tag->GetText();
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
-
-    if ((*tag) == "test-tag") {
-        if (!stack.size() || (*stack.back()) != "plugin")
-            ParseError("unexpected tag: " + tag->GetName());
-        if (!text.size())
-            ParseError("missing value for tag: " + tag->GetName());
-
-        csLog::Log(csLog::Debug, "%s: %s",
-        tag->GetName().c_str(), text.c_str());
-    }
-}
-
 class csPluginRouteWatch : public csPlugin
 {
 public:
@@ -94,6 +72,8 @@ protected:
     int fd_netlink;
     struct sockaddr_nl sa;
     csPluginConf *conf;
+    map<int, string> table;
+    map<int, csTimer *> timer;
 };
 
 csPluginRouteWatch::csPluginRouteWatch(const string &name,
@@ -107,12 +87,13 @@ csPluginRouteWatch::csPluginRouteWatch(const string &name,
     fd_netlink = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
     if (fd_netlink == -1) {
         csLog::Log(csLog::Error,
-            "csNetlinkThread: socket: %s", strerror(errno));
+            "%s: socket: %s", name.c_str(), strerror(errno));
     }
     else if (bind(fd_netlink, (struct sockaddr *) &sa, sizeof(sa)) == -1) {
         close(fd_netlink);
         fd_netlink = -1;
-        csLog::Log(csLog::Error, "csNetlinkThread: bind: %s", strerror(errno));
+        csLog::Log(csLog::Error, "%s: bind: %s",
+            name.c_str(), strerror(errno));
     }
 
     csLog::Log(csLog::Debug, "%s: Initialized.", name.c_str());
@@ -195,7 +176,8 @@ void *csPluginRouteWatch::Entry(void)
                 nh->nlmsg_type != RTM_DELROUTE) continue;
 
             rth = (struct rtmsg *)NLMSG_DATA(nh);
-            if (rth->rtm_table != 254) continue;
+            map<int, string>::iterator i = table.find(rth->rtm_table);
+            if (i == table.end()) continue;
 
             if (rth->rtm_family != AF_INET &&
                 rth->rtm_family != AF_INET6) continue;
@@ -208,9 +190,11 @@ void *csPluginRouteWatch::Entry(void)
             switch (nh->nlmsg_type) {
             case RTM_NEWROUTE:
                 csLog::Log(csLog::Debug, "%s: New route", name.c_str());
+                ::csExecute(i->second);
                 break;
             case RTM_DELROUTE:
                 csLog::Log(csLog::Debug, "%s: Deleted route", name.c_str());
+                ::csExecute(i->second);
                 break;
             default:
                 csLog::Log(csLog::Debug, "%s: Received message: %d",
@@ -221,6 +205,42 @@ void *csPluginRouteWatch::Entry(void)
     }
 
     return NULL;
+}
+
+void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
+{
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+
+    if ((*tag) == "on-route-change") {
+        if (!stack.size() || (*stack.back()) != "plugin")
+            ParseError("unexpected tag: " + tag->GetName());
+        if (!tag->ParamExists("table"))
+            ParseError("table parameter missing");
+
+        int table = atoi(tag->GetParamValue("table").c_str());
+        tag->SetData((void *)table);
+
+        csLog::Log(csLog::Debug,
+            "Watching routing table %d for changes.", table);
+    }
+}
+
+void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
+{
+    string text = tag->GetText();
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+
+    if ((*tag) == "on-route-change") {
+        if (!stack.size() || (*stack.back()) != "plugin")
+            ParseError("unexpected tag: " + tag->GetName());
+        if (!text.size())
+            ParseError("missing value for tag: " + tag->GetName());
+
+        csLog::Log(csLog::Debug, "%s: %s",
+        tag->GetName().c_str(), text.c_str());
+
+        _conf->parent->table[(int)tag->GetData()] = text;
+    }
 }
 
 csPluginInit(csPluginRouteWatch);
