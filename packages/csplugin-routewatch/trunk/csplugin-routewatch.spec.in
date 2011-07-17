@@ -39,6 +39,7 @@ cp -v csplugin-routewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 # Post install
 %post
 /sbin/ldconfig
+/etc/init.d/clearsyncd condrestart
 
 # Post uninstall
 %postun
