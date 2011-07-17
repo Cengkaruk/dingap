@@ -11,6 +11,7 @@ BuildRoot: /var/tmp/%{name}-%{version}
 Requires: clearsync
 BuildRequires: clearsync-devel expat-devel
 Summary: ClearSync route watch plugin
+Prereq: /sbin/ldconfig
 
 %description
 This plugin monitors the routing table for changes and can
@@ -34,6 +35,14 @@ cp -v csplugin-routewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 # Clean-up
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+# Post install
+%post
+/sbin/ldconfig
+
+# Post uninstall
+%postun
+/sbin/ldconfig
 
 # Files
 %files

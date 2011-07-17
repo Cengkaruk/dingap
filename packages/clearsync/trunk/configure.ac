@@ -41,7 +41,5 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([clock_gettime endpwent getpagesize gettimeofday localtime_r memset pathconf socket strcasecmp strerror])
 
-AC_SUBST([CFLAGS])
-
 AC_CONFIG_FILES([Makefile clearsync.spec])
 AC_OUTPUT

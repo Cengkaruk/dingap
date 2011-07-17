@@ -8,9 +8,10 @@ Group: System Environment/Daemons
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
-Requires: sudo
 Summary: ClearSync system sychronization tool
 BuildRequires: expat-devel
+Requires(pre): /sbin/ldconfig, /usr/sbin/useradd, /usr/bin/getent
+Requires(postun): /usr/sbin/userdel
 
 %description
 ClearSync system synchronization tool
@@ -38,7 +39,8 @@ make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT
 mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d
 mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
-mkdir -vp ${RPM_BUILD_ROOT}/var/run/clearsync
+mkdir -vp ${RPM_BUILD_ROOT}/%{_localstatedir}/run/clearsync
+mkdir -vp ${RPM_BUILD_ROOT}/%{_localstatedir}/state/clearsync
 cp -v doc/clearsync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}
 cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/clearsyncd
 
@@ -46,13 +48,32 @@ cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/clearsyncd
 %clean
 [ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
 
+# Pre install
+%pre
+/usr/bin/getent group clearsync ||\
+    /usr/sbin/groupadd -r clearsync
+/usr/bin/getent passwd clearsync ||\
+    /usr/sbin/useradd -r -d %{_sbindir}/clearsyncd -s /bin/false clearsync
+
+# Post install
+%post
+/sbin/ldconfig
+/etc/init.d/clearsyncd condreload
+
+# Post uninstall
+%postun
+/sbin/ldconfig
+/usr/sbin/userdel clearsync
+/etc/init.d/clearsyncd condreload
+
 # Files
 %files
 %defattr(-,root,root)
 %{_sysconfdir}/init.d/clearsyncd
 %{_sysconfdir}/clearsync.conf
 %{_sysconfdir}/clearsync.d
-/var/run/clearsync
+%attr(755,clearsync,clearsync) %{_localstatedir}/run/clearsync
+%attr(750,clearsync,clearsync) %{_localstatedir}/state/clearsync
 %{_sbindir}/clearsyncd
 %{_libdir}
 

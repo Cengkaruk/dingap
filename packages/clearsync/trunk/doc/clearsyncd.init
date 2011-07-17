@@ -30,7 +30,7 @@ PID_FILE=/var/run/clearsync/clearsyncd.pid
 
 start() {
 	echo -n "Starting $prog: "
-    daemon $prog
+    daemon --user clearsync $prog
     RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
 	echo
@@ -41,7 +41,7 @@ stop() {
 	echo -n "Shutting down $prog: "
 	killproc $prog
     RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f rm -f /var/lock/subsys/$prog
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
     echo
 	return $RETVAL
 }
@@ -61,13 +61,16 @@ case "$1" in
         start
 	;;
     reload)
-        kill -HUP $(cat $PID_FILE)
+        killproc $prog SIGHUP
 	;;
     condrestart)
         [ -f /var/lock/subsys/$prog ] && restart || :
     ;;
+    condreload)
+        [ -f /var/lock/subsys/$prog ] && reload || :
+    ;;
     *)
-	echo "Usage: $prog {start|stop|status|reload|restart|condrestart"
+	echo "Usage: $prog {start|stop|status|reload|restart|condrestart|condreload"
 	exit 1
 	;;
 esac
