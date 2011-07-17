@@ -50,10 +50,8 @@ cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/clearsyncd
 
 # Pre install
 %pre
-/usr/bin/getent group clearsync ||\
-    /usr/sbin/groupadd -r clearsync
 /usr/bin/getent passwd clearsync ||\
-    /usr/sbin/useradd -r -d %{_sbindir}/clearsyncd -s /bin/false clearsync
+    /usr/sbin/useradd -c "ClearSync" -M -U -r -d %{_sbindir}/clearsyncd -s /bin/false clearsync
 
 # Post install
 %post

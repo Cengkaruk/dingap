@@ -62,16 +62,22 @@ case "$1" in
 	;;
     reload)
         killproc $prog SIGHUP
+        RETVAL=$?
+        echo
 	;;
     condrestart)
         [ -f /var/lock/subsys/$prog ] && restart || :
     ;;
     condreload)
-        [ -f /var/lock/subsys/$prog ] && reload || :
+        if [ -f /var/lock/subsys/$prog ]; then
+            killproc $prog SIGHUP
+            RETVAL=$?
+            echo
+        fi
     ;;
     *)
 	echo "Usage: $prog {start|stop|status|reload|restart|condrestart|condreload"
 	exit 1
 	;;
 esac
-exit $?
+exit $RETVAL
