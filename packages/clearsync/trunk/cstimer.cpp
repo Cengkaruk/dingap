@@ -76,17 +76,10 @@ csTimer::csTimer(cstimer_id_t timer_id,
     if (timer_create(CLOCK_REALTIME, &sev, &id) < 0)
         throw csException(errno, "timer_create");
 
-    struct timespec ts_now;
-    if (clock_gettime(CLOCK_REALTIME, &ts_now) < 0)
-        throw csException(errno, "clock_gettime");
-
     it_spec.it_value.tv_sec = value;
     it_spec.it_value.tv_nsec = 0;
     it_spec.it_interval.tv_sec = interval;
     it_spec.it_interval.tv_nsec = 0;
-
-    if (timer_settime(id, 0, &it_spec, NULL) , 0)
-        throw csException(errno, "timer_settime");
 
     csLog::Log(csLog::Debug,
         "Created timer: %lu [0x%08x], %s, value: %ld, interval: %ld",
@@ -96,8 +89,7 @@ csTimer::csTimer(cstimer_id_t timer_id,
 
 csTimer::~csTimer()
 {
-    memset(&it_spec, 0, sizeof(struct itimerspec));
-    timer_settime(id, 0, &it_spec, NULL);
+    Stop();
 
     if (sigrt_id != -1) {
         pthread_mutex_lock(signal_id_mutex);
@@ -106,11 +98,43 @@ csTimer::~csTimer()
     }
 }
 
+void csTimer::Start(void)
+{
+    if (timer_settime(id, 0, &it_spec, NULL) , 0)
+        throw csException(errno, "timer_settime");
+}
+
+void csTimer::Stop(void)
+{
+    memset(&it_spec, 0, sizeof(struct itimerspec));
+    timer_settime(id, 0, &it_spec, NULL);
+}
+
+void csTimer::SetValue(time_t value)
+{
+    it_spec.it_value.tv_sec = value;
+    timer_settime(id, 0, &it_spec, NULL);
+}
+
+void csTimer::SetInterval(time_t interval)
+{
+    it_spec.it_interval.tv_sec = interval;
+    timer_settime(id, 0, &it_spec, NULL);
+}
+
+void csTimer::Extend(time_t value)
+{
+    struct itimerspec it_remaining;
+    timer_gettime(id, &it_remaining);
+
+    it_remaining.it_value.tv_sec += value;
+    timer_settime(id, 0, &it_remaining, NULL);
+}
+
 time_t csTimer::GetRemaining(void)
 {
     struct itimerspec it_remaining;
     timer_gettime(id, &it_remaining);
-    // TODO: inaccurate...
     return it_remaining.it_value.tv_sec;
 }
 

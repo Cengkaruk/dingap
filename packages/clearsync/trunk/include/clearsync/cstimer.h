@@ -29,6 +29,11 @@ public:
     virtual ~csTimer();
 
     inline cstimer_id_t GetId(void) { return timer_id; };
+    void Start(void);
+    void Stop(void);
+    void SetValue(time_t value);
+    void SetInterval(time_t value);
+    void Extend(time_t value);
     time_t GetRemaining(void);
     inline csEventClient *GetTarget(void) { return target; };
 
