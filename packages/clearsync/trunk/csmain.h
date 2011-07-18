@@ -32,10 +32,10 @@
 #endif
 
 #ifndef _CS_VERSION
-#ifndef PROGRAM_VERSION
+#ifndef PACKAGE_VERSION
 #define _CS_VERSION             "0.0"
 #else
-#define _CS_VERSION             PROGRAM_VERSION
+#define _CS_VERSION             PACKAGE_VERSION
 #endif
 #endif
 
