@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 4%{dist}
+Release: 5%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -12,6 +12,8 @@ Summary: ClearSync system sychronization tool
 BuildRequires: expat-devel
 Requires(pre): /sbin/ldconfig, /usr/sbin/useradd, /usr/bin/getent
 Requires(postun): /usr/sbin/userdel
+Requires(post): /sbin/chkconfig
+Requires(preun): /sbin/chkconfig
 
 %description
 ClearSync system synchronization tool
@@ -53,16 +55,21 @@ cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/clearsyncd
 /usr/bin/getent passwd clearsync ||\
     /usr/sbin/useradd -c "ClearSync" -M -U -r -d %{_sbindir}/clearsyncd -s /bin/false clearsync
 
+%preun
+if [ "$1" = 0 ]; then
+    /sbin/chkconfig --del clearsyncd
+fi
+
 # Post install
 %post
 /sbin/ldconfig
-/etc/init.d/clearsyncd condreload
+/sbin/chkconfig --add clearsyncd
+/etc/init.d/clearsyncd condrestart
 
 # Post uninstall
 %postun
 /sbin/ldconfig
 /usr/sbin/userdel clearsync
-/etc/init.d/clearsyncd condreload
 
 # Files
 %files
