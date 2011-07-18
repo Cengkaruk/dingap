@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 3%{dist}
+Release: 4%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -67,16 +67,18 @@ cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/clearsyncd
 # Files
 %files
 %defattr(-,root,root)
+%{_sbindir}/clearsyncd
+%{_libdir}/libclearsync.so*
 %{_sysconfdir}/init.d/clearsyncd
 %{_sysconfdir}/clearsync.conf
 %{_sysconfdir}/clearsync.d
 %attr(755,clearsync,clearsync) %{_localstatedir}/run/clearsync
 %attr(750,clearsync,clearsync) %{_localstatedir}/state/clearsync
-%{_sbindir}/clearsyncd
-%{_libdir}
 
 # Developer files
 %files devel
 %defattr(-,root,root)
 %{_includedir}/clearsync
+%{_libdir}/libclearsync.a
+%{_libdir}/libclearsync.la
 
