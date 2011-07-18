@@ -26,6 +26,16 @@
 
 #include <clearsync/csplugin.h>
 
+#define _DEFAULT_DELAY          5
+
+struct TableConfig_t
+{
+    int table;
+    time_t delay;
+    string *action;
+    csTimer *timer;
+};
+
 class csPluginXmlParser : public csXmlParser
 {
 public:
@@ -69,11 +79,12 @@ public:
 protected:
     friend class csPluginXmlParser;
 
+    void QueueDelayedAction(struct TableConfig_t *config);
+
     int fd_netlink;
     struct sockaddr_nl sa;
     csPluginConf *conf;
-    map<int, string> table;
-    map<int, csTimer *> timer;
+    map<int, struct TableConfig_t *> table;
 };
 
 csPluginRouteWatch::csPluginRouteWatch(const string &name,
@@ -102,6 +113,15 @@ csPluginRouteWatch::csPluginRouteWatch(const string &name,
 csPluginRouteWatch::~csPluginRouteWatch()
 {
     if (conf) delete conf;
+    for (map<int, struct TableConfig_t *>::iterator i = table.begin();
+        i != table.end(); i++) {
+        if (i->second->timer != NULL)
+            delete i->second->timer;
+        if (i->second->action != NULL)
+            delete i->second->action;
+        delete i->second;
+    }
+
     if (fd_netlink != -1) close(fd_netlink);
 }
 
@@ -120,7 +140,7 @@ void *csPluginRouteWatch::Entry(void)
     if (fd_netlink == -1) return NULL;
 
     ssize_t len;
-    char buf[::csGetPageSize()];
+    char buf[::csGetPageSize() * 8];
     struct iovec iov = { buf, sizeof(buf) };
     struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
     struct nlmsghdr *nh;
@@ -141,6 +161,22 @@ void *csPluginRouteWatch::Entry(void)
             case csEVENT_QUIT:
                 delete event;
                 return NULL;
+
+            case csEVENT_TIMER:
+            {
+                csTimer *timer =
+                    static_cast<csTimerEvent *>(event)->GetTimer();
+                map<int, struct TableConfig_t *>::iterator i;
+                i = table.find((int)timer->GetId());
+                if (i != table.end()) {
+                    csLog::Log(csLog::Debug, "%s: Executing route watch action: %s",
+                        name.c_str(), i->second->action->c_str());
+                    ::csExecute(*(i->second->action));
+                }
+                delete timer;
+                i->second->timer = NULL;
+                break;
+            }
 
             default:
                 delete event;
@@ -176,7 +212,7 @@ void *csPluginRouteWatch::Entry(void)
                 nh->nlmsg_type != RTM_DELROUTE) continue;
 
             rth = (struct rtmsg *)NLMSG_DATA(nh);
-            map<int, string>::iterator i = table.find(rth->rtm_table);
+            map<int, struct TableConfig_t *>::iterator i = table.find(rth->rtm_table);
             if (i == table.end()) continue;
 
             if (rth->rtm_family != AF_INET &&
@@ -190,11 +226,11 @@ void *csPluginRouteWatch::Entry(void)
             switch (nh->nlmsg_type) {
             case RTM_NEWROUTE:
                 csLog::Log(csLog::Debug, "%s: New route", name.c_str());
-                ::csExecute(i->second);
+                QueueDelayedAction(i->second);
                 break;
             case RTM_DELROUTE:
                 csLog::Log(csLog::Debug, "%s: Deleted route", name.c_str());
-                ::csExecute(i->second);
+                QueueDelayedAction(i->second);
                 break;
             default:
                 csLog::Log(csLog::Debug, "%s: Received message: %d",
@@ -207,6 +243,17 @@ void *csPluginRouteWatch::Entry(void)
     return NULL;
 }
 
+void csPluginRouteWatch::QueueDelayedAction(struct TableConfig_t *config)
+{
+    if (config->timer)
+        config->timer->SetValue(config->delay);
+    else {
+            config->timer = new csTimer(
+                (cstimer_id_t)config->table, config->delay, 0, this);
+            config->timer->Start();
+    }
+}
+
 void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
 {
     csPluginConf *_conf = static_cast<csPluginConf *>(conf);
@@ -217,12 +264,21 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         if (!tag->ParamExists("table"))
             ParseError("table parameter missing");
 
-        int table = atoi(tag->GetParamValue("table").c_str());
-        tag->SetData((void *)table);
+        time_t delay = _DEFAULT_DELAY;
+        if (tag->ParamExists("delay"))
+            delay = (time_t)atoi(tag->GetParamValue("delay").c_str());
+
+        struct TableConfig_t *config = new struct TableConfig_t;
+        config->table = atoi(tag->GetParamValue("table").c_str());
+        config->timer = NULL;
+        config->delay = delay;
+        config->action = NULL;
+
+        tag->SetData((void *)config);
 
         csLog::Log(csLog::Debug,
             "%s: Watching routing table %d for changes.",
-            _conf->parent->name.c_str(), table);
+            _conf->parent->name.c_str(), config->table);
     }
 }
 
@@ -241,7 +297,9 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
             _conf->parent->name.c_str(),
             tag->GetName().c_str(), text.c_str());
 
-        _conf->parent->table[(int)tag->GetData()] = text;
+        struct TableConfig_t *config = (struct TableConfig_t *)tag->GetData();
+        config->action = new string(text);
+        _conf->parent->table[config->table] = config;
     }
 }
 
