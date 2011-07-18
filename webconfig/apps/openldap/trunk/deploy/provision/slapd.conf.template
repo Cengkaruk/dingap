@@ -54,7 +54,8 @@ loglevel 0
 
 sizelimit 10000
 
-modulepath /usr/lib/openldap
+# FIXME: review
+# modulepath /usr/lib/openldap
 moduleload accesslog.la
 moduleload ppolicy.la
 moduleload syncprov.la
