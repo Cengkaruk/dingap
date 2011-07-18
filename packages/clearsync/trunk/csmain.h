@@ -55,6 +55,7 @@ public:
     };
 
     virtual void *Entry(void);
+    void Reaper(void);
 
 protected:
     sigset_t signal_set;

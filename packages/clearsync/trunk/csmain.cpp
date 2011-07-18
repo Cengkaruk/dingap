@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include <unistd.h>
 #include <getopt.h>
@@ -54,9 +55,9 @@
 
 void *csSignalHandler::Entry(void)
 {
+    int sig;
     pid_t pid;
     siginfo_t si;
-    int sig, status;
 
     csLog::Log(csLog::Debug, "Signal handler started.");
 
@@ -84,6 +85,10 @@ void *csSignalHandler::Entry(void)
             EventDispatch(new csEvent(csEVENT_RELOAD), parent);
             break;
 
+        case SIGCHLD:
+            Reaper();
+            break;
+
         default:
             if (sig >= SIGRTMIN && sig <= SIGRTMAX) {
                 csTimer *timer = reinterpret_cast<csTimer *>
@@ -98,6 +103,26 @@ void *csSignalHandler::Entry(void)
     }
 
     return NULL;
+}
+
+void csSignalHandler::Reaper()
+{
+    pid_t pid;
+    int status;
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        if (WIFEXITED(status)) {
+            csLog::Log(csLog::Debug,
+                "Process exited with code: %d: %d",
+                pid, WEXITSTATUS(status));
+        } else if (WIFSIGNALED(status)) {
+            csLog::Log(csLog::Debug,
+                "Process exited by signal: %d: %s",
+                pid, strsignal(WTERMSIG(status)));
+        }
+        else
+            csLog::Log(csLog::Warning,
+                "Process exited abnormally: %d", pid);
+    }
 }
 
 csMainXmlParser::csMainXmlParser(void)
