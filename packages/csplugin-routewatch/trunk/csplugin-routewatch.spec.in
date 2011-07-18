@@ -29,6 +29,8 @@ make %{?_smp_mflags}
 # Install
 %install
 make install DESTDIR=$RPM_BUILD_ROOT
+rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-routewatch.a
+rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-routewatch.la
 mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 cp -v csplugin-routewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 
@@ -50,5 +52,5 @@ cp -v csplugin-routewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 %files
 %defattr(-,root,root)
 %{_sysconfdir}/clearsync.d/csplugin-routewatch.conf
-%{_libdir}
+%{_libdir}/libcsplugin-routewatch.so*
 
