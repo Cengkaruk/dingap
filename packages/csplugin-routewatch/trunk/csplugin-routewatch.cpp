@@ -137,9 +137,6 @@ void csPluginRouteWatch::SetConfigurationFile(const string &conf_filename)
 
 void *csPluginRouteWatch::Entry(void)
 {
-    int rc;
-    sigset_t signal_set;
-
     if (fd_netlink == -1) return NULL;
 
     ssize_t len;
@@ -167,6 +164,8 @@ void *csPluginRouteWatch::Entry(void)
 
             case csEVENT_TIMER:
             {
+                int rc;
+                sigset_t signal_set;
                 csTimer *timer =
                     static_cast<csTimerEvent *>(event)->GetTimer();
                 map<int, struct TableConfig_t *>::iterator i;
