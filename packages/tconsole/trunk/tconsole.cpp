@@ -1913,6 +1913,11 @@ void ccProcessPipe::Execute(void)
 
 int ccProcessPipe::Execute(const string &path, vector<string> &output)
 {
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGCHLD);
+    pthread_sigmask(SIG_UNBLOCK, &sigset, NULL);
+
     FILE *ph;
     if ((ph = popen(path.c_str(), "r")) == NULL) return -1;
     output.clear();
@@ -1923,7 +1928,13 @@ int ccProcessPipe::Execute(const string &path, vector<string> &output)
         output.push_back(text);
     }
     
-    return pclose(ph);
+    int rc = pclose(ph);
+
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGCHLD);
+    pthread_sigmask(SIG_BLOCK, &sigset, NULL);
+
+    return rc;
 }
 
 ccThreadProcessBase::ccThreadProcessBase(ccEventClient *parent)
