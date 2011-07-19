@@ -232,9 +232,9 @@ class Firewall_Custom extends Engine
 
         try {
             if (!isset($entry) || $entry == '')
-                throw new Engine_Exception(FIREWALL_CUSTOM_LANG_ERRMSG_NO_RULE, COMMON_WARNING);
+                throw new Engine_Exception(lang('firewall_custom_no_rule'), CLEAROS_WARNING);
             if (!preg_match("/^iptables.*$/", $entry))
-                throw new Engine_Exception(FIREWALL_CUSTOM_LANG_ERRMSG_INVALID_RULE, COMMON_WARNING);
+                throw new Engine_Exception(lang('firewall_custom_invalid_rule'), CLEAROS_WARNING);
 
             if ($priority > 0)
                 array_unshift(
@@ -432,7 +432,7 @@ class Firewall_Custom extends Engine
             // Copy the new config over the old config
             //----------------------------------------
 
-            $newfile->MoveTo(self::FILE_CONFIG);
+            $newfile->move_to(self::FILE_CONFIG);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -441,5 +441,37 @@ class Firewall_Custom extends Engine
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
+
+    /*
+     * Validation iptables rule.
+     *
+     * @param string $iptables iptables
+     *
+     * @return mixed void if iptables is valid, errmsg otherwise
+     */
+
+    public function validate_iptables($iptables)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match("/^iptables.*/", $iptables))
+            return lang('firewall_custom_must_start_iptables');
+    }
+
+    /*
+     * Validation routine for description.
+     *
+     * @param int $description description
+     *
+     * @return mixed void if description is valid, errmsg otherwise
+     */
+
+    public function validate_description($description)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match("/.*/", $iptables))
+            return lang('firewall_custom_description_is_invalid');
+    }
 
 }

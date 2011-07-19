@@ -98,18 +98,19 @@ class Firewall_Custom extends ClearOS_Controller
 
         $is_action = FALSE;
 
-        $this->form_validation->set_policy('range_to', 'firewall_custom/Incoming', 'validate_port', TRUE);
+        $this->form_validation->set_policy('iptables', 'firewall_custom/Firewall_Custom', 'validate_iptables', TRUE);
+        $this->form_validation->set_policy('description', 'firewall_custom/Firewall_Custom', 'validate_description', TRUE);
 
         // Handle form submit
         //-------------------
 
         if ($this->form_validation->run()) {
             try {
-                $this->incoming->add_allow_port_range(
-                    $this->input->post('range_nickname'),
-                    $this->input->post('range_protocol'),
-                    $this->input->post('range_from'),
-                    $this->input->post('range_to')
+                $this->firewall_custom->add_rule(
+                    $this->input->post('iptables'),
+                    $this->input->post('description'),
+                    $this->input->post('enabled'),
+                    $this->input->post('priority')
                 );
 
                 $this->page->set_status_added();
@@ -139,6 +140,41 @@ class Firewall_Custom extends ClearOS_Controller
         $confirm_uri = '/app/firewall_custom/destroy/' . $line;
         $cancel_uri = '/app/firewall_custom';
 
-        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, 'FIXME');
+        $this->load->library('firewall_custom/Firewall_Custom');
+        $this->lang->load('firewall_custom');
+
+        $rule = $this->firewall_custom->get_rule($line);
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, array($rule['description']));
     }
+
+    /**
+     * Destroys rule.
+     *
+     * @param string  $line line
+     *
+     * @return view
+     */
+
+    function destroy($line)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('firewall_custom/Firewall_Custom');
+        $this->lang->load('firewall_custom');
+
+        // Handle form submit
+        //-------------------
+
+        try {
+            $this->firewall_custom->delete_rule($line);
+
+            $this->page->set_status_deleted();
+            redirect('/firewall_custom');
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+    }
+
 }

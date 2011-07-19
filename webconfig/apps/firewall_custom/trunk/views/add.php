@@ -44,6 +44,7 @@ echo form_open('firewall_custom/add');
 echo form_header(lang('firewall_custom_rule'));
 
 echo field_input('iptables', $iptables, lang('firewall_custom_rule'));
+echo field_input('description', $description, lang('firewall_custom_description'));
 
 echo button_set(
     array(
