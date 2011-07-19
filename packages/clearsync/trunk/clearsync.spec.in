@@ -63,13 +63,17 @@ fi
 # Post install
 %post
 /sbin/ldconfig
-/sbin/chkconfig --add clearsyncd
+/sbin/chkconfig --add clearsyncd 2>&1 || :
 /etc/init.d/clearsyncd condrestart
 
 # Post uninstall
 %postun
 /sbin/ldconfig
-/usr/sbin/userdel clearsync
+if [ -f /var/lock/subsys/clearsyncd ]; then
+    killall -TERM clearsyncd 2>&1 || :
+    sleep 2
+fi
+/usr/sbin/userdel clearsync 2>&1 || :
 
 # Files
 %files
