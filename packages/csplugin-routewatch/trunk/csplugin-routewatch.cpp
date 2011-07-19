@@ -140,7 +140,7 @@ void *csPluginRouteWatch::Entry(void)
     if (fd_netlink == -1) return NULL;
 
     ssize_t len;
-    char buf[::csGetPageSize() * 8];
+    char buf[::csGetPageSize() * 2];
     struct iovec iov = { buf, sizeof(buf) };
     struct msghdr msg = { (void *)&sa, sizeof(sa), &iov, 1, NULL, 0, 0 };
     struct nlmsghdr *nh;
