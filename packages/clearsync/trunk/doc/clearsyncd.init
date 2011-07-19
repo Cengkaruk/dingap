@@ -66,7 +66,11 @@ case "$1" in
         echo
 	;;
     condrestart)
-        [ -f /var/lock/subsys/$prog ] && restart || :
+        if [ -f /var/lock/subsys/$prog ]; then
+            stop
+            start
+            RETVAL=$?
+        fi
     ;;
     condreload)
         if [ -f /var/lock/subsys/$prog ]; then
