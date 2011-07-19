@@ -137,6 +137,9 @@ void csPluginRouteWatch::SetConfigurationFile(const string &conf_filename)
 
 void *csPluginRouteWatch::Entry(void)
 {
+    int rc;
+    sigset_t signal_set;
+
     if (fd_netlink == -1) return NULL;
 
     ssize_t len;
@@ -171,7 +174,24 @@ void *csPluginRouteWatch::Entry(void)
                 if (i != table.end()) {
                     csLog::Log(csLog::Debug, "%s: Executing route watch action: %s",
                         name.c_str(), i->second->action->c_str());
+
+                    sigemptyset(&signal_set);
+                    sigaddset(&signal_set, SIGCHLD);
+                    if ((rc = pthread_sigmask(SIG_UNBLOCK, &signal_set, NULL)) != 0) {
+                        csLog::Log(csLog::Error, "%s: pthread_sigmask: %s",
+                            name.c_str(), strerror(rc));
+                        return NULL;
+                    }
+
                     ::csExecute(*(i->second->action));
+
+                    sigemptyset(&signal_set);
+                    sigaddset(&signal_set, SIGCHLD);
+                    if ((rc = pthread_sigmask(SIG_BLOCK, &signal_set, NULL)) != 0) {
+                        csLog::Log(csLog::Error, "%s: pthread_sigmask: %s",
+                            name.c_str(), strerror(rc));
+                        return NULL;
+                    }
                 }
                 delete timer;
                 i->second->timer = NULL;
