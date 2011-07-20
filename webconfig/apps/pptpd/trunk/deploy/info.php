@@ -43,6 +43,7 @@ $app['core_requires'] = array(
     'app-network-core',
     'app-pptpd-plugin-core',
     'app-samba-extension-core',
+    'csplugin-routewatch',
     'pptpd >= 1.3.4',
 );
 

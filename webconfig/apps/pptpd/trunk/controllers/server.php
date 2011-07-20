@@ -1,7 +1,7 @@
 <?php
 
 /**
- * PPTPd settings controller.
+ * PPTPd daemon controller.
  *
  * @category   Apps
  * @package    PPTPd
@@ -29,14 +29,25 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-require '/home/peter/clearos/webconfig/apps/base/trunk/controllers/daemon.php';
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('base') . '/controllers/daemon.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * PPTPd settings controller.
+ * PPTPd daemon controller.
  *
  * @category   Apps
  * @package    PPTPd
@@ -49,4 +60,8 @@ require '/home/peter/clearos/webconfig/apps/base/trunk/controllers/daemon.php';
 
 class Server extends Daemon
 {
+    function __construct()
+    {
+        parent::__construct('pptpd', 'pptpd');
+    }
 }
