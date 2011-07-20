@@ -102,10 +102,11 @@ a.theme-anchor:hover {
 
 a.theme-anchor-important { 
   background: transparent url('../images/button-bg.png') repeat-x;
-  padding-left: 6px;
-  padding-right: 6px;
-  padding-top: 3px;
-  height: 17px;
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  height: 14px;
   border: 1px solid #d1d3d4;
   font-size: 8pt;
   color: #e1852e;
@@ -123,14 +124,15 @@ a.theme-anchor-important:hover {
 
 a.theme-anchor-unimportant {
   background: transparent url('../images/button-bg.png') repeat-x;
-  padding-left: 6px;
-  padding-right: 6px;
-  height: 17px;
+  padding-left: 5px;
+  padding-right: 5px;
+  height: 14px;
   height: 17px\9;
   border: 1px solid #d1d3d4;
   border-top-left-radius: 0px;
   border-bottom-left-radius: 0px;
-  padding-top: 3px;
+  padding-top: 1px;
+  padding-bottom: 1px;
   padding-top: 3px\9;
   top: 1px\9;
 }
@@ -194,19 +196,21 @@ a.theme-anchor-custom:hover {color: #e1852e; }
 
 input.theme-form-important { 
   background: transparent url('../images/button-bg.png') repeat-x;
-  padding-left: 6px;
-  padding-right: 6px;
-  height: 22px;
+  padding-left: 5px;
+  padding-right: 5px;
+  height: 18px;
   border: 1px solid #d1d3d4;
   font-size: 8pt;
   color: #e1852e;
+  margin-top: 2px;
+  clear: all;
 }
 
 input.theme-form-unimportant { 
   background: transparent url('../images/button-bg.png') repeat-x;
   padding-left: 6px;
   padding-right: 6px;
-  height: 22px;
+  height: 18px;
   border: 1px solid #d1d3d4;
   font-size: 8pt;
   color: #e1852e;
@@ -217,7 +221,7 @@ input.theme-form-important:hover {border: 1px solid #a5a4a4; color: #e1852e;}
 input.theme-form-unimportant:hover {border: 1px solid #a5a4a4; color: #e1852e;}
 
 /* Javascript anchor */
-a.theme-anchor-javascript {padding-top: 4px; height: 16px; }
+a.theme-anchor-javascript {padding-top: 1px; height: 14px; }
 
 /*
 .theme-form-submit:hover {
@@ -288,7 +292,9 @@ a.theme-anchor-javascript {padding-top: 4px; height: 16px; }
 /* Buttons Sets */
 /* ------------------------------------------------------------------------- */
 
-div.theme-button-set { color: red; background-image: url();}
+div.theme-button-set { color: red; background-image: url(); float: left; }
+
+.theme-summary-table-action .theme-button-set {float: right; margin-top: 2px;}
 
 /* ------------------------------------------------------------------------- */
 /* Field View */
@@ -335,6 +341,7 @@ div.theme-button-set { color: red; background-image: url();}
 
 .theme-list-table-action .ui-buttonset {
 	margin-right: 2px;
+	float: right;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -407,6 +414,7 @@ div.theme-button-set { color: red; background-image: url();}
 
 .input-box input {
 	width: 200px;
+	margin-right: 10px;
 }
 
 .check {
@@ -516,8 +524,8 @@ border-radius: 9px;
 
 .breadcrumb {
 	color: #98bb60;
-	font-size: 14px;
-	margin-top: 0px;
+	font-size: 12px;
+	margin-top: 6px;
 	margin-bottom: 20px;
 }
 
@@ -1347,9 +1355,10 @@ input.theme-form-submit-delete { }
 	border: 1px solid #648e20;
 	color: #e1852e; 
 	padding-bottom: 2px;
-	margin-top: 1px;
-	padding-top: 2px;
+	margin-top: 3px;
+	padding-top: 1px;
 	font-size: 8pt;
+	float: right;
 	}
 .theme-list-table-container input.theme-form-submit-update:hover {
 	background: url(../images/green-button-bg-hover.png) repeat-x;
@@ -1503,6 +1512,7 @@ input.theme-form-submit-delete { }
 .login .input-box input {
 	width: 150px;
 	float: right;
+	margin-right: 15px;
 }
 
 .login select {
@@ -1522,6 +1532,7 @@ input.theme-form-submit-delete { }
 .login .right-field-content {
 	float: right;
 	padding-top: 3px;
+	margin-left: 0px;
 }
 
 .login .theme-form-container {
@@ -1572,3 +1583,108 @@ input.theme-form-submit-delete { }
 
 #app_list td { width: 50px; border: none; border-right: 1px solid #d1d3d4; border-bottom: 1px solid #d1d3d4; padding: 0px; margin: 0; border-collapse: collapse; border-spacing: 0px;}
 */
+
+/* Button fix */
+
+a.theme-button-set-first {
+	border-top-right-radius: 0px;
+	border-bottom-right-radius: 0px;
+}
+
+a.theme-button-set-last {
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	border-top-left-radius: 0px;
+	border-bottom-left-radius: 0px;	
+}
+
+a.theme-button-set-first.theme-button-set-last {
+	border-radius: 5px;
+}
+
+a.theme-button-set-middle {
+	border-radius: 0px;
+}
+
+/* Marketplace */
+
+.marketplace-header {
+	margin-left: -10px;
+	margin-top: -10px;
+	width: 739px;
+	height: 55px;
+	background: url(../images/market-header-bg.png) repeat-x;
+	border-top-right-radius: 15px;
+	border-bottom: 1px solid #d1d3d4;
+}
+
+.marketplace-logo {
+	background: url(../images/marketplace-logo.png) repeat-x;
+	height:38px;
+	width:256px;
+	margin-left: 15px;
+	float: left;
+	margin-top: 11px;
+	}
+
+.category-buttons {
+	float: right;
+	margin-right: 18px;
+	margin-top: 17px;
+}
+
+.category-button {
+	float: left;
+	margin-left: 15px;
+	padding:2px 3px 2px 21px;
+	cursor: pointer;
+	color: #a5a4a4;
+}
+
+.category-button:hover {
+	color: #686868;
+}
+
+.category-all {
+	background: url() repeat-x;
+}
+
+.category-server {
+	background: url(../images/server-icon-small.png) no-repeat ;
+}
+
+.category-network {
+	background: url(../images/network-icon-small.png) no-repeat 0px 1px;
+}
+
+.category-gateway {
+	background: url(../images/gateway-icon-small.png) no-repeat 0px 1px;
+}
+
+.category-system {
+	background: url(../images/system-icon-small.png) no-repeat;
+}
+
+.free-paid {
+	float: left;
+	margin-top: 24px;
+	margin-left: 15px;
+}
+
+.paid {
+	margin-left: 15px;
+}
+
+.free, .paid {
+	color: #a5a4a4;
+	float: left;
+	cursor: pointer;
+}
+
+.free:hover {
+	color: #686868;
+}
+
+.paid:hover {
+	color: #686868;
+}
