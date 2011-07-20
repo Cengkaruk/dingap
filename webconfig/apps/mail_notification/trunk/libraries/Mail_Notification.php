@@ -56,10 +56,12 @@ clearos_load_language('mail_notification');
 //--------
 
 use \clearos\apps\base\File as File;
+use \clearos\apps\date\Time as Time;
 use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\network\Hostname as Hostname;
 
 clearos_load_library('base/File');
+clearos_load_library('date/Time');
 clearos_load_library('base/Configuration_File');
 clearos_load_library('network/Hostname');
 
@@ -110,6 +112,10 @@ class Mail_Notification
 
     function __construct()
     {
+        set_include_path(get_include_path() . PATH_SEPARATOR . '/usr/clearos/webconfig/var/lib/php');
+        require_once 'Swift/lib/Swift.php';
+        require_once 'Swift/lib/Swift/File.php';
+        require_once 'Swift/lib/Swift/Connection/SMTP.php';
     }
 
 	/** Send a plain text message.
@@ -127,11 +133,11 @@ class Mail_Notification
 			$this->_load_config();
 
 		# Create a recipient list
-		$recipient_list = new Swift_RecipientList();
+		$recipient_list = new \Swift_RecipientList();
 
 		# Swift mailer logs a warning message if we don't set this
-		$ntptime = new Ntp_Time();
-		date_default_timezone_set($ntptime->get_time_zone());
+		$time = new Time();
+		date_default_timezone_set($time->get_time_zone());
 
 		# Validation
 		# ----------
@@ -163,7 +169,7 @@ class Mail_Notification
 		}
 
 		try {
-			$smtp = new Swift_Connection_SMTP(
+			$smtp = new \Swift_Connection_SMTP (
 				$this->config['host'], intval($this->config['port']), intval($this->config['ssl'])
 			);
 			if ($this->config['username'] != null && !empty($this->config['username'])) {
@@ -171,17 +177,17 @@ class Mail_Notification
 				$smtp->setPassword($this->config['password']);
 			}
 		} catch (Exception $e) {
-			throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
 		}
 
 		try {
-			$swift = new Swift($smtp);
+			$swift = new \Swift($smtp);
 		} catch (Exception $e) {
-			throw new Engine_Exception($e->GetMessage(), COMMON_INFO);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_WARNING);
 		}
 
 		# Set Subject
-		$message = new Swift_Message($this->message['subject']);
+		$message = new \Swift_Message($this->message['subject']);
 
 		# Set Body
 		if (isset($this->message['body']))
@@ -192,28 +198,28 @@ class Mail_Notification
 				if (isset($msgpart['filename'])) {
 					if (isset($msgpart['data'])) {
 						# Data in variable
-						$part = new Swift_Message_Attachment(
+						$part = new \Swift_Message_Attachment(
 							$msgpart['data'], basename($msgpart['filename']), $msgpart['type'],
 							$msgpart['encoding'], $msgpart['disposition']
 						);
 					} else {
 						# Data as file
 						try {
-							$file = new Swift_File($msgpart['filename']);
-						} catch (Swift_FileException $e) {
+							$file = new \Swift_File($msgpart['filename']);
+						} catch (\Swift_FileException $e) {
 							throw new FileNotFoundException(FILE_LANG_ERRMSG_NOTEXIST . basename($msgpart['filename']));
 						}
-						$part = new Swift_Message_Attachment(
+						$part = new \Swift_Message_Attachment(
 							$file, basename($msgpart['filename']), $msgpart['type'],
 							$msgpart['encoding'], $msgpart['disposition']
 						);
 					}
 				} else if (isset($msgpart['disposition']) && strtolower($msgpart['disposition']) == 'inline') {
-					$part = new Swift_Message_Attachment(
+					$part = new \Swift_Message_Attachment(
 						$msgpart['data'], null, $msgpart['type'], $msgpart['encoding'], $msgpart['disposition']
 					);
 				} else {
-					$part = new Swift_Message_Part(
+					$part = new \Swift_Message_Part(
 						$msgpart['data'], $msgpart['type'], $msgpart['encoding'], $msgpart['charset']
 					);
 				}
@@ -245,7 +251,7 @@ class Mail_Notification
 
 		# Set To
 		foreach ($this->message['recipient'] as $recipient) {
-			$addy = new Swift_Address($recipient['address']);
+			$addy = new \Swift_Address($recipient['address']);
 			if (isset($recipient['name']))
 				$addy->setName($recipient['name']);
             $recipient_list->addTo($addy);
@@ -253,7 +259,7 @@ class Mail_Notification
 		# Set CC 
 		if (isset($this->message['cc'])) {
 			foreach ($this->message['cc'] as $cc) {
-				$addy = new Swift_Address($cc['address']);
+				$addy = new \Swift_Address($cc['address']);
 				if (isset($cc['name']))
 					$addy->setName($cc['name']);
             	$recipient_list->addCc($addy);
@@ -262,14 +268,14 @@ class Mail_Notification
 		# Set BCC 
 		if (isset($this->message['bcc'])) {
 			foreach ($this->message['bcc'] as $bcc) {
-				$addy = new Swift_Address($bcc['address']);
+				$addy = new \Swift_Address($bcc['address']);
 				if (isset($bcc['name']))
 					$addy->setName($bcc['name']);
 				$recipient_list->addBCc($addy);
 			}
 		}
 		# Set sender
-		$sender = new Swift_Address($this->message['sender']['address']);
+		$sender = new \Swift_Address($this->message['sender']['address']);
 		if (isset($this->message['sender']['name']))
 			$sender->setName($this->message['sender']['name']);
 
@@ -277,13 +283,12 @@ class Mail_Notification
 		$message->setReplyTo($this->message['replyto']);
 
 		if ($swift->send($message, $recipient_list, $sender)) {
-			$this->_LogSendSuccess();
 			$swift->disconnect();
 			$this->clear();
 		} else {
 			$swift->disconnect();
 			$this->clear();
-			throw new Engine_Exception(MAILER_LANG_ERRMSG_SEND_FAILED, COMMON_WARNING);
+			throw new Engine_Exception(lang('mail_notification_send_failed'), CLEAROS_WARNING);
 		}
 	}
 
@@ -299,7 +304,7 @@ class Mail_Notification
         clearos_profile(__METHOD__, __LINE__);
 
 		$this->add_recipient($email);
-		$this->set_subject(MAILER_LANG_TEST_EMAIL);
+		$this->set_subject(lang('mail_notification_test_email'));
 		$this->set_body(lang('mail_notification_test_success'));
 		$this->send();
 	}
