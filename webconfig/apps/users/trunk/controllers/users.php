@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -65,6 +71,11 @@ class Users extends ClearOS_Controller
 
         try {
             $data['users'] = $this->user_manager->get_details();
+
+            if ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE)
+                $data['mode'] = 'edit';
+            else
+                $data['mode'] = 'view';
 /*
             $is_initialized = $this->accounts->is_initialized();
             $is_available = $this->accounts->is_available();
@@ -93,7 +104,7 @@ class Users extends ClearOS_Controller
         if (!isset($username) && $this->input->post('username'))
             $username = $this->input->post('username');
 
-        $this->_add_edit_view($username, 'add');
+        $this->_item($username, 'add');
     }
 
     /**
@@ -152,7 +163,7 @@ class Users extends ClearOS_Controller
     function edit($username)
     {
         // Use common add/edit form
-        $this->_add_edit_view($username, 'edit');
+        $this->_item($username, 'edit');
     }
 
     /**
@@ -166,7 +177,7 @@ class Users extends ClearOS_Controller
     function view($username)
     {
         // Use common add/edit form
-        $this->_add_edit_view($username, 'view');
+        $this->_item($username, 'view');
     }
 
 
@@ -183,7 +194,7 @@ class Users extends ClearOS_Controller
      * @return view
      */
 
-    function _add_edit_view($username, $form_type)
+    function _item($username, $form_type)
     {
         // Load libraries
         //---------------
@@ -268,6 +279,6 @@ class Users extends ClearOS_Controller
         // Load the views
         //---------------
 
-        $this->page->view_form('users/add_edit', $data, lang('users_user_manager'));
+        $this->page->view_form('users/item', $data, lang('users_user_manager'));
     }
 }

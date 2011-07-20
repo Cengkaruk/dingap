@@ -41,8 +41,10 @@ $this->lang->load('users');
 
 if ($mode === 'view') {
     $read_only = TRUE;
+    $anchors = array();
 } else {
     $read_only = FALSE;
+    $anchors = array(anchor_add('/app/users/add'));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,12 +55,6 @@ $headers = array(
 	lang('users_username'),
 	lang('users_full_name'),
 );
-
-///////////////////////////////////////////////////////////////////////////////
-// Anchors 
-///////////////////////////////////////////////////////////////////////////////
-
-$anchors = array(anchor_add('/app/users/add'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -112,4 +108,4 @@ echo summary_table(
 	$anchors,
 	$headers,
 	$items
-);
+;

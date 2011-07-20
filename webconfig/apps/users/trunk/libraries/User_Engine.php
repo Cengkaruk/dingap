@@ -102,6 +102,23 @@ class User_Engine extends Engine
     const STATUS_ENABLED = 'enabled';
     const STATUS_DISABLED = 'disabled';
 
+    // Capabilities
+    //-------------
+
+    const CAPABILITY_READ_ONLY = 'read_only';
+    const CAPABILITY_READ_WRITE = 'read_write';
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    public static $builtin_list = array(
+        'email-archive',
+        'flexshare',
+        'guest',
+        'winadmin'
+    );
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
