@@ -102,6 +102,27 @@ class Product extends Engine
 	}
 
 	/**
+	 * Returns partner region ID.
+	 *
+	 * @return int  region ID
+	 * @throws EngineException
+	 */
+
+	public function GetPartnerRegionId()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if (!$this->is_loaded)
+			$this->_LoadConfig();
+
+		if (isset($this->config['partner_region_id']))
+			return (int)$this->config['partner_region_id'];
+		else
+			return 0;
+	}
+
+	/**
 	 * Returns the product name.
 	 *
 	 * @return string product name
@@ -137,17 +158,17 @@ class Product extends Engine
 		return $this->config['portal_url'];
 	}
 
-    /**
-     * Returns redirect URL
-     *
-     * @return string redirect URL
-     * @throws EngineException
-     */
+	/**
+	 * Returns redirect URL
+	 *
+	 * @return string redirect URL
+	 * @throws EngineException
+	 */
 
-    function GetRedirectUrl()
-    {
-        if (COMMON_DEBUG_MODE)
-            self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+	function GetRedirectUrl()
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
 		if (!$this->is_loaded)
 			$this->_LoadConfig();
@@ -171,6 +192,29 @@ class Product extends Engine
 			$this->_LoadConfig();
 
 		return $this->config['version'];
+	}
+
+	/**
+	 * Sets the partner region ID.
+	 *
+	 * @parm int  region ID
+	 * @throws EngineException
+	 */
+
+	public function SetPartnerRegionId($id)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		try {
+			$file = new ConfigurationFile(self::FILE_CONFIG);
+			$updated = $file->ReplaceLines("/^partner_region_id\s*=.*/", ($id < 0 ? "" : "partner_region_id = " . $id), 1);
+			if ($updated == 0 && $id > 0)
+				$file->AddLines("partner_region_id = " . $id . "\n");
+			$this->_LoadConfig();
+		} catch (Exception $e) {
+			throw new EngineException($e->GetMessage(), COMMON_WARNING);
+		}
 	}
 
 	// TODO: move WebServices.GetVendorCode and Register.GetVendorCode to here.

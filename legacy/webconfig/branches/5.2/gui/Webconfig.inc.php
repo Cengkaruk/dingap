@@ -1039,6 +1039,32 @@ function WebAuthenticate()
 		}
 	}
 
+	// Forward to partner when required
+	//---------------------------------
+	// Only check if system is registered *and* partner flag is set and user is trying to login
+	if (isset($_REQUEST['redirect_key']) || ($_SESSION['system_registered'] && $_SESSION['system_partner_region_id'] != 0 && isset($_POST['reserved_username']) && $_POST['reserved_username'] != '')) {
+		try {
+			require_once(COMMON_CORE_DIR . '/api/ClearSdnService.class.php');
+			$sdn = new ClearSdnService(); 
+			$info = $sdn->GetBaseSubscription(true);
+			$key_reset = false;
+			require_once(COMMON_CORE_DIR . "/api/Product.class.php");
+			$product = new Product();
+			if (isset($_REQUEST['redirect_key']) && (int)$info['device_id'] == $_REQUEST['redirect_key']) {
+				// neg value will delete setting 
+				$product->SetPartnerRegionId(-1);
+				$key_reset = true;
+			}
+			if ((int)$info['public'] == 1 && !$key_reset) {
+				$payload = "?hostkey=" . $_SESSION['system_hostkey'] . "&id=" . $_SESSION['system_partner_region_id'];
+				WebForwardPage($product->GetPortalUrl() . "/partner_redirect.jsp" . $payload);
+				exit;
+			}
+		} catch (Exception $e) {
+			// Ignore
+		}
+	}
+
 	// Logout requested
 	//-----------------
 
@@ -1372,6 +1398,7 @@ function WebSetSession()
 			$osname = $product->GetName();
 			$osversion = $product->GetVersion();
 			$redirect = $product->GetRedirectUrl() . "/" . preg_replace("/ /", "_", $osname) . "/" . $osversion;
+			$partner_region_id = $product->GetPartnerRegionId();
 		} catch (Exception $e) {
 			// Use default
 		}
@@ -1428,6 +1455,7 @@ function WebSetSession()
 		$_SESSION['system_online_help'] = $redirect . "/userguide";
 		$_SESSION['system_redirect'] = $redirect;
 		$_SESSION['system_sdn_redirect'] = $sdnredirect;
+		$_SESSION['system_partner_region_id'] = $partner_region_id;
 		$_SESSION['system_hostkey'] = $hostkey;
 		$_SESSION['system_template'] = $template;
 		$_SESSION['system_locale'] = $code;
@@ -1443,6 +1471,7 @@ function WebSetSession()
 				'system_online_help' => $redirect . "/userguide",
 				'system_redirect' => $redirect,
 				'system_sdn_redirect' => $sdnredirect,
+				'system_partner_region_id' => $partner_region_id,
 				'system_hostkey' => $hostkey,
 				'system_template' => $template,
 				'system_locale' => $code,
