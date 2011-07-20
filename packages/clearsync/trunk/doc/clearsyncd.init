@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# clearsyncd	Start up the ClearSync server daemon
+# clearsyncd    Start up the ClearSync server daemon
 #
 # chkconfig: 2345 55 25
 # description: ClearSync synchronization daemon
@@ -29,42 +29,42 @@ prog="clearsyncd"
 PID_FILE=/var/run/clearsync/clearsyncd.pid
 
 start() {
-	echo -n "Starting $prog: "
+    echo -n "Starting $prog: "
     daemon --user clearsync $prog
     RETVAL=$?
-	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
-	echo
-	return $RETVAL
-}	
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
+    echo
+    return $RETVAL
+}   
 
 stop() {
-	echo -n "Shutting down $prog: "
-	killproc $prog
+    echo -n "Shutting down $prog: "
+    killproc $prog
     RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog
     echo
-	return $RETVAL
+    return $RETVAL
 }
 
 case "$1" in
     start)
         start
-	;;
+    ;;
     stop)
         stop
-	;;
+    ;;
     status)
         status $prog
-	;;
+    ;;
     restart)
         stop
         start
-	;;
+    ;;
     reload)
         killproc $prog SIGHUP
         RETVAL=$?
         echo
-	;;
+    ;;
     condrestart)
         if [ -f /var/lock/subsys/$prog ]; then
             stop
@@ -80,8 +80,8 @@ case "$1" in
         fi
     ;;
     *)
-	echo "Usage: $prog {start|stop|status|reload|restart|condrestart|condreload"
-	exit 1
-	;;
+    echo "Usage: $prog {start|stop|status|reload|restart|condrestart|condreload"
+    exit 1
+    ;;
 esac
 exit $RETVAL
