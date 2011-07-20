@@ -153,6 +153,19 @@ class Accounts_Driver extends Accounts_Engine
     }
 
     /**
+     * Returns capabililites.
+     *
+     * @return string capabilities
+     */
+
+    public function get_capability()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return Accounts_Engine::CAPABILITY_READ_WRITE;
+    }
+
+    /**
      * Returns list of directory extensions.
      *
      * @return array extension list

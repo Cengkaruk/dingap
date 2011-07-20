@@ -20,7 +20,6 @@ $app['description'] = lang('accounts_app_description');
 $app['name'] = lang('accounts_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Accounts Manager';
-$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

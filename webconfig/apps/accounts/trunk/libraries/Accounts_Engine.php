@@ -95,6 +95,12 @@ class Accounts_Engine extends Engine
     const STATUS_OFFLINE = 'offline';
     const STATUS_ONLINE = 'online';
 
+    // Capabilities
+    //-------------
+
+    const CAPABILITY_READ_ONLY = 'read_only';
+    const CAPABILITY_READ_WRITE = 'read_write';
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////

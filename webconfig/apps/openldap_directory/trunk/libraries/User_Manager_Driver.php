@@ -195,7 +195,13 @@ class User_Manager_Driver extends User_Manager_Engine
             $attributes = $this->ldaph->get_attributes($entry);
             $username = $attributes['uid'][0];
 
-            // FIXME - implement type
+            // TODO: continue filter implementation
+            if ($type === User_Engine::TYPE_NORMAL) {
+                if (in_array($username, User_Engine::$builtin_list)) {
+                    $entry = $this->ldaph->next_entry($entry);
+                    continue;
+                }
+            }
 
             $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
