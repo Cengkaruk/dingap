@@ -1,7 +1,7 @@
 # ClearSync Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 3%{dist}
+Release: 4%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
@@ -42,6 +42,23 @@ cp -v csplugin-routewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 %post
 /sbin/ldconfig
 /etc/init.d/clearsyncd condrestart
+
+# Add command(s) to sudo configuration
+CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
+if [ -z "$CHECK" ]; then
+    echo "Cmnd_Alias CLEARSYNC = " >> /etc/sudoers
+	echo "clearsync ALL=NOPASSWD: CLEARSYNC" >> /etc/sudoers
+fi
+
+CMD=/sbin/service
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
 
 # Post uninstall
 %postun
