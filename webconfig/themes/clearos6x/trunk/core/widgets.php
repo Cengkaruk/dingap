@@ -185,9 +185,17 @@ function theme_button_set($buttons, $options)
         $button_html .= "\n" . trim($button);
     }
 
+/* FIXME: tables
     return "
         <div class='theme-button-set'$id>$button_html
         </div>
+    ";
+*/
+    return "
+        <tr><td colspan='100'>
+            <div class='theme-button-set'$id>$button_html
+            </div>
+        </td></tr>
     ";
 }
 
@@ -222,10 +230,10 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id,
         $hidden_input = "<input type='hidden' name='$name' value='$value'>";
 
     return "
-        <div$field_id_html class='theme-fieldview" . $hide_field . "'>
-            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
-            <div class='right-field-content'><span id='$input_id'>$text</span>$hidden_input</div>
-        </div>
+        <tr$field_id_html class='theme-fieldview" . $hide_field . "'>
+            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+            <td class='right-field-content'><span id='$input_id'>$text</span>$hidden_input</td>
+        </tr>
     ";
 }
 
@@ -285,10 +293,10 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
     $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html class='theme-field-$type" . $hide_field . "'>
-            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
-           <div class='right-field-content input-box'> <input type='$type' name='$name' value='$value' id='$input_id'> $error_html</div>
-        </div>
+        <tr$field_id_html class='theme-field-$type" . $hide_field . "'>
+            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+            <td class='right-field-content input-box'> <input type='$type' name='$name' value='$value' id='$input_id'> $error_html</td>
+        </tr>
     ";
 }
 
@@ -375,10 +383,10 @@ function theme_field_dropdown($name, $value, $label, $error, $values, $input_id,
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html class='theme-dropdown'>
-            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
-            <div class='right-field-content'>" . form_dropdown($name, $values, $value, $input_id_html) . " $error_html</div>
-        </div>
+        <tr$field_id_html class='theme-dropdown'>
+            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+            <td class='right-field-content'>" . form_dropdown($name, $values, $value, $input_id_html) . " $error_html</td>
+        </tr>
     ";
 }
 
@@ -415,10 +423,10 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $va
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
 
     return "
-        <div$field_id_html class='theme-field-toggle'>
-            <div class='left-field-content'><label for='$input_id'$label_id_html>$label</label></div>
-            <div class='right-field-content'>" . form_dropdown($name, $values, $selected, $input_id_html) . " $error_html </div>
-        </div>
+        <tr$field_id_html class='theme-field-toggle'>
+            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+            <td class='right-field-content'>" . form_dropdown($name, $values, $selected, $input_id_html) . " $error_html </td>
+        </tr>
     ";
 }
 
@@ -454,10 +462,10 @@ function theme_field_checkbox($name, $value, $label, $options, $input_id, $optio
     $select_html = ($value) ? ' checked' : '';
 
     return "
-        <div$field_id_html class='theme-field-checkboxes'>
-            <div class='left-field-content'<label for='$input_id'$label_id_html>$label</label></div>
-          <div class='right-field-content check'>  <input type='checkbox' name='$name' id='$input_id' $select_html></div>
-        </div>
+        <tr$field_id_html class='theme-field-checkboxes'>
+            <td class='left-field-content'<label for='$input_id'$label_id_html>$label</label></td>
+          <td class='right-field-content check'>  <input type='checkbox' name='$name' id='$input_id' $select_html></td>
+        </tr>
     ";
 }
 
@@ -491,10 +499,12 @@ function theme_field_progress_bar($label, $id, $options = array())
     $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
 
     return "
-        <div$field_id_html class='theme-field-progress-bar'>
-           <label for='$id'$label_id_html>$label</label>
-            <div id='$id' class='theme-progress-bar'> </div>
-        </div>
+        <tr$field_id_html class='theme-field-progress-bar'>
+            <td colspan='100'>
+                <label for='$id'$label_id_html>$label</label>
+                <div id='$id' class='theme-progress-bar'> </div>
+            </td>
+        </tr>
     ";
 }
 
@@ -535,7 +545,8 @@ function theme_form_header($title, $options)
 
     // return "<div class='theme-form-header'$id_html>\n";
 
-    // Pete update - hacked in form title in theme
+/* FIXME: TABLES */
+/*
     return "<div class='theme-form-header'$id_html><h3 style='position: relative;
 margin-top: 0px;
 margin-bottom: 0px;
@@ -545,6 +556,22 @@ color: #98BB60;
 font-weight: normal;
 font-size: 14px;
 width: 100%;'>$title</h3><div class='theme-form-wrapper'>";
+*/
+    return "<table border='0' class='theme-form-header'$id_html>
+        <tr>
+            <td colspan='100'>
+                <h3 style='position: relative;
+                margin-top: 0px;
+                margin-bottom: 20px;
+                top: 10px;
+                left: 14px;
+                color: #98BB60;
+                font-weight: normal;
+                font-size: 14px;
+                width: 100%;'>$title</h3>
+            </td>
+        </tr>
+    ";
 }
 
 /**
@@ -562,7 +589,8 @@ function theme_form_footer($options)
 {
     $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
 
-    return "</div></div><div class='theme-form-footer'$id_html></div>\n";
+    // return "</div></div><div class='theme-form-footer'$id_html></div>\n";
+    return "</table>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
