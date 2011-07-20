@@ -108,4 +108,4 @@ echo summary_table(
 	$anchors,
 	$headers,
 	$items
-;
+);

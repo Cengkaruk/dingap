@@ -37,7 +37,7 @@ if ($form_type === 'edit') {
     $read_only = FALSE;
     $username_read_only = TRUE;
 
-	$form_path = '/users/edit';
+	$form_path = '/users/edit/' . $username;
 	$buttons = array(
 		form_submit_update('submit'),
 		anchor_cancel('/app/users/'),
@@ -47,7 +47,7 @@ if ($form_type === 'edit') {
     $read_only = TRUE;
     $username_read_only = TRUE;
 
-	$form_path = '/users/view';
+	$form_path = '/users/view/' . $username;
 	$buttons = array(
 		anchor_cancel('/app/users/')
 	);
@@ -66,8 +66,8 @@ if ($form_type === 'edit') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open($form_path . '/' . $username);
-echo form_header(lang('users_user'));
+echo form_open($form_path);
+echo form_header(lang('users_users'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Core fields
