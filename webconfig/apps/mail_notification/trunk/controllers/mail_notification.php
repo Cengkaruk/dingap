@@ -156,7 +156,11 @@ class Mail_Notification extends ClearOS_Controller
         $this->form_validation->set_policy('email', 'mail_notification/Mail_Notification', 'validate_email', TRUE);
         $form_ok = $this->form_validation->run();
         if (($this->input->post('submit') && $form_ok)) {
-            $this->mail_notification->test_relay($this->input->post('email'));
+            try {
+                $this->mail_notification->test_relay($this->input->post('email'));
+            } catch (Exception $e) {
+                $this->page->set_message(clearos_exception_message($e));
+            }
         }
         $this->page->view_form('test', $data, lang('mail_notification_test'));
     }
