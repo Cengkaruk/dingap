@@ -24,8 +24,7 @@ Requires: app-date-core
 Requires: app-mail-notification-core
 Requires: app-tasks-core
 Requires: mdadm
-Requires: mpt-status >= 1.2.0
-Requires: tw_cli >= 9.5.0
+Requires: tw_cli >= 9.5.3
 Requires: util-linux
 Requires: vixie-cron
 Requires: udev
