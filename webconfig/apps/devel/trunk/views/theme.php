@@ -192,11 +192,11 @@ page is a good example.</p>
 $items = array();
 $wee_items = array();
 
-for ($i = 1; $i < 11; $i++) {
+for ($i = 1; $i < 13; $i++) {
     $item = array(
         'title' => "example$i.lan",
         'action' => anchor_edit('/app/devel', 'high'),
-        'anchors' => anchor_edit('/app/devel', 'high') . anchor_delete('/app/devel', 'high'),
+        'anchors' => button_set(array(anchor_edit('/app/devel', 'high'), anchor_delete('/app/devel', 'high'))),
         'details' => array("example$i.lan", "192.168.2.$i"),
     );
 
