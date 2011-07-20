@@ -158,6 +158,8 @@ class Mail_Notification extends ClearOS_Controller
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->mail_notification->test_relay($this->input->post('email'));
+                $this->page->set_message(lang('mail_notification_test_success'), 'info');
+                redirect('/mail_notification');
             } catch (Exception $e) {
                 $this->page->set_message(clearos_exception_message($e));
             }

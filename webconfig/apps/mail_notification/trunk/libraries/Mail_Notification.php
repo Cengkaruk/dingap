@@ -304,7 +304,7 @@ class Mail_Notification
         clearos_profile(__METHOD__, __LINE__);
 
 		$this->add_recipient($email);
-		$this->set_subject(lang('mail_notification_test_email'));
+		$this->set_subject(lang('mail_notification_test'));
 		$this->set_body(lang('mail_notification_test_success'));
 		$this->send();
 	}
@@ -356,13 +356,13 @@ class Mail_Notification
 		}
 
 		# Format someguy@domain.com Some Guy
-        if (preg_match("/^([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4}) +(.*)$/", $address[0], $match)) {
+        if (preg_match("/^([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4}) +(.*)$/iu", $address[0], $match)) {
 			$address[0] = $match[1];
 			$address[1] = $match[2];
 		}
 
 		# Format Some Guy someguy@domain.com
-        if (preg_match("/^(.*) +([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4})$/", $address[0], $match)) {
+        if (preg_match("/^(.*) +([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4})$/iu", $address[0], $match)) {
 			$address[0] = $match[2];
 			$address[1] = $match[1];
 		}
@@ -433,13 +433,9 @@ class Mail_Notification
         clearos_profile(__METHOD__, __LINE__);
 
 		$options = array(
-			0=>lang('mail_notification_none'),
-			1=>lang('mail_notification_ssl'),
-			2=>lang('mail_notification_tls')
-            // TODO
-			//Swift_Connection_SMTP::ENC_OFF=>lang('mail_notification_none'),
-			//Swift_Connection_SMTP::ENC_SSL=>lang('mail_notification_ssl'),
-			//Swift_Connection_SMTP::ENC_TLS=>lang('mail_notification_tls')
+			\Swift_Connection_SMTP::ENC_OFF=>lang('mail_notification_none'),
+			\Swift_Connection_SMTP::ENC_SSL=>lang('mail_notification_ssl'),
+			\Swift_Connection_SMTP::ENC_TLS=>lang('mail_notification_tls')
 		);
 		return $options;
 	}
@@ -587,7 +583,7 @@ class Mail_Notification
 		// ----------
         Validation_Exception::is_valid($this->validate_subject($subject));
 		
-		$this->_set_parameter('subject', $subject);
+		$this->message['subject'] = $subject;
 	}
 
 	/* Set the SMTP host.
