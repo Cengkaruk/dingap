@@ -73,7 +73,7 @@ echo field_input('ip', $ip, lang('network_ip'), $read_only);
 echo field_input('nickname', $nickname, lang('radius_nickname'));
 echo field_input('password', $password, lang('base_password'));
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

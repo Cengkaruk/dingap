@@ -51,7 +51,7 @@ echo field_input('date', $date, lang('date_date'), TRUE, array('id' => 'date'));
 echo field_input('time', $time, lang('date_time'), TRUE, array('id' => 'time'));
 echo field_simple_dropdown('time_zone', $time_zones, $time_zone, lang('date_time_zone'));
 
-echo button_set(
+echo field_button_set(
     array( 
         form_submit_update('submit', 'high'),
         anchor_javascript('sync', lang('date_synchronize_now'), 'high')
@@ -65,6 +65,7 @@ echo button_set(
 echo form_footer();
 echo form_close();
 
+// FIXME: Aaron
 echo "<div id='result_box'>";
 echo infobox_highlight(lang('date_synchronization_changed_time_by_x_seconds:') . ' ' .  "<span id='result'></span>");
 echo "</div>";

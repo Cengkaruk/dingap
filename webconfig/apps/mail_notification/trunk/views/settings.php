@@ -67,7 +67,7 @@ echo field_dropdown('ssl', $ssl_options, $ssl, lang('mail_notification_ssl'), $r
 echo field_input('username', $username, lang('mail_notification_username'), $read_only);
 echo field_input('password', $password, lang('mail_notification_password'), $read_only);
 echo field_input('sender', $sender, lang('mail_notification_sender'), $read_only);
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

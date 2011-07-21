@@ -66,7 +66,7 @@ if ($import_ready) {
     echo field_file('number', $number_of_records, lang('account_import_number_of_records'), $import_ready);
 }
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

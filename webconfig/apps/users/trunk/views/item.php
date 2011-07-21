@@ -79,7 +79,7 @@ echo form_header(lang('users_users'));
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('users_name'));
+echo fieldset_header(lang('users_name'));
 echo field_input('username', $username, lang('users_username'), $username_read_only);
 
 foreach ($info_map['core'] as $key_name => $details) {
@@ -101,7 +101,7 @@ foreach ($info_map['core'] as $key_name => $details) {
         }
 }
 
-echo form_fieldset_close();
+echo fieldset_footer();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Password fields
@@ -112,10 +112,10 @@ echo form_fieldset_close();
 ///////////////////////////////////////////////////////////////////////////////
 
 if (! $read_only) {
-    echo form_fieldset(lang('users_password'));
+    echo fieldset_header(lang('users_password'));
     echo field_password('password', '', lang('users_password'), $read_only);
     echo field_password('verify', '', lang('users_verify'), $read_only);
-    echo form_fieldset_close();
+    echo fieldset_footer();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -123,7 +123,7 @@ if (! $read_only) {
 ///////////////////////////////////////////////////////////////////////////////
 
 if (! empty($plugins)) {
-    echo form_fieldset(lang('users_plugins'));
+    echo fieldset_header(lang('users_plugins'));
 
     foreach ($plugins as $plugin => $details) {
         $name = "user_info[plugins][$plugin][state]";
@@ -131,7 +131,7 @@ if (! empty($plugins)) {
         echo field_toggle_enable_disable($name, $value, $details['nickname'], $read_only);
     }
 
-    echo form_fieldset_close();
+    echo fieldset_footer();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -147,7 +147,7 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
     // Use the extension name for the title
     //-------------------------------------
 
-    echo form_fieldset($extensions[$extension]['nickname']);
+    echo fieldset_header($extensions[$extension]['nickname']);
 
     // Echo out the specific info field
     //---------------------------------
@@ -167,10 +167,10 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
         }
     }
 
-    echo form_fieldset_close();
+    echo fieldset_footer();
 }
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

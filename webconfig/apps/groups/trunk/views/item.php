@@ -80,7 +80,7 @@ echo form_header(lang('groups_group'));
 echo field_input('group_name', $group_info['group_name'], lang('groups_group_name'), $group_name_read_only);
 echo field_input('description', $group_info['description'], lang('groups_description'), $read_only);
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();

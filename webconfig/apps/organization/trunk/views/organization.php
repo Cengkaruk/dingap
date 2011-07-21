@@ -55,7 +55,7 @@ echo field_input('region', $region, lang('organization_region'));
 echo field_dropdown('country', $countries, $country, lang('organization_country'));
 echo field_input('postal_code', $postal_code, lang('organization_postal_code'));
 
-echo button_set(array(form_submit_update('submit', 'high')));
+echo field_button_set(array(form_submit_update('submit', 'high')));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

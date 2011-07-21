@@ -53,7 +53,9 @@ echo form_header(lang('base_settings'));
 echo field_dropdown('code', $languages, $code, lang('language_default_system_language'));
 echo field_checkbox('session', TRUE, lang('language_update_my_login_session'));
 
-echo button_set( array(form_submit_update('submit')) );
+echo field_button_set(
+    array(form_submit_update('submit'))
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

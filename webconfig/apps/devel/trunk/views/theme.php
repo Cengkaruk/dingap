@@ -70,24 +70,24 @@ $cities = array('Toronto', 'Erin', 'Orem');
 echo form_open('devel');
 echo form_header('User Information');
 
-echo form_fieldset('Address');
+echo fieldset_header('Address');
 echo field_dropdown('city', $cities, 'Toronto', 'City');
 echo field_input('postal_code', '', 'Postal Code');
 echo field_toggle_enable_disable('notify1', 1, 'Email Notify', FALSE);
 echo field_toggle_enable_disable('notify2', 1, 'SMS Notify', FALSE);
-echo form_fieldset_close();
+echo fieldset_footer();
 
-echo form_fieldset('Phone Numbers');
+echo fieldset_header('Phone Numbers');
 echo field_input('home', '', 'Home');
 echo field_input('mobile', '', 'Mobile');
-echo form_fieldset_close();
+echo fieldset_footer();
 
-echo button_set( array(
+echo field_button_set( array(
     form_submit_update('submit'),
     anchor_cancel('/dhcp'),
 ));
-echo button_set( array(
-    form_submit_custom('submit', 'Custom Broken'),
+echo field_button_set( array(
+    form_submit_custom('submit', 'Custom'),
     anchor_cancel('/dhcp'),
 ));
 
@@ -242,12 +242,12 @@ $restaurants = array('Burger Master', 'Flames-r-us', 'Wimpy');
 echo form_open('/app/devel');
 echo form_header('Lunch');
 
-echo form_fieldset('Lunch Menu');
+echo fieldset_header('Lunch Menu');
 echo field_dropdown('restaurant', $restaurants, 'Burger Master', 'Restaurant');
 echo field_checkbox('checkbox1', '1', 'Hamburger');
 echo field_checkbox('checkbox2', '0', 'Juice');
 echo field_checkbox('checkbox3', '0', 'French Fries');
-echo form_fieldset_close();
+echo fieldset_footer();
 
 echo form_footer();
 echo form_close();
@@ -266,10 +266,10 @@ $checkboxes = array(
 echo form_open('/app/devel');
 echo form_header('Lunch');
 
-echo form_fieldset('Lunch Menu');
+echo fieldset_header('Lunch Menu');
 echo field_dropdown('restaurant', $restaurants, 'Burger Master', 'Restaurant');
 echo field_checkboxes($checkboxes, 'checkbox11', 'Hamburger', 'Entree');
-echo form_fieldset_close();
+echo fieldset_footer();
 
 echo form_footer();
 echo form_close();
@@ -387,11 +387,11 @@ echo "<p>A progress bar in a form:</p>";
 echo form_open('/app/devel');
 echo form_header('Progress Bar');
 
-echo form_fieldset('Progress Bar');
+echo fieldset_header('Progress Bar');
 echo field_input('lettuce', '', 'Lettuce');
 echo field_input('tomato', '', 'Tomato');
 echo field_progress_bar('Bacon Consumed', 'bacon_progress');
-echo form_fieldset_close();
+echo fieldset_footer();
 
 echo form_footer();
 echo form_close();
