@@ -20,6 +20,7 @@ Summary: Mail Notification - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: postfix
 
 %description core
 Mail Notification....
@@ -34,6 +35,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/mail_notification
 cp -r * %{buildroot}/usr/clearos/apps/mail_notification/
 
+install -D -m 0755 packaging/mailer.conf %{buildroot}/etc/mailer.conf
 
 %post
 logger -p local6.notice -t installer 'app-mail-notification - installing'
@@ -76,3 +78,4 @@ exit 0
 /usr/clearos/apps/mail_notification/deploy
 /usr/clearos/apps/mail_notification/language
 /usr/clearos/apps/mail_notification/libraries
+%config(noreplace) /etc/mailer.conf

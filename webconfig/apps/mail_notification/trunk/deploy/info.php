@@ -26,3 +26,15 @@ $app['subcategory'] = lang('base_subcategory_settings');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['core_requires'] = array(
+    'postfix',
+);
+
+$app['core_file_manifest'] = array(
+    'mailer.conf' => array(
+        'target' => '/etc/mailer.conf',
+        'mode' => '0755',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
+);
