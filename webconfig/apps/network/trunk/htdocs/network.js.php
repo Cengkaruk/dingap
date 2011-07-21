@@ -33,29 +33,62 @@ header('Content-Type:application/x-javascript');
 ?>
 
 $(document).ready(function() {
-    $('.bootproto_form').hide();
+    setFields();
     setGateway();
-
-    current_form = '#' + $('#bootproto').val();
-    $(current_form).show();
 
     $('#role').change(function() {
         setGateway();
     });
 
     $('#bootproto').change(function() {
-        $('.bootproto_form').hide();
-        new_form = '#' + $(this).attr('value');
-        $(new_form).show();
+        setFields();
+        setGateway();
     });
 });
 
-function setGateway() {
-    role = $('#role').attr('value');
-    if (role == 'EXTIF')
+function setFields() {
+    // Static
+    $('#ipaddr_field').hide();
+    $('#netmask_field').hide();
+    $('#gateway_field').hide();
+
+    // DHCP
+    $('#hostname_field').hide();
+    $('#dhcp_dns_field').hide();
+
+    // PPPoE
+    $('#username_field').hide();
+    $('#password_field').hide();
+    $('#mtu_field').hide();
+    $('#pppoe_dns_field').hide();
+
+    type = $('#bootproto').val();
+
+    if (type == 'static') {
+        $('#ipaddr_field').show();
+        $('#netmask_field').show();
         $('#gateway_field').show();
-    else
-        $('#gateway_field').hide();
+    } else if (type == 'dhcp') {
+        $('#hostname_field').show();
+        $('#dhcp_dns_field').show();
+    } else if (type == 'pppoe') {
+        $('#username_field').show();
+        $('#password_field').show();
+        $('#mtu_field').show();
+        $('#pppoe_dns_field').show();
+    }
+}
+
+function setGateway() {
+    role = $('#role').val();
+    type = $('#bootproto').val();
+
+    if (type == 'static') {
+        if (role == 'EXTIF')
+            $('#gateway_field').show();
+        else
+            $('#gateway_field').hide();
+    }
 }
 
 // vim: ts=4 syntax=javascript

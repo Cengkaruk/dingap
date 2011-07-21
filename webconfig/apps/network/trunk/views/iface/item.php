@@ -82,18 +82,18 @@ echo form_header(lang('network_interface'));
 // General information
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_information'));
+echo fieldset_header(lang('base_information'));
 echo field_input('vendor', $vendor, lang('network_vendor'), TRUE);
 echo field_input('device', $device, lang('network_device'), TRUE);
 echo field_input('bus', $bus, lang('network_bus'), TRUE);
 echo field_input('link', $link, lang('network_link'), TRUE);
-echo form_fieldset_close();
+echo fieldset_footer();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Common header
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_settings'));
+echo fieldset_header(lang('base_settings'));
 echo field_input('interface', $interface, lang('network_interface'), TRUE);
 echo field_dropdown('role', $roles, $iface_info['role'], lang('network_role'), FALSE, array('id' => 'role'));
 echo field_dropdown('bootproto', $bootprotos, $iface_info['ifcfg']['bootproto'], lang('network_connection_type'), FALSE, array('id' => 'bootproto'));
@@ -102,47 +102,32 @@ echo field_dropdown('bootproto', $bootprotos, $iface_info['ifcfg']['bootproto'],
 // Static
 ///////////////////////////////////////////////////////////////////////////////
 
-echo "<div id='static' class='bootproto_form'>";
-
 echo field_input('ipaddr', $iface_info['ifcfg']['ipaddr'], lang('network_ip'));
 echo field_input('netmask', $iface_info['ifcfg']['netmask'], lang('network_netmask'));
-
-echo "<span id='gateway_field'>"; 
 echo field_input('gateway', $iface_info['ifcfg']['gateway'], lang('network_gateway'));
-echo "</span>";
-
-echo "</div>";
 
 ///////////////////////////////////////////////////////////////////////////////
 // DHCP
 ///////////////////////////////////////////////////////////////////////////////
 
-echo "<div id='dhcp' class='bootproto_form'>";
-
 echo field_input('hostname', $hostname, lang('network_hostname'));
 echo field_checkbox('dhcp_dns', $dhcp_dns, lang('network_automatic_dns_servers'));
-
-echo "</div>";
 
 ///////////////////////////////////////////////////////////////////////////////
 // PPPoE
 ///////////////////////////////////////////////////////////////////////////////
-
-echo "<div id='pppoe' class='bootproto_form'>";
 
 echo field_input('username', $username, lang('base_username'));
 echo field_input('password', $password, lang('base_password'));
 echo field_input('mtu', $mtu, lang('network_mtu'));
 echo field_checkbox('pppoe_dns', $pppoe_dns, lang('network_automatic_dns_servers'));
 
-echo "</div>";
-
 ///////////////////////////////////////////////////////////////////////////////
 // Common footer
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset_close();
-echo button_set($buttons);
+echo fieldset_footer();
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
