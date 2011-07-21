@@ -259,16 +259,16 @@ function _theme_button_set($buttons, $options, $type)
 
 function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id, $options = NULL)
 {
-    $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field_id'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label_id'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
+    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
     $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
 
     if (($name !== NULL) || ($value != NULL))
         $hidden_input = "<input type='hidden' name='$name' value='$value'>";
 
     return "
-        <tr$field_id_html class='theme-fieldview" . $hide_field . "'>
-            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+        <tr id='$field_id_html' class='theme-fieldview" . $hide_field . "'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
             <td class='right-field-content'><span id='$input_id'>$text</span>$hidden_input</td>
         </tr>
     ";
@@ -322,16 +322,16 @@ function theme_field_input($name, $value, $label, $error, $input_id, $options = 
 
 function _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, $type)
 {
-    $field_id_html = (is_null($options['field_id'])) ? '' : " id='" . $options['field_id'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? '' : " id='" . $options['label_id'] . "'";
-    $error_id_html = (is_null($options['error_id'])) ? '' : " id='" . $options['error_id'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
+    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
+    $error_id_html = (is_null($options['error_id'])) ? $input_id . '_error' : $options['error_id'];
     $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
 
-    $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error' id='$error_id_html'>$error</span>";
 
     return "
-        <tr$field_id_html class='theme-field-$type" . $hide_field . "'>
-            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+        <tr id='$field_id_html' class='theme-field-$type" . $hide_field . "'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
             <td class='right-field-content input-box'> <input type='$type' name='$name' value='$value' id='$input_id'> $error_html</td>
         </tr>
     ";
@@ -413,15 +413,15 @@ function theme_field_password($name, $value, $label, $error, $input_id, $options
 function theme_field_dropdown($name, $value, $label, $error, $values, $input_id, $options)
 {
     $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
-    $error_id_html = (is_null($options['error_id'])) ? "" : " id='" . $options['error_id'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
+    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
+    $error_id_html = (is_null($options['error_id'])) ? $input_id . '_error' : $options['error_id'];
 
-    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error' id='$error_id_html'>$error</span>";
 
     return "
-        <tr$field_id_html class='theme-dropdown'>
-            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+        <tr id='$field_id_html' class='theme-dropdown'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
             <td class='right-field-content'>" . form_dropdown($name, $values, $value, $input_id_html) . " $error_html</td>
         </tr>
     ";
@@ -453,15 +453,15 @@ function theme_field_dropdown($name, $value, $label, $error, $values, $input_id,
 function theme_field_toggle_enable_disable($name, $selected, $label, $error, $values, $input_id, $options)
 {
     $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
-    $error_id_html = (is_null($options['error_id'])) ? "" : " id='" . $options['error_id'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
+    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
+    $error_id_html = (is_null($options['error_id'])) ? $input_id . '_error' : $options['error_id'];
 
-    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error'$error_id_html>$error</span>";
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error' id='$error_id_html'>$error</span>";
 
     return "
-        <tr$field_id_html class='theme-field-toggle'>
-            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+        <tr id='$field_id_html' class='theme-field-toggle'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
             <td class='right-field-content'>" . form_dropdown($name, $values, $selected, $input_id_html) . " $error_html </td>
         </tr>
     ";
@@ -492,15 +492,14 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $va
 
 function theme_field_checkbox($name, $value, $label, $options, $input_id, $options)
 {
-    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
-    $error_id_html = (is_null($options['error_id'])) ? "" : " id='" . $options['error_id'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
+    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
 
     $select_html = ($value) ? ' checked' : '';
 
     return "
-        <tr$field_id_html class='theme-field-checkboxes'>
-            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
+        <tr id='$field_id_html' class='theme-field-checkboxes'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
           <td class='right-field-content check'>  <input type='checkbox' name='$name' id='$input_id' $select_html></td>
         </tr>
     ";
@@ -532,13 +531,13 @@ function theme_field_checkbox($name, $value, $label, $options, $input_id, $optio
 
 function theme_field_progress_bar($label, $id, $options = array())
 {
-    $field_id_html = (is_null($options['field_id'])) ? "" : " id='" . $options['field_id'] . "'";
-    $label_id_html = (is_null($options['label_id'])) ? "" : " id='" . $options['label_id'] . "'";
+    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
+    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
 
     return "
-        <tr$field_id_html class='theme-field-progress-bar'>
+        <tr id='$field_id_html' class='theme-field-progress-bar'>
             <td colspan='100'>
-                <label for='$id'$label_id_html>$label</label>
+                <label for='$id' id='$label_id_html'>$label</label>
                 <div id='$id' class='theme-progress-bar'> </div>
             </td>
         </tr>
@@ -863,12 +862,12 @@ function theme_dialogbox_confirm_delete($message, $items, $ok_anchor, $cancel_an
 
     return "
         <div class='ui-widget'>
-            <div class=' theme-confirmation-dialogbox ui-state-error' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class='theme-confirmation-dialogbox ui-state-error' style='margin-top: 20px; padding: 0 .7em;'>
                 <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>$message</p>
                 <ul>
                     $items_html
                 </ul>
-                <p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
+                <p>" . theme_button_set(array(anchor_ok($ok_anchor, 'high'), anchor_cancel($cancel_anchor, 'low'))) . "</p>
             </div>
         </div>
     ";
@@ -885,7 +884,7 @@ function theme_dialogbox_confirm($message, $ok_anchor, $cancel_anchor)
         <div class='ui-widget'>
             <div class='ui-corner-all theme-confirmation-dialogbox $class' style='margin-top: 20px; padding: 0 .7em;'>
                 <p><span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'></span>$message</p>
-                <p>" . anchor_ok($ok_anchor, 'high') . ' ' . anchor_cancel($cancel_anchor, 'low') . "</p>
+                <p>" . theme_button_set(array(anchor_ok($ok_anchor, 'high'), anchor_cancel($cancel_anchor, 'low'))) . "</p>
             </div>
         </div>
     ";
@@ -921,7 +920,6 @@ function theme_dialog_warning($message)
         </div>
     ";
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -980,7 +978,7 @@ function theme_confirm($confirm_uri, $cancel_uri, $message, $options)
             <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
                 <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
                 $message
-                <div>" . anchor_ok($confirm_uri) . anchor_cancel($cancel_uri) . "</div>
+                <div>" . theme_button_set(array(anchor_ok($confirm_uri), anchor_cancel($cancel_uri))) . "</div>
             </div>
         </div>
     ";
@@ -1006,7 +1004,7 @@ function theme_confirm_delete($confirm_uri, $cancel_uri, $items, $message, $opti
                 <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
                 $message
                 <div>$items_html</div>
-                <div>" . anchor_ok($confirm_uri) . anchor_cancel($cancel_uri) . "</div>
+                <div>" . theme_button_set(array(anchor_ok($confirm_uri), anchor_cancel($cancel_uri))) . "</div>
             </div>
         </div>
     ";
