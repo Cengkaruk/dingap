@@ -141,8 +141,45 @@ function theme_form_submit($name, $text, $importance, $class, $options)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// F I E L D S E T S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Field set header.
+ *
+ * @param string $title title
+ *
+ * @return string HTML
+ */
+
+function theme_fieldset_header($title)
+{
+    return "<tr><td colspan='100' class='theme-fieldset-header'>$title</td></tr>";
+}
+
+/**
+ * Field set footer.
+ *
+ * @return string HTML
+ */
+
+function theme_fieldset_footer()
+{
+    return "";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // A N C H O R  A N D  B U T T O N  S E T S
 ///////////////////////////////////////////////////////////////////////////////
+
+function theme_button_set($buttons, $options)
+{
+    return _theme_button_set($buttons, $options, 'normal');
+}
+function theme_field_button_set($buttons, $options)
+{
+    return _theme_button_set($buttons, $options, 'field');
+}
 
 /**
  * Button set.
@@ -150,13 +187,14 @@ function theme_form_submit($name, $text, $importance, $class, $options)
  * Supported options:
  * - id 
  *
- * @param array $buttons list of buttons in HTML format
- * @param array $options options
+ * @param array  $buttons list of buttons in HTML format
+ * @param array  $options options
+ * @param string $type    button set type
  *
  * @return string HTML for button set
  */
 
-function theme_button_set($buttons, $options)
+function _theme_button_set($buttons, $options, $type)
 {
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
 
@@ -185,18 +223,17 @@ function theme_button_set($buttons, $options)
         $button_html .= "\n" . trim($button);
     }
 
-/* FIXME: tables
-    return "
-        <div class='theme-button-set'$id>$button_html
-        </div>
-    ";
-*/
-    return "
-        <tr><td colspan='100'>
-            <div class='theme-button-set'$id>$button_html
-            </div>
-        </td></tr>
-    ";
+    if ($type === 'field') {
+        return "
+            <tr><td colspan='100'>
+                <div class='theme-button-set'$id>$button_html</div>
+            </td></tr>
+        ";
+    } else {
+        return "
+            <div class='theme-button-set'$id>$button_html</div>
+        ";
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -463,7 +500,7 @@ function theme_field_checkbox($name, $value, $label, $options, $input_id, $optio
 
     return "
         <tr$field_id_html class='theme-field-checkboxes'>
-            <td class='left-field-content'<label for='$input_id'$label_id_html>$label</label></td>
+            <td class='left-field-content'><label for='$input_id'$label_id_html>$label</label></td>
           <td class='right-field-content check'>  <input type='checkbox' name='$name' id='$input_id' $select_html></td>
         </tr>
     ";
