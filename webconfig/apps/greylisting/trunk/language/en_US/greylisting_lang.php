@@ -1,4 +1,7 @@
 <?php
+
+$lang['greylisting_app_description'] = 'Greylisting description...';
+$lang['greylisting_app_name'] = 'Greylisting';
 $lang['greylisting_greylisting'] = 'Greylisting';
 $lang['greylisting_delay'] = 'Delay';
 $lang['greylisting_retention_time'] = 'Retention Time';

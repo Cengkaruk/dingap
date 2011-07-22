@@ -76,9 +76,9 @@ class Greylisting extends ClearOS_Controller
                 $this->postgrey->set_retention_time($this->input->post('retention_time'));
                 $this->postgrey->reset();
 
-                $this->page->set_success(lang('base_system_updated'));
+                $this->page->set_status_updated();
             } catch (Engine_Exception $e) {
-                $this->page->view_exception($e->get_message());
+                $this->page->view_exception($e);
                 return;
             }
         }
@@ -97,10 +97,6 @@ class Greylisting extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->set_title(lang('greylisting_greylisting'));
-
-        $this->load->view('theme/header');
-        $this->load->view('greylisting', $data);
-        $this->load->view('theme/footer');
+        $this->page->view_form('greylisting', $data, lang('greylisting_app_name'));
     }
 }
