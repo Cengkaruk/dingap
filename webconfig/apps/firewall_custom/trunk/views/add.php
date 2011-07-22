@@ -44,9 +44,9 @@ echo form_open('firewall_custom/add');
 echo form_header(lang('firewall_custom_rule'));
 
 echo field_input('iptables', $iptables, lang('firewall_custom_rule'));
-echo field_input('description', $description, lang('firewall_custom_description'));
+echo field_input('description', $description, lang('base_description'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit_standard', 'high'),
         anchor_cancel('/app/firewall_custom')

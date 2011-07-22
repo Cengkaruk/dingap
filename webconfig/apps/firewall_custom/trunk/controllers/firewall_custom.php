@@ -150,7 +150,7 @@ class Firewall_Custom extends ClearOS_Controller
     /**
      * Destroys rule.
      *
-     * @param string  $line line
+     * @param string $line line
      *
      * @return view
      */
