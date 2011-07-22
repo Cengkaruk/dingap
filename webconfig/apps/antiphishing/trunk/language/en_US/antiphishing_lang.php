@@ -1,6 +1,6 @@
 <?php
 
-$lang['antiphishing_app_description'] = 'Gateway Antivirus provides protection from your network and server.';
+$lang['antiphishing_app_description'] = 'Gateway Antiphishing provides protection from your network and server.';
 $lang['antiphishing_app_name'] = 'Gateway Antiphishing';
 $lang['antiphishing_app_tooltip'] = 'Even the most savvy Internet users can accidentally click on a phishing link.  We recommend leaving all antiphishing features enabled.';
 $lang['antiphishing_block_cloaked'] = 'Block Cloaked URLs';

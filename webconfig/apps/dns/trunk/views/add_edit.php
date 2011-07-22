@@ -76,7 +76,7 @@ $alias_count = count($aliases);
 for ($inx = 1; $inx < $alias_count + 5; $inx++)
     echo field_input('alias' . $inx, $aliases[$inx-1], lang('dns_alias') . " #" . $inx);
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

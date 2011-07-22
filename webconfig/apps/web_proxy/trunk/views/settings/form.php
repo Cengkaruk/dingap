@@ -67,7 +67,7 @@ echo field_toggle_enable_disable('transparent', $transparent, lang('web_proxy_tr
 echo field_toggle_enable_disable('filter', $filter, lang('web_proxy_content_filter'), $read_only);
 echo field_toggle_enable_disable('adzapper', $adzapper, lang('web_proxy_banner_and_popop_blocker'), $read_only);
 echo field_toggle_enable_disable('user_authentication', $user_authentication, lang('web_proxy_user_authentication'), $read_only);
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

@@ -103,7 +103,7 @@ echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lan
 echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antivirus_maximum_recursion'));
 echo field_dropdown('checks', $checks_options, $checks, lang('antivirus_update_interval'));
 
-echo button_set( array( form_submit_update('submit') ));
+echo field_button_set( array( form_submit_update('submit') ));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

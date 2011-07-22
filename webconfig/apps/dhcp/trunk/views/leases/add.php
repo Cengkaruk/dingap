@@ -50,7 +50,7 @@ echo form_header(lang('dhcp_static_lease'));
 echo field_input('mac', $lease['mac'], lang('network_mac_address'));
 echo field_input('ip', $lease['ip'], lang('network_ip'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit', 'high'),
         anchor_cancel('/app/dhcp/leases')

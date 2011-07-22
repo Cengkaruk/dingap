@@ -66,7 +66,7 @@ echo form_header(lang('web_proxy_cache'));
 echo field_dropdown('cache', $cache_options, $cache, lang('web_proxy_maximum_cache_size'), $read_only);
 echo field_dropdown('object', $object_options, $object, lang('web_proxy_maximum_object_size'), $read_only);
 echo field_dropdown('download', $download_options, $download, lang('web_proxy_maximum_file_download_size'), $read_only);
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

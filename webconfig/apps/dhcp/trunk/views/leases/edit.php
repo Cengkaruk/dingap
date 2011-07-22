@@ -56,7 +56,7 @@ echo field_input('hostname', $lease['hostname'], lang('network_hostname'), TRUE)
 echo field_input('ip', $lease['ip'], lang('network_ip'));
 echo field_dropdown('type', $types, $lease['type'], lang('dhcp_lease'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_update('submit', 'high'),
         anchor_cancel('/app/dhcp/leases')

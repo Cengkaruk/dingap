@@ -46,7 +46,7 @@ echo form_header(lang('firewall_standard_service'));
 echo field_simple_dropdown('service', $services, $service, lang('firewall_service'));
 echo field_input('service_ip', $service_ip, lang('firewall_ip_address'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit_standard', 'high'),
         anchor_cancel('/app/port_forwarding')
@@ -69,7 +69,7 @@ echo field_input('port_from', $port, lang('firewall_from_port'));
 echo field_input('port_to', $port, lang('firewall_to_port'));
 echo field_input('port_ip', $port_ip, lang('firewall_ip_address'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit_port', 'high'),
         anchor_cancel('/app/port_forwarding')
@@ -92,7 +92,7 @@ echo field_input('range_start', $range_start, lang('firewall_start_port'));
 echo field_input('range_end', $range_end, lang('firewall_end_port'));
 echo field_input('range_ip', $range_ip, lang('firewall_ip_address'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit_range', 'high'),
         anchor_cancel('/app/port_forwarding')

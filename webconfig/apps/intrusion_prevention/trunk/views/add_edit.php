@@ -48,7 +48,7 @@ echo form_header(lang('intrusion_prevention_white_list'));
 ///////////////////////////////////////////////////////////////////////////////
 
 echo field_input('ip', $ip, lang('network_ip'));
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit'),
         anchor_cancel('/app/intrusion_prevention/white_list/')

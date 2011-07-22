@@ -78,7 +78,7 @@ echo field_input('wins', $wins, lang('dhcp_wins'));
 echo field_input('tftp', $tftp, lang('dhcp_tftp'));
 echo field_input('ntp', $ntp, lang('dhcp_ntp'));
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

@@ -52,7 +52,7 @@ echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antiphishing_heu
 echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antiphishing_block_ssl_mismatch'));
 echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antiphishing_block_cloaked'));
 
-echo button_set( array( form_submit_update('submit', 'high') ));
+echo field_button_set( array( form_submit_update('submit', 'high') ));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

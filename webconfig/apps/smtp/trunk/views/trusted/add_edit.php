@@ -61,11 +61,8 @@ echo form_header(lang('smtp_trusted_networks'));
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('smtp_trusted_networks'));
 echo field_input('network', $network, lang('network_network'));
-echo form_fieldset_close();
-
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

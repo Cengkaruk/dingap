@@ -60,7 +60,7 @@ if ($is_password_set)
 echo field_input('password', '', lang('base_password'));
 echo field_input('verify', '', lang('base_verify'));
 
-echo button_set(
+echo field_button_set(
     array(form_submit_update('submit', 'high'))
 );
 

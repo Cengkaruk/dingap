@@ -46,15 +46,8 @@ echo form_header('Report Overview');
 // Form Fields and Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset('Section 1');
-echo field_input('key1', 'Value' , 'Key', TRUE);
-echo field_input('key2', 'Value' , 'Key', TRUE);
-echo form_fieldset_close();
-
-echo form_fieldset('Section2');
 echo field_input('key3', 'Value' , 'Key', TRUE);
 echo field_input('key4', 'Value' , 'Key', TRUE);
-echo form_fieldset_close();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

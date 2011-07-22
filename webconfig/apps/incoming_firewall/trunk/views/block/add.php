@@ -46,7 +46,7 @@ echo form_header(lang('firewall_host'));
 echo field_input('nickname', $nickname, lang('firewall_nickname'));
 echo field_input('host', $host, lang('firewall_host'));
 
-echo button_set(
+echo field_button_set(
     array(
         form_submit_add('submit', 'high'),
         anchor_cancel('/app/incoming_firewall/block')

@@ -67,22 +67,20 @@ $max_message_sizes['102400000'] = '100 ' . lang('base_megabytes');
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('smtp');
-echo form_header(lang('base_general_settings'));
+echo form_header(lang('base_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_general_settings'));
 echo field_input('domain', $domain, lang('smtp_domain'), TRUE);
 echo field_input('hostname', $domain, lang('smtp_hostname'), $read_only);
 echo field_toggle_enable_disable('smtp_authentication', $smtp_authentication, lang('smtp_smtp_authentication'), $read_only);
 echo field_dropdown('max_message_size', $max_message_sizes, $max_message_size, lang('smtp_maximum_message_size'), $read_only);
 // FIXME: implement user list
 echo field_simple_dropdown('catch_all', $catch_alls, $catch_all, lang('smtp_catch_all'), $read_only);
-echo form_fieldset_close();
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

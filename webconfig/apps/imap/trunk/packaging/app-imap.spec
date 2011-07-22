@@ -3,7 +3,7 @@ Name: app-imap
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: POP and IMAP Server
+Summary: IMAP and POP Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 The POP and IMAP servers provide standard messaging... blah blah blah.
 
 %package core
-Summary: POP and IMAP Server - APIs and install
+Summary: IMAP and POP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
