@@ -268,7 +268,10 @@ class Organization extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_country($country));
+        if (empty($country))
+            $country = '';
+        else
+            Validation_Exception::is_valid($this->validate_country($country));
 
         $this->_set_parameter('country', $country);
     }

@@ -70,8 +70,8 @@ class Organization extends ClearOS_Controller
         $this->form_validation->set_policy('street', 'organization/Organization', 'validate_street', TRUE);
         $this->form_validation->set_policy('city', 'organization/Organization', 'validate_city', TRUE);
         $this->form_validation->set_policy('region', 'organization/Organization', 'validate_region', TRUE);
-        $this->form_validation->set_policy('country', 'organization/Organization', 'validate_country', TRUE);
-        $this->form_validation->set_policy('postal_code', 'organization/Organization', 'validate_postal_code', TRUE);
+        $this->form_validation->set_policy('country', 'organization/Organization', 'validate_country');
+        $this->form_validation->set_policy('postal_code', 'organization/Organization', 'validate_postal_code');
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -105,7 +105,10 @@ class Organization extends ClearOS_Controller
             $data['region'] = $this->organization->get_region();
             $data['country'] = $this->organization->get_country();
             $data['postal_code'] = $this->organization->get_postal_code();
+
             $data['countries'] = $this->country->get_list();
+            $data['countries']['0'] = ' -- ' . lang('base_not_specified') . ' -- ';
+            asort($data['countries']);
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
