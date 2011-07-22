@@ -41,7 +41,7 @@ if ($form_type === 'edit') {
 	);
 } else {
 	$read_only = TRUE;
-	$buttons = array(anchor_edit('/app/file_scan/config'));
+	$buttons = array(anchor_edit('/app/file_scan/settings'));
 }
 
 // Daily scan dropdown
@@ -59,35 +59,35 @@ if (! $hour)
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('file_scan/config'); 
+echo form_open('file_scan/settings'); 
 echo form_header('file_scan_file_scan');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('base_general_settings'));
+echo fieldset_header(lang('base_settings'));
 echo field_dropdown('hour', $hours, $hour, lang('file_scan_daily_scan'), $read_only);
-echo form_fieldset_close(); 
+echo fieldset_footer(); 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Directories
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_fieldset(lang('file_scan_directories'));
+echo fieldset_header(lang('file_scan_directories'));
 
 foreach ($presets as $directory => $description) {
 	$selected = in_array($directory, $directories) ? TRUE : FALSE;
 	echo field_checkbox("directories[$directory]", $selected, $description, $read_only);
 }
 
-echo form_fieldset_close(); 
+echo fieldset_footer(); 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

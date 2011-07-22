@@ -46,13 +46,13 @@
  */
 
 
-class Config extends ClearOS_Controller
+class Settings extends ClearOS_Controller
 {
 	/**
 	 * File scanner configuration.
 	 */
 
-	function index($view = 'page')
+	function index()
 	{
 		// Load libraries
 		//---------------
@@ -98,7 +98,7 @@ class Config extends ClearOS_Controller
 //				 $this->page->set_success(lang('base_system_updated'));
 //				redirect('/file_scan/');
 			} catch (Exception $e) {
-				$this->page->view_exception($e->GetMessage(), $view);
+				$this->page->view_exception($e);
 				return;
 			}
 		}
@@ -114,13 +114,13 @@ class Config extends ClearOS_Controller
 			$schedule = $this->file_scan->get_scan_schedule();
 			$data['hour'] = $schedule['hour'];
 		} catch (Exception $e) {
-			$this->page->view_exception($e->GetMessage(), $view);
+            $this->page->view_exception($e);
 			return;
 		}
  
 		// Load views
 		//-----------
 
-        $this->page->view_form('file_scan/config', $data, lang('file_scan_antimalware') . ' - ' . lang('base_general_settings'));
+        $this->page->view_form('file_scan/settings', $data, lang('base_settings'));
 	}
 }
