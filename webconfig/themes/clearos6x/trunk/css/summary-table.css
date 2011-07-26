@@ -99,6 +99,8 @@ table.display thead th div.DataTables_sort_wrapper {
 	border-top: solid 1px #f1f0f0;
 	padding-top: 4px;
 	padding-bottom: 4px;
+	text-align: left;
+	padding-left: 15px;
 }
 
 
@@ -154,6 +156,7 @@ table.display thead th div.DataTables_sort_wrapper span {
 	width: 50%;
 	float: right;
 	text-align: right;
+	margin-top: 1px;
 }
 
 .dataTables_info {

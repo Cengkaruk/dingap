@@ -154,7 +154,7 @@ function theme_form_submit($name, $text, $importance, $class, $options)
 
 function theme_fieldset_header($title)
 {
-    return "<tr><td colspan='100' class='theme-fieldset-header'>$title</td></tr>";
+    return "<tr><td  class='theme-fieldset-header'>$title</td></tr>";
 }
 
 /**
@@ -225,7 +225,7 @@ function _theme_button_set($buttons, $options, $type)
 
     if ($type === 'field') {
         return "
-            <tr><td colspan='100'>
+            <tr><td >
                 <div class='theme-button-set'$id>$button_html</div>
             </td></tr>
         ";
@@ -536,7 +536,7 @@ function theme_field_progress_bar($label, $id, $options = array())
 
     return "
         <tr id='$field_id_html' class='theme-field-progress-bar'>
-            <td colspan='100'>
+            <td >
                 <label for='$id' id='$label_id_html'>$label</label>
                 <div id='$id' class='theme-progress-bar'> </div>
             </td>
@@ -595,16 +595,16 @@ width: 100%;'>$title</h3><div class='theme-form-wrapper'>";
 */
     return "<table border='0' class='theme-form-header'$id_html>
         <tr>
-            <td colspan='100'>
+            <td >
                 <h3 style='position: relative;
                 margin-top: 0px;
                 margin-bottom: 20px;
-                top: 10px;
+             
                 left: 14px;
                 color: #98BB60;
                 font-weight: normal;
                 font-size: 14px;
-                width: 100%;'>$title</h3>
+                '>$title</h3>
             </td>
         </tr>
     ";
