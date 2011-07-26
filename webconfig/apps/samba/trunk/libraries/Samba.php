@@ -213,82 +213,6 @@ class Samba extends Software
     }
 
     /**
-     * Adds a computer.
-     *
-     * @param string $name computer name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    public function add_computer($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_computer($name));
-
-        $ldap = new OpenLDAP_Driver();
-
-        $ldap->add_computer($name);
-    }
-
-    /**
-     * Deletes a computer.
-     *
-     * @param string $name computer name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    public function delete_computer($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_computer($name));
-
-        $ldap = new OpenLDAP_Driver();
-
-        $ldap->delete_computer($name);
-    }
-
-    /**
-     * Returns add machine script.
-     *
-     * @return string add machine script
-     * @throws Engine_Exception
-     */
-
-    public function get_add_machine_script()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->loaded)
-            $this->_load();
-
-        if (empty($this->shares['global']['add machine script']['value']))
-            return '';
-        else
-            return $this->shares['global']['add machine script']['value'];
-    }
-
-    /**
-     * Returns a detailed list of computers for the domain.
-     *
-     * @return  array  detailed list of computers
-     * @throws Engine_Exception
-     */
-
-    public function get_computers()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $ldap = new OpenLDAP_Driver();
-
-        return $ldap->get_computers();
-    }
-
-    /**
      * Returns domain logons state.
      *
      * @return boolean TRUE if domain logons is enabled
@@ -1772,22 +1696,6 @@ class Samba extends Software
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validation routine for computers.
-     *
-     * @param string $name computer name
-     *
-     * @return boolean TRUE if computer name valid
-     */
-
-    public function validate_computer($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! preg_match('/^([a-z0-9_\-\.]+)\$$/', $name))
-            return lang('samba_computer_name_is_invalid');
-    }
 
     /**
      * Validation routine for domain logons.
