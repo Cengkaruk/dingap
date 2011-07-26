@@ -21,6 +21,7 @@ Requires: mlocate
 Requires: ntpdate
 Requires: openssh-server
 Requires: openssh-clients
+Requires: pam
 Requires: postfix
 Requires: perl
 Requires: rootfiles
@@ -75,11 +76,13 @@ mkdir -p -m 755 $RPM_BUILD_ROOT/etc/clearos
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/init.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/etc/security/limits.d
 
 install -m 644 etc/cron.d/app-servicewatch $RPM_BUILD_ROOT/etc/cron.d/app-servicewatch
 install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
+install -m 755 etc/security/limits.d/95-clearos.conf $RPM_BUILD_ROOT/etc/security/limits.d/
 install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
 install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/clearos/base/scripts/
 
@@ -199,6 +202,7 @@ fi
 /etc/logrotate.d/compliance
 /etc/logrotate.d/system
 /etc/init.d/functions-automagic
+/etc/security/limits.d/95-clearos.conf
 /usr/sbin/addsudo
 %{_sbindir}/app-passwd
 %{_sbindir}/app-rename
