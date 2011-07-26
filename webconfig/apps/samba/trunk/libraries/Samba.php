@@ -273,9 +273,22 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ldap = new OpenLDAP_Driver();
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_NET, 'getdomainsid', TRUE);
 
-        return $ldap->get_domain_sid();
+        $raw_output = $shell->get_output();
+
+        $sid = '';
+
+        // KLUDGE: parsing command line output
+        foreach ($raw_output as $line) {
+            if (preg_match('/SID for domain/', $line)) {
+                $sid = preg_replace('/.*:\s*/', '', $line);
+                break;
+            }
+        }
+
+        return $sid;
     }
 
     /**
