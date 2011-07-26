@@ -110,10 +110,8 @@ class Accounts_Driver extends Accounts_Engine
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
 
     // Files and paths
-    const FILE_CONFIG = 'config/config.php';
     const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
-    const PATH_SYNCHRONIZE = 'config/synchronize';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -123,7 +121,6 @@ class Accounts_Driver extends Accounts_Engine
     protected $config = NULL;
     protected $modes = NULL;
     protected $extensions = array();
-    protected $file_config = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
