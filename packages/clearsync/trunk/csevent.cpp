@@ -27,6 +27,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <errno.h>
+#include <regex.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>

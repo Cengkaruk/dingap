@@ -41,6 +41,7 @@
 #include <expat.h>
 #include <limits.h>
 #include <dirent.h>
+#include <regex.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>

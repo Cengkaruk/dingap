@@ -28,6 +28,7 @@
 #include <string.h>
 #include <errno.h>
 #include <expat.h>
+#include <regex.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/csconf.h>

@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <time.h>
+#include <regex.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>

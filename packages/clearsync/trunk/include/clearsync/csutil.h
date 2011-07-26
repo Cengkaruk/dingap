@@ -31,6 +31,22 @@ protected:
     static pthread_mutex_t *mutex;
 };
 
+class csRegEx
+{
+public:
+	csRegEx(const char *expr, int nmatch = 0, int flags = REG_EXTENDED);
+	virtual ~csRegEx();
+
+	int Execute(const char *subject);
+	const char *GetMatch(int match);
+
+protected:
+	regex_t regex;
+	size_t nmatch;
+	regmatch_t *match;
+	char **matches;
+};
+
 long csGetPageSize(void);
 int csExecute(const string &command);
 

@@ -34,6 +34,7 @@ using namespace std;
 #include <syslog.h>
 #include <signal.h>
 #include <expat.h>
+#include <regex.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>
