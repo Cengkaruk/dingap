@@ -56,20 +56,20 @@ clearos_load_language('openldap_directory');
 // Classes
 //--------
 
+use \clearos\apps\accounts\Nscd as Nscd;
+use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_directory\Nscd as Nscd;
-use \clearos\apps\openldap_directory\Nslcd as Nslcd;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
+clearos_load_library('accounts/Nscd');
+clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_directory/Nscd');
-clearos_load_library('openldap_directory/Nslcd');
 clearos_load_library('openldap_directory/Utilities');
 
 // Exceptions
