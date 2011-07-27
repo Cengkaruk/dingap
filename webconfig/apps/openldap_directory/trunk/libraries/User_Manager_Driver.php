@@ -119,18 +119,17 @@ class User_Manager_Driver extends User_Manager_Engine
     /**
      * Returns the user list.
      *
-     * @param string $app  app extension or plugin
      * @param string $type user type
      *
      * @return array user list
      * @throws Engine_Exception
      */
 
-    public function get_list($app = NULL, $type = User_Engine::TYPE_NORMAL)
+    public function get_list($type = User_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $raw_list = $this->_get_details($app, $type);
+        $raw_list = $this->_get_details($type);
 
         $user_list = array();
 
@@ -143,18 +142,17 @@ class User_Manager_Driver extends User_Manager_Engine
     /**
      * Returns detailed user information for all users.
      *
-     * @param string $app  app extension or plugin
      * @param string $type user type
      *
      * @return array user information array
      * @throws Engine_Exception
      */
 
-    public function get_details($app = NULL, $type = User_Engine::TYPE_NORMAL)
+    public function get_details($type = User_Engine::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_details($app, $type);
+        return $this->_get_details($type);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -164,14 +162,13 @@ class User_Manager_Driver extends User_Manager_Engine
     /**
      * Returns user information.
      *
-     * @param string $app  app extension or plugin
      * @param string $type user type
      *
      * @access private
      * @return array user information
      */
 
-    protected function _get_details($app, $type)
+    protected function _get_details($type)
     {
         clearos_profile(__METHOD__, __LINE__);
 

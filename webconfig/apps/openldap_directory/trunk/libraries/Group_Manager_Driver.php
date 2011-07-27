@@ -242,8 +242,7 @@ class Group_Manager_Driver extends Engine
     /**
      * Updates group membership for given user.
      *
-     * This method does not change the settings in built-in groups.  If this
-     * functionality is required, we can add a flag to this method.
+     * This method does not change the settings in built-in groups.
      *
      * @param string $username username
      * @param array  $groups   list of active groups

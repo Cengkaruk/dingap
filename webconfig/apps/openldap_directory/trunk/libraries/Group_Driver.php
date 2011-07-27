@@ -508,13 +508,15 @@ class Group_Driver extends Group_Engine
         $user_manager = new User_Manager_Driver();
         $user_list = $user_manager->get_list();
 
+        $valid_members = array();
+
         foreach ($members as $user) {
-            if (! in_array($user, $user_list))
-                throw new Engine_Exception(lang('groups_username_does_not_exist'));
+            if (in_array($user, $user_list))
+                $valid_members[] = $user;
         }
 
-        if (count($members) == 0)
-            $members = array(self::CONSTANT_NO_MEMBERS_USERNAME);
+        if (count($valid_members) == 0)
+            $valid_members = array(self::CONSTANT_NO_MEMBERS_USERNAME);
 
         // Set members list
         //-----------------
@@ -530,10 +532,10 @@ class Group_Driver extends Group_Engine
         // FIXME: move to Samba extension
         // TODO: Last minute fix in 5.0.  Make sure winadmin stays in the winadmins group.
         // JHT is this necessary given the special SID for winadmin?
-        if (($this->group_name == "domain_admins") && !in_array("winadmin", $members))
-            $members[] = "winadmin";
+        if (($this->group_name == "domain_admins") && !in_array("winadmin", $valid_members))
+            $valid_members[] = "winadmin";
 
-        foreach ($members as $member) {
+        foreach ($valid_members as $member) {
             if (! empty($this->usermap_username[$member]))
                 $attributes['member'][] = $this->usermap_username[$member];
         }
