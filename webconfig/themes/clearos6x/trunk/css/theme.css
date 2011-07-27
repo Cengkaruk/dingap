@@ -1730,7 +1730,6 @@ input.theme-form-submit-delete { }
 
 /* Marketplace */
 
-
 .marketplace-header {
     width: 749;
     height: 65px;
@@ -1757,6 +1756,12 @@ input.theme-form-submit-delete { }
     float: left;
 }
 
+.marketplace-progress-spash {
+    background-image: url('../images/marketplace-splash.png');
+    background-repeat: no-repeat;
+    background-position: 0 25;
+    height:300px;
+}
 
 #app_description {width: 490px;}
 
