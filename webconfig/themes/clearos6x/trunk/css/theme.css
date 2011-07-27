@@ -1731,6 +1731,33 @@ input.theme-form-submit-delete { }
 /* Marketplace */
 
 
+.marketplace-header {
+    width: 749;
+    height: 65px;
+    margin-left: -10px;
+    background-image: url('../images/marketplace-header-bg.png');
+    border-bottom: 1px solid #d1d3d4;
+    margin-top: 10px;
+}
+
+.marketplace-footer {
+    width: 750;
+    margin-left: -10px;
+    border-bottom: 1px dotted #d1d3d4;
+    height: 10px;
+    clear: both;
+}
+
+.marketplace-logo {
+    background-image: url('../images/marketplace-logo.png');
+    background-repeat: no-repeat;
+    height:38px;
+    width:256px;
+    margin-left: 15px;
+    float: left;
+}
+
+
 #app_description {width: 490px;}
 
 #prevent_review {padding-left: 6px; padding-right: 6px;}
@@ -1800,89 +1827,4 @@ a.theme-button-set-middle {
 	border-radius: 0px;
 	-moz-border-radius: 0px;
 	-webkit-border-radius: 0px;
-}
-
-/* Marketplace */
-
-.marketplace-header {
-	margin-left: -10px;
-	margin-top: -10px;
-	width: 739px;
-	height: 55px;
-	background: url(../images/market-header-bg.png) repeat-x;
-	border-top-right-radius: 15px;
-	-moz-border-radius-topright: 15px;	
-	-webkit-border-top-right-radius: 15px;
-	border-bottom: 1px solid #d1d3d4;
-}
-
-.marketplace-logo {
-	background: url(../images/marketplace-logo.png) repeat-x;
-	height:38px;
-	width:256px;
-	margin-left: 15px;
-	float: left;
-	margin-top: 11px;
-	}
-
-.category-buttons {
-	float: right;
-	margin-right: 18px;
-	margin-top: 17px;
-}
-
-.category-button {
-	
-	margin-left: 15px;
-	padding:2px 3px 2px 21px;
-	cursor: pointer;
-	color: #a5a4a4;
-}
-
-.category-button:hover {
-	color: #686868;
-}
-
-.category-all {
-	background: url() repeat-x;
-}
-
-.category-server {
-	background: url(../images/server-icon-small.png) no-repeat ;
-}
-
-.category-network {
-	background: url(../images/network-icon-small.png) no-repeat 0px 1px;
-}
-
-.category-gateway {
-	background: url(../images/gateway-icon-small.png) no-repeat 0px 1px;
-}
-
-.category-system {
-	background: url(../images/system-icon-small.png) no-repeat;
-}
-
-.free-paid {
-	float: left;
-	margin-top: 24px;
-	margin-left: 15px;
-}
-
-.paid {
-	margin-left: 15px;
-}
-
-.free, .paid {
-	color: #a5a4a4;
-	float: left;
-	cursor: pointer;
-}
-
-.free:hover {
-	color: #686868;
-}
-
-.paid:hover {
-	color: #686868;
 }
