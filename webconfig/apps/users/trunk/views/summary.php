@@ -81,10 +81,10 @@ foreach ($users as $username => $info) {
     //
     ///////////////////////////////////////////////////////////////////////////////
 
-    if (isset($info['display_name']))
-        $full_name = $info['display_name'];
+    if (! empty($info['core']['full_name']))
+        $full_name = $info['core']['full_name'];
     else
-        $full_name = $info['first_name'] . ' ' . $info['last_name'];
+        $full_name = $info['core']['first_name'] . ' ' . $info['core']['last_name'];
 
 	$item['title'] = $username;
 	$item['action'] = '/app/users/edit/' . $username;

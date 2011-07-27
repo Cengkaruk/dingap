@@ -99,7 +99,7 @@ class Users extends ClearOS_Controller
      * @return view
      */
 
-    function add($username)
+    function add($username = NULL)
     {
         if (!isset($username) && $this->input->post('username'))
             $username = $this->input->post('username');
@@ -162,7 +162,6 @@ class Users extends ClearOS_Controller
 
     function edit($username)
     {
-        // Use common add/edit form
         $this->_item($username, 'edit');
     }
 
@@ -176,7 +175,6 @@ class Users extends ClearOS_Controller
 
     function view($username)
     {
-        // Use common add/edit form
         $this->_item($username, 'view');
     }
 
