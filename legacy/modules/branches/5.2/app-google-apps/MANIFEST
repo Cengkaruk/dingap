@@ -1,0 +1,8 @@
+menu htdocs/menus/gapps-provision
+locale gappsprovision api/lang
+locale gapps-provision htdocs/admin/lang
+include htdocs/admin/gapps-provision.php
+include htdocs/images/icons/16x16/icon-gapps-provision.png
+include htdocs/images/icons/32x32/icon-gapps-provision.png
+include api/GAppsProvision.class.php
+include ./gapps.key

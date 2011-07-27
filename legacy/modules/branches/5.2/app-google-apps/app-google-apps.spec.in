@@ -1,0 +1,75 @@
+#------------------------------------------------------------------------------
+# P A C K A G E  I N F O
+#------------------------------------------------------------------------------
+
+Name: app-google-apps
+Version: %VERSION%
+Release: %RELEASE%
+Summary: Google Apps Synchronization
+License: Proprietary
+Group: Applications/Modules
+Source: %{name}-%{version}.tar.gz
+Vendor: ClearCenter
+Packager: ClearCenter
+Requires: app-setup = %VERSION%
+Requires: app-webconfig = %VERSION%
+Requires: app-users >= 5.2-25
+BuildRoot: %_tmppath/%name-%version-buildroot
+
+%description
+Google Apps Synchronization
+
+#------------------------------------------------------------------------------
+# B U I L D
+#------------------------------------------------------------------------------
+
+%prep
+%setup
+%build
+
+#------------------------------------------------------------------------------
+# I N S T A L L  F I L E S
+#------------------------------------------------------------------------------
+
+%install
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/webconfig/etc/
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/webconfig/
+
+install -m 644 gapps.key $RPM_BUILD_ROOT/usr/webconfig/etc/
+cp -r webconfig/* $RPM_BUILD_ROOT/var/webconfig/
+
+#------------------------------------------------------------------------------
+# I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%post
+logger -p local6.notice -t installer "app-google-apps - installing"
+
+exit 0
+
+#------------------------------------------------------------------------------
+# U N I N S T A L L  S C R I P T
+#------------------------------------------------------------------------------
+
+%preun
+if [ "$1" = 0 ]; then
+	logger -p local6.notice -t installer "app-google-apps - uninstalling"
+fi
+
+#------------------------------------------------------------------------------
+# C L E A N  U P
+#------------------------------------------------------------------------------
+
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+#------------------------------------------------------------------------------
+# F I L E S
+#------------------------------------------------------------------------------
+
+%files
+%defattr (-,root,root)
+/usr/webconfig/etc/gapps.key
+/var/webconfig/
