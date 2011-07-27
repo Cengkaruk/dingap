@@ -112,6 +112,9 @@ index  cn approx,sub,pres,eq
 index  sn approx,sub,pres,eq
 index  givenName approx,sub,pres,eq
 
+# Contact extension
+index  clearMailAliases approx,sub,pres,eq
+
 # Samba extension
 index  sambaSID eq,sub
 index  sambaSIDList eq 
