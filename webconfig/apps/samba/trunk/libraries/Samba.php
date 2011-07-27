@@ -63,25 +63,27 @@ clearos_load_library('users/User_Factory');
 //--------
 
 use \clearos\apps\base\File as File;
-use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\base\Software as Software;
-use \clearos\apps\date\NTP_Time as NTP_Time;
 use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\samba\Nmbd as Nmbd;
 use \clearos\apps\samba\OpenLDAP_Driver as OpenLDAP_Driver;
 use \clearos\apps\samba\Samba as Samba;
+use \clearos\apps\samba\Smbd as Smbd;
 use \clearos\apps\samba\Winbind as Winbind;
 
 clearos_load_library('base/File');
-clearos_load_library('base/Folder');
+clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/Shell');
 clearos_load_library('base/Software');
-clearos_load_library('date/NTP_Time');
 clearos_load_library('network/Hostname');
+clearos_load_library('network/Network_Utils');
 clearos_load_library('samba/Nmbd');
 clearos_load_library('samba/OpenLDAP_Driver');
 clearos_load_library('samba/Samba');
+clearos_load_library('samba/Smbd');
 clearos_load_library('samba/Winbind');
 
 // Exceptions
@@ -90,11 +92,13 @@ clearos_load_library('samba/Winbind');
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\samba\Samba_Connection_Exception as Samba_Connection_Exception;
+use \clearos\apps\samba\Samba_Not_Initialized_Exception as Samba_Not_Initialized_Exception;
 use \clearos\apps\samba\Samba_Share_Not_Found_Exception as Samba_Share_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('samba/Samba_Connection_Exception');
+clearos_load_library('samba/Samba_Not_Initialized_Exception');
 clearos_load_library('samba/Samba_Share_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -611,6 +615,23 @@ class Samba extends Software
             $info['print$'] = $this->get_share_info("print$");
 
         return $info;
+    }
+
+    /**
+     * Returns realm.
+     *
+     * @return string realm
+     * @throws Engine_Exception
+     */
+
+    public function get_realm()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->loaded)
+            $this->_load();
+
+        return $this->shares['global']['realm']['value'];
     }
 
     /**
@@ -1333,15 +1354,19 @@ class Samba extends Software
             $this->set_domain_master(TRUE);
             $this->set_preferred_master(TRUE);
             $this->set_share_availability('netlogon', TRUE);
+            $this->set_unix_password_sync_state(TRUE);
             $this->set_security(Samba::SECURITY_USER);
+            $this->_set_ldap_includes(TRUE);
         } else if ($mode == self::MODE_BDC) {
             $this->set_domain_logons(FALSE);
             $this->set_domain_master(FALSE);
             $this->set_preferred_master(FALSE);
-            $this->set_security(Samba::SECURITY_DOMAIN);
             $this->set_share_availability('netlogon', FALSE);
             $this->set_share_availability('profiles', FALSE);
             $this->set_roaming_profiles_state(FALSE);
+            $this->set_unix_password_sync_state(FALSE);
+            $this->set_security(Samba::SECURITY_DOMAIN);
+            $this->_set_ldap_includes(TRUE);
         } else if ($mode == self::MODE_SIMPLE_SERVER) {
             $this->set_domain_logons(TRUE);
             $this->set_domain_master(TRUE);
@@ -1349,7 +1374,22 @@ class Samba extends Software
             $this->set_share_availability('netlogon', FALSE);
             $this->set_share_availability('profiles', FALSE);
             $this->set_roaming_profiles_state(FALSE);
+            $this->set_unix_password_sync_state(TRUE);
             $this->set_security(Samba::SECURITY_USER);
+            $this->_set_ldap_includes(TRUE);
+        } else if ($mode == self::MODE_MEMBER) {
+            // FIXME: David review
+            $this->set_domain_logons(FALSE);
+            $this->set_domain_master(FALSE);
+            $this->set_preferred_master(FALSE);
+/*
+            $this->set_share_availability('netlogon', FALSE);
+            $this->set_share_availability('profiles', FALSE);
+            $this->set_roaming_profiles_state(FALSE);
+*/
+            $this->set_unix_password_sync_state(FALSE);
+            $this->set_security(Samba::SECURITY_ADS);
+            $this->_set_ldap_includes(FALSE);
         }
     }
 
@@ -1535,6 +1575,26 @@ class Samba extends Software
     }
 
     /**
+     * Sets realm.
+     *
+     * @param string $realm realm
+     *
+     * @return void
+     * @throws Validation_Exception, Engine_Exception
+     */
+
+    public function set_realm($realm)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_realm($realm));
+
+        $realm = strtolower($realm);
+
+        $this->_set_share_info('global', 'realm', $realm);
+    }
+
+    /**
      * Sets roaming profile behavior.
      *
      * @param boolean $state TRUE if roaming profiles should be enabled
@@ -1558,7 +1618,7 @@ class Samba extends Software
             $profiles = FALSE;
         }
 
-        $this->SetLogonPath($path);
+        $this->set_logon_path($path);
         $this->set_share_availability('profiles', $profiles);
     }
 
@@ -1650,11 +1710,15 @@ class Samba extends Software
         $this->_set_share_info('global', 'workgroup', $workgroup);
 
         // Update LDAP object
+// FIXME: handle LDAP dependency
+/*
         $ldap = new OpenLDAP_Driver();
         $ldap->set_workgroup($workgroup);
+*/
 
         // Clean up secrets file
-        $this->_clean_secrets_file();
+// FIXME: LDAP again
+//        $this->_clean_secrets_file();
     }
 
     /**
@@ -1814,6 +1878,24 @@ class Samba extends Software
             return lang('samba_server_name_conflicts_with_windows_domain');
     }
 
+    /**
+     * Validation routine for realm.
+     *
+     * @param string $realm realm
+     *
+     * @return string error message if realm is invalid
+     */
+
+    public function validate_realm($realm)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_domain($realm))
+            return lang('samba_realm_is_invalid');
+    }
+
+    /**
+     * Validation routine for workgroup
     /**
      * Validation routine for share name
      *
@@ -2370,6 +2452,36 @@ class Samba extends Software
 
         $shell = new Shell();
         $exitcode = $shell->Execute(self::COMMAND_NET, 'idmap secret alloc ' . $password, TRUE, $options);
+    }
+
+    /**
+     * Sets LDAP includes.
+     *
+     * @param boolean $state state of includes
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function _set_ldap_includes($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->_save();
+
+        $file = new File(self::FILE_CONFIG);
+
+        try {
+            if ($state) {
+                $file->replace_lines('/#.*include.*smb.ldap.conf/', "include = /etc/samba/smb.ldap.conf\n");
+                $file->replace_lines('/#.*include.*smb.winbind.conf/', "include = /etc/samba/smb.winbind.conf\n");
+            } else {
+                $file->prepend_lines('/^include.*smb.ldap.conf/', '# ');
+                $file->prepend_lines('/^include.*smb.winbind.conf/', '# ');
+            }
+        } catch (File_No_Match_Exception $e) {
+            // Not fatal
+        }
     }
 
     /**
