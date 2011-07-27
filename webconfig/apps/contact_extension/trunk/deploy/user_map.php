@@ -73,6 +73,7 @@ clearos_load_library('base/Country');
 try {
     $country = new Country();
     $country_list = $country->get_list();
+    $country_list['0'] = ' -- ' . lang('base_not_specified') . ' -- ';
     asort($country_list);
 } catch (Exception $e) {
     // 
