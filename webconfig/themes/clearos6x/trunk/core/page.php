@@ -72,6 +72,8 @@ function theme_page($page)
         return _configuration_page($page);
     else if ($page['type'] == MY_Page::TYPE_REPORT)
         return _report_page($page);
+    else if ($page['type'] == MY_Page::TYPE_MARKETPLACE)
+        return _marketplace_page($page);
     else if ($page['type'] == MY_Page::TYPE_SPLASH)
         return _splash_page($page);
     else if ($page['type'] == MY_Page::TYPE_LOGIN)
@@ -134,6 +136,48 @@ function _configuration_page($page)
  */   
 
 function _report_page($page)
+{
+    $menus = _get_menu($page['menus']);
+
+    return "
+<!-- Body -->
+<body>
+
+<!-- Page Container -->
+<div id='theme-page-container'>" .
+
+    _get_banner($page, $menus) . "
+
+    <!-- Main Content Container -->
+    <div id='theme-main-content-container'>
+        <div class='theme-main-content-top'>
+        <div class='green-stroke-top'></div>
+        <div class='green-stroke-left'></div>
+        <div class='green-stroke-right'></div>
+        </div>
+        <div class='theme-core-content'>
+        " .  _get_left_menu($page, $menus) . "
+        <div id='theme-content-container'>
+        " . _get_message() . "
+        " . $page['app_view'] . "
+        </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+";
+}
+
+/**
+ * Returns the marketplace page.
+ *
+ * @param array $page page data   
+ *
+ * @return string HTML output
+ */   
+
+function _marketplace_page($page)
 {
     $menus = _get_menu($page['menus']);
 
