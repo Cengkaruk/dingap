@@ -95,36 +95,68 @@ class Group_Engine extends Engine
 
     public static $hidden_list = array(
         'account_operators',
+        'account operators',
         'administrators',
         'backup_operators',
+        'backup operators',
         'domain_computers',
+        'domain computers',
         'domain_controllers',
+        'domain controllers',
         'domain_guests',
+        'domain guests',
         'guests',
         'power_users',
+        'power users',
         'print_operators',
+        'print operators',
         'server_operators',
+        'server operators',
         'users'
     );
 
     public static $builtin_list = array(
         'allusers',
-        'domain_users'
+        'domain_users',
+        'domain users'
     );
 
     public static $windows_list = array(
         'account_operators',
+        'account operators',
         'administrators',
         'backup_operators',
+        'backup operators',
+        'cert_publishers',
+        'cert publishers',
+        'dnsadmins',
+        'dnsupdateproxy',
         'domain_admins',
+        'domain admins',
         'domain_computers',
+        'domain computers',
         'domain_controllers',
+        'domain controllers',
         'domain_guests',
+        'domain guests',
         'domain_users',
+        'domain users',
+        'enterprise_admins',
+        'enterprise admins',
+        'group_policy_creator_owners',
+        'group policy creator owners',
         'guests',
         'power_users',
+        'power users',
         'print_operators',
+        'print operators',
+        'ras_and_ias_servers',
+        'ras and ias servers',
+        'schema_admins',
+        'schema admins',
         'server_operators',
+        'server operators',
+        'telnetclients',
         'users'
     );
 
