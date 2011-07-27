@@ -59,6 +59,7 @@ class Directory_Server extends ClearOS_Controller
         //------------------
 
         $this->load->library('openldap_directory/OpenLDAP');
+        $this->lang->load('directory_server');
 
 /*
         $this->load->factory('ldap/LDAP_Factory');
@@ -107,7 +108,7 @@ class Directory_Server extends ClearOS_Controller
             $data['available'] = $this->ldap_driver->is_available();
 */
             $data['initialized'] = ($reset) ? FALSE : $this->openldap->is_initialized();
- ($reset) ? FALSE : $this->openldap->is_initialized();
+($reset) ? FALSE : $this->openldap->is_initialized();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -116,7 +117,7 @@ class Directory_Server extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('directory_server', $data, lang('directory_server_directory_server'));
+        $this->page->view_form('directory_server', $data, lang('directory_server_app_name'));
     }
 
     /**

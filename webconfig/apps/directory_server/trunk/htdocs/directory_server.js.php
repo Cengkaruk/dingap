@@ -56,6 +56,9 @@ $(document).ready(function() {
         $("#base_dn").html(payload.base_dn);
         $("#bind_dn").html(payload.bind_dn);
         $("#bind_password").html(payload.bind_password);
+        $("#users_container").html(payload.users_container);
+        $("#groups_container").html(payload.groups_container);
+        $("#computers_container").html(payload.computers_container);
         $("#result").html('');
 	}
 });

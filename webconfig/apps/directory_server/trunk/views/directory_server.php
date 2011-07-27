@@ -37,33 +37,40 @@ $this->lang->load('base');
 $this->lang->load('directory_server');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Main form
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('directory_server');
 echo form_header(lang('base_settings'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form Fields and Buttons
-///////////////////////////////////////////////////////////////////////////////
-
 echo field_input('domain', $domain, lang('directory_server_domain'));
 echo field_toggle_enable_disable('publish', $publish, lang('directory_server_publish_policy'));
-
-echo form_submit_update('submit', 'high');
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set(
+    array(form_submit_update('submit', 'high'))
+);
 
 echo form_footer();
 echo form_close();
 
+///////////////////////////////////////////////////////////////////////////////
+// Info form
+///////////////////////////////////////////////////////////////////////////////
+
 echo form_open('directory_server');
-echo form_header(lang('directory_server_connection_information'));
-echo field_view(lang('directory_server_base_dn'), '', array('id' => 'base_dn'));
-echo field_view(lang('directory_server_bind_dn'), '', array('id' => 'bind_dn'));
-echo field_view(lang('directory_server_bind_password'), '', array('id' => 'bind_password'));
+echo form_header(lang('directory_server_directory_information'));
+
+echo fieldset_header(lang('directory_server_connection_information'));
+echo field_view(lang('directory_server_base_dn'), '', 'base_dn');
+echo field_view(lang('directory_server_bind_dn'), '', 'bind_dn');
+echo field_view(lang('directory_server_bind_password'), '', 'bind_password');
+echo fieldset_footer();
+
+echo fieldset_header(lang('directory_server_containers'));
+echo field_view(lang('directory_server_users'), '', 'users_container');
+echo field_view(lang('directory_server_groups'), '', 'groups_container');
+echo field_view(lang('directory_server_computers'), '', 'computers_container');
+echo fieldset_footer();
+
 echo form_footer();
 echo form_close();
 
