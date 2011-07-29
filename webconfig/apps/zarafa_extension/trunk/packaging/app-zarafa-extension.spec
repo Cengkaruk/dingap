@@ -26,7 +26,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/zarafa_extension
 cp -r * %{buildroot}/usr/clearos/apps/zarafa_extension/
 
-install -D -m 0644 packaging/zarafa.php %{buildroot}/var/clearos/openldap_directory/extensions/zarafa.php
+install -D -m 0644 packaging/zarafa.php %{buildroot}/var/clearos/openldap_directory/extensions/10_zarafa.php
 
 %post
 logger -p local6.notice -t installer 'app-zarafa-extension-core - installing'
@@ -55,4 +55,4 @@ exit 0
 /usr/clearos/apps/zarafa_extension/deploy
 /usr/clearos/apps/zarafa_extension/language
 /usr/clearos/apps/zarafa_extension/libraries
-/var/clearos/openldap_directory/extensions/zarafa.php
+/var/clearos/openldap_directory/extensions/10_zarafa.php
