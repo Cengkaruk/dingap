@@ -36,6 +36,6 @@ $app['core_requires'] = array(
 
 $app['core_file_manifest'] = array( 
    'contact.php' => array(
-        'target' => '/var/clearos/openldap_directory/extensions/contact.php'
+        'target' => '/var/clearos/openldap_directory/extensions/90_contact.php'
     ),
 );

@@ -26,7 +26,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/contact_extension
 cp -r * %{buildroot}/usr/clearos/apps/contact_extension/
 
-install -D -m 0644 packaging/contact.php %{buildroot}/var/clearos/openldap_directory/extensions/contact.php
+install -D -m 0644 packaging/contact.php %{buildroot}/var/clearos/openldap_directory/extensions/90_contact.php
 
 %post
 logger -p local6.notice -t installer 'app-contact-extension-core - installing'
@@ -55,4 +55,4 @@ exit 0
 /usr/clearos/apps/contact_extension/deploy
 /usr/clearos/apps/contact_extension/language
 /usr/clearos/apps/contact_extension/libraries
-/var/clearos/openldap_directory/extensions/contact.php
+/var/clearos/openldap_directory/extensions/90_contact.php
