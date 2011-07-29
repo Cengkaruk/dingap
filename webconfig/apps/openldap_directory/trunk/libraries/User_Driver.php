@@ -420,6 +420,11 @@ class User_Driver extends User_Engine
 
         $info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
+        // Add group memberships
+        //----------------------
+
+        $info['groups'] = $this->get_group_memberships();
+
         // Add user info from extensions
         //------------------------------
 

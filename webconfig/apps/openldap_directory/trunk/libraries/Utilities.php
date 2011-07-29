@@ -262,4 +262,23 @@ class Utilities extends Engine
 
         return $usermap_dn;
     }
+
+    /**
+     * Handles running various hooks in an extension
+     *
+     * @param array $details extension details
+     * @return object extension object
+     */
+
+    public static function load_extension($details)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        clearos_load_library($details['app'] . '/OpenLDAP_User_Extension');
+
+        $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_User_Extension';
+        $extension = new $class();
+
+        return $extension;
+    }
 }

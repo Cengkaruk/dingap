@@ -60,6 +60,7 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
+use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
@@ -69,6 +70,7 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Group_Driver');
+clearos_load_library('openldap_directory/Group_Manager_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User_Engine');
@@ -172,10 +174,28 @@ class User_Manager_Driver extends User_Manager_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Prep group membership lookup table
+        //-----------------------------------
+
+        $group_manager = new Group_Manager_Driver();
+        $group_data = $group_manager->get_details();
+        $group_lookup = array();
+
+        foreach ($group_data as $group => $details) {
+            foreach ($details['members'] as $username) {
+                if (array_key_exists($username, $group_lookup))
+                    $group_lookup[$username][] = $group;
+                else
+                    $group_lookup[$username] = array($group);
+            }
+        }
+        
+        // Grab user info from LDAP
+        //-------------------------
+
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        // FIXME: implement "app" flag
         $search = '';
 
         $userlist = array();
@@ -192,6 +212,14 @@ class User_Manager_Driver extends User_Manager_Engine
             $attributes = $this->ldaph->get_attributes($entry);
             $username = $attributes['uid'][0];
 
+            // Bail if this is the "no members" user
+            //--------------------------------------
+
+            if ($username === Group_Driver::CONSTANT_NO_MEMBERS_USERNAME) {
+                $entry = $this->ldaph->next_entry($entry);
+                continue;
+            }
+
             // TODO: continue filter implementation
             if ($type === User_Engine::TYPE_NORMAL) {
                 if (in_array($username, User_Engine::$builtin_list)) {
@@ -200,14 +228,50 @@ class User_Manager_Driver extends User_Manager_Engine
                 }
             }
 
-            $userinfo = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+            // Get user info
+            //--------------
+
+            $userinfo['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+
+            // Add group memberships
+            //----------------------
+
+            if (array_key_exists($username, $group_lookup))
+                $userinfo['groups'] = $group_lookup[$username];
+            else
+                $userinfo['groups'] = array();
+
+            // Add user info from extensions
+            //------------------------------
+
+            $accounts = new Accounts_Driver();
+            $extensions = $accounts->get_extensions();
+
+            foreach ($extensions as $extension_name => $details) {
+                $extension = Utilities::load_extension($details);
+
+                if (method_exists($extension, 'get_info_hook')) {
+                    $userinfo['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+                }
+            }
+
+            // Add user info map from plugins
+            //-------------------------------
+
+            $plugins = $accounts->get_plugins();
+
+            foreach ($plugins as $plugin => $details) {
+                $plugin_name = $plugin . '_plugin';
+                $state = (in_array($plugin_name, $userinfo['groups'])) ? TRUE : FALSE;
+                $userinfo['plugins'][$plugin] = $state;
+            }
+
 
             // FIXME: review this for Active Directory
-            if (! isset($userinfo['full_name']))
-                $userinfo['full_name'] = $userinfo['first_name'] . ' ' . $userinfo['last_name'];
+            if (! isset($userinfo['core']['full_name']))
+                $userinfo['core']['full_name'] = $userinfo['core']['first_name'] . ' ' . $userinfo['core']['last_name'];
 
-            if ($username !== Group_Driver::CONSTANT_NO_MEMBERS_USERNAME)
-                $userlist[$username] = $userinfo;
+            $userlist[$username] = $userinfo;
 
             $entry = $this->ldaph->next_entry($entry);
         }

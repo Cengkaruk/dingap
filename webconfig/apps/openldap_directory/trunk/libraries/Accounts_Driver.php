@@ -55,6 +55,7 @@ require_once $bootstrap . '/bootstrap.php';
 // Classes
 //--------
 
+use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\File as File;
@@ -63,6 +64,7 @@ use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
+clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('accounts/Accounts_Engine');
 clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/File');
@@ -100,10 +102,8 @@ class Accounts_Driver extends Accounts_Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    // Commands
+    const DRIVER_NAME = 'openldap_directory';
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
-
-    // Files and paths
     const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
@@ -183,6 +183,21 @@ class Accounts_Driver extends Accounts_Engine
         }
 
         return $this->extensions;
+    }
+
+    /**
+     * Returns state of driver.
+     *
+     * Returns 
+     * @return boolean state of driver
+     * @throws Engine_Exception
+     */
+
+    public function get_driver_status()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->_get_driver_status(self::DRIVER_NAME);
     }
 
     /**
