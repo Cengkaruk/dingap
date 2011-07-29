@@ -34,15 +34,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Date controller.
+ * Directory_Server controller.
  *
  * @category   Apps
- * @package    Date
+ * @package    Directory_Server
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/directory_server/
  */
 
 class Directory_Server extends ClearOS_Controller
@@ -59,6 +59,7 @@ class Directory_Server extends ClearOS_Controller
         //------------------
 
         $this->load->library('openldap_directory/OpenLDAP');
+        $this->load->library('openldap_directory/Accounts_Driver');
         $this->lang->load('directory_server');
 
 /*
@@ -104,6 +105,8 @@ class Directory_Server extends ClearOS_Controller
 
         try {
             $data['domain'] = $this->openldap->get_base_internet_domain();
+            $data['status'] = $this->accounts_driver->get_driver_status();
+ 
 /*
             $data['available'] = $this->ldap_driver->is_available();
 */
