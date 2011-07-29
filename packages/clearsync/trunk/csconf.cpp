@@ -123,6 +123,7 @@ csXmlParser::~csXmlParser()
 {
     Reset();
     if (p != NULL) XML_ParserFree(p);
+    if (buffer != NULL) delete [] buffer;
 }
 
 void csXmlParser::Reset(void)

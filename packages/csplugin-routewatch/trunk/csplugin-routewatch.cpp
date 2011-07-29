@@ -112,6 +112,8 @@ csPluginRouteWatch::csPluginRouteWatch(const string &name,
 
 csPluginRouteWatch::~csPluginRouteWatch()
 {
+    Join();
+
     if (conf) delete conf;
     for (map<int, struct TableConfig_t *>::iterator i = table.begin();
         i != table.end(); i++) {

@@ -97,6 +97,8 @@ csTimer::~csTimer()
         signal_id[sigrt_id] = false;
         pthread_mutex_unlock(signal_id_mutex);
     }
+
+    timer_delete(id);
 }
 
 void csTimer::Start(void)

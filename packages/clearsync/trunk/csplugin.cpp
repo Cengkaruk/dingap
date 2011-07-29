@@ -51,7 +51,6 @@ csPlugin::csPlugin(const string &name,
 
 csPlugin::~csPlugin()
 {
-    Join();
     SaveState();
     if (fh_state != NULL) fclose(fh_state);
     csLog::Log(csLog::Debug, "Plugin destroyed: %s", name.c_str());

@@ -50,5 +50,37 @@ protected:
 long csGetPageSize(void);
 int csExecute(const string &command);
 
+class csSHA1
+{
+public:
+    csSHA1();
+    virtual ~csSHA1();
+
+    void Reset(void);
+    bool Result(unsigned *message_digest_array);
+
+    void Input(const unsigned char *message_array, unsigned length);
+    void Input(const char *message_array, unsigned length);
+    void Input(unsigned char message_element);
+    void Input(char message_element);
+    csSHA1& operator<<(const char *message_array);
+    csSHA1& operator<<(const unsigned char *message_array);
+    csSHA1& operator<<(const char message_element);
+    csSHA1& operator<<(const unsigned char message_element);
+
+protected:
+    void ProcessMessageBlock(void);
+    void PadMessage(void);
+    inline unsigned CircularShift(int bits, unsigned word);
+
+    unsigned H[5];
+    unsigned length_low;
+    unsigned length_high;
+    unsigned char message_block[64];
+    int message_block_index;
+    bool computed;
+    bool corrupted;
+};
+
 #endif // _CSUTIL_H
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4
