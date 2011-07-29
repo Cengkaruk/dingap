@@ -36,6 +36,6 @@ $app['core_requires'] = array(
 
 $app['core_file_manifest'] = array( 
    'samba.php' => array(
-        'target' => '/var/clearos/openldap_directory/extensions/samba.php'
+        'target' => '/var/clearos/openldap_directory/extensions/20_samba.php'
     ),
 );

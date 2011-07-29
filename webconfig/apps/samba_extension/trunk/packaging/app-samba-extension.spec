@@ -26,7 +26,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/samba_extension
 cp -r * %{buildroot}/usr/clearos/apps/samba_extension/
 
-install -D -m 0644 packaging/samba.php %{buildroot}/var/clearos/openldap_directory/extensions/samba.php
+install -D -m 0644 packaging/samba.php %{buildroot}/var/clearos/openldap_directory/extensions/20_samba.php
 
 %post
 logger -p local6.notice -t installer 'app-samba-extension-core - installing'
@@ -55,4 +55,4 @@ exit 0
 /usr/clearos/apps/samba_extension/deploy
 /usr/clearos/apps/samba_extension/language
 /usr/clearos/apps/samba_extension/libraries
-/var/clearos/openldap_directory/extensions/samba.php
+/var/clearos/openldap_directory/extensions/20_samba.php
