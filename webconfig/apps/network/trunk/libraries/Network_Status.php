@@ -117,21 +117,6 @@ class Network_Status extends Engine
     }
 
     /**
-     * Returns an array of external interfaces.
-     *
-     * @return array array list containing external interfaces
-     */
-
-    public function get_external_interfaces()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $iface_manager = new Iface_Manager();
-
-        return $iface_manager->get_external_interfaces();
-    }
-
-    /**
      * Returns list of working external (WAN) interfaces.
      *
      * Syswatch monitors the connections to the Internet.  A connection
