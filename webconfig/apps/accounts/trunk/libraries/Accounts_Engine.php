@@ -95,6 +95,9 @@ class Accounts_Engine extends Engine
     const STATUS_OFFLINE = 'offline';
     const STATUS_ONLINE = 'online';
 
+    const DRIVER_UNSET = 'unset';
+    const DRIVER_OK = 'ok';
+
     // Capabilities
     //-------------
 
@@ -149,6 +152,34 @@ class Accounts_Engine extends Engine
         }
 
         return $plugins;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns state of driver.
+     *
+     * @param string $driver_to_check driver to check
+     * @return integer state of driver
+     * @throws Engine_Exception
+     */
+
+    protected function _get_driver_status($driver_to_check)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $accounts = new Accounts_Configuration();
+
+        $driver_info = $accounts->get_driver_info();
+
+        if ($driver_info['driver'] === $driver_to_check)
+            return self::DRIVER_OK;
+        else if (empty($driver_info['driver']))
+            return self::DRIVER_UNSET;
+        else
+            return $driver_info['description'];
     }
 
     ///////////////////////////////////////////////////////////////////////////////
