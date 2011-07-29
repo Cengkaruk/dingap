@@ -128,6 +128,8 @@ class Network_Status extends Engine
 
     public function get_working_external_interfaces()
     {
+        clearos_profile(__METHOD__, __LINE__);
+
         if (!$this->is_state_loaded)
             $this->_load_status();
 
@@ -148,6 +150,8 @@ class Network_Status extends Engine
 
     public function get_in_use_external_interfaces()
     {
+        clearos_profile(__METHOD__, __LINE__);
+
         if (!$this->is_state_loaded)
             $this->_load_status();
 
@@ -169,6 +173,8 @@ class Network_Status extends Engine
 
     protected function _load_status()
     {
+        clearos_profile(__METHOD__, __LINE__);
+
         $file = new File(self::FILE_STATE);
 
         if (! $file->exists())
