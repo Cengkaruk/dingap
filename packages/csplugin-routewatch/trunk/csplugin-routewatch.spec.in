@@ -68,6 +68,6 @@ fi
 # Files
 %files
 %defattr(-,root,root)
-%{_sysconfdir}/clearsync.d/csplugin-routewatch.conf
+%config(noreplace) %{_sysconfdir}/clearsync.d/csplugin-routewatch.conf
 %{_libdir}/libcsplugin-routewatch.so*
 
