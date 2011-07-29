@@ -68,6 +68,6 @@ fi
 # Files
 %files
 %defattr(-,root,root)
-%{_sysconfdir}/clearsync.d/csplugin-filewatch.conf
+%config(noreplace) %{_sysconfdir}/clearsync.d/csplugin-filewatch.conf
 %{_libdir}/libcsplugin-filewatch.so*
 
