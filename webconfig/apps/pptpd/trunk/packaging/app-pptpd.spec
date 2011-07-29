@@ -2,7 +2,7 @@
 Name: app-pptpd
 Group: ClearOS/Apps
 Version: 5.9.9.3
-Release: 1%{dist}
+Release: 2.1%{dist}
 Summary: PPTP Server
 License: GPLv3
 Packager: ClearFoundation
@@ -27,6 +27,7 @@ Requires: app-base-core
 Requires: app-network-core
 Requires: app-pptpd-plugin-core
 Requires: app-samba-extension-core
+Requires: csplugin-routewatch
 Requires: pptpd >= 1.3.4
 
 %description core

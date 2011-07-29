@@ -3,7 +3,7 @@ Name: app-zarafa-extension-core
 Group: ClearOS/Libraries
 Version: 5.9.9.1
 Release: 1%{dist}
-Summary: Zarafa Accounts Extension summary - APIs and install
+Summary: Zarafa Accounts Extension - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation

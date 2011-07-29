@@ -47,7 +47,7 @@ clearos_load_language('base');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-$lang_gb = lang('base_gigabyte');
+$lang_gb = lang('base_gigabytes');
 
 $info_map = array(
     'account_flag' => array(
