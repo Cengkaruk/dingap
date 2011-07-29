@@ -798,6 +798,15 @@ sub CheckWanNetwork() {
 
     if (($g_active_wans eq $STATE_STARTUP) && ($active_wans eq "")) {
         LogMsg("info", "system", "WAN network is not up\n");
+
+        if (open(FILE_STATE, ">$FILE_STATE")) {
+            print FILE_STATE "SYSWATCH_WANIF=\"\"\n";
+            print FILE_STATE "SYSWATCH_WANOK=\"\"\n";
+            close(FILE_STATE);
+        } else {
+            LogMsg("warn", "system", "failed to open state file $FILE_STATE - $!\n");
+        }
+
         if (-x $CMD_WANUPDATE) {
             LogMsg("info", "system", "running custom failover event handler\n");
             system($CMD_WANUPDATE);
