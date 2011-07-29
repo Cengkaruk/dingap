@@ -23,3 +23,4 @@ $lang['groups_group_is_reserved_for_system'] = 'Group is reserved for the system
 
 $lang['groups_description_invalid'] = 'Description is invalid.'; 
 $lang['groups_group_name_invalid'] = 'Group name is invalid.'; 
+$lang['groups_view_members'] = 'View Members';

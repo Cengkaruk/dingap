@@ -60,7 +60,13 @@ $windows_anchors = array();
 
 foreach ($groups as $group_name => $info) {
 
-    if ($info['type'] === Group::TYPE_NORMAL) {
+    if ($mode === 'view') {
+        $normal_anchors = array();
+        $buttons = array(
+            anchor_custom('/app/groups/view_members/' . $group_name, lang('groups_view_members'), 'high'),
+            anchor_view('/app/groups/view/' . $group_name, 'low'),
+        );
+    } else if ($info['type'] === Group::TYPE_NORMAL) {
         $buttons = array(
             anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
             anchor_edit('/app/groups/edit/' . $group_name, 'low'),

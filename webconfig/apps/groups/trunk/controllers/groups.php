@@ -29,6 +29,11 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 use \clearos\apps\groups\Group_Engine as Group;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,6 +66,7 @@ class Groups extends ClearOS_Controller
         //---------------
 
         $this->load->factory('groups/Group_Manager_Factory');
+        $this->load->factory('accounts/Accounts_Factory');
         $this->lang->load('groups');
 
         // Load view data
@@ -68,7 +74,13 @@ class Groups extends ClearOS_Controller
 
         try {
             $data['groups'] = $this->group_manager->get_details(Group::TYPE_ALL);
-        } catch (Exception $e) {
+
+            if ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE)
+                $data['mode'] = 'edit';
+            else
+                $data['mode'] = 'view';
+
+        } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -134,7 +146,7 @@ class Groups extends ClearOS_Controller
             $this->group->delete();
             $this->page->set_status_deleted();
             redirect('/groups');
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -163,6 +175,50 @@ class Groups extends ClearOS_Controller
 
     function edit_members($group_name)
     {
+        $this->_handle_members('edit', $group_name);
+    }
+
+    /**
+     * User view.
+     *
+     * @param string $group_name group_name
+     *
+     * @return view
+     */
+
+    function view($group_name)
+    {
+        $this->_handle_item('view', $group_name);
+    }
+
+    /**
+     * Group members view.
+     *
+     * @param string $group_name group name
+     *
+     * @return view
+     */
+
+    function view_members($group_name)
+    {
+        $this->_handle_members('view', $group_name);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Group common view/edit members form handler.
+     *
+     * @param string $form_type  form type (add, edit or view)
+     * @param string $group_name group_name
+     *
+     * @return view
+     */
+
+    function _handle_members($form_type, $group_name)
+    {
         // Load libraries
         //---------------
 
@@ -183,7 +239,7 @@ class Groups extends ClearOS_Controller
 
                 $this->page->set_status_updated();
                 redirect('/groups');
-            } catch (Exception $e) {
+            } catch (Engine_Exception $e) {
                 $this->page->view_exception($e);
                 return;
             }
@@ -193,9 +249,10 @@ class Groups extends ClearOS_Controller
         //------------------- 
 
         try {
+            $data['mode'] = $form_type;
             $data['group_info'] = $this->group->get_info();
             $data['users'] = $this->user_manager->get_details();
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -205,24 +262,6 @@ class Groups extends ClearOS_Controller
 
         $this->page->view_form('groups/members', $data, lang('groups_members'));
     }
-
-    /**
-     * User view.
-     *
-     * @param string $group_name group_name
-     *
-     * @return view
-     */
-
-    function view($group_name)
-    {
-        $this->_handle_item('view', $group_name);
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E
-    ///////////////////////////////////////////////////////////////////////////////
 
     /**
      * Group common add/edit form handler.
@@ -266,7 +305,7 @@ class Groups extends ClearOS_Controller
 
                 $this->page->set_status_updated();
                 redirect('/groups');
-            } catch (Exception $e) {
+            } catch (Engine_Exception $e) {
                 $this->page->view_exception($e);
                 return;
             }
@@ -278,7 +317,7 @@ class Groups extends ClearOS_Controller
         try {
             if ($form_type !== 'add')
                 $data['group_info'] = $this->group->get_info();
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
         }
