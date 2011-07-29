@@ -71,11 +71,12 @@ select {
 a:link {
   text-decoration: none;
   color: #686868;
+  ^color: #e1852e;
 }
 
 a:visited {
   text-decoration: none;
-  color: #686868;
+  ^color: #e1852e;
 }
 
 a:active {
@@ -147,6 +148,8 @@ a.theme-anchor-unimportant {
   padding-bottom: 1px;
   padding-top: 3px\9;
   top: 1px\9;
+  ^line-height: 10px;
+  ^padding-bottom: 3px;
 }
 
 a.theme-anchor-unimportant:hover {
