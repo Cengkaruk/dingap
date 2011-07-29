@@ -113,52 +113,40 @@ objectclass ( clearAccount
 
 ###########################################################################
 #
-# Plugins
+# Google Apps Extensions
 #
 ###########################################################################
 
 # Identifiers
 #--------------------------------------------------------------------------
 
-objectIdentifier clearPluginsAccount ClearObjectClass:200
+objectIdentifier clearGoogleAppsAccount ClearObjectClass:200
 
-objectIdentifier clearPlugins ClearAttribute:200
-objectIdentifier clearPluginParameters ClearAttribute:201
+objectIdentifier clearGoogleAppsState ClearAttribute:200
 
 # Attributes
 #--------------------------------------------------------------------------
 
-# FIXME: use DirectoryString ? -- http://www.zytrax.com/books/ldap/apa/types.html#strings
-attributetype ( clearPlugins
-    NAME 'clearPlugins'
-    DESC 'List of enabled plugins'
-    EQUALITY caseIgnoreIA5Match
-    SUBSTR caseIgnoreIA5SubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{4096} )
-
-# FIXME: size limitation could be a problem?  How big should this be?  What are the
-# ramifications?
-attributetype ( clearPluginParameters
-    NAME 'clearPluginParameters'
-    DESC 'List of parameters for plugins'
-    EQUALITY caseIgnoreIA5Match
-    SUBSTR caseIgnoreIA5SubstringsMatch
-    SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{8192} )
+attributetype ( clearGoogleAppsState
+    NAME 'clearGoogleAppsState'
+    DESC 'state of Google Apps account'
+    EQUALITY integerMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.27 )
 
 # Class
 #--------------------------------------------------------------------------
 
-objectclass ( clearPluginsAccount
-    NAME 'clearPluginsAccount'
+objectclass ( clearGoogleAppsAccount
+    NAME 'clearGoogleAppsAccount'
     SUP top AUXILIARY
-    DESC 'ClearOS plugins account object'
+    DESC 'ClearOS Google Apps account object'
     MUST ( uid )
-    MAY ( clearPlugins $ clearPluginParameters ) )
+    MAY ( clearGoogleAppsState ) )
 
 
 ###########################################################################
 #
-# PBX
+# PBX Extension
 #
 ###########################################################################
 
