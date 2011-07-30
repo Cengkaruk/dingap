@@ -134,7 +134,7 @@ csInotifyMask::csInotifyMask(uint32_t mask, const string &action_group,
     const string &pattern, bool is_regex)
     : mask(mask), action_group(action_group), pattern(pattern), regex(NULL)
 {
-    if (is_regex) regex = new csRegEx(pattern.c_str(), 0, 0);
+    if (is_regex) regex = new csRegEx(pattern.c_str());
 }
 
 csInotifyMask::~csInotifyMask()
@@ -144,22 +144,42 @@ csInotifyMask::~csInotifyMask()
 
 bool csInotifyMask::operator==(const struct inotify_event *iev)
 {
-    if (!(mask & iev->mask))
+    if (!(mask & iev->mask)) {
+#ifdef _CS_DEBUG
+        csLog::Log(csLog::Debug, "%s: mask doesn't match: %08x != %08x",
+            action_group.c_str(), mask, iev->mask);
+#endif
         return false;
+    }
     if (iev->len == 1) {
-        if (strcmp(pattern.c_str(), _INOTIFY_MASK_SELF))
+        if (strcmp(pattern.c_str(), _INOTIFY_MASK_SELF)) {
+#ifdef _CS_DEBUG
+            csLog::Log(csLog::Debug, "%s: len == 1, %s != %s",
+                action_group.c_str(), pattern.c_str(), _INOTIFY_MASK_SELF);
+#endif
             return false;
+        }
         else
             return true;
     }
     if (regex == NULL) {
-        if (strcmp(pattern.c_str(), iev->name))
+        if (strcmp(pattern.c_str(), iev->name)) {
+#ifdef _CS_DEBUG
+            csLog::Log(csLog::Debug, "%s: regex == NULL, %s != %s",
+                action_group.c_str(), pattern.c_str(), iev->name);
+#endif
             return false;
+        }
         else
             return true;
     }
-    if (regex->Execute(iev->name) == REG_NOMATCH)
+    if (regex->Execute(iev->name) == REG_NOMATCH) {
+#ifdef _CS_DEBUG
+        csLog::Log(csLog::Debug, "%s: regex != %s",
+            action_group.c_str(), iev->name);
+#endif
         return false;
+    }
 
     return true;
 }
@@ -415,6 +435,7 @@ protected:
     csPluginConf *conf;
     vector<csInotifyWatch *> watch;
     map<string, csActionGroup *> action_group;
+    long pages;
     long page_size;
     int fd_inotify;
     uint8_t *buffer;
@@ -423,8 +444,8 @@ protected:
 
 csPluginFileWatch::csPluginFileWatch(const string &name,
     csEventClient *parent, size_t stack_size)
-    : csPlugin(name, parent, stack_size), conf(NULL), buffer(NULL),
-    dirty_timer(NULL)
+    : csPlugin(name, parent, stack_size), conf(NULL),
+    pages(1), buffer(NULL), dirty_timer(NULL)
 {
     fd_inotify = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
     if (fd_inotify < 0) {
@@ -434,9 +455,9 @@ csPluginFileWatch::csPluginFileWatch(const string &name,
     }
 
     page_size = ::csGetPageSize();
-    buffer = new uint8_t[page_size];
+    buffer = (uint8_t *)realloc(NULL, page_size);
     if (buffer == NULL)
-        throw csException(ENOMEM, "new buffer");
+        throw csException(ENOMEM, "inotify buffer");
 
     dirty_timer = new csTimer(_DIRTY_TIMER_ID,
         _DEFAULT_DELAY, _DIRTY_TIMER_VALUE, this);
@@ -454,7 +475,7 @@ csPluginFileWatch::~csPluginFileWatch()
     for (map<string, csActionGroup *>::iterator i = action_group.begin();
         i != action_group.end(); i++) delete i->second;
     if (conf) delete conf;
-    if (buffer) delete [] buffer;
+    if (buffer) free(buffer);
     if (fd_inotify != -1) close(fd_inotify);
 }
 
@@ -533,7 +554,7 @@ ssize_t csPluginFileWatch::InotifyRead(void)
     uint8_t *ptr = buffer;
     ssize_t bytes;
     ssize_t bytes_read = 0;
-    size_t buffer_len = page_size;
+    size_t buffer_len = page_size * pages;
 
     for ( ;; ) {
         bytes = read(fd_inotify, (void *)ptr, buffer_len);
@@ -550,10 +571,18 @@ ssize_t csPluginFileWatch::InotifyRead(void)
         ptr += bytes;
 
         if (buffer_len <= 0) {
-            csLog::Log(csLog::Error, "%s: inotify read: %s",
-                name.c_str(), strerror(ENOMEM));
-            bytes_read = -1;
-            break;
+            buffer = (uint8_t *)realloc(buffer, page_size * ++pages);
+            if (buffer == NULL) {
+                csLog::Log(csLog::Error, "%s: inotify buffer: %s",
+                    name.c_str(), strerror(ENOMEM));
+                bytes_read = -1;
+                break;
+            }
+            buffer_len += page_size;
+            ptr = buffer + bytes_read;
+            csLog::Log(csLog::Debug,
+                "%s: increased inotify buffer to %ld bytes.",
+                name.c_str(), page_size * pages);
         }
     }
 
@@ -562,10 +591,12 @@ ssize_t csPluginFileWatch::InotifyRead(void)
 
 void csPluginFileWatch::InotifyEvent(const struct inotify_event *iev)
 {
+#ifdef _CS_DEBUG
     csLog::Log(csLog::Debug,
         "%s: mask: %08x, cookie: %8x, len: %d, name: %s",
         name.c_str(), iev->mask, iev->cookie, iev->len,
         (iev->len > 1) ? iev->name : "(null)");
+#endif
     for (vector<csInotifyWatch *>::iterator i = watch.begin();
         i != watch.end(); i++) {
         if ((*(*i)) == iev) {
