@@ -81,3 +81,4 @@ $lang['network_type'] = 'Type';
 $lang['network_validate_unusual_gateway_setting'] = 'Your network settings include the following unusual gateway configuration.  Click on help for more information.';
 $lang['network_vendor'] = 'Vendor';
 $lang['network_waiting_for_connection'] = 'Internet connection is offline';
+$lang['network_network_connection_status_unknown'] = 'Network connection status is unknown.';

@@ -42,6 +42,7 @@ $app['core_requires'] = array(
     'net-tools',
     'ppp',
     'rp-pppoe',
+    'syswatch',
 );
 
 $app['core_directory_manifest'] = array(
