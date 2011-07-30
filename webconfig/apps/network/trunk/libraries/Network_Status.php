@@ -92,6 +92,10 @@ class Network_Status extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////
 
+    const STATUS_ONLINE = 'online';
+    const STATUS_OFFLINE = 'offline';
+    const STATUS_UNKNOWN = 'unknown';
+
     // TODO: move to syswatch
     const FILE_STATE = '/var/lib/syswatch/state';
 
@@ -158,6 +162,29 @@ class Network_Status extends Engine
         return $this->ifs_in_use;
     }
 
+    /**
+     * Returns status of connection to Internet.
+     *
+     * @return integer status of Internet connection
+     * @throws Engine_Exception
+     */
+
+    public function get_connection_status()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $ifaces = $this->get_working_external_interfaces();
+
+            if (empty($ifaces))
+                return self::STATUS_OFFLINE;
+            else
+                return self::STATUS_ONLINE;
+        } catch (Network_Status_Unknown_Exception $e) {
+            return self::STATUS_UNKNOWN;
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // P R I V A T E  M E T H O D S
     ///////////////////////////////////////////////////////////////////////////
@@ -184,20 +211,27 @@ class Network_Status extends Engine
 
         foreach ($lines as $line) {
             $match = array();
+
             if (preg_match('/^SYSWATCH_WANIF=(.*)/', $line, $match)) {
                 $ethraw = $match[1];
                 $ethraw = preg_replace('/"/', '', $ethraw);
-                $ethlist = explode(' ', $ethraw);
-                $this->ifs_in_use = explode(' ', $ethraw);
-                $this->is_state_loaded = TRUE;
+
+                if (! empty($ethraw)) {
+                    $ethlist = explode(' ', $ethraw);
+                    $this->ifs_in_use = explode(' ', $ethraw);
+                    $this->is_state_loaded = TRUE;
+                }
             }
 
             if (preg_match('/^SYSWATCH_WANOK=(.*)/', $line, $match)) {
                 $ethraw = $match[1];
                 $ethraw = preg_replace('/"/', '', $ethraw);
-                $ethlist = explode(' ', $ethraw);
-                $this->ifs_working = explode(' ', $ethraw);
-                $this->is_state_loaded = TRUE;
+
+                if (! empty($ethraw)) {
+                    $ethlist = explode(' ', $ethraw);
+                    $this->ifs_working = explode(' ', $ethraw);
+                    $this->is_state_loaded = TRUE;
+                }
             }
         }
     }
