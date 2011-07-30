@@ -66,9 +66,20 @@ void csCriticalSection::Unlock(void)
 csRegEx::csRegEx(const char *expr, int nmatch, int flags)
     : match(NULL), nmatch(nmatch), matches(NULL)
 {
+    int rc;
     if (!nmatch) flags |= REG_NOSUB;
-    if (regcomp(&regex, expr, flags) != 0)
-        throw csException("Regular expression compilation error");
+    if ((rc = regcomp(&regex, expr, flags)) != 0) {
+        size_t errsize = regerror(rc, &regex, NULL, 0);
+        if (errsize > 0) {
+            char *buffer = new char[errsize + 1];
+            regerror(rc, &regex, buffer, errsize);
+            string errstr(buffer);
+            delete buffer;
+            throw csException(expr, errstr.c_str());
+        }
+        else
+            throw csException("Unknown regex compilation error");
+    }
     if (nmatch) {
         match = new regmatch_t[nmatch];
         matches = new char *[nmatch];
@@ -89,7 +100,7 @@ csRegEx::~csRegEx()
 int csRegEx::Execute(const char *subject)
 {
     if (!subject)
-        throw csException("Invalid regular expression subject");
+        throw csException("Invalid regex subject");
     int rc = regexec(&regex, subject, nmatch, match, 0);
     for (int i = 0; i < nmatch; i++) {
         if (matches[i]) delete [] matches[i];
@@ -110,7 +121,7 @@ int csRegEx::Execute(const char *subject)
 const char *csRegEx::GetMatch(int match)
 {
     if (match < 0 || match >= nmatch)
-        throw csException("Invalid regular expression match offset");
+        throw csException("Invalid regex match offset");
     if (this->match[match].rm_so == -1) return NULL;
     return matches[match];
 }

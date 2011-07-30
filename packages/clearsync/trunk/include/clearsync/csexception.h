@@ -35,6 +35,8 @@ public:
         : runtime_error(strerror(e)), eint(e), estring("csException") { };
     explicit csException(int e, const char *s)
         : runtime_error(strerror(e)), eint(e), estring(s) { };
+    explicit csException(const char *s, const char *es)
+        : runtime_error(s), eint(0), estring(es) { };
 
     virtual ~csException() throw() { };
 
