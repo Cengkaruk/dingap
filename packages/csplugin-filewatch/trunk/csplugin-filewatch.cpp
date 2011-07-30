@@ -255,9 +255,10 @@ void csInotifyWatch::Initialize(int fd_inotify)
 {
     this->fd_inotify = fd_inotify;
     if (wd == -1) {
-        wd = inotify_add_watch(fd_inotify, path.c_str(), masksum);
+        wd = inotify_add_watch(fd_inotify,
+            path.c_str(), masksum | IN_DELETE_SELF);
         if (wd == -1) {
-            csLog::Log(csLog::Error, "inotify_add_watch: %s: %s",
+            csLog::Log(csLog::Warning, "inotify_add_watch: %s: %s",
                 path.c_str(), strerror(errno));
         }
     }
@@ -283,6 +284,14 @@ bool csInotifyWatch::operator==(const struct inotify_event *iev)
             if (unique)
                 action_group_matches.push_back((*i)->GetActionGroup());
         }
+    }
+
+    if ((iev->mask & IN_DELETE_SELF) ||
+        (iev->mask & IN_IGNORED) || (iev->mask & IN_UNMOUNT)) {
+        csLog::Log(csLog::Debug, "Removing watch from dirty path: %s",
+            path.c_str());
+        inotify_rm_watch(fd_inotify, wd);
+        wd = -1;
     }
 
     return (bool)(action_group_matches.size() > 0);
@@ -623,7 +632,7 @@ void csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
         name.c_str(), conf_watch->GetType(), conf_watch->GetMask(),
         conf_watch->GetActionGroup().c_str(),
         (conf_watch->GetPath() == NULL) ? "(null)" : conf_watch->GetPath(),
-        (conf_watch->GetPattern() == NULL) ? "(null)" : conf_watch->GetPattern());
+        (conf_watch->GetPattern() == NULL) ? "(self)" : conf_watch->GetPattern());
 
     csInotifyWatch *inotify_watch = NULL;
     for (vector<csInotifyWatch *>::iterator i = watch.begin();
@@ -780,6 +789,8 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
 
 void csPluginXmlParser::ParseFileWatchOpen(csXmlTag *tag, uint32_t mask)
 {
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+
     if (!tag->ParamExists("type"))
         ParseError("type parameter missing");
     if (!tag->ParamExists("action-group"))
@@ -799,15 +810,21 @@ void csPluginXmlParser::ParseFileWatchOpen(csXmlTag *tag, uint32_t mask)
         ParseError("unknown watch type: " + tag->GetParamValue("type"));
 
     csInotifyConf *conf_watch = NULL;
-    if (type == csInotifyConf::Path)
-        conf_watch = new csInotifyConf(mask, tag->GetParamValue("action-group"));
-    else {
-        conf_watch = new csInotifyConf(mask,
-            tag->GetParamValue("action-group"),
-            tag->GetParamValue("path"));
+    try {
+        if (type == csInotifyConf::Path) {
+            conf_watch = new csInotifyConf(mask,
+                tag->GetParamValue("action-group"));
+        }
+        else {
+            conf_watch = new csInotifyConf(mask,
+                tag->GetParamValue("action-group"),
+                tag->GetParamValue("path"));
+        }
+        tag->SetData((void *)conf_watch);
+    } catch (csException &e) {
+        csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
+            _conf->parent->name.c_str(), e.estring.c_str(), e.what()); 
     }
-
-    tag->SetData((void *)conf_watch);
 }
 
 void csPluginXmlParser::ParseFileWatchClose(csXmlTag *tag, const string &text)
@@ -818,8 +835,17 @@ void csPluginXmlParser::ParseFileWatchClose(csXmlTag *tag, const string &text)
         ParseError("missing value for tag: " + tag->GetName());
 
     csInotifyConf *conf_watch = (csInotifyConf *)tag->GetData();
-    conf_watch->SetPattern(text);
-    _conf->parent->AddWatch(conf_watch);
+
+    if (conf_watch != NULL) {
+        try {
+            conf_watch->SetPattern(text);
+            _conf->parent->AddWatch(conf_watch);
+        } catch (csException &e) {
+            csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
+                _conf->parent->name.c_str(), e.estring.c_str(), e.what()); 
+            delete conf_watch;
+        }
+    }
 }
 
 csPluginInit(csPluginFileWatch);
