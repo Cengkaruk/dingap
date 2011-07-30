@@ -1,9 +1,9 @@
 
 Name: theme-clearos6x
 Group: Applications/Themes
-Version: 5.9.9.2
-Release: 4%{dist}
-Summary: ClearOS Enterprise 6.x theme
+Version: 5.9.9.3
+Release: 2.1%{dist}
+Summary: ClearOS Enterprise 6 theme
 License: Copyright 2011 ClearFoundation
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,7 +14,7 @@ Obsoletes: app-theme-clearos5x
 Buildarch: noarch
 
 %description
-ClearOS Enterprise 6.x webconfig theme
+ClearOS Enterprise 6 webconfig theme
 
 %prep
 %setup -q
