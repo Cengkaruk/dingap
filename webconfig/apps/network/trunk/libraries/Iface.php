@@ -964,7 +964,7 @@ class Iface extends Engine
         $is_usb = FALSE;
 
         if (!($path = readlink($device_link)))
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
 
         if (strstr($path, 'usb'))
             $is_usb = TRUE;
@@ -973,25 +973,25 @@ class Iface extends Engine
         $path = $device_link . (($is_usb) ? '/../idVendor' : '/vendor');
 
         if (!($fh = fopen($path, 'r')))
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
 
         fscanf($fh, '%x', $id_vendor);
         fclose($fh);
 
         if ($id_vendor == 0)
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
 
         // Obtain device ID number
         $path = $device_link . (($is_usb) ? '/../idProduct' : '/device');
 
         if (!($fh = fopen($path, "r")))
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
 
         fscanf($fh, '%x', $id_device);
         fclose($fh);
 
         if ($id_device == 0)
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
 
         if (!$is_usb) {
             // Obtain (optional) sub-vendor ID number (PCI devices only)
@@ -1000,7 +1000,7 @@ class Iface extends Engine
                 fclose($fh);
 
                 if ($id_sub_vendor == 0)
-                    throw new Engine_Exception(lang('base_something_weird_happened'));
+                    return '';
             }
 
             // Obtain (optional) sub-device ID number (PCI devices only)
@@ -1009,13 +1009,13 @@ class Iface extends Engine
                 fclose($fh);
 
                 if ($id_sub_device == 0)
-                    throw new Engine_Exception(lang('base_something_weird_happened'));
+                    return '';
             }
         }
 
         // Scan PCI/USB Id database for vendor/device[/sub-vendor/sub-device]
         if (!($fh = fopen((!$is_usb ? self::FILE_PCI_ID : self::FILE_USB_ID), 'r')))
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
 
         $details['bus'] = ($is_usb) ? 'USB' : 'PCI';
 
@@ -1032,7 +1032,7 @@ class Iface extends Engine
 
         if ($details['vendor'] == NULL) {
             fclose($fh);
-            throw new Engine_Exception(lang('base_something_weird_happened'));
+            return '';
         }
 
         // Find device id next
