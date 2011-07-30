@@ -214,26 +214,7 @@ public:
         return true;
     };
 
-    bool operator==(const struct inotify_event *iev) {
-        action_group_matches.clear();
-        if (iev->wd != this->wd) return false;
-        for (vector<csInotifyMask *>::iterator i = mask.begin();
-            i != mask.end(); i++) {
-            if ((*(*i)) == iev) {
-                bool unique = true;
-                vector<string>::iterator acmi;
-                for (acmi = action_group_matches.begin();
-                    acmi != action_group_matches.end(); acmi++) {
-                    if ((*acmi) != (*i)->GetActionGroup()) continue;
-                    unique = false;
-                    break;
-                }
-                if (unique)
-                    action_group_matches.push_back((*i)->GetActionGroup());
-            }
-        }
-        return (bool)(action_group_matches.size() > 0);
-    };
+    bool operator==(const struct inotify_event *iev);
 
     vector<string> *GetActionGroupMatches(void) {
         return &action_group_matches;
@@ -280,6 +261,31 @@ void csInotifyWatch::Initialize(int fd_inotify)
                 path.c_str(), strerror(errno));
         }
     }
+}
+
+bool csInotifyWatch::operator==(const struct inotify_event *iev)
+{
+    action_group_matches.clear();
+
+    if (iev->wd != this->wd) return false;
+
+    for (vector<csInotifyMask *>::iterator i = mask.begin();
+        i != mask.end(); i++) {
+        if ((*(*i)) == iev) {
+            bool unique = true;
+            vector<string>::iterator acmi;
+            for (acmi = action_group_matches.begin();
+                acmi != action_group_matches.end(); acmi++) {
+                if ((*acmi) != (*i)->GetActionGroup()) continue;
+                unique = false;
+                break;
+            }
+            if (unique)
+                action_group_matches.push_back((*i)->GetActionGroup());
+        }
+    }
+
+    return (bool)(action_group_matches.size() > 0);
 }
 
 class csInotifyConf
@@ -341,45 +347,44 @@ csInotifyConf::~csInotifyConf()
 
 void csInotifyConf::SetPattern(const string &pattern)
 {
-    char *buffer, *temp;
-
     if (type == Pattern) {
         this->pattern = strdup(pattern.c_str());
+        return;
     }
-    else {
-        buffer = realpath(pattern.c_str(), NULL);
-        if (buffer == NULL)
-            throw csException(errno, pattern.c_str());
 
-        struct stat path_stat;
-        if (stat(buffer, &path_stat) < 0) {
-            free(buffer);
-            throw csException(errno, pattern.c_str());
-        }
-        if (S_ISDIR(path_stat.st_mode)) {
-            this->path = buffer;
-            return;
-        }
+    char *buffer, *temp;
+    buffer = realpath(pattern.c_str(), NULL);
+    if (buffer == NULL)
+        throw csException(errno, pattern.c_str());
 
-        temp = dirname(buffer);
-        if (temp == NULL) {
-            free(buffer);
-            throw csException(EINVAL, pattern.c_str());
-        }
-        this->path = strdup(temp);
+    struct stat path_stat;
+    if (stat(buffer, &path_stat) < 0) {
         free(buffer);
-
-        buffer = realpath(pattern.c_str(), NULL);
-        if (buffer == NULL)
-            throw csException(errno, pattern.c_str());
-        temp = basename(buffer);
-        if (temp == NULL) {
-            free(buffer);
-            throw csException(EINVAL, pattern.c_str());
-        }
-        this->pattern = strdup(temp);
-        free(buffer);
+        throw csException(errno, pattern.c_str());
     }
+    if (S_ISDIR(path_stat.st_mode)) {
+        this->path = buffer;
+        return;
+    }
+
+    temp = dirname(buffer);
+    if (temp == NULL) {
+        free(buffer);
+        throw csException(EINVAL, pattern.c_str());
+    }
+    this->path = strdup(temp);
+    free(buffer);
+
+    buffer = realpath(pattern.c_str(), NULL);
+    if (buffer == NULL)
+        throw csException(errno, pattern.c_str());
+    temp = basename(buffer);
+    if (temp == NULL) {
+        free(buffer);
+        throw csException(EINVAL, pattern.c_str());
+    }
+    this->pattern = strdup(temp);
+    free(buffer);
 }
 
 class csPluginXmlParser : public csXmlParser
@@ -435,7 +440,7 @@ protected:
     csPluginConf *conf;
     vector<csInotifyWatch *> watch;
     map<string, csActionGroup *> action_group;
-    long pages;
+    int pages;
     long page_size;
     int fd_inotify;
     uint8_t *buffer;
@@ -498,7 +503,7 @@ void *csPluginFileWatch::Entry(void)
     ssize_t len;
 
     for ( ;; ) {
-        if ((len = InotifyRead()) < 0) return NULL;
+        if ((len = InotifyRead()) < 0) break;
         else {
             uint8_t *ptr = buffer;
             struct inotify_event *iev = (struct inotify_event *)ptr;
@@ -524,7 +529,7 @@ void *csPluginFileWatch::Entry(void)
                 static_cast<csTimerEvent *>(event)->GetTimer();
             if (timer->GetId() == _DIRTY_TIMER_ID) {
                 csLog::Log(csLog::Debug,
-                    "%s: Initializing file watches", name.c_str());
+                    "%s: Initializing inotify watches", name.c_str());
                 for (vector<csInotifyWatch *>::iterator i = watch.begin();
                     i != watch.end(); i++) (*i)->Initialize(fd_inotify);
                 break;
