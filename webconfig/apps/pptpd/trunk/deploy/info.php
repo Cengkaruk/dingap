@@ -25,7 +25,7 @@ $app['subcategory'] = lang('base_subcategory_vpn');
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['radius']['title'] = $app['name'];
+$app['controllers']['pptpd']['title'] = $app['name'];
 $app['controllers']['settings']['title'] = lang('base_settings');
 
 /////////////////////////////////////////////////////////////////////////////
