@@ -97,6 +97,7 @@ class Accounts_Engine extends Engine
 
     const DRIVER_UNSET = 'unset';
     const DRIVER_OK = 'ok';
+    const DRIVER_OTHER = 'other';
 
     // Capabilities
     //-------------
@@ -179,7 +180,7 @@ class Accounts_Engine extends Engine
         else if (empty($driver_info['driver']))
             return self::DRIVER_UNSET;
         else
-            return $driver_info['description'];
+            return self::DRIVER_OTHER;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
