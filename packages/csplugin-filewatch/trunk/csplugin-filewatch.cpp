@@ -658,7 +658,7 @@ void csActionGroup::ResetDelayTimer(csPluginFileWatch *plugin)
 
         ::csCriticalSection::Lock();
         id = timer_index++;
-        if (id == 0) id == _DELAY_TIMER_BASE;
+        if (id == 0) id = _DELAY_TIMER_BASE;
         ::csCriticalSection::Unlock();
 
         timer = new csTimer(id, delay, 0, plugin);
@@ -668,8 +668,6 @@ void csActionGroup::ResetDelayTimer(csPluginFileWatch *plugin)
 
 void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
 {
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
-
     if ((*tag) == "on-access") {
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
