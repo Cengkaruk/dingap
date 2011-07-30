@@ -718,6 +718,11 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
             ParseError("unexpected tag: " + tag->GetName());
         ParseFileWatchOpen(tag, IN_OPEN);
     }
+    else if ((*tag) == "on-all") {
+        if (!stack.size() || (*stack.back()) != "plugin")
+            ParseError("unexpected tag: " + tag->GetName());
+        ParseFileWatchOpen(tag, IN_ALL_EVENTS);
+    }
     else if ((*tag) == "action-group") {
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
@@ -747,7 +752,7 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
         (*tag) == "on-close" || (*tag) == "on-close-write" ||
         (*tag) == "on-create" || (*tag) == "on-delete" ||
         (*tag) == "on-modify" || (*tag) == "on-move" ||
-        (*tag) == "on-open") {
+        (*tag) == "on-open" || (*tag) == "on-all") {
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
         ParseFileWatchClose(tag, text);
