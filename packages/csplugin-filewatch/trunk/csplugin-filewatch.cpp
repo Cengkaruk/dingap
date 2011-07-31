@@ -823,8 +823,6 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
 
 void csPluginXmlParser::ParseFileWatchOpen(csXmlTag *tag, uint32_t mask)
 {
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
-
     if (!tag->ParamExists("type"))
         ParseError("type parameter missing");
     if (!tag->ParamExists("action-group"))
@@ -867,7 +865,9 @@ void csPluginXmlParser::ParseFileWatchClose(csXmlTag *tag, const string &text)
 
     if (conf_watch->GetType() == csInotifyConf::Pattern) {
         try {
-            csRegEx *regex = new csRegEx(text.c_str());
+            csRegEx *regex;
+            regex = new csRegEx(text.c_str());
+            delete regex;
         }
         catch (csException &e) {
             csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
