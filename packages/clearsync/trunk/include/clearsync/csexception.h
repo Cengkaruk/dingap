@@ -48,7 +48,7 @@ class csDebugException : public csException
 {
 public:
     explicit csDebugException(int e, const char *s, long l, const char *f)
-        : csException(e, s), eline(l), efile(f) { };
+        : csException(e, s), efile(f), eline(l) { };
 
     virtual ~csDebugException() throw() { };
 

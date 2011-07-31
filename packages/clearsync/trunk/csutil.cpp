@@ -63,7 +63,7 @@ void csCriticalSection::Unlock(void)
         pthread_mutex_unlock(mutex);
 }
 
-csRegEx::csRegEx(const char *expr, int nmatch, int flags)
+csRegEx::csRegEx(const char *expr, size_t nmatch, int flags)
     : match(NULL), nmatch(nmatch), matches(NULL)
 {
     int rc;
@@ -83,7 +83,7 @@ csRegEx::csRegEx(const char *expr, int nmatch, int flags)
     if (nmatch) {
         match = new regmatch_t[nmatch];
         matches = new char *[nmatch];
-        for (int i = 0; i < nmatch; i++) matches[i] = NULL;
+        for (size_t i = 0; i < nmatch; i++) matches[i] = NULL;
     }
 }
 
@@ -91,7 +91,7 @@ csRegEx::~csRegEx()
 {
     regfree(&regex);
     if (nmatch && match) delete [] match;
-    for (int i = 0; i < nmatch; i++) {
+    for (size_t i = 0; i < nmatch; i++) {
         if (matches[i]) delete [] matches[i];
     }
     if (matches) delete [] matches;
@@ -102,12 +102,12 @@ int csRegEx::Execute(const char *subject)
     if (!subject)
         throw csException("Invalid regex subject");
     int rc = regexec(&regex, subject, nmatch, match, 0);
-    for (int i = 0; i < nmatch; i++) {
+    for (size_t i = 0; i < nmatch; i++) {
         if (matches[i]) delete [] matches[i];
         matches[i] = NULL;
     }
     if (rc == 0) {
-        for (int i = 0; i < nmatch; i++) {
+        for (size_t i = 0; i < nmatch; i++) {
             int len = match[i].rm_eo - match[i].rm_so;
             char *buffer = new char[len + 1];
             memset(buffer, 0, len + 1);
@@ -118,7 +118,7 @@ int csRegEx::Execute(const char *subject)
     return rc;
 }
 
-const char *csRegEx::GetMatch(int match)
+const char *csRegEx::GetMatch(size_t match)
 {
     if (match < 0 || match >= nmatch)
         throw csException("Invalid regex match offset");

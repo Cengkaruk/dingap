@@ -56,11 +56,11 @@ public:
     virtual void ParseElementOpen(csXmlTag *tag) { };
     virtual void ParseElementClose(csXmlTag *tag) { };
 
+    XML_Parser p;
     csConf *conf;
     FILE *fh;
-    long page_size;
     uint8_t *buffer;
-    XML_Parser p;
+    long page_size;
     vector<csXmlTag *> stack;
 };
 

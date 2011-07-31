@@ -57,7 +57,6 @@
 void *csSignalHandler::Entry(void)
 {
     int sig;
-    pid_t pid;
     siginfo_t si;
 
     csLog::Log(csLog::Debug, "Signal handler started.");

@@ -58,8 +58,8 @@ public:
     void Reaper(void);
 
 protected:
-    sigset_t signal_set;
     csEventClient *parent;
+    sigset_t signal_set;
 };
 
 class csMainConf;
