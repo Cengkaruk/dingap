@@ -312,52 +312,60 @@ public:
 
     virtual ~csInotifyConf();
 
-    void SetPattern(const string &pattern);
+    inline void SetPattern(const string &pattern) { this->pattern = pattern; };
 
     inline Type GetType(void) { return type; };
     inline uint32_t GetMask(void) { return mask; };
     inline string GetActionGroup(void) { return action_group; };
-    inline char *GetPath(void) { return path; };
-    inline char *GetPattern(void) { return pattern; };
+    inline char *GetPath(void) { return _path; };
+    inline char *GetPattern(void) { return _pattern; };
+
+    void Resolve(void);
 
 protected:
     Type type;
     uint32_t mask;
     string action_group;
-    char *path;
-    char *pattern;
+    string path;
+    string pattern;
+    char *_path;
+    char *_pattern;
 };
 
 csInotifyConf::csInotifyConf(uint32_t mask, const string &action_group)
-    : type(Path), mask(mask),
-        action_group(action_group), path(NULL), pattern(NULL) { }
+    : type(Path), mask(mask), action_group(action_group),
+        path("(null)"), pattern("(null)"), _path(NULL), _pattern(NULL) { }
 
 csInotifyConf::csInotifyConf(uint32_t mask,
     const string &action_group, const string &path)
-    : type(Pattern), mask(mask),
-        action_group(action_group), path(NULL), pattern(NULL)
-{
-    this->path = realpath(path.c_str(), NULL);
-    if (this->path == NULL)
-        throw csException(errno, path.c_str());
-
-    struct stat path_stat;
-    if (stat(this->path, &path_stat) < 0)
-        throw csException(errno, this->path);
-    if (!S_ISDIR(path_stat.st_mode))
-        throw csException(ENOTDIR, this->path);
-}
+    : type(Pattern), mask(mask), action_group(action_group),
+        path(path), pattern("(null)"), _path(NULL), _pattern(NULL) { }
 
 csInotifyConf::~csInotifyConf()
 {
-    if (path != NULL) free(path);
-    if (pattern != NULL) free(pattern);
+    if (_path != NULL) free(_path);
+    if (_pattern != NULL) free(_pattern);
 }
 
-void csInotifyConf::SetPattern(const string &pattern)
+void csInotifyConf::Resolve(void)
 {
+    if (_path == NULL) free(_path);
+    if (_pattern == NULL) free(_pattern);
+
     if (type == Pattern) {
-        this->pattern = strdup(pattern.c_str());
+        _path = realpath(path.c_str(), NULL);
+        if (_path == NULL)
+            throw csException(errno, path.c_str());
+        _pattern = strdup(pattern.c_str());
+        if (_pattern == NULL)
+            throw csException(errno, pattern.c_str());
+
+        struct stat path_stat;
+        if (stat(_path, &path_stat) < 0)
+            throw csException(errno, path.c_str());
+        if (!S_ISDIR(path_stat.st_mode))
+            throw csException(ENOTDIR, path.c_str());
+
         return;
     }
 
@@ -372,7 +380,7 @@ void csInotifyConf::SetPattern(const string &pattern)
         throw csException(errno, pattern.c_str());
     }
     if (S_ISDIR(path_stat.st_mode)) {
-        this->path = buffer;
+        _path = buffer;
         return;
     }
 
@@ -381,7 +389,7 @@ void csInotifyConf::SetPattern(const string &pattern)
         free(buffer);
         throw csException(EINVAL, pattern.c_str());
     }
-    this->path = strdup(temp);
+    _path = strdup(temp);
     free(buffer);
 
     buffer = realpath(pattern.c_str(), NULL);
@@ -392,7 +400,7 @@ void csInotifyConf::SetPattern(const string &pattern)
         free(buffer);
         throw csException(EINVAL, pattern.c_str());
     }
-    this->pattern = strdup(temp);
+    _pattern = strdup(temp);
     free(buffer);
 }
 
@@ -444,11 +452,12 @@ protected:
 
     ssize_t InotifyRead(void);
     void InotifyEvent(const struct inotify_event *iev);
-    void AddWatch(csInotifyConf *conf_watch);
+    bool AddWatch(csInotifyConf *conf_watch);
 
     csPluginConf *conf;
     vector<csInotifyWatch *> watch;
     map<string, csActionGroup *> action_group;
+    vector<csInotifyConf *> dirty_conf;
     int pages;
     long page_size;
     int fd_inotify;
@@ -484,6 +493,8 @@ csPluginFileWatch::~csPluginFileWatch()
     Join();
 
     if (dirty_timer != NULL) delete dirty_timer;
+    for (vector<csInotifyConf *>::iterator i = dirty_conf.begin();
+        i != dirty_conf.end(); i++) delete (*i);
     for (vector<csInotifyWatch *>::iterator i = watch.begin();
         i != watch.end(); i++) delete (*i);
     for (map<string, csActionGroup *>::iterator i = action_group.begin();
@@ -539,6 +550,20 @@ void *csPluginFileWatch::Entry(void)
             if (timer->GetId() == _DIRTY_TIMER_ID) {
                 csLog::Log(csLog::Debug,
                     "%s: Initializing inotify watches", name.c_str());
+                for (vector<csInotifyConf *>::iterator i = dirty_conf.begin();
+                    i != dirty_conf.end(); i++) {
+                    try {
+                        if (!AddWatch((*i))) continue;
+                    } catch (csException &e) {
+                        delete (*i);
+                        csLog::Log(csLog::Warning,
+                            "%s: Error creating watch: %s: %s",
+                            name.c_str(), e.estring.c_str(), e.what()); 
+                    }
+                    dirty_conf.erase(i);
+                    i = dirty_conf.begin();
+                    if (i == dirty_conf.end()) break;
+                }
                 for (vector<csInotifyWatch *>::iterator i = watch.begin();
                     i != watch.end(); i++) (*i)->Initialize(fd_inotify);
                 break;
@@ -626,13 +651,21 @@ void csPluginFileWatch::InotifyEvent(const struct inotify_event *iev)
     }
 }
 
-void csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
+bool csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
 {
     csLog::Log(csLog::Debug, "%s: conf_watch: %d, %08x, %s, %s, %s",
         name.c_str(), conf_watch->GetType(), conf_watch->GetMask(),
         conf_watch->GetActionGroup().c_str(),
         (conf_watch->GetPath() == NULL) ? "(null)" : conf_watch->GetPath(),
-        (conf_watch->GetPattern() == NULL) ? "(self)" : conf_watch->GetPattern());
+        (conf_watch->GetPattern() == NULL) ? "(null)" : conf_watch->GetPattern());
+
+    try {
+        conf_watch->Resolve();
+    } catch (csException &e) {
+        csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
+            name.c_str(), e.estring.c_str(), e.what()); 
+        return false;
+    }
 
     csInotifyWatch *inotify_watch = NULL;
     for (vector<csInotifyWatch *>::iterator i = watch.begin();
@@ -661,6 +694,7 @@ void csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
     }
 
     delete conf_watch;
+    return true;
 }
 
 void csActionGroup::ResetDelayTimer(csPluginFileWatch *plugin)
@@ -810,21 +844,16 @@ void csPluginXmlParser::ParseFileWatchOpen(csXmlTag *tag, uint32_t mask)
         ParseError("unknown watch type: " + tag->GetParamValue("type"));
 
     csInotifyConf *conf_watch = NULL;
-    try {
-        if (type == csInotifyConf::Path) {
-            conf_watch = new csInotifyConf(mask,
-                tag->GetParamValue("action-group"));
-        }
-        else {
-            conf_watch = new csInotifyConf(mask,
-                tag->GetParamValue("action-group"),
-                tag->GetParamValue("path"));
-        }
-        tag->SetData((void *)conf_watch);
-    } catch (csException &e) {
-        csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
-            _conf->parent->name.c_str(), e.estring.c_str(), e.what()); 
+    if (type == csInotifyConf::Path) {
+        conf_watch = new csInotifyConf(mask,
+            tag->GetParamValue("action-group"));
     }
+    else {
+        conf_watch = new csInotifyConf(mask,
+            tag->GetParamValue("action-group"),
+            tag->GetParamValue("path"));
+    }
+    tag->SetData((void *)conf_watch);
 }
 
 void csPluginXmlParser::ParseFileWatchClose(csXmlTag *tag, const string &text)
@@ -836,15 +865,25 @@ void csPluginXmlParser::ParseFileWatchClose(csXmlTag *tag, const string &text)
 
     csInotifyConf *conf_watch = (csInotifyConf *)tag->GetData();
 
-    if (conf_watch != NULL) {
+    if (conf_watch->GetType() == csInotifyConf::Pattern) {
         try {
-            conf_watch->SetPattern(text);
-            _conf->parent->AddWatch(conf_watch);
-        } catch (csException &e) {
+            csRegEx *regex = new csRegEx(text.c_str());
+        }
+        catch (csException &e) {
             csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
                 _conf->parent->name.c_str(), e.estring.c_str(), e.what()); 
             delete conf_watch;
         }
+    }
+    conf_watch->SetPattern(text);
+   
+    try { 
+        if (!_conf->parent->AddWatch(conf_watch))
+            _conf->parent->dirty_conf.push_back(conf_watch);
+    } catch (csException &e) {
+        delete conf_watch;
+        csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
+            _conf->parent->name.c_str(), e.estring.c_str(), e.what()); 
     }
 }
 
