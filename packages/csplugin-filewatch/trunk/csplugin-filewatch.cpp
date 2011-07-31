@@ -549,7 +549,7 @@ void *csPluginFileWatch::Entry(void)
                 static_cast<csTimerEvent *>(event)->GetTimer();
             if (timer->GetId() == _DIRTY_TIMER_ID) {
                 csLog::Log(csLog::Debug,
-                    "%s: Initializing inotify watches", name.c_str());
+                    "%s: Initializing watches", name.c_str());
                 for (vector<csInotifyConf *>::iterator i = dirty_conf.begin();
                     i != dirty_conf.end(); i++) {
                     try {
@@ -599,7 +599,7 @@ ssize_t csPluginFileWatch::InotifyRead(void)
         bytes = read(fd_inotify, (void *)ptr, buffer_len);
         if (bytes < 0) {
             if (errno == EAGAIN) break;
-            csLog::Log(csLog::Error, "%s: inotify read: %s",
+            csLog::Log(csLog::Error, "%s: Inotify read: %s",
                 name.c_str(), strerror(errno));
             bytes_read = -1;
             break;
@@ -612,7 +612,7 @@ ssize_t csPluginFileWatch::InotifyRead(void)
         if (buffer_len <= 0) {
             buffer = (uint8_t *)realloc(buffer, page_size * ++pages);
             if (buffer == NULL) {
-                csLog::Log(csLog::Error, "%s: inotify buffer: %s",
+                csLog::Log(csLog::Error, "%s: Inotify buffer: %s",
                     name.c_str(), strerror(ENOMEM));
                 bytes_read = -1;
                 break;
@@ -620,7 +620,7 @@ ssize_t csPluginFileWatch::InotifyRead(void)
             buffer_len += page_size;
             ptr = buffer + bytes_read;
             csLog::Log(csLog::Debug,
-                "%s: increased inotify buffer to %ld bytes.",
+                "%s: Increased Inotify buffer to %ld bytes.",
                 name.c_str(), page_size * pages);
         }
     }
@@ -653,12 +653,6 @@ void csPluginFileWatch::InotifyEvent(const struct inotify_event *iev)
 
 bool csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
 {
-    csLog::Log(csLog::Debug, "%s: conf_watch: %d, %08x, %s, %s, %s",
-        name.c_str(), conf_watch->GetType(), conf_watch->GetMask(),
-        conf_watch->GetActionGroup().c_str(),
-        (conf_watch->GetPath() == NULL) ? "(null)" : conf_watch->GetPath(),
-        (conf_watch->GetPattern() == NULL) ? "(null)" : conf_watch->GetPattern());
-
     try {
         conf_watch->Resolve();
     } catch (csException &e) {
@@ -692,6 +686,12 @@ bool csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
             (conf_watch->GetType() == csInotifyConf::Pattern));
         inotify_watch->AddMask(inotify_mask);
     }
+
+    csLog::Log(csLog::Debug, "%s: Added watch: %d, %08x, %s, %s, %s",
+        name.c_str(), conf_watch->GetType(), conf_watch->GetMask(),
+        conf_watch->GetActionGroup().c_str(),
+        (conf_watch->GetPath() == NULL) ? "(null)" : conf_watch->GetPath(),
+        (conf_watch->GetPattern() == NULL) ? "(null)" : conf_watch->GetPattern());
 
     delete conf_watch;
     return true;
