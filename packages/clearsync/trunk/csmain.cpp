@@ -235,6 +235,8 @@ csMainConf::~csMainConf()
 
 void csMainConf::ScanPlugins(void)
 {
+    csRegEx regex("\\.conf$", 0, REG_EXTENDED | REG_ICASE); 
+
     string main_conf_filename = filename;
     size_t dirent_len = offsetof(struct dirent, d_name) +
         pathconf(plugin_dir.c_str(), _PC_NAME_MAX) + 1;
@@ -256,6 +258,8 @@ void csMainConf::ScanPlugins(void)
         if (dirent_result->d_type == DT_DIR) continue;
         else if (dirent_result->d_type != DT_REG &&
             dirent_result->d_type != DT_LNK) continue;
+        else if (regex.Execute(dirent_result->d_name) == REG_NOMATCH)
+            continue;
 
         try {
             ostringstream os;
