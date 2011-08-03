@@ -1,0 +1,31 @@
+ClearSync Plugin: Route Watch
+-----------------------------
+
+The route watch plugin monitors a configurable routing table for changes and on
+an event, executes the supplied external program/script.  Events are delayed by
+a configurable amount of time (in seconds) to prevent a build-up of events
+which result in excessive executions.
+
+CONFIGURATION
+-------------
+
+The route watch configuration file currently has only one tag,
+<on-route-change>.  This directive has one mandatory parameter, "table".  The
+argument for this parameter is an integer value representing the routing table
+ID to watch.  For example, the default table has ID 254.  There is a second
+parameter, "delay", which also expects an integer value representing the amount
+of time (in seconds) to queue execution of the set program/script.  By default,
+if omitted, this is set to 5 seconds.
+
+An example route watch configuration may look like this:
+
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- ClearSync Route Watch Plugin Configuration -->
+<plugin name="RouteWatch" library="libcsplugin-routewatch.so" stack-size="65536">
+  <on-route-change table="254" delay="5">sudo service firewall restart</on-route-change>
+</plugin>
+
+This example monitors routing table 254 (main) for changes and executes a
+firewall restart after the last event is queued for 5 seconds.
+
+vi: textwidth=79 syntax=txt
