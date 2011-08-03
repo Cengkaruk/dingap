@@ -346,14 +346,13 @@ csMain::csMain(int argc, char *argv[])
             throw csException(errno, "daemon");
         log_syslog = new csLog("clearsyncd", LOG_PID, LOG_DAEMON);
 
-        pid_t pid = getpid();
         FILE *h_pid = fopen(_CS_PID_FILE, "w+");
         if (h_pid == NULL) {
             csLog::Log(csLog::Warning, "Error saving PID file: %s",
                 _CS_PID_FILE);
         }
         else {
-            if (fwrite((const void *)&pid, sizeof(pid_t), 1, h_pid) != 1) {
+            if (fprintf(h_pid, "%d\n", getpid()) <= 0) {
                 csLog::Log(csLog::Warning, "Error saving PID file: %s",
                     _CS_PID_FILE);
             }
