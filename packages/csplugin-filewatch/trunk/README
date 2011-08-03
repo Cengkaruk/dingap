@@ -1,0 +1,80 @@
+ClearSync Plugin: File Watch
+----------------------------
+
+The file watch plugin uses the inotify API to watch set files and/or
+directories for configurable events such as create, modify, delete, etc.  When
+an event occurs and associated "action-group" is executed.  Actions are delayed
+in a queue for a configurable amount of time (in seconds) to prevent excessive
+executions from a rapid flood of events.
+
+
+CONFIGURATION
+-------------
+
+The file watch plugin has, at minimum, two configuration blocks.  The order is
+arbitrary.  The first set is the <action-group> block.  This tag has one
+required parameter, "name", which uniquely designates the action group.  The
+second parameter is an optional integer value which sets the action group's
+delay queue value in seconds.  If omitted, this defaults to 5 seconds.
+
+Inside the <action-group> block are one or more <action> tags which simply
+define a program/script to run.  There can be as many <action> tags as
+required.  These actions are executed in the order which they are listed.
+
+An example <action-group> may look like this:
+
+  <action-group name="NetworkRestart" delay="5">
+    <action>sudo service firewall restart</action>
+    <action>sudo service ldap condrestart</action>
+    <action>sudo service nmb condrestart</action>
+  </action-group>
+
+The second type of block in the file watch configuration file is event tags
+which look something like <on-xxx>...</on-xxx>.  These tags define what files
+or directories to watch for a given watch type and what action group to execute
+when triggered.  There are two distinct watch types.  The first is the "path"
+type.  The path watch type has two required parameters.  The first is the
+"type", which is set to "path".  The second is the "action-group" which defines
+the action group to execute.  The file or directory path is enclosed between
+the opening and closing tag.  An example "path" watch type may look like:
+
+  <on-modify type="path" action-group="NetworkRestart">/etc/clearos/multiwan.conf</on-modify>
+
+This watch executes the "NetworkRestart" action group when the
+/etc/clearos/multiwan.conf file is modified.
+
+The second distinct type is the "pattern" watch.  This tag has three manditory
+parameters.  The first is the "type" which is set to "pattern", the second is
+the "action-group", which defines the action group to execute on a matching
+event.  The third is the "path" parameter which must the full path to the
+directory to watch.  The tag contains the extended regular expression to match
+against the files/directories that occur inside the defined path.  An example
+"pattern" watch may look like:
+
+  <on-modify type="pattern" path="/etc/sysconfig/network-scripts" action-group="NetworkRestart">^ifcfg-.*</on-modify>
+
+This watch executes the "NetworkRestart" action group when a file contained
+within /etc/sysconfig/network-scripts that matches the regular expression
+"^ifcfg-.*" matches a file that is modified.
+
+There are several watch event types and they directly correspond with the
+inotify(7) watch types:
+
+Tag               Inotify                      Description
+-----------------------------------------------------------------------------
+<on-access>       IN_ACCESS                    File was accessed (read).
+<on-attrib>       IN_ATTRIB                    Inode was changed (ie: chown).
+<on-close>        IN_CLOSE_NOWRITE             File was closed (no write).
+<on-close-write>  IN_CLOSE_WRITE               File was closed (written).
+<on-create>       IN_CREATE                    File was created.
+<on-delete>       IN_DELETE | IN_DELETE_SELF   File was deleted.
+<on-modify>       IN_MODIFY                    File was modified.
+<on-move>         IN_MOVE_SELF |
+                  IN_MOVED_FROM | IN_MOVED_TO  File was moved.
+<on-open>         IN_OPEN                      File was opened.
+<on-all>          IN_ALL_EVENTS                Any of the above.
+
+Note, some of these events have different behaviours depending on whether the
+watched inode is a file or directory.  See the man page inotify(7) for details.
+
+vi: textwidth=79 syntax=txt
