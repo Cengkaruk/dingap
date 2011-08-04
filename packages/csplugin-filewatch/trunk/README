@@ -38,27 +38,29 @@ type.  The path watch type has two required parameters.  The first is the
 the action group to execute.  The file or directory path is enclosed between
 the opening and closing tag.  An example "path" watch type may look like:
 
-  <on-modify type="path" action-group="NetworkRestart">/etc/clearos/multiwan.conf</on-modify>
+  <on-modify type="path"
+    action-group="NetworkRestart">/etc/clearos/multiwan.conf</on-modify>
 
 This watch executes the "NetworkRestart" action group when the
 /etc/clearos/multiwan.conf file is modified.
 
-The second distinct type is the "pattern" watch.  This tag has three manditory
-parameters.  The first is the "type" which is set to "pattern", the second is
-the "action-group", which defines the action group to execute on a matching
-event.  The third is the "path" parameter which must the full path to the
-directory to watch.  The tag contains the extended regular expression to match
-against the files/directories that occur inside the defined path.  An example
+The second type is the "pattern" watch.  This tag has three manditory
+parameters.  The first is "type" which is set to "pattern".  The second is the
+"action-group", which defines the action group to execute on an event.  The
+third is the "path" parameter which must be the full path to the directory to
+watch.  The tag contains the extended regular expression used to match against
+events from the files/directories inside the defined path.  An example
 "pattern" watch may look like:
 
-  <on-modify type="pattern" path="/etc/sysconfig/network-scripts" action-group="NetworkRestart">^ifcfg-.*</on-modify>
+  <on-modify type="pattern" action-group="NetworkRestart"
+    path="/etc/sysconfig/network-scripts">^ifcfg-.*</on-modify>
 
-This watch executes the "NetworkRestart" action group when a file contained
-within /etc/sysconfig/network-scripts that matches the regular expression
-"^ifcfg-.*" matches a file that is modified.
+This watch executes the "NetworkRestart" action group when a file in
+/etc/sysconfig/network-scripts is modified and matches the regular expression
+"^ifcfg-.*".
 
 There are several watch event types and they directly correspond with the
-inotify(7) watch types:
+inotify(7) types:
 
 Tag               Inotify                      Description
 -----------------------------------------------------------------------------
