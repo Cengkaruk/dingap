@@ -285,7 +285,7 @@ class Port_Forwarding extends Firewall
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $portlist = array();
+        $port_list = array();
 
         $rules = $this->get_rules();
 
@@ -299,28 +299,21 @@ class Port_Forwarding extends Firewall
             if ($rule->get_flags() & (Rule::WIFI | Rule::CUSTOM))
                 continue;
 
-            $portinfo = array();
+            $info = array();
 
-            switch ($rule->get_protocol()) {
-                case Rule::PROTO_TCP:
-                    $portinfo['protocol'] = "TCP";
-                    break;
+            $info['name'] = $rule->get_name();
+            $info['enabled'] = $rule->is_enabled();
+            $info['protocol'] = $rule->get_protocol();
+            $info['protocol_name'] = $rule->get_protocol_name();
+            $info['to_ip'] = $rule->get_address();
+            $info['to_port'] = $rule->get_port();
+            $info['from_port'] = $rule->get_parameter();
+            $info['service'] = $this->lookup_service($info['protocol'], $info['to_port']);
 
-                case Rule::PROTO_UDP:
-                    $portinfo['protocol'] = "UDP";
-                    break;
-            }
-
-            $portinfo['name'] = $rule->get_name();
-            $portinfo['enabled'] = $rule->is_enabled();
-            $portinfo['to_ip'] = $rule->get_address();
-            $portinfo['to_port'] = $rule->get_port();
-            $portinfo['from_port'] = $rule->get_parameter();
-            $portinfo['service'] = $this->lookup_service($portinfo['protocol'], $portinfo['to_port']);
-            $portlist[] = $portinfo;
+            $port_list[] = $info;
         }
 
-        return $portlist;
+        return $port_list;
     }
 
     /**
@@ -342,7 +335,7 @@ class Port_Forwarding extends Firewall
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $portlist = array();
+        $port_list = array();
 
         $rules = $this->get_rules();
 
@@ -356,29 +349,20 @@ class Port_Forwarding extends Firewall
             if ($rule->get_flags() & (Rule::WIFI | Rule::CUSTOM))
                 continue;
 
-            $portinfo = array();
+            $info = array();
 
-            switch ($rule->get_protocol()) {
+            $info['name'] = $rule->get_name();
+            $info['enabled'] = $rule->is_enabled();
+            $info['protocol'] = $rule->get_protocol();
+            $info['protocol_name'] = $rule->get_protocol_name();
+            $info['to_ip'] = $rule->get_address();
+            $info['service'] = "";
+            list($info['low_port'], $info['high_port']) = preg_split('/:/', $rule->get_parameter());
 
-                case Rule::PROTO_TCP:
-                    $portinfo['protocol'] = "TCP";
-                    break;
-
-                case Rule::PROTO_UDP:
-                    $portinfo['protocol'] = "UDP";
-                    break;
-            }
-
-            $portinfo['name'] = $rule->get_name();
-            $portinfo['enabled'] = $rule->is_enabled();
-            $portinfo['to_ip'] = $rule->get_address();
-            $portinfo['service'] = "";
-            list($portinfo['low_port'], $portinfo['high_port']) = preg_split('/:/', $rule->get_parameter());
-
-            $portlist[] = $portinfo;
+            $port_list[] = $info;
         }
 
-        return $portlist;
+        return $port_list;
     }
 
     /**
@@ -509,7 +493,7 @@ class Port_Forwarding extends Firewall
         $rule = new Rule();
 
         $rule->set_port(1723);
-        $rule->set_protocol(Rule::PROTO_GRE);
+        $rule->set_protocol(Firewall::PROTOCOL_GRE);
         $rule->set_flags(Rule::PPTP_FORWARD | Rule::ENABLED);
 
         $hostinfo = $this->get_pptp_server();
@@ -546,7 +530,7 @@ class Port_Forwarding extends Firewall
         $rule = new Rule();
 
         $rule->set_port(1723);
-        $rule->set_protocol(Rule::PROTO_GRE);
+        $rule->set_protocol(Firewall::PROTOCOL_GRE);
         $rule->set_flags(Rule::PPTP_FORWARD);
         $rule->set_address($ip);
 

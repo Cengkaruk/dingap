@@ -60,7 +60,8 @@ $anchors = array(anchor_add('/app/port_forwarding/add'));
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($ports as $rule) {
-    $key = $rule['protocol'] . '/' . $rule['from_port'] . '/' . $rule['to_port'] . '/' . $rule['to_ip'];
+    $key = $rule['protocol_name'] . '/' . $rule['from_port'] . '/' . $rule['to_port'] . '/' . $rule['to_ip'];
+
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 
@@ -75,7 +76,7 @@ foreach ($ports as $rule) {
     $item['details'] = array(
         $rule['name'],
         $rule['service'],
-        $rule['protocol'],
+        $rule['protocol_name'],
         $rule['from_port'],
         $rule['to_port'],
         $rule['to_ip'],
