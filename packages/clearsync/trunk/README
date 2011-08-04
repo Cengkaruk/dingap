@@ -9,7 +9,7 @@ CONFIGURATION
 -------------
 
 The main configuration file, by default, resides in /etc/clearsync.conf.  The
-default directory containing plugin configurations files is /etc/clearsync.d.
+default directory containing plugin configuration files is /etc/clearsync.d.
 
 Configuration files are formatted as XML documents.  The main configuration
 file currently has only one configuration tag, <plugin-dir>, used to set or
@@ -26,12 +26,12 @@ Plugin configuration files have no specific format other than the required
 opening tag, <plugin>.  This directive has 2 mandatory parameters, "name" and
 "library".  The "name" parameter is a unique friendly name for the plugin.  It
 must be unique across all loaded plugins.  The "library" parameter is either a
-relative or absolute shared library path/filename (including the extension,
-.so).  The third parameter, "stack-size" is optional and sets the plugins
-thread stack size.  If not set, this defaults to the lowest possible value of
-16384 bytes.  Note, the stack-size should be a multiple of the system's page
-size (in Linux this is 4096 bytes).  If a plugin appears to crash randomly, for
-no apparent reason, most likely the stack size is too small, try doubling it.
+relative or absolute path to a shared library (including the extension, .so).
+The third parameter, "stack-size" is optional and sets the plugins thread stack
+size.  If not set, this defaults to the lowest possible value of 16384 bytes.
+Note, the stack-size should be a multiple of the system's page size (in Linux
+this is 4096 bytes).  If a plugin appears to crash randomly, for no apparent
+reason, most likely the stack size is too small, try doubling it.
 
 An example plugin configuration file may look like this (trimmed down from the
 "filewatch" plugin):
@@ -52,15 +52,16 @@ STARTING AND STOPPING THE DAEMON
 
 The daemon can be started and stopped the usual way using
 /etc/init.d/clearsyncd.  The daemon saves it's PID in the /var/run/clearsync
-directory as clearsyncd.pid.  As of version 1.0, there is currently no SIGHUP
-support so configuration changes must be reloaded by restarting the service.
+directory as clearsyncd.pid.  As of version 1.0, there is no graceful reload
+support (SIGHUP), so configuration changes must be reloaded by restarting the
+service.
 
 LOGGING
 -------
 
 When running as a daemon (not in debug mode), normal, warning, and error
-messages are logged using the system syslog service.  Usually these messages
-are sent to /var/log/messages using the LOG_DAEMON facility.
+messages are logged using the system logger.  Usually these messages are sent
+to /var/log/messages using the LOG_DAEMON facility.
 
 PLUGIN STATE
 ------------
@@ -72,8 +73,8 @@ DEBUGGING
 ---------
 
 To help troubleshoot problems, the daemon can be run in debug mode by passing
-the -d (or --debug) command-line switch.  In the mode, the program continue to
-run in the foreground and will also emit additional debug-level messages.  The
-program's PID will not be saved when running in this mode.
+the -d, (--debug) command-line switch.  In this mode the program continue to
+run in the foreground and also emits additional debug-level messages.  The PID
+will not be saved when running in this mode.
 
 vi: textwidth=79 syntax=txt
