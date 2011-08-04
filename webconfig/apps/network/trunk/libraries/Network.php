@@ -193,9 +193,9 @@ class Network extends Engine
 
         $modes[self::MODE_AUTO] = lang('network_mode_auto');
         $modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
-        $modes[self::MODE_TRUSTED_GATEWAY] = lang('network_mode_trustedgateway');
+        $modes[self::MODE_TRUSTED_GATEWAY] = lang('network_mode_trusted_gateway');
         $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
-        $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
+        $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_standalone_no_firewall');
         $modes[self::MODE_DMZ] = lang('network_mode_dmz');
         $modes[self::MODE_BRIDGE] = lang('network_mode_bridge');
 
@@ -219,7 +219,7 @@ class Network extends Engine
             $modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
 
         $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
-        $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_trustedstandalone');
+        $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_standalone_no_firewall');
 
         return $modes;
     }
