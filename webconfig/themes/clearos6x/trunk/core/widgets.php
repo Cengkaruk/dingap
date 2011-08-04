@@ -50,6 +50,9 @@
  * - theme-anchor-custom (button with custom text)
  * - theme-anchor-dialog (button that pops up a javascript dialog box)
  * - theme-anchor-javascript (button that does some other javascript action)
+ *
+ * Options:
+ * - state: enabled/disabled
  * 
  * @param string $url        URL
  * @param string $text       anchor text
@@ -67,7 +70,11 @@ function theme_anchor($url, $text, $importance, $class, $options)
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
     $text = htmlspecialchars($text, ENT_QUOTES);
 
-    return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>";
+    // FIXME: Aaron, I added the option of having a "disabled" anchor... hack is below.
+    if (isset($options['state']) && ($options['state'] === FALSE))
+        return  "<input disabled type='submit' name='' $id value='$text' class='theme-form-submit ui-corner-all $class $importance_class' /><span class='theme-form-input'>&nbsp; </span>\n";
+    else
+        return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>";
 }
 
 function theme_anchor_dialog($url, $text, $importance, $class, $options)
@@ -120,6 +127,9 @@ function theme_anchor_dialog($url, $text, $importance, $class, $options)
  * - theme-form-previous
  * - theme-form-update
  * - theme-form-custom (button with custom text)
+ *
+ * Options:
+ * - state: enabled/disabled
  *
  * @param string $name       button name,
  * @param string $text       text to be shown on the anchor
