@@ -101,7 +101,6 @@ class Block extends ClearOS_Controller
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->incoming->add_block_host($this->input->post('nickname'), $this->input->post('host'));
-                $this->incoming->reset(TRUE);
 
                 $this->page->set_status_added();
                 redirect('/incoming_firewall/block');
@@ -153,7 +152,6 @@ class Block extends ClearOS_Controller
             $this->load->library('incoming_firewall/Incoming');
 
             $this->incoming->delete_block_host($host);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/incoming_firewall/block');
@@ -177,7 +175,6 @@ class Block extends ClearOS_Controller
             $this->load->library('incoming_firewall/Incoming');
 
             $this->incoming->set_block_host_state(FALSE, $host);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_disabled();
             redirect('/incoming_firewall/block');
@@ -201,7 +198,6 @@ class Block extends ClearOS_Controller
             $this->load->library('incoming_firewall/Incoming');
 
             $this->incoming->set_block_host_state(TRUE, $host);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_enabled();
             redirect('/incoming_firewall/block');

@@ -59,6 +59,7 @@ class Allow extends ClearOS_Controller
         //------------------
 
         $this->load->library('incoming_firewall/Incoming');
+        $this->load->library('network/Network');
         $this->lang->load('incoming_firewall');
 
         // Load view data
@@ -69,6 +70,7 @@ class Allow extends ClearOS_Controller
             $data['ranges'] = $this->incoming->get_allow_port_ranges();
             $data['ipsec'] = $this->incoming->get_ipsec_server_state();
             $data['pptp'] = $this->incoming->get_pptp_server_state();
+            $data['mode'] = $this->network->get_mode();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -137,8 +139,6 @@ class Allow extends ClearOS_Controller
                         $this->input->post('range_to')
                     );
                 }
-
-                $this->incoming->reset(TRUE);
 
                 $this->page->set_status_added();
                 redirect('/incoming_firewall/allow');
@@ -248,7 +248,6 @@ class Allow extends ClearOS_Controller
 
         try {
             $this->incoming->delete_allow_port($protocol, $port);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/incoming_firewall/allow');
@@ -280,7 +279,6 @@ class Allow extends ClearOS_Controller
 
         try {
             $this->incoming->delete_allow_port_range($protocol, $from, $to);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/incoming_firewall/allow');
@@ -308,7 +306,6 @@ class Allow extends ClearOS_Controller
 
         try {
             $this->incoming->set_ipsec_server_state(FALSE);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/incoming_firewall/allow');
@@ -336,7 +333,6 @@ class Allow extends ClearOS_Controller
 
         try {
             $this->incoming->set_pptp_server_state(FALSE);
-            $this->incoming->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/incoming_firewall/allow');
@@ -360,8 +356,7 @@ class Allow extends ClearOS_Controller
         try {
             $this->load->library('incoming_firewall/Incoming');
 
-            $this->incoming->set_allow_port_status(FALSE, $protocol, $port);
-            $this->incoming->reset(TRUE);
+            $this->incoming->set_allow_port_state(FALSE, $protocol, $port);
 
             $this->page->set_status_disabled();
             redirect('/incoming_firewall/allow');
@@ -386,8 +381,7 @@ class Allow extends ClearOS_Controller
         try {
             $this->load->library('incoming_firewall/Incoming');
 
-            $this->incoming->set_allow_port_range_status(FALSE, $protocol, $from, $to);
-            $this->incoming->reset(TRUE);
+            $this->incoming->set_allow_port_range_state(FALSE, $protocol, $from, $to);
 
             $this->page->set_status_disabled();
             redirect('/incoming_firewall/allow');
@@ -411,8 +405,7 @@ class Allow extends ClearOS_Controller
         try {
             $this->load->library('incoming_firewall/Incoming');
 
-            $this->incoming->set_allow_port_status(TRUE, $protocol, $port);
-            $this->incoming->reset(TRUE);
+            $this->incoming->set_allow_port_state(TRUE, $protocol, $port);
 
             $this->page->set_status_enabled();
             redirect('/incoming_firewall/allow');
@@ -437,8 +430,7 @@ class Allow extends ClearOS_Controller
         try {
             $this->load->library('incoming_firewall/Incoming');
 
-            $this->incoming->set_allow_port_range_status(TRUE, $protocol, $from, $to);
-            $this->incoming->reset(TRUE);
+            $this->incoming->set_allow_port_range_state(TRUE, $protocol, $from, $to);
 
             $this->page->set_status_enabled();
             redirect('/incoming_firewall/allow');

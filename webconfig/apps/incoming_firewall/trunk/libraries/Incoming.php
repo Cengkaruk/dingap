@@ -125,11 +125,11 @@ class Incoming extends Firewall
         switch ($protocol) {
 
             case 'TCP':
-                $protocol_flag = Rule::PROTO_TCP;
+                $protocol_flag = Firewall::PROTOCOL_TCP;
                 break;
 
             case 'UDP':
-                $protocol_flag = Rule::PROTO_UDP;
+                $protocol_flag = Firewall::PROTOCOL_UDP;
                 break;
         }
 
@@ -166,11 +166,11 @@ class Incoming extends Firewall
 
         switch ($protocol) {
             case 'TCP':
-                $protocol_flag = Rule::PROTO_TCP;
+                $protocol_flag = Firewall::PROTOCOL_TCP;
                 break;
 
             case 'UDP':
-                $protocol_flag = Rule::PROTO_UDP;
+                $protocol_flag = Firewall::PROTOCOL_UDP;
                 break;
         }
 
@@ -401,23 +401,15 @@ class Incoming extends Firewall
             if ($rule->get_flags() & (Rule::WIFI | Rule::CUSTOM))
                 continue;
 
-            if (($rule->get_protocol() != Rule::PROTO_TCP) && ($rule->get_protocol() != Rule::PROTO_UDP))
+            if (($rule->get_protocol() != Firewall::PROTOCOL_TCP) && ($rule->get_protocol() != Firewall::PROTOCOL_UDP))
                 continue;
 
             $info = array();
 
-            switch ($rule->get_protocol()) {
-                case Rule::PROTO_TCP:
-                    $info['protocol'] = 'TCP';
-                    break;
-
-                case Rule::PROTO_UDP:
-                    $info['protocol'] = 'UDP';
-                    break;
-            }
-
             $info['name'] = $rule->get_name();
             $info['enabled'] = $rule->is_enabled();
+            $info['protocol'] = $rule->get_protocol();
+            $info['protocol_name'] = $rule->get_protocol_name();
             list($info['from'], $info['to']) = preg_split('/:/', $rule->get_port(), 2);
             $info['service'] = $this->lookup_service($info['protocol'], $info['from']);
 
@@ -459,23 +451,15 @@ class Incoming extends Firewall
             if ($rule->get_flags() & (Rule::WIFI | Rule::CUSTOM))
                 continue;
 
-            if (($rule->get_protocol() != Rule::PROTO_TCP) && ($rule->get_protocol() != Rule::PROTO_UDP))
+            if (($rule->get_protocol() != Firewall::PROTOCOL_TCP) && ($rule->get_protocol() != Firewall::PROTOCOL_UDP))
                 continue;
 
             $info = array();
 
-            switch ($rule->get_protocol()) {
-                case Rule::PROTO_TCP:
-                    $info['protocol'] = 'TCP';
-                    break;
-
-                case Rule::PROTO_UDP:
-                    $info['protocol'] = 'UDP';
-                    break;
-            }
-
             $info['name'] = $rule->get_name();
             $info['port'] = $rule->get_port();
+            $info['protocol'] = $rule->get_protocol();
+            $info['protocol_name'] = $rule->get_protocol_name();
             $info['enabled'] = $rule->is_enabled();
             $info['service'] = $this->lookup_service($info['protocol'], $info['port']);
 
@@ -586,7 +570,7 @@ class Incoming extends Firewall
     /**
      * Enable/disable a port from the incoming allow list.
      *
-     * @param boolean $status   state of rule
+     * @param boolean $state    state of rule
      * @param string  $protocol protocol
      * @param integer $port     port number
      *
@@ -594,7 +578,7 @@ class Incoming extends Firewall
      * @throws Engine_Exception, ValidationException
      */
 
-    public function set_allow_port_status($status, $protocol, $port)
+    public function set_allow_port_state($state, $protocol, $port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -612,7 +596,7 @@ class Incoming extends Firewall
 
         $this->delete_rule($rule);
 
-        if ($status)
+        if ($state)
             $rule->enable();
         else
             $rule->disable();
@@ -623,7 +607,7 @@ class Incoming extends Firewall
     /**
      * Enable/disable a port range from the incoming allow list.
      *
-     * @param boolean $status   state of rule
+     * @param boolean $state   state of rule
      * @param string  $protocol protocol
      * @param integer $from     from port number
      * @param integer $to       to port number
@@ -632,7 +616,7 @@ class Incoming extends Firewall
      * @throws Engine_Exception, ValidationException
      */
 
-    public function set_allow_port_range_status($status, $protocol, $from, $to)
+    public function set_allow_port_range_state($state, $protocol, $from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -651,7 +635,7 @@ class Incoming extends Firewall
 
         $this->delete_rule($rule);
 
-        if ($status)
+        if ($state)
             $rule->enable();
         else
             $rule->disable();
@@ -662,14 +646,14 @@ class Incoming extends Firewall
     /**
      * Enable/disable incoming host block rule.
      *
-     * @param boolean $status  state
+     * @param boolean $state   state
      * @param string  $address address
      *
      * @return void
      * @throws Engine_Exception, ValidationException
      */
 
-    public function set_block_host_state($status, $address)
+    public function set_block_host_state($state, $address)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -685,7 +669,7 @@ class Incoming extends Firewall
 
         $this->delete_rule($rule);
 
-        if ($status)
+        if ($state)
             $rule->enable();
         else
             $rule->disable();

@@ -33,6 +33,9 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\firewall\Firewall as Firewall;
+use \clearos\apps\network\Network as Network;
+
 $this->lang->load('incoming_firewall');
 $this->lang->load('firewall');
 
@@ -58,22 +61,33 @@ $anchors = array(anchor_add('/app/incoming_firewall/allow/add'));
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($ports as $rule) {
-    $key = $rule['protocol'] . '/' . $rule['port'];
+    $key = $rule['protocol_name'] . '/' . $rule['port'];
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
+
+    // Special case - don't allow users to lock themselves out of webconfig
+    // - standalone mode
+    // - remote
+
+    if (($rule['protocol'] == Firewall::PROTOCOL_TCP) && ($rule['port'] == 81)
+        && ($mode === Network::MODE_STANDALONE)) {
+        $options['state'] = FALSE;
+    } else {
+        $options['state'] = TRUE;
+    }
 
     $item['title'] = $rule['name'];
     $item['action'] = '/app/incoming_firewall/allow/delete/' . $key;
     $item['anchors'] = button_set(
         array(
-            $state_anchor('/app/incoming_firewall/allow/' . $state . '/' . $key, 'high'),
-            anchor_delete('/app/incoming_firewall/allow/delete/' . $key, 'low')
+            $state_anchor('/app/incoming_firewall/allow/' . $state . '/' . $key, 'high', $options),
+            anchor_delete('/app/incoming_firewall/allow/delete/' . $key, 'low', $options)
         )
     );
     $item['details'] = array(
         $rule['name'],
         $rule['service'],
-        $rule['protocol'],
+        $rule['protocol_name'],
         $rule['port'],
     );
 
