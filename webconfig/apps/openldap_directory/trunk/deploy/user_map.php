@@ -43,19 +43,8 @@ require_once $bootstrap . '/bootstrap.php';
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
-// D E P E N D E N C I E S
-///////////////////////////////////////////////////////////////////////////////
-
-use \clearos\apps\base\Login_Shell as Login_Shell;
-
-clearos_load_library('base/Login_Shell');
-
-///////////////////////////////////////////////////////////////////////////////
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
-
-$login_shell = new Login_Shell();
-$shells = $login_shell->get_list();
 
 $info_map = array(
     'first_name' => array(
@@ -92,19 +81,6 @@ $info_map = array(
         'description' => lang('users_home_directory'),
         'object_class' => 'clearAccount',
         'attribute' => 'homeDirectory'
-    ),
-
-    'login_shell' => array(
-        'type' => 'string',
-        'field_type' => 'simple_list',
-        'field_options' => $shells, 
-        'field_priority' => 'hidden',
-        'required' => TRUE,
-        'validator' => 'validate_login_shell',
-        'validator_class' => 'openldap_directory/User_Driver',
-        'description' => lang('users_login_shell'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'loginShell'
     ),
 
     'uid_number' => array(

@@ -56,7 +56,6 @@ clearos_load_language('users');
 //--------
 
 use \clearos\apps\base\Folder as Folder;
-use \clearos\apps\base\Login_Shell as Login_Shell;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
@@ -68,7 +67,6 @@ use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
 clearos_load_library('base/Folder');
-clearos_load_library('base/Login_Shell');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_directory/Accounts_Driver');
@@ -817,25 +815,6 @@ class User_Driver extends User_Engine
     }
 
     /**
-     * Validation routine for login shell.
-     *
-     * @param string $shell login shell
-     *
-     * @return boolean TRUE if login shell is valid
-     */
-
-    public function validate_login_shell($shell)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $login_shell = new Login_Shell();
-        $login_list = $login_shell->get_list();
-
-        if (! in_array($shell, $login_list))
-            return lang('users_login_shell_invalid');
-    }
-
-    /**
      * Password validation routine.
      *
      * @param string $password password
@@ -1256,16 +1235,13 @@ return;
                 $ldap_object['uidNumber'] = $accounts->get_next_uid_number();
             }
 
+            $ldap_object['loginShell'] = User_Driver::DEFAULT_LOGIN;
+
             if (isset($user_info['core']['gid_number']))
                 $ldap_object['gidNumber'] = $user_info['core']['gid_number'];
             else
                 $ldap_object['gidNumber'] = User_Driver::DEFAULT_USER_GROUP_ID;
 
-            if (isset($user_info['core']['login_shell']))
-                $ldap_object['loginShell'] = $user_info['core']['login_shell'];
-            else
-                $ldap_object['loginShell'] = User_Driver::DEFAULT_LOGIN;
-        
             if (isset($user_info['core']['home_directory'])) 
                 $ldap_object['homeDirectory'] = $user_info['core']['home_directory'];
             else
