@@ -162,7 +162,11 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
 
         if ($details['field_type'] === 'list') {
             echo field_dropdown($name, $details['field_options'], $value, $description, $read_only);
+        } else if ($details['field_type'] === 'simple_list') {
+            echo field_simple_dropdown($name, $details['field_options'], $value, $description, $read_only);
         } else if ($details['field_type'] === 'text') {
+            echo field_input($name, $value, $description, $read_only);
+        } else if ($details['field_type'] === 'integer') {
             echo field_input($name, $value, $description, $read_only);
         }
     }
