@@ -417,6 +417,7 @@ class OpenLDAP extends Engine
         $shell->execute(self::COMMAND_AUTHCONFIG, 
             '--enableshadow --passalgo=sha512 ' .
             '--enablecache --enablelocauthorize --enablemkhomedir ' .
+            '--disablewinbind --disablewinbindauth ' .
             '--enableldap --enableldapauth --disablefingerprint --update', 
             TRUE
         );
