@@ -51,6 +51,16 @@ if ($form_type === 'edit') {
 	$buttons = array(anchor_edit('/app/network/settings/edit'));
 }
 
+$dns_count = count($dns);
+
+// Always show at least 1 DNS server
+if ($dns_count === 0)
+    $dns_count = 1;
+
+// Append a field for adding a DNS server
+if (! $read_only)
+    $dns_count++;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,10 +74,11 @@ echo form_header(lang('base_settings'));
 
 echo field_dropdown('network_mode', $network_modes, $network_mode, lang('network_mode'), $read_only);
 echo field_input('hostname', $hostname, lang('network_hostname'), $read_only);
-echo field_input('dns1', $dns1, lang('network_dns_server') . ' #1', $read_only);
 
-if ($dns2 || !$read_only)
-    echo field_input('dns2', $dns2, lang('network_dns_server') . ' #2', $read_only);
+for ($inx = 1; $inx < $dns_count + 1; $inx++) {
+    $dns_server = isset($dns[$inx-1]) ? $dns[$inx-1] : '';
+    echo field_input('dns[' . $inx . ']', $dns_server, lang('network_dns_server') . " #" . $inx, $read_only);
+}
 
 echo field_button_set($buttons);
 

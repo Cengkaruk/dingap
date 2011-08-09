@@ -405,10 +405,8 @@ class Resolver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (Network_Utils::is_valid_ip($ip) === FALSE) {
-            throw new Validation_Exception(
-                lang('network_ip_invalid'), CLEAROS_ERROR);
-        }
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('network_ip_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

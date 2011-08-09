@@ -30,6 +30,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\firewall\Firewall as Firewall;
+use \clearos\apps\network\Network as Network;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -93,11 +100,10 @@ class Settings extends ClearOS_Controller
         $this->form_validation->set_policy('network_mode', 'network/Network', 'validate_mode', TRUE);
         $this->form_validation->set_policy('hostname', 'network/Hostname', 'validate_hostname', TRUE);
 
-        for ($dns_id = 1; $dns_id < 3; $dns_id++) {
-            $field = sprintf('dns%d', $dns_id);
-            if (strlen($this->input->post($field)) == 0) continue;
-            $this->form_validation->set_policy($field, 'network/Resolver', 'validate_ip', TRUE);
-        }
+        $dns = $this->input->post('dns');
+
+        for ($dns_id = 1; $dns_id <= count($dns); $dns_id++)
+            $this->form_validation->set_policy('dns[' . $dns_id . ']', 'network/Resolver', 'validate_ip');
 
         $form_ok = $this->form_validation->run();
 
@@ -106,18 +112,27 @@ class Settings extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->network->set_mode($this->input->post('network_mode'));
+                $this->resolver->set_nameservers($this->input->post('dns'));
                 $this->hostname->set($this->input->post('hostname'));
-                $dns_id = 1;
-                $dns_list = array();
-                for ($dns_id = 1; $dns_id < 3; $dns_id++) {
-                    $field = sprintf('dns%d', $dns_id);
-                    if (strlen($this->input->post($field)) == 0) continue;
-                    $dns_list[] = $this->input->post($field);
+                $this->network->set_mode($this->input->post('network_mode'));
+
+                // Open port 81 if going into standalone mode, or users
+                // will get locked out!
+
+                if (($this->input->post('network_mode') === Network::MODE_STANDALONE)
+                    && is_library_installed('incoming_firewall/Incoming')) {
+
+                    $this->load->library('incoming_firewall/Incoming');
+                    $firewall_status = $this->incoming->check_port(Firewall::PROTOCOL_TCP, '81');
+
+                    if ($firewall_status === Firewall::CONSTANT_NOT_CONFIGURED)
+                        $this->incoming->add_allow_port('webconfig', Firewall::PROTOCOL_TCP, '81');
+                    else if ($firewall_status === Firewall::CONSTANT_DISABLED)
+                        $this->incoming->set_allow_port_state(TRUE, Firewall::PROTOCOL_TCP, '81');
                 }
-                if (count($dns_list))
-                    $this->resolver->set_nameservers($dns_list);
+
                 $this->page->set_status_updated();
+                redirect('/network/settings');
             } catch (Engine_Exception $e) {
                 $this->page->view_exception($e->get_message());
                 return;
@@ -132,11 +147,7 @@ class Settings extends ClearOS_Controller
             $data['network_mode'] = $this->network->get_mode();
             $data['network_modes'] = $this->network->get_supported_modes();
             $data['hostname'] = $this->hostname->get();
-
-            $dns_id = 1;
-            $nameservers = $this->resolver->get_nameservers();
-            foreach ($nameservers as $host)
-                $data[sprintf('dns%d', $dns_id++)] = $host;
+            $data['dns'] = $this->resolver->get_nameservers();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
