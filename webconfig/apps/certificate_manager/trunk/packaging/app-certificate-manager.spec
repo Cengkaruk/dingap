@@ -37,6 +37,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/certificate_manager
 cp -r * %{buildroot}/usr/clearos/apps/certificate_manager/
 
 install -D -m 0644 packaging/index.txt %{buildroot}/etc/pki/CA/index.txt
+install -D -m 0644 packaging/openssl.cnf %{buildroot}/etc/pki/CA/openssl.cnf
 install -D -m 0644 packaging/serial %{buildroot}/etc/pki/CA/serial
 
 %post
@@ -81,4 +82,5 @@ exit 0
 /usr/clearos/apps/certificate_manager/language
 /usr/clearos/apps/certificate_manager/libraries
 %config(noreplace) /etc/pki/CA/index.txt
+%config(noreplace) /etc/pki/CA/openssl.cnf
 %config(noreplace) /etc/pki/CA/serial

@@ -179,13 +179,16 @@ class SSL extends Engine
     const DEFAULT_KEY_SIZE = 2048;
     const DEFAULT_DH_KEY_SIZE = 2048;
 
-    // File prefixes
-    const PREFIX_CUSTOM = 'usr';
-    const PREFIX_CLIENT_LOCAL = 'client';
-    const PREFIX_SERVER_LOCAL = 'sys';
+    // Certificate types and prefixes
+    const CERT_TYPE_CUSTOM = 'custom';
+    const CERT_TYPE_SERVER = 'server';
+    const CERT_TYPE_USER = 'user';
+    const CERT_TYPE_ALL = 'all';
+    const PREFIX_CUSTOM = 'usr-';
+    const PREFIX_CLIENT_LOCAL = 'client-';
+    const PREFIX_SERVER_LOCAL = 'sys-';
 
-    // Key types and suffixes
-    const TYPE_ALL = 'pem';
+    // Key types, prefixes, suffixes
     const TYPE_P12 = 'p12';
     const TYPE_KEY = 'key';
     const TYPE_CERTIFICATE = 'cert';
@@ -947,19 +950,35 @@ class SSL extends Engine
      * @return array a list of certificates
      */
 
-    public function get_certificates($type = self::TYPE_ALL)
+    public function get_certificates($type = self::CERT_TYPE_ALL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $certs = array();
+
+        if ($type === self::CERT_TYPE_USER)
+            $prefix = self::PREFIX_CLIENT_LOCAL;
+        else if ($type === self::CERT_TYPE_SERVER)
+            $prefix = self::PREFIX_SERVER_LOCAL;
+        else if ($type === self::CERT_TYPE_CUSTOM)
+            $prefix = self::PREFIX_CUSTOM;
+        else
+            $prefix = '';
 
         try {
             $folder = new Folder(self::PATH_SSL);
             $files = $folder->get_listing();
             foreach ($files as $file) {
                 try {
-                    if (preg_match("/$type/", $file))
+                    if (preg_match("/^$prefix/", $file)) {
                         $certs[$file] = $this->get_certificate_attributes($file);
+
+                        // Add basename
+                        $basename = $file;
+                        $basename = preg_replace("/^$prefix/", '', $file);
+                        $basename = preg_replace("/-cert.pem/", '', $basename);
+                        $certs[$file]['basename'] = $basename;
+                    }
                 } catch (Exception $ignore) {
                     continue;
                 }
@@ -1120,6 +1139,19 @@ class SSL extends Engine
         );
 
         return $options;
+    }
+
+    /**
+     * Returns a list of certificates on the server.
+     *
+     * @return array a list of certificates
+     */
+
+    public function get_user_certificates()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->get_certificates(self::CERT_TYPE_USER);
     }
 
     /**
