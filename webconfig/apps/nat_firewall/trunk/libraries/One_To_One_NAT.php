@@ -276,11 +276,11 @@ class One_To_One_NAT extends Firewall
 
         switch ($protocol) {
             case 'TCP':
-                $rule->set_protocol(Rule::PROTO_TCP);
+                $rule->set_protocol(Firewall::PROTOCOL_TCP);
                 break;
 
             case 'UDP':
-                $rule->set_protocol(Rule::PROTO_UDP);
+                $rule->set_protocol(Firewall::PROTOCOL_UDP);
                 break;
         }
 
@@ -325,11 +325,11 @@ class One_To_One_NAT extends Firewall
 
         switch ($protocol) {
         case 'TCP':
-            $rule->set_protocol(Rule::PROTO_TCP);
+            $rule->set_protocol(Firewall::PROTOCOL_TCP);
             break;
 
         case 'UDP':
-            $rule->set_protocol(Rule::PROTO_UDP);
+            $rule->set_protocol(Firewall::PROTOCOL_UDP);
             break;
         }
 
@@ -409,11 +409,11 @@ class One_To_One_NAT extends Firewall
 
         switch ($protocol) {
             case 'TCP':
-                $rule->set_protocol(Rule::PROTO_TCP);
+                $rule->set_protocol(Firewall::PROTOCOL_TCP);
                 break;
 
             case 'UDP':
-                $rule->set_protocol(Rule::PROTO_UDP);
+                $rule->set_protocol(Firewall::PROTOCOL_UDP);
                 break;
         }
 
@@ -467,11 +467,11 @@ class One_To_One_NAT extends Firewall
 
             switch ($protocol) {
             case 'TCP':
-                $rule->set_protocol(Rule::PROTO_TCP);
+                $rule->set_protocol(Firewall::PROTOCOL_TCP);
                 break;
 
             case 'UDP':
-                $rule->set_protocol(Rule::PROTO_UDP);
+                $rule->set_protocol(Firewall::PROTOCOL_UDP);
                 break;
             }
 
@@ -555,19 +555,12 @@ class One_To_One_NAT extends Firewall
             if (strstr($rule->get_port(), ':'))
                 continue;
 
-            switch ($rule->get_protocol()) {
-                case Rule::PROTO_TCP:
-                    $proto = 'TCP';
-                    break;
-
-                case Rule::PROTO_UDP:
-                    $proto = 'UDP';
-                    break;
-            }
-
             $info = array();
             $info['name'] = $rule->get_name();
             $info['enabled'] = $rule->is_enabled();
+            $info['protocol'] = $rule->get_protocol();
+            $info['protocol_name'] = $rule->get_protocol_name();
+
 
             if (strpos($rule->get_parameter(), '_') === FALSE) {
                 $interface = '';
@@ -576,7 +569,7 @@ class One_To_One_NAT extends Firewall
                 list($interface, $lan_ip) = explode('_', $rule->get_parameter());
             }
 
-            $info['host'] = sprintf('%s|%s|%s|%d', $lan_ip, $rule->get_address(), $proto, $rule->get_port());
+            $info['host'] = sprintf('%s|%s|%s|%d', $lan_ip, $rule->get_address(), $info['protocol_name'], $rule->get_port());
             $info['interface'] = $interface;
 
             $nat_list[] = $info;
@@ -610,19 +603,11 @@ class One_To_One_NAT extends Firewall
             if (!strstr($rule->get_port(), ':'))
                 continue;
 
-            switch ($rule->get_protocol()) {
-                case Rule::PROTO_TCP:
-                    $proto = 'TCP';
-                    break;
-
-                case Rule::PROTO_UDP:
-                    $proto = 'UDP';
-                    break;
-            }
-
             $info = array();
             $info['name'] = $rule->get_name();
             $info['enabled'] = $rule->is_enabled();
+            $info['protocol'] = $rule->get_protocol();
+            $info['protocol_name'] = $rule->get_protocol_name();
 
             if (strpos($rule->get_parameter(), '_') === FALSE) {
                 $interface = '';
@@ -634,7 +619,7 @@ class One_To_One_NAT extends Firewall
             $match = array();
             
             preg_match('/(.*):(.*)/', $rule->get_port(), $match);    
-            $info['host'] = sprintf('%s|%s|%s|%d|%d', $lan_ip, $rule->get_address(), $proto, $match[1], $match[2]);
+            $info['host'] = sprintf('%s|%s|%s|%d|%d', $lan_ip, $rule->get_address(), $info['protocol_name'], $match[1], $match[2]);
             $info['interface'] = $interface;
 
             $nat_list[] = $info;
