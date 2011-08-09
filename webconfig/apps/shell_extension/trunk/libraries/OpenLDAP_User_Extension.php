@@ -132,6 +132,24 @@ class OpenLDAP_User_Extension extends Engine
     }
 
     /**
+     * Returns default values.
+     *
+     * @param array $attributes LDAP attributes
+     *
+     * @return array user info array
+     * @throws Engine_Exception
+     */
+
+    public function get_info_defaults_hook($attributes)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $info['login_shell'] = '/sbin/nologin';
+
+        return $info;
+    }
+
+    /**
      * Returns user info hash array.
      *
      * @param array $attributes LDAP attributes

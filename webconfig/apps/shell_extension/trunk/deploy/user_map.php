@@ -1,15 +1,15 @@
 <?php
 
 /**
- * OpenLDAP user mapping.
+ * Shell extension user mapping.
  *
  * @category   Apps
- * @package    OpenLDAP
+ * @package    Shell_Extension
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/shell_extension/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ $info_map = array(
         'field_priority' => 'normal',
         'required' => TRUE,
         'validator' => 'validate_login_shell',
-        'validator_class' => 'openldap_directory/User_Driver',
+        'validator_class' => 'shell_extension/OpenLDAP_User_Extension',
         'description' => lang('shell_extension_shell'),
         'object_class' => 'clearAccount',
         'attribute' => 'loginShell'
