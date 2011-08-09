@@ -1766,6 +1766,11 @@ input.theme-form-submit-delete { }
     background-position: 0 25;
     height:300px;
 }
+.marketplace-search-bar {
+    background-image: url('../images/icon-search.png');
+    background-repeat: no-repeat;
+    background-position: 280 0;
+}
 
 #app_description {width: 490px;}
 
