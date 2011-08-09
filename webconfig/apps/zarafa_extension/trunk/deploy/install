@@ -1,0 +1,16 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default configuration
+#--------------------------
+
+logger -p local6.notice -t installer "app-zarafa-extension-core - setting default configuration"
+
+if [ -e /etc/zarafa/ldap.cfg ]; then
+    mv /etc/zarafa/ldap.cfg /var/clearos/zarafa_extension/backup/ldap.cfg.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/zarafa_extension/deploy/ldap.cfg /etc/zarafa/ldap.cfg
+
+chown zarafa.zarafa /etc/zarafa/ldap.cfg

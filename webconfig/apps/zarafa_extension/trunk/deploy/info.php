@@ -40,3 +40,8 @@ $app['core_file_manifest'] = array(
         'target' => '/var/clearos/openldap_directory/extensions/10_zarafa.php'
     ),
 );
+
+$app['core_directory_manifest'] = array(
+   '/var/clearos/zarafa_extension' => array(),
+   '/var/clearos/zarafa_extension/backup' => array(),
+);

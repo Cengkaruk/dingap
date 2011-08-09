@@ -84,7 +84,6 @@ $info_map = array(
         'type' => 'integer',
         'field_type' => 'list',
         'field_options' => array(
-            '0.5' => '0.5 ' . $lang_gb,
             '1' => '1 ' . $lang_gb,
             '2' => '2 ' . $lang_gb,
             '3' => '3 ' . $lang_gb,
