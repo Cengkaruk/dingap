@@ -1781,7 +1781,12 @@ input.theme-form-submit-delete { }
 #search_and_install div {float:right;}
 
 #search_and_install input {border: 1px solid #d1d3d4; border-radius: 5px; -moz-border-radius: 5px; -webkit-border-radius: 5px; padding: 3px 5px; color: #686868; float: right;}
-#pagination-top {float: right;}
+#pagination-top {
+  clear: right;
+  float: right;
+  position: relative;
+  text-align: center;
+}
 #pagination-bottom {float: right;}
 
 /* 
