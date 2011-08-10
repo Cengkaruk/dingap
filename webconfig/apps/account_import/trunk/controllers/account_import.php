@@ -84,7 +84,7 @@ class Account_Import extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('overview', $data, lang('account_import_account_import'));
+        $this->page->view_form('account_import/overview', $data, lang('account_import_account_import'));
     }
 
     /**
@@ -150,6 +150,6 @@ class Account_Import extends ClearOS_Controller
         //-----------
 
         $data = array();
-        $this->page->view_form('progress', $data, lang('account_import_account_import'));
+        $this->page->view_form('account_import/progress', $data, lang('account_import_account_import'));
     }
 }
