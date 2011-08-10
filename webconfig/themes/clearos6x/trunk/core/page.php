@@ -31,8 +31,11 @@
 /** 
  * Returns the webconfig page.
  *
- * This class provides the mechanism for managing the type and look & feel
- * and layout of a webconfig page.  The following elements need to be handled:
+ * These functions provide a mechanism for managing the layout of a webconfig
+ * page.  Though styling directly related the *layout* should be included,
+ * styling for the underlying widgets should be in the widgets.php file.
+ *
+ * The following elements need to be handled by the layout egnine.
  *
  * - Content
  * - Banner
@@ -42,6 +45,8 @@
  * - Help Box
  * - Summary Box 
  * - Report Box
+ * - Wizard navigation (previous, next)
+ * - Wizard menu
  * 
  * We don't want a menu system showing up on something like the login page!
  * The app developer can specify one of four different page types.  It's up
@@ -57,7 +62,7 @@
  *    - content, status
  * 
  * - Wizard 
- *    - content, status, help, summary (?)
+ *    - content, status, help, wizard navigation, wizard menu
  *
  * @return string HTML output
  */
@@ -99,10 +104,11 @@ function _configuration_page($page)
 <body>
 
 <!-- Page Container -->
-<div id='theme-page-container'>" .
-
-    _get_banner($page, $menus) . "
-
+<div id='theme-page-container'>
+    " .
+    _get_banner($page) .
+    _get_top_menu($menus) .
+    "
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
@@ -144,10 +150,11 @@ function _report_page($page)
 <body>
 
 <!-- Page Container -->
-<div id='theme-page-container'>" .
-
-    _get_banner($page, $menus) . "
-
+<div id='theme-page-container'>
+    " .
+    _get_banner($page) .
+    _get_top_menu($menus) .
+    "
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
@@ -186,10 +193,11 @@ function _marketplace_page($page)
 <body>
 
 <!-- Page Container -->
-<div id='theme-page-container'>" .
-
-    _get_banner($page, $menus) . "
-
+<div id='theme-page-container'>
+    " .
+    _get_banner($page) .
+    _get_top_menu($menus) .
+    "
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
@@ -281,19 +289,20 @@ function _wizard_page($page)
 <!-- Page Container -->
 <div id='theme-page-container'>" .
 
-    _get_splash_banner($page) . "
+    _get_banner($page) . "
 
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-        <div class='green-stroke-top'></div>
-        <div class='green-stroke-left'></div>
-        <div class='green-stroke-right'></div>
+            <div class='green-stroke-top'></div>
+            <div class='green-stroke-left'></div>
+            <div class='green-stroke-right'></div>
         </div>
         <div class='theme-core-content'>
         " .
-            _get_wizard_menu($page) .
+            _get_wizard_menu($page['wizard_menu'], $page['wizard_current']) .
             _get_app($page) .
+            _get_wizard_navigation($page['wizard_navigation']) .
         "
         </div>
         " .
@@ -373,25 +382,17 @@ function _get_sidebar($page)
     ";
 }
 
-function _get_splash_banner($page, $menus)
+/**
+ * Returns the top banner.
+ *
+ * @param array $page page data
+ *
+ * @return string banner HTML
+ */
+
+function _get_banner($page)
 {
     return "
-<div id='theme-banner-container'>
-    <div id='theme-banner-background'></div>
-    <div id='theme-banner-logo'></div>
-    <div class='name-holder'>
-        <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
-        <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
-    </div>
-</div>";
-}
-
-function _get_banner($page, $menus)
-{
-    $top_menu = $menus['top_menu'];
-    $active_category_number = $menus['active_category'];
-
-$html = "
 <!-- Banner -->
 <div id='theme-banner-container'>
     <div id='theme-banner-background'></div>
@@ -400,7 +401,24 @@ $html = "
         <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
         <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
     </div>
+</div>
+";
+}
     
+/**
+ * Returns the top navigation menu.
+ *
+ * @param array $menus page menu data
+ *
+ * @return string top navigation menu HTML
+ */
+
+function _get_top_menu($menus)
+{
+    $top_menu = $menus['top_menu'];
+    $active_category_number = $menus['active_category'];
+
+    $html = "
     <!-- Menu Javascript -->
     <script type='text/javascript'> 
         $(document).ready(function() { 
@@ -421,11 +439,18 @@ $html = "
 $top_menu
         </ul>        
     </div>
-</div>
 ";
 
     return $html;
 }
+
+/**
+ * Returns the left navigation menu.
+ *
+ * @param array $menus page menu data
+ *
+ * @return string left navigation menu HTML
+ */
 
 function _get_left_menu($page, $menus)
 {
@@ -444,19 +469,46 @@ $left_menu
     return $html;
 }
 
-function _get_wizard_menu($page)
+function _get_wizard_menu($wizard_menu, $current)
 {
+    $menu = '';
+
+    foreach ($wizard_menu as $order => $details) {
+        if ($order === $current)
+            $menu .= "<li><b>" . $details['title'] . "</b></li>";
+        else
+            $menu .= "<li>" . $details['title'] . "</li>";
+    }
+
     $html = "
     <!-- Wizard Menu -->
     <div id='theme-left-menu-container'>
         <div id='theme-left-menu-top'></div>
         <div id='theme-left-menu'>
-            Wizard menu goes here.
+            <h2>Wizard Menu?</h2>
+            <ol>
+            $menu
+            </ol>
         </div>
     </div>
     ";
 
     return $html;
+}
+
+function _get_wizard_navigation($nav)
+{
+    if (empty($nav['previous']))
+        $previous = '';
+    else
+        $previous = theme_anchor($nav['previous'], lang('base_previous'), 'low', 'theme-anchor-previous');
+
+    if (empty($nav['next']))
+        $next = '';
+    else
+        $next = theme_anchor($nav['next'], lang('base_next'), 'low', 'theme-anchor-next');
+
+    return "<div>$previous $next</div>";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
