@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Intrusion prevention controller.
+ * Intrusion prevention daemon controller.
  *
  * @category   Apps
- * @package    Intrusion_Prevention
+ * @package    Intrusion_Detection
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -30,14 +30,27 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('base') . '/controllers/daemon.php';
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Intrusion prevention controller.
+ * Intrusion prevention daemon controller.
  *
  * @category   Apps
- * @package    Intrusion_Prevention
+ * @package    Intrusion_Detection
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -45,30 +58,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_prevention/
  */
 
-class Intrusion_Prevention extends ClearOS_Controller
+class Server extends Daemon
 {
-    /**
-     * Intrusion prevention server overview.
-     *
-     * @return view
-     */
-
-    function index()
+    function __construct()
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('intrusion_prevention');
-
-        // Load views
-        //-----------
-
-        $views = array(
-            'intrusion_prevention/server',
-            'intrusion_prevention/white_list',
-            'intrusion_prevention/blocked_list'
-        );
-
-        $this->page->view_forms($views, lang('intrusion_prevention_app_name'));
+        parent::__construct('snortsam', 'intrusion_prevention');
     }
 }
