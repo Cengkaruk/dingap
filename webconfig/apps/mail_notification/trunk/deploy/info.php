@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'ClearOS Mail Notification';
-$app['description'] = 'Mail Notification....'; // FIXME
+$app['description'] = lang('mail_notification_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('mail_notification_mail_notification');
+$app['name'] = lang('mail_notification_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
 
@@ -27,6 +26,7 @@ $app['subcategory'] = lang('base_subcategory_settings');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'app-network-core',
     'postfix',
 );
 

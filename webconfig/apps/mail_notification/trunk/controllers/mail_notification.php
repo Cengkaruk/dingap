@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Mail Notification controller.
+ * Mail notification controller.
  *
  * @category   Apps
  * @package    Mail_Notification
@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/raid/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/mail_notification/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,15 +30,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// D E P E N D E N C I E S
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Mail Notification controller.
+ * Mail notification controller.
  *
  * @category   Apps
  * @package    Mail_Notification
@@ -46,12 +42,11 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/raid/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/mail_notification/
  */
 
 class Mail_Notification extends ClearOS_Controller
 {
-
     /**
      * Mail Notification default controller
      *
@@ -133,7 +128,7 @@ class Mail_Notification extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('settings', $data, lang('mail_notification_settings'));
+        $this->page->view_form('mail_notification/settings', $data, lang('mail_notification_app_name'));
     }
 
     /**
@@ -155,6 +150,7 @@ class Mail_Notification extends ClearOS_Controller
          
         $this->form_validation->set_policy('email', 'mail_notification/Mail_Notification', 'validate_email', TRUE);
         $form_ok = $this->form_validation->run();
+
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->mail_notification->test_relay($this->input->post('email'));
@@ -164,6 +160,7 @@ class Mail_Notification extends ClearOS_Controller
                 $this->page->set_message(clearos_exception_message($e));
             }
         }
-        $this->page->view_form('test', $data, lang('mail_notification_test'));
+
+        $this->page->view_form('mail_notification/test', $data, lang('mail_notification_test'));
     }
 }
