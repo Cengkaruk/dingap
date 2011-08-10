@@ -107,6 +107,6 @@ class Settings extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('settings', $data, lang('pptpd_pptp_server'));
+        $this->page->view_form('pptpd/settings', $data, lang('pptpd_pptp_server'));
     }
 }
