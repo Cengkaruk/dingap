@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Intrusion detection controller.
+ * Intrusion detection daemon controller.
  *
  * @category   Apps
  * @package    Intrusion_Detection
@@ -30,11 +30,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('base') . '/controllers/daemon.php';
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Intrusion detection controller.
+ * Intrusion detection daemon controller.
  *
  * @category   Apps
  * @package    Intrusion_Detection
@@ -45,26 +58,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/intrusion_detection/
  */
 
-class Intrusion_Detection extends ClearOS_Controller
+class Server extends Daemon
 {
-    /**
-     * Intrusion detection server summary view.
-     *
-     * @return view
-     */
-
-    function index()
+    function __construct()
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('intrusion_detection');
-
-        // Load views
-        //-----------
-
-        $views = array('intrusion_detection/server', 'intrusion_detection/overview', 'intrusion_detection/settings');
-
-        $this->page->view_forms($views, lang('intrusion_detection_intrusion_detection'));
+        parent::__construct('snort', 'intrusion_detection');
     }
 }
