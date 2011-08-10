@@ -1,7 +1,7 @@
 <?php
 
 /**
- * RADIUS server controller.
+ * RADIUS daemon controller.
  *
  * @category   Apps
  * @package    RADIUS
@@ -30,11 +30,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('base') . '/controllers/daemon.php';
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * RADIUS server controller.
+ * RADIUS daemon controller.
  *
  * @category   Apps
  * @package    RADIUS
@@ -45,26 +58,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/radius/
  */
 
-class Radius extends ClearOS_Controller
+class Server extends Daemon
 {
-    /**
-     * RADIUS server summary view.
-     *
-     * @return view
-     */
-
-    function index()
+    function __construct()
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('radius');
-
-        // Load views
-        //-----------
-
-        $views = array('radius/server', 'radius/settings');
-
-        $this->page->view_forms($views, lang('radius_radius_server'));
+        parent::__construct('radiusd', 'radius');
     }
 }
