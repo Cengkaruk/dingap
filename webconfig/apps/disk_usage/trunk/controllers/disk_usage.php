@@ -4,7 +4,7 @@
  * Disk Usage controller.
  *
  * @category   Apps
- * @package    Disk Usage
+ * @package    Disk_Usage
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -43,7 +43,7 @@ use \clearos\apps\disk_usage\Disk_Usage as Disk_Usage_Class;
  * Disk Usage controller.
  *
  * @category   Apps
- * @package    Disk Usage
+ * @package    Disk_Usage
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation

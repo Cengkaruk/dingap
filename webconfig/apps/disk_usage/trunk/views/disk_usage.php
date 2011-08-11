@@ -4,7 +4,7 @@
  * Disk Usage overview.
  *
  * @category   Apps
- * @package    Disk Usage
+ * @package    Disk_Usage
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -38,9 +38,10 @@ $this->lang->load('disk_usage');
 
 // TODO: implement an API call instead of file_exists test. 
 if (file_exists(CLEAROS_TEMP_DIR . "/ps.db")) {
-	echo "<iframe style='border:none;' src='https://" . $_SERVER['HTTP_HOST'] . "/cgi-bin/philesight.cgi' width='100%' height='550'>";
-	echo "<p>" . lang('disk_usage_iframe_not_supported') . "</p>";
-	echo "</iframe>";
+    $url = "https://" . $_SERVER['HTTP_HOST'] . "/cgi-bin/philesight.cgi";
+    echo "<iframe style='border:none;' src='$url' width='100%' height='550'>";
+    echo "<p>" . lang('disk_usage_iframe_not_supported') . "</p>";
+    echo "</iframe>";
 } else {
     echo infobox_warning(lang('base_warning'), lang('disk_usage_not_available')); 
 }
