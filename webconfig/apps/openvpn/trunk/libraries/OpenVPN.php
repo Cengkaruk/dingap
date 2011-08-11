@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OpenVPN server.
+ * OpenVPN class.
  *
  * @category   Apps
  * @package    OpenVPN
@@ -46,20 +46,42 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('openvpn');
+clearos_load_language('base');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\File as File;
+use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\organization\Organization as Organization;
+
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
-clearos_load_library('firewall/Firewall');
 clearos_load_library('network/Hostname');
-clearos_load_library('network/Network');
+clearos_load_library('network/Network_Utils');
+clearos_load_library('organization/Organization');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/Validation_Exception');
+
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
 
 /**
- * OpenVPN server.
+ * OpenVPN class.
  *
  * @category   Apps
  * @package    OpenVPN
@@ -78,12 +100,12 @@ class OpenVPN extends Daemon
 
     const FILE_CLIENTS_CONFIG = '/etc/openvpn/clients.conf';
     const DEFAULT_PORT = 1194;
-    const DEFAULT_PROTOCOL = 'udp';
-    const CONSTANT_PROTOCOL_UDP = 'udp';
-    const CONSTANT_PROTOCOL_TCP = 'tcp';
-    const TYPE_OS_WINDOWS = 'Windows';
-    const TYPE_OS_LINUX = 'Linux';
-    const TYPE_OS_MACOS = 'MacOS';
+    const DEFAULT_PROTOCOL = "udp";
+    const CONSTANT_PROTOCOL_UDP = "udp";
+    const CONSTANT_PROTOCOL_TCP = "tcp";
+    const TYPE_OS_WINDOWS = "Windows";
+    const TYPE_OS_LINUX = "Linux";
+    const TYPE_OS_MACOS = "MacOS";
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -105,6 +127,7 @@ class OpenVPN extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct('openvpn');
+
     }
 
     /**
@@ -121,9 +144,9 @@ class OpenVPN extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $host = $this->get_server_hostname();
-        $port = $this->get_client_port();
-        $protocol = $this->get_client_protocol();
+        $host = $this->GetServerHostname();
+        $port = $this->GetClientPort();
+        $protocol = $this->GetClientProtocol();
 
         if ($type == self::TYPE_OS_WINDOWS) {
             $config = "client
@@ -142,7 +165,7 @@ comp-lzo
 verb 3
 auth-user-pass
 ";
-        } else {
+        } else if (($type == self::TYPE_OS_LINUX) || ($type == self::TYPE_OS_MACOS)) {
             $config = "client
 remote $host $port
 dev tun
@@ -161,6 +184,9 @@ comp-lzo
 verb 3
 auth-user-pass
 ";
+        } else {
+            throw new Engine_Exception(OPENVPN_LANG_CONFIGURATION_FILE . " - " . LOCALE_LANG_INVALID, COMMON_WARNING);
+        }
 
         return $config;
     }
@@ -168,7 +194,7 @@ auth-user-pass
     /**
      * Returns port number for desktop client server.
      *
-     * @return integer port number
+     * @return void
      * @throws Engine_Exception
      */
 
@@ -180,14 +206,13 @@ auth-user-pass
             $this->_load_config();
 
         if (empty($this->config['port']))
-            return OpenVpn::DEFAULT_PORT;
+            return self::DEFAULT_PORT;
         else
             return $this->config['port'];
     }
 
     /**
      * Returns protocol for desktop client server.
-     *
      *
      * @return void
      * @throws Engine_Exception
@@ -201,14 +226,13 @@ auth-user-pass
             $this->_load_config();
 
         if (empty($this->config['proto']))
-            return OpenVpn::DEFAULT_PROTOCOL;
+            return self::DEFAULT_PROTOCOL;
         else
             return $this->config['proto'];
     }
 
     /**
      * Returns DNS server pushed out to clients.
-     *
      *
      * @return string DNS server IP address
      * @throws Engine_Exception
@@ -230,7 +254,6 @@ auth-user-pass
     /**
      * Returns domain name pushed out to clients.
      *
-     *
      * @return string domain name
      * @throws Engine_Exception
      */
@@ -251,7 +274,6 @@ auth-user-pass
     /**
      * Returns the hostname to use to connect to this server.
      *
-     *
      * @return string OpenVPN server hostname
      * @throws Engine_Exception
      */
@@ -263,8 +285,9 @@ auth-user-pass
         // Use the defined Internet hostname (if configured)
         //--------------------------------------------------
 
+        // FIXME
         if (file_exists(COMMON_CORE_DIR . "/api/Organization.class.php")) {
-            require_once(COMMON_CORE_DIR . "/api/Organization.class.php");
+            include_once COMMON_CORE_DIR . "/api/Organization.class.php";
 
             $organization = new Organization();
             $myhost = $organization->GetInternetHostname();
@@ -272,7 +295,7 @@ auth-user-pass
 
         if (empty($myhost)) {
             $hostname = new Hostname();
-            $myhost = $hostname->Get();
+            $myhost = $hostname->get();
         }
 
         return $myhost;
@@ -280,7 +303,6 @@ auth-user-pass
 
     /**
      * Returns WINS server pushed out to clients.
-     *
      *
      * @return string WINS server IP address
      * @throws Engine_Exception
@@ -294,7 +316,7 @@ auth-user-pass
             $this->_load_config();
 
         if (empty($this->config['push']['dhcp-option']['WINS']))
-            return "";
+            return '';
         else
             return $this->config['push']['dhcp-option']['WINS'];
     }
@@ -312,14 +334,9 @@ auth-user-pass
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network();
+        Validation_Exception::is_valid($this->validate_dns_server($ip));
 
-        if (! $network->IsValidIp($ip)) {
-            $this->AddValidationError(NETWORK_LANG_DNS_SERVER . " - " . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
-            return;
-        }
-
-        $this->_SetDhcpParameter('DNS', $ip);
+        $this->_set_dhcp_parameter('DNS', $ip);
     }
 
     /**
@@ -335,14 +352,9 @@ auth-user-pass
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network();
+        Validation_Exception::is_valid($this->validate_domain($domain));
 
-        if (! $network->IsValidDomain($domain)) {
-            $this->AddValidationError(NETWORK_LANG_DOMAIN . " - " . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
-            return;
-        }
-
-        $this->_SetDhcpParameter('DOMAIN', $domain);
+        $this->_set_dhcp_parameter('DOMAIN', $domain);
     }
 
     /**
@@ -358,14 +370,61 @@ auth-user-pass
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network();
+        Validation_Exception::is_valid($this->validate_wins_server($ip));
 
-        if (! $network->IsValidIp($ip)) {
-            $this->AddValidationError(NETWORK_LANG_WINS_SERVER . " - " . LOCALE_LANG_INVALID, __METHOD__, __LINE__);
-            return;
-        }
+        $this->_set_dhcp_parameter('WINS', $ip);
+    }
 
-        $this->_SetDhcpParameter('WINS', $ip);
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N  M E T H O D S 
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validation routine for DNS server.
+     *
+     * @param string $ip IP address
+     *
+     * @return string error message if DNS server IP address is invalid
+     */
+
+    public function validate_dns_server($ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('openvpn_network_dns_server_invalid');
+    }
+
+    /**
+     * Validation routine for domain.
+     *
+     * @param string $domain domain
+     *
+     * @return string error message if domain is invalid
+     */
+
+    public function validate_domain($domain)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_domain($domain))
+            return lang('openvpn_network_domain_invalid');
+    }
+
+    /**
+     * Validation routine for WINS server.
+     *
+     * @param string $ip IP address
+     *
+     * @return string error message if WINS server IP address is invalid
+     */
+
+    public function validate_wins_server($ip)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_ip($ip))
+            return lang('openvpn_network_wins_server_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -387,7 +446,47 @@ auth-user-pass
 
         $configfile = new File(self::FILE_CLIENTS_CONFIG);
 
-        if (! in_array($time_zone, $list))
-            return lang('date_time_zone_is_invalid');
+        $lines = $configfile->get_contents_as_array();
+        $matches = array();
+
+        foreach ($lines as $line) {
+            if (preg_match('/^push\s+"route\s+([^\s+]*)\s+([^"]*)"\s*$/', $line, $matches)) {
+                $this->config['push']['route'][$matches[1] . "/" . $matches[2]] = TRUE;
+            } else if (preg_match('/^push\s+"dhcp-option\s+([^\s+]*)\s+([^"]*)"\s*$/', $line, $matches)) {
+                $this->config['push']['dhcp-option'][$matches[1]] = $matches[2];
+            } else if (preg_match('/^push\s+"redirect-gateway"\s*$/', $line, $matches)) {
+                $this->config['push']['redirect-gateway'] = TRUE;
+            } else if (preg_match('/^push\s+"(.*)"\s*$/', $line, $matches)) {
+                // Ignore other push parameters for now
+            } else if (preg_match('/^([a-zA-Z][^\s]*)\s+(.*)$/', $line, $matches)) {
+                $this->config[$matches[1]] = $matches[2];
+            }
+        }
+
+        $this->is_loaded = TRUE;
+    }
+
+    /**
+     * Sets a parameter in the config file.
+     *
+     * @param string $key   name of the key in the config file
+     * @param string $value value for the key
+     *
+     * @access private
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _set_dhcp_parameter($key, $value)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->is_loaded = FALSE;
+
+        $file = new File(self::FILE_CLIENTS_CONFIG);
+        $match = $file->replace_lines("/^push\s+\"dhcp-option\s+$key\s+/", "push \"dhcp-option $key $value\"\n");
+
+        if (!$match)
+            $file->add_lines("push \"dhcp-option $key $value\"\n");
     }
 }

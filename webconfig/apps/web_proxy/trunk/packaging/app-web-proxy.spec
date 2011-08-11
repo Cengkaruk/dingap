@@ -1,9 +1,9 @@
 
 Name: app-web-proxy
 Group: ClearOS/Apps
-Version: 5.9.9.2
-Release: 4%{dist}
-Summary: 
+Version: 5.9.9.4
+Release: 1.1%{dist}
+Summary: Web Proxy
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -14,10 +14,10 @@ Requires: app-base
 Requires: app-network
 
 %description
-Translation missing (web_proxy_app_description)
+Web proxy description...
 
 %package core
-Summary:  - APIs and install
+Summary: Web Proxy - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -26,7 +26,7 @@ Requires: app-firewall-core
 Requires: squid >= 3.1.10
 
 %description core
-Translation missing (web_proxy_app_description)
+Web proxy description...
 
 This package provides the core API and libraries.
 

@@ -1,8 +1,8 @@
 
 Name: app-web-proxy-plugin-core
 Group: ClearOS/Libraries
-Version: 5.9.9.0
-Release: 1%{dist}
+Version: 5.9.9.4
+Release: 1.1%{dist}
 Summary: Web Proxy Directory Plugin - APIs and install
 License: LGPLv3
 Packager: ClearFoundation

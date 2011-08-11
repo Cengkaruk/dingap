@@ -81,7 +81,7 @@ class Language extends ClearOS_Controller
 
                 // Special handling when changing the language
                 // - Do a full reload with the new language setting!
-                redirect('/language');
+                $this->page->redirect('/language');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;

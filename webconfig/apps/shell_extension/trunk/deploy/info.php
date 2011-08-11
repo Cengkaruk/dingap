@@ -5,8 +5,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'shell_extension';
-$app['version'] = '5.9.9.1';
-$app['release'] = '1';
+$app['version'] = '5.9.9.4';
+$app['release'] = '1.1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';

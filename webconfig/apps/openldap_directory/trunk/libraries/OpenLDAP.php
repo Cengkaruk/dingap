@@ -56,6 +56,7 @@ clearos_load_language('openldap_directory');
 // Classes
 //--------
 
+use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\Engine as Engine;
@@ -64,6 +65,7 @@ use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
+clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('accounts/Nscd');
 clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/Engine');
@@ -376,8 +378,6 @@ class OpenLDAP extends Engine
         $this->_remove_overlaps();
         $this->_initialize_caching();
         $this->_set_initialized();
-
-        $ldap = new LDAP_Driver();
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -494,6 +494,9 @@ class OpenLDAP extends Engine
         $file = new File(self::FILE_INITIALIZED);
 
         if (! $file->exists())
-            $file->create("root", "root", "0644");
+            $file->create('root', 'root', '0644');
+
+        $accounts = new Accounts_Configuration();
+        $accounts->set_driver('openldap_directory');
     }
 }

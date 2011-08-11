@@ -230,8 +230,8 @@ class Iface extends ClearOS_Controller
                 }
 
                 // Return to summary page with status message
-                $this->page->set_status_added();
-                redirect('/network/iface');
+                $this->page->set_status_updated();
+                $this->page->redirect('/network/iface');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;

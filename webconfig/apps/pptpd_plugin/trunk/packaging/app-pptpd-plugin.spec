@@ -1,8 +1,8 @@
 
 Name: app-pptpd-plugin-core
 Group: ClearOS/Libraries
-Version: 5.9.9.3
-Release: 2.1%{dist}
+Version: 5.9.9.4
+Release: 1.1%{dist}
 Summary: PPTP Server Directory Plugin - APIs and install
 License: LGPLv3
 Packager: ClearFoundation

@@ -43,3 +43,8 @@ $app['core_requires'] = array(
     'app-keys-extension-core',
     'openvpn >= 2.1.4',
 );
+
+$app['core_directory_manifest'] = array(
+   '/var/clearos/openvpn' => array(),
+   '/var/clearos/openvpn/backup' => array(),
+);

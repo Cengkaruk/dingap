@@ -1,8 +1,8 @@
 
 Name: app-resource-report
 Group: ClearOS/Apps
-Version: 5.9.9.3
-Release: 2.1%{dist}
+Version: 5.9.9.4
+Release: 1.1%{dist}
 Summary: Resource Report
 License: GPLv3
 Packager: ClearFoundation

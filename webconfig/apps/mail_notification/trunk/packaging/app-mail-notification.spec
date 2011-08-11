@@ -1,8 +1,8 @@
 
 Name: app-mail-notification
 Group: ClearOS/Apps
-Version: 5.9.9.3
-Release: 2.1%{dist}
+Version: 5.9.9.4
+Release: 1.1%{dist}
 Summary: Mail Notification
 License: GPLv3
 Packager: ClearFoundation
@@ -13,17 +13,18 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Mail Notification....
+Mail Notification description....
 
 %package core
 Summary: Mail Notification - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network-core
 Requires: postfix
 
 %description core
-Mail Notification....
+Mail Notification description....
 
 This package provides the core API and libraries.
 

@@ -34,6 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
+use \clearos\apps\accounts\Accounts_Not_Initialized_Exception as Accounts_Not_Initialized_Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -62,15 +63,20 @@ class Users extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->factory('users/User_Manager_Factory');
-        $this->load->factory('accounts/Accounts_Factory');
-        $this->lang->load('users');
+        try {
+//        $this->load->factory('users/User_Manager_Factory');
+            $this->load->factory('accounts/Accounts_Factory');
+            $this->lang->load('users');
+        } catch (Accounts_Not_Initialized_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Load view data
         //---------------
 
         try {
-            $data['users'] = $this->user_manager->get_details();
+//            $data['users'] = $this->user_manager->get_details();
 
             if ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE)
                 $data['mode'] = 'edit';
@@ -81,6 +87,7 @@ class Users extends ClearOS_Controller
             $is_available = $this->accounts->is_available();
 */
         } catch (Exception $e) {
+echo "dude";
             $this->page->view_exception($e);
             return;
         }

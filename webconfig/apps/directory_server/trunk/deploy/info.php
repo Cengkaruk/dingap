@@ -5,8 +5,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'directory_server';
-$app['version'] = '5.9.9.0';
-$app['release'] = '1';
+$app['version'] = '5.9.9.4';
+$app['release'] = '1.1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
@@ -53,8 +53,3 @@ $app['core_requires'] = array(
     'samba-winbind-clients',
     'webconfig-php-ldap'
 );
-
-$app['core_file_manifest'] = array(
-    'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
-);
-
