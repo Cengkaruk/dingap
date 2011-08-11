@@ -63,6 +63,13 @@ clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 
+// Exceptions
+//-----------
+
+use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Not_Initialized_Exception;
+
+clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,6 +137,9 @@ class Accounts_Factory extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $driver = Accounts_Configuration::get_accounts_driver_info();
+
+        if (empty($driver))
+            throw new Accounts_Driver_Not_Set_Exception();
 
         return $driver['app'] . '/Accounts_Driver';
     }

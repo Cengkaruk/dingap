@@ -1,5 +1,16 @@
 <?php
 
+// FIXME - is "built-in" what we are going to use?
+$lang['accounts_install_builtin_directory'] = 'Install Built-in Directory';
+$lang['accounts_initialize_builtin_directory'] = 'Initialize Built-in Directory';
+$lang['accounts_configure_builtin_directory'] = 'Configure Built-in Directory';
+
+$lang['accounts_account_manager_configuration'] = 'Account Manager Configuration';
+$lang['accounts_account_system_driver_not_set'] = 'Accounts system driver has not been set.';
+$lang['accounts_configure_active_directory_connector'] = 'Configure Active Directory Connector';
+$lang['accounts_install_active_directory_connector'] = 'Install Active Directory Connector';
+$lang['accounts_directory_server'] = 'Directory Server';
+
 $lang['accounts_app_description'] = 'Account manager - wordsmith'; // FIXME
 $lang['accounts_app_name'] = 'Account Manager'; // FIXME
 $lang['accounts_connector'] = 'Connector';
