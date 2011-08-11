@@ -267,11 +267,14 @@ function _theme_button_set($buttons, $options, $type)
  * @return string HTML for field view
  */
 
-function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id, $options = NULL)
+function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id = NULL, $options = NULL)
 {
-    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
-    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
-    $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
+    if (is_null($input_id))
+        $input_id = 'clearos_' . mt_rand();
+
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
 
     if (($name !== NULL) || ($value != NULL))
         $hidden_input = "<input type='hidden' name='$name' value='$value'>";
@@ -332,10 +335,9 @@ function theme_field_input($name, $value, $label, $error, $input_id, $options = 
 
 function _theme_field_input_password($name, $value, $label, $error, $input_id, $options = NULL, $type)
 {
-    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
-    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
-    $error_id_html = (is_null($options['error_id'])) ? $input_id . '_error' : $options['error_id'];
-    $hide_field = (is_null($options['hide_field'])) ? '' : " theme-hidden";
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
 
     $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error' id='$error_id_html'>$error</span>";
 
@@ -423,9 +425,9 @@ function theme_field_password($name, $value, $label, $error, $input_id, $options
 function theme_field_dropdown($name, $value, $label, $error, $values, $input_id, $options)
 {
     $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
-    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
-    $error_id_html = (is_null($options['error_id'])) ? $input_id . '_error' : $options['error_id'];
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $error_id_html = (isset($options['error_id'])) ? $options['error_id'] : $input_id . '_error';
 
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error' id='$error_id_html'>$error</span>";
 
@@ -463,9 +465,9 @@ function theme_field_dropdown($name, $value, $label, $error, $values, $input_id,
 function theme_field_toggle_enable_disable($name, $selected, $label, $error, $values, $input_id, $options)
 {
     $input_id_html = " id='" . $input_id . "'";
-    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
-    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
-    $error_id_html = (is_null($options['error_id'])) ? $input_id . '_error' : $options['error_id'];
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $error_id_html = (isset($options['error_id'])) ? $options['error_id'] : $input_id . '_error';
 
     $error_html = (empty($error)) ? "" : "<span class='theme-validation-error' id='$error_id_html'>$error</span>";
 
@@ -502,8 +504,8 @@ function theme_field_toggle_enable_disable($name, $selected, $label, $error, $va
 
 function theme_field_checkbox($name, $value, $label, $options, $input_id, $options)
 {
-    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
-    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
 
     $select_html = ($value) ? ' checked' : '';
 
@@ -541,8 +543,8 @@ function theme_field_checkbox($name, $value, $label, $options, $input_id, $optio
 
 function theme_field_progress_bar($label, $id, $options = array())
 {
-    $field_id_html = (is_null($options['field_id'])) ? $input_id . '_field' : $options['field_id'];
-    $label_id_html = (is_null($options['label_id'])) ? $input_id . '_label' : $options['label_id'];
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
 
     return "
         <tr id='$field_id_html' class='theme-field-progress-bar'>
@@ -587,7 +589,7 @@ function theme_progress_bar($id, $options)
 
 function theme_form_header($title, $options)
 {
-    $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
+    $id_html = (isset($options['id'])) ? " id='" . $options['id'] . "'" : '';
 
     // return "<div class='theme-form-header'$id_html>\n";
 
@@ -633,7 +635,7 @@ width: 100%;'>$title</h3><div class='theme-form-wrapper'>";
 
 function theme_form_footer($options)
 {
-    $id_html = (is_null($options['id'])) ? '' : " id='" . $options['id'] . "'";
+    $id_html = (isset($options['id'])) ? " id='" . $options['id'] . "'" : '';
 
     // return "</div></div><div class='theme-form-footer'$id_html></div>\n";
     return "</table>";
