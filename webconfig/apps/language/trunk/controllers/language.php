@@ -102,6 +102,6 @@ class Language extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('language', $data, lang('language_language'));
+        $this->page->view_form('language/language', $data, lang('language_language'));
     }
 }
