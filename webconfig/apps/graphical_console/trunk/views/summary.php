@@ -38,7 +38,7 @@ $ip = $lan_ips['0']; // FIXME: handle more scenarios
 
 echo "
 <div align='left'>
-<p>Welcome to ClearOS Enterprise 6.1.0 Alpha 1!  ClearOS Enterprise is configured over the network 
+<p>Welcome to ClearOS Enterprise 6.1.0 Beta 1!  ClearOS Enterprise is configured over the network 
 via a web-browser.  Here's what you need to do:</p>
 
 <p><b>Step 1. Check Your Network Settings</b></p>
@@ -52,15 +52,10 @@ network settings, you can <b><a style='background: transparent; border: none; fl
 
 <p>https://$ip:81/</p>
 
-<p><b>Okay, okay...</b></p>
-<p>You can still login to the web-based administration tool from the 
-console, but the experience won't be as pleasant as it could be.  To login, go ahead and click <b><a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #98BB60' href='/app/base/session/login'>here</a></b>.</p>
-
 </div>
 
+<img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
 ";
-
-echo anchor_custom('/app/graphical_console/shutdown', lang('base_exit_to_console'), 'low');
 
 /*
 <p>Aaron, put the images in the htdocs directory and use the following URL</p>

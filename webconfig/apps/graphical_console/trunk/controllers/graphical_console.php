@@ -74,9 +74,9 @@ class Graphical_Console extends ClearOS_Controller
         // Load views
         //-----------
 
-        $page['type'] = MY_Page::TYPE_SPLASH;
+        $page['type'] = MY_Page::TYPE_CONSOLE;
 
-        $this->page->view_form('summary', $data, lang('graphical_console_network_configuration_console'), $page);
+        $this->page->view_form('summary', $data, lang('graphical_console_network_console'), $page);
     }
 
     /**
