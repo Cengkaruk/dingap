@@ -61,8 +61,11 @@
  * - Splash - minimalist page (e.g. login)
  *    - content, status
  * 
- * - Wizard 
- *    - content, status, help, wizard navigation, wizard menu
+ * - Wizard - for install wizards
+ *    - content, status, help, summary, wizard navigation, wizard menu
+ *
+ * - Console - network console
+ *    - content, status, help, summary
  *
  * @return string HTML output
  */
@@ -85,6 +88,8 @@ function theme_page($page)
         return _login_page($page);
     else if ($page['type'] == MY_Page::TYPE_WIZARD)
         return _wizard_page($page);
+    else if ($page['type'] == MY_Page::TYPE_CONSOLE)
+        return _console_page($page);
 }
 
 /**
@@ -112,14 +117,14 @@ function _configuration_page($page)
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-        <div class='green-stroke-top'></div>
-        <div class='green-stroke-left'></div>
-        <div class='green-stroke-right'></div>
+            <div class='green-stroke-top'></div>
+            <div class='green-stroke-left'></div>
+            <div class='green-stroke-right'></div>
         </div>
         <div class='theme-core-content'>
         " .
-            _get_left_menu($page, $menus) .
-            _get_app($page) .
+            _get_left_menu($menus) .
+            _get_basic_app_layout($page) .
             _get_sidebar($page) .
         "
         </div>
@@ -163,7 +168,7 @@ function _report_page($page)
         <div class='green-stroke-right'></div>
         </div>
         <div class='theme-core-content'>
-        " .  _get_left_menu($page, $menus) . "
+        " .  _get_left_menu($menus) . "
         <div id='theme-content-container'>
         " . _get_message() . "
         " . $page['app_view'] . "
@@ -201,12 +206,12 @@ function _marketplace_page($page)
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-        <div class='green-stroke-top'></div>
-        <div class='green-stroke-left'></div>
-        <div class='green-stroke-right'></div>
+            <div class='green-stroke-top'></div>
+            <div class='green-stroke-left'></div>
+            <div class='green-stroke-right'></div>
         </div>
         <div class='theme-core-content'>
-        " .  _get_left_menu($page, $menus) . "
+        " .  _get_left_menu($$menus) . "
         <div id='theme-content-container'>
         " . _get_message() . "
         " . $page['app_view'] . "
@@ -301,13 +306,78 @@ function _wizard_page($page)
         <div class='theme-core-content'>
         " .
             _get_wizard_menu($page['wizard_menu'], $page['wizard_current']) .
-            _get_app($page) .
+            _get_basic_app_layout($page) .
             _get_wizard_navigation($page['wizard_navigation']) .
         "
         </div>
         " .
         _get_footer($page) .
         "
+    </div>
+</div>
+</body>
+</html>
+";
+}
+
+/**
+ * Returns the console page.
+ *
+ * @param array $page page data   
+ *
+ * @return string HTML output
+ */   
+
+function _console_page($page)
+{
+    if (isset($page['logged_in']) && $page['logged_in'])
+        $logout_link = "<a href='/app/base/session/logout/graphical_console' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>";
+    else
+        $logout_link = '';
+
+    return "
+<!-- Body -->
+<body>
+
+<!-- Page Container -->
+<div id='theme-page-container'>
+    <!-- Banner -->
+
+    <div id='theme-banner-container'>
+        <div id='theme-banner-background'></div>
+        <div id='theme-banner-logo'></div>
+        <div class='name-holder'>
+            $logout_link
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div id='theme-main-content-container'>
+        <div class='theme-main-content-top'>
+            <div class='green-stroke-top'></div>
+            <div class='green-stroke-left'></div>
+            <div class='green-stroke-right'></div>
+        </div>
+        <div class='theme-core-content'>
+            <div id='theme-content-container'>
+                <div id='theme-sidebar-container'>
+                    <div class='sidebar-top'></div>
+                    " . $page['page_summary'] . "
+                    <div class='sidebar-bottom'></div>
+                </div>
+                <div id='theme-content-left'>
+                    " . _get_message() . "
+                    " . $page['app_view'] . "
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer FIXME: translation -->
+        <div id='theme-footer-container'>
+            Are you in a command line kind of mood? "
+            . anchor_custom('/app/graphical_console/shutdown', 'To the command line Batman', 'low') .
+            "
+        </div>
     </div>
 </div>
 </body>
@@ -337,28 +407,26 @@ function _get_message()
     return theme_infobox($type, $title, $message);
 }
 
-function _get_app($page)
+function _get_basic_app_layout($page)
 {
     return "
         <!-- Content -->
         <div id='theme-content-container'>
-        <div id='theme-content-help'>
-        <div class='help-sides'>
-        " . $page['page_help'] . "
-        </div>
-        
-        </div>
-        <div id='theme-sidebar-container'>
-        <div class='sidebar-top'></div>
-        " . $page['page_summary'] . "
-        " . $page['page_report'] . "
-        <div class='sidebar-bottom'></div>
-        </div>
-        <div id='theme-content-left'>
-        " . _get_message() . "
-        " . $page['app_view'] . "
-        </div>
-        
+            <div id='theme-content-help'>
+                <div class='help-sides'>
+                " . $page['page_help'] . "
+                </div>
+            </div>
+            <div id='theme-sidebar-container'>
+                <div class='sidebar-top'></div>
+                " . $page['page_summary'] . "
+                " . $page['page_report'] . "
+                <div class='sidebar-bottom'></div>
+            </div>
+            <div id='theme-content-left'>
+                " . _get_message() . "
+                " . $page['app_view'] . "
+            </div>
         </div>
     ";
 }
@@ -452,7 +520,7 @@ $top_menu
  * @return string left navigation menu HTML
  */
 
-function _get_left_menu($page, $menus)
+function _get_left_menu($menus)
 {
     $left_menu = $menus['left_menu'];
 
@@ -469,11 +537,20 @@ $left_menu
     return $html;
 }
 
-function _get_wizard_menu($wizard_menu, $current)
+/**
+ * Returns wizard menu.
+ *
+ * @param array  $wizard_ data wizard menu data
+ * @param string $current current menu item
+ *
+ * @return string wizard menu in HTML
+ */
+
+function _get_wizard_menu($wizard_data, $current)
 {
     $menu = '';
 
-    foreach ($wizard_menu as $order => $details) {
+    foreach ($wizard_data as $order => $details) {
         if ($order === $current)
             $menu .= "<li><b>" . $details['title'] . "</b></li>";
         else
@@ -496,17 +573,25 @@ function _get_wizard_menu($wizard_menu, $current)
     return $html;
 }
 
-function _get_wizard_navigation($nav)
+/**
+ * Returns wizard navigation.
+ *
+ * @param array $nav_data navigation data
+ *
+ * @return string HTML for wizard navigation
+ */
+
+function _get_wizard_navigation($nav_data)
 {
-    if (empty($nav['previous']))
+    if (empty($nav_data['previous']))
         $previous = '';
     else
-        $previous = theme_anchor($nav['previous'], lang('base_previous'), 'low', 'theme-anchor-previous');
+        $previous = theme_anchor($nav_data['previous'], lang('base_previous'), 'low', 'theme-anchor-previous');
 
-    if (empty($nav['next']))
+    if (empty($nav_data['next']))
         $next = '';
     else
-        $next = theme_anchor($nav['next'], lang('base_next'), 'low', 'theme-anchor-next');
+        $next = theme_anchor($nav_data['next'], lang('base_next'), 'low', 'theme-anchor-next');
 
     return "<div>$previous $next</div>";
 }
@@ -515,8 +600,16 @@ function _get_wizard_navigation($nav)
 // Menu handling
 ///////////////////////////////////////////////////////////////////////////////
 
-function _get_menu($menu_pages) {
+/**
+ * Converts menu array into HTML layout
+ * 
+ * @param array $menu_data menu data
+ *
+ * @return string menu HTML output
+ */
 
+function _get_menu($menu_data)
+{
     // Highlight information for given page
     //-------------------------------------    
 
@@ -526,7 +619,7 @@ function _get_menu($menu_pages) {
     preg_match('/\/app\/[^\/]*/', $_SERVER['PHP_SELF'], $matches);
     $basepage = $matches[0];
 
-    foreach ($menu_pages as $url => $pageinfo) {
+    foreach ($menu_data as $url => $pageinfo) {
         if ($url == $basepage) {
             $highlight['page'] = $url;
             $highlight['category'] = $pageinfo['category'];
@@ -544,7 +637,7 @@ function _get_menu($menu_pages) {
     $category_count = 0;
     $active_category_number = 0;
 
-    foreach ($menu_pages as $url => $page) {
+    foreach ($menu_data as $url => $page) {
         
         // Category transition
         //--------------------
