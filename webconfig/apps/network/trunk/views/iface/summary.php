@@ -46,7 +46,6 @@ $headers = array(
 	lang('network_type'),
 	lang('network_ip'),
 	lang('network_link'),
-	lang('network_speed')
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +115,6 @@ foreach ($network_interface as $interface => $detail) {
         $bootproto,
         $ip,
         $link,
-        $speed
 	);
 
 	$items[] = $item;

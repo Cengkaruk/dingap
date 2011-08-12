@@ -156,7 +156,7 @@ class Settings extends ClearOS_Controller
         // Load views
         //-----------
 
-        $options['type'] = MY_Page::TYPE_SPLASH;
+        $options['type'] = MY_Page::TYPE_CONSOLE;
 
         $this->page->view_form('settings/view_edit', $data, lang('base_settings'), $options);
     }

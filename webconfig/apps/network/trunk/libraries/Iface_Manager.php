@@ -336,7 +336,7 @@ class Iface_Manager extends Engine
                         case Network::MODE_STANDALONE:
                             $ips[] = $ifinfo["address"];
                             break;
-                        case Network::MODE_TRUSTED+STANDALONE:
+                        case Network::MODE_TRUSTED_STANDALONE:
                             $ips[] = $ifinfo["address"];
                             break;
                     }

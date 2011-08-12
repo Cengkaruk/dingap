@@ -70,6 +70,7 @@ $vendor = empty($iface_info['vendor']) ? '' : $iface_info['vendor'];
 $bus = empty($iface_info['bus']) ? '' : $iface_info['bus'];
 $device = empty($iface_info['device']) ? '' : $iface_info['device'];
 $link = (isset($iface_info['link']) && $iface_info['link']) ? lang('network_detected') : lang('network_not_detected');
+$speed = (isset($iface_info['speed']) && $iface_info['speed'] > 0) ? $iface_info['speed'] . ' ' . lang('base_megabits_per_second') : '';
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
@@ -87,6 +88,7 @@ echo field_input('vendor', $vendor, lang('network_vendor'), TRUE);
 echo field_input('device', $device, lang('network_device'), TRUE);
 echo field_input('bus', $bus, lang('network_bus'), TRUE);
 echo field_input('link', $link, lang('network_link'), TRUE);
+echo field_input('speed', $speed, lang('network_speed'), TRUE);
 echo fieldset_footer();
 
 ///////////////////////////////////////////////////////////////////////////////
