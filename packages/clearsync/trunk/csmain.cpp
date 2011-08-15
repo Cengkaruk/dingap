@@ -126,9 +126,7 @@ void csSignalHandler::Reaper()
 }
 
 csMainXmlParser::csMainXmlParser(void)
-    : csXmlParser()
-{
-}
+    : csXmlParser() { }
 
 void csMainXmlParser::ParseElementOpen(csXmlTag *tag)
 {
@@ -225,13 +223,9 @@ void csMainXmlParser::ParseElementClose(csXmlTag *tag)
 csMainConf::csMainConf(csMain *parent,
     const char *filename, csMainXmlParser *parser)
     : csConf(filename, parser),
-    parent(parent), version(-1), plugin_dir(_CS_PLUGIN_CONF)
-{
-}
+    parent(parent), version(-1), plugin_dir(_CS_PLUGIN_CONF) { }
 
-csMainConf::~csMainConf()
-{
-}
+csMainConf::~csMainConf() { }
 
 void csMainConf::ScanPlugins(void)
 {

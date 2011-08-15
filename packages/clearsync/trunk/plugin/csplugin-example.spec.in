@@ -1,0 +1,72 @@
+# ClearSync Example Plugin RPM spec
+Name: @PACKAGE_TARNAME@
+Version: @PACKAGE_VERSION@
+Release: 1%{dist}
+Vendor: ClearFoundation
+License: GPL
+Group: System/Plugins
+Packager: ClearFoundation
+Source: %{name}-%{version}.tar.gz
+BuildRoot: /var/tmp/%{name}-%{version}
+Requires: clearsync
+BuildRequires: clearsync-devel expat-devel
+Summary: ClearSync example plugin
+Requires(pre): /sbin/ldconfig
+
+%description
+This is an example ClearSync plugin.
+Report bugs to: @PACKAGE_BUGREPORT@
+
+# Build
+%prep
+%setup -q
+%{configure}
+
+%build
+make %{?_smp_mflags}
+
+# Install
+%install
+make install DESTDIR=$RPM_BUILD_ROOT
+rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-example.a
+rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-example.la
+mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
+cp -v csplugin-example.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
+
+# Clean-up
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+# Post install
+%post
+/sbin/ldconfig
+/etc/init.d/clearsyncd condrestart
+
+# Add command(s) to sudo configuration
+#CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
+#if [ -z "$CHECK" ]; then
+#    echo "Cmnd_Alias CLEARSYNC = " >> /etc/sudoers
+#	echo "clearsync ALL=NOPASSWD: CLEARSYNC" >> /etc/sudoers
+#fi
+
+#CMD=/sbin/service
+#LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+#CHECK=`echo $LINE, | grep $CMD,`
+#if [ -z "$CHECK" ]; then
+#	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+#	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+#	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+#	chmod 440 /etc/sudoers
+#fi
+
+# Post uninstall
+%postun
+/sbin/ldconfig
+/etc/init.d/clearsyncd condrestart
+
+# Files
+%files
+%defattr(-,root,root)
+%config(noreplace) %{_sysconfdir}/clearsync.d/csplugin-example.conf
+%{_libdir}/libcsplugin-example.so*
+

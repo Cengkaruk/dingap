@@ -1,7 +1,7 @@
 # ClearSync Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 5%{dist}
+Release: 6%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
@@ -51,6 +51,16 @@ if [ -z "$CHECK" ]; then
 fi
 
 CMD=/sbin/service
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
+# TODO: Fix path...
+CMD=/etc/rc.d/rc.firewall
 LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
 CHECK=`echo $LINE, | grep $CMD,`
 if [ -z "$CHECK" ]; then

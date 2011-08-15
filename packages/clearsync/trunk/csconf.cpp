@@ -76,7 +76,9 @@ static void csXmlElementOpen(
     csXmlParser *csp = (csXmlParser *)data;
 
     csXmlTag *tag = new csXmlTag(element, attr);
+#ifdef _CS_DEBUG
     csLog::Log(csLog::Debug, "Element open: %s", tag->GetName().c_str());
+#endif
     csp->ParseElementOpen(tag);
     csp->stack.push_back(tag);
 }
@@ -86,7 +88,9 @@ static void csXmlElementClose(void *data, const char *element)
     csXmlParser *csp = (csXmlParser *)data;
 
     csXmlTag *tag = csp->stack.back();
+#ifdef _CS_DEBUG
     csLog::Log(csLog::Debug, "Element close: %s", tag->GetName().c_str());
+#endif
     string text = tag->GetText();
 #if 0
     if (text.size()) {

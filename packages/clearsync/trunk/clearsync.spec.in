@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 9%{dist}
+Release: 10%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -73,7 +73,9 @@ if [ -f /var/lock/subsys/clearsyncd ]; then
     killall -TERM clearsyncd 2>&1 || :
     sleep 2
 fi
-/usr/sbin/userdel clearsync 2>&1 || :
+if [ "$1" = 0 ]; then
+    /usr/sbin/userdel clearsync 2>&1 || :
+fi
 
 # Files
 %files

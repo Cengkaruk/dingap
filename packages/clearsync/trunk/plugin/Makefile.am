@@ -1,4 +1,10 @@
-AM_CXXFLAGS = ${CXXFLAGS} -I../include
+AUTOMAKE_OPTIONS = foreign
+ACLOCAL_AMFLAGS = -I m4
+
+EXTRA_DIST = csplugin-example.conf
+
+AM_CFLAGS = ${CFLAGS}
+AM_CXXFLAGS = ${CXXFLAGS}
 
 lib_LTLIBRARIES = libcsplugin-example.la
 
