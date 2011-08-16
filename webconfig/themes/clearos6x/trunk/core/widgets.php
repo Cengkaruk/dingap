@@ -518,6 +518,44 @@ function theme_field_checkbox($name, $value, $label, $options, $input_id, $optio
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// F I E L D  T E X T A R E A
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Text area field.
+ *
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string $name     name of text area element
+ * @param string $value    value of text area
+ * @param string $label    label for text area field
+ * @param string $error    validation error message
+ * @param string $input_id input ID
+ * @param array  $options  options
+ *
+ * @return string HTML
+ */
+
+function theme_field_textarea($name, $value, $label, $error, $input_id, $options = NULL)
+{
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
+
+    $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error' id='$error_id_html'>$error</span>";
+
+    return "
+        <tr id='$field_id_html' class='theme-field-textarea" . $hide_field . "'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
+            <td class='right-field-content input-box'> <textarea name='$name' id='$input_id'>$value</textarea>$error_html</td>
+        </tr>
+    ";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // R A D I O  S E T S
 ///////////////////////////////////////////////////////////////////////////////
 
