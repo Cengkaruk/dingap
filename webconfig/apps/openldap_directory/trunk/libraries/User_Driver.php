@@ -277,7 +277,7 @@ class User_Driver extends User_Engine
             return FALSE;
         }
 
-        $sha_password = '{sha}' . $this->_calculate_sha_password($password);
+        $sha_password = '{sha}' . LDAP_Utilities::calculate_sha_password($password);
 
         if (isset($attributes['userPassword'][0]) && ($sha_password === $attributes['userPassword'][0]))
             return TRUE;
@@ -1073,65 +1073,6 @@ return;
     }
 
     /**
-     * Calculates NT password.
-     *
-     * @access private
-     *
-     * @return string NT password
-     */
-
-    protected function _calculate_nt_password($password)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $unicode = '';
-
-        for ($i = 0; $i < strlen($password); $i++) {
-            $a = ord($password{$i}) << 8;
-            $unicode .= sprintf("%X", $a);
-        }
-
-        $packed_unicode = pack('H*', $unicode);
-
-        return strtoupper(bin2hex(hash('md4', $packed_unicode)));
-    }
-
-    /**
-     * Calculates SHA password.
-     *
-     * @access private
-     *
-     * @return string SHA password
-     */
-
-    protected function _calculate_sha_password($password)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return base64_encode(pack('H*', sha1($password)));
-    }
-
-    /**
-     * Converts SHA password to SHA1.
-     *
-     * @access private
-     *
-     * @return string SHA1 password
-     */
-
-    protected function _convert_sha_to_sha1($shapassword)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Strip out prefix if it exists
-        $shapassword = preg_replace("/^{sha}/", "", $shapassword);
-
-        $sha1 = unpack("H*", base64_decode($shapassword));
-
-        return $sha1[1];
-    }
-
-    /**
      * Converts a password into LDAP attributes.
      *
      * @param string $password password
@@ -1147,10 +1088,10 @@ return;
 
         $ldap_object = array();
 
-        $ldap_object['userPassword'] = '{sha}' . $this->_calculate_sha_password($password);
+        $ldap_object['userPassword'] = '{sha}' . LDAP_Utilities::calculate_sha_password($password);
         $ldap_object['clearSHAPassword'] = $ldap_object['userPassword'];
-        $ldap_object['clearSHA1Password'] = $this->_convert_sha_to_sha1($ldap_object['clearSHAPassword']);
-        $ldap_object['clearMicrosoftNTPassword'] = $this->_calculate_nt_password($password);
+        $ldap_object['clearSHA1Password'] = LDAP_Utilities::convert_sha_to_sha1($ldap_object['clearSHAPassword']);
+        $ldap_object['clearMicrosoftNTPassword'] = LDAP_Utilities::calculate_nt_password($password);
 
         return $ldap_object;
     }
