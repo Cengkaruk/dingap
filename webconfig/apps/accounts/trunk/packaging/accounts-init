@@ -41,22 +41,9 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// D E P E N D E N C I E S
-///////////////////////////////////////////////////////////////////////////////
+use \clearos\apps\accounts\Bootstrap as Bootstrap;
 
-// Classes
-//--------
-
-use \clearos\apps\ldap\LDAP_Factory as LDAP_Factory;
-use \clearos\apps\mode\Mode_Engine as Mode_Engine;
-use \clearos\apps\mode\Mode_Factory as Mode_Factory;
-use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
-
-clearos_load_library('ldap/LDAP_Factory');
-clearos_load_library('mode/Mode_Engine');
-clearos_load_library('mode/Mode_Factory');
-clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('accounts/Bootstrap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // M A I N
@@ -77,15 +64,6 @@ $force = isset($options['f']) ? TRUE : FALSE;
 // Initialization
 //--------------------------------------------------------------------
 
-$ldap = LDAP_Factory::create();
-$sysmode = Mode_Factory::create();
-$accounts_ldap = new OpenLDAP();
+$bootstrap = new Bootstrap();
 
-$mode = $sysmode->get_mode();
-
-if ($mode === Mode_Engine::MODE_MASTER)
-    $ldap->initialize_master('system.lan', NULL, $force);
-else if ($mode === Mode_Engine::MODE_STANDALONE)
-    $ldap->initialize_standalone('system.lan', NULL, $force);
-
-$accounts_ldap->initialize($force);
+$bootstrap->initialize($force);
