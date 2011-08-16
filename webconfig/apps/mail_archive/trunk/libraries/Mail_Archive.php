@@ -172,10 +172,11 @@ class Mail_Archive extends Daemon
             if ($status) {
                 if (!$file->exists) {
                     $file->create("root", "root", "640");
-                    $file->add_lines(
-                        '$archive_quarantine_to = \'email-archive@localhost\';\n' .
+                    $enable_code = array(
+                        '$archive_quarantine_to = \'email-archive@localhost\'',
                         '$archive_quarantine_method = \'smtp:[127.0.0.1]:10026\';'
-                    )
+                    );
+                    $file->add_lines($enable_code);
                 }
             } else {
                 if ($file->exists)
@@ -198,8 +199,8 @@ class Mail_Archive extends Daemon
         clearos_profile(__METHOD__, __LINE__);
             
         // Set default timezone
-        $ntptime = new Ntp_Time();
-        date_default_timezone_set($ntptime->get_time_zone());
+        $time = new Time();
+        date_default_timezone_set($time->get_time_zone());
         $this->_set_parameter('last_archive', date("Y-m-d"));
     }
 
@@ -843,8 +844,8 @@ class Mail_Archive extends Daemon
         if (! $contents)
             return $archives;
 
-        $ntptime = new Ntp_Time();
-        date_default_timezone_set($ntptime->get_time_zone());
+        $time = new Time();
+        date_default_timezone_set($time->get_time_zone());
         foreach ($contents as $filename) {
             if (! preg_match("/tar.gz$|enc$/", $filename))
                 continue;
@@ -896,8 +897,8 @@ class Mail_Archive extends Daemon
             $this->_load_config();
 
         // Set default timezone
-        $ntptime = new Ntp_Time();
-        date_default_timezone_set($ntptime->get_time_zone());
+        $time = new Time();
+        date_default_timezone_set($time->get_time_zone());
 
         $run = FALSE;
 
@@ -955,7 +956,7 @@ class Mail_Archive extends Daemon
         $filename = $filename . ".tar.gz";
         
         if (!$this->is_valid_filename($filename))
-            throw new Engine_Exception (lang('mail_archive_filename_invalid'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('mail_archive_filename_invalid'), CLEAROS_ERROR);
 
         // Check if filename is a duplicate
         if ($this->get_archive_encryption())
@@ -1012,7 +1013,7 @@ class Mail_Archive extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (!$this->is_valid_filename($filename))
-            throw new Engine_Exception (lang('mail_archive_filename_invalid'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('mail_archive_filename_invalid'), CLEAROS_ERROR);
 
         // Check if filename link exists
         $file = new File(self::DIR_LINKS . "/$filename", TRUE);
@@ -1192,8 +1193,7 @@ class Mail_Archive extends Daemon
         // Generate random password
 
         try {
-            $directory = new Clear_Directory();
-            $password = $directory->generate_password();
+            $password = LDAP_Utilities::generate_password();
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -1409,8 +1409,8 @@ class Mail_Archive extends Daemon
         // Bail if lock file exists
         $lock = new File(self::FILE_LOCK, TRUE);
         if ($lock->exists()) {
-            $ntptime = new Ntp_Time();
-            date_default_timezone_set($ntptime->get_time_zone());
+            $time = new Time();
+            date_default_timezone_set($time->get_time_zone());
             if ((time() - $lock->last_modified()) > (self::LOCK_TIMEOUT_HR *24))
                 $lock->delete();
             return;
@@ -1531,13 +1531,13 @@ class Mail_Archive extends Daemon
         $index = 0;
         if ($result) {
             if (mysql_num_rows($result) == 0)
-                throw new Engine_Exception (lang('mail_archive_record_not_found'), CLEAROS_ERROR);
+                throw new Engine_Exception(lang('mail_archive_record_not_found'), CLEAROS_ERROR);
             if (mysql_num_rows($result) > 1)
-                throw new Engine_Exception (lang('base_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
+                throw new Engine_Exception(lang('base_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
             $result_set = mysql_fetch_array($result, MYSQL_ASSOC);
             mysql_free_result($result);
         } else {
-            throw new Engine_Exception (lang('mail_archive_db_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
+            throw new Engine_Exception(lang('mail_archive_db_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
         }
 
         if ($email == NULL)
@@ -1587,7 +1587,7 @@ class Mail_Archive extends Daemon
                 }
                 mysql_free_result($result);
             } else {
-                throw new Engine_Exception (lang('mail_archive_db_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
+                throw new Engine_Exception(lang('mail_archive_db_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
             }
         } catch (Exception $e) {
             clearos_profile(__METHOD__, __LINE__, 'Failed to save attachment ' . clearos_exception_message($e));
@@ -1658,16 +1658,16 @@ class Mail_Archive extends Daemon
         if ($result) {
             if (mysql_num_rows($result) == 0) {
                 if (isset($_SESSION['user_login']) && $_SESSION['user_login'] != 'root')
-                    throw new Engine_Exception (LOCALE_LANG_ACCESS_DENIED, CLEAROS_ERROR);
+                    throw new Engine_Exception(LOCALE_LANG_ACCESS_DENIED, CLEAROS_ERROR);
                 else
-                    throw new Engine_Exception (lang('mail_archive_record_not_found'), CLEAROS_ERROR);
+                    throw new Engine_Exception(lang('mail_archive_record_not_found'), CLEAROS_ERROR);
             }
             if (mysql_num_rows($result) > 1)
-                throw new Engine_Exception (lang('base_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
+                throw new Engine_Exception(lang('base_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
             $result_set = mysql_fetch_array($result, MYSQL_ASSOC);
             mysql_free_result($result);
         } else {
-            throw new Engine_Exception (lang('mail_archive_db_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
+            throw new Engine_Exception(lang('mail_archive_db_error') . " (" . __LINE__ . ")", CLEAROS_ERROR);
         }
 
         // Attachments
@@ -1970,8 +1970,8 @@ class Mail_Archive extends Daemon
 
         try {
             // Swift mailer logs a warning message if we don't set this
-            $ntptime = new Ntp_Time();
-            date_default_timezone_set($ntptime->get_time_zone());
+            $time = new Time();
+            date_default_timezone_set($time->get_time_zone());
             // Decode headers
             $fromaddress = $this->_flat_mime_decode($headers->fromaddress);
             $toaddress = $this->_flat_mime_decode($headers->toaddress);
@@ -1997,7 +1997,7 @@ class Mail_Archive extends Daemon
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
         if (!$result) {
-            throw new Engine_Exception (lang('mail_archive_db_error') . " - " . mysql_error(), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('mail_archive_db_error') . " - " . mysql_error(), CLEAROS_ERROR);
         } else {
             return mysql_insert_id();
         }
@@ -2177,7 +2177,7 @@ class Mail_Archive extends Daemon
         }
 
         if (!$result)
-            throw new Engine_Exception (lang('mail_archive_db_error') . " - " . mysql_error(), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('mail_archive_db_error') . " - " . mysql_error(), CLEAROS_ERROR);
     }
 
     /**
@@ -2230,7 +2230,7 @@ class Mail_Archive extends Daemon
             self::DB_HOST . ":" . self::SOCKET_MYSQL, self::DB_USER, $this->db['archive.password']
         );
         if (!$this->link)
-            throw new Sql_Exception (mysql_error(), CLEAROS_ERROR);
+            throw new Sql_Exception(mysql_error(), CLEAROS_ERROR);
 
         // Check to see if we can connect to the database
         mysql_select_db(self::DB_NAME_CURRENT);

@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Disk Usage controller.
+ * Mail Archive controller.
  *
  * @category   Apps
- * @package    Disk_Usage
+ * @package    Mail_Archive
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/disk_usage/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/mail_archive/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,29 +33,29 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\disk_usage\Disk_Usage as Disk_Usage_Class;
+use \clearos\apps\mail_archive\Mail_Archive as Mail_Archive_Class;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Disk Usage controller.
+ * Mail Archive controller.
  *
  * @category   Apps
- * @package    Disk_Usage
+ * @package    Mail_Archive
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/disk_usage/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/mail_archive/
  */
 
-class Disk_Usage extends ClearOS_Controller
+class Mail_Archive extends ClearOS_Controller
 {
 
     /**
-     * Disk Usage default controller
+     * Mail Archive default controller
      *
      * @return view
      */
@@ -65,12 +65,12 @@ class Disk_Usage extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->lang->load('disk_usage');
+        $this->lang->load('mail_archive');
 
         // Load view
         //----------
 
-        $this->page->view_form('disk_usage', NULL, lang('disk_usage_disk_usage'));
+        $this->page->view_form('mail_archive', NULL, lang('mail_archive_mail_archive'));
     }
 
 }

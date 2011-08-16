@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Disk Usage overview.
+ * Mail Archive overview.
  *
  * @category   Apps
- * @package    Disk_Usage
+ * @package    Mail_Archive
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearcenter.com/support/documentation/clearos/disk_usage/
+ * @link       http://www.clearcenter.com/support/documentation/clearos/mail_archive/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,14 +34,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
-$this->lang->load('disk_usage');
+$this->lang->load('mail_archive');
 
 // TODO: implement an API call instead of file_exists test. 
 if (file_exists(CLEAROS_TEMP_DIR . "/ps.db")) {
     $url = "https://" . $_SERVER['HTTP_HOST'] . "/cgi-bin/philesight.cgi";
     echo "<iframe style='border:none;' src='$url' width='100%' height='550'>";
-    echo "<p>" . lang('disk_usage_iframe_not_supported') . "</p>";
+    echo "<p>" . lang('mail_archive_iframe_not_supported') . "</p>";
     echo "</iframe>";
 } else {
-    echo infobox_warning(lang('base_warning'), lang('disk_usage_not_available')); 
+    echo infobox_warning(lang('base_warning'), lang('mail_archive_not_available')); 
 }

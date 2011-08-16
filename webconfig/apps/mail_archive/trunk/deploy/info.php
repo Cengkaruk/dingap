@@ -19,8 +19,8 @@ $app['description'] = lang('mail_archive_page_intro');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['name'] = lang('mail_archive_mail_archive');
-$app['category'] = lang('base_category_system');
-$app['subcategory'] = lang('base_subcategory_storage');
+$app['category'] = lang('base_category_server');
+$app['subcategory'] = lang('base_subcategory_mail');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
