@@ -442,9 +442,9 @@ class Squid extends Daemon
     public function get_identification_type_array()
     {
         $type = array(
-            'proxy_auth' => SQUID_LANG_USER,
-            'src' => SQUID_LANG_IP,
-            'arp' => SQUID_LANG_MAC
+            'proxy_auth' => lang('web_proxy_user'),
+            'src' => lang('web_proxy_ip'),
+            'arp' => lang('web_proxy_mac')
         );
         return $type;
     }
@@ -457,8 +457,8 @@ class Squid extends Daemon
     public function get_access_type_array()
     {
         $type = array(
-            'allow' => SQUID_LANG_ALLOW,
-            'deny' => SQUID_LANG_DENY
+            'allow' => lang('web_proxy_allow'),
+            'deny' => lang('web_proxy_deny')
         );
         return $type;
     }
