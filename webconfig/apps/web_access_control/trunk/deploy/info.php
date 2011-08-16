@@ -1,0 +1,31 @@
+<?php
+
+/////////////////////////////////////////////////////////////////////////////
+// General information
+/////////////////////////////////////////////////////////////////////////////
+
+$app['basename'] = 'web_access_control';
+$app['version'] = '5.9.9.3';
+$app['release'] = '2.1';
+$app['vendor'] = 'ClearFoundation';
+$app['packager'] = 'ClearFoundation';
+$app['license'] = 'GPLv3';
+$app['license_core'] = 'LGPLv3';
+$app['summary'] = lang('web_access_control_summary');
+$app['description'] = lang('web_access_control_page_intro');
+
+/////////////////////////////////////////////////////////////////////////////
+// App name and categories
+/////////////////////////////////////////////////////////////////////////////
+
+$app['name'] = lang('web_access_control_web_access_control');
+$app['category'] = lang('base_category_gateway');
+$app['subcategory'] = lang('base_subcategory_content_filter_and_proxy');
+
+/////////////////////////////////////////////////////////////////////////////
+// Packaging
+/////////////////////////////////////////////////////////////////////////////
+
+$app['core_requires'] = array(
+    'app-proxy'
+);
