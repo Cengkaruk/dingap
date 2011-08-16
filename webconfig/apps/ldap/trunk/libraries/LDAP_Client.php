@@ -556,7 +556,7 @@ class LDAP_Client extends Daemon
     /**
      * Sorts LDAP result.
      *
-     * @param handle $result      search handle
+     * @param handle &$result     search handle
      * @param string $sort_filter attribute used for sorting
      *
      * @return void
@@ -570,7 +570,6 @@ class LDAP_Client extends Daemon
         if (! $this->bound)
             $this->_bind();
 
-        // FIXME: remove pass by reference
         ldap_sort($this->connection, $result, $sort_filter);
     }
 
@@ -627,7 +626,7 @@ class LDAP_Client extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: make this an internal method call (i.e. remove from external calls)
+        // TODO: make this an internal method call (i.e. remove from external calls)
         $string = str_replace('\\', '\\5c', $string);
         $string = str_replace('*', '\\2a', $string);
         $string = str_replace('(', '\\28', $string);

@@ -105,6 +105,8 @@ class LDAP_Factory extends Engine
     /**
      * Creates an LDAP instance via the factory framwork.
      *
+     * @param string $driver driver name
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
