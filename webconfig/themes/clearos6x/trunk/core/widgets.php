@@ -440,6 +440,46 @@ function theme_field_dropdown($name, $value, $label, $error, $values, $input_id,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// F I E L D  M U L T I S E L E C T  D R O P D O W N
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Dropdown field.
+ *
+ * Supported options:
+ * - field_id 
+ * - label_id 
+ * - error_id 
+ *
+ * @param string  $name     name of dropdown element
+ * @param string  $value    value of dropdown 
+ * @param string  $label    label for dropdown field
+ * @param string  $error    validation error message
+ * @param array   $values   hash list of values for dropdown
+ * @param string  $input_id input ID
+ * @param array   $options  options
+ *
+ * @return string HTML
+ */
+
+function theme_field_multiselect_dropdown($name, $value, $label, $error, $values, $input_id, $options)
+{
+    $input_id_html = " id='" . $input_id . "'";
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $error_id_html = (isset($options['error_id'])) ? $options['error_id'] : $input_id . '_error';
+
+    $error_html = (empty($error)) ? "" : "<span class='theme-validation-error' id='$error_id_html'>$error</span>";
+
+    return "
+        <tr id='$field_id_html' class='theme-multiselect-dropdown'>
+            <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
+            <td class='right-field-content'>" . form_multiselect($name, $values, $value, $input_id_html) . " $error_html</td>
+        </tr>
+    ";
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // F I E L D  T O G G L E
 ///////////////////////////////////////////////////////////////////////////////
 

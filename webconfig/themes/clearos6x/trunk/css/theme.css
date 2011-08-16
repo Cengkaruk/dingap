@@ -574,7 +574,7 @@ border-radius: 9px;
 
 .theme-dropdown select {
 	float: left;
-  }
+}
 
 .theme-form-footer {
  
@@ -1808,6 +1808,12 @@ input.theme-form-submit-delete { }
 }
 
 .theme-field-text {
+	float: left;
+}
+.theme-field-textarea {
+	float: left;
+}
+.theme-multiselect-dropdown {
 	float: left;
 }
 
