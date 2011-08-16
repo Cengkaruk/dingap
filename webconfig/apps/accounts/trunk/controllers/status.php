@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Accounts info controller.
+ * Accounts initialization check.
  *
  * @category   Apps
  * @package    Accounts
@@ -33,14 +33,15 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\accounts\Accounts_Engine as Accounts;
+use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Accounts info controller.
+ * Accounts initialization check.
  *
  * @category   Apps
  * @package    Accounts
@@ -54,52 +55,97 @@ use \clearos\apps\accounts\Accounts_Engine as Accounts;
 class Status extends ClearOS_Controller
 {
     /**
-     * Extensions default controller
-     *
-     * @return view
+     * Default controller.
      */
 
-    function index($always_show = FALSE)
+    function index()
+    {
+        if ($this->unhappy())
+            $this->widget();
+    }
+
+    function unhappy()
+    {
+        // Load libraries and grab status information
+        //-------------------------------------------
+
+        try {
+            $this->load->factory('accounts/Accounts_Factory');
+
+            $status = $this->accounts->get_system_status();
+            $driver_set = TRUE;
+        } catch (Accounts_Driver_Not_Set_Exception $e) {
+            $driver_set = FALSE;
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return FALSE;
+        }
+
+        if ($driver_set && ($status === Accounts_Engine::STATUS_ONLINE))
+            return FALSE;
+        else
+            return TRUE;
+    }
+
+    /**
+     * Status widget.
+     */
+
+    function widget()
     {
         // Load dependencies
         //------------------
 
-        $this->load->factory('accounts/Accounts_Factory');
         $this->lang->load('base');
-
-        // Load view data
-        //---------------
-
-        try {
-            $status = $this->accounts->get_system_status();
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
 
         // Load views
         //-----------
 
-        if (($status !== Accounts::STATUS_ONLINE) || $always_show)
-            $this->page->view_form('accounts/status', array(), lang('base_status'));
+        $options['javascript'] = array(clearos_app_htdocs('accounts') . '/status.js.php');
+
+        $this->page->view_form('accounts/status', $data, lang('base_server_status'), $options);
     }
 
     /**
-     * Returns accounts information. 
+     * Returns accounts status.
      */
 
     function get_info()
     {
-        // Load dependencies
-        //------------------
-
-        $this->load->factory('accounts/Accounts_Factory');
-
         // Load view data
         //---------------
 
+        $data['marketplace_installed'] = (clearos_marketplace_installed()) ? TRUE : FALSE;
+        $data['directory_server_installed'] = (clearos_app_installed('directory_server')) ? TRUE : FALSE;
+        $data['openldap_installed'] = (clearos_app_installed('openldap_directory')) ? TRUE : FALSE;
+        $data['ad_installed'] = (clearos_app_installed('active_directory')) ? TRUE : FALSE;
+
+// FIXME
+$data['directory_server_installed'] = FALSE;
+
         try {
-            $data['status'] = $this->accounts->get_system_status();
+            $this->load->factory('accounts/Accounts_Factory');
+
+            $status = $this->accounts->get_system_status();
+
+            if ($status == Accounts_Engine::STATUS_ONLINE) {
+                $data['status_message'] = lang('accounts_account_information_is_online');
+                $data['status'] = 'online';
+            } else if ($status == Accounts_Engine::STATUS_OFFLINE) {
+                $data['status_message'] = lang('accounts_account_information_is_offline');
+                $data['status'] = 'offline';
+            } else if ($status == Accounts_Engine::STATUS_UNINITIALIZED) {
+                $data['status_message'] = lang('accounts_account_system_is_not_initialized');
+                $data['status'] = 'uninitialized';
+            }
+
+            $data['driver_selected'] = TRUE;
+            $data['code'] = 0;
+        } catch (Accounts_Driver_Not_Set_Exception $e) {
+            $data['driver_selected'] = FALSE;
+            $data['status_message'] = '';
+            $data['status'] = 'no_driver';
+            $data['code'] = 0;
         } catch (Exception $e) {
             $data['code'] = 1;
             $data['error_message'] = clearos_exception_message($e);

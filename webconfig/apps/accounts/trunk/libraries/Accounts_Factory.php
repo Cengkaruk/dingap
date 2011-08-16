@@ -57,18 +57,9 @@ clearos_load_language('accounts');
 
 use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\base\File as File;
 
 clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
-clearos_load_library('base/File');
-
-// Exceptions
-//-----------
-
-use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Not_Initialized_Exception;
-
-clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -105,7 +96,7 @@ class Accounts_Factory extends Engine
      * Creates an accounts instance via the factory framwork.
      *
      * @return void
-     * @throws Engine_Exception, Validation_Exception
+     * @throws Engine_Exception, Validation_Exception, Accounts_Driver_Not_Set_Exception
      */
 
     public static function create()
@@ -129,7 +120,7 @@ class Accounts_Factory extends Engine
      *
      * @access private
      * @return string driver name
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Accounts_Driver_Not_Set_Exception
      */
 
     public function framework_create()
@@ -138,34 +129,6 @@ class Accounts_Factory extends Engine
 
         $driver = Accounts_Configuration::get_accounts_driver_info();
 
-        if (empty($driver))
-            throw new Accounts_Driver_Not_Set_Exception();
-
         return $driver['app'] . '/Accounts_Driver';
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Returns the accounts driver.
-     *
-     * @return string accounts driver
-     * @throws Engine_Exception
-     */
-
-    protected function _get_driver()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::FILE_STATE);
-
-        if ($file->exists())
-            $driver = $file->lookup_value('/^driver =/');
-        else
-            $driver = '';
-
-        return $driver;
     }
 }

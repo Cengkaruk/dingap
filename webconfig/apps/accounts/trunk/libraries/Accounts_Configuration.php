@@ -66,9 +66,14 @@ clearos_load_library('base/Folder');
 // Exceptions
 //-----------
 
+use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
+clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
+clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/Validation_Exception');
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -218,7 +223,7 @@ class Accounts_Configuration extends Engine
      *
      * @access private
      * @return string accounts driver
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Accounts_Driver_Not_Set_Exception
      */
 
     public static function get_accounts_driver()
@@ -227,10 +232,15 @@ class Accounts_Configuration extends Engine
 
         $file = new File(self::FILE_STATE);
 
-        if ($file->exists())
-            $driver = $file->lookup_value('/^driver =/');
-        else
-            $driver = '';
+        try {
+            if ($file->exists())
+                $driver = $file->lookup_value('/^driver =/');
+        } catch (File_No_Match_Exception $e) {
+            // Keep going
+        }
+
+        if (empty($driver))
+            throw new Accounts_Driver_Not_Set_Exception();
 
         return $driver;
     }
@@ -240,7 +250,7 @@ class Accounts_Configuration extends Engine
      *
      * @access private
      * @return array accounts driver information
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Accounts_Driver_Not_Set_Exception
      */
 
     public static function get_accounts_driver_info()

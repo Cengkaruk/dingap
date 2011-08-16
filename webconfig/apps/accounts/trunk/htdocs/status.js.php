@@ -60,7 +60,7 @@ $(document).ready(function() {
         $("#accounts_status_widget").show();
 
         $.ajax({
-            url: '/app/accounts/initialization/initialize',
+            url: '/app/accounts/status/initialize',
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
@@ -75,7 +75,7 @@ $(document).ready(function() {
 
     function getAccountsInfo() {
         $.ajax({
-            url: '/app/accounts/initialization/get_info',
+            url: '/app/accounts/status/get_info',
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
@@ -108,11 +108,16 @@ $(document).ready(function() {
             $("#accounts_status_widget").hide();
         }
 
-        // Account Status and Initialization
-        //----------------------------------
+        // Account Status
+        //
+        // Once we have an error condition, always show the status
+        // (even if the system comes back online)
+        //--------------------------------------------------------
 
-        if (payload.status_message)
+        if (payload.status_message) {
             $("#accounts_status").html(payload.status_message);
+            $('#accounts_status_lock').val('on');
+        }
 
         // Account Configuration
         //----------------------
