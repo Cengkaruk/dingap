@@ -42,7 +42,7 @@ $this->lang->load('web_access_control');
 
 if ($mode === 'add') {
     $buttons = array(
-        form_submit_add('add'),
+        form_submit_add('update'),
         anchor_cancel('/app/web_access_control')
     );
 } else {
@@ -56,7 +56,7 @@ if ($mode === 'add') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('web_access_control/add');
+echo form_open('web_access_control/add_edit');
 echo form_header(lang('web_access_control_time_rule'));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ echo field_dropdown('type', $type_options, $type, lang('web_access_control_type'
 echo field_dropdown('time', $time_options, $time, lang('web_access_control_time_of_day'));
 echo field_dropdown('restrict', $restrict_options, $restrict, lang('web_access_control_time_restriction'));
 echo field_dropdown('ident', $ident_options, $ident, lang('web_access_control_id_method'));
-echo field_multiselect_dropdown('ident_user', $user_options, $ident, lang('web_access_control_apply_user'), FALSE, array('id' => 'byuser'));
+echo field_multiselect_dropdown('ident_user[]', $user_options, $ident, lang('web_access_control_apply_user'), TRUE, FALSE, array('id' => 'byuser'));
 echo field_textarea('ident_ip', $ident, lang('web_access_control_apply_ip'), FALSE, array('id' => 'byip'));
 echo field_textarea('ident_mac', $ident, lang('web_access_control_apply_mac'), FALSE, array('id' => 'bymac'));
 

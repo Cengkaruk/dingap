@@ -52,7 +52,7 @@ $(document).ready(function() {
   });
   $('#time').change(function(e) {
     if ($('#time').val() == -1)
-      window.location = '/app/web_access_control/add_time';
+      window.location = '/app/web_access_control/add_edit_time';
   });
 });
 
