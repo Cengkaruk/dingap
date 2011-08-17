@@ -55,6 +55,14 @@ class Plugins extends ClearOS_Controller
 
     function index()
     {
+        // Bail if accounts have not been configured
+        //------------------------------------------
+
+        $this->load->module('accounts/status');
+
+        if ($this->status->unhappy())
+            return;
+
         // Load dependencies
         //------------------
 

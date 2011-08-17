@@ -57,8 +57,8 @@ clearos_load_language('openldap');
 // Factories
 //----------
 
-use \clearos\apps\mode\Mode_Factory as Mode;
 use \clearos\apps\ldap\LDAP_Factory as LDAP;
+use \clearos\apps\mode\Mode_Factory as Mode;
 
 clearos_load_library('ldap/LDAP_Factory');
 clearos_load_library('mode/Mode_Factory');
@@ -74,8 +74,11 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
-// use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Daemon');
@@ -85,18 +88,23 @@ clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('ldap/LDAP_Engine');
-// clearos_load_library('network/Hostname');
+clearos_load_library('ldap/LDAP_Utilities');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
+clearos_load_library('openldap_directory/Utilities');
 
 // Exceptions
 //-----------
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,7 +136,7 @@ class LDAP_Driver extends LDAP_Engine
     const POLICY_LOCALHOST = 'localhost';
 
     // Commands
-    const COMMAND_LDAPSETUP = '/usr/sbin/ldapsetup';
+    const COMMAND_LDAP_MANAGER = '/usr/sbin/ldap-manager';
     const COMMAND_LDAPSYNC = '/usr/sbin/ldapsync';
     const COMMAND_OPENSSL = '/usr/bin/openssl';
     const COMMAND_SLAPADD = '/usr/sbin/slapadd';
@@ -141,6 +149,7 @@ class LDAP_Driver extends LDAP_Engine
     const FILE_DBCONFIG = '/var/lib/ldap/DB_CONFIG';
     const FILE_DBCONFIG_ACCESSLOG = '/var/lib/ldap/accesslog/DB_CONFIG';
     const FILE_INITIALIZED = '/var/clearos/openldap/initialized.php';
+    const FILE_INITIALIZING = '/var/clearos/openldap/initializing';
     const FILE_LDAP_CONFIG = '/etc/openldap/ldap.conf';
     const FILE_SLAPD_CONFIG = '/etc/openldap/slapd.conf';
     const FILE_STATUS = '/var/clearos/openldap/status';
@@ -398,6 +407,52 @@ class LDAP_Driver extends LDAP_Engine
         return $mode;
     }
 
+    /** 
+     * Returns security policies.
+     *
+     * @return array security policies
+     * @throws Engine_Exception
+     */
+
+    public function get_security_policies()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return array(
+            self::POLICY_LOCALHOST => lang('ldap_unpublished'),
+            self::POLICY_LAN => lang('ldap_local_network'),
+        );
+    }
+
+    /** 
+     * Returns security policy.
+     *
+     * The LDAP server can be configured to listen on:
+     * -  localhost only: LDAP::POLICY_LOCALHOST
+     * -  localhost and all LAN interfaces: LDAP::POLICY_LAN
+     *
+     * @return string security policy
+     * @throws Engine_Exception
+     */
+
+    public function get_security_policy()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_SYSCONFIG);
+
+        $policy = self::POLICY_LOCALHOST;
+
+        try {
+            if ($file->exists())
+                $policy = $file->lookup_value('/^BIND_POLICY=/');
+        } catch (File_No_Match_Exception $e) {
+            // Use default localhost policy
+        }
+
+        return $policy;
+    }
+
     /**
      * Returns a list of available modes.
      *
@@ -505,7 +560,7 @@ class LDAP_Driver extends LDAP_Engine
         $options['start'] = $start;
 
         if (empty($password))
-            $password = $this->generate_password();
+            $password =  LDAP_Utilities::generate_password();
 
         $this->_initialize(self::MODE_MASTER, $domain, $password, $options);
     }
@@ -544,7 +599,7 @@ class LDAP_Driver extends LDAP_Engine
         $options['start'] = $start;
 
         if (empty($password))
-            $password = $this->generate_password();
+            $password = LDAP_Utilities::generate_password();
 
         $this->_initialize(self::MODE_STANDALONE, $domain, $password, $options);
     }
@@ -568,32 +623,6 @@ class LDAP_Driver extends LDAP_Engine
     }
 
     /**
-     * Initialized LDAP system.
-     *
-     * @param string $mode LDAP server mode
-     * @param string $domain domain name
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function run_initialize($mode, $domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->IsInitialized())
-            return;
-
-        $options['stdin'] = TRUE;
-        $options['background'] = TRUE;
-
-        $password = $this->generate_password();
-
-        $shell = new Shell();
-        $shell->Execute(self::COMMAND_LDAPSETUP, "-r $mode -d $domain -p $password", TRUE, $options);
-    }
-
-    /**
      * Changes base domain used in directory
      *
      * @param string $domain domain
@@ -606,10 +635,58 @@ class LDAP_Driver extends LDAP_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network_Utils();
+        Validation_Exception::is_valid($this->validate_domain($domain));
 
-        if (! $network->IsValidDomain($domain))
-            throw new Validation_Exception(NETWORK_LANG_DOMAIN . " - " . LOCALE_LANG_INVALID);
+        // Validate: set_domain is not valid when system is in slave mode
+
+        $sysmode = Mode::create();
+        $mode = $sysmode->get_mode();
+
+    // if ($mode !== Mode::MODE_SLAVE)
+
+//        if ($this->is_initialized()) {
+        if (FALSE) {
+
+        } else {
+            // Generate a password
+            //--------------------
+
+            $password = LDAP_Utilities::generate_password();
+
+            // Set initializing
+            //-----------------
+
+            $file = new File(self::FILE_INITIALIZING);
+
+            if (! $file->exists())
+                $file->create('root', 'root', '0644');
+
+            // Run ldap-manager
+            //-----------------
+
+            try {
+                if ($mode === Mode::MODE_STANDALONE)
+                    $this->initialize_standalone($domain, $password);
+                else if ($mode === Mode::MODE_MASTER)
+                    $this->initialize_master($domain, $password);
+            } catch (Engine_Exception $e) {
+                // Do cleanup
+            }
+
+            $file->delete();
+//pete
+
+
+            $options['stdin'] = TRUE;
+            $options['background'] = $background;
+
+            // FIXME: remove force flag
+            $shell = new Shell();
+echo "dude " . self::COMMAND_LDAP_MANAGER . " -m $mode -b $domain -p $password -f";
+            $shell->execute(self::COMMAND_LDAP_MANAGER, "-m $mode -b $domain -p $password -f", TRUE, $options);
+// pete
+        }
+return;
 
         if ($background) {
             try {
@@ -860,6 +937,7 @@ class LDAP_Driver extends LDAP_Engine
         // FIXME
         // $shell->Execute(self::COMMAND_LDAPSYNC, "full", TRUE, $options);
     }
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N
     ///////////////////////////////////////////////////////////////////////////////
@@ -1245,6 +1323,27 @@ FIXME: re-enable backup
     }
 
     /**
+     * Loads configuration file.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _load_config()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $file = new Configuration_File(self::FILE_CONFIG);
+            $this->config = $file->load();
+        } catch (File_Not_Found_Exception $e) {
+            // Not fatal
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e));
+        }
+    }
+
+    /**
      * Sets initialized flag.
      * 
      * @return void
@@ -1282,28 +1381,6 @@ FIXME: re-enable backup
 
         if ($matches === 0)
             $file->add_lines("status_message = $message\n");
-    }
-
-    /**
-    /**
-     * Loads configuration file.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _load_config()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $file = new Configuration_File(self::FILE_CONFIG);
-            $this->config = $file->load();
-        } catch (File_Not_Found_Exception $e) {
-            // Not fatal
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
     }
 
     /**

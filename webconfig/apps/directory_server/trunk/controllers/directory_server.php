@@ -34,7 +34,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Directory_Server controller.
+ * Directory_server controller.
+ *
+ * We are actually initializing two layers here:
+ * - The base LDAP layer using the (basically, an empty LDAP directory)
+ * - The base accounts layer (all things related to user accounts)
  *
  * @category   Apps
  * @package    Directory_Server
@@ -58,30 +62,15 @@ class Directory_Server extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('openldap_directory/OpenLDAP');
-        $this->load->library('openldap_directory/Accounts_Driver');
         $this->lang->load('directory_server');
-
-/*
         $this->load->factory('ldap/LDAP_Factory');
-        $this->load->library('openldap_directory/OpenLDAP');
-        // $this->lang->load('ldap');
+        $this->load->library('openldap_directory/Accounts_Driver');
 
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('mode', 'openldap/LDAP_Driver', 'validate_mode', TRUE);
-        $form_ok = $this->form_validation->run();
-
-        if ($form_ok) {
-            if ($this->input->post('mode') === LDAP::MODE_MASTER) {
-                $this->form_validation->set_policy('master_domain', 'openldap/LDAP_Driver', 'validate_domain', TRUE);
-            } else if ($this->input->post('mode') === LDAP::MODE_STANDALONE) {
-                $this->form_validation->set_policy('standalone_domain', 'openldap/LDAP_Driver', 'validate_domain', TRUE);
-            } else if ($this->input->post('mode') === LDAP::MODE_SLAVE) {
-            }
-        }
-
+        $this->form_validation->set_policy('domain', 'openldap/LDAP_Driver', 'validate_domain', TRUE);
+        $this->form_validation->set_policy('policy', 'openldap/LDAP_Driver', 'validate_security_policy', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -89,11 +78,12 @@ class Directory_Server extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-        //        $this->openldap->run_initialize(
+                $this->ldap->set_security_policy($this->input->post('policy'));
+                $this->ldap->set_domain($this->input->post('domain'), TRUE);
+                $this->ldap->reset();
 
-                $this->openldap->initialize_master($this->input->post('master_domain'), 'subway', TRUE);
                 $this->page->set_status_updated();
-            } catch (Exception $e) {
+            } catch (Engine_Exception $e) {
                 $this->page->view_exception($e);
                 return;
             }
@@ -101,18 +91,13 @@ class Directory_Server extends ClearOS_Controller
 
         // Load view data
         //---------------
-*/
 
         try {
-            $data['domain'] = $this->openldap->get_base_internet_domain();
+            $data['policies'] = $this->ldap->get_security_policies();
+            $data['policy'] = $this->ldap->get_security_policy();
+            $data['domain'] = $this->ldap->get_base_internet_domain();
             $data['status'] = $this->accounts_driver->get_driver_status();
- 
-/*
-            $data['available'] = $this->ldap_driver->is_available();
-*/
-            $data['initialized'] = ($reset) ? FALSE : $this->openldap->is_initialized();
-($reset) ? FALSE : $this->openldap->is_initialized();
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -132,6 +117,7 @@ class Directory_Server extends ClearOS_Controller
         // Load dependencies
         //------------------
 
+        $this->load->library('openldap_directory/Accounts_Driver');
         $this->load->library('openldap_directory/OpenLDAP');
         $this->load->library('openldap/LDAP_Driver');
 
@@ -144,12 +130,14 @@ class Directory_Server extends ClearOS_Controller
             $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
             $data['bind_password'] = $this->ldap_driver->get_bind_password();
 
+            // Account driver information
+            $data['accounts_status'] = $this->accounts_driver->get_driver_status();
+
             // Account information
             $data['computers_container'] = $this->openldap->get_computers_container();
             $data['groups_container'] = $this->openldap->get_groups_container();
             $data['users_container'] = $this->openldap->get_users_container();
-
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             $data['code'] = 1;
             $data['error_message'] = clearos_exception_message($e);
         }

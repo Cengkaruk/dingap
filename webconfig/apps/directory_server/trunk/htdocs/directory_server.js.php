@@ -34,6 +34,7 @@ header('Content-Type:application/x-javascript');
 
 $(document).ready(function() {
     $("#result").html('<div class="theme-loading"></div>');
+    $("#directory_information").hide();
 
     getDirectoryInfo();
 
@@ -53,6 +54,12 @@ $(document).ready(function() {
     }
 
     function showDirectoryInfo(payload) {
+
+        if (payload.accounts_status == 'unset')
+            $("#directory_information").hide();
+        else
+            $("#directory_information").show();
+
         $("#base_dn").html(payload.base_dn);
         $("#bind_dn").html(payload.bind_dn);
         $("#bind_password").html(payload.bind_password);

@@ -35,6 +35,7 @@
 
 use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 use \clearos\apps\accounts\Accounts_Not_Initialized_Exception as Accounts_Not_Initialized_Exception;
+use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -55,19 +56,29 @@ use \clearos\apps\accounts\Accounts_Not_Initialized_Exception as Accounts_Not_In
 class Users extends ClearOS_Controller
 {
     /**
-     * Users server overview.
+     * Users overview.
      */
 
     function index()
     {
-        // Load libraries
-        //---------------
+        // Show account status widget if we're not in a happy state
+        //---------------------------------------------------------
+
+        $this->load->module('accounts/status');
+
+        if ($this->status->unhappy()) {
+            $this->status->widget();
+            return;
+        }
+
+        // Load libraries and grab status information
+        //-------------------------------------------
 
         try {
-//        $this->load->factory('users/User_Manager_Factory');
-            $this->load->factory('accounts/Accounts_Factory');
             $this->lang->load('users');
-        } catch (Accounts_Not_Initialized_Exception $e) {
+            $this->load->factory('users/User_Manager_Factory');
+            $this->load->factory('accounts/Accounts_Factory');
+        } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -76,18 +87,9 @@ class Users extends ClearOS_Controller
         //---------------
 
         try {
-//            $data['users'] = $this->user_manager->get_details();
-
-            if ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE)
-                $data['mode'] = 'edit';
-            else
-                $data['mode'] = 'view';
-/*
-            $is_initialized = $this->accounts->is_initialized();
-            $is_available = $this->accounts->is_available();
-*/
+            $data['users'] = $this->user_manager->get_details();
+            $data['mode'] = ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE) ? 'edit' : 'view';
         } catch (Exception $e) {
-echo "dude";
             $this->page->view_exception($e);
             return;
         }
@@ -185,7 +187,6 @@ echo "dude";
         $this->_item($username, 'view');
     }
 
-
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E
     ///////////////////////////////////////////////////////////////////////////////
@@ -201,12 +202,22 @@ echo "dude";
 
     function _item($username, $form_type)
     {
+        // Show account status widget if we're not in a happy state
+        //---------------------------------------------------------
+
+        $this->load->module('accounts/status');
+
+        if ($this->status->unhappy()) {
+            $this->status->widget();
+            return;
+        }
+
         // Load libraries
         //---------------
 
+        $this->lang->load('users');
         $this->load->factory('users/User_Factory', $username);
         $this->load->factory('accounts/Accounts_Factory');
-        $this->lang->load('users');
 
         // Validate prep
         //--------------

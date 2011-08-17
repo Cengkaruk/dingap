@@ -17,3 +17,6 @@ $lang['ldap_master_password'] = 'Master Password';
 $lang['ldap_base_dn'] = 'Base DN';
 $lang['ldap_bind_dn'] = 'Bind DN';
 $lang['ldap_bind_password'] = 'Bind Password';
+
+$lang['ldap_local_network'] = 'Local Network';
+$lang['ldap_unpublished'] = 'Not Published';

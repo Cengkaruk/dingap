@@ -64,6 +64,10 @@ class Status extends ClearOS_Controller
             $this->widget();
     }
 
+    /**
+     * Returns state of account system
+     */
+
     function unhappy()
     {
         // Load libraries and grab status information
@@ -121,7 +125,7 @@ class Status extends ClearOS_Controller
         $data['ad_installed'] = (clearos_app_installed('active_directory')) ? TRUE : FALSE;
 
 // FIXME
-$data['directory_server_installed'] = FALSE;
+// $data['directory_server_installed'] = FALSE;
 
         try {
             $this->load->factory('accounts/Accounts_Factory');
@@ -137,6 +141,9 @@ $data['directory_server_installed'] = FALSE;
             } else if ($status == Accounts_Engine::STATUS_UNINITIALIZED) {
                 $data['status_message'] = lang('accounts_account_system_is_not_initialized');
                 $data['status'] = 'uninitialized';
+            } else if ($status == Accounts_Engine::STATUS_INITIALIZING) {
+                $data['status_message'] = lang('accounts_account_system_is_initializing');
+                $data['status'] = 'initializing';
             }
 
             $data['driver_selected'] = TRUE;

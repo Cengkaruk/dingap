@@ -104,7 +104,7 @@ class Accounts_Driver extends Accounts_Engine
 
     const DRIVER_NAME = 'openldap_directory';
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
-    const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
+    const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -280,10 +280,28 @@ class Accounts_Driver extends Accounts_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File(self::FILE_INITIALIZED);
+        // Check initializing
+        //-------------------
 
-        if (! $file->exists())
+        $file = new File(self::FILE_INITIALIZING);
+
+        if ($file->exists()) {
+            if (time() - $file->last_modified() < 120)
+                return Accounts_Engine::STATUS_INITIALIZING;
+        }
+
+        // Check initialized
+        //------------------
+
+        try {
+            $accounts = new Accounts_Configuration();
+            $accounts->get_driver();
+        } catch (Accounts_Driver_Not_Set_Exception $e) {
             return Accounts_Engine::STATUS_UNINITIALIZED;
+        }
+
+        // Check online/offline
+        //---------------------
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();

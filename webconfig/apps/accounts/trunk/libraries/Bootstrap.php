@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Accounts engine class.
+ * Bootstrap class.
  *
  * @category   Apps
  * @package    Accounts
@@ -55,27 +55,24 @@ clearos_load_language('accounts');
 // Classes
 //--------
 
-use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\ldap\LDAP_Factory as LDAP_Factory;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 
-clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('base/Engine');
-clearos_load_library('base/Folder');
-
-// Exceptions
-//-----------
-
-use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
-
-clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
+clearos_load_library('ldap/LDAP_Factory');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('mode/Mode_Factory');
+clearos_load_library('openldap_directory/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Accounts engine class.
+ * Bootstrap class.
  *
  * @category   Apps
  * @package    Accounts
@@ -86,128 +83,49 @@ clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Accounts_Engine extends Engine
+class Bootstrap extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const PATH_PLUGINS = '/var/clearos/accounts/plugins';
-
-    const MODE_CONNECTOR = 'connector';
-    const MODE_MASTER = 'master';
-    const MODE_SLAVE = 'slave';
-    const MODE_STANDALONE = 'standalone';
-
-    const STATUS_INITIALIZING = 'initializing';
-    const STATUS_UNINITIALIZED = 'uninitialized';
-    const STATUS_OFFLINE = 'offline';
-    const STATUS_ONLINE = 'online';
-
-    const DRIVER_UNSET = 'unset';
-    const DRIVER_OK = 'ok';
-    const DRIVER_OTHER = 'other';
-
-    // Capabilities
-    //-------------
-
-    const CAPABILITY_READ_ONLY = 'read_only';
-    const CAPABILITY_READ_WRITE = 'read_write';
+    const DEFAULT_DOMAIN = 'system.lan';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Directory manager constructor.
+     * Bootstrap constructor.
      */
 
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $this->modes = array(
-            self::MODE_CONNECTOR => lang('accounts_connector'),
-            self::MODE_MASTER => lang('accounts_master'),
-            self::MODE_SLAVE => lang('accounts_slave'),
-            self::MODE_STANDALONE => lang('accounts_standalone')
-        );
     }
 
     /**
-     * Returns a list of installed plugins.
+     * Initialized the default accounts driver.
      *
-     * @return array plugin list
+     * @return string accounts driver
      * @throws Engine_Exception
      */
 
-    public function get_plugins()
+    public function initialize($force = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $folder = new Folder(self::PATH_PLUGINS);
+        $ldap = LDAP_Factory::create();
+        $sysmode = Mode_Factory::create();
+        $accounts_ldap = new OpenLDAP();
 
-        $list = $folder->get_listing();
+        $mode = $sysmode->get_mode();
 
-        foreach ($list as $plugin_file) {
-            if (! preg_match('/\.php$/', $plugin_file))
-                continue;
+        if ($mode === Mode_Engine::MODE_MASTER)
+            $ldap->initialize_master(self::DEFAULT_DOMAIN, NULL, $force);
+        else if ($mode === Mode_Engine::MODE_STANDALONE)
+            $ldap->initialize_standalone(self::DEFAULT_DOMAIN, NULL, $force);
 
-            $plugin = array();
-            $plugin_basename = preg_replace('/\.php/', '', $plugin_file);
-
-            include self::PATH_PLUGINS . '/' . $plugin_file;
-
-            $plugins[$plugin_basename] = $plugin;
-        }
-
-        return $plugins;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E  M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Returns state of driver.
-     *
-     * @param string $driver_to_check driver to check
-     * @return integer state of driver
-     * @throws Engine_Exception
-     */
-
-    protected function _get_driver_status($driver_to_check)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $accounts = new Accounts_Configuration();
-
-        try {
-            $driver_info = $accounts->get_driver_info();
-        } catch (Accounts_Driver_Not_Set_Exception $e) {
-            return self::DRIVER_UNSET;
-        }
-
-        if ($driver_info['driver'] === $driver_to_check)
-            return self::DRIVER_OK;
-        else
-            return self::DRIVER_OTHER;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // V A L I D A T I O N   R O U T I N E S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validation routine for plugin state.
-     *
-     * @param boolean $state state of plugin
-     *
-     * @return boolean error message if state is invalid
-     */
-
-    public function validate_plugin_state($state)
-    {
-        clearos_profile(__METHOD__, __LINE__);
+        $accounts_ldap->initialize($force);
     }
 }

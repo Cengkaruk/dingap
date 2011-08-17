@@ -37,8 +37,13 @@ $this->lang->load('base');
 $this->lang->load('directory_server');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Driver form
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
+
+if ($status == 'unset')
+    $button = form_submit_custom('submit', lang('base_initialize'), 'high');
+else
+    $button = form_submit_update('submit', 'high');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main form
@@ -48,10 +53,8 @@ echo form_open('directory_server');
 echo form_header(lang('base_settings'));
 
 echo field_input('domain', $domain, lang('directory_server_domain'));
-echo field_toggle_enable_disable('publish', $publish, lang('directory_server_publish_policy'));
-echo field_button_set(
-    array(form_submit_update('submit', 'high'))
-);
+echo field_dropdown('policy', $policies, $policy, lang('directory_server_publish_policy'));
+echo field_button_set(array($button));
 
 echo form_footer();
 echo form_close();
@@ -59,6 +62,8 @@ echo form_close();
 ///////////////////////////////////////////////////////////////////////////////
 // Info form
 ///////////////////////////////////////////////////////////////////////////////
+
+echo "<div id='directory_information'>";
 
 echo form_open('directory_server');
 echo form_header(lang('directory_server_directory_information'));
@@ -77,5 +82,7 @@ echo fieldset_footer();
 
 echo form_footer();
 echo form_close();
+
+echo "</div>";
 
 echo "<div id='result'></div>";

@@ -60,7 +60,7 @@ $(document).ready(function() {
         $("#accounts_status_widget").show();
 
         $.ajax({
-            url: '/app/accounts/status/initialize',
+            url: '/app/accounts/bootstrap/',
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
@@ -115,8 +115,13 @@ $(document).ready(function() {
         //--------------------------------------------------------
 
         if (payload.status_message) {
-            $("#accounts_status").html(payload.status_message);
             $('#accounts_status_lock').val('on');
+
+            // FIXME: Aaron
+            if (payload.status == 'initializing')
+                $("#accounts_status").html('<div class="theme-loading"></div>');
+            else
+                $("#accounts_status").html(payload.status_message);
         }
 
         // Account Configuration

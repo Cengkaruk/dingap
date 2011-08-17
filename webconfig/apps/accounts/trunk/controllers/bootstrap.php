@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Accounts controller.
+ * Bootstrap controller.
  *
  * @category   Apps
  * @package    Accounts
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Accounts controller.
+ * Bootstrap controller.
  *
  * @category   Apps
  * @package    Accounts
@@ -45,18 +45,19 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
-class Accounts extends ClearOS_Controller
+class Bootstrap extends ClearOS_Controller
 {
-	/**
-	 * Accounts overview.
-	 */
+    /**
+     * Bootstrap default controller
+     *
+     * @return view
+     */
 
-	function index()
-	{
-        $this->load->language('accounts');
+    function index($force = '')
+    {
+        $this->load->library('accounts/Bootstrap');
 
-        $views = array('accounts/status', 'accounts/plugins', 'accounts/extensions');
-
-        $this->page->view_forms($views, 'Plugins and Extensions'); // FIXME: translate
-	}
+        $really_force = ($force === 'force') ? TRUE : FALSE;
+        $this->bootstrap->initialize($really_force);
+    }
 }

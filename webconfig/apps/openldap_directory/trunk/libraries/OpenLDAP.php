@@ -77,8 +77,10 @@ clearos_load_library('openldap_directory/Utilities');
 // Exceptions
 //-----------
 
+use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 
+clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
 clearos_load_library('base/Engine_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,7 +107,7 @@ class OpenLDAP extends Engine
 
     // General
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
-    const FILE_INITIALIZED = '/var/clearos/openldap_directory/initialized.php';
+    const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
 
     // Containers
     const SUFFIX_COMPUTERS = 'ou=Computers,ou=Accounts';
@@ -115,6 +117,7 @@ class OpenLDAP extends Engine
     const SUFFIX_PASSWORD_POLICIES = 'ou=PasswordPolicies,ou=Accounts';
     const OU_PASSWORD_POLICIES = 'PasswordPolicies';
     const CN_MASTER = 'cn=Master';
+    const DRIVER_NAME = 'openldap_directory';
 
     // Status codes for username/group/alias uniqueness
     // FIXME: might return just strings instead
@@ -341,12 +344,16 @@ class OpenLDAP extends Engine
      */
     public function is_initialized()
     {
-        $file = new File(self::FILE_INITIALIZED);
+        clearos_profile(__METHOD__, __LINE__);
 
-        if ($file->exists())
-            return TRUE;
-        else
+        try {
+            $accounts = new Accounts_Configuration();
+            $accounts->get_driver();
+        } catch (Accounts_Driver_Not_Set_Exception $e) {
             return FALSE;
+        }
+
+        return TRUE;
     }
 
     /**
@@ -374,10 +381,24 @@ class OpenLDAP extends Engine
         // $status = $ldap->get_system_status()
         // if ($status == unitialized)
 
-        $this->_initialize_authconfig();
-        $this->_remove_overlaps();
-        $this->_initialize_caching();
-        $this->_set_initialized();
+        // Set initializing
+        //-----------------
+
+        $file = new File(self::FILE_INITIALIZING);
+
+        if (! $file->exists())
+            $file->create('root', 'root', '0644');
+
+        try {
+            $this->_initialize_authconfig();
+            $this->_remove_overlaps();
+            $this->_initialize_caching();
+            $this->_set_initialized();
+        } catch (Engine_Exception $e) {
+            // Do cleanup
+        }
+
+        $file->delete();
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -491,12 +512,7 @@ class OpenLDAP extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File(self::FILE_INITIALIZED);
-
-        if (! $file->exists())
-            $file->create('root', 'root', '0644');
-
         $accounts = new Accounts_Configuration();
-        $accounts->set_driver('openldap_directory');
+        $accounts->set_driver(self::DRIVER_NAME);
     }
 }
