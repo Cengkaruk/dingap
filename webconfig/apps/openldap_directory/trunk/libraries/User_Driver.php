@@ -55,10 +55,11 @@ clearos_load_language('users');
 // Classes
 //--------
 
-use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
+use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Plugin_Driver as Plugin_Driver;
@@ -66,10 +67,11 @@ use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
-clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
+clearos_load_library('ldap/LDAP_Utilities');
 clearos_load_library('openldap_directory/Accounts_Driver');
+clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/Group_Manager_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Plugin_Driver');
@@ -80,11 +82,9 @@ clearos_load_library('users/User_Engine');
 // Exceptions
 //-----------
 
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\users\User_Not_Found_Exception as User_Not_Found_Exception;
 
-clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('users/User_Not_Found_Exception');
 
