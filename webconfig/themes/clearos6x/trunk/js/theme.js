@@ -38,11 +38,30 @@ $(function(){
         "bFilter": false,
 	});
 
-
 	$(".theme-summary-table-large").dataTable({
 		"aoColumnDefs": [{ 
 			"bSortable": false, "aTargets": [ -1 ] 
 		}],
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+        "bInfo": true,
+        "bPaginate": true,
+        "bFilter": true,
+	});
+
+    // Hack...disable sorting rows
+	// Summary tables
+	$(".theme-summary-table-small-no-sort").dataTable({
+		"bSort": false,
+		"bJQueryUI": true,
+		"sPaginationType": "full_numbers",
+        "bInfo": false,
+        "bPaginate": false,
+        "bFilter": false,
+	});
+
+	$(".theme-summary-table-large-no-sort").dataTable({
+		"bSort": false,
 		"bJQueryUI": true,
 		"sPaginationType": "full_numbers",
         "bInfo": true,

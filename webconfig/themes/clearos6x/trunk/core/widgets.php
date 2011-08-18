@@ -812,6 +812,13 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
 
     $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
+    // Sorting
+    //--------
+
+    $disable_sort = false;
+    if (isset($options['sort']) && !$options['sort'])
+        $disable_sort = true;
+
     // Item parsing
     //-------------
 
@@ -831,6 +838,9 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     //-----
 
     $size_class = (count($items) > 10) ? 'theme-summary-table-large' : 'theme-summary-table-small';
+
+    if ($disable_sort)
+        $size_class .= '-no-sort';
 
     // Summary table
     //--------------
