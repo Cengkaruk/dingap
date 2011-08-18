@@ -183,7 +183,7 @@ class Cache extends ClearOS_Controller
         $data['cache_options'] = $size_options;
         $data['object_options'] = $size_options;
         $data['download_options'] = $size_options;
-        $data['download_options'][0] = lang('base_unlimited');
+        $data['download_options']['none'] = lang('base_unlimited');
  
         // Load views
         //-----------

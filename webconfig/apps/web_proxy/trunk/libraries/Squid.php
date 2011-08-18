@@ -116,7 +116,7 @@ class Squid extends Daemon
     const CONSTANT_UNLIMITED = 0;
     const DEFAULT_MAX_FILE_DOWNLOAD_SIZE = 0;
     const DEFAULT_MAX_OBJECT_SIZE = 4194304;
-    const DEFAULT_REPLY_BODY_MAX_SIZE_VALUE = '0 allow all';
+    const DEFAULT_REPLY_BODY_MAX_SIZE_VALUE = 'none';
     const DEFAULT_CACHE_SIZE = 104857600;
     const DEFAULT_CACHE_DIR_VALUE = 'ufs /var/spool/squid 100 16 256';
     // A line in the 'acl section' that is guaranteed to be in squid.conf
@@ -266,8 +266,6 @@ class Squid extends Daemon
         return TRUE;
     }
 
-    /**
-     * Returns all defined ACL rules.
     /**
      * Returns the maximum file download size (in bytes).
      *
@@ -654,7 +652,11 @@ class Squid extends Daemon
 
         Validation_Exception::is_valid($this->validate_maximum_file_download_size($size));
 
-        $this->_set_parameter('reply_body_max_size', $size, 1, self::DEFAULT_REPLY_BODY_MAX_SIZE_VALUE);
+        if ($size == 'none') {
+            $this->_set_parameter('reply_body_max_size', $size, self::CONSTANT_NO_OFFSET, self::DEFAULT_REPLY_BODY_MAX_SIZE_VALUE);
+        } else {
+            $this->_set_parameter('reply_body_max_size', "$size bytes", self::CONSTANT_NO_OFFSET, self::DEFAULT_REPLY_BODY_MAX_SIZE_VALUE);
+        }
     }
 
     /**
@@ -1322,6 +1324,8 @@ class Squid extends Daemon
 
     protected function _set_parameter($key, $value, $offset, $default)
     {
+        clearos_profile(__METHOD__, __LINE__);
+
         if (! $this->is_loaded)
             $this->_load_config();
 
@@ -1393,6 +1397,9 @@ class Squid extends Daemon
     public function validate_maximum_file_download_size($size)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if ($size === 'none')
+            return;
 
         if ( (!preg_match('/^\d+/', $size)) || ($size < 0) )
             return lang('web_proxy_maximum_file_download_size_invalid');
