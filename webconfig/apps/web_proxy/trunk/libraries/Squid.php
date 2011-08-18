@@ -52,21 +52,28 @@ clearos_load_language('web_proxy');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
 //--------
 
+use \clearos\apps\users\User_Factory as User_Factory;
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Product as Product;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\network\Network as Network;
+use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\web_proxy\Squid as Squid;
 
+clearos_load_library('users/User_Factory');
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Product');
 clearos_load_library('base/Shell');
 clearos_load_library('network/Network');
+clearos_load_library('network/Network_Utils');
+clearos_load_library('web_proxy/Squid');
 
 // Exceptions
 //-----------
@@ -372,29 +379,29 @@ class Squid extends Daemon
             $temp = array();
             $parts = explode(' ', $acl);
             $temp['type'] = $parts[0];
-            $temp['name'] = substr($parts[1], 9, strlen($parts[1]));
-            $temp['logic'] = !eregi("!", $parts[2]);
-            list($dow, $tod) = split(' ', $file->lookup_value("/^acl " . eregi_replace("!", "", $parts[2]) . " time/"));
-            $temp['time'] = $parts[2];
+            $temp['name'] = substr($parts[1], 11, strlen($parts[1]));
+            $temp['logic'] = !preg_match("/^!/", $parts[2]);
+            list($dow, $tod) = split(' ', $file->lookup_value("/^acl " . preg_replace("/^!/", "", $parts[2]) . " time/"));
+            $temp['time'] = preg_replace("/.*cleartime-/", "", $parts[2]);
             $temp['dow'] = $dow;
             $temp['tod'] = $tod;
             $temp['users'] = '';
             try {
                 $temp['users'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " proxy_auth/"));
                 $temp['ident'] = 'proxy_auth';
-            } catch (Exception $e) {
+            } catch (File_No_Match_Exception $e) {
                 $temp['users'] = '';
             }
             try {
                 $temp['ips'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " src/"));
                 $temp['ident'] = 'src';
-            } catch (Exception $e) {
+            } catch (File_No_Match_Exception $e) {
                 $temp['ips'] = '';
             }
             try {
                 $temp['macs'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " arp/"));
                 $temp['ident'] = 'arp';
-            } catch (Exception $e) {
+            } catch (File_No_Match_Exception $e) {
                 $temp['macs'] = '';
             }
             $list[] = $temp;
@@ -424,7 +431,7 @@ class Squid extends Daemon
                 continue;
             $temp = array();
             $parts = explode(' ', $acl);
-            $temp['name'] = substr($parts[0], 8, strlen($parts[0]));
+            $temp['name'] = substr($parts[0], 10, strlen($parts[0]));
             $temp['dow'] = str_split($parts[2]);
             list($temp['start'], $temp['end']) = explode('-', $parts[3]);
             $list[] = $temp;
@@ -503,7 +510,7 @@ class Squid extends Daemon
             $retval = $shell->Execute("/bin/rm", "-rf /var/spool/squid.delete", TRUE, $options);
 
             if ($retval != 0)
-                throw new Engine_Exception($shell->GetLastOutputLine(), COMMON_WARNING);
+                throw new Engine_Exception($shell->GetLastOutputLine(), CLEAROS_ERROR);
 
             $folder = new Folder(self::PATH_SPOOL);
             $folder->Create("squid", "squid", "0750");
@@ -511,7 +518,7 @@ class Squid extends Daemon
             if ($wasrunning)
                 $this->SetRunningState(TRUE);
         } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
@@ -565,6 +572,7 @@ class Squid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+/*
         try {
             if (file_exists(COMMON_CORE_DIR . "/api/Product.class.php")) {
                 require_once(COMMON_CORE_DIR . "/api/Product.class.php");
@@ -588,7 +596,7 @@ class Squid extends Daemon
             $file->create("root", "squid", "0640");
             $file->add_lines("$bindpw\n");
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         $children = '25';
@@ -609,6 +617,7 @@ class Squid extends Daemon
         $this->_set_parameter("auth_param basic credentialsttl", "2 hours", self::CONSTANT_NO_OFFSET, "");
         $this->_set_parameter("auth_param basic program", $program, self::CONSTANT_NO_OFFSET, "");
         $this->_set_parameter("acl password proxy_auth", "REQUIRED", self::CONSTANT_NO_OFFSET, "");
+*/
     }
 
     /**
@@ -740,14 +749,14 @@ class Squid extends Daemon
             throw new Validation_Exception(lang('web_proxy_invalid_time_definition'));
 
         try {
-            $usermanager = User_Manager::create();
-            $userlist = $usermanager->get_all_user_info();
-
             # Populate users list on invalid data
             foreach ($addusers as $user) {
 
+                $user_factory = new User_Factory($user);
                 $uservalid = FALSE;
+                // FIXME - re-enable code below
 
+                /*
                 foreach ($userlist as $userinfo) {
                     if ($userinfo['uid'] != $user)
                         continue;
@@ -760,11 +769,12 @@ class Squid extends Daemon
 
                 if (! $uservalid)
                     throw new Validation_Exception(lang('web_proxy_invalid_user') . ' - ' . $user);
+                */
 
                 $users .= ' ' . $user;
             }
         } catch (Exception $e) {
-            throw new Validation_Exception($e->GetMessage());
+            throw new Validation_Exception($clearos_exception_message($e));
         }
 
         $network = new Network();
@@ -772,14 +782,15 @@ class Squid extends Daemon
         foreach ($addips as $ip) {
             if (empty($ip))
                 continue;
+            $ip = trim($ip);
 
             if (eregi("^(.*)-(.*)$", trim($ip), $match)) {
-                if (! $network->IsValidIp(trim($match[1])))
-                    throw new Validation_Exception(lang('web_proxy_invalid_ip') . ' - ' . $match[1]);
-                if (! $network->IsValidIp(trim($match[2])))
-                    throw new Validation_Exception(lang('web_proxy_invalid_ip') . ' - ' . $match[2]);
+                if (! Network_Utils::is_valid_ip(trim($match[1])))
+                    throw new Validation_Exception(lang('web_proxy_invalid_ip') . ' - ' . trim($match[1]));
+                if (! Network_Utils::is_valid_ip(trim($match[2])))
+                    throw new Validation_Exception(lang('web_proxy_invalid_ip') . ' - ' . trim($match[2]));
             } else {
-                if (!$network->IsValidIp(trim($ip)))
+                if (! Network_Utils::is_valid_ip(trim($ip)))
                     throw new Validation_Exception(lang('web_proxy_invalid_ip') . ' - ' . $ip);
             }
 
@@ -789,11 +800,13 @@ class Squid extends Daemon
         foreach ($addmacs as $mac) {
             if (empty($mac))
                 continue;
+            $mac = trim($mac);
 
-            if (!$network->IsValidMac(trim($mac)))
+            if (! Network_Utils::is_valid_mac($mac))
+            if (!$network->validate_mac($mac))
                 throw new Validation_Exception(lang('web_proxy_invalid_mac') . ' - ' . $mac);
 
-            $macs .= ' ' . trim($mac);
+            $macs .= ' ' . $mac;
         }
 
         // Implant into acl section
@@ -829,11 +842,11 @@ class Squid extends Daemon
                 if (! $match)
                     $file->add_lines_after($replacement, Squid::REGEX_ACL_DELIMITER);
             } else {
-                throw new Engine_Exception(lang('web_proxy_empty_id_array'), COMMON_WARNING);
+                throw new Engine_Exception(lang('web_proxy_empty_id_array'), CLEAROS_ERROR);
             }
 
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         $this->is_loaded = FALSE;
@@ -855,16 +868,17 @@ class Squid extends Daemon
             # Check for follow_x_forwarded_for directives
             if (strlen($ips) > 0) {
                 try {
-                    $file->LookupLine("/^follow_x_forwarded_for allow localhost$/");
+                    $file->lookup_line("/^follow_x_forwarded_for allow localhost$/");
                 } catch (File_No_Match_Exception $e) {
                     $lines = "follow_x_forwarded_for allow localhost\nfollow_x_forwarded_for deny localhost\n";
                     $file->add_lines_before($lines, "/http_access " . str_replace("/", "\\/", $this->config['http_access']['line'][1]) . "/i");
                 } catch (Exception $e) {
-                    throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+                    throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
                 }
 
                 # Check for DG config
-                try {
+                // FIXME
+                /*try {
                     if (file_exists(COMMON_CORE_DIR . "/api/DansGuardian.class.php")) {
                         $dg = new Daemon("dansguardian");
                         if ($dg->get_running_state()) {
@@ -901,9 +915,10 @@ class Squid extends Daemon
                 } catch (Exception $e) {
                     # Ignore
                 }
+                */
             }
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         $this->is_loaded = FALSE;
@@ -963,7 +978,7 @@ class Squid extends Daemon
                 $file->add_lines_after($replacement, Squid::REGEX_ACL_DELIMITER);
             }
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
         $this->is_loaded = FALSE;
         $this->config = array();
@@ -1092,7 +1107,7 @@ class Squid extends Daemon
         } catch (Exception $e) {
             $this->is_loaded = FALSE;
             $this->config = array();
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
@@ -1140,7 +1155,7 @@ class Squid extends Daemon
                     "http_access allow webconfig_lan\nhttp_access deny all\n"
                 );
             } catch (Exception $e) {
-                throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+                throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
             }
         }
 
@@ -1155,7 +1170,7 @@ class Squid extends Daemon
                     "http_access deny manager\nhttp_access allow webconfig_to_lan\n"
                 );
             } catch (Exception $e) {
-                throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+                throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
             }
         }
 
@@ -1178,7 +1193,7 @@ class Squid extends Daemon
                 "# webconfig: acl_end\n"
             );
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         // Implant: http_port 192.168.2.2:3128
@@ -1190,7 +1205,7 @@ class Squid extends Daemon
         } catch (File_No_Match_Exception $e) {
             $file->add_lines("# webconfig: http_port_start\n# webconfig: http_port_end");
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
