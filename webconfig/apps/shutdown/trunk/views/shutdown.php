@@ -36,28 +36,30 @@
 $this->lang->load('shutdown');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
+if ($action === 'shutdown') {
+    $body = field_view('', lang('shutdown_system_is_shutting_down'));
+} else if ($action === 'restart') {
+    $body = field_view('', lang('shutdown_system_is_restarting'));
+} else {
+    $body = field_button_set(
+        array(
+            anchor_custom('/app/shutdown/confirm_shutdown', lang('shutdown_shutdown'), 'high'),
+            anchor_custom('/app/shutdown/confirm_restart', lang('shutdown_restart'), 'high')
+        )
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Form 
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('shutdown');
 echo form_header(lang('shutdown_system'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-if ($action === 'shutdown') {
-    echo lang('shutdown_system_is_shutting_down');
-} else if ($action === 'restart') {
-    echo lang('shutdown_system_is_restarting');
-} else {
-    echo anchor_custom('/app/shutdown/confirm_shutdown', lang('shutdown_shutdown'), 'high');
-    echo anchor_custom('/app/shutdown/confirm_restart', lang('shutdown_restart'), 'high');
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo $body;
 
 echo form_footer();
 echo form_close();
