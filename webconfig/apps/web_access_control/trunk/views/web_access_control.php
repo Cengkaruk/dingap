@@ -69,9 +69,9 @@ foreach ($acls as $acl) {
     );
     $priority_buttons = array();
     if ($counter > 0)
-        $priority_buttons[] = anchor_custom('/app/web_access_control/down/' . $acl['name'], '-');
+        $priority_buttons[] = anchor_custom('/app/web_access_control/priority/' . $acl['name'] . '/1', '+');
     if ($counter < count($acls) - 1)
-        $priority_buttons[] = anchor_custom('/app/web_access_control/up/' . $acl['name'], '+');
+        $priority_buttons[] = anchor_custom('/app/web_access_control/priority/' . $acl['name'] . '/0', '-');
 
     if (empty($priority_buttons))
         $priority = '---';
@@ -97,11 +97,10 @@ foreach ($acls as $acl) {
 // Summary table
 ///////////////////////////////////////////////////////////////////////////////
 
-sort($items);
-
 echo summary_table(
     lang('web_access_control_list'),
     $anchors,
     $headers,
-    $items
+    $items,
+    array ('sort' => FALSE)
 );
