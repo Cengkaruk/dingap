@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Web proxy controller.
+ * Web proxy daemon controller.
  *
  * @category   Apps
  * @package    Web_Proxy
@@ -30,11 +30,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('base') . '/controllers/daemon.php';
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Web proxy controller.
+ * Web proxy daemon controller.
  *
  * @category   Apps
  * @package    Web_Proxy
@@ -45,20 +58,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/web_proxy/
  */
 
-class Web_Proxy extends ClearOS_Controller
+class Server extends Daemon
 {
-    /**
-     * Web proxy server overview.
-     *
-     * @return view
-     */
-
-    function index()
+    function __construct()
     {
-        // FIXME - only show cache for beta
-        // $views = array('web_proxy/settings', 'web_proxy/cache', 'web_proxy/bypass');
-        $views = array('web_proxy/server', 'web_proxy/cache');
-
-        $this->page->view_forms($views, lang('proxy_app_name'));
+        parent::__construct('squid', 'web_proxy');
     }
 }
