@@ -55,9 +55,10 @@ if ($mode === 'edit') {
     );
 } else {
     $read_only = TRUE;
+    // FIXME: complete test feature
+    //     anchor_custom('/app/mail_notification/test', lang('mail_notification_test'), 'high')
     $buttons = array(
         anchor_edit('/app/mail_notification/edit'),
-        anchor_custom('/app/mail_notification/test', lang('mail_notification_test'), 'high')
     );
 }
 
