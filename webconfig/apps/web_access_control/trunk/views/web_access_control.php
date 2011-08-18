@@ -57,29 +57,40 @@ $anchors = array(anchor_add('/app/web_access_control/add_edit'));
 // Rules
 ///////////////////////////////////////////////////////////////////////////////
 
+$counter = 0;
 foreach ($acls as $acl) {
     $item['title'] = $acl['name'];
     $item['action'] = '/app/web_access_control/delete/' . $acl['name'];
     $item['anchors'] = button_set(
         array(
-            $state_anchor('/app/web_access_control/' . $acl['line'], 'high'),
-            anchor_custom('/app/web_access_control/up/' . $acl['line'], '+', 'low'),
-            anchor_custom('/app/web_access_control/down/' . $acl['line'], '-', 'low'),
-            anchor_delete('/app/web_access_control/delete/' . $acl['line'], 'low')
+            anchor_edit('/app/web_access_control/add_edit/' . $acl['name']),
+            anchor_delete('/app/web_access_control/delete/' . $acl['name'])
         )
     );
+    $priority_buttons = array();
+    if ($counter > 0)
+        $priority_buttons[] = anchor_custom('/app/web_access_control/down/' . $acl['name'], '-');
+    if ($counter < count($acls) - 1)
+        $priority_buttons[] = anchor_custom('/app/web_access_control/up/' . $acl['name'], '+');
+
+    if (empty($priority_buttons))
+        $priority = '---';
+    else
+        $priority = button_set($priority_buttons);
+
     if ($acl['logic'])
         $time = lang('web_access_control_within') . ' ' . $acl['time'];
     else
         $time = lang('web_access_control_outside') . ' ' . $acl['time'];
     $item['details'] = array(
         $acl['name'],
-        $acl['type'],
+        ucfirst($acl['type']),
         $time,
-        $acl['priority']
+        $priority
     );
 
     $items[] = $item;
+    $counter++;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

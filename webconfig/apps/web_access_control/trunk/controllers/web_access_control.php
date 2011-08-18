@@ -71,13 +71,14 @@ class Web_Access_Control extends ClearOS_Controller
         //------------------
 
         $this->lang->load('web_access_control');
+        $this->lang->load('web_proxy');
 
-        $acls = $this->squid->get_acl_list();
+        $data['acls'] = $this->squid->get_acl_list();
 
         // Load view
         //----------
 
-        $this->page->view_form('web_access_control', NULL, lang('web_access_control_web_access_control'));
+        $this->page->view_form('web_access_control', $data, lang('web_access_control_web_access_control'));
     }
 
     function add_edit($name = NULL)
@@ -86,6 +87,8 @@ class Web_Access_Control extends ClearOS_Controller
         //---------------
 
         $this->load->library('web_proxy/Squid');
+        $this->lang->load('users');
+        $this->load->factory('users/User_Manager_Factory');
         $this->lang->load('web_access_control');
         $this->lang->load('base');
 
@@ -101,9 +104,6 @@ class Web_Access_Control extends ClearOS_Controller
 
         if (($this->input->post('update') && $form_ok)) {
             try {
-echo "<Pre style='text-align: left;'>";
-print_r($_POST);
-echo "</Pre>";
                 // Want to grab the index of the time option
                 $time_options = $this->squid->get_time_definition_list();
                 $this->squid->set_time_acl(
@@ -112,20 +112,27 @@ echo "</Pre>";
                     $time_options[$this->input->post('time')]['name'],
                     $this->input->post('time_logic'),
                     $this->input->post('ident_user'),
-                    $this->input->post('ident_ip'),
-                    $this->input->post('ident_mac')
+                    explode("\n", $this->input->post('ident_ip')),
+                    explode("\n", $this->input->post('ident_mac'))
                 );
 
                 $this->page->set_status_added();
-        //        redirect('/web_access_control');
+                redirect('/web_access_control');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
             }
         }
 
+        try {
+            $users = $this->user_manager->get_details();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+ 
         // TODO - LDAP list
-        $data['user_options'] = array('benjamin', 'joe', 'kris', 'mark');
+        $data['user_options'] = array_keys($users);
         $data['type_options'] = $this->squid->get_access_type_array();
         // This function returns array of info about the time entry...we just want the name
         $time_options = $this->squid->get_time_definition_list();
