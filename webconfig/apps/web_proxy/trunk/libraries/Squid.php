@@ -1064,7 +1064,7 @@ class Squid extends Daemon
      * Bumps the priority of an ACL.
      *
      * @param String $name time name
-     * @param Boolean $priority FALSE for bumping up priority, TRUE for bumping down
+     * @param int    $priority use value greater than zero to bump up
      *
      * @return void
      * @throws Engine_Exception
@@ -1093,12 +1093,11 @@ class Squid extends Daemon
                 }
                 if (ereg("^(deny|allow) cleargroup-$name .*$", $acl)) {
                     #Found ACL
-                    $file->DeleteLines("/^http_access $acl$/");
-                    if ($priority == -1) {
+                    $file->delete_lines("/^http_access $acl$/");
+                    if ($priority > 0)
                         $file->add_lines_before('http_access ' . $acl . "\n", "/^" . $last . "$/");
-                    } else {
+                    else
                         $file->add_lines_after('http_access ' . $acl . "\n", "/^http_access " . $this->config['http_access']['line'][$counter + 1] . "$/");
-                    }
                     $this->is_loaded = FALSE;
                     $this->config = array();
                     break;
@@ -1111,6 +1110,28 @@ class Squid extends Daemon
             $this->config = array();
             throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
         }
+    }
+
+    /**
+     * Returns the days of the week options.
+     *
+     * @return array 
+     */
+
+    public function get_day_of_week_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $dow = array(
+            'm' => lang('base_monday'),
+            't' => lang('base_tuesday'),
+            'w' => lang('base_wednesday'),
+            'h' => lang('base_thursday'),
+            'f' => lang('base_friday'),
+            'a' => lang('base_saturday'),
+            's' => lang('base_sunday')
+        );
+        return $dow;
     }
 
     /**
@@ -1184,8 +1205,8 @@ class Squid extends Daemon
 
         try {
             $file = new File(self::FILE_CONFIG, TRUE);
-            $file->DeleteLines("/^# webconfig: acl_/");
-            $file->DeleteLines("/^acl webconfig_.*lan/");
+            $file->delete_lines("/^# webconfig: acl_/");
+            $file->delete_lines("/^acl webconfig_.*lan/");
             $match = $file->replace_lines(
                 "/^acl\s+localhost\s+src/i", 
                 "acl localhost src 127.0.0.0/8\n" .
