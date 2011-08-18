@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Web Access Control overview.
+ * Web Access Control time summary.
  *
  * @category   Apps
  * @package    Web_Access_Control
@@ -37,50 +37,61 @@ $this->lang->load('base');
 $this->lang->load('web_access_control');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form modes
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($mode === 'add') {
-    $buttons = array(
-        form_submit_add('update'),
-        anchor_cancel('/app/web_access_control')
+$headers = array(
+    lang('web_access_control_name'),
+    lang('web_access_control_day_of_week'),
+    lang('web_access_control_start_time'),
+    lang('web_access_control_end_time')
+);
+
+///////////////////////////////////////////////////////////////////////////////
+// Anchors 
+///////////////////////////////////////////////////////////////////////////////
+
+$anchors = array(anchor_add('/app/web_access_control/add_edit_time'));
+
+///////////////////////////////////////////////////////////////////////////////
+// Rules
+///////////////////////////////////////////////////////////////////////////////
+
+foreach ($time_definitions as $time) {
+    $item['title'] = $time['name'];
+    $item['action'] = '/app/web_access_control/time_summary/delete/' . $time['name'];
+    $item['anchors'] = button_set(
+        array(
+            anchor_edit('/app/web_access_control/add_edit_time/' . $time['name']),
+            anchor_delete('/app/web_access_control/time_summary/delete/' . $time['name'])
+        )
     );
-} else {
-    $buttons = array(
-        form_submit_update('update'),
-        anchor_cancel('/app/web_access_control')
+    $dow = '';
+    foreach ($day_of_week_options as $key => $day) {
+        if (in_array($key, $time['dow']))
+            $dow .= substr($day, 0, 1);
+        else
+            $dow .= '-';
+    }
+    $item['details'] = array(
+        $time['name'],
+        $dow,
+        $time['start'],
+        $time['end']
     );
+
+    $items[] = $item;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Summary table
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($mode === 'add')
-    echo form_open('web_access_control/add_edit');
-else
-    echo form_open('web_access_control/add_edit/' . $name);
+sort($items);
 
-echo form_header(lang('web_access_control_time_rule'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-echo field_input('name', $name, lang('web_access_control_name'), ($mode === 'add' ? FALSE : TRUE));
-echo field_dropdown('type', $type_options, $type, lang('web_access_control_type'));
-echo field_dropdown('time', $time_options, $time, lang('web_access_control_time_of_day'));
-echo field_dropdown('restrict', $restrict_options, $restrict, lang('web_access_control_time_restriction'));
-echo field_dropdown('ident', $ident_options, $ident, lang('web_access_control_id_method'));
-echo field_multiselect_dropdown('ident_user[]', $user_options, $ident_user, lang('web_access_control_apply_user') . ' ' . lang('web_access_control_ctrl_click'), TRUE, FALSE, array('id' => 'byuser'));
-echo field_textarea('ident_ip', $ident_ip, lang('web_access_control_apply_ip'), FALSE, array('id' => 'byip'));
-echo field_textarea('ident_mac', $ident_mac, lang('web_access_control_apply_mac'), FALSE, array('id' => 'bymac'));
-
-echo field_button_set($buttons);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_footer();
-echo form_close();
+echo summary_table(
+    lang('web_access_control_time_definitions'),
+    $anchors,
+    $headers,
+    $items
+);

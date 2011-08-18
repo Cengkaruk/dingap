@@ -56,7 +56,6 @@ $(document).ready(function() {
   });
 });
 
-
 function change_id_selector() {
   // Hide all rows
   $('#byuser_field').hide();

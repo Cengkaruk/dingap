@@ -55,7 +55,7 @@ class Web_Access_Control extends ClearOS_Controller
 {
 
     /**
-     * Mail Archive default controller
+     * Web Access Control default controller
      *
      * @return view
      */
@@ -73,12 +73,15 @@ class Web_Access_Control extends ClearOS_Controller
         $this->lang->load('web_access_control');
         $this->lang->load('web_proxy');
 
-        $data['acls'] = $this->squid->get_acl_list();
+        $views = array(
+            'web_access_control/acl_summary',
+            'web_access_control/time_summary'
+        );
 
-        // Load view
-        //----------
+        // Load views
+        //-----------
 
-        $this->page->view_form('web_access_control', $data, lang('web_access_control_web_access_control'));
+        $this->page->view_forms($views, lang('web_access_control_web_access_control'));
     }
 
     function add_edit($name = NULL)
@@ -104,16 +107,15 @@ class Web_Access_Control extends ClearOS_Controller
 
         if (($this->input->post('update') && $form_ok)) {
             try {
-                // Want to grab the index of the time option
-                $time_options = $this->squid->get_time_definition_list();
                 $this->squid->set_time_acl(
                     $this->input->post('name'),
                     $this->input->post('type'),
-                    $time_options[$this->input->post('time')]['name'],
-                    $this->input->post('time_logic'),
+                    $this->input->post('time'),
+                    $this->input->post('restrict'),
                     $this->input->post('ident_user'),
                     explode("\n", $this->input->post('ident_ip')),
-                    explode("\n", $this->input->post('ident_mac'))
+                    explode("\n", $this->input->post('ident_mac')),
+                    ($name == NULL ? FALSE : TRUE)
                 );
 
                 $this->page->set_status_added();
@@ -131,7 +133,6 @@ class Web_Access_Control extends ClearOS_Controller
             return;
         }
  
-        // TODO - LDAP list
         $data['user_options'] = array_keys($users);
         $data['type_options'] = $this->squid->get_access_type_array();
         // This function returns array of info about the time entry...we just want the name
@@ -139,15 +140,38 @@ class Web_Access_Control extends ClearOS_Controller
         $data['time_options'][-10] = lang('base_select');
         $data['time_options'][-1] = lang('web_access_control_add_time');
         foreach ($time_options as $info)
-            $data['time_options'][] = $info['name'];
+            $data['time_options'][$info['name']] = $info['name'];
         ksort($data['time_options']);
         $data['restrict_options'] = array(
-            lang('web_access_control_within_range'),
-            lang('web_access_control_outside_range')
+            lang('web_access_control_outside_range'),
+            lang('web_access_control_within_range')
         );
         $data['ident_options'] = $this->squid->get_identification_type_array();
-        if ($name == NULL)
+        if ($name == NULL) {
             $data['mode'] = 'add'; 
+        } else {
+            $acls = $this->squid->get_acl_list();
+            foreach($acls as $acl) {
+                if ($acl['name'] == $name) {
+                    $data['name'] = $name;
+                    $data['type'] = $acl['type'];
+                    $data['time'] = $acl['time'];
+                    $data['restrict'] = $acl['logic'];
+                    if ($acl['users']) {
+                        $data['ident'] = 'proxy_auth';
+                        $data['ident_user'] = $acl['users'];
+                    } else if ($acl['ips']) {
+                        $data['ident'] = 'src';
+                        $data['ident_ip'] = $acl['ips'];
+                    } else if ($acl['macs']) {
+                        $data['ident'] = 'arp';
+                        $data['ident_mac'] = $acl['macs'];
+                    }
+                    //print_r($acl);
+                    break;
+                }
+            }
+        }
 
         // Load the views
         //---------------
@@ -180,26 +204,19 @@ class Web_Access_Control extends ClearOS_Controller
                     $this->input->post('name'),
                     $this->input->post('dow'),
                     $this->input->post('start_time'),
-                    $this->input->post('end_time')
+                    $this->input->post('end_time'),
+                    ($name == NULL ? FALSE : TRUE)
                 );
 
                 $this->page->set_status_added();
-                // Send back to ACL add form
-                redirect('/web_access_control/add_edit');
+                redirect('/web_access_control');
             } catch (Exception $e) {
                 $this->page->set_message(clearos_exception_message($e));
             }
         }
 
-        $data['day_of_week_options'] = array(
-            'm' => lang('base_monday'),
-            't' => lang('base_tuesday'),
-            'w' => lang('base_wednesday'),
-            'h' => lang('base_thursday'),
-            'f' => lang('base_friday'),
-            'a' => lang('base_saturday'),
-            's' => lang('base_sunday')
-        );
+        $data['day_of_week_options'] = $this->squid->get_day_of_week_options();
+
         $data['time_options'] = array();
         for ($hour = 0; $hour < 24; $hour++) {
             for ($minute = 0; $minute < 60; $minute = $minute +15)
@@ -207,12 +224,44 @@ class Web_Access_Control extends ClearOS_Controller
         }
         $data['time_options'][] = '24:00';
 
-        if ($name == NULL)
+        if ($name == NULL) {
             $data['mode'] = 'add'; 
+        } else {
+            $time_definitions = $this->squid->get_time_definition_list();
+            $data['name'] = $name;
+            foreach($time_definitions as $time) {
+                if ($time['name'] == $name) {
+                    $data['start_time'] = $time['start'];
+                    $data['end_time'] = $time['end'];
+                    $data['days'] = array_values($time['dow']);
+                    break;
+                }
+            }
+        }
 
         // Load the views
         //---------------
 
         $this->page->view_form('web_access_control/add_edit_time', $data, lang('base_add'));
     }
+
+    function priority($name, $priority)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('web_proxy/Squid');
+        $this->lang->load('web_access_control');
+        $this->lang->load('base');
+
+        try {
+            $this->squid->bump_time_acl_priority($name, $priority);
+            $this->page->set_message(lang('web_access_control_priority_updated'), 'info');
+        } catch (Exception $e) {
+            $this->page->set_message(clearos_exception_message($e));
+        }
+
+        redirect('/web_access_control');
+    }
+
 }

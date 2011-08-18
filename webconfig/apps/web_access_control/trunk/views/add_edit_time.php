@@ -43,12 +43,12 @@ $this->lang->load('web_access_control');
 if ($mode === 'add') {
     $buttons = array(
         form_submit_add('update'),
-        anchor_cancel('/app/web_access_control/add_edit')
+        anchor_cancel('/app/web_access_control')
     );
 } else {
     $buttons = array(
         form_submit_update('update'),
-        anchor_cancel('/app/web_access_control/add_edit')
+        anchor_cancel('/app/web_access_control')
     );
 }
 
@@ -56,17 +56,20 @@ if ($mode === 'add') {
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('web_access_control/add_edit_time');
+if ($mode === 'add')
+    echo form_open('web_access_control/add_edit_time');
+else
+    echo form_open('web_access_control/add_edit_time/' . $name);
 echo form_header(lang('web_access_control_add_time'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('name', $name, lang('web_access_control_name'));
+echo field_input('name', $name, lang('web_access_control_name'), ($mode === 'add' ? FALSE : TRUE));
 echo field_simple_dropdown('start_time', $time_options, $start_time, lang('web_access_control_start_time'));
 echo field_simple_dropdown('end_time', $time_options, $end_time, lang('web_access_control_end_time'));
-echo field_multiselect_dropdown('dow[]', $day_of_week_options, $days, lang('web_access_control_day_of_week'), FALSE);
+echo field_multiselect_dropdown('dow[]', $day_of_week_options, $days, lang('web_access_control_day_of_week') . ' ' . lang('web_access_control_ctrl_click'), FALSE);
 
 echo field_button_set($buttons);
 

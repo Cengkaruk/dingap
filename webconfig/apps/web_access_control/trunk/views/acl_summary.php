@@ -60,11 +60,11 @@ $anchors = array(anchor_add('/app/web_access_control/add_edit'));
 $counter = 0;
 foreach ($acls as $acl) {
     $item['title'] = $acl['name'];
-    $item['action'] = '/app/web_access_control/delete/' . $acl['name'];
+    $item['action'] = '/app/web_access_control/acl_summary/delete/' . $acl['name'];
     $item['anchors'] = button_set(
         array(
             anchor_edit('/app/web_access_control/add_edit/' . $acl['name']),
-            anchor_delete('/app/web_access_control/delete/' . $acl['name'])
+            anchor_delete('/app/web_access_control/acl_summary/delete/' . $acl['name'])
         )
     );
     $priority_buttons = array();
