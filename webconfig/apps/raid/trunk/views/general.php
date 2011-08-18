@@ -65,7 +65,7 @@ echo field_input('vendor', $type['vendor'], lang('raid_vendor'), TRUE);
 echo field_toggle_enable_disable('monitor', $monitor, lang('raid_monitor'), $read_only);
 echo field_toggle_enable_disable('notify', $notify, lang('raid_notify'), $read_only);
 echo field_input('email', $email, lang('raid_notify_email'), $read_only);
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
