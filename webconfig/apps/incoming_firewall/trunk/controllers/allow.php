@@ -153,6 +153,7 @@ class Allow extends ClearOS_Controller
 
         $data['services'] = $this->incoming->get_standard_service_list();
         $data['protocols'] = $this->incoming->get_basic_protocols();
+        // FIXME: trim services list for rules that are already enabled
  
         // Load the views
         //---------------
