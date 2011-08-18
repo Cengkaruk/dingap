@@ -28,6 +28,7 @@ $app['subcategory'] = lang('base_subcategory_settings');
 $app['core_requires'] = array(
     'app-network-core',
     'postfix',
+    'Swift',
 );
 
 $app['core_file_manifest'] = array(
