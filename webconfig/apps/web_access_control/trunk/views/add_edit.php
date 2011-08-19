@@ -72,7 +72,15 @@ echo field_dropdown('type', $type_options, $type, lang('web_access_control_type'
 echo field_dropdown('time', $time_options, $time, lang('web_access_control_time_of_day'));
 echo field_dropdown('restrict', $restrict_options, $restrict, lang('web_access_control_time_restriction'));
 echo field_dropdown('ident', $ident_options, $ident, lang('web_access_control_id_method'));
-echo field_multiselect_dropdown('ident_user[]', $user_options, $ident_user, lang('web_access_control_apply_user') . ' ' . lang('web_access_control_ctrl_click'), TRUE, FALSE, array('id' => 'byuser'));
+echo field_multiselect_dropdown(
+    'ident_user[]',
+    $user_options,
+    $ident_user,
+    lang('web_access_control_apply_user') . ' ' . lang('web_access_control_ctrl_click'),
+    TRUE,
+    FALSE,
+    array('id' => 'byuser')
+);
 echo field_textarea('ident_ip', $ident_ip, lang('web_access_control_apply_ip'), FALSE, array('id' => 'byip'));
 echo field_textarea('ident_mac', $ident_mac, lang('web_access_control_apply_mac'), FALSE, array('id' => 'bymac'));
 

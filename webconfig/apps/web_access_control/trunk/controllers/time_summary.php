@@ -40,7 +40,7 @@ use \clearos\apps\web_proxy\Squid as Squid;
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Mail Archive controller.
+ * Time Summary controller.
  *
  * @category   Apps
  * @package    Web_Access_Control
@@ -82,7 +82,8 @@ class Time_Summary extends ClearOS_Controller
     /**
      * Delete a time definition.
      *
-     * @param string  $filename filename
+     * @param string $name    name of time rule
+     * @param string $confirm confirm intentions to delete
      *
      * @return view
      */

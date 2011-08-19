@@ -40,7 +40,7 @@ use \clearos\apps\web_proxy\Squid as Squid;
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Mail Archive controller.
+ * Web Access Control controller.
  *
  * @category   Apps
  * @package    Web_Access_Control
@@ -83,6 +83,14 @@ class Web_Access_Control extends ClearOS_Controller
 
         $this->page->view_forms($views, lang('web_access_control_web_access_control'));
     }
+
+    /**
+     * Add or edit an access control definition
+     *
+     * @param string $name name of ACL rule
+     *
+     * @return view
+     */
 
     function add_edit($name = NULL)
     {
@@ -151,7 +159,7 @@ class Web_Access_Control extends ClearOS_Controller
             $data['mode'] = 'add'; 
         } else {
             $acls = $this->squid->get_acl_list();
-            foreach($acls as $acl) {
+            foreach ($acls as $acl) {
                 if ($acl['name'] == $name) {
                     $data['name'] = $name;
                     $data['type'] = $acl['type'];
@@ -167,7 +175,6 @@ class Web_Access_Control extends ClearOS_Controller
                         $data['ident'] = 'arp';
                         $data['ident_mac'] = $acl['macs'];
                     }
-                    //print_r($acl);
                     break;
                 }
             }
@@ -178,6 +185,14 @@ class Web_Access_Control extends ClearOS_Controller
 
         $this->page->view_form('web_access_control/add_edit', $data, lang('base_add'));
     }
+
+    /**
+     * Add or edit a time definition
+     *
+     * @param string $name name of time definition
+     *
+     * @return view
+     */
 
     function add_edit_time($name = NULL)
     {
@@ -220,7 +235,7 @@ class Web_Access_Control extends ClearOS_Controller
         $data['time_options'] = array();
         for ($hour = 0; $hour < 24; $hour++) {
             for ($minute = 0; $minute < 60; $minute = $minute +15)
-                $data['time_options'][] = sprintf("%02d", $hour) . ":" . sprintf("%02d",$minute);
+                $data['time_options'][] = sprintf("%02d", $hour) . ":" . sprintf("%02d", $minute);
         }
         $data['time_options'][] = '24:00';
 
@@ -229,7 +244,7 @@ class Web_Access_Control extends ClearOS_Controller
         } else {
             $time_definitions = $this->squid->get_time_definition_list();
             $data['name'] = $name;
-            foreach($time_definitions as $time) {
+            foreach ($time_definitions as $time) {
                 if ($time['name'] == $name) {
                     $data['start_time'] = $time['start'];
                     $data['end_time'] = $time['end'];
@@ -244,6 +259,15 @@ class Web_Access_Control extends ClearOS_Controller
 
         $this->page->view_form('web_access_control/add_edit_time', $data, lang('base_add'));
     }
+
+    /**
+     * Add or edit a time definition
+     *
+     * @param string $name     name of time definition
+     * @param int    $priority integer to move up/down in priority
+     *
+     * @return view
+     */
 
     function priority($name, $priority)
     {

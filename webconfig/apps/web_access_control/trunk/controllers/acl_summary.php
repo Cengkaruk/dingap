@@ -40,7 +40,7 @@ use \clearos\apps\web_proxy\Squid as Squid;
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Mail Archive controller.
+ * ACL Summary controller.
  *
  * @category   Apps
  * @package    Web_Access_Control
@@ -81,7 +81,8 @@ class Acl_Summary extends ClearOS_Controller
     /**
      * Delete an ACL definition.
      *
-     * @param string  $filename filename
+     * @param string $name    name of ACL rule
+     * @param string $confirm confirm intentions to delete
      *
      * @return view
      */

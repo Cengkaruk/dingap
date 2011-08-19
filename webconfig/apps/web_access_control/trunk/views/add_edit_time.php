@@ -69,7 +69,13 @@ echo form_header(lang('web_access_control_add_time'));
 echo field_input('name', $name, lang('web_access_control_name'), ($mode === 'add' ? FALSE : TRUE));
 echo field_simple_dropdown('start_time', $time_options, $start_time, lang('web_access_control_start_time'));
 echo field_simple_dropdown('end_time', $time_options, $end_time, lang('web_access_control_end_time'));
-echo field_multiselect_dropdown('dow[]', $day_of_week_options, $days, lang('web_access_control_day_of_week') . ' ' . lang('web_access_control_ctrl_click'), FALSE);
+echo field_multiselect_dropdown(
+    'dow[]',
+    $day_of_week_options,
+    $days,
+    lang('web_access_control_day_of_week') . ' ' . lang('web_access_control_ctrl_click'),
+    FALSE
+);
 
 echo field_button_set($buttons);
 
