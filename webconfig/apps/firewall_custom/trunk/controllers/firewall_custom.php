@@ -81,10 +81,12 @@ class Firewall_Custom extends ClearOS_Controller
     /**
      * Add rule.
      *
+     * @param integer $line line number
+     *
      * @return view
      */
 
-    function add()
+    function add_edit($line = -1)
     {
         // Load libraries
         //---------------
@@ -96,24 +98,37 @@ class Firewall_Custom extends ClearOS_Controller
         // Set validation rules
         //---------------------
 
-        $is_action = FALSE;
-
-        $this->form_validation->set_policy('iptables', 'firewall_custom/Firewall_Custom', 'validate_iptables', TRUE);
-        $this->form_validation->set_policy('description', 'firewall_custom/Firewall_Custom', 'validate_description', TRUE);
+        $this->form_validation->set_policy('entry', 'firewall_custom/Firewall_Custom', 'validate_entry', TRUE);
+        $this->form_validation->set_policy(
+            'description',
+            'firewall_custom/Firewall_Custom',
+            'validate_description',
+            TRUE
+        );
 
         // Handle form submit
         //-------------------
 
         if ($this->form_validation->run()) {
             try {
-                $this->firewall_custom->add_rule(
-                    $this->input->post('iptables'),
-                    $this->input->post('description'),
-                    $this->input->post('enabled'),
-                    $this->input->post('priority')
-                );
+                if ($line >= 0) {
+                    $this->firewall_custom->update_rule(
+                        $line,
+                        $this->input->post('entry'),
+                        $this->input->post('description'),
+                        $this->input->post('enabled')
+                    );
+                    $this->page->set_message(lang('firewall_custom_rule_updated'), 'info');
+                } else {
+                    $this->firewall_custom->add_rule(
+                        $this->input->post('entry'),
+                        $this->input->post('description'),
+                        $this->input->post('enabled'),
+                        $this->input->post('priority')
+                    );
+                    $this->page->set_status_added();
+                }
 
-                $this->page->set_status_added();
                 redirect('/firewall_custom');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
@@ -121,60 +136,114 @@ class Firewall_Custom extends ClearOS_Controller
             }
         }
 
+        if ($line >= 0)
+            $data = $this->firewall_custom->get_rule($line);
+
         // Load the views
         //---------------
 
-        $this->page->view_form('firewall_custom/add', $data, lang('base_add'));
+        $this->page->view_form('firewall_custom/add_edit', $data, lang('base_add'));
     }
 
     /**
-     * Delete custom rule.
+     * Toggle enable/disable of rule.
      *
      * @param integer $line line number
      *
      * @return view
      */
 
-    function delete($line)
-    {
-        $confirm_uri = '/app/firewall_custom/destroy/' . $line;
-        $cancel_uri = '/app/firewall_custom';
-
-        $this->load->library('firewall_custom/Firewall_Custom');
-        $this->lang->load('firewall_custom');
-
-        $rule = $this->firewall_custom->get_rule($line);
-        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, array($rule['description']));
-    }
-
-    /**
-     * Destroys rule.
-     *
-     * @param string $line line
-     *
-     * @return view
-     */
-
-    function destroy($line)
+    function toggle($line)
     {
         // Load libraries
         //---------------
 
         $this->load->library('firewall_custom/Firewall_Custom');
         $this->lang->load('firewall_custom');
+        $this->lang->load('base');
+
+        // Set validation rules
+        //---------------------
 
         // Handle form submit
         //-------------------
 
         try {
-            $this->firewall_custom->delete_rule($line);
-
-            $this->page->set_status_deleted();
-            redirect('/firewall_custom');
+            $data = $this->firewall_custom->get_rule($line);
+            $this->firewall_custom->update_rule(
+                $line,
+                $data['entry'],
+                $data['description'],
+                !$data['enabled']
+            );
+            $this->page->set_message(lang('firewall_custom_rule_updated'), 'info');
         } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
+            $this->page->set_message(clearos_exception_message($e));
         }
+
+        redirect('/firewall_custom');
     }
 
+    /**
+     * Delete custom rule.
+     *
+     * @param integer $line    line number
+     * @param string  $confirm confirm deletion
+     *
+     * @return view
+     */
+
+    function delete($line, $confirm = NULL)
+    {
+        $confirm_uri = '/app/firewall_custom/delete/' . $line . '/1';
+        $cancel_uri = '/app/firewall_custom';
+
+        $this->load->library('firewall_custom/Firewall_Custom');
+        $this->lang->load('firewall_custom');
+
+        if ($confirm != NULL) {
+            try {
+                $this->firewall_custom->delete_rule($line);
+
+                $this->page->set_status_deleted();
+                redirect('/firewall_custom');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        $rule = $this->firewall_custom->get_rule($line);
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, array($rule['description']));
+    }
+
+    /**
+     * Prioritize rule.
+     *
+     * @param integer $line     line number
+     * @param integer $priority priority
+     *
+     * @return view
+     */
+
+    function priority($line, $priority)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('firewall_custom/Firewall_Custom');
+        $this->lang->load('firewall_custom');
+        $this->lang->load('base');
+
+        try {
+            $this->firewall_custom->set_rule_priority($line, $priority);
+            $this->page->set_message(lang('firewall_custom_priority_updated'), 'info');
+        } catch (Exception $e) {
+            $this->page->set_message(clearos_exception_message($e));
+        }
+
+        //redirect('/firewall_custom');
+        $data['rules'] = $this->firewall_custom->get_rules();
+        $this->page->view_form('summary', $data, lang('firewall_custom_overview'));
+    }
 }

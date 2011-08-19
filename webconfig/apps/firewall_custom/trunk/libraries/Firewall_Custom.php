@@ -138,19 +138,19 @@ class Firewall_Custom extends Engine
                 // Blank line
                 continue;
             } else if (preg_match('/^\s*#\s*iptables\s+([^#]*)#(.*)/', $entry, $match)) {
-                $rule['entry'] = 'iptables ' . $match[1];
-                $rule['description'] = $match[2];
+                $rule['entry'] = 'iptables ' . trim($match[1]);
+                $rule['description'] = trim($match[2]);
             } else if (preg_match('/^\s*#\s*iptables\s+(.*)/', $entry, $match)) {
-                $rule['entry'] = 'iptables ' . $match[1];
+                $rule['entry'] = 'iptables ' . trim($match[1]);
             } else if (preg_match('/^\s*#(.*)/', $entry, $match)) {
                 // Comment only
                 continue;
             } else if (preg_match('/^\s*iptables\s+([^#]*)#(.*)/', $entry, $match)) {
-                $rule['entry'] = 'iptables ' . $match[1];
+                $rule['entry'] = 'iptables ' . trim($match[1]);
                 $rule['enabled'] = 1;
-                $rule['description'] = $match[2];
+                $rule['description'] = trim($match[2]);
             } else {
-                $rule['entry'] = $entry;
+                $rule['entry'] = trim($entry);
                 $rule['enabled'] = 1;
             }
             $rules[$index] = $rule;
@@ -290,7 +290,8 @@ class Firewall_Custom extends Engine
         if (! $this->is_loaded)
             $this->_load_configuration();
 
-        $replace = $enabled ? "" : "# " . $entry . isset($description) ? " # " . $description : "";
+        $replace = ($enabled ? '' : '# ') . $entry . (isset($description) ? ' # ' . $description : '');
+
         $this->configuration[$line] = $replace;
         $this->_save_configuration();
     }
@@ -333,16 +334,17 @@ class Firewall_Custom extends Engine
         if (! $this->is_loaded)
             $this->_load_configuration();
 
-        $swap = $this->configuration[$line + $direction];
-        $counter = 1;
+        // Original line
+        $moving_line = $this->configuration[$line];
 
-        while (!preg_match("/\s*iptables.*/", $swap) && !preg_match("/\s*#\s*iptables.*/", $swap)) {
-            $counter++;
-            $swap = $this->configuration[$line + $counter * $direction];
-        }
+        // Line that will take it's place
+        $swap_line = $this->configuration[($line - $direction)];
 
-        $this->configuration[$line + $counter * $direction] = $this->configuration[$line];
-        $this->configuration[$line] = $swap;
+        // Now let's swap
+        $this->configuration[($line - $direction)] = $moving_line;
+        $this->configuration[$line] = $swap_line;
+
+        // And save
         $this->_save_configuration();
     }
 
@@ -438,7 +440,7 @@ class Firewall_Custom extends Engine
      * @return mixed void if iptables is valid, errmsg otherwise
      */
 
-    public function validate_iptables($iptables)
+    public function validate_entry($iptables)
     {
         clearos_profile(__METHOD__, __LINE__);
 

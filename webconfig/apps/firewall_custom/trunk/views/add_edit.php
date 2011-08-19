@@ -40,18 +40,32 @@ $this->lang->load('firewall_custom');
 // Standard service
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('firewall_custom/add_edit');
+if ($line >= 0)
+    echo form_open('firewall_custom/add_edit/' . $line);
+else
+    echo form_open('firewall_custom/add_edit');
+
 echo form_header(lang('firewall_custom_rule'));
 
-echo field_input('iptables', $iptables, lang('firewall_custom_rule'));
+echo field_input('entry', $entry, lang('firewall_custom_rule'));
 echo field_input('description', $description, lang('base_description'));
+echo field_toggle_enable_disable('enabled', $enabled, lang('base_status'));
 
-echo field_button_set(
-    array(
-        form_submit_add('submit_standard', 'high'),
-        anchor_cancel('/app/firewall_custom')
-    )
-);
+if ($line >= 0) {
+    echo field_button_set(
+        array(
+            form_submit_update('submit_standard', 'high'),
+            anchor_cancel('/app/firewall_custom')
+        )
+    );
+} else {
+    echo field_button_set(
+        array(
+            form_submit_add('submit_standard', 'high'),
+            anchor_cancel('/app/firewall_custom')
+        )
+    );
+}
 
 echo form_footer();
 echo form_close();
