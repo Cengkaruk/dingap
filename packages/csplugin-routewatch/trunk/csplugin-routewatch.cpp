@@ -283,7 +283,7 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
         if (!tag->ParamExists("table"))
-            ParseError("table parameter missing");
+            ParseError("parameter missing: " + tag->GetName());
 
         time_t delay = _DEFAULT_DELAY;
         if (tag->ParamExists("delay"))
