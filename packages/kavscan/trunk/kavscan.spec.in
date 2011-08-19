@@ -1,0 +1,77 @@
+%define kavsdk KAV_SDK8_L3-Linux-x86_gcc345-glibc232_8.1.3.109-Release-Lic
+%define kavupdater Updater_SDK8-Linux-x86_gcc345-glibc232_8.1.3.44-Release-Lic
+
+Name: @PACKAGE_TARNAME@
+Version: @PACKAGE_VERSION@
+Release: 1%{dist}
+Vendor: ClearFoundation
+Group: System Environment/Daemons
+License: GPL
+Packager: ClearFoundation
+Source: %{name}-%{version}.tar.gz
+BuildRoot: /var/tmp/%{name}-%{version}
+Requires: /usr/sbin/useradd /sbin/service
+Source1: %{kavsdk}.tgz
+Source2: %{kavupdater}.tgz
+Summary: Kaspersky Anti-virus/malware scanner
+%description
+Kaspersky Anti-virus/malware scanner
+http://www.kaspersky.com/
+http://www.clearcenter.com/
+Report bugs to: @PACKAGE_BUGREPORT@
+
+# Prepare
+%prep
+%setup -q
+tar -xzf %{SOURCE1}
+tar -xzf %{SOURCE2}
+%{configure} --with-kavsdk=./%{kavsdk}
+
+# Build
+%build
+make %{?_smp_mflags}
+
+# Install
+%install
+make install DESTDIR=$RPM_BUILD_ROOT
+#cp -a ./%{kavsdk}/bin/bases $RPM_BUILD_ROOT/%{_localstatedir}/lib/kavscan
+install -d $RPM_BUILD_ROOT%{_localstatedir}/lib/kavscan/bases
+cp -a ./%{kavsdk}/ppl $RPM_BUILD_ROOT%{_localstatedir}/lib/kavscan
+cp -a ./%{kavsdk}/opt/kav/sdk8l3/bin/kavehost $RPM_BUILD_ROOT%{_sbindir}
+cp -a ./%{kavsdk}/opt/kav/sdk8l3/bin/appinfo.kli $RPM_BUILD_ROOT%{_localstatedir}/lib/kavscan
+cp -a ./%{kavupdater}/bin/keepup2date8 $RPM_BUILD_ROOT%{_bindir}
+install -d $RPM_BUILD_ROOT%{_libdir}
+cp -a ./%{kavsdk}/lib/libsdk8l3* $RPM_BUILD_ROOT%{_libdir}
+cp -a ./%{kavupdater}/lib/libupdsdk8* $RPM_BUILD_ROOT%{_libdir}
+install -d $RPM_BUILD_ROOT%{_localstatedir}/run/kavscan
+install -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
+cp -a ./kavscan.conf $RPM_BUILD_ROOT%{_sysconfdir}
+cp -a ./init.d/kavdscan $RPM_BUILD_ROOT%{_sysconfdir}/init.d
+
+# Pre install
+%pre
+/usr/sbin/useradd -M -c "Kaspersky AV Scanner" -s /sbin/nologin -d /var/lib/kavscan -r kavscan 2> /dev/null || :
+
+# Post install
+%postun
+/sbin/ldconfig
+
+# Clean-up
+%clean
+[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT
+
+# Package files
+%files
+%defattr(-,root,root)
+%{_bindir}/kavscan
+%{_bindir}/keepup2date8
+%{_sbindir}/kavdscan
+%{_sbindir}/kavehost
+%{_libdir}/libsdk8l3.so*
+%{_libdir}/libupdsdk8.so*
+%{_sysconfdir}/kavscan.conf
+%{_sysconfdir}/init.d/kavdscan
+%attr(0644,kavscan,kavscan) %{_localstatedir}/lib/kavscan/appinfo.kli
+%attr(-,kavscan,kavscan) %{_localstatedir}/lib/kavscan/bases
+%attr(-,kavscan,kavscan) %{_localstatedir}/lib/kavscan
+%attr(0755,kavscan,kavscan) %{_localstatedir}/run/kavscan

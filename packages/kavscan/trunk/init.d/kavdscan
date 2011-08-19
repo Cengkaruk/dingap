@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# kavdscan          Start/Stop the Kaspersky AV Scanner daemon.
+#
+# chkconfig: 2345 90 60
+# description: Kaspersky anti-virus/malware scanner.
+# processname: kavdscan
+# config: /etc/kavscan.conf
+
+# Source function library.
+. /etc/init.d/functions
+
+RETVAL=0
+KAVEHOST_PID="/var/run/kavscan/kavehost.pid"
+KAVDSCAN_PID="/var/run/kavscan/kavdscan.pid"
+KAVSCAN_CONF="/etc/kavscan.conf"
+KL_PLUGINS_PATH="/var/lib/kavscan/ppl"
+
+# See how we were called.
+start() {
+	echo -n $"Starting kavehost: "
+	daemon --user kavscan \
+		KL_PLUGINS_PATH=$KL_PLUGINS_PATH \
+		LD_LIBRARY_PATH=$KL_PLUGINS_PATH \
+		/usr/sbin/kavehost -c $KAVSCAN_CONF
+	RETVAL=$?
+	echo
+	if [ $RETVAL -eq 0 ]; then
+		[ -n "$KAVEHOST_PID" ] && ln -s $KAVEHOST_PID /var/run/kavehost.pid
+		touch /var/lock/subsys/kavehost
+	else
+		return $RETVAL
+	fi
+	echo -n $"Starting kavdscan: "
+	daemon --user kavscan /usr/sbin/kavdscan
+	RETVAL=$?
+	echo
+	if [ $RETVAL -eq 0 ]; then
+		[ -n "$KAVDSCAN_PID" ] && ln -s $KAVDSCAN_PID /var/run/kavdscan.pid
+		touch /var/lock/subsys/kavdscan
+	else
+		kill $(cat $KAVEHOST_PID)
+		rm /var/lock/subsys/kavehost
+	fi
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping kavdscan: "
+	killproc kavdscan
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f $KAVDSCAN_PID /var/run/kavdscan.pid /var/lock/subsys/kavdscan
+	echo -n $"Stopping kavehost: "
+	killproc kavehost
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f $KAVEHOST_PID /var/run/kavehost.pid /var/lock/subsys/kavehost
+	return $RETVAL
+}
+
+restart() {
+  	stop
+	start
+}	
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  condrestart)
+  	[ -f /var/lock/subsys/kavdscan ] && restart || :
+	;;
+  status)
+	status -p $KAVEHOST_PID kavehost
+	status -p $KAVDSCAN_PID kavdscan
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+	exit 1
+esac
+
+exit $?
+# vi: ts=4
