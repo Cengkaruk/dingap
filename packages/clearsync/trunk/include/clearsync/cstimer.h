@@ -34,6 +34,7 @@ public:
     void SetValue(time_t value);
     void SetInterval(time_t value);
     void Extend(time_t value);
+    time_t GetInterval(void) { return it_spec.it_interval.tv_sec; };
     time_t GetRemaining(void);
     inline csEventClient *GetTarget(void) { return target; };
 
