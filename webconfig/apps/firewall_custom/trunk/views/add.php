@@ -40,7 +40,7 @@ $this->lang->load('firewall_custom');
 // Standard service
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('firewall_custom/add');
+echo form_open('firewall_custom/add_edit');
 echo form_header(lang('firewall_custom_rule'));
 
 echo field_input('iptables', $iptables, lang('firewall_custom_rule'));
