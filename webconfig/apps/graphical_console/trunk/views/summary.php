@@ -37,24 +37,29 @@ if (! is_console())
 $ip = $lan_ips['0']; // FIXME: handle more scenarios
 
 echo "
-<div align='left'>
-<p>Welcome to ClearOS Enterprise 6.1.0 Beta 1!  ClearOS Enterprise is configured over the network 
-via a web-browser.  Here's what you need to do:</p>
+<div align='left' class='graphical-console-content'>
+<div style='float:left; width:215px; font-size: 10px;'>Welcome to ClearOS Enterprise 6.1.0 Beta 1!  ClearOS Enterprise is configured over the network 
+via a web-browser.  Here's what you need to do:</div> <img style='float:left; margin-left:15px;' src='/clearos/approot/graphical_console/trunk/htdocs/browsers.png'>
 
-<p><b>Step 1. Check Your Network Settings</b></p>
+<h2 style='float:left;'>Step 1. Check Your Network Settings</h2>
 
-<p>The IP address of this system is <b>$ip</b>.  If you need to change your
-network settings, you can <b><a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #8BB60' href='/app/network'>login to access the Network Console</a></b>.</p>
+<div style='float:left;'>The IP address of this system is <b>$ip</b>. <br/> If you need to change your
+network settings, you can <a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #e1852e;'  href='/app/network'>login to access the Network Console</a>.</div>
 
-<p><b>Step 2. Use Your Web Browser</b></p>
+<h2 style='float:left;'>Step 2. Use Your Web Browser</h2>
 
-<p>Start your web browser and type the following for the web address:</p>
+<div style='float:left; width:330px;'>
+<div style='float:left;'>Start your web browser and type the following for the web address:</div> <br/>
+<div style='margin-top: 30px; margin-left: auto; margin-right: auto; width:162px;'><h2>https://$ip:81/</h2></div>
+</div>
 
-<p>https://$ip:81/</p>
+<img style='float:left; margin-left:15px;' src='/clearos/approot/graphical_console/trunk/htdocs/webconfig.png'>
+
+
 
 </div>
 
-<img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
+
 ";
 
 /*
