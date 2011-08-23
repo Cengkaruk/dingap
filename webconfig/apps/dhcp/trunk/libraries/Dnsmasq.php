@@ -410,26 +410,6 @@ class Dnsmasq extends Daemon
         return $validlist;
     }
 
-    /** 
-     * Returns status of DHCP server.
-     *
-     * @return boolean status of DHCP server
-     * @throws Engine_Exception
-     */
-
-    public function get_dhcp_state()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        if (isset($this->config['conf-file']['line'][1]))
-            return TRUE;
-        else
-            return FALSE;
-    }
-
     /**
      * Returns default domain name.
      *
@@ -728,34 +708,6 @@ class Dnsmasq extends Daemon
 
         if ($state)
             $this->config['dhcp-authoritative']['line'][1] = '';
-
-        $this->_save_config();
-    }
-
-    /**
-     * Sets state of DHCP server.
-     *
-     * @param boolean $state DHCP server state
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_dhcp_state($state)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_dhcp_state($state));
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        // Cleans out invalid duplicates
-        if (isset($this->config['conf-file']))
-            unset($this->config['conf-file']);
-
-        if ($state)
-            $this->config['conf-file']['line'][1] = self::FILE_DHCP;
 
         $this->_save_config();
     }
