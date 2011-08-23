@@ -3,7 +3,7 @@ Name: app-account-import
 Group: ClearOS/Apps
 Version: 5.9.9.4
 Release: 1.1%{dist}
-Summary: Translation missing (account_import_app_summary)
+Summary: Account Import/Export
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-users
 Perform bulk import of users to the system using the Account Import/Export app.
 
 %package core
-Summary: Translation missing (account_import_app_summary) - APIs and install
+Summary: Account Import/Export - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
