@@ -407,6 +407,22 @@ class LDAP_Driver extends LDAP_Engine
         return $mode;
     }
 
+    /**
+     * Returns the mode of directory in human readable format.
+     *
+     * @return string mode of the directory in human readable format.
+     * @throws Engine_Exception
+     */
+
+    public function get_mode_text()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mode = $this->get_mode();
+
+        return $this->modes[$mode];
+    }
+
     /** 
      * Returns security policies.
      *
@@ -638,11 +654,10 @@ class LDAP_Driver extends LDAP_Engine
         Validation_Exception::is_valid($this->validate_domain($domain));
 
         // Validate: set_domain is not valid when system is in slave mode
+        $mode = $this->get_mode();
 
-        $sysmode = Mode::create();
-        $mode = $sysmode->get_mode();
-
-    // if ($mode !== Mode::MODE_SLAVE)
+        if ($mode === self::MODE_SLAVE)
+            throw new Validation_Exception(lang('openldap_domain_cannot_be_changed_in_slave_mode'));
 
 //        if ($this->is_initialized()) {
         if (FALSE) {
@@ -664,29 +679,20 @@ class LDAP_Driver extends LDAP_Engine
             // Run ldap-manager
             //-----------------
 
+// FIXME - remove TRUE flag
             try {
-                if ($mode === Mode::MODE_STANDALONE)
-                    $this->initialize_standalone($domain, $password);
-                else if ($mode === Mode::MODE_MASTER)
+                if ($mode === self::MODE_STANDALONE)
+                    $this->initialize_standalone($domain, $password, TRUE);
+                else if ($mode === self::MODE_MASTER)
                     $this->initialize_master($domain, $password);
             } catch (Engine_Exception $e) {
                 // Do cleanup
             }
 
             $file->delete();
-//pete
-
-
-            $options['stdin'] = TRUE;
-            $options['background'] = $background;
-
-            // FIXME: remove force flag
-            $shell = new Shell();
-echo "dude " . self::COMMAND_LDAP_MANAGER . " -m $mode -b $domain -p $password -f";
-            $shell->execute(self::COMMAND_LDAP_MANAGER, "-m $mode -b $domain -p $password -f", TRUE, $options);
+return;
 // pete
         }
-return;
 
         if ($background) {
             try {
