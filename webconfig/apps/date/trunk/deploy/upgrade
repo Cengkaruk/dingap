@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Add sudoers entries
+#--------------------
+
+/usr/sbin/addsudo /sbin/hwclock app-date-core
+/usr/sbin/addsudo /usr/sbin/ntpdate app-date-core
+
 # Remove timesync at boot (now part of syswatch)
 #-----------------------------------------------
 
