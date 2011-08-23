@@ -2,7 +2,7 @@
 Name: app-mail-notification
 Group: ClearOS/Apps
 Version: 5.9.9.4
-Release: 1.1%{dist}
+Release: 2%{dist}
 Summary: Mail Notification
 License: GPLv3
 Packager: ClearFoundation
