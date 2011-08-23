@@ -1,7 +1,7 @@
 # ClearSync Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 6%{dist}
+Release: 7%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
@@ -31,8 +31,6 @@ make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-routewatch.a
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-routewatch.la
-mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
-cp -v csplugin-routewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 
 # Clean-up
 %clean
@@ -78,6 +76,5 @@ fi
 # Files
 %files
 %defattr(-,root,root)
-%config(noreplace) %{_sysconfdir}/clearsync.d/csplugin-routewatch.conf
 %{_libdir}/libcsplugin-routewatch.so*
 
