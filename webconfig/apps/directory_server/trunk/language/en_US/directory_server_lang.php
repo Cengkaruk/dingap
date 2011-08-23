@@ -14,3 +14,5 @@ $lang['directory_server_bind_password'] = 'Bind Password';
 $lang['directory_server_users'] = 'Users';
 $lang['directory_server_groups'] = 'Groups';
 $lang['directory_server_computers'] = 'Computers';
+$lang['directory_server_mode'] = 'Mode';
+$lang['directory_server_capabilities'] = 'Capabilities';

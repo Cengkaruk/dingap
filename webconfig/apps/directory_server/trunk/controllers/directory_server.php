@@ -29,6 +29,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,6 +73,7 @@ class Directory_Server extends ClearOS_Controller
          
         $this->form_validation->set_policy('domain', 'openldap/LDAP_Driver', 'validate_domain', TRUE);
         $this->form_validation->set_policy('policy', 'openldap/LDAP_Driver', 'validate_security_policy', TRUE);
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -78,9 +81,17 @@ class Directory_Server extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
+                // Don't set the domain in slave mode
+/*
+                $mode = $this->ldap->get_mode();
+
+                if ($mode !== LDAP_Engine::MODE_SLAVE)
+                    $this->ldap->set_domain($this->input->post('domain'), TRUE);
+*/
+
                 $this->ldap->set_security_policy($this->input->post('policy'));
-                $this->ldap->set_domain($this->input->post('domain'), TRUE);
-                $this->ldap->reset();
+
+                $this->ldap->reset(TRUE);
 
                 $this->page->set_status_updated();
             } catch (Engine_Exception $e) {
@@ -96,6 +107,7 @@ class Directory_Server extends ClearOS_Controller
             $data['policies'] = $this->ldap->get_security_policies();
             $data['policy'] = $this->ldap->get_security_policy();
             $data['domain'] = $this->ldap->get_base_internet_domain();
+            $data['mode'] = $this->ldap->get_mode();
             $data['status'] = $this->accounts_driver->get_driver_status();
         } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
@@ -106,6 +118,28 @@ class Directory_Server extends ClearOS_Controller
         //-----------
 
         $this->page->view_form('directory_server', $data, lang('directory_server_app_name'));
+    }
+
+    /**
+     * Updates domains
+     */
+
+    function update_domain($domain)
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->factory('ldap/LDAP_Factory');
+
+        // Handle form submit
+        //-------------------
+
+        try {
+            $this->ldap->set_domain($domain, TRUE);
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
     }
 
     /**
@@ -126,6 +160,7 @@ class Directory_Server extends ClearOS_Controller
 
         try {
             // Low level LDAP information
+            $data['mode_text'] = $this->ldap_driver->get_mode_text();
             $data['base_dn'] = $this->ldap_driver->get_base_dn();
             $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
             $data['bind_password'] = $this->ldap_driver->get_bind_password();

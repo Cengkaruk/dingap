@@ -29,6 +29,8 @@
 //  
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,7 +45,9 @@ $this->lang->load('directory_server');
 if ($status == 'unset')
     $button = form_submit_custom('submit', lang('base_initialize'), 'high');
 else
-    $button = form_submit_update('submit', 'high');
+    $button = anchor_javascript('update_directory', lang('base_update'));
+
+$domain_read_only = ($mode === LDAP_Engine::MODE_SLAVE) ? TRUE : FALSE;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main form
@@ -52,9 +56,11 @@ else
 echo form_open('directory_server');
 echo form_header(lang('base_settings'));
 
-echo field_input('domain', $domain, lang('directory_server_domain'));
+echo field_input('domain', $domain, lang('directory_server_domain'), $domain_read_only);
 echo field_dropdown('policy', $policies, $policy, lang('directory_server_publish_policy'));
-echo field_button_set(array($button));
+// echo field_button_set(array($button));
+
+echo "<input type='submit' name='update_directory' id='update_directory' value='Update' class='theme-button-set-first theme-button-set-last theme-form-submit ui-corner-all theme-form-submit-custom theme-form-important' />";
 
 echo form_footer();
 echo form_close();
@@ -67,6 +73,10 @@ echo "<div id='directory_information'>";
 
 echo form_open('directory_server');
 echo form_header(lang('directory_server_directory_information'));
+
+echo fieldset_header(lang('directory_server_capabilities'));
+echo field_view(lang('directory_server_mode'), '', 'mode_text');
+echo fieldset_footer();
 
 echo fieldset_header(lang('directory_server_connection_information'));
 echo field_view(lang('directory_server_base_dn'), '', 'base_dn');

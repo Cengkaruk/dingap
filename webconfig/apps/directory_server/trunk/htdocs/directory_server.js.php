@@ -38,6 +38,29 @@ $(document).ready(function() {
 
     getDirectoryInfo();
 
+    // Update via Ajax
+    //----------------
+
+    $("#update_directory").click(function(){
+        $("#update_directory").trigger('submit');
+        $("#directory_information").hide();
+
+        $.ajax({
+FIXME
+
+            url: '/app/directory_server/update_domain/test8.lan',
+            method: 'GET',
+            dataType: 'json',
+            success : function(payload) {
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            }
+        });
+    });
+
+    // Directory information via Ajax
+    //-------------------------------
+
     function getDirectoryInfo() {
         $.ajax({
             url: '/app/directory_server/get_info',
@@ -54,12 +77,13 @@ $(document).ready(function() {
     }
 
     function showDirectoryInfo(payload) {
-
-        if (payload.accounts_status == 'unset')
-            $("#directory_information").hide();
-        else
+        if (payload.accounts_status == 'ok') {
             $("#directory_information").show();
+        } else {
+            $("#directory_information").hide();
+        }
 
+        $("#mode_text").html(payload.mode_text);
         $("#base_dn").html(payload.base_dn);
         $("#bind_dn").html(payload.bind_dn);
         $("#bind_password").html(payload.bind_password);
