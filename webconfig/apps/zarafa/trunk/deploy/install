@@ -1,0 +1,11 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default boot policy
+#------------------------
+
+chkconfig --add zarafa-spooler
+chkconfig --add zarafa-server
+chkconfig --add zarafa-dagent
+chkconfig zarafa-dagent on
