@@ -31,7 +31,6 @@ make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filewatch.a
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filewatch.la
-mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 
 # Clean-up
 %clean
