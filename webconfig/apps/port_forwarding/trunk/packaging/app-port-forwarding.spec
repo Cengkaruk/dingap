@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-This is the description for port forwarding... tra la la la la la... al-al-pha.
+This is the description for port forwarding...
 
 %package core
 Summary: Port Forwarding - APIs and install
@@ -25,7 +25,7 @@ Requires: app-firewall-core
 Requires: app-network-core
 
 %description core
-This is the description for port forwarding... tra la la la la la... al-al-pha.
+This is the description for port forwarding...
 
 This package provides the core API and libraries.
 
