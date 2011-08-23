@@ -1,11 +1,16 @@
 # KAVscan: Kaspersky Antivirus/Malware scanner for ClearOS
 
+%define kavsdk32 KAV_SDK8_L3-Linux-x86_gcc345-glibc232_8.1.3.109-Release-Lic
+%define kavupdater32 Updater_SDK8-Linux-x86_gcc345-glibc232_8.1.3.44-Release-Lic
+%define kavsdk64 KAV_SDK8_L3-Linux-x64_gcc443-glibc232_8.1.3.112-Release-Lic
+%define kavupdater64 Updater_SDK8-Linux-x64_gcc443-glibc232_8.1.3.47-Release-Lic
+
 %if %{__isa_bits} == 32
-%define kavsdk KAV_SDK8_L3-Linux-x86_gcc345-glibc232_8.1.3.109-Release-Lic
-%define kavupdater Updater_SDK8-Linux-x86_gcc345-glibc232_8.1.3.44-Release-Lic
+%define kavsdk %{kavsdk32}
+%define kavupdater %{kavupdater32}
 %else
-%define kavsdk KAV_SDK8_L3-Linux-x86_gcc345-glibc232_8.1.3.109-Release-Lic
-%define kavupdater Updater_SDK8-Linux-x86_gcc345-glibc232_8.1.3.44-Release-Lic
+%define kavsdk %{kavsdk64}
+%define kavupdater %{kavupdater64}
 %endif
 
 Name: @PACKAGE_TARNAME@
@@ -17,9 +22,12 @@ License: GPL
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
+BuildRequires: expat-devel
 Requires: /usr/sbin/useradd /sbin/service
-Source1: %{kavsdk}.tgz
-Source2: %{kavupdater}.tgz
+Source1: %{kavsdk32}.tgz
+Source2: %{kavupdater32}.tgz
+Source3: %{kavsdk64}.tgz
+Source4: %{kavupdater64}.tgz
 Summary: Kaspersky Anti-virus/malware scanner
 %description
 Kaspersky Anti-virus/malware scanner
@@ -30,8 +38,13 @@ Report bugs to: @PACKAGE_BUGREPORT@
 # Prepare
 %prep
 %setup -q
+%if %{__isa_bits} == 32
 tar -xzf %{SOURCE1}
 tar -xzf %{SOURCE2}
+%else
+tar -xzf %{SOURCE3}
+tar -xzf %{SOURCE4}
+%endif
 %{configure} --with-kavsdk=./%{kavsdk}
 
 # Build
