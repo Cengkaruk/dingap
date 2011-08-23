@@ -43,6 +43,7 @@ $app['core_requires'] = array(
     'ppp',
     'rp-pppoe',
     'syswatch',
+    'csplugin-filewatch',
 );
 
 $app['core_directory_manifest'] = array(
@@ -59,6 +60,14 @@ $app['core_file_manifest'] = array(
     ),
    'network.conf' => array(
         'target' => '/etc/clearos/network.conf',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
+    'netwatch.conf' => array(
+        'target' => '/etc/clearsync.d/netwatch.conf',
         'mode' => '0644',
         'owner' => 'root',
         'group' => 'root',
