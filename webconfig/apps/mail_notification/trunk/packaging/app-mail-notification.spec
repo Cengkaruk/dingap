@@ -22,6 +22,7 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
 Requires: postfix
+Requires: Swift
 
 %description core
 Mail Notification description....
