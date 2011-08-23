@@ -32,7 +32,6 @@ make install DESTDIR=$RPM_BUILD_ROOT
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filewatch.a
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filewatch.la
 mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
-cp -v csplugin-filewatch.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 
 # Clean-up
 %clean
@@ -68,6 +67,5 @@ fi
 # Files
 %files
 %defattr(-,root,root)
-%config(noreplace) %{_sysconfdir}/clearsync.d/csplugin-filewatch.conf
 %{_libdir}/libcsplugin-filewatch.so*
 

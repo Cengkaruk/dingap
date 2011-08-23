@@ -1,5 +1,4 @@
 AUTOMAKE_OPTIONS = foreign
-EXTRA_DIST = csplugin-filewatch.conf
 ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = ${CXXFLAGS}
 lib_LTLIBRARIES = libcsplugin-filewatch.la
