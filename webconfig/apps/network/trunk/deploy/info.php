@@ -66,8 +66,8 @@ $app['core_file_manifest'] = array(
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
-    'netwatch.conf' => array(
-        'target' => '/etc/clearsync.d/netwatch.conf',
+    'filewatch-network.conf' => array(
+        'target' => '/etc/clearsync.d/filewatch-network.conf',
         'mode' => '0644',
         'owner' => 'root',
         'group' => 'root',
