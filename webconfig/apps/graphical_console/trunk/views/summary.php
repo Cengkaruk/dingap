@@ -34,17 +34,24 @@ if (! is_console())
 	redirect('/base/session/login');
 */
 
-$ip = $lan_ips['0']; // FIXME: handle more scenarios
+$ip = $lan_ips['0']; // TODO: handle more scenarios
 
 echo "
 <div align='left' class='graphical-console-content'>
-<div style='float:left; width:215px; font-size: 10px;'>Welcome to ClearOS Enterprise 6.1.0 Beta 1!  ClearOS Enterprise is configured over the network 
-via a web-browser.  Here's what you need to do:</div> <img style='float:left; margin-left:15px;' src='/clearos/approot/graphical_console/trunk/htdocs/browsers.png'>
+
+<div style='float:left; width:215px; font-size: 10px;'>
+Welcome to ClearOS Enterprise 6.1.0 Beta 1!  ClearOS Enterprise is configured over the network via a web-browser.
+Here's what you need to do:
+</div> 
+
+<img style='float:left; margin-left:15px;' src='" . clearos_app_htdocs('graphical_console') . "/browsers.png'>
 
 <h2 style='float:left;'>Step 1. Check Your Network Settings</h2>
 
-<div style='float:left;'>The IP address of this system is <b>$ip</b>. <br/> If you need to change your
-network settings, you can <a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #e1852e;'  href='/app/network'>login to access the Network Console</a>.</div>
+<div style='float:left;'>
+The IP address of this system is <b>$ip</b>. <br/> If you need to change your
+network settings, you can <a style='background: transparent; border: none; float: none; padding: 0; margin: 0; color: #e1852e;' href='/app/network'>login to access the Network Console</a>.
+</div>
 
 <h2 style='float:left;'>Step 2. Use Your Web Browser</h2>
 
@@ -53,16 +60,7 @@ network settings, you can <a style='background: transparent; border: none; float
 <div style='margin-top: 30px; margin-left: auto; margin-right: auto; width:162px;'><h2>https://$ip:81/</h2></div>
 </div>
 
-<img style='float:left; margin-left:15px;' src='/clearos/approot/graphical_console/trunk/htdocs/webconfig.png'>
-
-
+<img style='float:left; margin-left:15px;' src='" . clearos_app_htdocs('graphical_console') . "/webconfig.png'>
 
 </div>
-
-
 ";
-
-/*
-<p>Aaron, put the images in the htdocs directory and use the following URL</p>
-<img src='/clearos/approot/graphical_console/trunk/htdocs/example.png'>
-*/
