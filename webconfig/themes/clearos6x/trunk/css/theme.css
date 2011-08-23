@@ -410,10 +410,13 @@ div.theme-button-set { background-image: url();  }
 
 .theme-summary-table-container {
   margin-bottom: 9px;
+  
+  /*
   border-radius: 9px
   -moz-border-radius: 9px;	
   -webkit-border-radius: 9px;
   border: 1px solid #e1e1e1;
+  */
   float: left;
   width: 100%;
 }
@@ -907,12 +910,29 @@ color: #e1852e;
   z-index: -4;
 }
 
+#console-theme-page-container {
+  margin: 0 auto;
+  width: 750px;
+  text-align: left; /* IE center page hack  */
+  padding: 0;
+  z-index: -4;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Banner */
 /* ------------------------------------------------------------------------- */
 
 #theme-banner-container {
   width: 972px;
+  padding-left: 0px;
+  float: right;
+  position: relative;
+  height: 92px;
+  ^z-index: 999;
+}
+
+#console-theme-banner-container {
+  width: 750px;
   padding-left: 0px;
   float: right;
   position: relative;
@@ -935,6 +955,7 @@ color: #e1852e;
   ^left: 0px;
   ^padding-left: 10px;
 }
+
 
 .name-holder {
 	position: absolute;
@@ -1009,6 +1030,16 @@ color: #e1852e;
 	position: relative;
 }
 
+.console-theme-main-content-top {
+	/*
+	background-image: url(../images/maincontent-top.png);
+	background-repeat: no-repeat;
+	height: 225px; */
+	width: 752px;
+	clear: both;
+	position: relative;
+}
+
 .green-stroke-top {
 	position: absolute;
 	width: 972px;
@@ -1035,6 +1066,44 @@ color: #e1852e;
 	height: 201px;
 	background-image: url(../images/green-stroke-right.jpg);
 	background-repeat: no-repeat;
+}
+
+.console-green-stroke-top {
+	position: absolute;
+	width: 752px;
+	height: 15px;
+	background-image: url(../images/console-green-stroke-top.png);
+	background-repeat: no-repeat;
+}
+
+.console-green-stroke-left {
+	position: absolute;
+	left: 0px;
+	top: 15px;
+	width: 3px;
+	height: 214px;
+	background-image: url(../images/console-green-stroke-left.png);
+	background-repeat: no-repeat;
+}
+
+.console-green-stroke-right {
+	position: absolute;
+	right: 0px;
+	top: 15px;
+	width: 3px;
+	height: 214px;
+	background-image: url(../images/console-green-stroke-right.png);
+	background-repeat: no-repeat;
+}
+
+.graphical-console-content {
+	width: 485px;
+	border: 1px solid #e1e1e1;
+	border-radius: 9px;
+	-moz-border-radius: 9px;
+	padding: 10px;
+	float:left;
+	margin-bottom: 9px;
 }
 
 #theme-content-container {
@@ -1068,6 +1137,29 @@ color: #e1852e;
   border-bottom-right-radius: 15px;
   -moz-border-radius-bottomright: 15px;
   -webkit-border-bottom-right-radius: 15px;
+}
+
+.console-theme-core-content {
+  background-color: white;
+  border: 1px solid #e1e1e1;
+  border-top: none;
+  background-repeat: repeat-y;
+  margin-top: 12px;
+  float: left;
+  padding-left:2px;
+  width: 747px;
+  ^width: 749px;
+  margin-bottom: -3px;
+  border-bottom-left-radius: 15px;
+  -moz-border-radius-bottomleft: 15px;
+  -webkit-border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+  -moz-border-radius-bottomright: 15px;
+  -webkit-border-bottom-right-radius: 15px;
+}
+
+#console-theme-main-content-container {
+	width: 750px;
 }
 
 #theme-content-splash-container {
@@ -1197,6 +1289,15 @@ td div.theme-progress-bar {
 #theme-footer-container {
   float: left;
   width: 972px;
+  padding-top: 9px;
+  padding-left: 12px;
+  position: relative;
+
+}
+
+#console-theme-footer-container {
+  float: left;
+  width: 750px;
   padding-top: 9px;
   padding-left: 12px;
   position: relative;

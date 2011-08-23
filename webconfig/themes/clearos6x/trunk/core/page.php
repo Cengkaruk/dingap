@@ -111,8 +111,7 @@ function _configuration_page($page)
 <!-- Page Container -->
 <div id='theme-page-container'>
     " .
-    _get_banner($page) .
-    _get_top_menu($menus) .
+    _get_banner($page, $menus) .
     "
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
@@ -157,8 +156,7 @@ function _report_page($page)
 <!-- Page Container -->
 <div id='theme-page-container'>
     " .
-    _get_banner($page) .
-    _get_top_menu($menus) .
+    _get_banner($page, $menus) .
     "
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
@@ -200,8 +198,7 @@ function _marketplace_page($page)
 <!-- Page Container -->
 <div id='theme-page-container'>
     " .
-    _get_banner($page) .
-    _get_top_menu($menus) .
+    _get_banner($page, $menus) .
     "
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
@@ -287,14 +284,23 @@ function _splash_page($page)
 
 function _wizard_page($page)
 {
+    // TODO: duplicating _get_banner code - merge?
     return "
 <!-- Body -->
 <body>
 
 <!-- Page Container -->
-<div id='theme-page-container'>" .
+<div id='theme-page-container'>
 
-    _get_banner($page) . "
+<!-- Banner -->
+<div id='theme-banner-container'>
+    <div id='theme-banner-background'></div>
+    <div id='theme-banner-logo'></div>
+    <div class='name-holder'>
+        <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
+        <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
+    </div>
+</div>
 
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
@@ -340,10 +346,10 @@ function _console_page($page)
 <body>
 
 <!-- Page Container -->
-<div id='theme-page-container'>
+<div id='console-theme-page-container'>
     <!-- Banner -->
 
-    <div id='theme-banner-container'>
+    <div id='console-theme-banner-container'>
         <div id='theme-banner-background'></div>
         <div id='theme-banner-logo'></div>
         <div class='name-holder'>
@@ -352,13 +358,13 @@ function _console_page($page)
     </div>
 
     <!-- Main Content Container -->
-    <div id='theme-main-content-container'>
-        <div class='theme-main-content-top'>
-            <div class='green-stroke-top'></div>
-            <div class='green-stroke-left'></div>
-            <div class='green-stroke-right'></div>
+    <div id='console-theme-main-content-container'>
+        <div class='console-theme-main-content-top'>
+            <div class='console-green-stroke-top'></div>
+            <div class='console-green-stroke-left'></div>
+            <div class='console-green-stroke-right'></div>
         </div>
-        <div class='theme-core-content'>
+        <div class='console-theme-core-content'>
             <div id='theme-content-container'>
                 <div id='theme-sidebar-container'>
                     <div class='sidebar-top'></div>
@@ -373,7 +379,7 @@ function _console_page($page)
         </div>
 
         <!-- Footer FIXME: translation -->
-        <div id='theme-footer-container'>
+        <div id='console-theme-footer-container'>
             Are you in a command line kind of mood? "
             . anchor_custom('/app/graphical_console/shutdown', 'To the command line Batman', 'low') .
             "
@@ -458,7 +464,7 @@ function _get_sidebar($page)
  * @return string banner HTML
  */
 
-function _get_banner($page)
+function _get_banner($page, $menus)
 {
     return "
 <!-- Banner -->
@@ -468,7 +474,9 @@ function _get_banner($page)
     <div class='name-holder'>
         <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
         <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
-    </div>
+    </div>" .
+    _get_top_menu($menus) .
+"
 </div>
 ";
 }
@@ -508,7 +516,6 @@ $top_menu
         </ul>        
     </div>
 ";
-
     return $html;
 }
 
