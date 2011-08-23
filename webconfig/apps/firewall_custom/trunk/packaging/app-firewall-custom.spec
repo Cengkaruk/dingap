@@ -1,9 +1,9 @@
 
 Name: app-firewall-custom
 Group: ClearOS/Apps
-Version: 5.9.9.2
-Release: 1%{dist}
-Summary: Allows customized firewall (iptables) rules to be added.  In advanced or highly customised networking environments, the addition of advanced firewall rules that cannot be added using the available firewall apps (Incoming, DMZ, MultiWAN, Port Forwarding etc.) to achieve the desired security and packet routing can be accomplished using the custom firewall app.  Use of this module should be reserved for advanced users only
+Version: 5.9.9.4
+Release: 1.1%{dist}
+Summary: Custom
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-firewall
 Allows customized firewall rules to be added.
 
 %package core
-Summary: Allows customized firewall (iptables) rules to be added.  In advanced or highly customised networking environments, the addition of advanced firewall rules that cannot be added using the available firewall apps (Incoming, DMZ, MultiWAN, Port Forwarding etc.) to achieve the desired security and packet routing can be accomplished using the custom firewall app.  Use of this module should be reserved for advanced users only - APIs and install
+Summary: Custom - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
