@@ -63,7 +63,8 @@ class Network extends ClearOS_Controller
         // Load views
         //-----------
 
-        $options['type'] = MY_Page::TYPE_CONSOLE;
+        if (is_console())
+            $options['type'] = MY_Page::TYPE_CONSOLE;
 
         $views = array('network/settings', 'network/iface');
         
