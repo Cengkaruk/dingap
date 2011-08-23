@@ -1,9 +1,9 @@
 
 Name: app-disk-usage
 Group: ClearOS/Apps
-Version: 5.9.9.3
-Release: 2.1%{dist}
-Summary: Translation missing (disk_usage_summary)
+Version: 5.9.9.4
+Release: 1.1%{dist}
+Summary: Disk Usage
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 Displays your system hard disk usage.
 
 %package core
-Summary: Translation missing (disk_usage_summary) - APIs and install
+Summary: Disk Usage - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
