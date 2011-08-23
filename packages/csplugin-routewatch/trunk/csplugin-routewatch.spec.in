@@ -57,8 +57,7 @@ if [ -z "$CHECK" ]; then
 	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
 	chmod 440 /etc/sudoers
 fi
-# TODO: Fix path...
-CMD=/etc/rc.d/rc.firewall
+CMD=/usr/sbin/firewall-start
 LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
 CHECK=`echo $LINE, | grep $CMD,`
 if [ -z "$CHECK" ]; then
