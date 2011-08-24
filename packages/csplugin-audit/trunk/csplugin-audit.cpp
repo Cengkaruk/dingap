@@ -26,8 +26,8 @@
 class csAudit
 {
 public:
-    csAudit();
-    virtual ~csAudit();
+    csAudit() { };
+    virtual ~csAudit() { };
 
     virtual void Sample(void) = 0;
 
@@ -38,7 +38,7 @@ class csAuditUsers : public csAudit
 {
 public:
     csAuditUsers(uid_t minuid, uid_t maxuid)
-        : minuid(minuid), maxuid(maxuid), users(0L) { };
+        : csAudit(), minuid(minuid), maxuid(maxuid), users(0L) { };
     virtual ~csAuditUsers() { };
 
     virtual void Sample(void) { };
@@ -60,7 +60,7 @@ public:
         Unknown
     };
 
-    csAuditNeighbor(Type type) : type(type) { };
+    csAuditNeighbor(Type type) : csAudit(), type(type) { };
     virtual ~csAuditNeighbor() { };
 
     virtual void Sample(void) { };
@@ -193,6 +193,7 @@ csPluginAudit::csPluginAudit(const string &name,
 
 csPluginAudit::~csPluginAudit()
 {
+    Join();
     if (conf) delete conf;
 }
 
@@ -216,7 +217,7 @@ void *csPluginAudit::Entry(void)
     for (i = interval.begin(); i != interval.end(); i++) {
         unsigned long value = (unsigned long)i->second->GetInterval();
         GetStateVar(i->second->GetName(), value);
-        i->second->Set((time_t)value, this);
+        i->second->Start((time_t)value);
     }
 
     for (bool run = true ; run; ) {
@@ -329,11 +330,14 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
 
         csAuditNeighbor::Type type = csAuditNeighbor::Unknown;
         if (!strcasecmp(tag->GetParamValue("type").c_str(), "mac"))
-            type == csAuditNeighbor::MAC_Addr;
+            type = csAuditNeighbor::MAC_Addr;
         else if (!strcasecmp(tag->GetParamValue("type").c_str(), "ip4"))
-            type == csAuditNeighbor::IP4_Addr;
+            type = csAuditNeighbor::IP4_Addr;
         else if (!strcasecmp(tag->GetParamValue("type").c_str(), "ip6"))
-            type == csAuditNeighbor::IP6_Addr;
+            type = csAuditNeighbor::IP6_Addr;
+
+        if (type == csAuditNeighbor::Unknown)
+            ParseError("invalid neighbor type: " + tag->GetParamValue("type"));
 
         csAuditNeighbor *neigh = new csAuditNeighbor(type);
         interval->AddAudit(dynamic_cast<csAudit *>(neigh));
@@ -342,17 +346,16 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
 
 void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
 {
-    string text = tag->GetText();
     csPluginConf *_conf = static_cast<csPluginConf *>(conf);
 
     if ((*tag) == "interval") {
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
+        string text = tag->GetText();
         if (!text.size())
             ParseError("missing value for tag: " + tag->GetName());
-            ParseError(tag->GetName() + " parameter missing");
 
-        time_t value = (time_t)atol(tag->GetParamValue("interval").c_str());
+        time_t value = (time_t)atol(text.c_str());
         csInterval *interval = static_cast<csInterval *>(tag->GetData());
 
         try {
