@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 12%{dist}
+Release: 13%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -53,7 +53,7 @@ cp -v doc/clearsyncd.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/clearsyncd
 # Pre install
 %pre
 /usr/bin/getent passwd clearsync ||\
-    /usr/sbin/useradd -c "ClearSync" -M -U -r -d %{_sbindir}/clearsyncd -s /bin/false clearsync
+    /usr/sbin/useradd -M -c "ClearSync" -d %{_sbindir}/clearsyncd -s /bin/false clearsync 2> /dev/null || :
 
 %preun
 if [ "$1" = 0 ]; then
@@ -73,16 +73,13 @@ if [ -f /var/lock/subsys/clearsyncd ]; then
     killall -TERM clearsyncd 2>&1 || :
     sleep 2
 fi
-if [ "$1" = 0 ]; then
-    /usr/sbin/userdel clearsync 2>&1 || :
-fi
 
 # Files
 %files
 %defattr(-,root,root)
 %{_sbindir}/clearsyncd
 %{_libdir}/libclearsync.so*
-%{_sysconfdir}/init.d/clearsyncd
+%attr(755,root,root) %{_sysconfdir}/init.d/clearsyncd
 %{_sysconfdir}/clearsync.conf
 %{_sysconfdir}/clearsync.d
 %attr(755,clearsync,clearsync) %{_localstatedir}/run/clearsync
