@@ -41,7 +41,6 @@ $this->load->language('network');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($form_type === 'edit') {
-    $read_only = TRUE;
     $form_path = '/network/iface/edit/' . $interface;
     $buttons = array(
         form_submit_update('submit'),
@@ -49,22 +48,17 @@ if ($form_type === 'edit') {
         anchor_delete('/app/network/iface/delete/' . $interface)
     );
 } else if ($form_type === 'add') {
-    $read_only = FALSE;
     $form_path = '/network/iface/add/' . $interface;
     $buttons = array(
         form_submit_add('submit'),
         anchor_cancel('/app/network/iface/'),
     );
 } else  {
-    $read_only = TRUE;
     $form_path = '';
     $buttons = array(
         anchor_cancel('/app/network/iface/'),
     );
 }
-
-//print_r($iface_info);
-$read_only = FALSE;
 
 $vendor = empty($iface_info['vendor']) ? '' : $iface_info['vendor'];
 $bus = empty($iface_info['bus']) ? '' : $iface_info['bus'];
@@ -112,17 +106,17 @@ echo field_input('gateway', $iface_info['ifcfg']['gateway'], lang('network_gatew
 // DHCP
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('hostname', $hostname, lang('network_hostname'));
-echo field_checkbox('dhcp_dns', $dhcp_dns, lang('network_automatic_dns_servers'));
+echo field_input('hostname', $iface_info['ifcfg']['dhcp_hostname'], lang('network_hostname'));
+echo field_checkbox('dhcp_dns', $iface_info['ifcfg']['peerdns'], lang('network_automatic_dns_servers'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // PPPoE
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('username', $username, lang('base_username'));
+echo field_input('username', $iface_info['ifcfg']['user'], lang('base_username'));
 echo field_input('password', $password, lang('base_password'));
-echo field_input('mtu', $mtu, lang('network_mtu'));
-echo field_checkbox('pppoe_dns', $pppoe_dns, lang('network_automatic_dns_servers'));
+echo field_input('mtu', $iface_info['ifcfg']['mtu'], lang('network_mtu'));
+echo field_checkbox('pppoe_dns', $iface_info['ifcfg']['peerdns'], lang('network_automatic_dns_servers'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Common footer

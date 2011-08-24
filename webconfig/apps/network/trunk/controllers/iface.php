@@ -34,6 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\network\Iface as IfaceAPI;
+use \clearos\apps\network\Role as Role;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -152,15 +153,26 @@ class Iface extends ClearOS_Controller
         //---------------
 
         $this->load->library('network/Iface', $interface);
+        $this->load->library('network/Role');
+        $this->load->library('network/Routes');
 
         // Handle delete
         //--------------
 
         try {
             $this->iface->delete_config();
+            $this->role->remove_interface_role($interface);
+
+            $current_route = $this->routes->get_gateway_device();
+
+            if ($role === Role::ROLE_EXTERNAL) {
+                $this->routes->set_gateway_device($interface);
+            } else if ($interface == $current_route) {
+                $this->routes->delete_gateway_device();
+            }
 
             $this->page->set_status_deleted();
-            redirect('/network/iface');
+            redirect('/network');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -199,16 +211,32 @@ class Iface extends ClearOS_Controller
         //---------------
 
         $this->load->library('network/Iface', $interface);
+        $this->load->library('network/Role');
+        $this->load->library('network/Routes');
         $this->lang->load('network');
 
         // Set validation rules
         //---------------------
 
         $bootproto = $this->input->post('bootproto');
+        $role = $this->input->post('role');
+
+        $this->form_validation->set_policy('role', 'network/Role', 'validate_role', TRUE);
+        $this->form_validation->set_policy('bootproto', 'network/Iface', 'validate_boot_protocol', TRUE);
 
         if ($bootproto == IfaceAPI::BOOTPROTO_STATIC) {
             $this->form_validation->set_policy('ipaddr', 'network/Iface', 'validate_ip', TRUE);
             $this->form_validation->set_policy('netmask', 'network/Iface', 'validate_netmask', TRUE);
+            if ($role == Role::ROLE_EXTERNAL)
+                $this->form_validation->set_policy('gateway', 'network/Iface', 'validate_gateway', TRUE);
+        } else if ($bootproto == IfaceAPI::BOOTPROTO_DHCP)  {
+            $this->form_validation->set_policy('hostname', 'network/Iface', 'validate_hostname');
+            $this->form_validation->set_policy('dhcp_dns', 'network/Iface', 'validate_peerdns');
+        } else if ($bootproto == IfaceAPI::BOOTPROTO_PPPOE)  {
+            $this->form_validation->set_policy('username', 'network/Iface', 'validate_username', TRUE);
+            $this->form_validation->set_policy('password', 'network/Iface', 'validate_password', TRUE);
+            $this->form_validation->set_policy('mtu', 'network/Iface', 'validate_mtu');
+            $this->form_validation->set_policy('pppoe_dns', 'network/Iface', 'validate_peerdns');
         }
 
         $form_ok = $this->form_validation->run();
@@ -221,6 +249,9 @@ class Iface extends ClearOS_Controller
             $aliases = array();
 
             try {
+                // Set interface configuration
+                //----------------------------
+
                 if ($bootproto == IfaceAPI::BOOTPROTO_STATIC) {
                     $this->iface->save_static_config(
                         $this->input->post('ipaddr'),
@@ -228,12 +259,45 @@ class Iface extends ClearOS_Controller
                         $this->input->post('gateway')
                     );
 
-                    $this->iface->enable();
+                    $this->iface->enable(FALSE);
+                } else if ($bootproto == IfaceAPI::BOOTPROTO_DHCP) {
+                    $this->iface->save_dhcp_config(
+                        $this->input->post('hostname'),
+                        (bool) $this->input->post('dhcp_dns')
+                    );
+
+                    $this->iface->enable(TRUE);
+                } else if ($bootproto == IfaceAPI::BOOTPROTO_PPPOE) {
+                    $interface = $this->iface->save_pppoe_config(
+                        $interface,
+                        $this->input->post('username'),
+                        $this->input->post('password'),
+                        $this->input->post('mtu'),
+                        (bool) $this->input->post('pppoe_dns')
+                    );
                 }
 
+                // Set routing
+                //------------
+
+                $current_route = $this->routes->get_gateway_device();
+
+                if ($role === Role::ROLE_EXTERNAL) {
+                    $this->routes->set_gateway_device($interface);
+                } else if ($interface == $current_route) {
+                    $this->routes->delete_gateway_device();
+                }
+
+                // Set interface role
+                //-------------------
+
+                $this->role->set_interface_role($interface, $role);
+
                 // Return to summary page with status message
+                //-------------------------------------------
+
                 $this->page->set_status_updated();
-                $this->page->redirect('/network/iface');
+                $this->page->redirect('/network');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;

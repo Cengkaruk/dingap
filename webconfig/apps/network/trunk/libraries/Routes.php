@@ -52,21 +52,22 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+
 // Classes
 //--------
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\firewall\Firewall as Firewall;
 use \clearos\apps\network\Iface_Manager as Iface_Manager;
+use \clearos\apps\network\Role as Role;
 use \clearos\apps\network\Routes as Routes;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
-// clearos_load_library('firewall/Firewall');
-// clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Role');
 clearos_load_library('network/Routes');
 
 // Exceptions
@@ -223,8 +224,8 @@ class Routes extends Engine
             return array();
         } catch (File_No_Match_Exception $e) {
             return array();
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), CLEAROS_WARNING);
+        } catch (Engine_Exception $e) {
+            throw new Engine_Exception($e->get_message());
         } 
 
         $lans = preg_replace('/\"/', '', $lans);
@@ -310,7 +311,7 @@ class Routes extends Engine
 
         // FIXME: Firewall dependency needs to be handled
         foreach ($ethlist as $eth => $info) {
-            if (isset($info['role']) && ($info['role'] == Firewall::CONSTANT_EXTERNAL)) {
+            if (isset($info['role']) && ($info['role'] == Role::ROLE_EXTERNAL)) {
                 $wanif = $eth;
                 break;
             }

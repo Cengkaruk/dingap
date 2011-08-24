@@ -225,7 +225,11 @@ class Iface extends Engine
             $pppoedev->delete_config();
         }
 
-        $this->disable();
+        try {
+            $this->disable();
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
 
         sleep(2); // Give it a chance to disappear
 
@@ -306,20 +310,13 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $options = array();
+        $options = array();
 
-            if ($background)
-                    $options['background'] = TRUE;
+        if ($background)
+            $options['background'] = TRUE;
 
-            $shell = new Shell();
-            $retval = $shell->execute(self::COMMAND_IFUP, $this->iface, TRUE, $options);
-
-            if ($retval != 0)
-                throw new Engine_Exception($shell->get_first_output_line(), COMMON_WARNING);
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
-        }
+        $shell = new Shell();
+        $retval = $shell->execute(self::COMMAND_IFUP, $this->iface, TRUE, $options);
     }
 
     /**
@@ -1281,7 +1278,12 @@ class Iface extends Engine
 
             $line = preg_split('/=/', $line);
 
-            $netinfo[strtolower($line[0])] = $line[1];
+            if (preg_match('/^no$/i', $line[1]))
+                $netinfo[strtolower($line[0])] = FALSE;
+            else if (preg_match('/^yes$/i', $line[1]))
+                $netinfo[strtolower($line[0])] = TRUE;
+            else
+                $netinfo[strtolower($line[0])] = $line[1];
         }
 
         // Translate constants into English
@@ -1374,7 +1376,17 @@ class Iface extends Engine
         if (isset($oldinfo['ifcfg']['user']))
             $chap->delete_secret($oldinfo['ifcfg']['user']);
 
+        if (isset($oldinfo['role'])) {
+            try {
+                $role = new Role();
+                $role->remove_interface_role($eth);
+            } catch (Engine_Exception $e) {
+                // Not fatal
+            }
+        }
+
         $physdev = $eth;
+
         if (substr($eth, 0, 3) == 'ppp') {
             $pppoe = new Iface($eth);
             $ifcfg = $pppoe->get_info();
@@ -1401,7 +1413,12 @@ class Iface extends Engine
         $ethinfo['ONBOOT'] = 'no';
         $ethinfo['HWADDR'] = $liveinfo['hwaddress'];
 
-        $ethernet->disable(); // See maintenance note
+        try {
+            $ethernet->disable(); // See maintenance note
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
+
         $ethernet->write_config($ethinfo);
 
         // Write PPPoE config
@@ -1427,16 +1444,20 @@ class Iface extends Engine
         $info['SYNCHRONOUS'] = 'no';
         $info['ETH'] = $physdev;
         $info['PROVIDER'] = 'DSL' . $eth;
+        $info['PEERDNS'] = ($peerdns) ? 'yes' : 'no';
         $info['USER'] = $username;
-
-        if (!$peerdns)
-            $info['PEERDNS'] = 'no';
 
         if (!empty($mtu))
             $info['MTU'] = $mtu;
 
         $pppoe = new Iface($eth);
-        $pppoe->disable(); // See maintenance note
+
+        try {
+            $pppoe->disable();
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
+
         $pppoe->write_config($info);
 
         // Add password to chap-secrets
@@ -1451,35 +1472,32 @@ class Iface extends Engine
     /**
      * Creates a standard ethernet configuration.
      *
-     * @param string  $isdhcp           set to TRUE if DHCP
-     * @param string  $ip               IP address (for static only)
-     * @param string  $netmask          netmask (for static only)
-     * @param string  $gateway          gate (for static only)
      * @param string  $hostname         optional DHCP hostname (for DHCP only)
      * @param boolean $peerdns          set to TRUE if you want to use the DHCP peer DNS settings
-     * @param boolean $gateway_required flag if gateway setting is required
      *
      * @return void
      * @throws  Engine_Exception
      */
 
-    public function save_ethernet_config($isdhcp, $ip, $netmask, $gateway, $hostname, $peerdns, $gateway_required = FALSE)
+    public function save_dhcp_config($hostname, $peerdns)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_interface($this->iface));
-        Validation_Exception::is_valid($this->validate_dhcp_flag($isdhcp));
-        Validation_Exception::is_valid($this->validate_ip($ip));
-        Validation_Exception::is_valid($this->validate_netmask($netmask));
-        Validation_Exception::is_valid($this->validate_gateway($gateway));
-        Validation_Exception::is_valid($this->validate_hostname($hostname));
         Validation_Exception::is_valid($this->validate_peerdns($peerdns));
-        Validation_Exception::is_valid($this->validate_gateway_flag($gateway_required));
+
+        if (! empty($hostname))
+            Validation_Exception::is_valid($this->validate_hostname($hostname));
 
         $liveinfo = $this->get_info();
         $hwaddress = $liveinfo['hwaddress'];
 
-        $this->disable(); // See maintenance note
+        // Disable interface - see maintenance note
+        try {
+            $this->disable();
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
 
         $info = array();
         $info['DEVICE'] = $this->iface;
@@ -1487,20 +1505,11 @@ class Iface extends Engine
         $info['ONBOOT'] = 'yes';
         $info['USERCTL'] = 'no';
         $info['HWADDR'] = $hwaddress;
+        $info['BOOTPROTO'] = 'dhcp';
+        $info['PEERDNS'] = ($peerdns) ? 'yes' : 'no';
 
-        if ($isdhcp) {
-            $info['BOOTPROTO'] = 'dhcp';
-            if (strlen($hostname))
-                $info['DHCP_HOSTNAME'] = $hostname;
-            $info['PEERDNS'] = ($peerdns) ? 'yes' : 'no';
-        } else {
-            $info['BOOTPROTO'] = 'static';
-            $info['IPADDR'] = $ip;
-            $info['NETMASK'] = $netmask;
-
-            if ($gateway)
-                $info['GATEWAY'] = $gateway;
-        }
+        if (strlen($hostname))
+            $info['DHCP_HOSTNAME'] = $hostname;
 
         $this->write_config($info);
     }
@@ -1529,7 +1538,13 @@ class Iface extends Engine
         $liveinfo = $this->get_info();
         $hwaddress = $liveinfo['hwaddress'];
 
-        // FIXME $this->disable(); // See maintenance note
+        // Disable interface - see maintenance note
+
+        try {
+            $this->disable();
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
 
         $info = array();
         $info['DEVICE'] = $this->iface;
@@ -1579,7 +1594,13 @@ class Iface extends Engine
             $this->iface = $this->iface . ':' . $metric;
         }
 
-        $this->disable(); // See maintenance note
+        // Disable interface - see maintenance note
+
+        try {
+            $this->disable();
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
 
         $info = array();
         $info['DEVICE'] = $this->iface;
@@ -1620,7 +1641,13 @@ class Iface extends Engine
         // TODO: is this still used?
         return;
 
-        $this->disable(); // See maintenance note
+        // Disable interface - see maintenance note
+
+        try {
+            $this->disable();
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
 
         $info = array();
         $info['DEVICE'] = $this->iface;
@@ -1653,19 +1680,21 @@ class Iface extends Engine
     ///////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validation routine for DHCP flag.
+     * Validation routine for boot protocol.
      *
-     * @param string $dhcp_flag DHCP flag
+     * @param string $boot_protocol boot protocol
      *
-     * @return string error message if DHCP flag is invalid
+     * @return string error message if boot protocol is invalid
      */
 
-    public function validate_dhcp_flag($dhcp_flag)
+    public function validate_boot_protocol($boot_protocol)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! clearos_is_valid_boolean($dhcp_flag))
-            return lang('network_dhcp_flag_invalid');
+        $supported = $this->get_supported_bootprotos();
+
+        if (! array_key_exists($boot_protocol, $supported))
+            return lang('network_boot_protocol_invalid');
     }
 
     /**
@@ -1712,7 +1741,7 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! Network_Utils::is_valid_hostname($hostname))
+        if (!(Network_Utils::is_valid_hostname_alias($hostname) || Network_Utils::is_valid_hostname($hostname)))
             return lang('network_hostname_invalid');
     }
 
