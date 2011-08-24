@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Sudoers entry
+/usr/sbin/addsudo /usr/bin/net app-samba-extension-core
