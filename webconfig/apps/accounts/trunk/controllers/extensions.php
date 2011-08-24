@@ -84,4 +84,29 @@ class Extensions extends ClearOS_Controller
 
         $this->page->view_form('extensions', $data, lang('accounts_extensions'));
     }
+
+    function view($extension)
+    {
+        // Load dependencies
+        //------------------
+
+        $this->lang->load('accounts');
+        $this->load->library('base/Software', 'app-' . $extension . '-extension-core');
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['description'] = $this->software->get_description();
+            $data['summary'] = $this->software->get_summary();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('extension', $data, lang('accounts_extension'));
+    }
 }
