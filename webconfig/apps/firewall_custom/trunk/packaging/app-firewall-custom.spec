@@ -11,7 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
-Requires: app-firewall
+Requires: app-firewall-core
 
 %description
 Allows customized firewall rules to be added.

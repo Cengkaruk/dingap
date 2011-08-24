@@ -27,5 +27,5 @@ $app['subcategory'] = lang('base_subcategory_firewall');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['requires'] = array(
-    'app-firewall'
+    'app-firewall-core'
 );
