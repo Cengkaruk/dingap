@@ -16,7 +16,7 @@ AM_PROG_LIBTOOL
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([sys/socket.h sys/time.h clearsync/csplugin.h])
+AC_CHECK_HEADERS([sys/socket.h sys/time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_SIZE_T
@@ -25,5 +25,6 @@ AC_TYPE_SSIZE_T
 # Checks for library functions.
 AC_CHECK_FUNCS([memset socket strerror])
 
+# Output
 AC_CONFIG_FILES([Makefile csplugin-routewatch.spec])
 AC_OUTPUT

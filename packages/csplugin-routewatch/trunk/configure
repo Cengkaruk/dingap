@@ -15344,8 +15344,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 # Checks for header files.
 
 
-
-for ac_header in sys/socket.h sys/time.h clearsync/csplugin.h
+for ac_header in sys/socket.h sys/time.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -15811,6 +15810,7 @@ fi
 done
 
 
+# Output
 ac_config_files="$ac_config_files Makefile csplugin-routewatch.spec"
 
 cat >confcache <<\_ACEOF
