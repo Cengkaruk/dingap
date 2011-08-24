@@ -36,7 +36,7 @@
 #include <clearsync/csutil.h>
 
 csXmlTag::csXmlTag(const char *name, const char **attr)
-    : name(name), data(NULL), text("")
+    : name(name), text(""), data(NULL)
 {
     for (int i = 0; attr[i]; i += 2)
         param[attr[i]] = attr[i + 1];
