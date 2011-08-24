@@ -24,5 +24,6 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_CHECK_FUNCS([memset strerror])
 
+# Output
 AC_CONFIG_FILES([Makefile csplugin-filewatch.spec])
 AC_OUTPUT
