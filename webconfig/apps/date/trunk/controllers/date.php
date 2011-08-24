@@ -133,4 +133,4 @@ class Date extends ClearOS_Controller
         $this->output->set_header("Content-Type: application/json");
         $this->output->set_output(json_encode($data));
     }
-}
+}  
