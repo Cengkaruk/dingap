@@ -53,6 +53,11 @@ csPlugin::~csPlugin()
 {
     SaveState();
     if (fh_state != NULL) fclose(fh_state);
+    map<string, struct csPluginStateValue *>::iterator i;
+    for (i = state.begin(); i != state.end(); i++) {
+        if (i->second->value) delete [] i->second->value;
+        delete i->second;
+    }
     csLog::Log(csLog::Debug, "Plugin destroyed: %s", name.c_str());
 }
 
@@ -109,13 +114,13 @@ void csPlugin::LoadState(void)
         if (fread((void *)buffer,
             sizeof(char), length, fh_state) != length) {
             csLog::Log(csLog::Error, "%s: Error reading state 3", name.c_str());
-            delete buffer;
+            delete [] buffer;
             return;
         }
 
         string key;
         key.assign(buffer, length);
-        delete buffer;
+        delete [] buffer;
 
         struct csPluginStateValue *var = new csPluginStateValue;
         if (fread((void *)&var->length, sizeof(size_t), 1, fh_state) != 1) {
@@ -131,7 +136,7 @@ void csPlugin::LoadState(void)
             if (fread((void *)var->value,
                 sizeof(uint8_t), var->length, fh_state) != var->length) {
                 csLog::Log(csLog::Error, "%s: Error reading state 5", name.c_str());
-                delete var->value;
+                delete [] var->value;
                 delete var;
                 return;
             }
@@ -227,7 +232,7 @@ void csPlugin::SetStateVar(const string &key, const unsigned long &value)
     struct csPluginStateValue *var = new struct csPluginStateValue;
 
     var->length = sizeof(unsigned long);
-    var->value = reinterpret_cast<uint8_t *>(new unsigned long);
+    var->value = new uint8_t[sizeof(unsigned long)];
     memcpy((void *)var->value, (const void *)&value, var->length);
 
     SetStateVar(key, var);
@@ -238,7 +243,7 @@ void csPlugin::SetStateVar(const string &key, const float &value)
     struct csPluginStateValue *var = new struct csPluginStateValue;
 
     var->length = sizeof(float);
-    var->value = reinterpret_cast<uint8_t *>(new float);
+    var->value = new uint8_t[sizeof(float)];
     memcpy((void *)var->value, (const void *)&value, var->length);
 
     SetStateVar(key, var);
@@ -282,7 +287,7 @@ void csPlugin::SetStateVar(const string &key, struct csPluginStateValue *var)
     map<string, struct csPluginStateValue *>::iterator i;
     i = state.find(key);
     if (i != state.end()) {
-        if (i->second->value) delete i->second->value;
+        if (i->second->value) delete [] i->second->value;
         delete i->second;
     }
     state[key] = var;

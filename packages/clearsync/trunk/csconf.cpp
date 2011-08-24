@@ -36,7 +36,7 @@
 #include <clearsync/csutil.h>
 
 csXmlTag::csXmlTag(const char *name, const char **attr)
-    : name(name), data(NULL)
+    : name(name), data(NULL), text("")
 {
     for (int i = 0; attr[i]; i += 2)
         param[attr[i]] = attr[i + 1];
@@ -91,8 +91,8 @@ static void csXmlElementClose(void *data, const char *element)
 #ifdef _CS_DEBUG
     csLog::Log(csLog::Debug, "Element close: %s", tag->GetName().c_str());
 #endif
-    string text = tag->GetText();
 #if 0
+    string text = tag->GetText();
     if (text.size()) {
         csLog::Log(csLog::Debug, "Text[%d]:", text.size());
         //csHexDump(stderr, text.c_str(), text.size());
@@ -105,6 +105,8 @@ static void csXmlElementClose(void *data, const char *element)
 
 static void csXmlText(void *data, const char *txt, int length)
 {
+    if (length == 0) return;
+
     csXmlParser *csp = (csXmlParser *)data;
 
     csXmlTag *tag = csp->stack.back();
