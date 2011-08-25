@@ -66,7 +66,7 @@ echo field_input('server_name', $server_name, lang('ftp_server_name'), $read_onl
 echo field_input('max_instances', $max_instances, lang('ftp_max_instances'), $read_only);
 echo field_input('port', $port, lang('ftp_port'), $read_only);
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
