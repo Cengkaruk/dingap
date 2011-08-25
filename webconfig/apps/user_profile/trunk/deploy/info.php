@@ -20,6 +20,7 @@ $app['description'] = lang('user_profile_app_description');
 $app['name'] = lang('user_profile_app_name');
 $app['category'] = lang('base_category_my_account');
 $app['subcategory'] = lang('base_subcategory_accounts');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
