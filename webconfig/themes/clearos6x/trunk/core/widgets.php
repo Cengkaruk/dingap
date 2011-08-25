@@ -770,9 +770,9 @@ selected: 0
  * @return string HTML
  */
 
-function theme_loading()
+function theme_loading($size)
 {
-    return "<div class='theme-loading'></div>\n";
+    return "<div class='theme-loading-$size'></div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1171,6 +1171,7 @@ function theme_help_box($data)
 
 function theme_summary_box($data)
 {
+
     $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
 
     if (empty($data['tooltip'])) {
@@ -1186,23 +1187,54 @@ function theme_summary_box($data)
     // FIXME: translate
     $html = theme_dialogbox_info("
         <h3>" . $data['name'] . "</h3>
-        <table>
+        <table width='100%' id='sidebar_summary_table'>
             <tr>
-                <td><b>Version</b></td>
-                <td>" . $data['version'] . '-' . $data['release'] . "</td>
+                <td width='50%'><b>" . lang('marketplace_version') . "</b></td>
+                <td width='50%'>" . $data['version'] . '-' . $data['release'] . "</td>
             </tr>
             <tr>
-                <td><b>Vendor</b></td>
+                <td><b>" . lang('marketplace_vendor') . "</b></td>
                 <td>" . $data['vendor'] . "</td>
             </tr>
-            <tr>
-                <td><b>End-of-life</b></td>
-                <td>" . $data['subscription_expiration'] . "</td>
+            <tr id='sidebar_additional_info_row'>
+                <td><b>" . lang('base_additional_info') . "</b></td>
+                <td id='sidebar_additional_info'>" . theme_loading('small') . "</td>
             </tr>
-            $tooltip
         </table>
+        $tooltip
+        <div class='marketplace-linkback'>" .
+        anchor_custom('/app/marketplace/view/' . $data['basename'], lang('base_visit_marketplace')) . "
+        </div>
     ");
 
+        $html .=
+        "<script type='text/javascript'>
+            $(document).ready(function() {
+                " . (($data['ajax']) ? 'get_marketplace_data(\'' . $data['basename'] . '\');' : '$(\'#sidebar_additional_info_row\').hide();') . "
+            });
+
+            function get_marketplace_data(basename) {
+                $.ajax({
+                    url: '/app/' + basename + '/get_marketplace_info',
+                    method: 'GET',
+                    dataType: 'json',
+                    success : function(json) {
+                        if (json.code != undefined && json.code != 0) {
+                            $('#sidebar_additional_info').html(json.errmsg);
+                            $('#sidebar_additional_info').css('color', 'red');
+                        } else {
+                            $('#sidebar_additional_info_row').hide();
+                            if (!json.up2date)
+                                var newrow = '<tr><td><b>" . lang('marketplace_upgrade') . "</b></td><td>' + json.latest_version + '</td></tr>';
+                                $('tbody', $('#sidebar_summary_table')).append(newrow);
+                        }
+                    },
+                    error: function (xhr, text_status, error_thrown) {
+                        $('#sidebar_additional_info').html(xhr.responseText.toString());
+                    }
+                });
+            }
+        </script>";
     return $html;
 }
 

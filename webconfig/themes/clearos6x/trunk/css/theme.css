@@ -1569,7 +1569,7 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
 }
 */
 
-.theme-loading {
+.theme-loading-normal {
   background-image: url(../images/loading.gif);
   background-repeat: no-repeat;
   height: 23px;
@@ -1577,6 +1577,15 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   margin: auto;
   display: inline-block;
 }
+.theme-loading-small {
+  background-image: url(../images/loading_small.gif);
+  background-repeat: no-repeat;
+  height: 14px;
+  width: 14px;
+  margin: auto;
+  display: inline-block;
+}
+
 .theme-hidden {
 	display: none;
 }
@@ -1836,6 +1845,15 @@ input.theme-form-submit-delete { }
 
 
 /* Marketplace */
+
+.marketplace-linkback {
+    background-image: url('../images/left-menu-shadow.png') ;
+    background-position: 15 5;
+    background-repeat: no-repeat;	
+    padding: 15 0 10 0;
+    text-align: center;
+    
+}
 
 .marketplace-header {
     width: 749;
