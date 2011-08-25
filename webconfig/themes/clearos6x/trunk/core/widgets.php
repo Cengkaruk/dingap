@@ -1172,19 +1172,18 @@ function theme_help_box($data)
 function theme_summary_box($data)
 {
 
-    $tooltip = empty($data['tooltip']) ? '' : '<p><b>Tooltip -- </b>' . $data['tooltip'] . '</p>';
+    $tooltip = empty($data['tooltip']) ? '' : '<p><b>' . lang('base_tooltip') . ' -- </b>' . $data['tooltip'] . '</p>';
 
     if (empty($data['tooltip'])) {
         $tooltip = '';
     } else {
         $tooltip = "
             <tr>
-                <td colspan='2'><b>Tooltip</b> - " . $data['tooltip'] . "</td>
+                <td colspan='2'><b>" . lang('base_tooltip') . "</b> - " . $data['tooltip'] . "</td>
             </tr>
         ";
     }
 
-    // FIXME: translate
     $html = theme_dialogbox_info("
         <h3>" . $data['name'] . "</h3>
         <table width='100%' id='sidebar_summary_table'>
@@ -1220,13 +1219,68 @@ function theme_summary_box($data)
                     dataType: 'json',
                     success : function(json) {
                         if (json.code != undefined && json.code != 0) {
-                            $('#sidebar_additional_info').html(json.errmsg);
+                            // Could put real message here (json.errmsg), but it gets a bit technical
+                            $('#sidebar_additional_info').html('" . lang('marketplace_connection_failure') . "');
                             $('#sidebar_additional_info').css('color', 'red');
                         } else {
                             $('#sidebar_additional_info_row').hide();
-                            if (!json.up2date)
-                                var newrow = '<tr><td><b>" . lang('marketplace_upgrade') . "</b></td><td>' + json.latest_version + '</td></tr>';
-                                $('tbody', $('#sidebar_summary_table')).append(newrow);
+                            // Version updates
+                            if (!json.up2date) {
+                                $('tbody', $('#sidebar_summary_table')).append(
+                                    c_row(
+                                        '" . lang('marketplace_upgrade') . "',
+                                        json.latest_version
+                                    )
+                                );
+                            }
+
+                            // Everything below has to do with licensing which may not be present
+                            if (json.license_info == undefined)
+                                return;
+
+                            // Subscription?  A unit of 100 or greater represents a recurring subscription
+                            if (json.license_info != undefined && json.license_info.unit >= 100) {
+                                var bill_cycle = '" . lang('marketplace_billing_cycle_monthly') . "';
+                                if (json.license_info.unit == 1000)
+                                    bill_cycle = '" . lang('marketplace_billing_cycle_yearly') . "';
+                                else if (json.license_info.unit == 2000)
+                                    bill_cycle = '" . lang('marketplace_billing_cycle_2_years') . "';
+                                else if (json.license_info.unit == 3000)
+                                    bill_cycle = '" . lang('marketplace_billing_cycle_3_years') . "';
+                
+                                $('tbody', $('#sidebar_summary_table')).append(
+                                    c_row(
+                                        '" . lang('marketplace_billing_cycle') . "',
+                                        bill_cycle
+                                    )
+                                );
+                                if (json.license_info.expire != undefined) {
+                                    $('tbody', $('#sidebar_summary_table')).append(
+                                        c_row(
+                                            '" . lang('marketplace_renewal_date') . "',
+                                            $.datepicker.formatDate('MM d, yy', new Date(json.license_info.expire))
+                                        )
+                                    );
+                                }
+                            }
+                            // Redemption period
+                            if (json.license_info.redemption != undefined && json.license_info.redemption == true) {
+                                $('tbody', $('#sidebar_summary_table')).append(
+                                    c_row(
+                                        '" . lang('base_status') . "',
+                                        '<span style=\'color: red\'>" . lang('marketplace_redemption') . "</span>'
+                                    )
+                                );
+                            }
+                            // No Subscription
+                            if (json.license_info.no_subscription != undefined && json.license_info.no_subscription == true) {
+                                $('tbody', $('#sidebar_summary_table')).append(
+                                    c_row(
+                                        '" . lang('base_status') . "',
+                                        '<span style=\'color: red\'>" . lang('marketplace_expired_no_subsription') . "</span>'
+                                    )
+                                );
+                            }
                         }
                     },
                     error: function (xhr, text_status, error_thrown) {
@@ -1234,6 +1288,11 @@ function theme_summary_box($data)
                     }
                 });
             }
+
+            function c_row(field, value) {
+                return '<tr><td><b>' + field + '</b></td><td>' + value + '</td></tr>';
+            }
+
         </script>";
     return $html;
 }
