@@ -28,6 +28,7 @@ Requires: net-tools
 Requires: ppp
 Requires: rp-pppoe
 Requires: syswatch
+Requires: csplugin-filewatch
 
 %description core
 IP settings - read only and wordsmith required.
@@ -45,6 +46,7 @@ cp -r * %{buildroot}/usr/clearos/apps/network/
 install -d -m 0755 %{buildroot}/var/clearos/network
 install -d -m 0755 %{buildroot}/var/clearos/network/backup
 install -D -m 0644 packaging/dhclient-exit-hooks %{buildroot}/etc/dhclient-exit-hooks
+install -D -m 0644 packaging/filewatch-network.conf %{buildroot}/etc/clearsync.d/filewatch-network.conf
 install -D -m 0644 packaging/network.conf %{buildroot}/etc/clearos/network.conf
 
 %post
@@ -91,4 +93,5 @@ exit 0
 /usr/clearos/apps/network/language
 /usr/clearos/apps/network/libraries
 /etc/dhclient-exit-hooks
+%config(noreplace) /etc/clearsync.d/filewatch-network.conf
 %config(noreplace) /etc/clearos/network.conf
