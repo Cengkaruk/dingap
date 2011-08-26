@@ -60,6 +60,7 @@ textarea {
 input {
   color: #484848;
   font-size: 11px;
+  font-family: arial;
 }
 
 select {
@@ -466,10 +467,12 @@ div.theme-button-set { background-image: url();  }
 	float: left;
 	padding-top: 4px;
 	padding-bottom: 5px;
+	background: #fafafa;
 }
 
 td.left-field-content {
 	width: 200px;
+	padding-right: 4px;	
 }
 
 .right-field-content {
@@ -480,15 +483,17 @@ td.left-field-content {
 .input-box input {
 	width: 200px;
 	margin-right: 10px;
-	margin-top: 6px;
+	margin-top: 0px;
 }
 
 .input-box input, x:-moz-any-link, x:default {
 	width: 200px;
 	margin-right: 10px;
-	margin-bottom: 6px;
+	margin-bottom: 0px;
 	margin-top:0px;
 }
+
+.right-field-content span, x:-moz-any-link, x:default {line-height: 25px;}
 
 .check {
 	padding-top: 2px;
@@ -546,16 +551,21 @@ border-radius: 9px;
 }
 
 .theme-field-toggle {
-	height: 15px;
+	line-height: 20px;
 	float: left;
-  margin-bottom: 15px;
+ height: 28px;
   ^height: 15px;
   width: 100%;	
+}
+
+.theme-field-toggle .right-field-content {
+	padding-top: 3px;	
 }
 
 .theme-field-toggle select {
 	float: right;
 	margin-right: 15px;
+	line-height: 20px;
 }
 
 .theme-fieldview label {
@@ -570,11 +580,15 @@ border-radius: 9px;
 }
 
 .theme-dropdown {
-  margin-bottom: 5px;
-  height: 25px;
-  float: left;
+  float:left;
+  height:30px;
+  line-height:25px;
+  margin-bottom:0;
 }
 
+.theme-dropdown .right-field-content, x:-moz-any-link, x:default {
+	padding-top:6px;
+}
 
 .theme-dropdown select {
 	float: left;
@@ -877,7 +891,7 @@ border-top-right-radius: 10px;
 border-top-left-radius: 10px;
 -moz-border-radius-topleft: 10px;
 -webkit-border-top-left-radius: 10px;
-color: #e1852e;
+color: white;
 }
 
 .ui-state-hover {
@@ -1231,9 +1245,11 @@ color: #e1852e;
 }
 
 .theme-field-checkboxes {
-  width: 100%;
-  margin-bottom: 5px;
-  float: left;
+  float:left;
+  height:23px;
+  line-height:14px;
+  margin-bottom:0;
+  width:100%;
 }
 
 .theme-field-checkboxes input { 
@@ -1241,13 +1257,19 @@ color: #e1852e;
  }
 
 .theme-field-password {
-  height: 30px;
-  width: 480px;
-  float: left;
+  float:left;
+  height:30px;
+  line-height:22px;
+  width:480px;
+}
+
+
+.theme-field-password .right-field-content {
+	padding-top: 3px;
 }
 
 .theme-field-password, x:-moz-any-link, x:default {
-	height: 32px;
+	height: 30px;
 }
 
 .theme-field-password input {float: right; margin-right: 15px; }
@@ -1623,6 +1645,7 @@ input.theme-form-submit-delete { }
 	position: relative;
 	top: 30%;
 	top: 270px\9;
+	^margin-bottom: 800px;
 }
 
 .login h2 {
@@ -1793,13 +1816,17 @@ input.theme-form-submit-delete { }
 
 .login .left-field-content label {
 	float: left;
-	
 }
 
 .login .left-field-content {
 	text-align: left;
 	width: 60px;
 	padding-left: 15px;
+	background: white;
+}
+
+.login td.left-field-content {
+	padding-right: 0px;
 }
 
 .login .right-field-content {
@@ -1816,7 +1843,7 @@ input.theme-form-submit-delete { }
 .login .theme-form-header {
 	text-align: left;
 	width: 255px;
-	^width: 315px;
+	^width: 255px;
 }
 
 .login .theme-fieldset {
@@ -1879,6 +1906,7 @@ input.theme-form-submit-delete { }
     width:256px;
     margin-left: 15px;
     float: left;
+    cursor:pointer;
 }
 
 .marketplace-progress-spash {
@@ -1921,6 +1949,8 @@ input.theme-form-submit-delete { }
 
 .theme-fieldset-header {
 	padding-left: 15px;
+	font-weight: bold;
+	padding-top: 5px;
 }
 
 .theme-field-text .left-field-content {
@@ -1929,7 +1959,24 @@ input.theme-form-submit-delete { }
 
 .theme-field-text {
 	float: left;
+	line-height: 22px;
+	height: 30px;
 }
+
+.theme-field-text, x:-moz-any-link, x:default {
+	float: left;
+	line-height: 25px;
+	height: 33px
+}
+
+.theme-field-text .right-field-content {
+	padding-top:3px;
+}
+
+.theme-field-text .right-field-content, x:-moz-any-link, x:default {
+	padding-top:6px;	
+}
+
 .theme-field-textarea {
 	float: left;
 }

@@ -1075,7 +1075,7 @@ function theme_confirm($confirm_uri, $cancel_uri, $message, $options)
 
     return "
         <div class='ui-widget'>
-            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class='ui-corner-all $class' style='margin-top: 10px; padding: 10px;'>
                 <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
                 $message
                 <div>" . theme_button_set(array(anchor_ok($confirm_uri), anchor_cancel($cancel_uri))) . "</div>
@@ -1100,7 +1100,7 @@ function theme_confirm_delete($confirm_uri, $cancel_uri, $items, $message, $opti
 
     return "
         <div class='ui-widget'>
-            <div class='ui-corner-all $class' style='margin-top: 20px; padding: 0 .7em;'>
+            <div class='ui-corner-all $class' style='margin-top: 10px; padding: 10px;'>
                 <span class='ui-icon $iconclass' style='float: left; margin-right: .3em;'>&nbsp; </span>
                 $message
                 <div>$items_html</div>
