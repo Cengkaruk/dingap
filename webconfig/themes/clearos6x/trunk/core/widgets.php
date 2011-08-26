@@ -1268,7 +1268,7 @@ function theme_summary_box($data)
                                 $('tbody', $('#sidebar_summary_table')).append(
                                     c_row(
                                         '" . lang('base_status') . "',
-                                        '<span style=\'color: red\'>" . lang('marketplace_redemption') . "</span>'
+                                        '&lt;span style=\'color: red\'&gt;" . lang('marketplace_redemption') . "&lt;\\/span&gt;'
                                     )
                                 );
                             }
@@ -1277,7 +1277,7 @@ function theme_summary_box($data)
                                 $('tbody', $('#sidebar_summary_table')).append(
                                     c_row(
                                         '" . lang('base_status') . "',
-                                        '<span style=\'color: red\'>" . lang('marketplace_expired_no_subsription') . "</span>'
+                                        '&lt;span style=\'color: red\'&gt;" . lang('marketplace_expired_no_subsription') . "&lt;\\/span&gt;'
                                     )
                                 );
                             }
@@ -1290,7 +1290,7 @@ function theme_summary_box($data)
             }
 
             function c_row(field, value) {
-                return '<tr><td><b>' + field + '</b></td><td>' + value + '</td></tr>';
+                return '<tr><td><b>' + field + '<\\/b><\\/td><td>' + value + '<\\/td><\\/tr>';
             }
 
         </script>";
