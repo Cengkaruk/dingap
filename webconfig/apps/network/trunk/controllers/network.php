@@ -70,9 +70,4 @@ class Network extends ClearOS_Controller
         
         $this->page->view_forms($views, lang('network_network'), $options);
     }
-
-    function report()
-    {
-        echo "asdfasdfSD";
-    }
 }
