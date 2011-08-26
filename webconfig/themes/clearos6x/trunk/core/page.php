@@ -379,7 +379,15 @@ function _console_page($page)
             <div id='theme-content-container'>
                 <div id='theme-sidebar-container'>
                     <div class='sidebar-top'></div>
-                    " . $page['page_summary'] . "
+
+<!-- FIXME -->
+<div class='ui-widget'>
+    <div class='ui-corner-all theme-dialogbox-info ui-state-highlight'>
+        <h3>Help</h3>
+        <p>This is where more detailed help goes when in console mode.  Wordsmith please.</p>
+    </div>
+</div>
+ 
                     <div class='sidebar-bottom'></div>
                 </div>
                 <div id='theme-content-left'>
