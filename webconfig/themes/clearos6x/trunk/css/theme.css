@@ -1024,7 +1024,8 @@ color: white;
 	margin-bottom: 10px;
 	^margin-top: 0px;
 	float: left;
-	}
+	width: 100%;
+}
 
 #theme-main-content {
 	background-image: url(../images/maincontent-bg.png);
