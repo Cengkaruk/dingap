@@ -124,7 +124,6 @@ function _configuration_page($page)
         " .
             _get_left_menu($menus) .
             _get_basic_app_layout($page) .
-            _get_sidebar($page) .
         "
         </div>
         " .
@@ -161,17 +160,29 @@ function _report_page($page)
     <!-- Main Content Container -->
     <div id='theme-main-content-container'>
         <div class='theme-main-content-top'>
-        <div class='green-stroke-top'></div>
-        <div class='green-stroke-left'></div>
-        <div class='green-stroke-right'></div>
+            <div class='green-stroke-top'></div>
+            <div class='green-stroke-left'></div>
+            <div class='green-stroke-right'></div>
         </div>
         <div class='theme-core-content'>
         " .  _get_left_menu($menus) . "
-        <div id='theme-content-container'>
-        " . _get_message() . "
-        " . $page['app_view'] . "
+
+            <div id='theme-content-container'>
+                <div id='theme-content-help'>
+                    <div class='help-sides'>
+                    " . $page['page_help'] . "
+                    </div>
+                </div>
+                <div id='theme-content-report'>
+                    " . _get_message() . "
+                    " . $page['app_view'] . "
+                </div>
+            </div>
+
         </div>
-        </div>
+        " .
+        _get_footer($page) .
+        "
     </div>
 </div>
 </body>
@@ -445,14 +456,6 @@ function _get_footer($page)
     <div id='theme-footer-container'>
         Web Theme - Copyright &copy; 2010, 2011 ClearFoundation. All Rights Reserved.
     </div>
-    ";
-}
-
-function _get_sidebar($page)
-{
-    return "
-    <!-- Sidebar -->
-    
     ";
 }
 
