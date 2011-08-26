@@ -1268,7 +1268,7 @@ function theme_summary_box($data)
                                 $('tbody', $('#sidebar_summary_table')).append(
                                     c_row(
                                         '" . lang('base_status') . "',
-                                        '&lt;span style=\'color: red\'&gt;" . lang('marketplace_redemption') . "&lt;\\/span&gt;'
+                                        '<span style=\'color: red\'>" . lang('marketplace_redemption') . "<\\/span>'
                                     )
                                 );
                             }
@@ -1277,7 +1277,7 @@ function theme_summary_box($data)
                                 $('tbody', $('#sidebar_summary_table')).append(
                                     c_row(
                                         '" . lang('base_status') . "',
-                                        '&lt;span style=\'color: red\'&gt;" . lang('marketplace_expired_no_subsription') . "&lt;\\/span&gt;'
+                                        '<span style=\'color: red\'>" . lang('marketplace_expired_no_subsription') . "<\\/span>'
                                     )
                                 );
                             }
