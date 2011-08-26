@@ -3,7 +3,7 @@
 // http://www.clearfoundation.com/docs/developer/translations/
 
 $lang['date_app_description'] = 'Zona waktu dan alat singkronisasi waktu';
-$lang['date_app_name'] = 'waktu dan tanggal';
+$lang['date_app_name'] = 'Date and Time';
 $lang['date_app_tooltip'] = 'VoIP, layanan otentikasi dan aplikasi lainya membutuhkan seting waktu yang tepat, jadi silahkan cek kembali waktu anda dan zona waktu yang benar';
 $lang['date_date'] = 'Tanggal';
 $lang['date_synchronization_changed_time_by_x_seconds:'] = 'Sinkronisasi mengubah waktu sistem dengan berdasarkan jumlah detik:';

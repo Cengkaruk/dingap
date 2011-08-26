@@ -3,7 +3,7 @@
 // http://www.clearfoundation.com/docs/developer/translations/
 
 $lang['date_app_description'] = 'Outil de synchronisation de l\'horloge et du fuseau horaire.';
-$lang['date_app_name'] = 'Heure et date';
+$lang['date_app_name'] = 'Date and Time';
 $lang['date_app_tooltip'] = 'La VoIP, les services d\'authentification et d\'autres applications nécessitent des réglages appropriés de l\'heure, aussi veuillez vérifier que l\'heure et le fuseau horaire sont corrects!';
 $lang['date_date'] = 'Date';
 $lang['date_synchronization_changed_time_by_x_seconds:'] = 'La synchronisation a modifié l\'heure système du nombre de secondes suivant:';

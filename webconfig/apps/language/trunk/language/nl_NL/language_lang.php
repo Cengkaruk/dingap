@@ -4,9 +4,9 @@
 
 $lang['language_app_description'] = 'Deze software is beschikbaar in verschillende talen. Selecteer hier de taalinstellingen voor uw systeem.';
 $lang['language_app_name'] = 'Taal';
-$lang['language_default_system_language'] = 'Taal';
+$lang['language_default_system_language'] = 'Standaard taal';
 $lang['language_keyboard'] = 'Toetsenbord';
 $lang['language_keyboard_is_invalid'] = 'Toetsenbord instellingen ongeldig';
-$lang['language_language'] = 'Language';
-$lang['language_language_is_invalid'] = 'Language is invalid.';
-$lang['language_update_my_login_session'] = 'Update My Login Session';
+$lang['language_language'] = 'Taal';
+$lang['language_language_is_invalid'] = 'Ongeldige taal';
+$lang['language_update_my_login_session'] = 'Update mijn inlog sessie ';
