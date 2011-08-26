@@ -1199,8 +1199,8 @@ function theme_summary_box($data)
                 <td><b>" . lang('base_additional_info') . "</b></td>
                 <td id='sidebar_additional_info'>" . theme_loading('small') . "</td>
             </tr>
-        </table>
         $tooltip
+        </table>
         <div class='marketplace-linkback'>" .
         anchor_custom('/app/marketplace/view/' . $data['basename'], lang('base_visit_marketplace')) . "
         </div>
