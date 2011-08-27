@@ -824,17 +824,11 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
 
     $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
-    // Sorting
-    //--------
-
-    $disable_sort = false;
-    if (isset($options['sort']) && !$options['sort'])
-        $disable_sort = true;
-
-    // Table ID
-    $dom_id = '';
+    // Table ID (used for variable naming too)
     if (isset($options['id']))
-        $dom_id = "id='" . $options['id'] . "'";
+        $dom_id = $options['id'];
+    else
+        $dom_id = 'tbl_id_' . rand(0, 1000);
 
     // Item parsing
     //-------------
@@ -856,8 +850,23 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
 
     $size_class = (count($items) > 10) ? 'theme-summary-table-large' : 'theme-summary-table-small';
 
-    if ($disable_sort)
-        $size_class .= '-no-sort';
+    // Paginate
+    // --------
+    $paginate = FALSE;
+    if (count($items) > 10 && (!isset($options['paginate']) || $options['paginate']))
+        $paginate = TRUE;
+
+    // Filter
+    //-------
+    $filter = FALSE;
+    if (count($items) > 10 && (!isset($options['filter']) || $options['filter']))
+        $filter = TRUE;
+
+    // Sort
+    //-----
+    $sort = TRUE;
+    if (isset($options['sort']) && !$options['sort'])
+        $sort = FALSE;
 
     // Summary table
     //--------------
@@ -869,7 +878,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     <div class='theme-summary-table-title'>$title</div>
     <div class='theme-summary-table-action'>$add_html</div>
   </div>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table $size_class display' $dom_id>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table $size_class display' id='$dom_id'>
    <thead>
     <tr>$header_html
     </tr>
@@ -879,6 +888,19 @@ $item_html
    </tbody>$legend_html
   </table>
 </div>
+<script type='text/javascript'>
+	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
+		\"aoColumnDefs\": [{ 
+			\"bSortable\": false, \"aTargets\": [ -1 ] 
+		}],
+		\"bJQueryUI\": true,
+        \"bInfo\": false,
+		\"bPaginate\": " . ($paginate ? 'true' : 'false') . ",
+		\"bFilter\": " . ($filter ? 'true' : 'false') . ",
+		\"bSort\": " . ($sort ? 'true' : 'false') . ",
+		\"sPaginationType\": \"full_numbers\"
+    });
+</script>
     ";
 }
 
@@ -919,10 +941,11 @@ function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
 
     $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
-    // Table ID
-    $dom_id = '';
+    // Table ID (used for variable naming too)
     if (isset($options['id']))
-        $dom_id = "id='" . $options['id'] . "'";
+        $dom_id = $options['id'];
+    else
+        $dom_id = 'tbl_id_' . rand(0, 1000);
 
     // Item parsing
     //-------------
@@ -958,7 +981,7 @@ function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
     <div class='theme-list-table-title'>$title</div>
     <div class='theme-list-table-action'>$add_html</div>
   </div>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-list-table display' $dom_id>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-list-table display' id='$dom_id'>
    <thead>
     <tr>$header_html
     </tr>
@@ -968,6 +991,17 @@ $item_html
    </tbody>
   </table>
 </div>
+<script type='text/javascript'>
+	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
+		\"aoColumnDefs\": [{ 
+			\"bSortable\": false, \"aTargets\": [ -1 ] 
+		}],
+		\"bJQueryUI\": true,
+		\"bPaginate\": false,
+		\"bFilter\": false,
+		\"sPaginationType\": \"full_numbers\"
+    });
+</script>
     ";
 }
 
