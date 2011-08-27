@@ -767,12 +767,24 @@ selected: 0
 /**
  * Loading/wait state in progress.
  *
+ * @param string $size    size (small, normal)
+ * @param string $text    text to display
+ * @param array  $options options
+ *
  * @return string HTML
  */
 
-function theme_loading($size)
+function theme_loading($size, $text = '', $options = NULL)
 {
-    return "<div class='theme-loading-$size'></div>\n";
+    $id = '';
+
+    if (isset($options['id']))
+        $id = "id='" . $options['id'] . "'"; 
+
+    if (isset($options['icon-below']))
+        return "<div style='padding-bottom: 5;'>$text</div><div $id class='theme-loading-$size'></div>\n";
+    else
+        return "<div $id class='theme-loading-$size'>$text</div>\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
