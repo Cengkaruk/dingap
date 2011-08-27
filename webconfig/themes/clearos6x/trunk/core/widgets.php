@@ -831,6 +831,11 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     if (isset($options['sort']) && !$options['sort'])
         $disable_sort = true;
 
+    // Table ID
+    $dom_id = '';
+    if (isset($options['id']))
+        $dom_id = "id='" . $options['id'] . "'";
+
     // Item parsing
     //-------------
 
@@ -864,7 +869,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     <div class='theme-summary-table-title'>$title</div>
     <div class='theme-summary-table-action'>$add_html</div>
   </div>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table $size_class display'>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table $size_class display' $dom_id>
    <thead>
     <tr>$header_html
     </tr>
@@ -914,6 +919,11 @@ function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
 
     $add_html = (empty($anchors)) ? '&nbsp; ' : button_set($anchors);
 
+    // Table ID
+    $dom_id = '';
+    if (isset($options['id']))
+        $dom_id = "id='" . $options['id'] . "'";
+
     // Item parsing
     //-------------
 
@@ -948,7 +958,7 @@ function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
     <div class='theme-list-table-title'>$title</div>
     <div class='theme-list-table-action'>$add_html</div>
   </div>
-  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-list-table display'>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-list-table display' $dom_id>
    <thead>
     <tr>$header_html
     </tr>
