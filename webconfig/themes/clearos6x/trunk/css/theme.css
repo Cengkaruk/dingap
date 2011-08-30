@@ -51,7 +51,7 @@ pre {
 }
 
 textarea {
-  color: #484848;
+  color: #686868;
   width: 100%;
   background: transparent;
   font-size: 11px;
@@ -139,7 +139,6 @@ a.theme-anchor-unimportant {
   padding-left: 5px;
   padding-right: 5px;
   height: 14px;
-  height: 17px\9;
   border: 1px solid #d1d3d4;
   border-top-left-radius: 0px;
   -moz-border-radius-topleft: 0px;
@@ -149,7 +148,6 @@ a.theme-anchor-unimportant {
   -webkit-border-bottom-left-radius: 0px;
   padding-top: 1px;
   padding-bottom: 1px;
-  padding-top: 3px\9;
   top: 1px\9;
   ^line-height: 10px;
   ^padding-bottom: 3px;
@@ -238,7 +236,7 @@ input.theme-form-important, x:-moz-any-link, x:default {
 
 td div.theme-button-set {
   margin-left: 15px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
 }
 
 .even td .theme-button-set {
@@ -480,10 +478,12 @@ td.left-field-content {
 	padding-left: 10px;
 }
 
+
 .input-box input {
 	width: 200px;
 	margin-right: 10px;
 	margin-top: 0px;
+	margin-top: 2px\9;
 }
 
 .input-box input, x:-moz-any-link, x:default {
@@ -493,7 +493,12 @@ td.left-field-content {
 	margin-top:0px;
 }
 
+.right-field-content span {
+	line-height: 24px\9;
+}
+
 .right-field-content span, x:-moz-any-link, x:default {line-height: 25px;}
+
 
 .check {
 	padding-top: 2px;
@@ -521,6 +526,7 @@ border-radius: 9px;
  width: 507px;
   ^width: 100%;
   float: left;
+  padding-bottom: 5px;
 }
 
 .theme-form-header h3 {
@@ -566,6 +572,7 @@ border-radius: 9px;
 	float: right;
 	margin-right: 15px;
 	line-height: 20px;
+	margin-top: 2px\9;
 }
 
 .theme-fieldview label {
@@ -592,6 +599,7 @@ border-radius: 9px;
 
 .theme-dropdown select {
 	float: left;
+	margin-top: 7px\9;
 }
 
 .theme-form-footer {
@@ -605,7 +613,10 @@ border-radius: 9px;
 .theme-validation-error {
   color: red;
   position: absolute;
-  margin-top: -1px;
+  position: relative\9;
+  line-height: 9px;
+  line-height: 5px\9;
+  top: -8px\9;
   font-size: 9px;
 }
 
@@ -722,6 +733,12 @@ border-radius: 9px;
 	padding-left: 25px;
 	padding-top: 1px;
 	padding-bottom: 2px;
+}
+
+@media \0screen {
+	.user-guide a, .support a {
+		padding-bottom: 0px;	
+	}
 }
 
 .support a:hover {
@@ -848,7 +865,7 @@ border-radius: 9px;
 
 /* REDO */
 
-.ui-tabs { padding: 0; zoom: 1; background: white; border: none; }
+.ui-tabs { padding: 0; zoom: 1; background: white; border: none; margin-top: 10px\9}
 .ui-tabs .ui-tabs-nav { list-style: none; position: relative; padding:; }
 .ui-tabs .ui-tabs-nav li { position: relative; float: left; border-bottom-width: 0 !important; margin: 0 .2em -1px 0; padding: 0; }
 .ui-tabs .ui-tabs-nav li a { float: left; text-decoration: none; padding: .5em 1em; font-size: 9pt; }
@@ -1122,6 +1139,10 @@ color: white;
 	margin-bottom: 9px;
 }
 
+.graphical-console-content h2 {
+	width: 500px\9;
+}
+
 #theme-content-container {
 /* Peter: reduced width/max-width by 250 */
 /*
@@ -1278,6 +1299,8 @@ color: white;
 .theme-field-progress-bar {
   width: 97.5%;
   float: left;
+  font-weight: bold;
+  padding-top: 10px;
 }
 
 
@@ -1354,6 +1377,15 @@ td div.theme-progress-bar {
   ^z-index: 999;
 }
 
+#theme-top-menu-list a:hover {
+  color: white\9;
+}  
+  
+#theme-top-menu-list .sfhover a {
+	color: white\9;
+}
+
+  
 ul#theme-top-menu-list li.sfhover a {
   color: #FFFFFF;
   ^z-index: 999;
@@ -1793,7 +1825,7 @@ input.theme-form-submit-delete { }
 }
 
 .login .theme-form-header h3 {
-	width: 230px;
+
 }
 
 .login .theme-fieldset-legend {
@@ -1824,6 +1856,9 @@ input.theme-form-submit-delete { }
 .login .left-field-content {
 	text-align: left;
 	width: 60px;
+	^width: 55px;
+	width: 55px/;
+	width: 55px\9;
 	padding-left: 15px;
 	background: white;
 }
@@ -1839,7 +1874,7 @@ input.theme-form-submit-delete { }
 }
 
 .login .theme-form-container {
-	width: 250px;
+
 	float: left;
 }
 
@@ -1876,22 +1911,48 @@ input.theme-form-submit-delete { }
 
 /* Marketplace */
 
+#filter {
+	padding-top: 15px\9;
+}
+
+#pagination-top div {
+	padding-top: 5px\9;
+}
+
+#app_list {
+	margin-top: 10px\9;
+}
+
+#app_list .theme-button-set {
+	margin-left: 0;
+	padding-left: 0;
+	margin-top: 5px\9;
+}
+
 .marketplace-linkback {
     background-image: url('../images/left-menu-shadow.png') ;
-    background-position: 15 5;
+    background-position: 5px 5px;
     background-repeat: no-repeat;	
     padding: 15 0 10 0;
     text-align: center;
-    
+    margin-top: 5px\9;
+}
+
+.marketplace-linkback a {
+	margin-top: 5px;
+	margin-top: 15px\9;
+	margin-bottom: 5px\9;
 }
 
 .marketplace-header {
-    width: 749;
+    width: 749px;
+    width: 739px\9;
     height: 65px;
     margin-left: -10px;
     background-image: url('../images/marketplace-header-bg.png');
     border-bottom: 1px solid #d1d3d4;
     margin-top: 10px;
+    padding-right: 10px\9;
 }
 
 .marketplace-footer {
@@ -1899,6 +1960,7 @@ input.theme-form-submit-delete { }
     margin-left: -10px;
     border-bottom: 1px dotted #d1d3d4;
     height: 10px;
+    height: 5px\9;
     clear: both;
 }
 
@@ -1924,9 +1986,19 @@ input.theme-form-submit-delete { }
     background-position: 280 0;
 }
 
+#indiv_upgrade {padding-left: 6px; padding-right: 6px; font-family: arial;}
+
+#indiv_upgrade, x:-moz-any-link, x:default {padding-left: 3px; padding-right: 3px;}
+
+#review_sdn_login {padding-left: 6px; padding-right: 6px;}
+
+#review_sdn_login, x:-moz-any-link, x:default {padding-left: 3px; padding-right: 3px;}
+
+#add_review {padding-right: 3px;}
+
 #app_description {width: 490px;}
 
-#prevent_review {padding-left: 6px; padding-right: 6px;}
+#prevent_review {padding-left: 6px; padding-right: 6px; margin-top: 10px\9; }
 
 #tabs-versions {margin-bottom: 10px;}
 
@@ -1939,7 +2011,11 @@ input.theme-form-submit-delete { }
   position: relative;
   text-align: center;
 }
-#pagination-bottom {float: right;}
+#pagination-bottom {
+	float: right;
+	margin-bottom: 10px\9;
+}
+
 
 /* 
  * Style looks strange when there are empty 'cells' and screw up width.
@@ -1950,10 +2026,18 @@ input.theme-form-submit-delete { }
 #app_list td { width: 50px; border: none; border-right: 1px solid #d1d3d4; border-bottom: 1px solid #d1d3d4; padding: 0px; margin: 0; border-collapse: collapse; border-spacing: 0px;}
 */
 
+#tabs-overview td div {
+	margin-top: 5px\9;	
+}
+
+#tabs-overview td img {
+	margin-top: 10px\9;	
+}
+
 .theme-fieldset-header {
 	padding-left: 15px;
 	font-weight: bold;
-	padding-top: 5px;
+	padding-top: 8px;
 }
 
 .theme-field-text .left-field-content {

@@ -57,6 +57,7 @@
 	left:			0;
 	top:			30px; /* match top ul list item height */
 	z-index:		99;
+	
 }
 
 /*** VERTICAL MENU ***/
@@ -99,6 +100,7 @@ ul.sf-menu ul  li:hover {
 	height:			20px;
 	width:			200px;
 	padding-left:   10px;
+	
 }
 
 ul.sf-menu ul li a:hover {
@@ -107,6 +109,7 @@ ul.sf-menu ul li a:hover {
     background-position:	0px; -2px;
 	^padding-left: 10px;
 	^margin-left: -10px;
+	
 }
 
 ul.sf-menu ul li:last-child {
@@ -140,6 +143,7 @@ a > .sf-sub-indicator {  /* give all except IE6 the correct values */
 
 .sf-sub-indicator a:hover {
 	margin-top:		15px;
+	
 }
 
 
@@ -179,11 +183,13 @@ ul.sf-navbar li li ul {
 		^height:				36px;
 		color:                  #686868;
 		width:					auto;
+		
 }
 
 
 li.sfhover ul li ul:hover{
 	color:			#7DAE32;
+	
 }
 
  li.sfHover ul li {

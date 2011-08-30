@@ -268,7 +268,7 @@ fieldset> .ui-widget-header {
 .ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus { color: #e1852e; }
 .ui-state-hover a, .ui-state-hover a:hover { color: #e1852e; text-decoration: none; }
 
-.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #212121; text-decoration: none; }
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #686868; text-decoration: none; }
 .ui-widget :active { outline: none; }
 
 /* Interaction Cues

@@ -71,13 +71,6 @@ table.display thead th {
 	* cursor: hand;
 }
 
-div.datatables_wrapper {
-border: 1px solid #e1e1e1;
-	border-bottom-left-radius: 9px;
-	-moz-border-radius-bottoleft: 9px;
-	border-bottom-right-radius: 9px;
-	-moz-border-radius-bottomright: 9px;	
-}
 
 div.dataTables_wrapper .ui-widget-header {
 	font-weight: normal;
@@ -130,7 +123,12 @@ table.display thead th div.DataTables_sort_wrapper span {
 .dataTables_wrapper {
 	position: relative;
 	clear: both;
-	width: 100%;	
+	width: 100%;
+	border: 1px solid #e1e1e1;
+	border-bottom-left-radius: 9px;
+	-moz-border-radius-bottoleft: 9px;
+	border-bottom-right-radius: 9px;
+	-moz-border-radius-bottomright: 9px;		
 }
 
 .dataTables_processing {
