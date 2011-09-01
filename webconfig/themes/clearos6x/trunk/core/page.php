@@ -166,7 +166,6 @@ function _report_page($page)
         </div>
         <div class='theme-core-content'>
         " .  _get_left_menu($menus) . "
-
             <div id='theme-content-container'>
                 <div id='theme-content-help'>
                     <div class='help-sides'>
@@ -248,8 +247,9 @@ function _login_page($page)
 
 <!-- Page Container -->
 <div class='login'>
-<div class='logo-login'></div>
+
         <div class='theme-form-container'>
+        <div class='logo-login'></div>
         " . _get_message() . "
         " . $page['app_view'] . "
         </div>
