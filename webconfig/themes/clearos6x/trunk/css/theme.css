@@ -1713,7 +1713,7 @@ input.theme-form-submit-delete { }
 
 .logo-login {
 	float: left;
-	margin-right: 40px;
+	margin-right: 30px;
 	background: url(../images/ClearOS-login.png) no-repeat;
 	width: 145px;
 	height: 172px;
@@ -1874,7 +1874,7 @@ input.theme-form-submit-delete { }
 }
 
 .login .theme-form-container {
-
+	width: auto;
 	float: left;
 }
 
@@ -1893,6 +1893,7 @@ input.theme-form-submit-delete { }
 	border-radius: 5px;
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
+	float: left;
 }
 
 .login .theme-button-set {
