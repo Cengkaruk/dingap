@@ -189,6 +189,17 @@ $locales = array(
         'enabled' => TRUE
     ),
 
+    'sk_SK' => array(
+        'base_code' => 'sk', 
+        'description' => lang('base_language_sk_SK'),
+        'native_description' => 'Slovenčina',
+        'default_keyboard' => 'slovene',
+        'default_time_zone' => 'Europe/Ljubljana',
+        'text_direction' => 'LTR',
+        'encoding' => 'UTF-8',
+        'enabled' => TRUE
+    ),
+
     'sl_SL' => array(
         'base_code' => 'sl', 
         'description' => lang('base_language_sl_sl'),
