@@ -297,7 +297,7 @@ class Iface extends ClearOS_Controller
                 //-------------------------------------------
 
                 $this->page->set_status_updated();
-                $this->page->redirect('/network');
+                redirect('/network');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
