@@ -1,7 +1,7 @@
 <?php
 
 /**
- * FTP controller.
+ * FTP daemon controller.
  *
  * @category   Apps
  * @package    FTP
@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/pptpd/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,11 +30,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('base') . '/controllers/daemon.php';
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * FTP controller.
+ * FTP daemon controller.
  *
  * @category   Apps
  * @package    FTP
@@ -42,29 +55,13 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/pptpd/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
  */
 
-class FTP extends ClearOS_Controller
+class Server extends Daemon
 {
-    /**
-     * FTP server summary view.
-     *
-     * @return view
-     */
-
-    function index()
+    function __construct()
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('ftp');
-
-        // Load views
-        //-----------
-
-        $views = array('ftp/server', 'ftp/settings');
-
-        $this->page->view_forms($views, lang('ftp_app_name'));
+        parent::__construct('proftpd', 'ftp');
     }
 }
