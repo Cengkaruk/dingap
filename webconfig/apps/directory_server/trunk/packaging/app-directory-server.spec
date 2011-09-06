@@ -13,7 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Directory server... blah blah.
+Directory Server description...
 
 %package core
 Summary: Directory Server - APIs and install
@@ -36,7 +36,7 @@ Requires: samba-winbind-clients
 Requires: webconfig-php-ldap
 
 %description core
-Directory server... blah blah.
+Directory Server description...
 
 This package provides the core API and libraries.
 

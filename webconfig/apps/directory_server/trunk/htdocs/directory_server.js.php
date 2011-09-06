@@ -46,8 +46,7 @@ $(document).ready(function() {
         $("#directory_information").hide();
 
         $.ajax({
-FIXME
-
+// FIXME
             url: '/app/directory_server/update_domain/test8.lan',
             method: 'GET',
             dataType: 'json',

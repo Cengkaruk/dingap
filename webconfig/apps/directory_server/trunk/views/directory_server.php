@@ -56,11 +56,12 @@ $domain_read_only = ($mode === LDAP_Engine::MODE_SLAVE) ? TRUE : FALSE;
 echo form_open('directory_server');
 echo form_header(lang('base_settings'));
 
+$domain_read_only = TRUE; // FIxME
 echo field_input('domain', $domain, lang('directory_server_domain'), $domain_read_only);
-echo field_dropdown('policy', $policies, $policy, lang('directory_server_publish_policy'));
+echo field_dropdown('policy', $policies, $policy, lang('directory_server_publish_policy'), TRUE);
 // echo field_button_set(array($button));
 
-echo "<input type='submit' name='update_directory' id='update_directory' value='Update' class='theme-button-set-first theme-button-set-last theme-form-submit ui-corner-all theme-form-submit-custom theme-form-important' />";
+// echo "<input type='submit' name='update_directory' id='update_directory' value='Update' class='theme-button-set-first theme-button-set-last theme-form-submit ui-corner-all theme-form-submit-custom theme-form-important' />";
 
 echo form_footer();
 echo form_close();
