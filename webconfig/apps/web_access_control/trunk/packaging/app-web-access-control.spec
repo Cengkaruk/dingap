@@ -1,9 +1,9 @@
 
 Name: app-web-access-control
 Group: ClearOS/Apps
-Version: 5.9.9.3
-Release: 2.1%{dist}
-Summary: Translation missing (web_access_control_summary)
+Version: 5.9.9.5
+Release: 1%{dist}
+Summary: Web Access Control
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 Time-based Access Control allows an administer to enforce time-of-day web access to users or computers (IP or MAC address) using the web proxy.
 
 %package core
-Summary: Translation missing (web_access_control_summary) - APIs and install
+Summary: Web Access Control - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
