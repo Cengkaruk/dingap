@@ -6,7 +6,7 @@
 
 $app['basename'] = 'web_access_control';
 $app['version'] = '5.9.9.5';
-$app['release'] = '1';
+$app['release'] = '2';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
@@ -27,5 +27,5 @@ $app['subcategory'] = lang('base_subcategory_content_filter_and_proxy');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'app-proxy'
+    'app-web-proxy'
 );
