@@ -6,7 +6,7 @@
 
 $app['basename'] = 'mail_notification';
 $app['version'] = '5.9.9.5';
-$app['release'] = '1';
+$app['release'] = '3';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
