@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Nework visualiser updates controller.
+ * Nework visualiser controller.
  *
  * @category   Apps
  * @package    Nework_Visualiser
@@ -9,7 +9,7 @@
  * @author     ClearCenter <developer@clearcenter.com>
  * @copyright  2011 ClearCenter
  * @license    http://www.clearcenter.com/Company/terms.html ClearSDN license
- * @link       http://www.clearcenter.com/support/documentation/clearos/network_visualiser_updates/
+ * @link       http://www.clearcenter.com/support/documentation/clearos/network_visualiser/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@
 
 
 $this->lang->load('base');
-$this->lang->load('network_visualiser_updates');
+$this->lang->load('network_visualiser');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons

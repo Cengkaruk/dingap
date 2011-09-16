@@ -48,28 +48,12 @@
 class Network_Visualiser extends ClearOS_Controller
 {
     /**
-     * Mail Notification default controller
+     * Network Visualiser default controller
      *
      * @return view
      */
 
     function index()
-    {
-        $this->_view_edit('view');
-    }
-
-    /**
-     * Mail Notification edit controller
-     *
-     * @return view
-     */
-
-    function edit()
-    {
-        $this->_view_edit('edit');
-    }
-
-    function _view_edit($mode = null)
     {
         // Load dependencies
         //------------------
@@ -77,17 +61,26 @@ class Network_Visualiser extends ClearOS_Controller
         $this->load->library('network_visualiser/Network_Visualiser');
         $this->lang->load('network_visualiser');
 
-        $data['mode'] = $mode;
+        // Load views
+        //-----------
+
+        $this->page->view_form('network_visualiser', $data, lang('network_visualiser_app_name'));
+    }
+
+    function edit()
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('network_visualiser/Network_Visualiser');
+        $this->lang->load('network_visualiser');
 
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('sender', 'network_visualiser/Network_Visualiser', 'validate_email', TRUE);
-        $this->form_validation->set_policy('host', 'network_visualiser/Network_Visualiser', 'validate_host', TRUE);
-        $this->form_validation->set_policy('username', 'network_visualiser/Network_Visualiser', 'validate_username', FALSE);
-        $this->form_validation->set_policy('password', 'network_visualiser/Network_Visualiser', 'validate_password', FALSE);
-        $this->form_validation->set_policy('port', 'network_visualiser/Network_Visualiser', 'validate_port', TRUE);
-        $this->form_validation->set_policy('ssl', 'network_visualiser/Network_Visualiser', 'validate_ssl', TRUE);
+        $this->form_validation->set_policy('interval', 'network_visualiser/Network_Visualiser', 'validate_interval', FALSE);
+        $this->form_validation->set_policy('interface', 'network_visualiser/Network_Visualiser', 'validate_interface', TRUE);
+        $this->form_validation->set_policy('display', 'network_visualiser/Network_Visualiser', 'validate_display', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -95,12 +88,9 @@ class Network_Visualiser extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->network_visualiser->set_host($this->input->post('host'));
-                $this->network_visualiser->set_port($this->input->post('port'));
-                $this->network_visualiser->set_ssl($this->input->post('ssl'));
-                $this->network_visualiser->set_username($this->input->post('username'));
-                $this->network_visualiser->set_password($this->input->post('password'));
-                $this->network_visualiser->set_sender($this->input->post('sender'));
+                $this->network_visualiser->set_interval($this->input->post('interval'));
+                $this->network_visualiser->set_interface($this->input->post('interface'));
+                $this->network_visualiser->set_display($this->input->post('display'));
                 $this->page->set_status_updated();
                 redirect('/network_visualiser');
             } catch (Exception $e) {
@@ -113,13 +103,9 @@ class Network_Visualiser extends ClearOS_Controller
         //---------------
 
         try {
-            $data['host'] = $this->network_visualiser->get_host();
-            $data['port'] = $this->network_visualiser->get_port();
-            $data['ssl'] = $this->network_visualiser->get_ssl();
-            $data['username'] = $this->network_visualiser->get_username();
-            $data['password'] = $this->network_visualiser->get_password();
-            $data['sender'] = $this->network_visualiser->get_sender();
-            $data['ssl_options'] = $this->network_visualiser->get_ssl_options();
+            $data['interval_options'] = $this->network_visualiser->get_interval_options();
+            $data['interface_options'] = $this->network_visualiser->get_interface_options();
+            $data['display_options'] = $this->network_visualiser->get_display_options();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -131,36 +117,4 @@ class Network_Visualiser extends ClearOS_Controller
         $this->page->view_form('network_visualiser/settings', $data, lang('network_visualiser_app_name'));
     }
 
-    /**
-     * Mail Notification test controller
-     *
-     * @return view
-     */
-
-    function test()
-    {
-        // Load dependencies
-        //------------------
-
-        $this->load->library('network_visualiser/Network_Visualiser');
-        $this->lang->load('network_visualiser');
-
-        // Set validation rules
-        //---------------------
-         
-        $this->form_validation->set_policy('email', 'network_visualiser/Network_Visualiser', 'validate_email', TRUE);
-        $form_ok = $this->form_validation->run();
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                $this->network_visualiser->test_relay($this->input->post('email'));
-                $this->page->set_message(lang('network_visualiser_test_success'), 'info');
-                redirect('/network_visualiser');
-            } catch (Exception $e) {
-                $this->page->set_message(clearos_exception_message($e));
-            }
-        }
-
-        $this->page->view_form('network_visualiser/test', $data, lang('network_visualiser_test'));
-    }
 }

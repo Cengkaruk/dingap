@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Mail notification settings.
+ * Network visualiser settings.
  *
  * @category   Apps
- * @package    Mail_Notification
+ * @package    Network_Visualiser
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearcenter.com/support/documentation/clearos/mail_notification/
+ * @link       http://www.clearcenter.com/support/documentation/clearos/network_visualiser/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,39 +34,28 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
-$this->lang->load('mail_notification');
+$this->lang->load('network_visualiser');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('mail_notification/edit');
-echo form_header(lang('mail_notification_settings'));
+echo form_open('network_visualiser/edit');
+echo form_header(lang('base_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($mode === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/mail_notification')
-    );
-} else {
-    $read_only = TRUE;
-    $buttons = array(
-        anchor_edit('/app/mail_notification/edit'),
-        anchor_custom('/app/mail_notification/test', lang('mail_notification_test'), 'high')
-    );
-}
+$read_only = FALSE;
+$buttons = array(
+    form_submit_update('submit'),
+    anchor_cancel('/app/network_visualiser')
+);
 
-echo field_input('host', $host, lang('mail_notification_host'), $read_only);
-echo field_input('port', $port, lang('mail_notification_port'), $read_only);
-echo field_dropdown('ssl', $ssl_options, $ssl, lang('mail_notification_ssl'), $read_only);
-echo field_input('username', $username, lang('mail_notification_username'), $read_only);
-echo field_input('password', $password, lang('mail_notification_password'), $read_only);
-echo field_input('sender', $sender, lang('mail_notification_sender'), $read_only);
+echo field_dropdown('interval', $interval_options, $interval, lang('network_visualiser_interval'), $read_only);
+echo field_dropdown('interface', $interface_options, $interface, lang('network_visualiser_interface'), $read_only);
+echo field_dropdown('display', $display_options, $interval, lang('network_visualiser_display'), $read_only);
 echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
