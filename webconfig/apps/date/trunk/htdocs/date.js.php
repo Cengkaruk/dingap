@@ -30,9 +30,9 @@ $(document).ready(function() {
 
 	$("#sync").click(function(){
         $("#result_box").hide();
-		$("#result").html('<div class="theme-loading"></div>');
-		$("#date").html('<div class="theme-loading"></div>');
-		$("#time").html('<div class="theme-loading"></div>');
+		$("#result").html('<div class="theme-loading-small"></div>');
+		$("#date").html('<div class="theme-loading-small"></div>');
+		$("#time").html('<div class="theme-loading-small"></div>');
 
 		$.ajax({
 			url: 'date/sync',
