@@ -1238,17 +1238,23 @@ class Samba extends Software
      * @throws Engine_Exception
      */
 
-    public function set_local_sid($sid = NULL)
+    public function set_local_sid($localsid = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (empty($sid))
-                $localsid = $this->get_domain_sid();
+            if (empty($localsid)) {
+                $file = new File(self::FILE_DOMAIN_SID, TRUE);
+
+                if ($file->exists()) {
+                    $lines = $file->get_contents_as_array();
+                    $localsid = $lines[0];
+                }
+            }
 
             $shell = new Shell();
             $shell->execute(self::COMMAND_NET, 'setlocalsid ' . $localsid, TRUE);
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             // TODO: Ignore for now?
         }
     }
