@@ -821,13 +821,17 @@ class Iface extends Engine
         //-----------------------------------------------------
 
         if (! $isconfigured) {
-            $shell = new Shell();
-            $shell->execute(self::COMMAND_IWCONFIG, $this->iface, FALSE);
-            $output = $shell->get_output();
+            try {
+                $shell = new Shell();
+                $shell->execute(self::COMMAND_IWCONFIG, $this->iface, FALSE);
+                $output = $shell->get_output();
 
-            foreach ($output as $line) {
-                if (preg_match('/ESSID/', $line))
-                    return self::TYPE_WIRELESS;
+                foreach ($output as $line) {
+                    if (preg_match('/ESSID/', $line))
+                        return self::TYPE_WIRELESS;
+                }
+            } catch (Engine_Exception $e) {
+                // not fatal
             }
 
             return self::TYPE_ETHERNET;

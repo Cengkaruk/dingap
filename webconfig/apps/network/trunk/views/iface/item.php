@@ -65,6 +65,7 @@ $bus = empty($iface_info['bus']) ? '' : $iface_info['bus'];
 $device = empty($iface_info['device']) ? '' : $iface_info['device'];
 $link = (isset($iface_info['link']) && $iface_info['link']) ? lang('network_detected') : lang('network_not_detected');
 $speed = (isset($iface_info['speed']) && $iface_info['speed'] > 0) ? $iface_info['speed'] . ' ' . lang('base_megabits_per_second') : '';
+$dns = (isset($iface_info['ifcfg']['peerdns'])) ? $iface_info['ifcfg']['peerdns'] : TRUE;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
@@ -107,7 +108,7 @@ echo field_input('gateway', $iface_info['ifcfg']['gateway'], lang('network_gatew
 ///////////////////////////////////////////////////////////////////////////////
 
 echo field_input('hostname', $iface_info['ifcfg']['dhcp_hostname'], lang('network_hostname'));
-echo field_checkbox('dhcp_dns', $iface_info['ifcfg']['peerdns'], lang('network_automatic_dns_servers'));
+echo field_checkbox('dhcp_dns', $dns, lang('network_automatic_dns_servers'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // PPPoE
@@ -116,7 +117,7 @@ echo field_checkbox('dhcp_dns', $iface_info['ifcfg']['peerdns'], lang('network_a
 echo field_input('username', $iface_info['ifcfg']['user'], lang('base_username'));
 echo field_input('password', $password, lang('base_password'));
 echo field_input('mtu', $iface_info['ifcfg']['mtu'], lang('network_mtu'));
-echo field_checkbox('pppoe_dns', $iface_info['ifcfg']['peerdns'], lang('network_automatic_dns_servers'));
+echo field_checkbox('pppoe_dns', $dns, lang('network_automatic_dns_servers'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Common footer

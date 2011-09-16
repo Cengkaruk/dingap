@@ -123,12 +123,22 @@ class Settings extends ClearOS_Controller
                     && is_library_installed('incoming_firewall/Incoming')) {
 
                     $this->load->library('incoming_firewall/Incoming');
+
+// FIXME: beta workaround - hard code 'TCP' for now (update firewall/Incoming class)
+                    $firewall_status = $this->incoming->check_port('TCP', '81');
+
+                    if ($firewall_status === Firewall::CONSTANT_NOT_CONFIGURED)
+                        $this->incoming->add_allow_port('webconfig', 'TCP', '81');
+                    else if ($firewall_status === Firewall::CONSTANT_DISABLED)
+                        $this->incoming->set_allow_port_state(TRUE, 'TCP', '81');
+/*
                     $firewall_status = $this->incoming->check_port(Firewall::PROTOCOL_TCP, '81');
 
                     if ($firewall_status === Firewall::CONSTANT_NOT_CONFIGURED)
                         $this->incoming->add_allow_port('webconfig', Firewall::PROTOCOL_TCP, '81');
                     else if ($firewall_status === Firewall::CONSTANT_DISABLED)
                         $this->incoming->set_allow_port_state(TRUE, Firewall::PROTOCOL_TCP, '81');
+*/
                 }
 
                 $this->page->set_status_updated();

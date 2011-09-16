@@ -22,3 +22,8 @@ if [ -n "$CHECK" ]; then
     /sbin/service pppoe-server stop >/dev/null 2>&1
 fi
 
+
+# FIXMEFIXME - silence clearsynd
+touch /etc/clearos/multiwan.conf
+# FIXMEFIXME - disable bandwidth
+echo "BANDWIDTH_QOS=off" > /etc/clearos/bandwidth.conf
