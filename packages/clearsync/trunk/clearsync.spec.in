@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 14%{dist}
+Release: 15%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -10,6 +10,7 @@ Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
 Summary: ClearSync system sychronization tool
 BuildRequires: expat-devel
+Requires: initscripts
 Requires(pre): /sbin/ldconfig, /usr/sbin/useradd, /usr/bin/getent
 Requires(postun): /usr/sbin/userdel
 Requires(post): /sbin/chkconfig

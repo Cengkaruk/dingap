@@ -30,7 +30,10 @@ PID_FILE=/var/run/clearsync/clearsyncd.pid
 
 start() {
     echo -n "Starting $prog: "
-    daemon --user clearsync $prog
+# FIXME beta hack
+#    daemon --user clearsync $prog
+    /usr/sbin/clearsyncd -d >/dev/null 2>&1 &
+    success
     RETVAL=$?
     [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog
     echo
