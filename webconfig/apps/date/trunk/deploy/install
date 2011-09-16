@@ -5,10 +5,6 @@ if [ -d /etc/clearos/date ]; then
     rm -rf /etc/clearos/date
 fi
 
-# Enable ntpdate on boot
-logger -p local6.notice -t installer "app-date-core - enabling time synchronization on boot"
-chkconfig ntpdate on
-
 # Enable hardware clock synchronization
 logger -p local6.notice -t installer "app-date-core - enabling hardware time synchronization"
 sed -i -e 's/SYNC_HWCLOCK=.*/SYNC_HWCLOCK=yes/' /etc/sysconfig/ntpdate
