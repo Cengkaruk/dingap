@@ -26,3 +26,5 @@ $lang['mail_notification_attachment_invalid'] = 'Attachment is invalid.';
 $lang['mail_notification_recipient_not_set'] = 'Recipient not set.';
 $lang['mail_notification_recipient'] = 'Recipient';
 $lang['mail_notification_send_failed'] = 'Send failed.';
+$lang['mail_notification_send_now'] = 'Send Now';
+$lang['mail_notification_send_email_to'] = 'Send To';

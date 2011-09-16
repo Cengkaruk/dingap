@@ -51,8 +51,8 @@ $buttons = array(
     form_submit_custom('submit', lang('mail_notification_send_now'), 'high'),
     anchor_cancel('/app/mail_notification')
 );
-echo field_input('email', $email, lang('mail_notification_send_email'), FALSE);
-echo button_set($buttons);
+echo field_input('email', $email, lang('mail_notification_send_email_to'), FALSE);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close
