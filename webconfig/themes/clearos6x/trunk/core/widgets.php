@@ -1252,7 +1252,7 @@ function theme_summary_box($data)
                 <td>" . $data['vendor'] . "</td>
             </tr>
             <tr id='sidebar_additional_info_row'>
-                <td><b>" . lang('base_additional_info') . "</b></td>
+                <td valign='top'><b>" . lang('base_additional_info') . "</b></td>
                 <td id='sidebar_additional_info'>" . theme_loading('small') . "</td>
             </tr>
         $tooltip
@@ -1275,8 +1275,11 @@ function theme_summary_box($data)
                     dataType: 'json',
                     success : function(json) {
                         if (json.code != undefined && json.code != 0) {
-                            // Could put real message here (json.errmsg), but it gets a bit technical
-                            $('#sidebar_additional_info').html('" . lang('marketplace_connection_failure') . "');
+                            // Could put real message for codes < 0, but it gets a bit technical
+                            if (json.code < 0)
+                                $('#sidebar_additional_info').html('" . lang('marketplace_connection_failure') . "');
+                            else
+                                $('#sidebar_additional_info').html(json.errmsg);
                             $('#sidebar_additional_info').css('color', 'red');
                         } else {
                             $('#sidebar_additional_info_row').hide();
