@@ -61,6 +61,11 @@ class Network_Visualiser extends ClearOS_Controller
         $this->load->library('network_visualiser/Network_Visualiser');
         $this->lang->load('network_visualiser');
 
+        $this->network_visualiser->initialize(
+            $this->network_visualiser->get_interface(),
+            $this->network_visualiser->get_interval()
+        );
+
         // Load views
         //-----------
 

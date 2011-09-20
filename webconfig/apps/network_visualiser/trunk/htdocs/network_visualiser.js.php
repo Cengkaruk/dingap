@@ -46,7 +46,7 @@ $(document).ready(function() {
   get_traffic_data();
 });
 
-function get_traffic_data(realtime) {
+function get_traffic_data() {
     $.ajax({
         type: 'POST',
         dataType: 'json',
@@ -54,7 +54,8 @@ function get_traffic_data(realtime) {
         success: function(data) {
             if (data.code != 0) {
                 // Error will get displayed in sidebar
-                clearos_alert('errmsg', data.errmsg);
+                setTimeout('get_traffic_data()', 1000);
+//                alert(data.errmsg);
                 return;
             }
             for (var index = 0 ; index < data.logs.length; index++)
@@ -68,25 +69,9 @@ function get_traffic_data(realtime) {
         error: function(xhr, text, err) {
             // Don't display any errors if ajax request was aborted due to page redirect/reload
             if (xhr['abort'] == undefined)
-                clearos_alert('errmsg', xhr.responseText.toString());
+                alert(xhr.responseText.toString());
         }
     });
-}
-function clearos_alert(id, message) {
-  $('#theme-page-container').append('<div id=\"' + id + '\" title=\"" . lang('base_warning') . "\">' +
-      '<p>' +
-        '<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 50px 0;\"></span>' + message +
-      '</p>' +
-    '</div>'
-  );
-  $('#' + id).dialog({
-    modal: true,
-    buttons: {
-      '" . lang('base_close') . "': function() {
-        $(this).dialog('close');
-      }
-    }
-  });
 }
 
 ";

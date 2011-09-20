@@ -57,11 +57,11 @@ clearos_load_language('network_visualiser');
 
 use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\File as File;
-use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Configuration_File');
 clearos_load_library('base/File');
-clearos_load_library('network/Hostname');
+clearos_load_library('base/Shell');
 
 // Exceptions
 //-----------
@@ -95,7 +95,7 @@ class Network_Visualiser
     ///////////////////////////////////////////////////////////////////////////////
 
 	const CMD_JNETTOP = '/usr/bin/jnettop';
-	const FILE_CONFIG = '/etc/system/jnettop.conf';
+	const FILE_CONFIG = '/etc/jnettop.conf';
 	const FILE_DUMP = 'jnettop.dmp';
 
 	protected $config = null;
@@ -141,6 +141,38 @@ class Network_Visualiser
 		}
     }
 
+    /**
+     * Get the interface.
+     *
+     * @return string
+     */
+
+    function get_interface()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+		if (!$this->is_loaded)
+			$this->_load_config();
+
+        return $this->config['interface'];
+    }
+
+    /**
+     * Get the interval.
+     *
+     * @return int
+     */
+
+    function get_interval()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+		if (!$this->is_loaded)
+			$this->_load_config();
+
+        return $this->config['interval'];
+    }
+
     /* Executes a test to see if mail can be sent through the SMTP server.
      *
      * @param string $interface a valid NIC interface
@@ -171,7 +203,7 @@ class Network_Visualiser
 				$args .= "\$" . $field . "\$,"; 
 			// Strip off the last comma separator and replace with single quote
 			$args = preg_replace("/,$/", "'", $args);
-			$options = array('env' => "LANG=en_US", 'background' => TRUE, 'log' => 'jnettop.dmp');
+			$options = array('env' => "LANG=en_US", 'background' => TRUE, 'log' => self::FILE_DUMP);
 			$retval = $shell->execute(self::CMD_JNETTOP, $args, TRUE, $options);
 		} catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -296,6 +328,49 @@ class Network_Visualiser
         );
 
         return $options;
+    }
+
+    /**
+     * Returns the visualiser data.
+     *
+     * @return array
+     */
+
+    function get_traffic_data()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+		try {
+			$file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP);
+
+			if (!$file->Exists()) {
+                throw new Engine_Exception(lang('network_visualiser_no_data'), CLEAROS_ERROR);
+                $file_as_array = array (
+                    'code' => 1,
+                    'errmsg' => lang('network_visualiser_no_data' )
+                );
+                return $file_as_array;
+            }
+		} catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+		}
+
+
+        if (($handle = fopen(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP, "r")) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                if (preg_match('/Could not get HW.*/', $data[0]))
+                    continue;
+                $file_as_array[] = $data;
+            }
+            fclose($handle);
+        }
+
+        if (empty($file_as_array))
+            $file_as_array = array (
+                'code' => 1,
+                'errmsg' => lang('network_visualiser_no_data' )
+            );
+        return $file_as_array;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

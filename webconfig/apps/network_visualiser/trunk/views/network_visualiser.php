@@ -16,13 +16,14 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-
 $this->lang->load('base');
 $this->lang->load('network_visualiser');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Buttons
+// Anchors
 ///////////////////////////////////////////////////////////////////////////////
+
+$anchors = array(anchor_custom('/app/network_visualiser/edit/', lang('network_visualiser_modify')));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
@@ -41,7 +42,7 @@ echo form_open('network_visualiser_report');
 
 echo summary_table(
     lang('network_visualiser_traffic_summary'),
-    NULL,
+    $anchors,
     $headers,
     NULL,
     array('id' => 'report')

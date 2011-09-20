@@ -80,9 +80,10 @@ class Ajax extends ClearOS_Controller
         header('Content-type: application/json');
         try {
 
-            $this->load->library('network_visualiser/Nework_Visualiser');
+            $this->load->library('network_visualiser/Network_Visualiser');
 
-            echo $this->network_visualiser->get_traffic_data();
+            $data = $this->network_visualiser->get_traffic_data();
+            echo json_encode($data);
 
         } catch (Exception $e) {
             echo json_encode(Array('code' => clearos_exception_code($e), 'errmsg' => clearos_exception_message($e)));
