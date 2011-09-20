@@ -112,7 +112,7 @@ try {
     if ($in_progress && $output == 'stdout') {
         update_status(0, 0, lang('account_import_already_in_progress'));
         exit(0);
-    } else if (!$in_progress( {
+    } else if (!$in_progress) {
         if ($status->exists())
             $status->delete();
         $status->create('webconfig', 'webconfig', 644);
