@@ -990,17 +990,18 @@ color: white;
 
 
 .name-holder {
-	position: absolute;
-	right: 3px;
-	top: 15px;
-	}
-
-#theme-banner-fullname {
-  font-size: 10pt;
-  font-weight: bold;
+  position: absolute;
+  right: 3px;
+  top: 15px;
+  width: 300px;
   text-align: right;
-  float: right;
-  color: #a5a4a4;
+  font-size: 10pt;
+}
+.name-holder a {
+  color: #686868;
+}
+.name-holder a:hover {
+  color: #62799A;
 }
 
 #theme-banner-logout {
@@ -1946,10 +1947,10 @@ input.theme-form-submit-delete { }
 }
 
 .marketplace-header {
-    width: 749px;
-    width: 739px\9;
+    width: 970px;
+    width: 960px\9;
     height: 65px;
-    margin-left: -10px;
+    margin-left: -8px;
     background-image: url('../images/marketplace-header-bg.png');
     border-bottom: 1px solid #d1d3d4;
     margin-top: 10px;
@@ -1957,7 +1958,7 @@ input.theme-form-submit-delete { }
 }
 
 .marketplace-footer {
-    width: 750;
+    width: 971;
     margin-left: -10px;
     border-bottom: 1px dotted #d1d3d4;
     height: 10px;

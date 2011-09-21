@@ -218,7 +218,6 @@ function _marketplace_page($page)
             <div class='green-stroke-right'></div>
         </div>
         <div class='theme-core-content'>
-        " .  _get_left_menu($$menus) . "
         <div id='theme-content-container'>
         " . _get_message() . "
         " . $page['app_view'] . "
@@ -483,8 +482,8 @@ function _get_banner($page, $menus)
     <div id='theme-banner-background'></div>
     <div id='theme-banner-logo'></div>
     <div class='name-holder'>
-        <a href='/app/base/session/logout' style='color: #98bb60;'><span id='theme-banner-logout'>" . lang('base_logout') . "</span></a>
-        <div id='theme-banner-fullname'>" . lang('base_welcome') . "</div>
+        <a href='/app/marketplace'>" . lang('base_marketplace') . "</a>&nbsp;&nbsp;|&nbsp;
+        <a href='/app/base/session/logout'>" . lang('base_logout_as') . " " . $page['username'] . "</a>
     </div>" .
     _get_top_menu($menus) .
 "
