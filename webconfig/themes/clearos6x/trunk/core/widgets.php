@@ -816,8 +816,14 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     foreach ($headers as $header)
         $header_html .= "\n\t\t" . trim("<th>$header</th>");
 
+    // Action column?
+    $action_col = TRUE;
+    if (isset($options['no_action']) && $options['no_action'])
+        $action_col = FALSE;
+    
     // No title in the action header
-    $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+    if ($action_col)
+        $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
 
     // Anchors
     //--------
@@ -891,7 +897,7 @@ $item_html
 <script type='text/javascript'>
 	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
 		\"aoColumnDefs\": [{ 
-			\"bSortable\": false, \"aTargets\": [ -1 ] 
+			\"bSortable\": false, \"aTargets\": [ " . ($action_col ? "-1" : "") . " ] 
 		}],
 		\"bJQueryUI\": true,
         \"bInfo\": false,
@@ -933,8 +939,14 @@ function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
     foreach ($headers as $header)
         $header_html .= "\n\t\t" . trim("<th>$header</th>");
 
+    // Action column?
+    $action_col = TRUE;
+    if (isset($options['no_action']) && $options['no_action'])
+        $action_col = FALSE;
+
     // No title in the action header
-    $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+    if ($action_col)
+        $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
 
     // Add button
     //-----------
@@ -994,7 +1006,7 @@ $item_html
 <script type='text/javascript'>
 	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
 		\"aoColumnDefs\": [{ 
-			\"bSortable\": false, \"aTargets\": [ -1 ] 
+			\"bSortable\": false, \"aTargets\": [ " . ($action_col ? "-1" : "") . " ] 
 		}],
 		\"bJQueryUI\": true,
 		\"bPaginate\": false,
