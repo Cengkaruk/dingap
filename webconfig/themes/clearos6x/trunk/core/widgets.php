@@ -874,6 +874,20 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     if (isset($options['sort']) && !$options['sort'])
         $sort = FALSE;
 
+    // Sorting type option
+    // This is a pretty big hack job...pretty tough to expose all the functionality datatables have
+    $sorting_type = '';
+    if (isset($options['sorting-type'])) {
+        $sorting_type = "\"aoColumns\": [\n";
+        foreach ($options['sorting-type'] as $s_type) {
+            if ($s_type == NULL)
+                $sorting_type .= "              null,\n";
+            else
+                $sorting_type .= "              {\"sType\": \"" . $s_type . "\"},\n";
+        }
+        $sorting_type .= "          ],";
+    }
+
     // Summary table
     //--------------
 
@@ -904,6 +918,7 @@ $item_html
 		\"bPaginate\": " . ($paginate ? 'true' : 'false') . ",
 		\"bFilter\": " . ($filter ? 'true' : 'false') . ",
 		\"bSort\": " . ($sort ? 'true' : 'false') . ",
+        " . $sorting_type . "
 		\"sPaginationType\": \"full_numbers\"
     });
 </script>
