@@ -330,11 +330,6 @@ csMain::csMain(int argc, char *argv[])
         }
     }
 
-    csMainXmlParser *parser = new csMainXmlParser();
-    conf = new csMainConf(this, conf_filename.c_str(), parser);
-    parser->SetConf(dynamic_cast<csConf *>(conf));
-    conf->Reload();
-
     if (!debug) {
         if (daemon(1, 0) != 0)
             throw csException(errno, "daemon");
@@ -353,6 +348,12 @@ csMain::csMain(int argc, char *argv[])
             fclose(h_pid);
         }
     }
+
+    csMainXmlParser *parser = new csMainXmlParser();
+    conf = new csMainConf(this, conf_filename.c_str(), parser);
+    parser->SetConf(dynamic_cast<csConf *>(conf));
+
+    conf->Reload();
 
     sigset_t signal_set;
     sigfillset(&signal_set);

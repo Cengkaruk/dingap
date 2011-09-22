@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 15%{dist}
+Release: 16%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
