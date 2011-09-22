@@ -36,13 +36,16 @@
 $bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
 require_once $bootstrap . '/bootstrap.php';
 
-clearos_load_language('base');
+clearos_load_language('network_visualiser');
 
 header('Content-Type: application/x-javascript');
 
 echo "
 
+var timestamp = 0;
+
 $(document).ready(function() {
+  $('#report tr:last:last td').html('<div class=\"theme-loading-normal\"></div>');
   get_traffic_data();
 });
 
@@ -51,20 +54,29 @@ function get_traffic_data() {
         type: 'POST',
         dataType: 'json',
         url: '/app/network_visualiser/ajax/get_traffic_data',
-        success: function(data) {
-            if (data.code != 0) {
+        success: function(json) {
+            if (json.code != 0) {
                 // Error will get displayed in sidebar
-                setTimeout('get_traffic_data()', 1000);
-//                alert(data.errmsg);
+                setTimeout('get_traffic_data()', 3000);
+//                alert(json.errmsg);
                 return;
             }
-            for (var index = 0 ; index < data.logs.length; index++)
-                report.fnAddData([
-                  data.logs[index].code,
-                  data.logs[index].description,
-                  $.datepicker.formatDate('MM d, yy', new Date(data.logs[index].timestamp))
+            //alert( json.data[0].src);
+            for (var index = 0 ; index < json.data.length; index++)
+                table_report.fnAddData([
+                  json.data[index].src,
+                  json.data[index].srcport,
+                  json.data[index].proto,
+                  json.data[index].dst,
+                  json.data[index].dstport,
+                  '<span title=\"' + json.data[index].totalbytes + '\"></span>' + format_number(json.data[index].totalbytes)
                 ]);
-            report.fnAdjustColumnSizing();
+            table_report.fnAdjustColumnSizing();
+            if (timestamp != json.timestamp) {
+                timestamp = json.timestamp;
+                reset_scan();
+                setTimeout('get_traffic_data()', 3000);
+            }
         },
         error: function(xhr, text, err) {
             // Don't display any errors if ajax request was aborted due to page redirect/reload
@@ -74,6 +86,46 @@ function get_traffic_data() {
     });
 }
 
+function reset_scan() {
+    $.ajax({
+        type: 'POST',
+        dataType: 'json',
+        url: '/app/network_visualiser/ajax/reset_scan',
+        success: function(json) {
+            if (json.code != 0) {
+                alert(json.errmsg);
+                return;
+            }
+        },
+        error: function(xhr, text, err) {
+            // Don't display any errors if ajax request was aborted due to page redirect/reload
+            if (xhr['abort'] == undefined)
+                alert(xhr.responseText.toString());
+        }
+    });
+}
+
+function format_number (bytes) {
+  var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+  return ((i == 0)? (bytes / Math.pow(1024, i)) : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+jQuery.fn.dataTableExt.oSort['title-numeric-asc']  = function(a,b) {
+    var x = a.match(/title=\"*(-?[0-9\.]+)/)[1];
+    var y = b.match(/title=\"*(-?[0-9\.]+)/)[1];
+    x = parseFloat( x );
+    y = parseFloat( y );
+    return ((x < y) ? -1 : ((x > y) ?  1 : 0));
+};
+
+jQuery.fn.dataTableExt.oSort['title-numeric-desc'] = function(a,b) {
+    var x = a.match(/title=\"*(-?[0-9\.]+)/)[1];
+    var y = b.match(/title=\"*(-?[0-9\.]+)/)[1];
+    x = parseFloat( x );
+    y = parseFloat( y );
+    return ((x < y) ?  1 : ((x > y) ? -1 : 0));
+};
 ";
 
 // vim: syntax=php ts=4

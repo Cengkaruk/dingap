@@ -173,6 +173,22 @@ class Network_Visualiser
         return $this->config['interval'];
     }
 
+    /**
+     * Get the display.
+     *
+     * @return String
+     */
+
+    function get_display()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+		if (!$this->is_loaded)
+			$this->_load_config();
+
+        return $this->config['display'];
+    }
+
     /* Executes a test to see if mail can be sent through the SMTP server.
      *
      * @param string $interface a valid NIC interface
@@ -188,8 +204,11 @@ class Network_Visualiser
 		try {
 			$file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP);
 
-			if ($file->Exists())
-				$file->Delete();
+			if ($file->exists())
+				$file->delete();
+            $file->create('webconfig', 'webconfig', '0644');
+            $file->add_lines("timestamp=" . time() . "\n");
+            sleep(1);
 		} catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
 		}
@@ -355,22 +374,45 @@ class Network_Visualiser
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
 		}
 
+        $timestamp = time();
+
+        $fields = $this->get_fields();
 
         if (($handle = fopen(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP, "r")) !== FALSE) {
+            $line = 0;
+            $file_as_array = array();
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
                 if (preg_match('/Could not get HW.*/', $data[0]))
                     continue;
-                $file_as_array[] = $data;
+                if (preg_match('/^timestamp.*/', $data[0])) {
+                    $timestamp = preg_replace('/timestamp=/', '', $data[0]);
+                    continue;
+                }
+                $index = 0;
+                foreach ($fields as $field) {
+                    $file_as_array[$line][$field] = $data[$index];
+                    $index++;
+                }
+                $line++;
             }
             fclose($handle);
         }
 
-        if (empty($file_as_array))
+        if (empty($file_as_array)) {
             $file_as_array = array (
                 'code' => 1,
                 'errmsg' => lang('network_visualiser_no_data' )
             );
-        return $file_as_array;
+            return $file_as_array;
+        }
+    
+        $data = array(
+            'timestamp' => $timestamp,
+            'code' => 0,
+            'data' => $file_as_array
+        );
+        
+        return $data;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

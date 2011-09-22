@@ -89,4 +89,35 @@ class Ajax extends ClearOS_Controller
             echo json_encode(Array('code' => clearos_exception_code($e), 'errmsg' => clearos_exception_message($e)));
         }
     }
+
+    /**
+     * Ajax reset controller
+     *
+     * @return json
+     */
+
+    function reset_scan()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Fri, 01 Jan 2010 05:00:00 GMT');
+        header('Content-type: application/json');
+
+        // Load dependencies
+        //------------------
+
+        $this->load->library('network_visualiser/Network_Visualiser');
+
+        try {
+            $this->network_visualiser->initialize(
+                $this->network_visualiser->get_interface(),
+                $this->network_visualiser->get_interval()
+            );
+            echo json_encode(array('code' => 0));
+        } catch (Exception $e) {
+            echo json_encode(Array('code' => clearos_exception_code($e), 'errmsg' => clearos_exception_message($e)));
+        }
+
+    }
 }

@@ -30,8 +30,12 @@ $anchors = array(anchor_custom('/app/network_visualiser/edit/', lang('network_vi
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('base_description'),
-    lang('base_timestamp')
+    lang('network_visualiser_source'),
+    lang('network_visualiser_source_port'),
+    lang('network_visualiser_protocol'),
+    lang('network_visualiser_destination'),
+    lang('network_visualiser_destination_port'),
+    ($display == 'totalbps' ? lang('network_visualiser_bandwidth') : lang('network_visualiser_total_transfer'))
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,7 +49,18 @@ echo summary_table(
     $anchors,
     $headers,
     NULL,
-    array('id' => 'report')
+    array(
+        'id' => 'report',
+        'no_action' => TRUE,
+        'sorting-type' => array(
+            null,
+            null,
+            null,
+            null,
+            null,
+            'title-numeric'
+        )
+    )
 );
 
 echo form_close();
