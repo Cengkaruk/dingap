@@ -64,3 +64,4 @@ echo summary_table(
 );
 
 echo form_close();
+echo "<input id='report_display' type='hidden' value='$display'>";

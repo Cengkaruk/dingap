@@ -58,10 +58,12 @@ clearos_load_language('network_visualiser');
 use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
 
 clearos_load_library('base/Configuration_File');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
+clearos_load_library('network/Iface_Manager');
 
 // Exceptions
 //-----------
@@ -323,10 +325,12 @@ class Network_Visualiser
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		$options = array(
-            'eth0' => 'Eth0',
-            'eth1' => 'Eth1'
-        );
+        $iface_manager = new Iface_Manager();
+
+        $network_interface = $iface_manager->get_interface_details();
+
+        foreach ($network_interface as $interface => $details)
+            $options[$interface] = $interface;
 
         return $options;
     }
@@ -382,7 +386,7 @@ class Network_Visualiser
             $line = 0;
             $file_as_array = array();
             while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                if (preg_match('/Could not get HW.*/', $data[0]))
+                if (preg_match('/^Could not.*$/', $data[0]))
                     continue;
                 if (preg_match('/^timestamp.*/', $data[0])) {
                     $timestamp = preg_replace('/timestamp=/', '', $data[0]);

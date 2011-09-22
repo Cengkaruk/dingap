@@ -36,41 +36,49 @@
 $bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
 require_once $bootstrap . '/bootstrap.php';
 
-clearos_load_language('network_visualiser');
+clearos_load_language('base');
 
 header('Content-Type: application/x-javascript');
 
 echo "
 
 var timestamp = 0;
+var display = 'totalbps';
 
 $(document).ready(function() {
-  $('#report tr:last:last td').html('<div class=\"theme-loading-normal\"></div>');
-  get_traffic_data();
+    $('#report tr:last:last td').html('<div class=\"theme-loading-normal\"></div>');
+    if ($('#report_display').val() != undefined) {
+        display = $('#display').val();
+        get_traffic_data();
+    }
 });
 
 function get_traffic_data() {
     $.ajax({
         type: 'POST',
         dataType: 'json',
+        data: 'display=' + display,
         url: '/app/network_visualiser/ajax/get_traffic_data',
         success: function(json) {
             if (json.code != 0) {
                 // Error will get displayed in sidebar
                 setTimeout('get_traffic_data()', 3000);
-//                alert(json.errmsg);
                 return;
             }
-            //alert( json.data[0].src);
-            for (var index = 0 ; index < json.data.length; index++)
+            for (var index = 0 ; index < json.data.length; index++) {
+                if (display == 'totalbps')
+                    field = '<span title=\"' + json.data[index].totalbps + '\"></span>' + format_number(json.data[index].totalbps);
+                else
+                    field = '<span title=\"' + json.data[index].totalbytes + '\"></span>' + format_number(json.data[index].totalbytes);
                 table_report.fnAddData([
-                  json.data[index].src,
-                  json.data[index].srcport,
-                  json.data[index].proto,
-                  json.data[index].dst,
-                  json.data[index].dstport,
-                  '<span title=\"' + json.data[index].totalbytes + '\"></span>' + format_number(json.data[index].totalbytes)
+                    json.data[index].src,
+                    json.data[index].srcport,
+                    json.data[index].proto,
+                    json.data[index].dst,
+                    json.data[index].dstport,
+                    field
                 ]);
+            }
             table_report.fnAdjustColumnSizing();
             if (timestamp != json.timestamp) {
                 timestamp = json.timestamp;
@@ -106,9 +114,23 @@ function reset_scan() {
 }
 
 function format_number (bytes) {
-  var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-  return ((i == 0)? (bytes / Math.pow(1024, i)) : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
+    if (display == 'totalbytes') {
+        var sizes = [" .
+            "'" . lang('base_bytes') . "'," .
+            "'" . lang('base_kilobytes') . "'," .
+            "'" . lang('base_megabytes') . "'," .
+            "'" . lang('base_gigabytes') . "'
+        ];
+    } else {
+        var sizes = [" .
+            "'" . lang('base_bytes_per_second') . "'," .
+            "'" . lang('base_kilobytes_per_second') . "'," .
+            "'" . lang('base_megabytes_per_second') . "'," .
+            "'" . lang('base_gigabytes_per_second') . "'
+        ];
+    }
+    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return ((i == 0)? (bytes / Math.pow(1024, i)) : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
 jQuery.fn.dataTableExt.oSort['title-numeric-asc']  = function(a,b) {

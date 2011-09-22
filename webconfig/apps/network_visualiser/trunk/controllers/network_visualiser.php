@@ -109,6 +109,9 @@ class Network_Visualiser extends ClearOS_Controller
         //---------------
 
         try {
+            $data['interface'] = $this->network_visualiser->get_interface();
+            $data['interval'] = $this->network_visualiser->get_interval();
+            $data['display'] = $this->network_visualiser->get_display();
             $data['interval_options'] = $this->network_visualiser->get_interval_options();
             $data['interface_options'] = $this->network_visualiser->get_interface_options();
             $data['display_options'] = $this->network_visualiser->get_display_options();
