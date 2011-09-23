@@ -48,7 +48,7 @@ var display = 'totalbps';
 $(document).ready(function() {
     $('#report tr:last:last td').html('<div class=\"theme-loading-normal\"></div>');
     if ($('#report_display').val() != undefined) {
-        display = $('#display').val();
+        display = $('#report_display').val();
         get_traffic_data();
     }
 });
@@ -62,9 +62,10 @@ function get_traffic_data() {
         success: function(json) {
             if (json.code != 0) {
                 // Error will get displayed in sidebar
-                setTimeout('get_traffic_data()', 3000);
+                setTimeout('get_traffic_data()', 5000);
                 return;
             }
+            table_report.fnClearTable();
             for (var index = 0 ; index < json.data.length; index++) {
                 if (display == 'totalbps')
                     field = '<span title=\"' + json.data[index].totalbps + '\"></span>' + format_number(json.data[index].totalbps);
@@ -83,7 +84,7 @@ function get_traffic_data() {
             if (timestamp != json.timestamp) {
                 timestamp = json.timestamp;
                 reset_scan();
-                setTimeout('get_traffic_data()', 3000);
+                setTimeout('get_traffic_data()', 5000);
             }
         },
         error: function(xhr, text, err) {
@@ -113,7 +114,9 @@ function reset_scan() {
     });
 }
 
+var ben = true;
 function format_number (bytes) {
+
     if (display == 'totalbytes') {
         var sizes = [" .
             "'" . lang('base_bytes') . "'," .
@@ -122,6 +125,7 @@ function format_number (bytes) {
             "'" . lang('base_gigabytes') . "'
         ];
     } else {
+        bytes = bytes / 8;
         var sizes = [" .
             "'" . lang('base_bytes_per_second') . "'," .
             "'" . lang('base_kilobytes_per_second') . "'," .
