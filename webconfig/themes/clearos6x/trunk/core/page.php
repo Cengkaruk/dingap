@@ -476,13 +476,18 @@ function _get_footer($page)
 
 function _get_banner($page, $menus)
 {
+    if (clearos_marketplace_installed())
+        $marketplace_link = "<a href='/app/marketplace'>" . lang('base_marketplace') . "</a>&nbsp;&nbsp;|&nbsp;";
+    else
+        $marketplace_link = '';
+
     return "
 <!-- Banner -->
 <div id='theme-banner-container'>
     <div id='theme-banner-background'></div>
     <div id='theme-banner-logo'></div>
     <div class='name-holder'>
-        <a href='/app/marketplace'>" . lang('base_marketplace') . "</a>&nbsp;&nbsp;|&nbsp;
+        $marketplace_link
         <a href='/app/base/session/logout'>" . lang('base_logout_as') . " " . $page['username'] . "</a>
     </div>" .
     _get_top_menu($menus) .
