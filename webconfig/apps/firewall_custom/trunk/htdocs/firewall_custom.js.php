@@ -47,6 +47,9 @@ $(document).ready(function() {
     e.preventDefault();
     clearos_info(this.id, rules[this.id]);
   });
+  $('#entry').attr('style', 'width: 325');
+  $('#description').attr('style', 'width: 325');
+  $('.left-field-content').css('width', '150');
 });
 
 function clearos_info(id, message) {
