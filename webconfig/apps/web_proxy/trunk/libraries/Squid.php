@@ -1123,13 +1123,13 @@ class Squid extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         $dow = array(
-            'm' => lang('base_monday'),
-            't' => lang('base_tuesday'),
-            'w' => lang('base_wednesday'),
-            'h' => lang('base_thursday'),
-            'f' => lang('base_friday'),
-            'a' => lang('base_saturday'),
-            's' => lang('base_sunday')
+            'M' => lang('base_monday'),
+            'T' => lang('base_tuesday'),
+            'W' => lang('base_wednesday'),
+            'H' => lang('base_thursday'),
+            'F' => lang('base_friday'),
+            'A' => lang('base_saturday'),
+            'S' => lang('base_sunday')
         );
         return $dow;
     }
