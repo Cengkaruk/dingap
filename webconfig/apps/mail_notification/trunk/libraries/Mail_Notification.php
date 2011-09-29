@@ -55,10 +55,12 @@ clearos_load_language('mail_notification');
 // Classes
 //--------
 
+use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\File as File;
 use \clearos\apps\network\Hostname as Hostname;
 
+clearos_load_library('base/Engine');
 clearos_load_library('base/Configuration_File');
 clearos_load_library('base/File');
 clearos_load_library('network/Hostname');
