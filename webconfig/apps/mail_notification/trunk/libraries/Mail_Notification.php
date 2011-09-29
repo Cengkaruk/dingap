@@ -88,7 +88,7 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/mail_notification/
  */
 
-class Mail_Notification
+class Mail_Notification extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
