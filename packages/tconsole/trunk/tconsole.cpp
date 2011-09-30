@@ -1652,6 +1652,7 @@ void ccConsole::LaunchProcess(ccMenuId id)
 
     case ccMENU_ID_UTIL_IPTRAF:
         path = PATH_SUDO;
+        signal_trap = false;
         argv.push_back(PATH_IPTRAF);
         break;
 
