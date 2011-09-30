@@ -5,23 +5,18 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'devel';
-$app['version'] = '5.9.9.0';
+$app['version'] = '5.9.9.5';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'Developer tool.'; // FIXME
-$app['description'] = 'Developer tools for webconfig.'; // FIXME: translate
+$app['description'] = lang('devel_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('devel_developer_tools');
+$app['name'] = lang('devel_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = 'Developer';
-
-/////////////////////////////////////////////////////////////////////////////
-// Packaging
-/////////////////////////////////////////////////////////////////////////////
