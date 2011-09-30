@@ -52,6 +52,59 @@ clearos_load_language('mail_archive');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Factories
+//----------
+
+use \clearos\apps\users\User_Factory as User;
+
+clearos_load_library('users/User_Factory');
+
+// Classes
+//--------
+
+use \clearos\apps\base\Configuration_File as Configuration_File;
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Mime as Mime;
+use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\date\Time as Time;
+use \clearos\apps\imap\Cyrus as Cyrus;
+use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
+use \clearos\apps\mail_notification\Mail_Notification as Mail_Notification;
+
+clearos_load_library('base/Configuration_File');
+clearos_load_library('base/Engine');
+clearos_load_library('base/File');
+clearos_load_library('base/Folder');
+clearos_load_library('base/Mime');
+clearos_load_library('base/Shell');
+clearos_load_library('date/Time');
+clearos_load_library('imap/Cyrus');
+clearos_load_library('ldap/LDAP_Utilities');
+clearos_load_library('mail_notification/Mail_Notification');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_Already_Exists_Exception as File_Already_Exists_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\Folder_Not_Found_Exception as Folder_Not_Found_Exception;
+use \clearos\apps\base\Sql_Exception as Sql_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\users\User_Not_Found_Exception as User_Not_Found_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_Already_Exists_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/Folder_Not_Found_Exception');
+clearos_load_library('base/Sql_Exception');
+clearos_load_library('base/Validation_Exception');
+clearos_load_library('users/User_Not_Found_Exception');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +121,7 @@ clearos_load_language('mail_archive');
  * @link       http://www.clearfoundation.com/docs/developer/apps/mail_archive/
  */
 
-class Mail_Archive extends Daemon
+class Mail_Archive extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -78,7 +131,7 @@ class Mail_Archive extends Daemon
     protected $config = NULL;
     protected $link = NULL;
     protected $is_loaded = FALSE;
-    const FILE_CONFIG = "/etc/archive.conf";
+    const FILE_CONFIG = "/etc/clearos/mail_archive.conf";
     const SYS_USER = "email-archive";
     const MBOX_HOSTNAME = "localhost";
     const FILE_LOCK = "/var/run/archive_mbox.pid";
@@ -91,6 +144,7 @@ class Mail_Archive extends Daemon
     const DIR_MYSQL_ARCHIVE = "/var/lib/system-mysql";
     const SOCKET_MYSQL = "/var/lib/system-mysql/mysql.sock";
     const FILE_CONFIG_DB = "/etc/system/database";
+    const FILE_AMAVIS_OVERRIDE = '/etc/amavisd/override.conf';
     const FILE_AMAVIS_CONFIGLET = '/etc/amavisd/clear-archive.conf';
     const FILE_ARCHIVE = 'archive.php';
     const FILE_BOOTSTRAP = '/usr/bin/archive_bootstrap';
@@ -142,13 +196,11 @@ class Mail_Archive extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!extension_loaded("mysql"))
-            dl("mysql.so");
+        //if (!extension_loaded("mysql"))
+         //   dl("mysql.so");
 
-        if (!extension_loaded("imap"))
-            dl("imap.so");
-
-        parent::__construct('mail_archive');
+        //if (!extension_loaded("imap"))
+         //   dl("imap.so");
     }
 
     /**
@@ -160,27 +212,54 @@ class Mail_Archive extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function set_status($status)
+    function set_archive_status($status)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (! $this->is_loaded)
             $this->_load_config();
 
+        Validation_Exception::is_valid($this->validate_archive_status($status));
+
         try {
-            $file = new File(self::FILE_AMAVIS_CONFIGLET);
-            if ($status) {
-                if (!$file->exists) {
-                    $file->create("root", "root", "640");
-                    $enable_code = array(
-                        '$archive_quarantine_to = \'email-archive@localhost\'',
-                        '$archive_quarantine_method = \'smtp:[127.0.0.1]:10026\';'
+            // Need to make sure we're pulling in archive configlet
+            $file = new File(self::FILE_AMAVIS_OVERRIDE);
+            if (!$file->exists())
+                $file->create("root", "amavis", "644");
+            try {
+                $file->lookup_line(
+                    "/require\('\/etc\/amavisd\/clear-archive\.conf'\) if \(-e '\/etc\/amavisd\/clear-archive\.conf'\);/"
+                );
+            } catch (File_No_Match_Exception $e) {
+                try {
+                    $file->add_lines_before(
+                        "require('/etc/amavisd/clear-archive.conf') if (-e '/etc/amavisd/clear-archive.conf');\n",
+                        "/1;/"
                     );
-                    $file->add_lines($enable_code);
+                } catch (File_No_Match_Exception $e) {
+                    $file->add_lines(
+                        "require('/etc/amavisd/clear-archive.conf') if (-e '/etc/amavisd/clear-archive.conf');\n" .
+                        "1;\n"
+                    );
                 }
-            } else {
-                if ($file->exists)
-                    $file->delete();
+            }
+            // Make sure we do a return code at end of file
+            try {
+                $file->lookup_line("/1;/");
+            } catch (File_No_Match_Exception $e) {
+                $file->add_lines("1;");
+            }
+    
+            $file = new File(self::FILE_AMAVIS_CONFIGLET);
+            if ($file->exists())
+                $file->delete();
+            // Add back file and contents if service is enabled
+            if ($status) {
+                $file->create("root", "amavis", "644");
+                $enable_code = "\$archive_quarantine_to = 'email-archive@localhost';\n" .
+                    "\$archive_quarantine_method = 'smtp:[127.0.0.1]:10026';\n"
+                ;
+                $file->add_lines($enable_code);
             }
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -213,37 +292,13 @@ class Mail_Archive extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function set_attachment_policy($attach)
+    function set_discard_attachments($attach)
     {
         clearos_profile(__METHOD__, __LINE__);
             
-        if ((int)$attach < 0 || (int)$attach > 5)
-            throw new Validation_Exception(lang('mail_archive_attach_policy_invalid'), CLEAROS_ERROR);
+        Validation_Exception::is_valid($this->validate_discard_attachments($attach));
 
         $this->_set_parameter('attachment', $attach);
-    }
-
-    /**
-     * Set the sender attachment policy by domain.
-     *
-     * @param array $attach policy
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function set_sender_attachment_policy($attach)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-            
-        if ((int)$attach < 0 || (int)$attach > 5)
-            throw new Validation_Exception(lang('mail_archive_attach_policy_invalid'), CLEAROS_ERROR);
-
-        foreach ($attach as $domain => $policy) {
-            if ((int)$policy < 0 || (int)$policy > 5)
-                throw new Validation_Exception(lang('mail_archive_attach_policy_invalid'), CLEAROS_ERROR);
-            $this->_set_parameter("attachment-sender[" . $domain . "]", $policy);
-        }
     }
 
     /**
@@ -255,12 +310,11 @@ class Mail_Archive extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function set_auto_archive_policy($auto)
+    function set_auto_archive($auto)
     {
         clearos_profile(__METHOD__, __LINE__);
             
-        if ((int)$auto < 0 || (int)$auto > 8)
-            throw new Validation_Exception(lang('mail_archive_auto_policy_invalid'), CLEAROS_ERROR);
+        Validation_Exception::is_valid($this->validate_auto_archive($auto));
 
         $this->_set_parameter('auto-archive', $auto);
     }
@@ -274,10 +328,12 @@ class Mail_Archive extends Daemon
      * @throws Engine_Exception
      */
 
-    function set_archive_encryption($encrypt)
+    function set_encrypt($encrypt)
     {
         clearos_profile(__METHOD__, __LINE__);
             
+        Validation_Exception::is_valid($this->validate_encrypt($encrypt));
+
         if (! $this->is_loaded)
             $this->_load_config();
 
@@ -317,17 +373,14 @@ class Mail_Archive extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function set_encryption_password($password)
+    function set_encrypt_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
             
         if (! $this->is_loaded)
             $this->_load_config();
 
-        if (!$this->is_valid_password($password)) {
-            $errors = $this->get_validation_Errors();
-            throw new Validation_Exception($errors[0]);
-        }
+        Validation_Exception::is_valid($this->validate_encrypt_password($password));
 
         $this->_set_parameter('encrypt-password', base64_encode($password));
     }
@@ -367,7 +420,7 @@ class Mail_Archive extends Daemon
         // Determine whether to override
         if (isset($this->config['archive_email_override'])) {
             $mailer = new Mail_Notification();
-            if ($mailer->is_valid_email($this->config['archive_email_override']))
+            if ($mailer->validate_email($this->config['archive_email_override']))
                 $email = $this->config['archive_email_override'];
         }
         return $email;
@@ -406,7 +459,7 @@ class Mail_Archive extends Daemon
      * @throws Engine_Exception
      */
 
-    function get_status()
+    function get_archive_status()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -425,30 +478,13 @@ class Mail_Archive extends Daemon
     }
 
     /**
-     * Returns policy.
-     *
-     * @return string policy
-     * @throws Engine_Exception
-     */
-
-    function get_policy()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-            
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config["policy"];
-    }
-
-    /**
      * Returns global attachment policy.
      *
      * @return int attachment
      * @throws Engine_Exception
      */
 
-    function get_attachment_policy()
+    function get_discard_attachments()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -459,33 +495,13 @@ class Mail_Archive extends Daemon
     }
 
     /**
-     * Returns sender attachment policy.
-     *
-     * @param string $domain the domain
-     *
-     * @return array attachment
-     *
-     * @throws Engine_Exception
-     */
-
-    function get_sender_attachment_policy($domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-            
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config["attachment-sender[$domain]"];
-    }
-
-    /**
      * Returns auto archive policy.
      *
      * @return int archive
      * @throws Engine_Exception
      */
 
-    function get_auto_archive_policy()
+    function get_auto_archive()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -502,7 +518,7 @@ class Mail_Archive extends Daemon
      * @throws Engine_Exception
      */
 
-    function get_archive_encryption()
+    function get_encrypt()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -519,7 +535,7 @@ class Mail_Archive extends Daemon
      * @throws Engine_Exception
      */
 
-    function get_encryption_password()
+    function get_encrypt_password()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -619,7 +635,7 @@ class Mail_Archive extends Daemon
      * @return array
      */
 
-    function get_archive_schedule_options()
+    function get_auto_archive_options()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -703,7 +719,7 @@ class Mail_Archive extends Daemon
      * @return array
      */
 
-    function get_archive_attachment_options()
+    function get_discard_attachments_options()
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -775,7 +791,7 @@ class Mail_Archive extends Daemon
                 $addresses = preg_split("/,|;/", $email);
                 foreach ($addresses as $recipient) {
                     $parsed_email = $mailer->_parse_email_address($recipient);
-                    if (!$mailer->is_valid_email($parsed_email['address']))
+                    if (!$mailer->validate_email($parsed_email['address']))
                         throw new Validation_Exception(MAILER_LANG_RECIPIENT . " - " . LOCALE_LANG_INVALID);
                     $list .= $parsed_email['name'] . ' <' . $parsed_email['address'] . '>;';
                 }
@@ -955,7 +971,7 @@ class Mail_Archive extends Daemon
         // Add file extension
         $filename = $filename . ".tar.gz";
         
-        if (!$this->is_valid_filename($filename))
+        if (!$this->validate_filename($filename))
             throw new Engine_Exception(lang('mail_archive_filename_invalid'), CLEAROS_ERROR);
 
         // Check if filename is a duplicate
@@ -980,7 +996,7 @@ class Mail_Archive extends Daemon
             throw new Engine_Exception(lang('mail_archive_running'), CLEAROS_ERROR);
 
         try {
-            $pw = escapeshellarg($this->get_encryption_password());
+            $pw = escapeshellarg($this->get_password());
             $args = escapeshellarg($filename) . " c";
             $args .= " " . (($pw) ? $pw : "''");
             $args .= ($purge ? ' TRUE' : ' FALSE');
@@ -1012,7 +1028,7 @@ class Mail_Archive extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!$this->is_valid_filename($filename))
+        if (!$this->validate_filename($filename))
             throw new Engine_Exception(lang('mail_archive_filename_invalid'), CLEAROS_ERROR);
 
         // Check if filename link exists
@@ -1027,7 +1043,7 @@ class Mail_Archive extends Daemon
         try {
             $args = escapeshellarg($filename) . " x";
             if (preg_match("/.enc$/i", $filename))
-                $args .= " " . escapeshellarg($this->get_encryption_password());
+                $args .= " " . escapeshellarg($this->get_password());
             $options = array();
             $options['background'] = TRUE;
             $shell = new Shell();
@@ -1387,8 +1403,6 @@ class Mail_Archive extends Daemon
 
         if ($this->link != NULL)
             mysql_close($this->link);
-
-        parent::__destruct();
     }
 
     /**
@@ -2262,6 +2276,68 @@ class Mail_Archive extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validation routine for archive status.
+     *
+     * @param bool $status TRUE/FALSE
+     *
+     * @return mixed void if attachment is valid, errmsg otherwise
+     */
+
+    function validate_archive_status($status)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
+     * Validation routine for archive attachment policy.
+     *
+     * @param int $policy policy
+     *
+     * @return mixed void if attachment is valid, errmsg otherwise
+     */
+
+    function validate_discard_attachments($policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $options = $this->get_discard_attachments_options();
+
+        if (!array_key_exists($policy, $options))
+            return lang('mail_archive_discard_attachments_invalid');
+    }
+
+    /**
+     * Validation routine for auto archive policy.
+     *
+     * @param int $policy policy
+     *
+     * @return mixed void if attachment is valid, errmsg otherwise
+     */
+
+    function validate_auto_archive($policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $options = $this->get_auto_archive_options();
+
+        if (!array_key_exists($policy, $options))
+            return lang('mail_archive_auto_archive_invalid');
+    }
+
+    /**
+     * Validation routine for encryption status.
+     *
+     * @param bool $status TRUE/FALSE
+     *
+     * @return mixed void if encryption is valid, errmsg otherwise
+     */
+
+    function validate_encrypt($status)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
      * Validation routine for filename.
      *
      * @param string $filename archive filename
@@ -2269,7 +2345,7 @@ class Mail_Archive extends Daemon
      * @return boolean
      */
 
-    function is_valid_filename($filename)
+    function validate_filename($filename)
     {
         clearos_profile(__METHOD__, __LINE__);
             
@@ -2285,19 +2361,21 @@ class Mail_Archive extends Daemon
      * @return boolean TRUE if password is valid
      */
 
-    function is_valid_password($pwd)
+    function validate_encrypt_password($pwd)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Get length of password
+        if (! $this->is_loaded)
+            $this->_load_config();
+
         if (isset($this->config['encrypt-password-length']))
             $min = $this->config['encrypt-password-length'];
         else
             $min = 12;
 
         if (strlen($pwd) < $min)
-            return lang('mail_archive_password_too_short');
+            return sprintf(lang('mail_archive_password_invalid'), $min);
         else if (preg_match("/[\|;\*]/", $pwd) || !preg_match("/^[a-zA-Z0-9]/", $pwd))
-            return lang('mail_archive_password_invalid');
+            return sprintf(lang('mail_archive_password_invalid'), $min);
     }
 }

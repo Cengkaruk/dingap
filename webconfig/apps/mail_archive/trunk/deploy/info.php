@@ -6,7 +6,7 @@
 
 $app['basename'] = 'mail_archive';
 $app['version'] = '5.9.9.3';
-$app['release'] = '2.1';
+$app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
@@ -26,11 +26,20 @@ $app['subcategory'] = lang('base_subcategory_mail');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_requires'] = array(
-    'philesight'
+$app['requires'] = array(
+    'app-smtp',
+    'app-imap'
 );
 
-$app['core_file_manifest'] = array( 
+$app['core_file_manifest'] = array(
+   'marketplace.conf' => array(
+        'target' => '/etc/clearos/mail_archive.conf',
+        'mode' => '0640',
+        'owner' => 'webconfig',
+        'group' => 'webconfig',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
    'app-mail-archive.cron' => array(
         'target' => '/etc/cron.d/app-mail-archive',
         'mode' => '0644',

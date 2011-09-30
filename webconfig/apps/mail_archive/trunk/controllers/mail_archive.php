@@ -62,15 +62,83 @@ class Mail_Archive extends ClearOS_Controller
 
     function index()
     {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * Mail Archive edit controller
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    function _view_edit($mode = null)
+    {
         // Load dependencies
         //------------------
 
+        $this->load->library('mail_archive/Mail_Archive');
         $this->lang->load('mail_archive');
 
-        // Load view
-        //----------
+        $data['mode'] = $mode;
 
-        $this->page->view_form('mail_archive', NULL, lang('mail_archive_mail_archive'));
+        // Set validation rules
+        //---------------------
+         
+        $this->form_validation->set_policy('archive_status', 'mail_archive/Mail_Archive', 'validate_archive_status', TRUE);
+        $this->form_validation->set_policy('discard_attachments', 'mail_archive/Mail_Archive', 'validate_discard_attachments', TRUE);
+        $this->form_validation->set_policy('auto_archive', 'mail_archive/Mail_Archive', 'validate_auto_archive', TRUE);
+        $this->form_validation->set_policy('encrypt', 'mail_archive/Mail_Archive', 'validate_encrypt', TRUE);
+        if ($this->input->post('encrypt'))
+            $this->form_validation->set_policy('encrypt_password', 'mail_archive/Mail_Archive', 'validate_encrypt_password', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->mail_archive->set_archive_status($this->input->post('archive_status'));
+                $this->mail_archive->set_discard_attachments($this->input->post('discard_attachments'));
+                $this->mail_archive->set_auto_archive($this->input->post('auto_archive'));
+                $this->mail_archive->set_encrypt($this->input->post('encrypt'));
+                if ($this->input->post('encrypt'))
+                    $this->mail_archive->set_encrypt_password($this->input->post('encrypt_password'));
+                $this->page->set_status_updated();
+                redirect('/mail_archive');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['archive_status'] = $this->mail_archive->get_archive_status();
+            $data['discard_attachments'] = $this->mail_archive->get_discard_attachments();
+            $data['auto_archive'] = $this->mail_archive->get_auto_archive();
+            $data['encrypt'] = $this->mail_archive->get_encrypt();
+            if ($mode == 'edit')
+                $data['encrypt_password'] = $this->mail_archive->get_encrypt_password();
+            else
+                $data['encrypt_password'] = str_pad('', strlen($this->mail_archive->get_encrypt_password()), "*");
+            $data['discard_attachments_options'] = $this->mail_archive->get_discard_attachments_options();
+            $data['auto_archive_options'] = $this->mail_archive->get_auto_archive_options();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('mail_archive/settings', $data, lang('mail_archive_mail_archive'));
     }
 
 }
