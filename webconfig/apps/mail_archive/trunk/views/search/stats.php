@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Mail Archive overview.
+ * Mail Archive search stats.
  *
  * @category   Apps
  * @package    Mail_Archive
@@ -36,12 +36,31 @@
 $this->lang->load('base');
 $this->lang->load('mail_archive');
 
-// TODO: implement an API call instead of file_exists test. 
-if (file_exists(CLEAROS_TEMP_DIR . "/ps.db")) {
-    $url = "https://" . $_SERVER['HTTP_HOST'] . "/cgi-bin/philesight.cgi";
-    echo "<iframe style='border:none;' src='$url' width='100%' height='550'>";
-    echo "<p>" . lang('mail_archive_iframe_not_supported') . "</p>";
-    echo "</iframe>";
-} else {
-    echo infobox_warning(lang('base_warning'), lang('mail_archive_not_available')); 
-}
+///////////////////////////////////////////////////////////////////////////////
+// Form open
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_open('mail_archive/search_archive');
+echo form_header(lang('mail_archive_search_stats'));
+
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
+
+$buttons = array(
+    anchor_custom('/app/mail_archive/search_archive/search', lang('mail_archive_search')),
+    anchor_custom('/app/mail_archive', lang('base_back'))
+);
+
+echo field_input('estimated_size', $estimated_size, lang('mail_archive_estimated_size'), TRUE);
+echo field_input('total_messages', $total_messages, lang('mail_archive_total_messages'), TRUE);
+echo field_input('total_attachments', $total_attachments, lang('mail_archive_total_attachments'), TRUE);
+echo field_input('status', $status, lang('base_status'), TRUE);
+echo field_button_set($buttons);
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_footer();
+echo form_close();

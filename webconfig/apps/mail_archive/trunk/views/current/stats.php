@@ -1,8 +1,7 @@
-
 <?php
 
 /**
- * Mail archive settings.
+ * Mail Archive current stats.
  *
  * @category   Apps
  * @package    Mail_Archive
@@ -41,33 +40,23 @@ $this->lang->load('mail_archive');
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('mail_archive/edit');
-echo form_header(lang('mail_archive_settings'));
+echo form_open('mail_archive/current_archive');
+echo form_header(lang('mail_archive_current_stats'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($mode === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/mail_archive')
-    );
-} else {
-    $read_only = TRUE;
-    $buttons = array(
-        anchor_edit('/app/mail_archive/edit'),
-        anchor_custom('/app/mail_archive/current_archive', lang('mail_archive_current_stats'), 'high'),
-        anchor_custom('/app/mail_archive/search_archive', lang('mail_archive_search_stats'), 'high')
-    );
-}
+$buttons = array(
+    anchor_custom('/app/mail_archive/current_archive/search', lang('mail_archive_search')),
+    anchor_custom('/app/mail_archive', lang('base_back'))
+);
 
-echo field_toggle_enable_disable('archive_status', $archive_status, lang('mail_archive_mail_archive'), $read_only);
-echo field_dropdown('discard_attachments', $discard_attachments_options, $discard_attachments, lang('mail_archive_discard_attachments'), $read_only);
-echo field_dropdown('auto_archive', $auto_archive_options, $auto_archive, lang('mail_archive_auto_archive'), $read_only);
-echo field_toggle_enable_disable('encrypt', $encrypt, lang('mail_archive_encrypt'), $read_only);
-echo field_password('encrypt_password', $encrypt_password, lang('mail_archive_encrypt_password'), $read_only);
+echo field_input('estimated_size', $estimated_size, lang('mail_archive_estimated_size'), TRUE);
+echo field_input('last_archived', $last_archived, lang('mail_archive_last_archived'), TRUE);
+echo field_input('total_messages', $total_messages, lang('mail_archive_total_messages'), TRUE);
+echo field_input('total_attachments', $total_attachments, lang('mail_archive_total_attachments'), TRUE);
+echo field_input('status', $status, lang('base_status'), TRUE);
 echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////

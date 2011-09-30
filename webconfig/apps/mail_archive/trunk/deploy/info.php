@@ -26,9 +26,11 @@ $app['subcategory'] = lang('base_subcategory_mail');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['requires'] = array(
-    'app-smtp',
-    'app-imap'
+$app['core_requires'] = array(
+    'app-smtp-core',
+    'app-imap-core',
+    'app-flexshare-core',
+    'webconfig-php-mysql'
 );
 
 $app['core_file_manifest'] = array(
