@@ -27,6 +27,8 @@ $app['subcategory'] = lang('base_subcategory_file');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'webconfig-php-imap',
+    'webconfig-php-mysql',
     'app-tasks-core', 
     'ntpdate >= 4.2.4p8'
 );
