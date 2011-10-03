@@ -710,7 +710,7 @@ class Flexshare extends Engine
 
         $options = array(
            self::SAVE_REQ_CONFIRM => lang('flexshare_save_req_confirm'),
-           SELF::SAVE_AUTO => lang('flexshare_save_auto')
+           self::SAVE_AUTO => lang('flexshare_save_auto')
         );
 
         return $options;
@@ -731,7 +731,7 @@ class Flexshare extends Engine
         $options = array(
            self::EMAIL_SAVE_PATH_ROOT => lang('flexshare_root_dir'),
            self::EMAIL_SAVE_PATH_MAIL => lang('flexshare_mail_sub_dir'),
-           SElf::EMAIL_SAVE_PATH_PARSE_SUBJECT => lang('flexshare_parse_subject')
+           self::EMAIL_SAVE_PATH_PARSE_SUBJECT => lang('flexshare_parse_subject')
         );
         return $options;
     }
@@ -3676,9 +3676,9 @@ class Flexshare extends Engine
         // Check if notification requires sending
         if (count($mailing_list) > 0) {
             $hostname = new Hostname();
-            $mailer = new Mailer();
+            $mail_notification = new Mail_Notification();
             foreach ($mailing_list as $address=>$emails) {
-                $mailer->Clear();
+                $mail_notification->clear();
                 $body = FLEXSHARE_LANG_EMAIL_NOTIFICATION_PENDING_APPROVAL . ":\n\n";
                 foreach ($emails as $email) {
                     $fields = array(
@@ -3690,7 +3690,7 @@ class Flexshare extends Engine
                     foreach ($fields as $field => $display) {
                         if ($field == "Date") {
                             $ntptime = new NtpTime();
-                            date_default_timezone_set($ntptime->GetTimeZone());
+                            date_default_timezone_set($ntptime->get_time_zone());
 
                             $body .= str_pad("$display:", 20, " ", STR_PAD_RIGHT) .
                                         date("F d, Y H:i", $email[$field])."\n";
@@ -3713,11 +3713,11 @@ class Flexshare extends Engine
                     }
                 }
                 try {
-                    $mailer->AddRecipient($address);
-                    $mailer->SetSubject(FLEXSHARE_LANG_EMAIL_NOTIFICATION_SUBJECT . " - " . $hostname->Get());
-                    $mailer->SetBody($body);
-                    $mailer->SetSender("flex@" . $hostname->Get());
-                    $mailer->Send();
+                    $mail_notification->add_recipient($address);
+                    $mail_notification->set_subject(FLEXSHARE_LANG_EMAIL_NOTIFICATION_SUBJECT . " - " . $hostname->Get());
+                    $mail_notification->set_body($body);
+                    $mail_notification->set_sender("flex@" . $hostname->Get());
+                    $mail_notification->send();
                 } catch (Exception $e) {
                     throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
                 }
@@ -3767,7 +3767,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!$this->IsValidDir($directory)  || !$this->IsValidGroup($group))
+        if (!$this->is_valid_dir($directory)  || !$this->is_valid_group($group))
             return;
         
         try {

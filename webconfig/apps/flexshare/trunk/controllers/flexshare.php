@@ -56,7 +56,6 @@ class Flexshare extends ClearOS_Controller
         // Load libraries
         //---------------
 
-/*
         $this->load->library('flexshare/Flexshare');
         $this->lang->load('flexshare');
 
@@ -70,7 +69,6 @@ class Flexshare extends ClearOS_Controller
             return;
         }
  
-*/
         // Load views
         //-----------
 
