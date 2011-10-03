@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-clearos_load_language('httpd');
+clearos_load_language('web');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -59,13 +59,11 @@ use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
-use \clearos\apps\web\Httpd as Httpd;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('flexshare/Flexshare');
-clearos_load_library('web/Httpd');
 
 // Exceptions
 //-----------
@@ -658,7 +656,7 @@ class Httpd extends Daemon
                 $share = $flexshare->get_share($domain);
             } catch (Flexshare_Not_Found_Exception $e) {
                 $flexshare->add_share($domain, lang('web_site') . " - " . $domain, $group, TRUE);
-                $flexshare->set_directory($domain, Httpd::PATH_DEFAULT);
+                $flexshare->set_directory($domain, self::PATH_DEFAULT);
                 $share = $flexshare->get_share($domain);
             } catch (Exception $e) {
                 throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -717,7 +715,7 @@ class Httpd extends Daemon
             // Need file class for lang
             $file = new File();
             $filename = self::PATH_CONFD . "/" . self::FILE_DEFAULT;
-            return lang('base_exception_file_not_found') . ' (' . $filename . ')', __METHOD__, __LINE__);
+            return lang('base_exception_file_not_found') . ' (' . $filename . ')';
         }
     }
 
@@ -733,7 +731,7 @@ class Httpd extends Daemon
     {
         // Allow underscores
         if (!preg_match("/^([0-9a-zA-Z\.\-_]+)$/", $domain))
-            return lang('web_site_invalid'), __METHOD__, __LINE__);
+            return lang('web_site_invalid');
     }
 
     /**
@@ -747,7 +745,7 @@ class Httpd extends Daemon
     function is_valid_server_name($servername)
     {
         if (!preg_match("/^[A-Za-z0-9\.\-_]+$/", $servername))
-            return lang('web_server_name_invalid'), __METHOD__, __LINE__);
+            return lang('web_server_name_invalid');
     }
 
     /**
@@ -761,7 +759,7 @@ class Httpd extends Daemon
     function is_valid_ssl_state($sslstate)
     {
         if (!is_bool($sslstate))
-            return lang('web_sslstate_invalid'), __METHOD__, __LINE__);
+            return lang('web_sslstate_invalid');
     }
 
     /**
@@ -776,10 +774,10 @@ class Httpd extends Daemon
     {
         // Allow underscores
         if (!isset($docroot) || !$docroot || $docroot == '')
-            return lang('web_docroot_invalid'), __METHOD__, __LINE__);
+            return lang('web_docroot_invalid');
         $folder = new Folder($docroot);
         if (! $folder->exists())
-            return lang('base_exception_folder_not_found') . ' (' . $docroot . ')', __METHOD__, __LINE__);
+            return lang('base_exception_folder_not_found') . ' (' . $docroot . ')';
     }
 
 }
