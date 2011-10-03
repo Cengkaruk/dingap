@@ -52,6 +52,34 @@ clearos_load_language('httpd');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\flexshare\Flexshare as Flexshare;
+use \clearos\apps\web\Httpd as Httpd;
+
+clearos_load_library('base/Daemon');
+clearos_load_library('base/File');
+clearos_load_library('base/Folder');
+clearos_load_library('flexshare/Flexshare');
+clearos_load_library('web/Httpd');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\flexshare\Flexshare_Not_Found_Exception as Flexshare_Not_Found_Exception;
+
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/Validation_Exception');
+clearos_load_library('flexshare/Flexshare_Not_Found_Exception');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -425,7 +453,7 @@ class Httpd extends Daemon
      * @param string $alias  alias name
      *
      * @return void
-     * @throws ValidationException, Engine_Exception
+     * @throws Validation_Exception, Engine_Exception
      */
 
     function set_default_host($domain, $alias)
@@ -464,7 +492,7 @@ class Httpd extends Daemon
      * @param string $servername server name
      *
      * @return array settings for a given host
-     * @throws ValidationException, Engine_Exception
+     * @throws Validation_Exception, Engine_Exception
      */
 
     function set_server_name($servername)
@@ -497,7 +525,7 @@ class Httpd extends Daemon
      * @param boolean $sslstate SSL state (on or off)
      *
      * @return void
-     * @throws ValidationException, Engine_Exception
+     * @throws Validation_Exception, Engine_Exception
      */
 
     function set_ssl_state($sslstate)
@@ -523,13 +551,15 @@ class Httpd extends Daemon
             if (($sslstate) && (! $onfile->exists())) {
                 if (! $offfile->exists())
                     throw new Engine_Exception(lang('web_sslconfig_missing'), COMMON_ERROR);
+                /* TODO - Renable when Horde library available
                 if (file_exists(COMMON_CORE_DIR.'/api/Horde.class.php')) {
                     include_once 'Horde.class.php';
                     $horde = new Horde();
                     if ($horde->GetPort() == 443) {
-                        throw new ValidationException(lang('horde_port_inuse'));
+                        throw new Validation_Exception(lang('horde_port_inuse'));
                     }
                 }
+                */
                 $offfile->MoveTo(self::FILE_SSL);
                 return;
             }
@@ -558,7 +588,7 @@ class Httpd extends Daemon
      * @param string $docroot document root
      *
      * @return void
-     * @throws ValidationException, Engine_Exception
+     * @throws Validation_Exception, Engine_Exception
      */
 
     function set_virtual_host($domain, $alias, $docroot)
