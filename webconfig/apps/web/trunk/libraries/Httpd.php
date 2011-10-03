@@ -143,12 +143,12 @@ class Httpd extends Daemon
         //---------
 
         if (! $this->is_valid_domain($domain))
-            throw new Validation_Exception(HTTPD_LANG_ERRMSG_WEB_SITE_INVALID);
+            throw new Validation_Exception(lang('web_website_invalid'));
 
         try {
             $config = new File(self::PATH_CONFD . "/$confd");
             if ($config->exists()) {
-                throw new Validation_Exception(HTTPD_LANG_ERRMSG_WEB_SITE_EXISTS);
+                throw new Validation_Exception(lang('web_website_exists'));
             }
         } catch (Validation_Exception $e) {
             throw new Validation_Exception(clearos_exception_message($e));
@@ -413,7 +413,7 @@ class Httpd extends Daemon
         }
 
         if ($count < 5)
-            throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD, COMMON_ERROR);
+            throw new Engine_Exception(lang('base_something_unexpected_happened'), COMMON_ERROR);
 
         return $info;
     }
@@ -522,12 +522,12 @@ class Httpd extends Daemon
         try {
             if (($sslstate) && (! $onfile->exists())) {
                 if (! $offfile->exists())
-                    throw new Engine_Exception(HTTPD_LANG_ERRMSG_SSLCONFIG_MISSING, COMMON_ERROR);
+                    throw new Engine_Exception(lang('web_sslconfig_missing'), COMMON_ERROR);
                 if (file_exists(COMMON_CORE_DIR.'/api/Horde.class.php')) {
                     include_once 'Horde.class.php';
                     $horde = new Horde();
                     if ($horde->GetPort() == 443) {
-                        throw new ValidationException(HORDE_LANG_PORT_INUSE.'groupware');
+                        throw new ValidationException(lang('horde_port_inuse'));
                     }
                 }
                 $offfile->MoveTo(self::FILE_SSL);
@@ -627,7 +627,7 @@ class Httpd extends Daemon
             try {
                 $share = $flexshare->get_share($domain);
             } catch (Flexshare_Not_Found_Exception $e) {
-                $flexshare->add_share($domain, HTTPD_LANG_WEB_SITE . " - " . $domain, $group, TRUE);
+                $flexshare->add_share($domain, lang('web_site') . " - " . $domain, $group, TRUE);
                 $flexshare->set_directory($domain, Httpd::PATH_DEFAULT);
                 $share = $flexshare->get_share($domain);
             } catch (Exception $e) {
@@ -647,12 +647,12 @@ class Httpd extends Daemon
             $flexshare->set_ftp_user_owner($domain, NULL);
             //$flexshare->set_ftp_group_access($domain, Array($group));
             if (!isset($share['FtpGroupGreeting']))
-                $flexshare->set_ftp_group_greeting($domain, HTTPD_LANG_WEB_SITE . ' - ' . $domain);
+                $flexshare->set_ftp_group_greeting($domain, lang('web_site') . ' - ' . $domain);
             $flexshare->set_ftp_group_permission($domain, Flexshare::PERMISSION_READ_WRITE_PLUS);
             $flexshare->set_ftp_group_umask($domain, Array('owner'=>0, 'group'=>0, 'world'=>2));
             $flexshare->set_ftp_enabled($domain, $ftp);
             // Samba
-            $flexshare->set_file_comment($domain, HTTPD_LANG_WEB_SITE . ' - ' . $domain);
+            $flexshare->set_file_comment($domain, lang('web_site') . ' - ' . $domain);
             $flexshare->set_file_public_access($domain, 0);
             $flexshare->set_file_permission($domain, Flexshare::PERMISSION_READ_WRITE);
             $flexshare->set_file_create_mask($domain, Array('owner'=>6, 'group'=>6, 'world'=>4));
@@ -731,7 +731,7 @@ class Httpd extends Daemon
     function is_valid_ssl_state($sslstate)
     {
         if (!is_bool($sslstate))
-            return lang('web_server_ssl_state_invalid'), __METHOD__, __LINE__);
+            return lang('web_sslstate_invalid'), __METHOD__, __LINE__);
     }
 
     /**
@@ -746,7 +746,7 @@ class Httpd extends Daemon
     {
         // Allow underscores
         if (!isset($docroot) || !$docroot || $docroot == '')
-            return lang('web_doc_root_invalid'), __METHOD__, __LINE__);
+            return lang('web_docroot_invalid'), __METHOD__, __LINE__);
         $folder = new Folder($docroot);
         if (! $folder->exists())
             return lang('base_exception_folder_not_found') . ' (' . $docroot . ')', __METHOD__, __LINE__);
