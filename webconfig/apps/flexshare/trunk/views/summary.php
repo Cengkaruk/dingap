@@ -60,7 +60,7 @@ $headers = array(
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array();
+$anchors = array(anchor_add('/app/flexshare/add'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -99,7 +99,7 @@ sort($items);
 
 echo summary_table(
 	lang('flexshare_flexshares'),
-	$anchors,
+    $anchors,
 	$headers,
 	$items
 );

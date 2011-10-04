@@ -52,6 +52,87 @@ clearos_load_language('flexshare');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Factories
+//----------
+
+use \clearos\apps\groups\Group_Factory as Group;
+use \clearos\apps\users\User_Factory as User;
+
+clearos_load_library('groups/Group_Factory');
+clearos_load_library('users/User_Factory');
+
+// Classes
+//--------
+
+//use \clearos\apps\\Aliases as Aliases;
+//use \clearos\apps\\ClearDirectory as ClearDirectory;
+//use \clearos\apps\\Ssl as Ssl;
+use \clearos\apps\base\Configuration_File as Configuration_File;
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Mime as Mime;
+use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\date\Time as Time;
+use \clearos\apps\ftp\ProFTPd as ProFTPd;
+use \clearos\apps\imap\Cyrus as Cyrus;
+use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
+use \clearos\apps\mail_notification\Mail_Notification as Mail_Notification;
+use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
+use \clearos\apps\network\Network as Network;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
+use \clearos\apps\openldap_directory\User_Driver as User_Driver;
+use \clearos\apps\samba\Samba as Samba;
+use \clearos\apps\smtp\Postfix as Postfix;
+use \clearos\apps\web\Httpd as Httpd;
+
+//clearos_load_library('/Aliases');
+//clearos_load_library('/ClearDirectory');
+//clearos_load_library('/Ssl');
+clearos_load_library('base/Configuration_File');
+clearos_load_library('base/Engine');
+clearos_load_library('base/File');
+clearos_load_library('base/Folder');
+clearos_load_library('base/Mime');
+clearos_load_library('base/Shell');
+clearos_load_library('date/Time');
+clearos_load_library('ftp/ProFTPd');
+clearos_load_library('imap/Cyrus');
+clearos_load_library('ldap/LDAP_Utilities');
+clearos_load_library('mail_notification/Mail_Notification');
+clearos_load_library('network/Hostname');
+clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Network');
+clearos_load_library('openldap_directory/Group_Driver');
+clearos_load_library('openldap_directory/User_Driver');
+clearos_load_library('samba/Samba');
+clearos_load_library('smtp/Postfix');
+clearos_load_library('web/Httpd');
+
+// Exceptions
+//-----------
+
+//use \clearos\apps\\Duplicate_Exception as Duplicate_Exception;
+//use \clearos\apps\\Ssl_Excecution_Exception as Ssl_Excecution_Exception;
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\flexshare\Flexshare_Not_Found_Exception as Flexshare_Not_Found_Exception;
+use \clearos\apps\flexshare\Flexshare_Parameter_Not_Found_Exception as Flexshare_Parameter_Not_Found_Exception;
+use \clearos\apps\users\User_Not_Found_Exception as User_Not_Found_Exception;
+
+//clearos_load_library('/Duplicate_Exception');
+//clearos_load_library('/Ssl_Excecution_Exception');
+clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/Validation_Exception');
+clearos_load_library('flexshare/Flexshare_Not_Found_Exception');
+clearos_load_library('flexshare/Flexshare_Parameter_Not_Found_Exception');
+clearos_load_library('users/User_Not_Found_Exception');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -433,7 +514,7 @@ class Flexshare extends Engine
      * @param string $name flexshare name
      *
      * @return array information of flexshare
-     * @throws FlexshareNotFoundException, Engine_Exception
+     * @throws Flexshare_Not_Found_Exception, Engine_Exception
      */
 
     function get_share($name)
@@ -473,7 +554,7 @@ class Flexshare extends Engine
         }
 
         if (!$found)
-            throw new FlexshareNotFoundException($name, COMMON_INFO);
+            throw new Flexshare_Not_Found_Exception($name, CLEAROS_INFO);
 
         return $share;
     }
@@ -558,16 +639,20 @@ class Flexshare extends Engine
 
         // Custom
         try {
-            if ($this->get_parameter(NULL, 'FlexshareDirCustom')) {
-                $list = preg_split("/\\|/", $this->get_parameter(NULL, 'FlexshareDirCustom'));
-                foreach ($list as $custom) {
-                    list ($desc, $path) = preg_split("/:/", $custom);
-                    $options[$path] = $desc . ' (' . $path . ")\n";
-                }
+            $list = preg_split("/\\|/", $this->get_parameter(NULL, 'FlexshareDirCustom'));
+            foreach ($list as $custom) {
+                list ($desc, $path) = preg_split("/:/", $custom);
+                $options[$path] = $desc . ' (' . $path . ")\n";
             }
-        } catch (Exception $e) {
+        } catch (Flexshare_Parameter_Not_Found_Exception $e) {
+            // Ignore
+        } catch (Engine_Exception $e) {
             // Ignore
         }
+
+        // If $name is NULL, fancy up the path displayed
+        if ($name == NULL)
+            $name = preg_replace('/ /', '_', strtoupper(lang('flexshare_share_name'))); 
 
         // Default
         $options[self::SHARE_PATH . '/' . $name] = lang('base_default') . ' (' . self::SHARE_PATH . '/' . $name . ")\n";
@@ -760,11 +845,8 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO
-        if (! file_exists(COMMON_CORE_DIR . "/api/Httpd.class.php"))
+        if (!is_library_installed('web/Httpd'))
             return;
-
-        include_once "Httpd.class.php";
 
         $httpd = new Httpd();
         $vhosts = array();
@@ -798,7 +880,7 @@ class Flexshare extends Engine
             $sslfile = new File(Httpd::FILE_SSL);
             if ($sslfile->exists())
                 $sslfile->delete_lines("/Include conf.d\/" . self::PREFIX . "443.ssl/");
-        } catch (FileNotFoundException $e) {
+        } catch (File_Not_Found_Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         } catch (Exception $e) {
             // This may not be fatal
@@ -848,8 +930,8 @@ class Flexshare extends Engine
 
             if ($share['WebAccess'] == self::ACCESS_LAN) {
                 try {
-                    $ifacemanager = new IfaceManager();
-                    $lans = $ifacemanager->GetLanNetworks();
+                    $ifacemanager = new Iface_Manager();
+                    $lans = $ifacemanager->get_lan_networks();
                 } catch (Exception $e) {
                     throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
                 }
@@ -1011,9 +1093,8 @@ class Flexshare extends Engine
             if ($share['WebHtaccessOverride'])
                 $newlines[] = "\tAllowOverride All";
 
-            // TODO ClearDirectory???
             if ($share['WebReqAuth']) {
-                $ldap = new Ldap();
+                $user_driver = new User_Driver();
                 $ldap_conf = "ldap://127.0.0.1:389/" . ClearDirectory::GetUsersOu() . "?uid?one?(pcnWebFlag=TRUE)";
                 $newlines[] = "\tAuthType Basic";
                 $newlines[] = "\tAuthBasicProvider ldap";
@@ -1022,7 +1103,7 @@ class Flexshare extends Engine
                 $newlines[] = "\tAuthLDAPUrl $ldap_conf";
 
                 // Determine if this is a group or a user
-                $group = new Group($share['ShareGroup']);
+                $group = new Group_Driver($share['ShareGroup']);
 
                 if ($group->exists()) {
                     $newlines[] = "\tRequire ldap-group cn=" .
@@ -1031,8 +1112,7 @@ class Flexshare extends Engine
                     // TODO: API should be something like User->GetDn() instead of Ldap->GetDnForUid ?
                     $user = new User($share['ShareGroup']);
                     if ($user->exists()) {
-                        $ldap = new Ldap();
-                        $dn = $ldap->get_dn_for_uid($share['ShareGroup']);
+                        $dn = $user_driver->get_dn_for_uid($share['ShareGroup']);
                         $newlines[] = "\tRequire ldap-dn " . $dn;
                     }
                 }
@@ -1112,10 +1192,10 @@ class Flexshare extends Engine
         if ($exitcode != 0) {
             $config_ok = FALSE;
             $output = $shell->get_output();
-            Logger::Syslog(self::LOG_TAG, "Invalid httpd configuration!");
+            log_message(self::LOG_TAG, "Invalid httpd configuration!");
             // Oops...we generated an invalid conf file
             foreach ($output as $line)
-                Logger::Syslog(self::LOG_TAG, $line);
+                log_message(self::LOG_TAG, $line);
         }
 
         foreach ($vhosts as $vhost) {
@@ -1157,14 +1237,11 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO
-        if (! file_exists(COMMON_CORE_DIR . "/api/Proftpd.class.php"))
+        if (!is_library_installed('ftp/ProFTPd'))
             return;
 
-        include_once "Proftpd.class.php";
-
         $confs = array();
-        $proftpd = new Proftpd();
+        $proftpd = new ProFTPd();
 
         // Create a unique file identifier
         $backup_key = time();
@@ -1319,9 +1396,9 @@ class Flexshare extends Engine
             }
 
             try {
-                $proftpd_conf = new File(Proftpd::FILE_CONFIG);
+                $proftpd_conf = new File(ProFTPd::FILE_CONFIG);
                 $proftpd_conf->lookup_line("/Include \/etc\/proftpd.d\/\*.conf/");
-            } catch (FileNoMatchException $e) {
+            } catch (File_No_Match_Exception $e) {
                 // Need this line to include flexshare confs
                 $proftpd_conf->add_lines("Include /etc/proftpd.d/*.conf\n");
             } catch (Exception $e) {
@@ -1402,7 +1479,7 @@ class Flexshare extends Engine
             }
 
             // Determine if this is a group or a user
-            $group = new Group($share['ShareGroup']);
+            $group = new Group_Driver($share['ShareGroup']);
 
             if ($group->exists())
                 $isgroup = TRUE;
@@ -1509,9 +1586,9 @@ class Flexshare extends Engine
         if ($exitcode != 0) {
             $config_ok = FALSE;
             $output = $shell->get_output();
-            Logger::Syslog(self::LOG_TAG, "Invalid ProFTP configuration!");
+            log_message(self::LOG_TAG, "Invalid ProFTP configuration!");
             foreach ($output as $line)
-                Logger::Syslog(self::LOG_TAG, $line);
+                log_message(self::LOG_TAG, $line);
         }
 
         foreach ($confs as $conf) {
@@ -1559,11 +1636,8 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO
-        if (! file_exists(COMMON_CORE_DIR . "/api/Samba.class.php"))
+        if (!is_library_installed('samba/Samba'))
             return;
-
-        include_once "Samba.class.php";
 
         $samba = new Samba();
 
@@ -1590,7 +1664,7 @@ class Flexshare extends Engine
             $samba_conf = new File(Samba::FILE_CONFIG);
 
             if (! $samba_conf->exists())
-                throw new Exception(FILE_LANG_ERRMSG_NOTEXIST . " " . Samba::FILE_CONFIG);
+                throw new Engine_Exception(lang('base_exception_file_not_found') . ' (' . Samba::FILE_CONFIG . ')');
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -1633,7 +1707,7 @@ class Flexshare extends Engine
                 $linestoadd .= "\tdirectory mask = 775\n";
                 $linestoadd .= "\tcreate mask = 664\n";
                 // Determine if this is a group or a user
-                $group = new Group($share['ShareGroup']);
+                $group = new Group_Driver($share['ShareGroup']);
 
                 if ($group->exists()) {
                     $linestoadd .= "\tvalid users = @\"%D" . '\\' . trim($share["ShareGroup"]) . "\"\n";
@@ -1689,9 +1763,9 @@ class Flexshare extends Engine
         if ($exitcode != 0) {
             $config_ok = FALSE;
             $output = $shell->get_output();
-            Logger::Syslog(self::LOG_TAG, "Invalid Samba configuration!");
+            log_message(self::LOG_TAG, "Invalid Samba configuration!");
             foreach ($output as $line)
-                Logger::Syslog(self::LOG_TAG, $line);
+                log_message(self::LOG_TAG, $line);
         }
 
         if ($config_ok) {
@@ -1732,13 +1806,10 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO
-        if (file_exists(COMMON_CORE_DIR . "/api/Aliases.class.php")) {
-            include_once COMMON_CORE_DIR . "/api/Aliases.class.php";
-            $aliases = new Aliases();
-        } else {
+        if (!is_library_installed('aliases/Aliases'))
             return;
-        }
+
+        $aliases = new Aliases();
 
         try {
             $shares = $this->get_share_summary();
@@ -1759,7 +1830,7 @@ class Flexshare extends Engine
                 } else {
                     try {
                         $aliases->add_alias(self::PREFIX . $name, array(self::CONSTANT_USERNAME));
-                    } catch (DuplicateException $e) {
+                    } catch (Duplicate_Exception $e) {
                         // Do nothing
                     } catch (Exception $e) {
                         throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
@@ -1794,8 +1865,7 @@ class Flexshare extends Engine
 
         try {
             // Generate random password
-            $directory = new ClearDirectory();
-            $password = $directory->GeneratePassword();
+            $password = LDAP_Utilities::generate_password();
         } catch (Exception $e) {
             throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
@@ -1807,7 +1877,7 @@ class Flexshare extends Engine
         try {
             $user = new User(self::CONSTANT_USERNAME);
             $currentinfo = $user->GetInfo();
-        } catch (UserNotFoundException $e) {
+        } catch (User_Not_Found_Exception $e) {
             $adduser = TRUE;
         }
 
@@ -3239,7 +3309,7 @@ class Flexshare extends Engine
      *
      * @return string
      *
-     * @throws Engine_Exception, Flexshare_Parameter_Not_Found_Exception
+     * @throws Engine_Exception, File_Not_Found_Exception, Flexshare_Parameter_Not_Found_Exception
      */
 
     function get_parameter($name, $key)
@@ -3254,9 +3324,9 @@ class Flexshare extends Engine
             else
                 $retval = $file->lookup_value_between("/^\s*$key\s*=\s*/i", "/<Share $name>/", "/<\/Share>/");
         } catch (File_Not_Found_Exception $e) {
-            throw new Flexshare_Parameter_Not_Found_Exception($name);
+            throw new File_Not_Found_Exception($file->get_filename(), CLEAROS_ERROR);
         } catch (File_No_Match_Exception $e) {
-            throw new Flexshare_Parameter_Not_Found_Exception($name);
+            throw new Flexshare_Parameter_Not_Found_Exception($key, CLEAROS_ERROR);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -3436,7 +3506,7 @@ class Flexshare extends Engine
 
             // See if we have a matching flexshare defined
             if ($flex_address == NULL || ! isset($shares[$flex_address])) {
-                Logger::Syslog(self::LOG_TAG, "Flexshare does not exist...Subject: " . $headers->subject);
+                log_message(self::LOG_TAG, "Flexshare does not exist...Subject: " . $headers->subject);
                 imap_delete($mbox, $index);
                 unset($mymessage[$index]);
                 continue;
@@ -3467,7 +3537,7 @@ class Flexshare extends Engine
 
             // User deleted...no use continuing
             if (isset($action[$index]) && $action[$index] == 'delete') {
-                Logger::Syslog(self::LOG_TAG, "User initiated deletion...Subject: " . $headers->subject);
+                log_message(self::LOG_TAG, "User initiated deletion...Subject: " . $headers->subject);
                 imap_delete($mbox, $index);
                 unset($mymessage[$index]);
                 continue;
@@ -3510,7 +3580,7 @@ class Flexshare extends Engine
                     $acl = array_merge($acl, $additional);
                 }
                 if (! in_array($headers->from[0]->mailbox . "@" . $headers->from[0]->host, $acl)) {
-                    Logger::Syslog(self::LOG_TAG, "ACL restricts attachments...Subject: " . $headers->subject);
+                    log_message(self::LOG_TAG, "ACL restricts attachments...Subject: " . $headers->subject);
                     imap_delete($mbox, $index);
                     unset($mymessage[$index]);
                     continue;
@@ -3656,11 +3726,11 @@ class Flexshare extends Engine
                                 }
                             }
                             $file->Chmod("0664");
-                            Logger::Syslog(self::LOG_TAG, "Attachment saved as " . $path_and_filename);
+                            log_message(self::LOG_TAG, "Attachment saved as " . $path_and_filename);
                         }
                     }
                 } catch (Exception $e) {
-                    // TODO login this:
+                    // TODO log this:
                     //"Error - " . $e->getMessage() . " Subject: " . $headers->subject;
                     continue;
                 }
@@ -3689,8 +3759,8 @@ class Flexshare extends Engine
                                   "Files" => FLEXSHARE_LANG_ATTACHMENTS);
                     foreach ($fields as $field => $display) {
                         if ($field == "Date") {
-                            $ntptime = new NtpTime();
-                            date_default_timezone_set($ntptime->get_time_zone());
+                            $time = new Time();
+                            date_default_timezone_set($time->get_time_zone());
 
                             $body .= str_pad("$display:", 20, " ", STR_PAD_RIGHT) .
                                         date("F d, Y H:i", $email[$field])."\n";
@@ -3956,10 +4026,8 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! file_exists(COMMON_CORE_DIR . "/api/Httpd.class.php"))
+        if (!is_library_installed('web/Httpd'))
             return;
-
-        include_once "Httpd.class.php";
 
         $httpd = new Httpd();
         return $httpd->is_valid_server_name($server_name);

@@ -61,18 +61,18 @@ if ($form_type === 'edit') {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open($form_path . '/' . $share);
-echo form_header(lang('base_general_settings'));
+echo form_header(lang('flexshare_general_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('share', $share, lang('flexshare_name'), $read_only);
+echo field_input('share', $share, lang('flexshare_share_name'), $read_only);
 echo field_input('description', $description, lang('base_description'), $read_only);
-echo field_dropdown('group', $groups, $group, lang('flexshare_group'));
+echo field_dropdown('group', $group_options, $owner, lang('flexshare_group'));
 echo field_dropdown('directory', $directories, $directory, lang('flexshare_directory'));
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

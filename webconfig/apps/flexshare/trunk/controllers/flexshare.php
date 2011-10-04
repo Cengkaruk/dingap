@@ -30,6 +30,17 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Exceptions
+//-----------
+
+use \clearos\apps\flexshare\Flexshare_Parameter_Not_Found_Exception as Flexshare_Parameter_Not_Found_Exception;
+
+clearos_load_library('flexshare/Flexshare_Parameter_Not_Found_Exception');
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -63,7 +74,7 @@ class Flexshare extends ClearOS_Controller
         //---------------
 
         try {
-            $data['flexshares'] = $this->flexshare->get_shares();
+            $data['flexshares'] = $this->flexshare->get_share_summary();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -181,81 +192,41 @@ class Flexshare extends ClearOS_Controller
         // Load libraries
         //---------------
 
+        $this->load->library('flexshare/Flexshare');
+        $this->load->library('groups/Group_Engine');
+        $this->load->factory('groups/Group_Manager_Factory');
+        $this->load->factory('users/User_Manager_Factory');
         $this->lang->load('flexshare');
-/*
-        $this->load->factory('users/User_Factory', $username);
-        $this->load->factory('accounts/Accounts_Factory');
+        $this->lang->load('groups');
+        $this->lang->load('users');
 
-        // Validate prep
-        //--------------
-
-        $info_map = $this->user->get_info_map();
-        $this->load->library('form_validation');
-
-        // Validate core
-        //--------------
-
-        foreach ($info_map['core'] as $key => $details) {
-            $full_key = 'user_info[core][' . $key . ']';
-            $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
-        }
-
-        // Validate extensions
-        //--------------------
-
-        foreach ($info_map['extensions'] as $extension => $parameters) {
-            foreach ($parameters as $key => $details) {
-                $full_key = 'user_info[extensions][' . $extension . '][' . $key . ']';
-                $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
-            }
-        }
-
-        // Validate plugins
-        //-----------------
-
-        foreach ($info_map['plugins'] as $plugin) {
-            $full_key = 'user_info[plugins][' . $plugin . '][state]';
-            $this->form_validation->set_policy($full_key, 'accounts/Accounts_Engine', 'validate_plugin_state');
-        }
-
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if ($this->input->post('submit') && ($form_ok === TRUE)) {
-            try {
-                $this->user->update($this->input->post('user_info'));
-
-                $this->page->set_status_updated();
-                // FIXME
-                //redirect('/users');
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load the view data 
-        //------------------- 
-
+        // Create owner list
+        //------------------
         try {
-            $data['form_type'] = $form_type;
-
-            $data['username'] = $username;
-            $data['info_map'] = $info_map;
-            $data['user_info'] = $this->user->get_info();
-
-            $data['extensions'] = $this->accounts->get_extensions();
-            $data['plugins'] = $this->accounts->get_plugins();
+            $groups = $this->group_manager->get_details();
+            $users = $this->user_manager->get_details();
+            $group_options[-1] = lang('base_select');
+            foreach ($groups as $name => $group)
+                $group_options[$name] = lang('groups_group') . ' - ' . $name;
+            foreach ($users as $name => $user)
+                $group_options[$name] = lang('users_user') . ' - ' . $name;
+            $data['group_options'] = $group_options;
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
-*/
+
         // Load the views
         //---------------
 
+        try {
+            $data['directories'] = $this->flexshare->get_dir_options(NULL);
+        } catch (Flexshare_Parameter_Not_Found_Exception $e) {
+            // This is OK
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
         $this->page->view_form('flexshare/add_edit', $data, lang('flexshare_flexshares'));
     }
 }
