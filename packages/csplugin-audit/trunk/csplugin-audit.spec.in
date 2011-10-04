@@ -8,8 +8,9 @@ Group: System/Plugins
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
-Requires: clearsync
-BuildRequires: clearsync-devel expat-devel
+Requires: clearsync >= 1.1
+BuildRequires: clearsync-devel >= 1.1
+BuildRequires: expat-devel
 Summary: ClearSync Audit plugin
 Requires(pre): /sbin/ldconfig
 

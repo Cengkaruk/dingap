@@ -19,6 +19,7 @@
 #endif
 
 #include <vector>
+#include <map>
 #include <string>
 #include <stdexcept>
 
@@ -42,10 +43,31 @@ csEvent *csEvent::Clone(void)
     return new csEvent(*this);
 }
 
+csEventPlugin::csEventPlugin(const string &type)
+    : csEvent(csEVENT_PLUGIN)
+{
+    key_value["event_type"] = type;
+}
+
+csEvent *csEventPlugin::Clone(void)
+{
+    csEventPlugin *event = new csEventPlugin(*this);
+    return dynamic_cast<csEvent *>(event);
+}
+
+bool csEventPlugin::GetValue(const string &key, string &value)
+{
+    map<string, string>::iterator i = key_value.find(key);
+    if (i == key_value.end()) return false;
+    value = key_value[key];
+    return true;
+}
+
 vector<csEventClient *> csEventClient::event_client;
 pthread_mutex_t *csEventClient::event_client_mutex = NULL;
 
 csEventClient::csEventClient()
+    : event_enable(true)
 {
     pthread_mutex_init(&event_queue_mutex, NULL);
     pthread_cond_init(&event_condition, NULL);
@@ -101,6 +123,11 @@ csEventClient::~csEventClient()
 
 void csEventClient::EventPush(csEvent *event, csEventClient *src)
 {
+    if (event_enable == false) {
+        delete event;
+        return;
+    }
+
     pthread_mutex_lock(&event_queue_mutex);
 
     if (event->IsExclusive()) {
@@ -132,8 +159,10 @@ void csEventClient::EventDispatch(csEvent *event, csEventClient *dst)
     event->SetTarget(dst);
 
     if (event->GetTarget() == _CS_EVENT_BROADCAST) {
-        for (i = event_client.begin(); i != event_client.end(); i++)
+        for (i = event_client.begin(); i != event_client.end(); i++) {
+            if ((*i)->IsEventsEnabled() == false) continue;
             (*i)->EventPush(event->Clone(), this);
+        }
         delete event;
     }
     else {

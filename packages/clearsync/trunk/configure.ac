@@ -1,9 +1,9 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.65])
-AC_INIT([clearsync], [1.0], [http://www.clearfoundation.com/docs/developer/bug_tracker/])
-AM_INIT_AUTOMAKE([clearsync], [1.0])
+AC_PREREQ([2.63])
+AC_INIT([clearsync], [1.1], [http://www.clearfoundation.com/docs/developer/bug_tracker/])
+AM_INIT_AUTOMAKE([clearsync], [1.1])
 AC_CONFIG_SRCDIR([csconf.cpp])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])

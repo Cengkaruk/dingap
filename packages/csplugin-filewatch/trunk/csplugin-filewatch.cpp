@@ -44,7 +44,12 @@ public:
     virtual ~csActionGroup();
 
     inline string GetName(void) { return name; };
-    inline void AppendAction(const string &action);
+    inline void AppendAction(const string &action) {
+        this->action.push_back(action);
+    };
+    inline void AppendEvent(const string &type) {
+        this->event_type.push_back(type);
+    }
 
     bool operator!=(cstimer_id_t id) {
         if (timer == NULL) return true;
@@ -53,12 +58,13 @@ public:
     };
 
     void ResetDelayTimer(csPluginFileWatch *plugin);
-    void Execute(void);
+    void Execute(csEventClient *src, csEventClient *dst);
 
 protected:
     string name;
     time_t delay;
     vector<string> action;
+    vector<string> event_type;
     csTimer *timer;
     static cstimer_id_t timer_index;
 };
@@ -73,18 +79,18 @@ csActionGroup::~csActionGroup()
     if (timer != NULL) delete timer;
 }
 
-void csActionGroup::AppendAction(const string &action)
-{
-    this->action.push_back(action);
-}
-
-void csActionGroup::Execute(void)
+void csActionGroup::Execute(csEventClient *src, csEventClient *dst)
 {
     int rc;
     sigset_t signal_set;
     vector<string>::iterator i;
 
     delete timer; timer = NULL;
+
+    for (i = event_type.begin(); i != event_type.end(); i++) {
+        csEventPlugin *plugin_event = new csEventPlugin((*i));
+        src->EventDispatch(plugin_event, dst);
+    }
 
     for (i = action.begin(); i != action.end(); i++) {
         sigemptyset(&signal_set);
@@ -572,12 +578,24 @@ void *csPluginFileWatch::Entry(void)
             map<string, csActionGroup *>::iterator i;
             for (i = action_group.begin(); i != action_group.end(); i++) {
                 if (*(i->second) != timer->GetId()) continue;
-                i->second->Execute();
+                i->second->Execute(this, parent);
                 break;
             }
             break;
         }
-
+#if 1
+        case csEVENT_PLUGIN:
+        {
+            csEventPlugin *event_plugin = static_cast<csEventPlugin *>(event);
+            string type(""), source("");
+            event_plugin->GetValue("event_type", type);
+            event_plugin->GetValue("event_source", source);
+            csLog::Log(csLog::Debug,
+                "%s: Plugin event: %s, source: %s",
+                name.c_str(), type.c_str(), source.c_str());
+            break;
+        }
+#endif
         default:
             break;
         }
@@ -818,6 +836,13 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
         csXmlTag *tag_parent = stack.back();
         csActionGroup *action_group = (csActionGroup *)tag_parent->GetData();
         action_group->AppendAction(text);
+    }
+    else if ((*tag) == "event") {
+        if (!stack.size() || (*stack.back()) != "action-group")
+            ParseError("unexpected tag: " + tag->GetName());
+        csXmlTag *tag_parent = stack.back();
+        csActionGroup *action_group = (csActionGroup *)tag_parent->GetData();
+        action_group->AppendEvent(text);
     }
 }
 

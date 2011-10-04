@@ -109,6 +109,11 @@ protected:
     csMainConf *conf;
     csSignalHandler *sig_handler;
     map<string, csPluginLoader *> plugin;
+    map<csPlugin *, vector<string> > plugin_event_filter;
+
+    void ParseEventFilter(csPlugin *plugin, const string &text);
+    void ValidateConfiguration(void);
+    void DispatchPluginEvent(csEventPlugin *event);
 };
 
 class csUsageException : public csException

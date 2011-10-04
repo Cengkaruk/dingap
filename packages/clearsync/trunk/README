@@ -66,8 +66,30 @@ to /var/log/messages using the LOG_DAEMON facility.
 PLUGIN STATE
 ------------
 
-Some plugins may save and load state data.  By default, plugin state is saved
-in a file of the same name in /var/state/clearsync.
+Some plugins may save and load state data.  State data is automatically loaded
+on plugin initialization and saved on plugin termination.  To enable plugin
+state support you must add a <state-file>...</state-file> directive to the
+plugins configuration file (inside the <plugin>...</plugin> block).  For
+example:
+
+<plugin ...>
+  <state-file>/var/lib/state/clearsync/state.dat</state-file>
+</plugin>
+
+PLUGIN EVENT FILTER
+-------------------
+
+Some plugins may dispatch events during operation and some other plugins may be
+interested in reading them.  In order for a plugin to receive events from other
+plugins, a <event-filter> directive must be specified.  The event filter
+directive will contain the friendly name (or names) of other plugins (such as
+FileWatch) as a pipe "|" delimited list.  If for example, the plugin your are
+configuring should receive events from FileWatch and RouteWatch, the
+<event-filter> may look like this (again, must be within the <plugin> block):
+
+<plugin ...>
+  <event-filter>FileWatch | RouteWatch</event-filter>
+</plugin>
 
 DEBUGGING
 ---------

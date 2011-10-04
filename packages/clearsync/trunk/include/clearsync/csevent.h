@@ -20,12 +20,10 @@
 using namespace std;
 
 // Reserved event IDs
-#define csEVENT_QUIT            0x00
-#define csEVENT_RELOAD          0x01
-#define csEVENT_TIMER           0x02
-
-// User event types: csEVENT_USER+n
-#define csEVENT_USER            0x1000
+#define csEVENT_QUIT            0x0000
+#define csEVENT_RELOAD          0x0001
+#define csEVENT_TIMER           0x0002
+#define csEVENT_PLUGIN          0x0003
 
 // Broadcast event client type
 #define _CS_EVENT_BROADCAST     ((csEventClient *)-1)
@@ -85,6 +83,22 @@ protected:
     csEventClient *dst;
 };
 
+class csEventPlugin : public csEvent
+{
+public:
+    csEventPlugin(const string &type);
+
+    virtual csEvent *Clone(void);
+
+    bool GetValue(const string &key, string &value);
+    void SetValue(const string &key, const string &value) {
+        key_value[key] = value;
+    };
+
+protected:
+    map<string, string> key_value;
+};
+
 class csEventClient
 {
 public:
@@ -96,6 +110,8 @@ public:
     inline void EventBroadcast(csEvent *event) {
         EventDispatch(event, _CS_EVENT_BROADCAST);
     };
+    bool IsEventsEnabled(void) { return event_enable; };
+    inline void EventsEnable(bool enable = true) { event_enable = enable; };
 
 protected:
     csEvent *EventPop(void);
@@ -104,6 +120,8 @@ protected:
     pthread_mutex_t event_queue_mutex;
     pthread_cond_t event_condition;
     pthread_mutex_t event_condition_mutex;
+
+    bool event_enable;
 
     vector<csEvent *> event_queue;
 

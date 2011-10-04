@@ -218,6 +218,17 @@ void csMainXmlParser::ParseElementClose(csXmlTag *tag)
         if (plugin != NULL)
             plugin->SetStateFile(text);
     }
+    else if ((*tag) == "event-filter") {
+        if (!stack.size() || (*stack.back()) != "plugin")
+            ParseError("unexpected tag: " + tag->GetName());
+        if (!text.size())
+            ParseError("missing value for tag: " + tag->GetName());
+
+        csPlugin *plugin = reinterpret_cast<csPlugin *>
+            (stack.back()->GetData());
+        if (plugin != NULL)
+            _conf->parent->ParseEventFilter(plugin, text);
+    }
 }
 
 csMainConf::csMainConf(csMain *parent,
@@ -354,6 +365,7 @@ csMain::csMain(int argc, char *argv[])
     parser->SetConf(dynamic_cast<csConf *>(conf));
 
     conf->Reload();
+    ValidateConfiguration();
 
     sigset_t signal_set;
     sigfillset(&signal_set);
@@ -378,6 +390,7 @@ csMain::csMain(int argc, char *argv[])
         sigaddset(&signal_set, sigrt);
 
     sig_handler = new csSignalHandler(this, signal_set);
+    sig_handler->EventsEnable(false);
     sig_handler->Start();
 
     map<string, csPluginLoader *>::iterator i;
@@ -415,6 +428,77 @@ void csMainConf::Reload(void)
     ScanPlugins();
 }
 
+void csMain::ParseEventFilter(csPlugin *plugin, const string &text)
+{
+    size_t prev = 0;
+    size_t next = text.find('|');
+    vector<string> substr;
+
+    while (next != string::npos) {
+        string atom = text.substr(prev, next - prev);
+        substr.push_back(atom);
+        prev = ++next;
+        next = text.find('|', prev);
+    }
+
+    if (text.length() > prev) {
+        string atom = text.substr(prev);
+        substr.push_back(atom);
+    }
+
+    for (vector<string>::iterator i = substr.begin();
+        i != substr.end(); i++) {
+        size_t length = (*i).length();
+        if (length == 0) continue;
+        size_t head = (*i).find_first_not_of(' ');
+        size_t tail = (*i).find_last_not_of(' ');
+        if (head == string::npos) head = 0;
+        string atom = (*i).substr(head, tail + 1 - head);
+        if (strcasecmp(atom.c_str(), plugin->GetName().c_str()) == 0) {
+            csLog::Log(csLog::Warning,
+                "You can not add a plugin to it's own event filter: %s",
+                atom.c_str());
+            continue;
+        }
+        plugin_event_filter[plugin].push_back(atom);
+    }
+}
+
+void csMain::ValidateConfiguration(void)
+{
+    for (map<csPlugin *,
+        vector<string> >::iterator i = plugin_event_filter.begin();
+        i != plugin_event_filter.end(); i++) {
+        for (vector<string>::iterator j = i->second.begin();
+            j != i->second.end(); j++) {
+            map<string, csPluginLoader *>::iterator p;
+            p = plugin.find((*j));
+            if (p != plugin.end()) continue;
+            csLog::Log(csLog::Warning,
+                "Event filter plugin not found: %s", (*j).c_str());
+        }
+    }
+}
+
+void csMain::DispatchPluginEvent(csEventPlugin *event)
+{
+    csPlugin *plugin = static_cast<csPlugin *>(event->GetSource());
+    event->SetValue("event_source", plugin->GetName());
+    for (map<csPlugin *, vector<string> >::iterator i = plugin_event_filter.begin();
+        i != plugin_event_filter.end(); i++) {
+        for (vector<string>::iterator j = i->second.begin();
+            j != i->second.end(); j++) {
+            if (strcasecmp(plugin->GetName().c_str(), (*j).c_str()))
+                continue;
+            map<string, csPluginLoader *>::iterator plugin_loader;
+            plugin_loader = this->plugin.find(i->first->GetName());
+            if (plugin_loader == this->plugin.end()) continue;
+            EventDispatch(event->Clone(), plugin_loader->second->GetPlugin());
+            break;
+        }
+    }
+}
+
 void csMain::Run(void)
 {
     for ( ;; ) {
@@ -428,6 +512,10 @@ void csMain::Run(void)
 
         case csEVENT_RELOAD:
             conf->Reload();
+            break;
+
+        case csEVENT_PLUGIN:
+            DispatchPluginEvent(static_cast<csEventPlugin *>(event));
             break;
 
         default:
