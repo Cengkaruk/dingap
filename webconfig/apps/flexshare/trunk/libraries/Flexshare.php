@@ -55,8 +55,8 @@ clearos_load_language('flexshare');
 // Factories
 //----------
 
-use \clearos\apps\groups\Group_Factory as Group;
-use \clearos\apps\users\User_Factory as User;
+use \clearos\apps\groups\Group_Factory as Group_Factory;
+use \clearos\apps\users\User_Factory as User_Factory;
 
 clearos_load_library('groups/Group_Factory');
 clearos_load_library('users/User_Factory');
@@ -186,7 +186,7 @@ class Flexshare extends Engine
     const REGEX_SHARE_CREATED = '/^[[:space:]]*ShareCreated[[:space:]]*=[[:space:]]*(.*$)/i';
     const REGEX_SHARE_ENABLED = '/^[[:space:]]*ShareEnabled[[:space:]]*=[[:space:]]*(.*$)/i';
     const REGEX_OPEN = '/^<Share[[:space:]](.*)>$/i';
-    const REGEX_CLOSE = '/^</Share>$/i';
+    const REGEX_CLOSE = '/^<\/Share>$/i';
     const ACCESS_LAN = 0;
     const ACCESS_ALL = 1;
     const POLICY_DONOT_WRITE = 0;
@@ -309,6 +309,9 @@ class Flexshare extends Engine
                 unset($share);
             }
         }
+echo "<pre>";
+print_r($shares);
+echo "</pre>";
 
         return $shares;
     }
@@ -319,34 +322,43 @@ class Flexshare extends Engine
      * @param string  $name        flexshare name
      * @param string  $description brief description of the flexshare
      * @param string  $group       group owner of the flexshare
+     * @param string  $directory   directory
      * @param boolean $internal    flag indicating if the share is designated internal
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function add_share($name, $description, $group, $internal = FALSE)
+    function add_share($name, $description, $group, $directory, $internal = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $name = strtolower($name);
+
+        // if directory = root share path...tack on name
+        if ($directory == self::SHARE_PATH)
+            $directory .= '/' . $name;
 
         // Validate
         // --------
 
         Validation_Exception::is_valid($this->validate_name($name));
 
+        Validation_Exception::is_valid($this->validate_description($description));
+
         Validation_Exception::is_valid($this->validate_group($group));
+
+        Validation_Exception::is_valid($this->validate_directory($directory));
 
         // Samba limitations
         //------------------
 
-        $groupobj = new Group($name);
+        $groupobj = new Group_Driver($name);
 
         if ($groupobj->exists())
             throw new Validation_Exception(lang('flexshare_name_overlaps_with_group'));
 
-        $userobj = new User($name);
+        $userobj = new User_Driver($name);
 
         if ($userobj->exists())
             throw new Validation_Exception(lang('flexshare_name_overlaps_with_username'));
@@ -376,7 +388,7 @@ class Flexshare extends Engine
             $folder = new Folder(self::SHARE_PATH . "/$name");
 
             if (! $folder->exists()) {
-                $groupobj = new Group($group);
+                $groupobj = Group_Factory::create($group);
 
                 if ($groupobj->exists())
                     $folder->create(self::CONSTANT_USERNAME, $group, "0775");
@@ -395,6 +407,9 @@ class Flexshare extends Engine
                         "</Share>\n"
                         ;
             $file->add_lines($newshare);
+
+            // Now set directory
+            $this->set_directory($name, $directory);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -655,7 +670,7 @@ class Flexshare extends Engine
             $name = preg_replace('/ /', '_', strtoupper(lang('flexshare_share_name'))); 
 
         // Default
-        $options[self::SHARE_PATH . '/' . $name] = lang('base_default') . ' (' . self::SHARE_PATH . '/' . $name . ")\n";
+        $options[self::SHARE_PATH . ($name == NULL ? '' : '/' . $name)] = lang('base_default') . ' (' . self::SHARE_PATH . '/' . $name . ")\n";
         return $options;
     }
 
@@ -1094,7 +1109,6 @@ class Flexshare extends Engine
                 $newlines[] = "\tAllowOverride All";
 
             if ($share['WebReqAuth']) {
-                $user_driver = new User_Driver();
                 $ldap_conf = "ldap://127.0.0.1:389/" . ClearDirectory::GetUsersOu() . "?uid?one?(pcnWebFlag=TRUE)";
                 $newlines[] = "\tAuthType Basic";
                 $newlines[] = "\tAuthBasicProvider ldap";
@@ -1103,16 +1117,16 @@ class Flexshare extends Engine
                 $newlines[] = "\tAuthLDAPUrl $ldap_conf";
 
                 // Determine if this is a group or a user
-                $group = new Group_Driver($share['ShareGroup']);
+                $group = Group_Factory::create($share['ShareGroup']);
 
                 if ($group->exists()) {
                     $newlines[] = "\tRequire ldap-group cn=" .
                         $share['ShareGroup'] . "," . ClearDirectory::GetGroupsOu();
                 } else {
-                    // TODO: API should be something like User->GetDn() instead of Ldap->GetDnForUid ?
-                    $user = new User($share['ShareGroup']);
+                    $user = User_Factory::create($share['ShareGroup']);
                     if ($user->exists()) {
-                        $dn = $user_driver->get_dn_for_uid($share['ShareGroup']);
+                        // TODO: API should be something like User->GetDn() instead of Ldap->GetDnForUid ?
+                        $dn = $user->get_dn_for_uid($share['ShareGroup']);
                         $newlines[] = "\tRequire ldap-dn " . $dn;
                     }
                 }
@@ -1707,12 +1721,12 @@ class Flexshare extends Engine
                 $linestoadd .= "\tdirectory mask = 775\n";
                 $linestoadd .= "\tcreate mask = 664\n";
                 // Determine if this is a group or a user
-                $group = new Group_Driver($share['ShareGroup']);
+                $group = Group_Factory::create($share['ShareGroup']);
 
                 if ($group->exists()) {
                     $linestoadd .= "\tvalid users = @\"%D" . '\\' . trim($share["ShareGroup"]) . "\"\n";
                 } else {
-                    $user = new User($share['ShareGroup']);
+                    $user = User_Factory::create($share['ShareGroup']);
                     if ($user->exists())
                         $linestoadd .= "\tvalid users = \"%D" . '\\' . trim($share["ShareGroup"]) . "\"\n";
                 }
@@ -1875,8 +1889,8 @@ class Flexshare extends Engine
         $adduser = FALSE;
 
         try {
-            $user = new User(self::CONSTANT_USERNAME);
-            $currentinfo = $user->GetInfo();
+            $user = User_Factory::create(self::CONSTANT_USERNAME);
+            $currentinfo = $user->get_info();
         } catch (User_Not_Found_Exception $e) {
             $adduser = TRUE;
         }
@@ -2571,9 +2585,8 @@ class Flexshare extends Engine
 
         // Validate
         // --------
-        if (! $this->is_valid_ftp_server_url($server_url)) {
-            throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_INVALID_SERVER_URL, COMMON_ERROR);
-        }
+
+        Validation_Exception::is_valid($this->validate_ftp_server_url($server_url));
 
         $this->set_parameter($name, 'FtpServerUrl', $server_url);
     }
@@ -2636,8 +2649,8 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($allow_passive && !$this->is_valid_passive_port_range($port_min, $port_max)) {
-            throw new Engine_Exception($this->is_valid_passive_port_range($port_min, $port_max), COMMON_ERROR);
+        if ($allow_passive && !$this->validate_passive_port_range($port_min, $port_max)) {
+            throw new Engine_Exception($this->validate_passive_port_range($port_min, $port_max), COMMON_ERROR);
         }
 
         $this->set_parameter($name, 'FtpAllowPassive', $allow_passive);
@@ -3659,17 +3672,17 @@ class Flexshare extends Engine
 
             // Check to see if share dir is users' home dir
             if (preg_match("/^\\/home\\/\\(\\.\\*\\$\\)/", $this->get_parameter($flex_address, 'ShareDir'), $match)) {
-                $user = new User($match[1]);
+                $user = User_Factory::create($match[1]);
                 if ($user->exists()) {
                     $username = $match[1];
                 } else {
-                    $user = new User($username);
+                    $user = User_Factory::create($username);
                     if (!$user->exists())
                         $username = self::CONSTANT_USERNAME;
                 }
             } else {
                 // Check to see if $username is on the filesystem
-                $user = new User($username);
+                $user = User_Factory::create($username);
                 // If user does not exist, default to 'flexshare.flexshare' for file permission
                 if (!$user->exists())
                     $username = self::CONSTANT_USERNAME;
@@ -3837,7 +3850,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!$this->is_valid_dir($directory)  || !$this->is_valid_group($group))
+        if (!$this->validate_directory($directory)  || !$this->validate_group($group))
             return;
         
         try {
@@ -3947,24 +3960,21 @@ class Flexshare extends Engine
      * @return mixed void if group is valid, errmsg otherwise
      */
 
-    function is_valid_group($group)
+    function validate_group($group)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $groupobj = new Group($group);
+        $group = Group_Factory::create($group);
 
         try {
-            $exists = $groupobj->exists();
-            if (! $exists) {
-                $user = new User($group);
-                $exists = $user->exists();
+            if (! $group->exists()) {
+                $user = User_Factory::create($group);
+                if (! $user->exists())
+                    return lang('flexshare_invalid_group');
             }
         } catch (Exception $e) {
             return clearos_exception_message($e);
         }
-
-        if (!$exists)
-            return lang('flexshare_invalid_group');
     }
 
     /**
@@ -3975,7 +3985,7 @@ class Flexshare extends Engine
      * @return mixed void if group is valid, errmsg otherwise
      */
 
-    function is_valid_password($password)
+    function validate_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -3990,7 +4000,7 @@ class Flexshare extends Engine
      * @return mixed void if description is valid, errmsg otherwise
      */
 
-    function is_valid_description($description)
+    function validate_description($description)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -4006,7 +4016,7 @@ class Flexshare extends Engine
      * @return mixed void if directory is valid, errmsg otherwise
      */
 
-    function is_valid_dir($dir)
+    function validate_directory($dir)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -4022,7 +4032,7 @@ class Flexshare extends Engine
      * @return mixed void if web server name is valid, errmsg otherwise
      */
 
-    function is_valid_web_server_name($server_name)
+    function validate_web_server_name($server_name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -4030,7 +4040,7 @@ class Flexshare extends Engine
             return;
 
         $httpd = new Httpd();
-        return $httpd->is_valid_server_name($server_name);
+        return $httpd->validate_server_name($server_name);
     }
 
     /**
@@ -4041,7 +4051,7 @@ class Flexshare extends Engine
      * @return mixed void if web realm is valid, errmsg otherwise
      */
 
-    function is_valid_web_realm($realm)
+    function validate_web_realm($realm)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -4058,12 +4068,12 @@ class Flexshare extends Engine
      * @return mixed void if web realm is valid, errmsg otherwise
      */
 
-    function is_valid_passive_port_range($port_min, $port_max)
+    function validate_passive_port_range($port_min, $port_max)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = new Network();
-        if (! $network->is_valid_port_range($port_min, $port_max))
+        if (! $network->validate_port_range($port_min, $port_max))
             return lang('network_lang_port_range_invalid');
 
         if ($port_min < 1023 || $port_max < 1023)
@@ -4078,12 +4088,12 @@ class Flexshare extends Engine
      * @return mixed void if FTP server URL is valid, errmsg otherwise
      */
 
-    function is_valid_ftp_server_url($server_url)
+    function validate_ftp_server_url($server_url)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $network = New Network();
-        if (!$network->is_valid_hostname($server_url))
+        if (!$network->validate_hostname($server_url))
             return lang('flexshare_invalid_server_url');
     }
 

@@ -200,6 +200,62 @@ class Flexshare extends ClearOS_Controller
         $this->lang->load('groups');
         $this->lang->load('users');
 
+        $data['form_type'] = $form_type;
+
+        // Set validation rules
+        //---------------------
+         
+        // Name cannot be set once added.
+//        if ($form_type == 'add')
+        $this->form_validation->set_policy('name', 'flexshare/Flexshare', 'validate_name', TRUE);
+        $this->form_validation->set_policy('description', 'flexshare/Flexshare', 'validate_description', TRUE);
+        $this->form_validation->set_policy('group', 'flexshare/Flexshare', 'validate_group', TRUE);
+        $this->form_validation->set_policy('directory', 'flexshare/Flexshare', 'validate_directory', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                if ($form_type == 'edit') {
+                    $this->flexshare->set_description($this->input->post('description'));
+                    $this->flexshare->set_group($this->input->post('group'));
+                    $this->flexshare->set_directory($this->input->post('directory'));
+                    redirect('/flexshare');
+                } else {
+                    $this->flexshare->add_share(
+                        $this->input->post('name'),
+                        $this->input->post('description'),
+                        $this->input->post('group'),
+                        $this->input->post('directory')
+                    );
+                }
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            if ($form_type == 'edit') {
+                $info = $this->flexshare->get_share($share);
+                print_r($info);
+                /*
+                $data['name'] = $this->flexshare->get_name();
+                $data['description'] = $this->flexshare->get_description();
+                $data['group'] = $this->flexshare->get_group();
+                $data['directory'] = $this->flexshare->get_directory();
+                */
+            }
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
         // Create owner list
         //------------------
         try {

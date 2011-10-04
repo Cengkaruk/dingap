@@ -66,26 +66,27 @@ $anchors = array(anchor_add('/app/flexshare/add'));
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($flexshares as $share => $info) {
+foreach ($flexshares as $share) {
 
     if ($read_only) {
         $buttons = array(
-            anchor_view('/app/flexshare/view/' . $share),
+            anchor_view('/app/flexshare/view/' . $share['Name']),
         );
     } else {
         $buttons = array(
-            anchor_edit('/app/flexshare/edit/' . $share),
-            anchor_delete('/app/flexshare/delete/' . $share)
+            anchor_edit('/app/flexshare/edit/' . $share['Name']),
+            anchor_delete('/app/flexshare/delete/' . $share['Name'])
         );
     }
 
-	$item['title'] = $share;
-	$item['action'] = '/app/flexshare/edit/' . $share;
+	$item['title'] = $share['Name'];
+	$item['action'] = '/app/flexshare/edit/' . $share['Name'];
 	$item['anchors'] = button_set($buttons);
 	$item['details'] = array(
-		$share,
-		$info['display_name'],
-		$share,
+		$share['Name'],
+		$share['Description'],
+		$share['Group'],
+		$share['WebEnabled']
 	);
 
 	$items[] = $item;

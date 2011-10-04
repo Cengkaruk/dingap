@@ -15,6 +15,7 @@ $lang['flexshare_file'] = 'File';
 $lang['flexshare_windows_path'] = 'Windows Path';
 $lang['flexshare_comment'] = 'Comment';
 $lang['flexshare_general_settings'] = 'General Settings';
+$lang['flexshare_invalid_group'] = 'Invalid group.';
 
 
 /*
