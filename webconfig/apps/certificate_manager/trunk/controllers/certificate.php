@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Certificate authority manager controller.
+ * Certificate manager controller.
  *
  * @category   Apps
  * @package    Certificate_Manager
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Certificate authority manager controller.
+ * Certificate manager controller.
  *
  * @category   Apps
  * @package    Certificate_Manager
@@ -45,7 +45,7 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
 
-class Ca extends ClearOS_Controller
+class Certificate extends ClearOS_Controller
 {
     /**
      * CA controller
@@ -58,16 +58,14 @@ class Ca extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('certificate_manager/SSL');
         $this->lang->load('certificate_manager');
+        $this->load->library('certificate_manager/SSL');
 
         // Load view data
         //---------------
 
         try {
-            $data['attributes'] = $this->ssl->get_certificate_authority_attributes();
-        } catch (\clearos\apps\certificate_manager\Certificate_Not_Found_Exception $e) {
-            // FIXME: do something if CA is not found
+            $data['certificates'] = $this->ssl->get_certificates();
         } catch (Engine_Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -76,7 +74,7 @@ class Ca extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('ca/summary', $data, lang('certificate_manager_certificate_authority'));
+        $this->page->view_form('certificate/summary', $data, lang('certificate_manager_certificates'));
     }
 
     function edit()

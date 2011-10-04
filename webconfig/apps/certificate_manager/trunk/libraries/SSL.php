@@ -166,8 +166,8 @@ class SSL extends Engine
     const PATH_SSL = '/etc/pki/CA';
     const FILE_CONF = '/etc/pki/CA/openssl.cnf';
     const FILE_INDEX = '/etc/pki/CA/index.txt';
-    const FILE_CA_CRT = '/etc/pki/CA/cacert.pem';
-    const FILE_CA_KEY = '/etc/pki/CA/private/cakey.pem';
+    const FILE_CA_CRT = '/etc/pki/CA/ca-cert.pem';
+    const FILE_CA_KEY = '/etc/pki/CA/private/ca-key.pem';
     const FILE_DH_PREFIX = 'dh';
     const FILE_DH_SUFFIX = '.pem';
 
@@ -291,11 +291,11 @@ class SSL extends Engine
         $configfile->delete();
 
         // Change file attributes
-        $file = new File(self::PATH_SSL . "/private/$prefix-key.pem", TRUE);
+        $file = new File(self::PATH_SSL . '/private/' . $prefix . '-key.pem', TRUE);
         $file->chmod(600);
         $file->chown('root', 'root');
 
-        return "$prefix-req.pem";
+        return $prefix . '-req.pem';
     }
 
     /**
@@ -461,34 +461,31 @@ class SSL extends Engine
             $file = new File($tmp_file);
             $file->chown("webconfig", "webconfig");
             $file->chmod("0600");
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             try {
                 $tempfile = new File($tmp_file, TRUE);
                 $tempfile->delete();
-            } catch (Exception $e) {}
+            } catch (Engine_Exception $e) {}
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
         # Execute OpenSSL
-        try {
-            $folder = new Folder(SSL::PATH_SSL . "/private/");
-            $private_keys = $folder->GetListing();
-            foreach ($private_keys as $private_key) {
-                # Get public/private key pairs
-                $key = SSL::PATH_SSL . "/private/" . $private_key;
-                $cert = SSL::PATH_SSL . "/" . preg_replace("/-key/i", "-cert", $private_key);
+        $folder = new Folder(SSL::PATH_SSL . "/private/");
+        $private_keys = $folder->GetListing();
 
-                $args = "smime -decrypt -in $filename -recip $cert -inkey $key -out $tmp_file";
-                if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
-                    $file->delete();
-                    return $tmp_file;
-                }
+        foreach ($private_keys as $private_key) {
+            # Get public/private key pairs
+            $key = SSL::PATH_SSL . "/private/" . $private_key;
+            $cert = SSL::PATH_SSL . "/" . preg_replace("/-key/i", "-cert", $private_key);
+
+            $args = "smime -decrypt -in $filename -recip $cert -inkey $key -out $tmp_file";
+            if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
+                $file->delete();
+                return $tmp_file;
             }
-            $file->delete();
-            return;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
         }
+
+        $file->delete();
     }
 
     /**
@@ -562,9 +559,9 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $prefix = $this->_get_file_prefix($username, self::PURPOSE_CLIENT_LOCAL);
-        $certfile = $prefix . "-cert.pem";
+        $certfile = $prefix . '-cert.pem';
 
-        if (file_exists(self::PATH_SSL . "/" . $certfile))
+        if (file_exists(self::PATH_SSL . '/' . $certfile))
             $this->delete_certificate($certfile);
     }
 
@@ -613,9 +610,9 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $prefix = $this->_get_file_prefix($username, self::PURPOSE_CLIENT_LOCAL);
-        $certfile = $prefix . "-cert.pem";
+        $certfile = $prefix . '-cert.pem';
 
-        $file = new File(SSL::PATH_SSL . "/$prefix-cert.pem");
+        $file = new File(SSL::PATH_SSL . '/' . $prefix . '-cert.pem');
 
         if ($file->exists())
             return TRUE;
@@ -638,7 +635,7 @@ class SSL extends Engine
             $this->get_certificate_authority_filename();
         } catch (Certificate_Not_Found_Exception $e) {
             return FALSE;
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e));
         }   
 
@@ -656,7 +653,7 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File(SSL::PATH_SSL . "/" . self::PREFIX_SERVER_LOCAL . "-0-cert.pem");
+        $file = new File(SSL::PATH_SSL . '/' . self::PREFIX_SERVER_LOCAL . '0-cert.pem');
 
         if ($file->exists())
             return TRUE;
@@ -713,11 +710,11 @@ class SSL extends Engine
             $file->chown("root", "root");
             $file->chmod("0600");
             $file->add_lines($password);
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             try {
                 $passfile = new File($passout, TRUE);
                 $passfile->delete();
-            } catch (Exception $e) {}
+            } catch (Engine_Exception $e) {}
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
@@ -733,18 +730,18 @@ class SSL extends Engine
         try {
             $shell = new Shell();
             $exitcode = $shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE);
-        } catch (Exception $e) {
+        } catch (Engine_Exception $e) {
             try {
                 $passfile = new File($passout, TRUE);
                 $passfile->delete();
-            } catch (Exception $e) {}
+            } catch (Engine_Exception $e) {}
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
         try {
             $passfile = new File($passout, TRUE);
             $passfile->delete();
-        } catch (Exception $e) {}
+        } catch (Engine_xception $e) {}
 
         if ($exitcode != 0) {
             $errstr = $shell->get_last_output_line();
@@ -752,7 +749,7 @@ class SSL extends Engine
             try {
                 $delfile = new File("$dir/" . preg_replace('/-cert.pem$/', ".p12", $filename), TRUE);
                 $delfile->delete();
-            } catch (Exception $e) {}
+            } catch (Engine_Exception $e) {}
 
             throw new Engine_Exception($errstr);
         }
@@ -802,8 +799,8 @@ class SSL extends Engine
         $args = "$type -in $filename -noout -dates";
         if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE, $options) == 0) {
             $output = $shell->get_output();
-            $attributes['expireNotBefore'] = preg_replace('/notBefore=/i', '', $output[0]);
-            $attributes['expireNotAfter'] = preg_replace('/notAfter=/i', '', $output[1]);
+            $attributes['issued'] = preg_replace('/notBefore=/i', '', $output[0]);
+            $attributes['expires'] = preg_replace('/notAfter=/i', '', $output[1]);
         }
 
         $args = "$type -in $filename -noout -modulus";
@@ -886,14 +883,11 @@ class SSL extends Engine
         $filename = SSL::PATH_SSL . "/$filename";
 
         $file = new File($filename);
+
         if (! $file->exists())
             throw new Certificate_Not_Found_Exception();
 
-        try {
-            $contents = $file->get_contents_as_array();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
+        $contents = $file->get_contents_as_array();
 
         return $contents;
     }
@@ -925,18 +919,14 @@ class SSL extends Engine
         else
             $type = 'x509';
 
-        try {
-            $shell = new Shell();
-            # It would be nice to get this all from one call, but you can't count on fields set
-            $args = "$type -in $filename -noout -text";
-            if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE, $options) == 0) {
-                $contents = $shell->get_output();
-            } else {
-                $error = $shell->get_last_output_line();
-                throw new Engine_Exception($error);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
+        $shell = new Shell();
+        # It would be nice to get this all from one call, but you can't count on fields set
+        $args = "$type -in $filename -noout -text";
+        if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE, $options) == 0) {
+            $contents = $shell->get_output();
+        } else {
+            $error = $shell->get_last_output_line();
+            throw new Engine_Exception($error);
         }
 
         return $contents;
@@ -970,7 +960,7 @@ class SSL extends Engine
             $files = $folder->get_listing();
             foreach ($files as $file) {
                 try {
-                    if (preg_match("/^$prefix/", $file)) {
+                    if (preg_match("/^$prefix.*pem$/", $file)) {
                         $certs[$file] = $this->get_certificate_attributes($file);
 
                         // Add basename
@@ -979,12 +969,12 @@ class SSL extends Engine
                         $basename = preg_replace("/-cert.pem/", '', $basename);
                         $certs[$file]['basename'] = $basename;
                     }
-                } catch (Exception $ignore) {
+                } catch (Engine_Exception $e) {
                     continue;
                 }
             }
-        } catch (Exception $e) {
-            //
+        } catch (Engine_Exception $e) {
+            // Not fatal
         }
 
         if ($type == SSL::TYPE_P12)
@@ -1083,11 +1073,11 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $filename = self::PREFIX_SERVER_LOCAL . "-0-cert.pem";
+        $filename = self::PREFIX_SERVER_LOCAL . '0-cert.pem';
 
         $attributes = $this->get_certificate_attributes($filename);
 
-        $attributes['filename'] = self::PATH_SSL . "/" . $filename;
+        $attributes['filename'] = self::PATH_SSL . '/' . $filename;
 
         return $attributes;
     }
@@ -1254,17 +1244,16 @@ class SSL extends Engine
 
         $cert_filename = preg_replace('/-req.pem$/', '-cert.pem', $filename);
 
-        try {
-            $cert_file = new File(SSL::PATH_SSL . "/" . $cert_filename);
-            if ($cert_file->exists())
-                $cert_file->delete();
-            $cert_file->create("root", "root", "0600");
-            $cert_file->dump_contents_from_array($cert_in_array);
-            # Delete request
-            $file->delete();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
+        $cert_file = new File(SSL::PATH_SSL . "/" . $cert_filename);
+
+        if ($cert_file->exists())
+            $cert_file->delete();
+
+        $cert_file->create("root", "root", "0600");
+        $cert_file->dump_contents_from_array($cert_in_array);
+
+        // Delete request
+        $file->delete();
     }
 
     /**
@@ -1279,15 +1268,14 @@ class SSL extends Engine
     public function is_pkcs12_exist($filename)
     {
         clearos_profile(__METHOD__, __LINE__);
-        try {
-            $pkcs12 = preg_replace('/-cert.pem$/', '.p12', $filename);
-            $file = new File(self::PATH_SSL . "/" . $pkcs12);
-            if ($file->exists())
-                return TRUE;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
-        return FALSE;
+
+        $pkcs12 = preg_replace('/-cert.pem$/', '.p12', $filename);
+        $file = new File(self::PATH_SSL . "/" . $pkcs12);
+
+        if ($file->exists())
+            return TRUE;
+        else
+            return FALSE;
     }
 
     /**
@@ -1319,31 +1307,27 @@ class SSL extends Engine
         if (! $file->exists())
             throw new Certificate_Not_Found_Exception();
 
-        try {
-            $shell = new Shell();
-            # Get subject of CA
-            $args = "x509 -in $ca -noout -subject";
+        $shell = new Shell();
+        # Get subject of CA
+        $args = "x509 -in $ca -noout -subject";
+        if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
+            $subject = trim(preg_replace('/^subject=/', '', $shell->get_last_output_line()));
+            # Now compare against issuer of certificate
+            $args = "x509 -in $cert -noout -issuer ";
             if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
-                $subject = trim(preg_replace('/^subject=/', '', $shell->get_last_output_line()));
-                # Now compare against issuer of certificate
-                $args = "x509 -in $cert -noout -issuer ";
-                if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
-                    $issuer = trim(preg_replace('/^issuer=/', '', $shell->get_last_output_line()));
-                    # If we get here, compare the two...a match returns TRUE
-                    if ($issuer == $subject)
-                        return TRUE;
-                    else
-                        return FALSE;
-                } else {
-                    $error = $shell->get_last_output_line();
-                    throw new Engine_Exception($error);
-                }
+                $issuer = trim(preg_replace('/^issuer=/', '', $shell->get_last_output_line()));
+                # If we get here, compare the two...a match returns TRUE
+                if ($issuer == $subject)
+                    return TRUE;
+                else
+                    return FALSE;
             } else {
                 $error = $shell->get_last_output_line();
                 throw new Engine_Exception($error);
             }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
+        } else {
+            $error = $shell->get_last_output_line();
+            throw new Engine_Exception($error);
         }
     }
 
@@ -1370,43 +1354,39 @@ class SSL extends Engine
             throw new Validation_Exception($errors[0]);
         }
         
-        try {
-            # Need attributes of exiting cert
-            $cert = $this->get_certificate_attributes($filename);
-            # Set start date to now (YYMMDDHHMMSSZ)
-            $timestamp = time();
-            $start_date = date("ymdhis\Z", $timestamp);
+        # Need attributes of exiting cert
+        $cert = $this->get_certificate_attributes($filename);
+        # Set start date to now (YYMMDDHHMMSSZ)
+        $timestamp = time();
+        $start_date = date("ymdhis\Z", $timestamp);
 // FIXME
-            if (isset($cert['smime']) && $cert['smime'])
-                $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
-            else
-                $this->set_purpose(self::PURPOSE_SERVER_LOCAL);
-            # Add on existing cert's expiry
-            $timestamp = strtotime($cert['expireNotAfter']) + ($term*24*60*60);
-            $end_date = date("ymdhis\Z", $timestamp);
-            $this->set_start_date($start_date);
-            $this->set_end_date($end_date);
-            $this->set_organization_name($cert['org_name']);
-            $this->set_organizational_unit($cert['org_unit']);
-            # TODO - this may be blank...OK?
-            if ($cert['email'])
-                $this->set_email_address($cert['email']);
-            $this->set_locality($cert['city']);
-            $this->set_state_or_province($cert['region']);
-            $this->set_country_code($cert['country']);
+        if (isset($cert['smime']) && $cert['smime'])
+            $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
+        else
+            $this->set_purpose(self::PURPOSE_SERVER_LOCAL);
+        # Add on existing cert's expiry
+        $timestamp = strtotime($cert['expires']) + ($term*24*60*60);
+        $end_date = date("ymdhis\Z", $timestamp);
+        $this->set_start_date($start_date);
+        $this->set_end_date($end_date);
+        $this->set_organization_name($cert['org_name']);
+        $this->set_organizational_unit($cert['org_unit']);
+        # TODO - this may be blank...OK?
+        if ($cert['email'])
+            $this->set_email_address($cert['email']);
+        $this->set_locality($cert['city']);
+        $this->set_state_or_province($cert['region']);
+        $this->set_country_code($cert['country']);
 
-            # Force filename
+        # Force filename
 // FIXME
-            $req_filename = $this->create_certificate_request($cert['common_name'], $filename);
-            if (! $this->is_signed_by_local_ca($filename))
-                return;
-            $this->revoke_certificate($filename);
-            $crt_filename = $this->sign_certificate_request($req_filename, TRUE);
-            if ($pkcs12) {
-                $this->export_pkcs12($crt_filename, $password, $verify);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
+        $req_filename = $this->create_certificate_request($cert['common_name'], $filename);
+        if (! $this->is_signed_by_local_ca($filename))
+            return;
+        $this->revoke_certificate($filename);
+        $crt_filename = $this->sign_certificate_request($req_filename, TRUE);
+        if ($pkcs12) {
+            $this->export_pkcs12($crt_filename, $password, $verify);
         }
     }
 
@@ -1882,29 +1862,25 @@ class SSL extends Engine
             throw new Validation_Exception($errors[0]);
         }
 
-        try {
-            # Need expire start/stop of exiting cert
-            $cert = $this->get_certificate_attributes($filename);
-            $this->set_start_date(date("ymdhis\Z", strtotime($cert['expireNotBefore'])));
-            $this->set_end_date(date("ymdhis\Z", strtotime($cert['expireNotAfter'])));
-            # Need purpose
+        # Need expire start/stop of exiting cert
+        $cert = $this->get_certificate_attributes($filename);
+        $this->set_start_date(date("ymdhis\Z", strtotime($cert['issued'])));
+        $this->set_end_date(date("ymdhis\Z", strtotime($cert['expires'])));
+        # Need purpose
 // FIXME
-            if (isset($cert['smime']) && $cert['smime'])
-                $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
-            else
-                $this->set_purpose(self::PURPOSE_SERVER_LOCAL);
+        if (isset($cert['smime']) && $cert['smime'])
+            $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
+        else
+            $this->set_purpose(self::PURPOSE_SERVER_LOCAL);
 
-            # Force filename
-            $req_filename = $this->create_certificate_request($common_name, $filename);
+        # Force filename
+        $req_filename = $this->create_certificate_request($common_name, $filename);
 
-            if (! $this->is_signed_by_local_ca($filename))
-                return;
+        if (! $this->is_signed_by_local_ca($filename))
+            return;
 
-            $this->revoke_certificate($filename);
-            $crt_filename = $this->sign_certificate_request($req_filename, TRUE);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
+        $this->revoke_certificate($filename);
+        $crt_filename = $this->sign_certificate_request($req_filename, TRUE);
     }
 
     /**
@@ -1920,17 +1896,13 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        # Execute OpenSSL
-        try {
-            $shell = new Shell();
-            $args = "smime -verify -in $filename -CAfile " . self::FILE_CA_CRT;
-            if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0)
-                return TRUE;
+        $shell = new Shell();
+        $args = "smime -verify -in $filename -CAfile " . self::FILE_CA_CRT;
 
+        if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0)
+            return TRUE;
+        else
             return FALSE;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -2057,11 +2029,11 @@ class SSL extends Engine
 
         if ($purpose === self::PURPOSE_CLIENT_LOCAL) {
 
-            $prefix = self::PREFIX_CLIENT_LOCAL . '-' . $common_name;
+            $prefix = self::PREFIX_CLIENT_LOCAL . $common_name;
 
         } else if ($purpose === self::PURPOSE_SERVER_LOCAL) {
 
-            $prefix = self::PREFIX_SERVER_LOCAL . '-0';
+            $prefix = self::PREFIX_SERVER_LOCAL . '0';
 
         } else if (($purpose === self::PURPOSE_CLIENT_CUSTOM) || ($purpose ===  self::PURPOSE_SERVER_CUSTOM)) {
             $folder = new Folder(SSL::PATH_SSL);
@@ -2072,13 +2044,13 @@ class SSL extends Engine
             $match = array();
                     
             foreach ($files as $file) {
-                if (preg_match("/$prefix([0-9]*)-cert\\.pem$/", $file, $match)) {
+                if (preg_match("/$prefix([0-9]*)cert\\.pem$/", $file, $match)) {
                     if ((int)$match[1] >= $next)
                         $next = (int)$match[1] + 1;
                 }
             }
 
-            $prefix = self::PREFIX_CUSTOM . '-' . $next;
+            $prefix = self::PREFIX_CUSTOM . $next;
         }
 
         return $prefix;
@@ -2224,11 +2196,11 @@ class SSL extends Engine
     /**
      * Sets a key to value.
      *
-     * @access private
-     * @param string $section Configuration section
-     * @param string $key Configuration keyword
-     * @param string $value Keyword value
+     * @param string $section configuration section
+     * @param string $key     configuration keyword
+     * @param string $value   keyword value
      *
+     * @access private
      * @return void
      * @throws Engine_Exception
      */

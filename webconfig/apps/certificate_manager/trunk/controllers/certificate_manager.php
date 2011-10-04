@@ -63,8 +63,7 @@ class Certificate_Manager extends ClearOS_Controller
         // Load views
         //-----------
 
-//        $views = array('certificate_manager/ca', 'certificate_manager/users');
-        $views = array('certificate_manager/ca');
+        $views = array('certificate_manager/ca', 'certificate_manager/certificate');
 
         $this->page->view_forms($views, lang('certificate_manager_app_name'));
     }
