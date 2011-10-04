@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Widgets for the ClearOS Enterprise mobile theme.
+ * Widgets handler for the ClearOS Enterprise mobile theme.
  *
  * @category  Theme
  * @package   ClearOS_Enterprise_Mobile
@@ -113,19 +113,29 @@ function theme_form_submit($name, $text, $importance, $class, $options)
 // A N C H O R  A N D  B U T T O N  S E T S
 ///////////////////////////////////////////////////////////////////////////////
 
+function theme_button_set($buttons, $options)
+{
+    return _theme_button_set($buttons, $options, 'normal');
+}
+function theme_field_button_set($buttons, $options)
+{
+    return _theme_button_set($buttons, $options, 'field');
+}
+
 /**
  * Button set.
  *
  * Supported options:
  * - id 
  *
- * @param array $buttons list of buttons in HTML format
- * @param array $options options
+ * @param array  $buttons list of buttons in HTML format
+ * @param array  $options options
+ * @param string $type    button set type
  *
  * @return string HTML for button set
  */
 
-function theme_button_set($buttons, $options)
+function _theme_button_set($buttons, $options, $type)
 {
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
 
@@ -134,10 +144,14 @@ function theme_button_set($buttons, $options)
     foreach ($buttons as $button)
         $button_html .= "\n" . trim($button);
 
-    return "
-        <div class='theme-button-group' data-role='controlgroup' data-type='horizontal' id='$id'>$button_html
-        </div>
-    ";
+    if ($type === 'field') {
+        // FIXME
+    } else {
+        return "
+            <div class='theme-button-group' data-role='controlgroup' data-type='horizontal' id='$id'>$button_html
+            </div>
+        ";
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
