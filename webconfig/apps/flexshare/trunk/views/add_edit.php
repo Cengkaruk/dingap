@@ -41,11 +41,10 @@ $this->load->language('flexshare');
 
 if ($form_type === 'edit') {
     $read_only = TRUE;
-    $form_path = '/flexshare/edit';
+    $form_path = '/flexshare/edit/'. $name;
     $buttons = array(
         form_submit_update('submit'),
-        anchor_cancel('/app/flexshare/'),
-        anchor_delete('/app/flexshare/delete/' . $share)
+        anchor_cancel('/app/flexshare/')
     );
 } else {
     $read_only = FALSE;
@@ -69,7 +68,7 @@ echo form_header(lang('flexshare_general_settings'));
 
 echo field_input('name', $name, lang('flexshare_share_name'), $read_only);
 echo field_input('description', $description, lang('base_description'), FALSE);
-echo field_dropdown('group', $group_options, $owner, lang('flexshare_group'), FALSE);
+echo field_dropdown('group', $group_options, $group, lang('flexshare_group'), FALSE);
 echo field_dropdown('directory', $directories, $directory, lang('flexshare_directory'), FALSE);
 
 echo field_button_set($buttons);
@@ -80,3 +79,15 @@ echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
+
+// Add links to protocols
+if ($form_type === 'edit') {
+echo '<div style=\'text-align: center\'>';
+echo button_set( array(
+    anchor_custom('/app/flexshare/edit/' . $name . '/web', lang('flexshare_web')),
+    anchor_custom('/app/flexshare/edit/' . $name . '/ftp', lang('flexshare_ftp')),
+    anchor_custom('/app/flexshare/edit/' . $name . '/file', lang('flexshare_file')),
+    anchor_custom('/app/flexshare/edit/' . $name . '/email', lang('flexshare_email'))
+));
+echo '</div>';
+}

@@ -154,11 +154,14 @@ class Flexshare extends ClearOS_Controller
 
     function edit($share)
     {
-        // $this->_add_edit_view($share, 'edit');
-//        $views = array("flexshare/file/edit/$share", "flexshare/ftp/edit/$share");
-        $views = array("flexshare/file/edit/$share", "flexshare/ftp/edit/$share");
+        /*$views = array(
+            "flexshare/file/edit/$share",
+            "flexshare/ftp/edit/$share"
+        );
 
         $this->page->view_forms($views, lang('flexshare_flexshare'));
+        */
+        $this->_add_edit_view($share, 'edit');
     }
 
     /**
@@ -219,9 +222,9 @@ class Flexshare extends ClearOS_Controller
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 if ($form_type == 'edit') {
-                    $this->flexshare->set_description($this->input->post('description'));
-                    $this->flexshare->set_group($this->input->post('group'));
-                    $this->flexshare->set_directory($this->input->post('directory'));
+                    $this->flexshare->set_description($share, $this->input->post('description'));
+                    $this->flexshare->set_group($share, $this->input->post('group'));
+                    $this->flexshare->set_directory($share, $this->input->post('directory'));
                     redirect('/flexshare');
                 } else {
                     $this->flexshare->add_share(
@@ -232,8 +235,7 @@ class Flexshare extends ClearOS_Controller
                     );
                 }
             } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
+                $this->page->set_message(clearos_exception_message($e));
             }
         }
 
@@ -243,13 +245,10 @@ class Flexshare extends ClearOS_Controller
         try {
             if ($form_type == 'edit') {
                 $info = $this->flexshare->get_share($share);
-                print_r($info);
-                /*
-                $data['name'] = $this->flexshare->get_name();
-                $data['description'] = $this->flexshare->get_description();
-                $data['group'] = $this->flexshare->get_group();
-                $data['directory'] = $this->flexshare->get_directory();
-                */
+                $data['name'] = $info['Name'];
+                $data['description'] = $info['ShareDescription'];
+                $data['group'] = $info['ShareGroup'];
+                $data['directory'] = $info['ShareDirectory'];
             }
         } catch (Exception $e) {
             $this->page->view_exception($e);
@@ -276,7 +275,7 @@ class Flexshare extends ClearOS_Controller
         //---------------
 
         try {
-            $data['directories'] = $this->flexshare->get_dir_options(NULL);
+            $data['directories'] = $this->flexshare->get_dir_options($share);
         } catch (Flexshare_Parameter_Not_Found_Exception $e) {
             // This is OK
         } catch (Exception $e) {

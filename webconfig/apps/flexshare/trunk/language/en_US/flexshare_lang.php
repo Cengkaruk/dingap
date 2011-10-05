@@ -12,10 +12,13 @@ $lang['flexshare_directory'] = 'Directory';
 $lang['flexshare_ftp'] = 'FTP';
 $lang['flexshare_hostname'] = 'Hostname';
 $lang['flexshare_file'] = 'File';
+$lang['flexshare_email'] = 'Email';
+$lang['flexshare_web'] = 'Web';
 $lang['flexshare_windows_path'] = 'Windows Path';
 $lang['flexshare_comment'] = 'Comment';
 $lang['flexshare_general_settings'] = 'General Settings';
 $lang['flexshare_invalid_group'] = 'Invalid group.';
+$lang['flexshare_device_busy'] = 'A user or service is accessing the current share.';
 
 
 /*

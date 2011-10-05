@@ -309,9 +309,6 @@ class Flexshare extends Engine
                 unset($share);
             }
         }
-echo "<pre>";
-print_r($shares);
-echo "</pre>";
 
         return $shares;
     }
@@ -544,7 +541,7 @@ echo "</pre>";
             if (! $file->exists())
                 throw new File_Not_Found_Exception(self::FILE_CONFIG, COMMON_ERROR);
 
-            $lines = $file->GetContentsAsArray();
+            $lines = $file->get_contents_as_array();
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -1983,10 +1980,10 @@ echo "</pre>";
         try {
             $file = new File(self::FILE_CONFIG);
             if ($name == NULL) {
-                $needle = "/^\s*$key\s*=\s*/i";
+                $needle = "/^\s*$key\s*=\s*.+/i";
                 $match = $file->replace_lines($needle, "$key=$value\n");
             } else {
-                $needle = "/^\s*$key\s*=\s*/i";
+                $needle = "/^\s*$key\s*=\s*.+/i";
                 $match = $file->replace_lines_between($needle, "  $key=$value\n", "/<Share $name>/", "/<\/Share>/");
             }
         } catch (Exception $e) {
@@ -3892,11 +3889,11 @@ echo "</pre>";
             if ($this->get_parameter($name, 'ShareDir') != $defaultdir) {
                 $param = $defaultdir;
                 $options['env'] = "LANG=en_US";
-                $retval = $shell->execute(self::CMD_UMOUNT, $param, TRUE, $options);
-                if ($retval != 0) {
-                    // If it didn't exist, we don't want to throw exception
-                    if (!preg_match('/not mounted/', $shell->get_last_output_line()))
-                        throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_DEVICE_BUSY, COMMON_ERROR);
+                try {
+                    $retval = $shell->execute(self::CMD_UMOUNT, $param, TRUE, $options);
+                } catch (Validation_Exception $e) {
+                    if (!preg_match('/.*not mounted.*/', $e->get_message()))
+                        throw new Engine_Exception(lang('flexshare_device_busy'), COMMON_ERROR);
                 }
             }
             // Mount new share
