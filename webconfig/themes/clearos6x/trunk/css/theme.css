@@ -453,6 +453,14 @@ div.theme-button-set { background-image: url();  }
   font-size: 7pt !important;
 }
 
+table.display td {
+	padding: 3px 2px;
+}
+
+.ui-state-default .DataTables_sort_wrapper {
+	padding-left: 3px;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Forms */
 /* ------------------------------------------------------------------------- */
