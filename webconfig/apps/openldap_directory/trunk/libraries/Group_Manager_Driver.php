@@ -316,6 +316,7 @@ class Group_Manager_Driver extends Engine
             $this->ldaph = Utilities::get_ldap_handle();
 
         $group_list = array();
+        $usermap_dn = Utilities::get_usermap_by_dn();
 
         // Load groups from LDAP
         //----------------------
@@ -355,8 +356,6 @@ class Group_Manager_Driver extends Engine
 
             $raw_members = $attributes['member'];
             array_shift($raw_members);
-
-            $usermap_dn = Utilities::get_usermap_by_dn();
 
             foreach ($raw_members as $membercn) {
                 if (!empty($usermap_dn[$membercn]))
