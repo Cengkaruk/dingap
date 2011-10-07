@@ -1362,6 +1362,9 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if (empty($user_info['plugins']))
+            return;
+
         foreach ($user_info['plugins'] as $plugin_name => $info) {
             $plugin = new Plugin_Driver($plugin_name);
 
