@@ -131,7 +131,7 @@ class User_Manager_Driver extends User_Manager_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $raw_list = $this->_get_details($type);
+        $raw_list = $this->_get_details($type, TRUE);
 
         $user_list = array();
 
@@ -141,6 +141,25 @@ class User_Manager_Driver extends User_Manager_Engine
         return $user_list;
     }
     
+    /**
+     * Returns core detailed user information for all users.
+     *
+     * The details only include core user information, i.e.
+     * no extension or group information.
+     *
+     * @param string $type user type
+     *
+     * @return array user information array
+     * @throws Engine_Exception
+     */
+
+    public function get_core_details($type = User_Engine::TYPE_NORMAL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->_get_details($type, TRUE);
+    }
+
     /**
      * Returns detailed user information for all users.
      *
@@ -154,7 +173,7 @@ class User_Manager_Driver extends User_Manager_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_details($type);
+        return $this->_get_details($type, FALSE);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -164,29 +183,35 @@ class User_Manager_Driver extends User_Manager_Engine
     /**
      * Returns user information.
      *
-     * @param string $type user type
+     * The core_only flag is nice to have to optimize the method calls.  Pulling
+     * in all the extension and group information can be expensive.
+     *
+     * @param string  $type      user type
+     * @param boolean $core_only core details only
      *
      * @access private
      * @return array user information
      */
 
-    protected function _get_details($type)
+    protected function _get_details($type, $core_only)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Prep group membership lookup table
         //-----------------------------------
 
-        $group_manager = new Group_Manager_Driver();
-        $group_data = $group_manager->get_details();
-        $group_lookup = array();
+        if (! $core_only) {
+            $group_manager = new Group_Manager_Driver();
+            $group_data = $group_manager->get_details();
+            $group_lookup = array();
 
-        foreach ($group_data as $group => $details) {
-            foreach ($details['members'] as $username) {
-                if (array_key_exists($username, $group_lookup))
-                    $group_lookup[$username][] = $group;
-                else
-                    $group_lookup[$username] = array($group);
+            foreach ($group_data as $group => $details) {
+                foreach ($details['members'] as $username) {
+                    if (array_key_exists($username, $group_lookup))
+                        $group_lookup[$username][] = $group;
+                    else
+                        $group_lookup[$username] = array($group);
+                }
             }
         }
         
@@ -233,39 +258,40 @@ class User_Manager_Driver extends User_Manager_Engine
 
             $userinfo['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
-            // Add group memberships
-            //----------------------
+            if (! $core_only) {
+                // Add group memberships
+                //----------------------
 
-            if (array_key_exists($username, $group_lookup))
-                $userinfo['groups'] = $group_lookup[$username];
-            else
-                $userinfo['groups'] = array();
+                if (array_key_exists($username, $group_lookup))
+                    $userinfo['groups'] = $group_lookup[$username];
+                else
+                    $userinfo['groups'] = array();
 
-            // Add user info from extensions
-            //------------------------------
+                // Add user info from extensions
+                //------------------------------
 
-            $accounts = new Accounts_Driver();
-            $extensions = $accounts->get_extensions();
+                $accounts = new Accounts_Driver();
+                $extensions = $accounts->get_extensions();
 
-            foreach ($extensions as $extension_name => $details) {
-                $extension = Utilities::load_extension($details);
+                foreach ($extensions as $extension_name => $details) {
+                    $extension = Utilities::load_extension($details);
 
-                if (method_exists($extension, 'get_info_hook')) {
-                    $userinfo['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+                    if (method_exists($extension, 'get_info_hook')) {
+                        $userinfo['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+                    }
+                }
+
+                // Add user info map from plugins
+                //-------------------------------
+
+                $plugins = $accounts->get_plugins();
+
+                foreach ($plugins as $plugin => $details) {
+                    $plugin_name = $plugin . '_plugin';
+                    $state = (in_array($plugin_name, $userinfo['groups'])) ? TRUE : FALSE;
+                    $userinfo['plugins'][$plugin] = $state;
                 }
             }
-
-            // Add user info map from plugins
-            //-------------------------------
-
-            $plugins = $accounts->get_plugins();
-
-            foreach ($plugins as $plugin => $details) {
-                $plugin_name = $plugin . '_plugin';
-                $state = (in_array($plugin_name, $userinfo['groups'])) ? TRUE : FALSE;
-                $userinfo['plugins'][$plugin] = $state;
-            }
-
 
             // FIXME: review this for Active Directory
             if (! isset($userinfo['core']['full_name']))
