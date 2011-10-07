@@ -81,6 +81,7 @@ use \clearos\apps\mail_notification\Mail_Notification as Mail_Notification;
 use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Iface_Manager as Iface_Manager;
 use \clearos\apps\network\Network as Network;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\samba\Samba as Samba;
@@ -104,6 +105,7 @@ clearos_load_library('mail_notification/Mail_Notification');
 clearos_load_library('network/Hostname');
 clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network');
+clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('samba/Samba');
@@ -180,12 +182,12 @@ class Flexshare extends Engine
     const DEFAULT_PORT_FTP = 2121;
     const DEFAULT_PORT_FTPS = 2123;
     const DEFAULT_SSI_PARAM = 'IncludesNOExec';
-    const REGEX_SHARE_DESC = '/^[[:space:]]*ShareDescription[[:space:]]*=[[:space:]]*(.*$)/i';
-    const REGEX_SHARE_GROUP = '/^[[:space:]]*ShareGroup[[:space:]]*=[[:space:]]*(.*$)/i';
-    const REGEX_SHARE_DIR = '/^[[:space:]]*ShareDir[[:space:]]*=[[:space:]]*(.*$)/i';
-    const REGEX_SHARE_CREATED = '/^[[:space:]]*ShareCreated[[:space:]]*=[[:space:]]*(.*$)/i';
-    const REGEX_SHARE_ENABLED = '/^[[:space:]]*ShareEnabled[[:space:]]*=[[:space:]]*(.*$)/i';
-    const REGEX_OPEN = '/^<Share[[:space:]](.*)>$/i';
+    const REGEX_SHARE_DESC = '/^\s*ShareDescription\s*=\s*(.*$)/i';
+    const REGEX_SHARE_GROUP = '/^\s*ShareGroup\s*=\s*(.*$)/i';
+    const REGEX_SHARE_DIR = '/^\s*ShareDir\s*=\s*(.*$)/i';
+    const REGEX_SHARE_CREATED = '/^\s*ShareCreated\s*=\s*(.*$)/i';
+    const REGEX_SHARE_ENABLED = '/^\s*ShareEnabled\s*=\s*(.*$)/i';
+    const REGEX_OPEN = '/^<Share\s(.*)>$/i';
     const REGEX_CLOSE = '/^<\/Share>$/i';
     const ACCESS_LAN = 0;
     const ACCESS_ALL = 1;
@@ -284,25 +286,25 @@ class Flexshare extends Engine
                 $share['Created'] = $match[1];
             } elseif (preg_match(self::REGEX_SHARE_ENABLED, $line, $match)) {
                 $share['Enabled'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*ShareDir*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
+            } elseif (preg_match("/^\s*ShareDir*\s*=\s*(.*$)/i", $line, $match)) {
                 $share['Dir'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*ShareInternal*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
+            } elseif (preg_match("/^\s*ShareInternal*\s*=\s*(.*$)/i", $line, $match)) {
                 $share['Internal'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*WebEnabled*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
-                $share['Web'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*FtpEnabled*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
-                $share['Ftp'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*FileEnabled*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
-                $share['File'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*EmailEnabled*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
-                $share['Email'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*WebModified*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
+            } elseif (preg_match("/^\s*WebEnabled*\s*=\s*(.*$)/i", $line, $match)) {
+                $share['WebEnabled'] = $match[1];
+            } elseif (preg_match("/^\s*FtpEnabled*\s*=\s*(.*$)/i", $line, $match)) {
+                $share['FtpEnabled'] = $match[1];
+            } elseif (preg_match("/^\s*FileEnabled*\s*=\s*(.*$)/i", $line, $match)) {
+                $share['FileEnabled'] = $match[1];
+            } elseif (preg_match("/^\s*EmailEnabled*\s*=\s*(.*$)/i", $line, $match)) {
+                $share['EmailEnabled'] = $match[1];
+            } elseif (preg_match("/^\s*WebModified*\s*=\s*(.*$)/i", $line, $match)) {
                 $share['WebModified'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*FtpModified*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
+            } elseif (preg_match("/^\s*FtpModified*\s*=\s*(.*$)/i", $line, $match)) {
                 $share['FtpModified'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*FileModified*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
+            } elseif (preg_match("/^\s*FileModified*\s*=\s*(.*$)/i", $line, $match)) {
                 $share['FileModified'] = $match[1];
-            } elseif (preg_match("/^[[:space:]]*EmailModified*[[:space:]]*=[[:space:]]*(.*$)/i", $line, $match)) {
+            } elseif (preg_match("/^\s*EmailModified*\s*=\s*(.*$)/i", $line, $match)) {
                 $share['EmailModified'] = $match[1];
             } elseif (preg_match(self::REGEX_CLOSE, $line)) {
                 $shares[] = $share;
@@ -549,7 +551,7 @@ class Flexshare extends Engine
         $found = FALSE;
         $match = array();
 
-        $regex = "/^[[:space:]]*([[:alpha:]]+)[[:space:]]*=[[:space:]]*(.*$)/i";
+        $regex = "/^\s*([[:alpha:]]+)\s*=\s*(.*$)/i";
         foreach ($lines as $line) {
             if (preg_match(self::REGEX_OPEN, $line, $match)) {
                 if (trim($match[1]) == trim($name)) {
@@ -598,7 +600,7 @@ class Flexshare extends Engine
 
         if ($toggle) {
             if (!$share['WebEnabled'] && !$share['FtpEnabled'] && !$share['FileEnabled'] && !$share['EmailEnabled'])
-                throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_NO_ACCESS);
+                throw new Engine_Exception(lang('flexshare_no_access'));
         }
 
         // Do we need to generates configs again?
@@ -701,8 +703,6 @@ class Flexshare extends Engine
 
         $options = array(
            self::PERMISSION_READ => lang('flexshare_read'),
-           self::PERMISSION_WRITE => lang('flexshare_write'),
-           self::PERMISSION_WRITE_PLUS => lang('flexshare_write_plus'),
            self::PERMISSION_READ_WRITE => lang('flexshare_read_write'),
            self::PERMISSION_READ_WRITE_PLUS => lang('flexshare_read_write_plus')
         );
@@ -1379,9 +1379,9 @@ class Flexshare extends Engine
 
                 $linestoadd = "";
                 foreach ($oldlines as $line) {
-                    if (preg_match("/^[[:space:]]*# DNR:Webconfig start - $name$/", $line))
+                    if (preg_match("/^\s*# DNR:Webconfig start - $name$/", $line))
                         $found_start = TRUE;
-                    if ($found_start && preg_match("/^[[:space:]]*# DNR:Webconfig end - $name$/", $line)) {
+                    if ($found_start && preg_match("/^\s*# DNR:Webconfig end - $name$/", $line)) {
                         $found_start = FALSE;
                         continue;
                     }
@@ -1389,9 +1389,9 @@ class Flexshare extends Engine
                         continue;
 
                     // Look for anonymous
-                    if (preg_match("/^[[:space:]]*<Anonymous " . self::SHARE_PATH . "/>$/", $line))
+                    if (preg_match("/^\s*<Anonymous " . self::SHARE_PATH . "/>$/", $line))
                         $found_anon = TRUE;
-                    if ($found_anon && preg_match("/^[[:space:]]*</Anonymous>$/", $line)) {
+                    if ($found_anon && preg_match("/^\s*</Anonymous>$/", $line)) {
                         $found_anon = FALSE;
                         continue;
                     }
@@ -1986,6 +1986,8 @@ class Flexshare extends Engine
                 $needle = "/^\s*$key\s*=\s*.+/i";
                 $match = $file->replace_lines_between($needle, "  $key=$value\n", "/<Share $name>/", "/<\/Share>/");
             }
+        } catch (File_No_Match_Exception $e) {
+            // Do nothing
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -1995,7 +1997,7 @@ class Flexshare extends Engine
             if (! $match && $name == NULL)
                 $file->add_lines_after("$key=$value\n", "/#*./");
             elseif (! $match)
-            $file->add_lines_after("  $key=$value\n", "/<Share $name>/");
+                $file->add_lines_after("  $key=$value\n", "/<Share $name>/");
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -2015,9 +2017,9 @@ class Flexshare extends Engine
 
             try {
                 $mod = "  " . $lastmod . "=" . time() . "\n";
-                $match = $file->replace_lines_between("/" . $lastmod . "/", $mod, "/<Share $name>/", "/<\/Share>/");
-                if (! $match)
-                    $file->add_lines_after($mod, "/<Share $name>/");
+                $file->replace_lines_between("/" . $lastmod . "/", $mod, "/<Share $name>/", "/<\/Share>/");
+            } catch (File_No_Match_Exception $e) {
+                $file->add_lines_after($mod, "/<Share $name>/");
             } catch (Exception $e) {
                 throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
             }
@@ -2603,15 +2605,14 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($override_port && ($port == self::DEFAULT_PORT_FTP || $port == self::DEFAULT_PORT_FTPS)) {
-            throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_NON_CUSTOM_PORT, COMMON_ERROR);
-        }
-        if ($override_port && ($port == 21 || $port == 990)) {
-            throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_CANNOT_USE_DEFAULT_PORTS, COMMON_ERROR);
-        }
-        if ($override_port && $port < 1024) {
-            throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_INVALID_PORT, COMMON_ERROR);
-        }
+        if ($override_port && ($port == self::DEFAULT_PORT_FTP || $port == self::DEFAULT_PORT_FTPS))
+            throw new Engine_Exception(lang('flexshare_ftp_non_custom_port'), CLEAROS_ERROR);
+
+        if ($override_port && ($port == 21 || $port == 990))
+            throw new Engine_Exception(lang('flexshare_ftp_cannot_use_default_ports'), CLEAROS_ERROR);
+
+        if ($override_port && $port < 1024)
+            throw new Engine_Exception(lang('flexshare_invalid_port'), CLEAROS_ERROR);
         // Find all ports and see if any conflicts with n-1
         if ($override_port) {
             $shares = $this->get_share_summary();
@@ -2619,9 +2620,9 @@ class Flexshare extends Engine
                 $share = $this->get_share($shares[$index]['Name']);
                 if ($share['Name'] != $name) {
                     if ((int)$share["FtpPort"] == ($port - 1)) {
-                        throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_PORT_CONFLICT, COMMON_ERROR);
+                        throw new Engine_Exception(lang('flexshare_ftp_port_conflict'), CLEAROS_ERROR);
                     } else if (((int)$share["FtpPort"] -1) == $port) {
-                        throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_PORT_CONFLICT, COMMON_ERROR);
+                        throw new Engine_Exception(lang('flexshare_ftp_port_conflict'), CLEAROS_ERROR);
                     }
                 }
             }
@@ -3606,7 +3607,7 @@ class Flexshare extends Engine
             if ((int)$shares[$flex_address]['dir'] == self::EMAIL_SAVE_PATH_ROOT) {
                 $dir = self::SHARE_PATH . "/" . $flex_address;
             } else if ((int)$shares[$flex_address]['dir'] == self::EMAIL_SAVE_PATH_PARSE_SUBJECT) {
-                $regex = "/^Dir[[:space:]]*=[[:space:]]*([A-Za-z0-9\-\_\/\. ]+$)/i";
+                $regex = "/^Dir\s*=\s*([A-Za-z0-9\-\_\/\. ]+$)/i";
                 if (preg_match($regex, $mymessage[$index]['Subject'], $match)) {
                     $dir = self::SHARE_PATH . "/" . $flex_address . "/" . $match[1];
                 }
@@ -4057,6 +4058,19 @@ class Flexshare extends Engine
     }
 
     /**
+     * Validation routine for flexshare FTP.
+     *
+     * @param boolean $status FTP flexshare status
+     *
+     * @return mixed void if name is valid, errmsg otherwise
+     */
+
+    function validate_ftp_enabled($status)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
      * Validation routine for FTP passive ports.
      *
      * @param int $port_min Port start
@@ -4089,9 +4103,21 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = New Network();
-        if (!$network->validate_hostname($server_url))
+        if (! Network_Utils::is_valid_hostname($server_url))
             return lang('flexshare_invalid_server_url');
+    }
+
+    /**
+     * Validation routine for flexshare require SSL on FTP.
+     *
+     * @param boolean $req FTP flexshare require SSL status
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_ftp_req_ssl($req)
+    {
+        clearos_profile(__METHOD__, __LINE__);
     }
 
 }

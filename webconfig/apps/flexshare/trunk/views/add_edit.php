@@ -83,11 +83,13 @@ echo form_close();
 // Add links to protocols
 if ($form_type === 'edit') {
 echo '<div style=\'text-align: center\'>';
-echo button_set( array(
-    anchor_custom('/app/flexshare/edit/' . $name . '/web', lang('flexshare_web')),
-    anchor_custom('/app/flexshare/edit/' . $name . '/ftp', lang('flexshare_ftp')),
-    anchor_custom('/app/flexshare/edit/' . $name . '/file', lang('flexshare_file')),
-    anchor_custom('/app/flexshare/edit/' . $name . '/email', lang('flexshare_email'))
-));
+echo button_set(
+    array(
+        anchor_custom('/app/flexshare/file/configure/' . $name, lang('flexshare_file')),
+        anchor_custom('/app/flexshare/ftp/configure/' . $name, lang('flexshare_ftp')),
+        anchor_custom('/app/flexshare/web/configure/' . $name, lang('flexshare_web')),
+        anchor_custom('/app/flexshare/email/configure/' . $name, lang('flexshare_email'))
+    )
+);
 echo '</div>';
 }

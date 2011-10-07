@@ -29,6 +29,16 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\flexshare\Flexshare as Flexshare;
+
+// TODO for Pete:  Why does enabling line below give:
+// Fatal error: Call to a member function load() on a non-object i
+// Is it needed?
+//clearos_load_library('flexshare/Flexshare');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,12 +58,12 @@
 class FTP extends ClearOS_Controller
 {
     /**
-     * Flexshare FTP overview.
+     * Flexshare FTP default controller.
      */
 
     function index($share)
     {
-        $this->_add_edit_view($share, 'view');
+        $this->configure($share);
     }
 
     /**
@@ -64,37 +74,58 @@ class FTP extends ClearOS_Controller
      * @return view
      */
 
-    function edit($share)
-    {
-        $this->_add_edit_view($share, 'edit');
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Flexshare FTP common edit/view form handler.
-     *
-     * @param string $share     share
-     * @param string $form_type form type
-     *
-     * @return view
-     */
-
-    function _add_edit_view($share, $form_type)
+    function configure($share)
     {
         // Load libraries
         //---------------
 
+        $this->load->library('flexshare/Flexshare');
         $this->lang->load('flexshare');
 
-        // Load the view data 
-        //------------------- 
+        $this->form_validation->set_policy('ftp_enabled', 'flexshare/Flexshare', 'validate_ftp_enabled', TRUE);
+        $this->form_validation->set_policy('ftp_server_url', 'flexshare/Flexshare', 'validate_ftp_server_url', TRUE);
+        $this->form_validation->set_policy('ftp_req_ssl', 'flexshare/Flexshare', 'validate_ftp_req_ssl', TRUE);
+        //$this->form_validation->set_policy('ftp_override_port', 'flexshare/Flexshare', 'validate_ftp_override_port', TRUE);
+        //$this->form_validation->set_policy('ftp_allow_passive', 'flexshare/Flexshare', 'validate_ftp_allow_passive', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->flexshare->set_ftp_enabled($share, $this->input->post('ftp_enabled'));
+                $this->flexshare->set_ftp_server_url($share, $this->input->post('ftp_server_url'));
+                $this->flexshare->set_ftp_req_ssl($share, $this->input->post('ftp_req_ssl'));
+                $this->flexshare->set_ftp_override_port(
+                    $share, $this->input->post('ftp_override_port'),
+                    $this->input->post('ftp_port')
+                );
+                $this->flexshare->set_ftp_allow_passive($share, $this->input->post('ftp_allow_passive'));
+            } catch (Exception $e) {
+                $this->page->set_message(clearos_exception_message($e));
+            }
+        }
+
+        // Load view data
+        //--------------- 
 
         try {
-            $data['form_type'] = $form_type;
-            $data['share'] = $share;
+            $data['share'] = $this->flexshare->get_share($share);
+
+            // Default Port
+            if ((int)$data['share']['FtpPort'] == 0)
+                $data['share']['FtpPort'] = Flexshare::DEFAULT_PORT_FTP;
+
+            // Passive port range
+            if ((int)$data['share']['FtpPassivePortMin'] == 0)
+                $data['share']['FtpPassivePortMin'] = Flexshare::FTP_PASV_MIN;
+
+            if ((int)$data['share']['FtpPassivePortMax'] == 0)
+                $data['share']['FtpPassivePortMax'] = Flexshare::FTP_PASV_MAX;
+
+            $data['group_permission_options'] = $this->flexshare->get_ftp_permission_options();
+            $data['anonymous_permission_options'] = $this->flexshare->get_ftp_permission_options();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

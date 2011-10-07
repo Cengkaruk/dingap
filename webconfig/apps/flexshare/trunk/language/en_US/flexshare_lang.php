@@ -19,24 +19,24 @@ $lang['flexshare_comment'] = 'Comment';
 $lang['flexshare_general_settings'] = 'General Settings';
 $lang['flexshare_invalid_group'] = 'Invalid group.';
 $lang['flexshare_device_busy'] = 'A user or service is accessing the current share.';
-
-
-/*
-
-app/flexshare/edit/test123
-
-- in mobile mode, that shows
-
-
-- general
-- ftp
-- samba
-- web
-
-app/flexshare/index
-app/flexshare/general/edit/test123
-app/flexshare/ftp/edit/test123
-app/flexshare/samba/edit/test123
-app/flexshare/web/edit/test123
-
-*/
+$lang['flexshare_no_access'] = 'One or more access options must be enabled before enabling the Flexshare.';
+$lang['flexshare_ftp_require_ssl'] = 'Require SSL (FTPS)';
+$lang['flexshare_ftp_override_port'] = 'Override Port';
+$lang['flexshare_ftp_port'] = 'Port Number';
+$lang['flexshare_ftp_allow_passive'] = 'Allow Passive (PASV)';
+$lang['flexshare_ftp_allow_passive_range'] = 'Passive Port Range';
+$lang['flexshare_ftp_group_permissions'] = 'Group Permissions';
+$lang['flexshare_ftp_group_greeting'] = 'Group Greeting';
+$lang['flexshare_ftp_allow_anonymous'] = 'Allow Anonymous';
+$lang['flexshare_ftp_anonymous_permissions'] = 'Anonymous Permissions';
+$lang['flexshare_ftp_anonymous_greeting'] = 'Anonymous Greeting';
+$lang['flexshare_read'] = 'Read only';
+$lang['flexshare_read_write'] = 'Read/write';
+$lang['flexshare_read_write_plus'] = 'Read/write with permission to overwrite files';
+$lang['flexshare_ftp_min_port'] = 'Passive Port Min';
+$lang['flexshare_ftp_max_port'] = 'Passive Port Max';
+$lang['flexshare_ftp_group_greeting'] = 'Group Greeting';
+$lang['flexshare_ftp_non_custom_port'] = 'Default port is not valid when specifying a custom port.';
+$lang['flexshare_ftp_cannot_use_default_ports'] = 'The standard FTP/FTPS ports (21, 990) are reserved and cannot be used with Flexshares.';
+$lang['flexshare_ftp_port_conflict'] = 'The custom FTP port conflicts with another defined flexshare - you must have allow for both the control port/channel (N) and data port/channel (N-1).';
+$lang['flexshare_invalid_port'] = 'Custom port must be above 1023.';

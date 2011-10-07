@@ -89,14 +89,12 @@ class Flexshare extends ClearOS_Controller
     /**
      * Flexshare add view.
      *
-     * @param string $share share
-     *
      * @return view
      */
 
-    function add($share)
+    function add()
     {
-        $this->_add_edit_view($share, 'add');
+        $this->_add_edit_view(NULL, 'add');
     }
 
     /**
@@ -107,7 +105,7 @@ class Flexshare extends ClearOS_Controller
      * @return view
      */
 
-    function delete($share = NULL)
+    function delete($share)
     {
         $confirm_uri = '/app/flexshare/destroy/' . $share;
         $cancel_uri = '/app/flexshare';
@@ -154,27 +152,37 @@ class Flexshare extends ClearOS_Controller
 
     function edit($share)
     {
-        /*$views = array(
-            "flexshare/file/edit/$share",
-            "flexshare/ftp/edit/$share"
-        );
-
-        $this->page->view_forms($views, lang('flexshare_flexshare'));
-        */
         $this->_add_edit_view($share, 'edit');
     }
 
     /**
-     * Flexshare view.
+     * Toggle share state enable/disable.
      *
-     * @param string $share share
+     * @param string $name
      *
      * @return view
      */
 
-    function view($share)
+    function toggle($name)
     {
-        $this->_add_edit_view($share, 'view');
+        // Load libraries
+        //---------------
+
+        $this->load->library('flexshare/Flexshare');
+        $this->lang->load('flexshare');
+        $this->lang->load('base');
+
+        // Handle form submit
+        //-------------------
+
+        try {
+            $info = $this->flexshare->get_share($name);
+            $this->flexshare->toggle_share($name, !$info['ShareEnabled']);
+        } catch (Exception $e) {
+            $this->page->set_message(clearos_exception_message($e));
+        }
+
+        redirect('/flexshare');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
