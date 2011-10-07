@@ -1,0 +1,23 @@
+#!/bin/bash
+# Load modules that eziod depends on.
+
+#
+# Load the network-bypass module.
+#
+/sbin/modinfo -F filename network-bypass >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	modprobe network-bypass board=CAR3000 >/dev/null 2>&1
+fi
+
+#
+# Load the w83627ehf sensors module.
+#
+/sbin/modinfo -F filename w83627ehf >/dev/null 2>&1
+if [ $? -eq 0 ]
+then
+	modprobe w83627ehf >/dev/null 2>&1
+fi
+
+exit 0
+# vi: ts=4 syntax=sh

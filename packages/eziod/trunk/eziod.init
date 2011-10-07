@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+# eziod          Start/Stop the EZIOd daemon.
+#
+# chkconfig: 2345 90 60
+# description: EZIO-300 LCD panel daemon
+# processname: eziod
+# config: /etc/eziod.conf
+
+# Source function library.
+. /etc/init.d/functions
+
+prog="eziod"
+RETVAL=0
+EZIOD_CONF="/etc/eziod.conf"
+
+# See how we were called.
+start() {
+	echo -n $"Starting $prog: "
+	daemon /usr/sbin/eziod
+	RETVAL=$?
+	echo
+	if [ $RETVAL -eq 0 ]; then
+		touch /var/lock/subsys/eziod
+	fi
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc eziod
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/eziod
+	return $RETVAL
+}	
+
+status() {
+	echo "Not implemented yet."
+}	
+
+restart() {
+  	stop
+	start
+}	
+
+reload() {
+	echo -n $"Reloading EZIOd configuration: "
+	killproc eziod -HUP
+	retval=$?
+	echo
+	return $RETVAL
+}	
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  reload)
+  	reload
+	;;
+  status)
+  	status
+	;;
+  condrestart)
+  	[ -f /var/lock/subsys/eziod ] && restart || :
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|reload|restart|condrestart}"
+	exit 1
+esac
+
+exit $?

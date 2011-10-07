@@ -10,7 +10,7 @@ Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
 Summary: ClearSync system sychronization tool
 BuildRequires: expat-devel
-Requires: initscripts
+Requires: initscripts /sbin/service
 Requires(pre): /sbin/ldconfig, /usr/sbin/useradd, /usr/bin/getent
 Requires(postun): /usr/sbin/userdel
 Requires(post): /sbin/chkconfig
@@ -65,7 +65,7 @@ fi
 %post
 /sbin/ldconfig
 /sbin/chkconfig --add clearsyncd 2>&1 || :
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart 2>&1 || :
 
 # Post uninstall
 %postun

@@ -1,0 +1,8 @@
+ClearBOX 300 NOTES
+------------------
+
+- lm_sensors must be installed.
+- the hwmon module w83627ehf.ko needs to be patched to work properly.
+  fixed in: kernel-2.6.18-164.11.1.v5
+- the bypass module must be loaded with: board=CAR3000
+

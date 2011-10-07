@@ -8,7 +8,7 @@ Group: System/Plugins
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
-Requires: clearsync >= 1.1
+Requires: clearsync >= 1.1 /sbin/service
 BuildRequires: clearsync-devel >= 1.1
 BuildRequires: expat-devel
 Summary: ClearSync route watch plugin
@@ -40,7 +40,7 @@ rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-routewatch.la
 # Post install
 %post
 /sbin/ldconfig
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart 2>&1 || :
 
 # Add command(s) to sudo configuration
 CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
@@ -71,7 +71,7 @@ fi
 # Post uninstall
 %postun
 /sbin/ldconfig
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart 2>&1 || :
 
 # Files
 %files
