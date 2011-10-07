@@ -1437,6 +1437,7 @@ class Flexshare extends Engine
                 // FTPS (SSL)
                 if ($share['FtpReqSsl']) {
                     // We need an SSL certificate
+                    /* TODO Need SSL class
                     try {
                         $ssl = new Ssl();
                         $certs = $ssl->get_certificates(Ssl::TYPE_CRT);
@@ -1479,6 +1480,7 @@ class Flexshare extends Engine
                     $newlines[] = "\t  TLSCACertificateFile " . Ssl::DIR_SSL . "/" . SsL::FILE_CA_CRT;
                     $newlines[] = "\t  TLSVerifyClient off";
                     $newlines[] = "\t</IfModule>";
+                    */
                 }
             } else {
                 if ($share['FtpAllowPassive']) {
@@ -1633,7 +1635,6 @@ class Flexshare extends Engine
 
         // Reload FTP server
         $proftpd->reset();
-        self::Log(COMMON_DEBUG, 'exiting', __METHOD__, __LINE__);
     }
 
     /**
@@ -1836,7 +1837,6 @@ class Flexshare extends Engine
                     try {
                         $aliases->delete_alias(self::PREFIX . $name);
                     } catch (Exception $e) {
-                        // self::Log(COMMON_WARNING, $e->GetMessage(), __METHOD__, __LINE__);
                     }
                 } else {
                     try {
@@ -2647,9 +2647,12 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($allow_passive && !$this->validate_passive_port_range($port_min, $port_max)) {
-            throw new Engine_Exception($this->validate_passive_port_range($port_min, $port_max), COMMON_ERROR);
-        }
+        // Validate
+        // --------
+
+        if ($allow_passive)
+            Validation_Exception::is_valid($this->validate_passive_port_range($port_min, $port_max));
+
 
         $this->set_parameter($name, 'FtpAllowPassive', $allow_passive);
 
@@ -2774,6 +2777,11 @@ class Flexshare extends Engine
     function set_ftp_group_permission($name, $permission)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        // Validate
+        // --------
+
+        Validation_Exception::is_valid($this->validate_ftp_group_permission($permission));
 
         $this->set_parameter($name, 'FtpGroupPermission', $permission);
     }
@@ -4083,8 +4091,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $network = new Network();
-        if (! $network->validate_port_range($port_min, $port_max))
+        if (! Network_Utils::is_valid_port_range($port_min, $port_max))
             return lang('network_lang_port_range_invalid');
 
         if ($port_min < 1023 || $port_max < 1023)
@@ -4120,4 +4127,80 @@ class Flexshare extends Engine
         clearos_profile(__METHOD__, __LINE__);
     }
 
+    /**
+     * Validation routine for flexshare group permission on FTP.
+     *
+     * @param boolean $permission FTP flexshare group permission
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_ftp_group_permission($permission)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        $options = $this->get_ftp_permission_options();
+        if (!array_key_exists($permission, $options))
+            return lang('flexshare_invalid_permission');
+    }
+
+    /**
+     * Validation routine for flexshare group greeting on FTP.
+     *
+     * @param boolean $greeting FTP flexshare group greeting
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_ftp_group_greeting($greeting)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        // Invalid characters in greeting?
+        //if (preg_match("//" $greeting))
+        //    return lang('flexshare_invalid_greeting');
+    }
+
+    /**
+     * Validation routine for flexshare allow anonymous on FTP.
+     *
+     * @param boolean $allow_anonymous FTP flexshare allow anonymous
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_ftp_allow_anonymous($allow_anonymous)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
+     * Validation routine for flexshare anonymous permission on FTP.
+     *
+     * @param boolean $permission FTP flexshare anonymous permission
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_ftp_anonymous_permission($permission)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        $options = $this->get_ftp_permission_options();
+        if (!array_key_exists($permission, $options))
+            return lang('flexshare_invalid_permission');
+    }
+
+    /**
+     * Validation routine for flexshare anonymous greeting on FTP.
+     *
+     * @param boolean $greeting FTP flexshare anonymous greeting
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_ftp_anonymous_greeting($greeting)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        // Invalid characters in greeting?
+        //if (preg_match("//" $greeting))
+        //    return lang('flexshare_invalid_greeting');
+    }
 }

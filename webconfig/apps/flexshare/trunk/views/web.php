@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Flexshare FTP edit view.
+ * Flexshare Web edit view.
  *
  * @category   Apps
  * @package    Flexshare
@@ -40,7 +40,7 @@ $this->load->language('flexshare');
 ///////////////////////////////////////////////////////////////////////////////
 
 $read_only = FALSE;
-$form_path = '/flexshare/ftp/configure/' . $share['Name'];
+$form_path = '/flexshare/web/configure/' . $share['Name'];
 $buttons = array(
     form_submit_update('submit'),
     anchor_cancel('/app/flexshare/'),
@@ -51,26 +51,27 @@ $buttons = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open($form_path);
-echo form_header(lang('flexshare_ftp'));
+echo form_header(lang('flexshare_web'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
 echo field_input('name', $share['Name'], lang('flexshare_share_name'), TRUE);
-echo field_toggle_enable_disable('enabled', $share['FtpEnabled'], lang('base_status'), $read_only);
-echo field_input('server_url', $share['FtpServerUrl'], lang('flexshare_hostname'), $read_only);
-echo field_toggle_enable_disable('req_ssl', $share['FtpReqSsl'], lang('flexshare_ftp_require_ssl'), $read_only);
-echo field_toggle_enable_disable('override_port', $share['FtpOverridePort'], lang('flexshare_ftp_override_port'), $read_only);
-echo field_input('port', $share['FtpPort'], lang('flexshare_ftp_port'), $read_only);
-echo field_toggle_enable_disable('allow_passive', $share['FtpAllowPassive'], lang('flexshare_ftp_allow_passive'), $read_only);
-echo field_input('passive_min_port', $share['FtpPassivePortMin'], lang('flexshare_ftp_min_port'), $read_only);
-echo field_input('passive_max_port', $share['FtpPassivePortMax'], lang('flexshare_ftp_max_port'), $read_only);
-echo field_dropdown('group_permission', $group_permission_options, $share['FtpGroupPermission'], lang('flexshare_ftp_group_permissions'), $read_only);
-echo field_textarea('group_greeting', $share['FtpGroupGreeting'], lang('flexshare_ftp_group_greeting'), $read_only);
-echo field_toggle_enable_disable('allow_anonymous', $share['FtpAllowAnonymous'], lang('flexshare_ftp_allow_anonymous'), $read_only);
-echo field_dropdown('anonymous_permission', $anonymous_permission_options, $share['FtpAnonymousPermission'], lang('flexshare_ftp_anonymous_permissions'), $read_only);
-echo field_textarea('anonymous_greeting', $share['FtpAnonymousGreeting'], lang('flexshare_ftp_anonymous_greeting'), $read_only);
+echo field_input('server_name', $share['WebServerName'], lang('flexshare_server_name'), TRUE);
+echo field_input('server_url', $share['WebServerUrl'], lang('flexshare_hostname'), TRUE);
+echo field_dropdown('accessibility', $share['WebEnabled'], lang('base_status'), $read_only);
+echo field_toggle_enable_disable('show_index', $share['WebReqSsl'], lang('flexshare_web_require_ssl'), $read_only);
+echo field_toggle_enable_disable('follow_sym_links', $share['WebOverridePort'], lang('flexshare_web_override_port'), $read_only);
+echo field_toggle_enable_disable('ssi', $share['WebAllowPassive'], lang('flexshare_web_allow_passive'), $read_only);
+echo field_toggle_enable_disable('htaccess', $share['WebAccess'], lang('flexshare_web_allow_passive'), $read_only);
+echo field_toggle_enable_disable('req_ssl', $share['WebReqSsl'], lang('flexshare_web_allow_passive'), $read_only);
+echo field_toggle_enable_disable('default_port', $share['WebOverridePort'], lang('flexshare_web_allow_passive'), $read_only);
+echo field_input('port', $share['WebPort'], lang('flexshare_web_port'), $read_only);
+echo field_toggle_enable_disable('required_auth', $share['WebRequireAuth'], lang('flexshare_web_allow_passive'), $read_only);
+echo field_input('realm', $share['WebRealm'], lang('flexshare_web_max_port'), $read_only);
+echo field_toggle_enable_disable('php', $share['WebPhp'], lang('flexshare_web_allow_passive'), $read_only);
+echo field_toggle_enable_disable('cgi', $share['WebCgi'], lang('flexshare_web_allow_passive'), $read_only);
 
 echo field_button_set($buttons);
 

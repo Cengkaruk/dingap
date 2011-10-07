@@ -127,15 +127,18 @@ class Flexshare extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->factory('users/User_Factory', $share);
+        $this->load->library('flexshare/Flexshare');
 
         // Handle form submit
         //-------------------
 
         try {
-            $this->user->delete();
+            // Second parameter is option to delete folder
+            // Default delete wizard doesn't allow options
+            // Set to false (do not delete) for now
+            $this->flexshare->delete_share($share, FALSE);
             $this->page->set_status_deleted();
-            redirect('/users');
+            redirect('/flexshare');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -217,7 +220,6 @@ class Flexshare extends ClearOS_Controller
         //---------------------
          
         // Name cannot be set once added.
-//        if ($form_type == 'add')
         $this->form_validation->set_policy('name', 'flexshare/Flexshare', 'validate_name', TRUE);
         $this->form_validation->set_policy('description', 'flexshare/Flexshare', 'validate_description', TRUE);
         $this->form_validation->set_policy('group', 'flexshare/Flexshare', 'validate_group', TRUE);
@@ -233,7 +235,6 @@ class Flexshare extends ClearOS_Controller
                     $this->flexshare->set_description($share, $this->input->post('description'));
                     $this->flexshare->set_group($share, $this->input->post('group'));
                     $this->flexshare->set_directory($share, $this->input->post('directory'));
-                    redirect('/flexshare');
                 } else {
                     $this->flexshare->add_share(
                         $this->input->post('name'),
@@ -242,6 +243,7 @@ class Flexshare extends ClearOS_Controller
                         $this->input->post('directory')
                     );
                 }
+                redirect('/flexshare');
             } catch (Exception $e) {
                 $this->page->set_message(clearos_exception_message($e));
             }

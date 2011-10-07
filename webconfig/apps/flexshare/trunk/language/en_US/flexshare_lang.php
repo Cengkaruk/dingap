@@ -40,3 +40,6 @@ $lang['flexshare_ftp_non_custom_port'] = 'Default port is not valid when specify
 $lang['flexshare_ftp_cannot_use_default_ports'] = 'The standard FTP/FTPS ports (21, 990) are reserved and cannot be used with Flexshares.';
 $lang['flexshare_ftp_port_conflict'] = 'The custom FTP port conflicts with another defined flexshare - you must have allow for both the control port/channel (N) and data port/channel (N-1).';
 $lang['flexshare_invalid_port'] = 'Custom port must be above 1023.';
+$lang['flexshare_invalid_permission'] = 'Invalid FTP permissions.';
+$lang['flexshare_invalid_greeting'] = 'Invalid characters in greeting.';
+
