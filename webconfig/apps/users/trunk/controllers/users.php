@@ -87,7 +87,7 @@ class Users extends ClearOS_Controller
         //---------------
 
         try {
-            $data['users'] = $this->user_manager->get_details();
+            $data['users'] = $this->user_manager->get_core_details();
             $data['mode'] = ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE) ? 'edit' : 'view';
         } catch (Exception $e) {
             $this->page->view_exception($e);
