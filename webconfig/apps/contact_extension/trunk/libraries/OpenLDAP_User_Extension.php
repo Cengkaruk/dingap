@@ -125,6 +125,9 @@ class OpenLDAP_User_Extension extends Engine
         // Set defaults
         //-------------
 
+        if (empty($user_info['contact']))
+            return array();
+
         /*
         if (! isset($user_info['contact']['mail']))
             $user_info['contact']['mail'] = $this->username . "@" . $directory->get_base_internet_domain();
