@@ -179,6 +179,7 @@ class Flexshare extends Engine
     const DIR_MAIL_UPLOAD = "email-upload";
     const CONSTANT_USERNAME = 'flexshare';
     const MBOX_HOSTNAME = 'localhost';
+    const DEFAULT_PORT_WEB = 80;
     const DEFAULT_PORT_FTP = 2121;
     const DEFAULT_PORT_FTPS = 2123;
     const DEFAULT_SSI_PARAM = 'IncludesNOExec';
@@ -2301,9 +2302,8 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($override_port && ($port == 80 || $port == 443)) {
-            throw new Validation_Exception(FLEXSHARE_LANG_ERRMSG_NON_CUSTOM_PORT);
-        }
+        if ($override_port && ($port == 80 || $port == 443))
+            throw new Engine_Exception(lang('flexshare_non_custom_port'), CLEAROS_ERROR);
         $inuse_ports = array();
         $info = $this->get_share($name);
         $ssl = $info['WebReqSsl'];
@@ -2409,6 +2409,10 @@ class Flexshare extends Engine
     function set_web_access($name, $access)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        // Validate
+        // --------
+        Validation_Exception::is_valid($this->validate_web_access($access));
 
         // If web access is ALL, check e-mail restricts access
         $prevent = TRUE;
@@ -2606,7 +2610,7 @@ class Flexshare extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if ($override_port && ($port == self::DEFAULT_PORT_FTP || $port == self::DEFAULT_PORT_FTPS))
-            throw new Engine_Exception(lang('flexshare_ftp_non_custom_port'), CLEAROS_ERROR);
+            throw new Engine_Exception(lang('flexshare_non_custom_port'), CLEAROS_ERROR);
 
         if ($override_port && ($port == 21 || $port == 990))
             throw new Engine_Exception(lang('flexshare_ftp_cannot_use_default_ports'), CLEAROS_ERROR);
@@ -4203,4 +4207,21 @@ class Flexshare extends Engine
         //if (preg_match("//" $greeting))
         //    return lang('flexshare_invalid_greeting');
     }
+
+    /**
+     * Validation routine for flexshare web access on Web.
+     *
+     * @param boolean $accessibility Web access
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_web_access($accessibility)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        $options = $this->get_web_access_options();
+        if (!array_key_exists($accessibility, $options))
+            return lang('flexshare_invalid_accessibility');
+    }
+
 }

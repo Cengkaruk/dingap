@@ -43,7 +43,7 @@ $read_only = FALSE;
 $form_path = '/flexshare/ftp/configure/' . $share['Name'];
 $buttons = array(
     form_submit_update('submit'),
-    anchor_cancel('/app/flexshare/'),
+    anchor_cancel('/app/flexshare/edit/' . $share['Name']),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@ echo field_toggle_enable_disable('enabled', $share['FtpEnabled'], lang('base_sta
 echo field_input('server_url', $share['FtpServerUrl'], lang('flexshare_hostname'), $read_only);
 echo field_toggle_enable_disable('req_ssl', $share['FtpReqSsl'], lang('flexshare_ftp_require_ssl'), $read_only);
 echo field_toggle_enable_disable('override_port', $share['FtpOverridePort'], lang('flexshare_ftp_override_port'), $read_only);
-echo field_input('port', $share['FtpPort'], lang('flexshare_ftp_port'), $read_only);
+echo field_input('port', $share['FtpPort'], lang('flexshare_port'), $read_only);
 echo field_toggle_enable_disable('allow_passive', $share['FtpAllowPassive'], lang('flexshare_ftp_allow_passive'), $read_only);
 echo field_input('passive_min_port', $share['FtpPassivePortMin'], lang('flexshare_ftp_min_port'), $read_only);
 echo field_input('passive_max_port', $share['FtpPassivePortMax'], lang('flexshare_ftp_max_port'), $read_only);
