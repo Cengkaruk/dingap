@@ -373,7 +373,7 @@ class Iface_Manager extends Engine
 
             // Gateway mode
             if (($details['role'] == Role::ROLE_LAN) && (! empty($details['address'])) && (! empty($details['netmask']))) {
-                $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
+                $basenetwork = Network_Utils::get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
             }
 
@@ -381,7 +381,7 @@ class Iface_Manager extends Engine
             if (($details['role'] == Role::ROLE_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask']))
                 && ($mode == Network::MODE_TRUSTEDSTANDALONE) || ($mode == Network::MODE_STANDALONE)
             ) {
-                $basenetwork = $network->get_network_address($details['address'], $details['netmask']);
+                $basenetwork = Network_Utils::get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
             }
         }
