@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Flexshare file controller.
+ * Flexshare File controller.
  *
  * @category   Apps
  * @package    Flexshare
@@ -29,12 +29,22 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\flexshare\Flexshare as Flexshare;
+
+// TODO for Pete:  Why does enabling line below give:
+// Fatal error: Call to a member function load() on a non-object i
+// Is it needed?
+//clearos_load_library('flexshare/Flexshare');
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Flexshare file controller.
+ * Flexshare File controller.
  *
  * @category   Apps
  * @package    Flexshare
@@ -48,12 +58,12 @@
 class File extends ClearOS_Controller
 {
     /**
-     * Flexshare FTP overview.
+     * Flexshare File default controller.
      */
 
     function index($share)
     {
-        $this->_add_edit_view($share, 'view');
+        $this->configure($share);
     }
 
     /**
@@ -64,37 +74,77 @@ class File extends ClearOS_Controller
      * @return view
      */
 
-    function edit($share)
-    {
-        $this->_add_edit_view($share, 'edit');
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Flexshare FTP common edit/view form handler.
-     *
-     * @param string $share     share
-     * @param string $form_type form type
-     *
-     * @return view
-     */
-
-    function _add_edit_view($share, $form_type)
+    function configure($share)
     {
         // Load libraries
         //---------------
 
+        $this->load->library('web/Httpd');
+        $this->load->library('flexshare/Flexshare');
         $this->lang->load('flexshare');
 
-        // Load the view data 
-        //------------------- 
+        $this->form_validation->set_policy('web_access', 'flexshare/Flexshare', 'validate_web_access', TRUE);
+        if ($this->input->post('req_auth'))
+            $this->form_validation->set_policy('realm', 'flexshare/Flexshare', 'validate_web_realm', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->flexshare->set_web_access($share, $this->input->post('web_access'));
+                $this->flexshare->set_web_show_index($share, $this->input->post('show_index'));
+                $this->flexshare->set_web_follow_sym_links($share, $this->input->post('follow_sym_links'));
+                $this->flexshare->set_web_allow_ssi($share, $this->input->post('ssi'));
+                $this->flexshare->set_web_htaccess_override($share, $this->input->post('htaccess'));
+                $this->flexshare->set_web_req_ssl($share, $this->input->post('req_ssl'));
+                $this->flexshare->set_web_override_port(
+                    $share,
+                    $this->input->post('override_port'),
+                    (!$this->input->post('web_port') ? 80 : $this->input->post('web_port'))
+                );
+                $this->flexshare->set_web_req_auth($share, $this->input->post('req_auth'));
+                $this->flexshare->set_web_php($share, $this->input->post('php'));
+                $this->flexshare->set_web_cgi($share, $this->input->post('cgi'));
+                if ($this->input->post('req_auth'))
+                    $this->flexshare->set_web_realm($share, $this->input->post('realm'));
+                // Set enabled after all parameters have been set
+                $this->flexshare->set_web_enabled($share, $this->input->post('enabled'));
+            } catch (Exception $e) {
+                $this->page->set_message(clearos_exception_message($e));
+            }
+        }
+
+        // Load view data
+        //--------------- 
 
         try {
-            $data['form_type'] = $form_type;
-            $data['share'] = $share;
+            $data['share'] = $this->flexshare->get_share($share);
+            $data['accessibility_options'] = $this->flexshare->get_web_access_options();
+            $data['server_name'] = $this->httpd->get_server_name();
+
+            $protocol = ($data['share']['FileReqSsl']) ? "https" : "http";
+
+            if ($data['share']['FileOverridePort'])
+                $data['server_url'] = array( 
+                    $protocol . "://" . $data['server_name'] . ":" . $data['share']['FilePort'] . "/flexshare/$name",
+                    $protocol . "://$name." . $data['server_name'] . ":" . $data['share']['FilePort']
+                ); 
+            else
+                $data['server_url'] = array(
+                    $protocol . "://" . $data['server_name'] . "/flexshare/$name",
+                    $protocol . "://$name." . $data['server_name']
+                ); 
+
+            $data['server_url_options'] = array(
+                0 => 'bob', 1 => 'joe'
+            );
+            // Default Port
+            if ((int)$data['share']['FilePort'] == 0)
+                $data['share']['FilePort'] = Flexshare::DEFAULT_PORT_WEB;
+
+
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

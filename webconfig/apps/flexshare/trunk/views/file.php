@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Flexshare file view/edit view.
+ * Flexshare File edit view.
  *
  * @category   Apps
  * @package    Flexshare
@@ -39,37 +39,33 @@ $this->load->language('flexshare');
 // Form modes
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'edit') {
-    $read_only = FALSE;
-    $form_path = '/flexshare/file/edit';
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/flexshare/'),
-    );
-} else {
-    $read_only = TRUE;
-    $form_path = '/flexshare/file/view';
-    $buttons = array(
-        anchor_cancel('/app/flexshare/'),
-    );
-}
+$read_only = FALSE;
+$form_path = '/flexshare/web/configure/' . $share['Name'];
+$buttons = array(
+    form_submit_update('submit'),
+    anchor_cancel('/app/flexshare/edit/' . $share['Name']),
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open($form_path . '/' . $share);
-echo form_header(lang('flexshare_file'));
+echo form_open($form_path);
+echo form_header(lang('flexshare_web'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_toggle_enable_disable('status', $status, lang('base_status'), $read_only);
-echo field_input('path', $path, lang('flexshare_windows_path'), TRUE);
-echo field_input('comment', $comment, lang('flexshare_comment'), $read_only);
+echo field_view(lang('flexshare_share_name'), $share['Name']);
+echo field_toggle_enable_disable('enabled', $share['FileEnabled'], lang('base_status'), $read_only);
+echo field_view(lang('flexshare_file_server_url'), $server_url);
+echo field_input('comment', $share['FileComment'], lang('flexshare_file_comment'), $read_only);
+echo field_dropdown('file_permissions', $permission_options, $share['FilePermission'], lang('flexshare_file_permissions'), $read_only);
+echo field_toggle_enable_disable('recycle_bin', $share['FileRecycleBin'], lang('flexshare_file_recyle_bin'), $read_only);
+echo field_toggle_enable_disable('audit_log', $share['FileAuditLog'], lang('flexshare_file_audit_log'), $read_only);
 
-echo button_set($buttons);
+echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form close

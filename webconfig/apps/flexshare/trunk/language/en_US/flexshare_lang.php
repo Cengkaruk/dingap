@@ -2,8 +2,8 @@
 
 $lang['flexshare_flexshare'] = 'Flexshare';
 $lang['flexshare_flexshares'] = 'Flexshares';
-$lang['flexshare_app_summary'] = 'Flexshare app summary'; // FIXME 
-$lang['flexshare_app_long_description'] = 'Flexshare app long description...'; // FIXME 
+$lang['flexshare_app_summary'] = 'Flexshare app summary';
+$lang['flexshare_app_long_description'] = 'Flexshares are flexible share resources that allow an administrator to quickly and easily define data sharing, collaboration and access areas via web, file, FTP and/or e-mail (as attachments).';
 $lang['flexshare_name'] = 'Name';
 $lang['flexshare_share_name'] = 'Share Name';
 $lang['flexshare_group'] = 'Group';
@@ -59,4 +59,9 @@ $lang['flexshare_web_server_url'] = 'Server URL';
 $lang['flexshare_web_server_url_alt'] = 'Alternative Server URL';
 $lang['flexshare_access_lan'] = 'LAN Only';
 $lang['flexshare_invalid_accessibility'] = 'Invalid accessibility.';
+$lang['flexshare_file_audit_log'] = 'Audit Log';
+$lang['flexshare_file_server_url'] = 'Server URL';
+$lang['flexshare_file_recyle_bin'] = 'Recycle Bin';
+$lang['flexshare_file_comment'] = 'Comment';
+$lang['flexshare_file_permissions'] = 'Permissions';
 
