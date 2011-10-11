@@ -671,6 +671,7 @@ message_size_limit = 10240000
 luser_relay =
 recipient_delimiter = +
 message_strip_characters = \0
+disable_vrfy_command = yes
 
 # Authentication with SASL
 broken_sasl_auth_clients = yes
