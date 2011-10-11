@@ -588,8 +588,8 @@ border-radius: 9px;
 }
 
 .theme-fieldview {
-	line-height: 18px;
-	height: 25px;
+    line-height: 18px;
+    height: 25px;
 	float: left;
 	width: 460px;
 }
@@ -2047,7 +2047,9 @@ input.theme-form-submit-delete { }
 .theme-fieldset-header {
 	padding-left: 15px;
 	font-weight: bold;
-	padding-top: 8px;
+	padding-top: 4px;
+	padding-bottom: 4px;
+	background: #ededed;
 }
 
 .theme-field-text .left-field-content {
