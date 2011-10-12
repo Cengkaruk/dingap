@@ -75,14 +75,7 @@ class Flexshare extends ClearOS_Controller
 
         try {
             $this->flexshare->initialize();
-        } catch (Validation_Exception $e) {
-            echo '1';
-        } catch (Engine_Exception $e) {
-            echo '2';
-        } catch (User_Not_Found_Exception $e) {
-            echo '3';
         } catch (Exception $e) {
-            echo '4';
             $this->page->set_message(clearos_exception_message($e));
         }
 
