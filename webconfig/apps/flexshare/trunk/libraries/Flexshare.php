@@ -378,7 +378,7 @@ class Flexshare extends Engine
 
         try {
             if (count($file->get_search_results("<Share $name>")) > 0)
-                throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_SHARE_EXISTS, COMMON_ERROR);
+                throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_SHARE_EXISTS, CLEAROS_ERROR);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -430,7 +430,7 @@ class Flexshare extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (empty($name))                                                                               
-            throw new Engine_Exception(lang('flexshare_share') . " - " . lang('base_invalid'), COMMON_ERROR);
+            throw new Engine_Exception(lang('flexshare_share') . " - " . lang('base_invalid'), CLEAROS_ERROR);
 
         // Set directory back to default
         // This will remove any mount points
@@ -542,7 +542,7 @@ class Flexshare extends Engine
             $file = new File(self::FILE_CONFIG);
 
             if (! $file->exists())
-                throw new File_Not_Found_Exception(self::FILE_CONFIG, COMMON_ERROR);
+                throw new File_Not_Found_Exception(self::FILE_CONFIG, CLEAROS_ERROR);
 
             $lines = $file->get_contents_as_array();
         } catch (Exception $e) {
@@ -592,7 +592,7 @@ class Flexshare extends Engine
         try {
             $file = new File(self::FILE_CONFIG);
             if (! $file->exists())
-                throw new Engine_Exception(FILE_LANG_ERRMSG_NOTEXIST . " " . self::FILE_CONFIG, COMMON_ERROR);
+                throw new Engine_Exception(FILE_LANG_ERRMSG_NOTEXIST . " " . self::FILE_CONFIG, CLEAROS_ERROR);
             else
                 $share = $this->get_share($name);
         } catch (Exception $e) {
@@ -788,9 +788,9 @@ class Flexshare extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $options = array(
-            self::POLICY_DONOT_WRITE => lang('flexshare__donot_write'),
-            self::POLICY_OVERWRITE => lang('flexshare__overwrite'),
-            self::POLICY_BACKUP => lang('flexshare__backup')
+            self::POLICY_DONOT_WRITE => lang('flexshare_do_not_write'),
+            self::POLICY_OVERWRITE => lang('flexshare_overwrite'),
+            self::POLICY_BACKUP => lang('flexshare_backup')
         );
 
         return $options;
@@ -892,7 +892,7 @@ class Flexshare extends Engine
         try {
             $sslfile = new File(Httpd::FILE_SSL);
             if ($sslfile->exists())
-                $sslfile->delete_lines("/Include conf.d\/" . self::PREFIX . "443.ssl/");
+                $sslfile->delete_lines("/Include conf.d\/" . self::PREFIX . "443.ssl/i");
         } catch (File_Not_Found_Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         } catch (Exception $e) {
@@ -1005,7 +1005,7 @@ class Flexshare extends Engine
                     // SSL file has to exist now
                     // Add include if req'd
                     try {
-                        $sslfile->lookup_line("/Include conf.d\/" . self::PREFIX . "443.ssl/");
+                        $sslfile->lookup_line("/Include conf.d\/" . self::PREFIX . "443.ssl/i");
                     } catch (File_No_Match_Exception $e) {
                         $sslfile->add_lines("Include conf.d/" . self::PREFIX . "443.ssl\n");
                     } catch (Exception $e) {
@@ -1042,7 +1042,7 @@ class Flexshare extends Engine
                             $cert_filename = $ssl->sign_certificate_request($csr_filename);
                         }
                     } catch (Ssl_Excecution_Exception $e) {
-                        throw new Ssl_Excecution_Exception(FLEXSHARE_LANG_ERRMSG_SSL_CA_MISSING, COMMON_ERROR);
+                        throw new Ssl_Excecution_Exception(FLEXSHARE_LANG_ERRMSG_SSL_CA_MISSING, CLEAROS_ERROR);
                     } catch (Exception $e) {
                         throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
                     }
@@ -1232,7 +1232,7 @@ class Flexshare extends Engine
             }
         }
         if (! $config_ok)
-            throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_CONFIG_VALIDATION_FAILED, COMMON_ERROR);
+            throw new Engine_Exception(lang('flexshare_config_validation_failed'), CLEAROS_ERROR);
 
         // Reload web server
         $httpd->reset();
@@ -1409,7 +1409,7 @@ class Flexshare extends Engine
 
             try {
                 $proftpd_conf = new File(ProFTPd::FILE_CONFIG);
-                $proftpd_conf->lookup_line("/Include \/etc\/proftpd.d\/\*.conf/");
+                $proftpd_conf->lookup_line("/Include \/etc\/proftpd.d\/\*.conf/i");
             } catch (File_No_Match_Exception $e) {
                 // Need this line to include flexshare confs
                 $proftpd_conf->add_lines("Include /etc/proftpd.d/*.conf\n");
@@ -1465,7 +1465,7 @@ class Flexshare extends Engine
                             $cert_filename = $ssl->sign_certificate_request($csr_filename);
                         }
                     } catch (Ssl_Excecution_Exception $e) {
-                        throw new Ssl_Excecution_Exception(FLEXSHARE_LANG_ERRMSG_SSL_CA_MISSING, COMMON_ERROR);
+                        throw new Ssl_Excecution_Exception(FLEXSHARE_LANG_ERRMSG_SSL_CA_MISSING, CLEAROS_ERROR);
                     } catch (Exception $e) {
                         throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
                     }
@@ -1632,7 +1632,7 @@ class Flexshare extends Engine
         }
 
         if (! $config_ok)
-            throw new Engine_Exception(lang('flexshare_config_validation_failed'), COMMON_ERROR);
+            throw new Engine_Exception(lang('flexshare_config_validation_failed'), CLEAROS_ERROR);
 
         // Reload FTP server
         $proftpd->reset();
@@ -1681,9 +1681,6 @@ class Flexshare extends Engine
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
-
-        // We'll uncomments this directive later, if necessary
-        $samba_conf->prepend_lines("/^Include = \\/etc\\/samba\\/" . self::FILE_SMB_VIRTUAL . "/", "#");
 
         $shares = $this->get_share_summary();
         $linestoadd = "";
@@ -1768,17 +1765,9 @@ class Flexshare extends Engine
         try {
             $shell = new Shell();
             $exitcode = $shell->execute(self::CMD_VALIDATE_SMBD, '-s', FALSE);
-        } catch (Exception $e) {
-            // TODO: this requires upgrade cleanup from older Samba versions
-            // $config_ok = FALSE;
-        }
-
-        if ($exitcode != 0) {
+        } catch (Validation_Exception $e) {
             $config_ok = FALSE;
-            $output = $shell->get_output();
-            log_message(self::LOG_TAG, "Invalid Samba configuration!");
-            foreach ($output as $line)
-                log_message(self::LOG_TAG, $line);
+            log_message(self::LOG_TAG, "Invalid Samba config: " . clearos_exception_message($e));
         }
 
         if ($config_ok) {
@@ -1795,7 +1784,7 @@ class Flexshare extends Engine
                 }
 
             }
-            throw new Engine_Exception(FLEXSHARE_LANG_ERRMSG_CONFIG_VALIDATION_FAILED, COMMON_ERROR);
+            throw new Engine_Exception(lang('flexshare_config_validation_failed'), CLEAROS_ERROR);
         }
 
         // A full restart is required to catch file permission changes
@@ -3389,10 +3378,9 @@ class Flexshare extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (! file_exists(COMMON_CORE_DIR . "/api/Postfix.class.php"))
+            if (!is_library_installed('smtp/Postfix'))
                 return;
 
-            include_once COMMON_CORE_DIR . "/api/Postfix.class.php";
             $postfix = new Postfix();
             $email = self::PREFIX . $name . "@" . $postfix->get_domain();
         } catch (Exception $e) {
@@ -3906,7 +3894,7 @@ class Flexshare extends Engine
                     $retval = $shell->execute(self::CMD_UMOUNT, $param, TRUE, $options);
                 } catch (Validation_Exception $e) {
                     if (!preg_match('/.*not mounted.*/', $e->get_message()))
-                        throw new Engine_Exception(lang('flexshare_device_busy'), COMMON_ERROR);
+                        throw new Engine_Exception(lang('flexshare_device_busy'), CLEAROS_ERROR);
                 }
             }
             // Mount new share
@@ -3915,7 +3903,7 @@ class Flexshare extends Engine
                 $retval = $shell->execute(self::CMD_MOUNT, $param, TRUE);
                 if ($retval != 0) {
                     $output = $shell->get_output();
-                    throw new Engine_Exception($shell->get_last_output_line(), COMMON_ERROR);
+                    throw new Engine_Exception($shell->get_last_output_line(), CLEAROS_ERROR);
                 }
             }
             // Check for entry in fstab
@@ -4222,6 +4210,21 @@ class Flexshare extends Engine
         $options = $this->get_web_access_options();
         if (!array_key_exists($accessibility, $options))
             return lang('flexshare_invalid_accessibility');
+    }
+
+    /**
+     * Validation routine for flexshare file comment.
+     *
+     * @param string $comment file comment
+     *
+     * @return mixed void if invalid, errmsg otherwise
+     */
+
+    function validate_file_comment($comment)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        if (FALSE)
+            return lang('flexshare_invalid_file_comment');
     }
 
 }
