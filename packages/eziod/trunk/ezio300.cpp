@@ -169,11 +169,16 @@ ezioButton ezio300::ReadKey(uint32_t timeout) throw(ezioException)
 	while(true) {
 		Write(EZIO_READ);
 		memset(input, 0, sizeof(input));
-		ssize_t len = read(fd_ezio, input, sizeof(input));
+		ssize_t len = ezioRead(fd_ezio, input, sizeof(input));
 		if (len < 0) throw ezioException(EZIOEX_INPUT_ERROR);
-		if (len != 2) throw ezioException(EZIOEX_INPUT_LENGTH);
-		if (input[0] != ezioInPrefix)
+		if (len < 2) throw ezioException(EZIOEX_INPUT_LENGTH);
+		if (input[0] != ezioInPrefix) {
+            if (input[0] == 0x02 && input[1] == 0x05) {
+                // XXX: Newer panel revisions (V000) send us this
+			    continue;
+            }
 			throw ezioException(EZIOEX_INPUT_INVALID);
+		}
 
 		switch (input[1]) {
 		case EZIO_BUTTON_ALT0:
@@ -345,31 +350,31 @@ void ezio300::Write(ezioCommand command, uint8_t param) throw(ezioException)
 	switch(command) {
 	case EZIO_HIDE:
 		s->ct = EZIO_CT_NONE;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	case EZIO_SHOW_BLOCK:
 		s->ct = EZIO_CT_BLOCK;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	case EZIO_SHOW_USCORE:
 		s->ct = EZIO_CT_USCORE;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	case EZIO_BLANK:
 	case EZIO_STOP:
 	case EZIO_READ:
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	}
@@ -380,32 +385,32 @@ void ezio300::Write(ezioCommand command, uint8_t param) throw(ezioException)
 		memset(s->display, ' ', cpl * height);
 	case EZIO_HOME:
 		s->cx = s->cy = 0;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	case EZIO_MOVE_LEFT:
 		if (s->cx == 0) return;
 		s->cx--;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	case EZIO_MOVE_RIGHT:
 		if (s->cx == width - 1) return;
 		s->cx++;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	case EZIO_SCROLL_LEFT:
 	case EZIO_SCROLL_RIGHT:
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
 	}
@@ -414,19 +419,19 @@ void ezio300::Write(ezioCommand command, uint8_t param) throw(ezioException)
 	case EZIO_MOVE_ROW0:
 		if (param > width - 1) return;
 		s->cx = param; s->cy = 0;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		param += (uint8_t)command;
-		if (write(fd_ezio, &param, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &param, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		break;
 	case EZIO_MOVE_ROW1:
 		if (param > width - 1) return;
 		s->cx = param; s->cy = 1;
-		if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		param += (uint8_t)command;
-		if (write(fd_ezio, &param, sizeof(uint8_t)) !=
+		if (ezioWrite(fd_ezio, &param, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		break;
 	default:
@@ -455,13 +460,13 @@ void ezio300::WriteText(const char *text) throw(ezioException)
 
 	// Move cursor to home position
 	uint8_t command = EZIO_HOME;
-	if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+	if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 		sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-	if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+	if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 		sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 
 	// Write display buffer
-	if (write(fd_ezio, s->display, cpl * height) != cpl * height)
+	if (ezioWrite(fd_ezio, s->display, cpl * height) != cpl * height)
 		throw ezioException(EZIOEX_WRITE);
 
 	// Restore previous cursor position
@@ -507,13 +512,13 @@ void ezio300::ClearEOL(void) throw(ezioException)
 
 	// Move cursor to home position
 	uint8_t command = EZIO_HOME;
-	if (write(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
+	if (ezioWrite(fd_ezio, &ezioOutPrefix, sizeof(uint8_t)) !=
 		sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
-	if (write(fd_ezio, &command, sizeof(uint8_t)) !=
+	if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 		sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 
 	// Write display buffer
-	if (write(fd_ezio, s->display, cpl * height) != cpl * height)
+	if (ezioWrite(fd_ezio, s->display, cpl * height) != cpl * height)
 		throw ezioException(EZIOEX_WRITE);
 
 	// Restore previous cursor position
@@ -554,13 +559,13 @@ void ezio300::LoadIcon(ezioIcon icon, const uint8_t *data, uint8_t icon_height)
 	}
 
 	for (uint8_t i = 0; i < icon_height; i++, bank++) {
-		if (write(fd_ezio, &ezioOutPrefix,
+		if (ezioWrite(fd_ezio, &ezioOutPrefix,
 			sizeof(uint8_t)) != sizeof(uint8_t))
 			throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &bank,
+		if (ezioWrite(fd_ezio, &bank,
 			sizeof(uint8_t)) != sizeof(uint8_t))
 			throw ezioException(EZIOEX_WRITE);
-		if (write(fd_ezio, &data[i],
+		if (ezioWrite(fd_ezio, &data[i],
 			sizeof(uint8_t)) != sizeof(uint8_t))
 			throw ezioException(EZIOEX_WRITE);
 	}

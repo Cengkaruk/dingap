@@ -69,6 +69,71 @@ extern "C" {
 #define _EZIOD_SENSORS_CONF		"/etc/sensors.conf"
 #define inaddrr(x)				(*(struct in_addr *) &ifr.x[sizeof(sa.sin_port)])
 
+#ifdef _EZIO_HEAVY_DEBUG
+static void hex_dump(FILE *fh, const void *data, uint32_t length)
+{
+	uint8_t c, *p = (uint8_t *)data;
+	char bytestr[4] = { 0 };
+	char addrstr[10] = { 0 };
+	char hexstr[16 * 3 + 5] = { 0 };
+	char charstr[16 * 1 + 5] = { 0 };
+
+	for (uint32_t n = 1; n <= length; n++) {
+		if (n % 16 == 1) {
+			// Store address for this line
+			snprintf(addrstr, sizeof(addrstr),
+				"%.5x", (uint32_t)(p - (uint8_t *)data));
+		}
+            
+		c = *p;
+		if (isprint(c) == 0) c = '.';
+
+		// Store hex str (for left side)
+		snprintf(bytestr, sizeof(bytestr), "%02X ", *p);
+		strncat(hexstr, bytestr, sizeof(hexstr) - strlen(hexstr) - 1);
+
+		// Store char str (for right side)
+		snprintf(bytestr, sizeof(bytestr), "%c", c);
+		strncat(charstr, bytestr, sizeof(charstr) - strlen(charstr) - 1);
+
+		if(n % 16 == 0) { 
+			// Line completed
+			fprintf(fh, "%5.5s:  %-49.49s %s\n", addrstr, hexstr, charstr);
+			hexstr[0] = 0;
+			charstr[0] = 0;
+		} else if(n % 8 == 0) {
+			// Half line: add whitespaces
+			strncat(hexstr, " ", sizeof(hexstr) - strlen(hexstr) -1);
+		}
+		// Next byte...
+		p++;
+	}
+
+	if (strlen(hexstr) > 0) {
+		// Print rest of buffer if not empty
+		fprintf(fh, "%5.5s:  %-49.49s %s\n", addrstr, hexstr, charstr);
+	}
+}
+
+ssize_t ezioRead(int fd, void *buf, size_t count)
+{
+	fprintf(stderr, "%2d < %3d = ", fd, count);
+	ssize_t bytes = read(fd, buf, count);
+	fprintf(stderr, "%ld\n", bytes);
+	if (bytes > 0) hex_dump(stderr, buf, bytes);
+	return bytes;
+}
+
+ssize_t ezioWrite(int fd, const void *buf, size_t count)
+{
+	fprintf(stderr, "%2d > %3d = ", fd, count);
+	ssize_t bytes = write(fd, buf, count);
+	fprintf(stderr, "%ld\n", bytes);
+	if (bytes > 0) hex_dump(stderr, buf, bytes);
+	return bytes;
+}
+#endif
+
 extern int errno;
 static ezio300 *ezio;
 static lua_State *lua;

@@ -119,5 +119,13 @@ enum ezioCursorType {
 	EZIO_CT_BLOCK,
 };
 
+#ifdef _EZIO_HEAVY_DEBUG
+ssize_t ezioRead(int fd, void *buf, size_t count);
+ssize_t ezioWrite(int fd, const void *buf, size_t count);
+#else
+#define ezioRead(fd, buf, count)	read(fd, buf, count)
+#define ezioWrite(fd, buf, count)	write(fd, buf, count)
+#endif // _EZIO_HEAVY_DEBUG
+
 #endif // _EZIO_H
 // vi: ts=4
