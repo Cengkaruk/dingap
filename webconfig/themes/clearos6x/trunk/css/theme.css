@@ -936,7 +936,8 @@ color: white;
 
 .ui-toolbar { padding: 5px 2px; }
 
-.datatables_info { margin-left: 0; }
+.datatables_info { margin-left: 0px; }
+.datatables_length { margin-left: 1px; }
 
 /* ========================================================================= */
 /* T H E M E  */
