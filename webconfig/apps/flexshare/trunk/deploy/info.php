@@ -54,4 +54,18 @@ $app['core_file_manifest'] = array(
         'owner' => 'root',
         'group' => 'root',
     ),
+
+   'importflexemail' => array(
+        'target' => '/usr/sbin/importflexemail',
+        'mode' => '0755',
+        'owner' => 'root',
+        'group' => 'root',
+    ),
+
+   'app-flexshare.cron' => array(
+        'target' => '/etc/cron.d/app-flexshare',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+    )
 );

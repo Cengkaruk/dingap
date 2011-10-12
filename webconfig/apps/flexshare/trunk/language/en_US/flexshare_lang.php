@@ -82,3 +82,4 @@ $lang['flexshare_save_auto'] = 'Automatically poll at 5 minute intervals';
 $lang['flexshare_notify_on_receive'] = 'Notify on Receive (e-mail)';
 $lang['flexshare_email_acl'] = 'E-mail ACL';
 $lang['flexshare_email_require_sig'] = 'Require Signature';
+$lang['flexshare_email_acl_address_is_invalid'] = 'Invalid email - one address per line.';

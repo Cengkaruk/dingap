@@ -116,6 +116,24 @@ function web_check_req_auth() {
     }
 }
 
+function email_check_restrict_access() {
+    if ($('#restrict_access').val() == 0) {
+        $('#acl').attr('disabled', true);
+        $('#acl').attr('background', '#ffffff');
+    } else {
+        $('#acl').attr('disabled', false);
+        $('#acl').attr('background', '#cccccc');
+    }
+}
+
+function email_check_save() {
+    if ($('#save').val() == 1) {
+        $('#notify').attr('disabled', true);
+    } else {
+        $('#notify').attr('disabled', false);
+    }
+}
+
 $(document).ready(function() {
     // FTP
     if ($(location).attr('href').match('.*/ftp/.*')) {
@@ -157,6 +175,16 @@ $(document).ready(function() {
         web_check_req_auth();
         $('#req_auth').change(function(event) {
             web_check_req_auth();
+        });
+    } else if ($(location).attr('href').match('.*/email/.*')) {
+        $('#acl').attr('style', 'width: 250');
+        email_check_restrict_access();
+        $('#restrict_access').change(function(event) {
+            email_check_restrict_access();
+        });
+        email_check_save();
+        $('#save').change(function(event) {
+            email_check_save();
         });
     }
 

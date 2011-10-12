@@ -92,7 +92,7 @@ class File extends ClearOS_Controller
         if (($this->input->post('submit') && $form_ok)) {
             try {
                 $this->flexshare->set_file_permission($share, $this->input->post('file_permission'));
-                $this->flexshare->set_file_recycle_bin($share, $this->input->post('recyle_bin'));
+                $this->flexshare->set_file_recycle_bin($share, $this->input->post('recycle_bin'));
                 $this->flexshare->set_file_audit_log($share, $this->input->post('audit_log'));
                 $this->flexshare->set_file_comment($share, $this->input->post('comment'));
                 $this->flexshare->set_file_enabled($share, $this->input->post('enabled'));

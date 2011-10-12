@@ -57,36 +57,15 @@ echo form_header(lang('flexshare_email'));
 // Form fields
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
-		$flexshare->SetEmailDir($name, $_POST['email_dir']);
-		$flexshare->SetEmailPolicy($name, $_POST['email_policy']);
-		$flexshare->SetEmailSave($name, $_POST['email_save']);
-		$flexshare->SetEmailNotify($name, $_POST['email_notify']);
-		$flexshare->SetEmailRestrictAccess($name, $_POST['email_restrict_access']);
-		if ($_POST['email_restrict_access']) {
-			$acl = array();
-			if (is_array($_POST['email_acl']))
-				$acl = array_keys($_POST['email_acl']);
-
-			if ($_POST['email_add_acl'])
-				$acl = array_merge($acl, explode("\n", $_POST['email_add_acl']));
-
-			$flexshare->SetEmailAcl($name, $acl);
-			unset($_POST['email_add_acl']);
-		}
-
-		$flexshare->SetEmailReqSignature($name, $_POST['email_req_signature']);
-		$flexshare->SetEmailEnabled($name, $_POST['email_enabled']);
-*/
 echo field_view(lang('flexshare_share_name'), $share['Name']);
 echo field_toggle_enable_disable('enabled', $share['EmailEnabled'], lang('base_status'), $read_only);
 echo field_view(lang('flexshare_email_address'), $email_address);
 echo field_dropdown('dir', $dir_options, $share['EmailDir'], lang('flexshare_email_dir'), $read_only);
 echo field_dropdown('policy', $policy_options, $share['EmailPolicy'], lang('flexshare_email_policy'), $read_only);
 echo field_dropdown('save', $save_options, $share['EmailSave'], lang('flexshare_email_save'), $read_only);
-echo field_input('notify_email', $share['EmailNotify'], lang('flexshare_notify_on_receive'), $read_only);
+echo field_input('notify', $share['EmailNotify'], lang('flexshare_notify_on_receive'), $read_only);
 echo field_toggle_enable_disable('restrict_access', $share['EmailRestrictAccess'], lang('flexshare_email_restrict_access'), $read_only);
-echo field_textarea('acl', $share['EmailAcl'], lang('flexshare_email_acl'), $read_only);
+echo field_textarea('acl', preg_replace("/ /", "\n", $share['EmailAcl']), lang('flexshare_email_acl'), $read_only);
 echo field_toggle_enable_disable('req_signature', $share['EmailReqSignature'], lang('flexshare_email_require_sig'), $read_only);
 
 echo field_button_set($buttons);

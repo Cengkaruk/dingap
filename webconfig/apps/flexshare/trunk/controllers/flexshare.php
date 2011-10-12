@@ -70,14 +70,29 @@ class Flexshare extends ClearOS_Controller
         $this->load->library('flexshare/Flexshare');
         $this->lang->load('flexshare');
 
+        // Initialize
+        //-----------
+
+        try {
+            $this->flexshare->initialize();
+        } catch (Validation_Exception $e) {
+            echo '1';
+        } catch (Engine_Exception $e) {
+            echo '2';
+        } catch (User_Not_Found_Exception $e) {
+            echo '3';
+        } catch (Exception $e) {
+            echo '4';
+            $this->page->set_message(clearos_exception_message($e));
+        }
+
         // Load view data
         //---------------
 
         try {
             $data['flexshares'] = $this->flexshare->get_share_summary();
         } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
+            $this->page->set_message(clearos_exception_message($e));
         }
  
         // Load views

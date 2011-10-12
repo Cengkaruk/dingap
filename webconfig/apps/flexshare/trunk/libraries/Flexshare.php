@@ -85,6 +85,7 @@ use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\samba\Samba as Samba;
+use \clearos\apps\samba\Smbd as Smbd;
 use \clearos\apps\smtp\Postfix as Postfix;
 use \clearos\apps\web\Httpd as Httpd;
 
@@ -109,6 +110,7 @@ clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('samba/Samba');
+clearos_load_library('samba/Smbd');
 clearos_load_library('smtp/Postfix');
 clearos_load_library('web/Httpd');
 
@@ -1649,10 +1651,8 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('samba/Samba'))
+        if (!is_library_installed('samba/Smbd'))
             return;
-
-        $samba = new Samba();
 
         // Create a unique file identifier
         $backup_key = time();
@@ -1789,9 +1789,10 @@ class Flexshare extends Engine
 
         // A full restart is required to catch file permission changes
         try {
-            $isrunning = $samba->get_running_state();
+            $smbd = new Smbd();
+            $isrunning = $smbd->get_running_state();
             if ($isrunning)
-                $samba->restart();
+                $smbd->restart();
         } catch (Exception $e) {
             // Not fatal
         }
@@ -1847,6 +1848,7 @@ class Flexshare extends Engine
      * Initializes flexshare environment.
      *
      * @return void
+     * @throws Validation_Exception, Engine_Exception, User_Not_Found_Exception
      */
 
     function initialize()
@@ -1861,14 +1863,14 @@ class Flexshare extends Engine
             if ($file->exists())
                 return;
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         try {
             // Generate random password
             $password = LDAP_Utilities::generate_password();
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         // Check to see if flexshare user exists
@@ -1909,10 +1911,12 @@ class Flexshare extends Engine
                 if (! $currentinfo['ftpFlag'])
                     $userinfo['ftpFlag'] = TRUE;
 
-                $user->Update($userinfo);
+                $user->update($userinfo);
             }
+//        } catch (Engine_Exception $e) {
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception("TODO - LDAP Initialization", CLEAROS_ERROR);
+            //throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
 
         // Set the password in flexshare
@@ -1922,7 +1926,7 @@ class Flexshare extends Engine
             $this->set_password($password, $password);
             $file->create("root", "root", "0644");
         } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
@@ -3219,6 +3223,11 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Validation
+
+        foreach ($acl as $email)
+            Validation_Exception::is_valid($this->validate_email_address($email));
+
         $this->set_parameter($name, 'EmailAcl', implode(' ', $acl));
     }
 
@@ -3400,19 +3409,14 @@ class Flexshare extends Engine
      * @throws Engine_Exception
      */
 
-    function check_messages($view, $action = NULL)
+    function check_messages($view = FALSE, $action = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! file_exists(COMMON_CORE_DIR . "/api/Postfix.class.php")) {
-            // Don't log this...a script using this function is called every 5 minutes
+        if (!is_library_installed('smtp/Postfix'))
             return;
-        }
-
-        if (! file_exists(COMMON_CORE_DIR . "/api/Cyrus.class.php")) {
-            // Don't log this...a script using this function is called every 5 minutes
+        if (!is_library_installed('imap/Cyrus'))
             return;
-        }
 
         $req_check = FALSE;
 
@@ -3453,7 +3457,9 @@ class Flexshare extends Engine
             )
                 $req_check = TRUE;
         }
+echo 'fuck' . "\n";
 
+echo 'fuck';
         // May not need to fetch mail
         if (! $req_check)
             return $msg;
@@ -3485,9 +3491,12 @@ class Flexshare extends Engine
         $mymessage = array();
         $files = array();
         $mailing_list = array();
-        include_once COMMON_CORE_DIR . "/api/Postfix.class.php";
-        include_once COMMON_CORE_DIR . "/api/Cyrus.class.php";
+        if (!is_library_installed('smtp/Postfix'))
+            return;
+        if (!is_library_installed('imap/Cyrus'))
+            return;
 
+echo 'shit';
         // Get password for mailserver authentication
         $passwd = $this->get_parameter(NULL, 'FlexsharePW');
 
@@ -3640,7 +3649,7 @@ class Flexshare extends Engine
                        'From' => $mymessage[$index]['From'],
                        'Reply-To' => $mymessage[$index]['Reply-To'],
                        'Date' => $mymessage[$index]['Date'],
-                       'Size' => $this->GetFormattedBytes((int)$mymessage[$index]['Size'], 1)
+                       'Size' => $this->get_formatted_bytes((int)$mymessage[$index]['Size'], 1)
                     );
                     foreach ($parts as $pid => $part) {
                         $regex = "/^attachment$|^inline$/";
@@ -3649,7 +3658,7 @@ class Flexshare extends Engine
                             if ($part['type'] == "application/x-pkcs7-signature")
                                 continue;
                             $summary['Files'][] = $part['name'] .
-                                " (" . $this->GetFormattedBytes((int)$part['size'], 1) . ")";
+                                " (" . $this->get_formatted_bytes((int)$part['size'], 1) . ")";
                         }
                     }
                     $mailing_list[$shares[$flex_address]['notify']][] = $summary;
@@ -4062,7 +4071,7 @@ class Flexshare extends Engine
      *
      * @param boolean $status FTP flexshare status
      *
-     * @return mixed void if name is valid, errmsg otherwise
+     * @return mixed void if status is valid, errmsg otherwise
      */
 
     function validate_ftp_enabled($status)
@@ -4076,7 +4085,7 @@ class Flexshare extends Engine
      * @param int $port_min Port start
      * @param int $port_max Port end
      *
-     * @return mixed void if web realm is valid, errmsg otherwise
+     * @return mixed void if ports are valid, errmsg otherwise
      */
 
     function validate_passive_port_range($port_min, $port_max)
@@ -4227,4 +4236,45 @@ class Flexshare extends Engine
             return lang('flexshare_invalid_file_comment');
     }
 
+    /**
+     * Validation routine for flexshare email.
+     *
+     * @param boolean $status Email dropbox flexshare status
+     *
+     * @return mixed void if status is valid, errmsg otherwise
+     */
+
+    function validate_email_enabled($status)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
+     * Validation routine for flexshare email address.
+     *
+     * @param string $address Email address
+     *
+     * @return mixed void if address is valid, errmsg otherwise
+     */
+
+    function validate_email_address($address)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        if (! preg_match("/^([a-z0-9_\-\.\$]+)@/", $address))
+            return lang('flexshare_email_acl_address_is_invalid');
+    }
+
+    /**
+     * Validation routine for flexshare notify email address.
+     *
+     * @param string $address Email address
+     *
+     * @return mixed void if address is valid, errmsg otherwise
+     */
+
+    function validate_email_notify($address)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        return $this->validate_email_address($address);
+    }
 }
