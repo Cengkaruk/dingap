@@ -938,6 +938,7 @@ color: white;
 
 .datatables_info { margin-left: 0px; }
 .datatables_length { margin-left: 1px; }
+.datatables_paginate { position: relative; }
 
 /* ========================================================================= */
 /* T H E M E  */
