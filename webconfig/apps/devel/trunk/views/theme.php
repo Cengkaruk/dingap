@@ -247,6 +247,8 @@ echo field_dropdown('restaurant', $restaurants, 'Burger Master', 'Restaurant');
 echo field_checkbox('checkbox1', '1', 'Hamburger');
 echo field_checkbox('checkbox2', '0', 'Juice');
 echo field_checkbox('checkbox3', '0', 'French Fries');
+echo field_textarea('feedback', '', 'Feedback');
+echo field_dropdown('dropdown', array(0 => 'Coke', 1 => 'Pepsi'), 0, 'Drink');
 echo fieldset_footer();
 
 echo form_footer();
