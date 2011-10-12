@@ -11,6 +11,8 @@ Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
 Requires: lm_sensors kmod-network-bypass kernel >= 2.6.18-164.11.1.v5
+Requires(post): /sbin/chkconfig
+Requires(preun): /sbin/chkconfig
 BuildRequires: lm_sensors-devel
 Summary: EZIO-300 LCD panel server
 %description
@@ -23,7 +25,7 @@ EZIOd is a daemon which controls the EZIO-300 LCD panel and buttons.
 %build
 
 %if %{debug}
-CFLAGS="-g"
+CFLAGS="-g -O2 -pipe"
 %else
 CFLAGS="-O2 -s -pipe -mtune=%{_target_cpu}"
 %endif
@@ -51,29 +53,21 @@ cp scripts/*.php $RPM_BUILD_ROOT/usr/share/eziod/
 
 # Post install
 %post
-if [ "$1" = "1" ]; then
-	/sbin/chkconfig --add eziod
-	/sbin/modprobe network-bypass board=CAR3000 >/dev/null 2>&1
-	/sbin/modprobe w83627ehf >/dev/null 2>&1
-fi
-
-# FIXME - Remove this workaround for the 6.0 releases
-echo '#!/bin/sh' > /etc/cron.hourly/eziod
-echo '[ ! -e /etc/rc1.d/K60eziod ] && /sbin/chkconfig --add eziod' >> /etc/cron.hourly/eziod
-echo 'rm -f /etc/cron.hourly/eziod' >> /etc/cron.hourly/eziod
-chmod 755 /etc/cron.hourly/eziod
+/sbin/chkconfig --add eziod 2>&1 || :
+/sbin/modprobe network-bypass board=CAR3000 >/dev/null 2>&1 || :
+/sbin/modprobe w83627ehf >/dev/null 2>&1 || :
 
 # Pre un-install
 %preun
-if [ $1 = 0 ]; then
-	/sbin/service eziod stop >/dev/null 2>&1
-	/sbin/chkconfig --del eziod
+if [ "$1" = 0 ]; then
+    /sbin/chkconfig --del eziod
 fi
 
 # Post un-install
 %postun
-if [ "$1" -ge "1" ]; then
-	/sbin/service eziod condrestart >/dev/null 2>&1
+if [ -f /var/lock/subsys/eziod ]; then
+    killall -TERM eziod 2>&1 || :
+    sleep 2
 fi
 
 # Clean-up
