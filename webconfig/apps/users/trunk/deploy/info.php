@@ -34,3 +34,11 @@ $app['core_requires'] = array(
     'app-accounts-core',
     'system-users-driver', 
 );
+
+
+$app['core_file_manifest'] = array(
+    'userpasswd' => array(
+        'target' => '/usr/sbin/userpasswd',
+        'mode' => '0755',
+    ),
+);

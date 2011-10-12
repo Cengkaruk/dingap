@@ -38,6 +38,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/users
 cp -r * %{buildroot}/usr/clearos/apps/users/
 
+install -D -m 0755 packaging/userpasswd %{buildroot}/usr/sbin/userpasswd
 
 %post
 logger -p local6.notice -t installer 'app-users - installing'
@@ -80,3 +81,4 @@ exit 0
 /usr/clearos/apps/users/deploy
 /usr/clearos/apps/users/language
 /usr/clearos/apps/users/libraries
+/usr/sbin/userpasswd

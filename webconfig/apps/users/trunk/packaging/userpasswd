@@ -1,0 +1,151 @@
+#!/usr/clearos/webconfig/usr/bin/php
+<?php
+
+/**
+ * Command line password change tool.
+ *
+ * @category   Apps
+ * @package    Users
+ * @subpackage CLI
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/users/
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Factories
+//----------
+
+use \clearos\apps\users\User_Factory as User;
+
+clearos_load_library('users/User_Factory');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+
+clearos_load_library('base/Engine_Exception');
+
+///////////////////////////////////////////////////////////////////////////////
+// Function to read a password from standard in without echoing password
+///////////////////////////////////////////////////////////////////////////////
+
+function ttyecho($on)
+{
+	global $ttyecho;
+
+	if ($on) {
+		if (isset($ttyecho))
+			exec("stty $ttyecho");
+	} else {
+		$ttyecho = exec("stty -g");
+		exec("stty -echo");
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// M A I N
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Usage
+///////////////////////////////////////////////////////////////////////////////
+
+if (!isset($argv[1])) {
+	echo "usage: " . $argv[0] . " <username>\n";
+	exit(1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Check to see if user exists
+///////////////////////////////////////////////////////////////////////////////
+
+$username = $argv[1];
+
+try {
+	$user = User::create($username);
+	$exists = $user->exists();
+} catch (Engine_Exception $e) {
+	echo "userpasswd: failed " . $e->get_message() . "\n";
+	exit(1);
+}
+
+if (! $exists) {
+	echo "userpasswd: Unknown user name '$username'\n";
+	clearos_log("userpasswd", "password change failed for non-existent user $username");
+	exit(252);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Grab password from standard in
+///////////////////////////////////////////////////////////////////////////////
+
+ttyecho(false); // Disable echo to terminal
+
+echo "Changing password for user $username\nNew password: ";
+$password = trim(fgets(STDIN));
+
+echo "\nRetype new password: ";
+$verify = trim(fgets(STDIN));
+
+echo "\n";
+
+ttyecho(true); // Re-enable echo to terminal
+
+if (empty($verify) || empty($password)) {
+	echo "userpasswd: password/verify must not be blank\n";
+	clearos_log("userpasswd", "password change failed for $username: blank password");
+	exit(1);
+}
+
+if ($verify != $password) {
+	clearos_log("userpasswd", "password change failed for $username: mismatched password");
+	echo "userpasswd: passwords do not match\n";
+	exit(1);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Attempt to set the password
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+	$user = User::create($username);
+	$user->reset_password($password, $password, "root", false);
+
+	echo "userpasswd: all authentication tokens updated successfully.\n";
+	clearos_log("userpasswd", "password change succeeded for $username");
+	exit(0);
+} catch (Engine_Exception $e) {
+	echo "password change failed: " . $e->get_message() . "\n";
+	clearos_log("userpasswd", "password change failed for $username: " . $e->get_message());
+	exit(1);
+}
