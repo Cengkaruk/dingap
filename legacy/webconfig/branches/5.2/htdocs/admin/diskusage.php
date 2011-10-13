@@ -23,6 +23,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once("../../gui/Webconfig.inc.php");
+require_once("../../api/Philesight.class.php");
 require_once(GlobalGetLanguageTemplate(__FILE__));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,14 +33,43 @@ require_once(GlobalGetLanguageTemplate(__FILE__));
 ///////////////////////////////////////////////////////////////////////////////
 
 WebAuthenticate();
+
+// Initialize common variables
+$cmd = isset($_REQUEST['cmd']) ? $_REQUEST['cmd'] : '';
+$path = isset($_REQUEST['path']) ? $_REQUEST['path'] : '/';
+
+
+$ps = new Philesight();
+
+// Handle image request
+//---------------------
+
+if ($cmd === 'img') {
+	$png = $ps->GetImage($path);
+	header("Content-type: image/png");
+	echo $png;
+	return;
+}
+
+// Handle image map query
+//-----------------------
+
+$matches = array();
+
+if (preg_match('/\?(\d+),(\d+)/', $_SERVER['QUERY_STRING'], $matches))
+	$path = $ps->GetPath($path, $matches[1], $matches[2]);
+
+// Show warning if no data is available
+//-------------------------------------
+
 WebHeader(WEB_LANG_PAGE_TITLE);
 WebDialogIntro(WEB_LANG_PAGE_TITLE, "/images/icon-diskusage.png", WEB_LANG_PAGE_INTRO);
 
-// TODO: implement an API call instead of file_exists test. 
-if (file_exists("/usr/webconfig/tmp/ps.db"))
-	DisplayUsage();
-else
+if (! $ps->Initialized()) {
 	WebDialogWarning(WEB_LANG_DISK_USAGE_NOT_YET_AVAILABLE);
+} else {
+	DisplayUsage($path);
+}
 
 WebFooter();
 
@@ -53,11 +83,11 @@ WebFooter();
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-function DisplayUsage()
+function DisplayUsage($path)
 {
-	echo "<iframe style='border:none;' src='https://" . $_SERVER['HTTP_HOST'] . "/cgi/philesight.cgi' width='100%' height='800'>";
-	echo "<p>" . WEB_LANG_IFRAME_NOT_SUPPORTED . "</p>";
-	echo "</iframe>";
+	echo "<p><a href='/admin/diskusage.php?path=$path&amp;'>";
+	echo "<img width='650' height='650' src='/admin/diskusage.php?cmd=img&amp;path=$path' ismap='ismap' alt='-' />";
+	echo "</a></p>";
 }
 
 ?>
