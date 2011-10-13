@@ -178,20 +178,6 @@ class PPTPd extends Daemon
     }
 
     /**
-     * Returns the domain.
-     *
-     * @return string domain
-     * @throws Engine_Exception
-     */
-
-    public function get_domain()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->_get_options_parameter('domain');
-    }
-
-    /**
      * Returns interface statistics.
      *
      * @return array interface statistics
@@ -279,24 +265,6 @@ class PPTPd extends Daemon
         Validation_Exception::is_valid($this->validate_dns_server($server));
 
         $this->_set_options_parameter('ms-dns', $server);
-    }
-
-    /**
-     * Sets the domain.
-     *
-     * @param string $domain domain
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function set_domain($domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_domain($domain));
-
-        $this->_set_options_parameter('domain', $domain);
     }
 
     /**
@@ -404,22 +372,6 @@ class PPTPd extends Daemon
 
         if (($server !== '') && (! Network_Utils::is_valid_ip($server)))
             return lang('pptpd_dns_server_invalid');
-    }
-
-    /**
-     * Validation routine for Internet domain.
-     *
-     * @param string $domain Internet domain name
-     *
-     * @return string error message if domain is invalid
-     */
-
-    public function validate_domain($domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (($domain !== '') && (! Network_Utils::is_valid_domain($domain)))
-            return lang('pptpd_internet_domain_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

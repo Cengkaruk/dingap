@@ -49,7 +49,6 @@ echo form_header(lang('base_settings'));
 
 echo field_input('local_ip', $local_ip, lang('pptpd_local_ip_range'));
 echo field_input('remote_ip', $remote_ip, lang('pptpd_remote_ip_range'));
-echo field_input('domain', $domain, lang('pptpd_internet_domain'));
 echo field_input('dns', $dns, lang('pptpd_dns_server'));
 echo field_input('wins', $wins, lang('pptpd_wins_server'));
 
