@@ -450,6 +450,28 @@ class User extends Engine
 	}
 
 	/**
+	 * Gets the password for the user.
+	 *
+	 * @param string $attribute LDAP attribute
+	 * @return string The password
+	 * @throws EngineException
+	 */
+
+	function GetPassword($attribute)
+	{
+		if (COMMON_DEBUG_MODE)
+			parent::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		if ($this->ldaph == null)
+			$this->_GetLdapHandle();
+
+		$attrs = $this->_GetUserInfo();
+
+		return $attrs[$attribute][0];
+	}
+
+
+	/**
 	 * Deletes a user from the system.
 	 *
 	 * @return void
