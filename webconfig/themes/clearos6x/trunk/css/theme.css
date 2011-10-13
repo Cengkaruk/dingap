@@ -236,7 +236,7 @@ input.theme-form-important, x:-moz-any-link, x:default {
 
 td div.theme-button-set {
   margin-left: 15px;
-  margin-bottom: 5px;
+  margin-top: 5px;
 }
 
 .even td .theme-button-set {
@@ -1655,6 +1655,7 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   padding-left: 15px;
   margin: auto;
   display: inline-block;
+  clear: both;
 }
 
 .theme-hidden {
