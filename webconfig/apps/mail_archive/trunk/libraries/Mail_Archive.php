@@ -1123,7 +1123,7 @@ class Mail_Archive extends Engine
             
         // If we can connect, bootstrap is already complete
         try {
-            $this->_Connect();
+            $this->_connect();
             return;
         } catch (Exception $e) {
         }
@@ -1344,13 +1344,13 @@ class Mail_Archive extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
             
-        $stats = Array("size" => 0);
+        $stats = Array('size' => 0);
 
         if (! $this->is_loaded)
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         // Select the db name
         mysql_select_db($db_name);
@@ -1532,7 +1532,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         // Select the db name
         mysql_select_db($db_name);
@@ -1648,7 +1648,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         // Select the db name
         mysql_select_db($db_name);
@@ -1732,7 +1732,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         if (!isset($offset) || !$offset)
             $offset = 0;
@@ -1893,7 +1893,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->cConnect();
 
         // Select the db name
         mysql_select_db($db_name);
@@ -1971,7 +1971,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         mysql_select_db(self::DB_NAME_CURRENT);
 
@@ -2039,7 +2039,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         mysql_select_db(self::DB_NAME_CURRENT);
 
@@ -2176,7 +2176,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->_Connect();
+            $this->_connect();
 
         // Select the db name
         mysql_select_db($db_name);
@@ -2237,7 +2237,7 @@ class Mail_Archive extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_NULL($this->db))
+        if (is_null($this->db))
             $this->_load_db_config();
 
         $this->link = mysql_connect(

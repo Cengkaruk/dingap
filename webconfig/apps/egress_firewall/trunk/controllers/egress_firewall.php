@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Mail Archive current controller.
+ * Egress firewall controller.
  *
  * @category   Apps
- * @package    Mail_Archive
+ * @package    Egress_Firewall
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/mail_archive/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/egress_firewall/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,49 +30,41 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// D E P E N D E N C I E S
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Current Archive controller.
+ * Egress firewall controller.
  *
  * @category   Apps
- * @package    Mail_Archive
+ * @package    Egress_Firewall
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/mail_archive/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/egress_firewall/
  */
 
-class Current_Archive extends ClearOS_Controller
+class Egress_Firewall extends ClearOS_Controller
 {
-
     /**
-     * Mail Archive default controller
+     * Firewall server overview.
      *
      * @return view
      */
 
     function index()
     {
-        // Load dependencies
-        //------------------
+        // Load libraries
+        //---------------
 
-        $this->load->library('mail_archive/Mail_Archive');
-        $this->lang->load('mail_archive');
+        $this->lang->load('egress_firewall');
 
-        try {
-            $data['stats' ] = $this->mail_archive->get_current_stats();
-        } catch (Exception $e) {
-            $this->page->set_message(clearos_exception_message($e));
-        }
-print_r($data);
-        $this->page->view_form('mail_archive/current/stats', $data, lang('mail_archive_current_stats'));
+        // Load views
+        //-----------
+
+        $views = array('egress_firewall/port', 'egress_firewall/domain');
+
+        $this->page->view_forms($views, lang('egress_firewall_app_name'));
     }
-
 }
