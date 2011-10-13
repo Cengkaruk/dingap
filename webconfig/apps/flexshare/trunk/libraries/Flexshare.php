@@ -119,6 +119,7 @@ clearos_load_library('web/Httpd');
 
 //use \clearos\apps\\Duplicate_Exception as Duplicate_Exception;
 //use \clearos\apps\\Ssl_Excecution_Exception as Ssl_Excecution_Exception;
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
@@ -1913,7 +1914,6 @@ class Flexshare extends Engine
 
                 $user->update($userinfo);
             }
-//        } catch (Engine_Exception $e) {
         } catch (Exception $e) {
             throw new Engine_Exception("TODO - LDAP Initialization", CLEAROS_ERROR);
             //throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
