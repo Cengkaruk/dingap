@@ -65,7 +65,6 @@ echo field_button_set(
 echo form_footer();
 echo form_close();
 
-// FIXME: Aaron
 echo "<div id='result_box'>";
 echo infobox_highlight(lang('base_status'), lang('date_synchronization_changed_time_by_x_seconds:') . ' ' .  "<span id='result'></span>");
 echo "</div>";
