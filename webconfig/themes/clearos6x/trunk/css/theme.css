@@ -486,7 +486,6 @@ td.left-field-content {
 	padding-left: 10px;
 }
 
-
 .input-box input {
 	width: 200px;
 	margin-right: 10px;
@@ -1334,7 +1333,7 @@ td div.theme-progress-bar {
 /* Info Boxes */
 /* ------------------------------------------------------------------------- */
 
-.info-regular {border: 1px solid #a5a4a4; background-color: #fdfdfd; border-radius: 0px; -moz-border-radius: 0px; -webkit-border-radius: 0px; padding-left: 15px;}
+.info-regular {border: 1px solid #a5a4a4; background-color: #fdfdfd; border-radius: 0px; -moz-border-radius: 0px; -webkit-border-radius: 0px; padding-left: 15px; clear: both;}
 
 .info-regular h2 {margin-bottom: 10px;}
 
