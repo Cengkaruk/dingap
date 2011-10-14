@@ -34,12 +34,19 @@ require_once(GlobalGetLanguageTemplate(__FILE__));
 
 WebAuthenticate();
 
+$ps = new Philesight();
+
 // Initialize common variables
 $cmd = isset($_REQUEST['cmd']) ? $_REQUEST['cmd'] : '';
 $path = isset($_REQUEST['path']) ? $_REQUEST['path'] : '/';
 
+// Sanity check path
+//------------------
 
-$ps = new Philesight();
+if (! $ps->IsValidPath($path)) {
+	echo "Bad path";
+	return;
+}
 
 // Handle image request
 //---------------------
