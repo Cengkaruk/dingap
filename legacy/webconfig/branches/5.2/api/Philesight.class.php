@@ -90,8 +90,10 @@ class Philesight extends Engine
 		if (! $this->IsValidPath($path))
 			throw new ValidationException('Invalid path');
 
+		$command = escapeshellcmd(self::PHILESIGHT_COMMAND . ' --action image --path ' . $path);
+
 		ob_start();
-		passthru(self::PHILESIGHT_COMMAND . ' --action image --path ' . $path);
+		passthru($command);
 		$png = ob_get_clean();
 
 		return $png;
@@ -122,8 +124,9 @@ class Philesight extends Engine
 		if (! $this->IsValidCoordinate($ycoord))
 			throw new ValidationException('Invalid coordinate');
 
+		$command = escapeshellcmd(self::PHILESIGHT_COMMAND . ' --action find --path ' . $path . ' --xcoord ' . $xcoord . ' --ycoord ' . $ycoord);
 		ob_start();
-		passthru(self::PHILESIGHT_COMMAND . ' --action find --path ' . $path . ' --xcoord ' . $xcoord . ' --ycoord ' . $ycoord);
+		passthru($command);
 		$path = ob_get_clean();
 
 		return $path;
