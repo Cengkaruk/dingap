@@ -36,6 +36,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 require_once('File.class.php');
+require_once('Folder.class.php');
 require_once('ShellExec.class.php');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,6 +56,7 @@ class Philesight extends Engine
 {
 	const PHILESIGHT_COMMAND = '/usr/sbin/philesightcli';
 	const FILE_DATA = '/usr/webconfig/tmp/ps.db';
+	const MAX_COORDINATE = 100000;
 
 	///////////////////////////////////////////////////////////////////////////////
 	// M E T H O D S
@@ -85,11 +87,12 @@ class Philesight extends Engine
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		// FIXME - clean path
+		if (! $this->IsValidPath($path))
+			throw new ValidationException('Invalid path');
 
-	     	ob_start();
+		ob_start();
 		passthru(self::PHILESIGHT_COMMAND . ' --action image --path ' . $path);
-                $png = ob_get_clean();
+		$png = ob_get_clean();
 
 		return $png;
 	}
@@ -109,11 +112,19 @@ class Philesight extends Engine
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
-		// FIXME - clean path
 
-	     	ob_start();
+		if (! $this->IsValidPath($path))
+			throw new ValidationException('Invalid path');
+
+		if (! $this->IsValidCoordinate($xcoord))
+			throw new ValidationException('Invalid coordinate');
+
+		if (! $this->IsValidCoordinate($ycoord))
+			throw new ValidationException('Invalid coordinate');
+
+		ob_start();
 		passthru(self::PHILESIGHT_COMMAND . ' --action find --path ' . $path . ' --xcoord ' . $xcoord . ' --ycoord ' . $ycoord);
-                $path = ob_get_clean();
+		$path = ob_get_clean();
 
 		return $path;
 	}
@@ -121,7 +132,7 @@ class Philesight extends Engine
 	/**
 	 * Returns state of Philesight.
 	 *
-	 * @return boolean TRUE if Philesight has been initialized
+	 * @return boolean true if Philesight has been initialized
 	 * @throws Engine_Exception
 	 */
 
@@ -133,27 +144,49 @@ class Philesight extends Engine
 		$file = new File(self::FILE_DATA);
 
 		if ($file->Exists())
-			return TRUE;
+			return true;
 		else
-			return FALSE;
+			return false;
 	}
 
 	/**
-	 * Validation routine for time server.
+	 * Validation routine for coordinates.
 	 *
-	 * @param string $timeserver time server
-	 * @return boolean true if time server is valid
+	 * @param integer $coordinate coordinate
+	 * @return boolean true if coordinate is valid.
 	 */
 
-	function IsValidTimeServer($timeserver)
+	function IsValidCoordinate($coordinate)
 	{
 		if (COMMON_DEBUG_MODE)
 			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
 
-		if (preg_match("/^([\.\-\w]*)$/", $timeserver))
+		if (preg_match('/^\d+/', $coordinate) && ($coordinate < self::MAX_COORDINATE))
 			return true;
+		else
+			return false;
+	}
 
-		return false;
+	/**
+	 * Validation routine path.
+	 *
+	 * @param string $path path
+	 * @return boolean true if path is valid
+	 */
+
+	function IsValidPath($path)
+	{
+		if (COMMON_DEBUG_MODE)
+			self::Log(COMMON_DEBUG, "called", __METHOD__, __LINE__);
+
+		$path = realpath($path);
+
+		$folder = new Folder($path);
+
+		if ($folder->Exists())
+			return true;
+		else
+			return false;
 	}
 }
 
