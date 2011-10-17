@@ -188,6 +188,7 @@ function deps($options)
     //-------------------------------------------
 
     $detected_classes = array();
+    $root_exception = FALSE;
 
     $raw_contents = file_get_contents($source_file);
 
@@ -214,8 +215,10 @@ function deps($options)
 
         // } catch (Some_Exception $e) {
         } else if (preg_match('/\s*catch\s*\(([^\s+]*)/', $line, $matches)) {
-            // Ignore base 'Exception' class since it is built into PHP
-            if ($matches[1] !== 'Exception')
+            // Handle base 'Exception' that is part of PHP
+            if ($matches[1] === 'Exception')
+                $root_exception = TRUE;
+            else
                 $detected_classes[] = $matches[1];
 	}
 
@@ -280,6 +283,10 @@ function deps($options)
     $normal_load_output = implode("\n", $normal_load);
     $exception_use_output = implode("\n", $exception_use);
     $exception_load_output = implode("\n", $exception_load);
+
+    // Add special \Exception
+    if ($root_exception)
+	$exception_use_output = "use \Exception as Exception;\n" . $exception_use_output;
 
 if (! empty($factory_use_output)) {
     echo "
