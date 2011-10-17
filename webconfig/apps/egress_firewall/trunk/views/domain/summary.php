@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/incoming_firewall/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/egress_firewall/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('incoming_firewall');
+$this->lang->load('egress_firewall');
 $this->lang->load('firewall');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ $headers = array(
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array(anchor_add('/app/incoming_firewall/block/add'));
+$anchors = array(anchor_add('/app/egress_firewall/domain/add'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -61,11 +61,11 @@ foreach ($hosts as $rule) {
     $state_anchor = 'anchor_' . $state;
 
     $item['title'] = $rule['name'];
-    $item['action'] = '/app/incoming_firewall/block/delete/' . $key;
+    $item['action'] = '/app/egress_firewall/domain/delete/' . $key;
     $item['anchors'] = button_set(
         array(
-            $state_anchor('/app/incoming_firewall/block/' . $state . '/' . $key, 'high'),
-            anchor_delete('/app/incoming_firewall/block/delete/' . $key, 'low')
+            $state_anchor('/app/egress_firewall/domain/' . $state . '/' . $key, 'high'),
+            anchor_delete('/app/egress_firewall/domain/delete/' . $key, 'low')
         )
     );
     $item['details'] = array(
@@ -83,7 +83,7 @@ sort($items);
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-    lang('incoming_firewall_blocked_incoming_connections'),
+    lang('egress_firewall_destination_domains'),
     $anchors,
     $headers,
     $items

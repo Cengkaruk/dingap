@@ -30,6 +30,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Classes
+//--------
+
+use \clearos\apps\egress_firewall\Egress as Egress;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -62,16 +71,16 @@ class Port extends ClearOS_Controller
         $this->load->library('network/Network');
         $this->lang->load('egress_firewall');
 
-        // Load view data
-        //---------------
-
+        // Load the view data 
+        //------------------- 
         try {
-            //$data['mode'] = $this->network->get_mode();
+            $data['ports'] = $this->egress->get_exception_ports();
+            $data['ranges'] = $this->egress->get_exception_port_ranges();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
- 
+
         // Load views
         //-----------
 
@@ -120,15 +129,15 @@ class Port extends ClearOS_Controller
         if ($is_action && $this->form_validation->run()) {
             try {
                 if ($this->input->post('submit_standard')) {
-                    $this->egress->add_allow_standard_service($this->input->post('service'));
+                    $this->egress->add_exception_standard_service($this->input->post('service'));
                 } else if ($this->input->post('submit_port')) {
-                    $this->egress->add_allow_port(
+                    $this->egress->add_exception_port(
                         $this->input->post('port_nickname'),
                         $this->input->post('port_protocol'),
                         $this->input->post('port')
                     );
                 } else if ($this->input->post('submit_range')) {
-                    $this->egress->add_allow_port_range(
+                    $this->egress->add_exception_port_range(
                         $this->input->post('range_nickname'),
                         $this->input->post('range_protocol'),
                         $this->input->post('range_from'),
@@ -137,20 +146,21 @@ class Port extends ClearOS_Controller
                 }
 
                 $this->page->set_status_added();
-                redirect('/egress_firewall/port');
+                redirect('/egress_firewall');
             } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
+                $this->page->set_message(clearos_exception_message($e));
             }
         }
 
-        // Load the view data 
-        //------------------- 
-
+        // FIXME: trim services list for rules that are already enabled
         $data['services'] = $this->egress->get_standard_service_list();
         $data['protocols'] = $this->egress->get_protocols();
-        // FIXME: trim services list for rules that are already enabled
- 
+        // Only want TCP and UDP
+        foreach ($data['protocols'] as $key => $protocol) {
+            if ($key != Egress::PROTOCOL_TCP && $key != Egress::PROTOCOL_UDP)
+                unset($data['protocols'][$key]);
+        }
+            
         // Load the views
         //---------------
 
@@ -244,7 +254,7 @@ class Port extends ClearOS_Controller
         //-------------------
 
         try {
-            $this->egress->delete_allow_port($protocol, $port);
+            $this->egress->delete_exception_port($protocol, $port);
 
             $this->page->set_status_deleted();
             redirect('/egress_firewall/port');
@@ -275,64 +285,10 @@ class Port extends ClearOS_Controller
         //-------------------
 
         try {
-            $this->egress->delete_allow_port_range($protocol, $from, $to);
+            $this->egress->delete_exception_port_range($protocol, $from, $to);
 
             $this->page->set_status_deleted();
-            redirect('/egress_firewall/port');
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
-    }
-
-    /**
-     * Destroys IPsec rule.
-     *
-     * @return view
-     */
-
-    function destroy_ipsec()
-    {
-        // Load libraries
-        //---------------
-
-        $this->load->library('egress_firewall/Egress');
-
-        // Handle form submit
-        //-------------------
-
-        try {
-            $this->egress->set_ipsec_server_state(FALSE);
-
-            $this->page->set_status_deleted();
-            redirect('/egress_firewall/port');
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
-    }
-
-    /**
-     * Destroys PPTP rule.
-     *
-     * @return view
-     */
-
-    function destroy_pptp()
-    {
-        // Load libraries
-        //---------------
-
-        $this->load->library('egress_firewall/Egress');
-
-        // Handle form submit
-        //-------------------
-
-        try {
-            $this->egress->set_pptp_server_state(FALSE);
-
-            $this->page->set_status_deleted();
-            redirect('/egress_firewall/port');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -353,10 +309,10 @@ class Port extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->set_allow_port_state(FALSE, $protocol, $port);
+            $this->egress->toggle_enable_exception_port(FALSE, $protocol, $port);
 
             $this->page->set_status_disabled();
-            redirect('/egress_firewall/port');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -378,10 +334,10 @@ class Port extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->set_allow_port_range_state(FALSE, $protocol, $from, $to);
+            $this->egress->toggle_enable_exception_port_range(FALSE, $protocol, $from, $to);
 
             $this->page->set_status_disabled();
-            redirect('/egress_firewall/port');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -402,10 +358,10 @@ class Port extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->set_allow_port_state(TRUE, $protocol, $port);
+            $this->egress->toggle_enable_exception_port(TRUE, $protocol, $port);
 
             $this->page->set_status_enabled();
-            redirect('/egress_firewall/port');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -427,10 +383,10 @@ class Port extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->set_allow_port_range_state(TRUE, $protocol, $from, $to);
+            $this->egress->toggle_enable_exception_port_range(TRUE, $protocol, $from, $to);
 
             $this->page->set_status_enabled();
-            redirect('/egress_firewall/port');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Firewall egress block controller.
+ * Firewall egress domain controller.
  *
  * @category   Apps
  * @package    Egress_Firewall
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Firewall egress block controller.
+ * Firewall egress domain controller.
  *
  * @category   Apps
  * @package    Egress_Firewall
@@ -48,7 +48,7 @@
 class Domain extends ClearOS_Controller
 {
     /**
-     * Egress block overview.
+     * Egress domain overview.
      *
      * @return view
      */
@@ -62,7 +62,7 @@ class Domain extends ClearOS_Controller
         //---------------
 
         try {
-            $data['hosts'] = $this->egress->get_block_hosts();
+            $data['hosts'] = $this->egress->get_exception_hosts();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -71,11 +71,11 @@ class Domain extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('egress_firewall/domain/summary', $data, lang('egress_firewall_blocked_egress_connections'));
+        $this->page->view_form('egress_firewall/domain/summary', $data, lang('egress_firewall_app_name'));
     }
 
     /**
-     * Add block host rule.
+     * Add domain rule.
      *
      * @return view
      */
@@ -100,25 +100,20 @@ class Domain extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->egress->add_block_host($this->input->post('nickname'), $this->input->post('host'));
+                $this->egress->add_exception_destination($this->input->post('nickname'), $this->input->post('host'));
 
                 $this->page->set_status_added();
-                redirect('/egress_firewall/block');
+                redirect('/egress_firewall');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
             }
         }
 
-        // Load the view data 
-        //------------------- 
-
-        $data['mode'] = $form_mode;
- 
         // Load the views
         //---------------
 
-        $this->page->view_form('egress_firewall/block/add', $data, lang('base_add'));
+        $this->page->view_form('egress_firewall/domain/add', $data, lang('base_add'));
     }
 
     /**
@@ -131,8 +126,8 @@ class Domain extends ClearOS_Controller
 
     function delete($host)
     {
-        $confirm_uri = '/app/egress_firewall/block/destroy/' . $host;
-        $cancel_uri = '/app/egress_firewall/block';
+        $confirm_uri = '/app/egress_firewall/domain/destroy/' . $host;
+        $cancel_uri = '/app/egress_firewall';
         $items = array($host);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
@@ -151,10 +146,10 @@ class Domain extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->delete_block_host($host);
+            $this->egress->delete_exception_destination($host);
 
             $this->page->set_status_deleted();
-            redirect('/egress_firewall/block');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -174,10 +169,10 @@ class Domain extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->set_block_host_state(FALSE, $host);
+            $this->egress->toggle_enable_exception_destination(FALSE, $host);
 
             $this->page->set_status_disabled();
-            redirect('/egress_firewall/block');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -197,10 +192,10 @@ class Domain extends ClearOS_Controller
         try {
             $this->load->library('egress_firewall/Egress');
 
-            $this->egress->set_block_host_state(TRUE, $host);
+            $this->egress->toggle_enable_exception_destination(TRUE, $host);
 
             $this->page->set_status_enabled();
-            redirect('/egress_firewall/block');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

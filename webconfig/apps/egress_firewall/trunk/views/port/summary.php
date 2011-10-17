@@ -76,7 +76,7 @@ foreach ($ports as $rule) {
     $item['details'] = array(
         $rule['name'],
         $rule['service'],
-        $rule['protocol_name'],
+        $rule['protocol'],
         $rule['port'],
     );
 

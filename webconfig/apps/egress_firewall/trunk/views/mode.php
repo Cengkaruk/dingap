@@ -1,15 +1,16 @@
+
 <?php
 
 /**
- * Incoming firewall add rule view.
+ * Egress Firewall mode.
  *
- * @category   ClearOS
- * @package    Incoming_Firewall
+ * @category   Apps
+ * @package    Egress
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/egress_firewall/
+ * @link       http://www.clearcenter.com/support/documentation/clearos/egress_firewall/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,67 +35,30 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
-$this->lang->load('firewall');
+$this->lang->load('egress_firewall');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Standard service
+// Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('egress_firewall/port/add');
-echo form_header(lang('firewall_standard_service'));
+echo form_open('egress_firewall/mode', array('autocomplete' => 'off'));
+echo form_header(lang('egress_firewall_mode'));
 
-echo field_simple_dropdown('service', $services, $service, lang('firewall_service'));
+///////////////////////////////////////////////////////////////////////////////
+// Form fields and buttons
+///////////////////////////////////////////////////////////////////////////////
 
-echo field_button_set(
-    array(
-        form_submit_add('submit_standard', 'high'),
-        anchor_cancel('/app/egress_firewall')
-    )
+$buttons = array(
+    form_submit_update('submit'),
+    anchor_cancel('/app/egress_firewall')
 );
+
+echo field_dropdown('state', $state_options, $state, lang('egress_firewall_mode'), $read_only);
+echo field_button_set($buttons);
+
+///////////////////////////////////////////////////////////////////////////////
+// Form close
+///////////////////////////////////////////////////////////////////////////////
 
 echo form_footer();
 echo form_close();
-
-///////////////////////////////////////////////////////////////////////////////
-// Port
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_open('egress_firewall/port/add');
-echo form_header(lang('firewall_port'));
-
-echo field_input('port_nickname', $port_nickname, lang('firewall_nickname'));
-echo field_simple_dropdown('port_protocol', $protocols, $port_protocol, lang('firewall_protocol'));
-echo field_input('port', $port, lang('firewall_port'));
-
-echo field_button_set(
-    array(
-        form_submit_add('submit_port', 'high'),
-        anchor_cancel('/app/egress_firewall')
-    )
-);
-
-echo form_footer();
-echo form_close();
-
-///////////////////////////////////////////////////////////////////////////////
-// Port range
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_open('egress_firewall/port/add');
-echo form_header(lang('firewall_port_range'));
-
-echo field_input('range_nickname', $range_nickname, lang('firewall_nickname'));
-echo field_simple_dropdown('range_protocol', $protocols, $range_protocol, lang('firewall_protocol'));
-echo field_input('range_from', $range_from, lang('base_from'));
-echo field_input('range_to', $range_To, lang('base_to'));
-
-echo field_button_set(
-    array(
-        form_submit_add('submit_range', 'high'),
-        anchor_cancel('/app/egress_firewall')
-    )
-);
-
-echo form_footer();
-echo form_close();
-

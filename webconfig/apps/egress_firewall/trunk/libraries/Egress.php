@@ -57,9 +57,11 @@ clearos_load_language('base');
 
 use \clearos\apps\firewall\Rule as Rule;
 use \clearos\apps\firewall\Firewall as Firewall;
+use \clearos\apps\firewall\Metadata as Metadata;
 
 clearos_load_library('firewall/Rule');
 clearos_load_library('firewall/Firewall');
+clearos_load_library('firewall/Metadata');
 
 // Exceptions
 //-----------
@@ -112,18 +114,18 @@ class Egress extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_block_common_destination($destination)
+    public function add_exception_common_destination($destination)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        global $domains;
+        $metadata = new Metadata();
 
         // Validation
         //-----------
 
-        Validation_Exception::is_valid($this->validate_destination($destination));
+        Validation_Exception::is_valid($this->validate_address($destination));
 
-        $mydomains = $domains;
+        $mydomains = $metadata->get_domains_list();
 
         foreach ($mydomains as $domaininfo) {
             if ($domaininfo[1] == $destination) {
@@ -131,10 +133,7 @@ class Egress extends Firewall
 
                 $rule->set_address($domaininfo[0]);
                 $rule->set_flags(Rule::OUTGOING_BLOCK | Rule::ENABLED);
-                if ($rule->check_validation_errors())
-                    $this->errors = $rule->copy_validation_errors(true);
-                else
-                    $this->add_rule($rule);
+                $this->add_rule($rule);
             }
         }
     }
@@ -149,14 +148,14 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function add_block_destination($name, $destination)
+    public function add_exception_destination($name, $destination)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Validation
         //-----------
         Validation_Exception::is_valid($this->validate_name($name));
-        Validation_Exception::is_valid($this->validate_destination($destination));
+        Validation_Exception::is_valid($this->validate_address($destination));
 
         $rule = new Rule();
 
@@ -164,11 +163,7 @@ class Egress extends Firewall
             $rule->set_name($name);
             $rule->set_address($destination);
             $rule->set_flags(Rule::OUTGOING_BLOCK | Rule::ENABLED);
-
-            if ($rule->CheckValidationErrors())
-                $this->errors = $rule->CopyValidationErrors(true);
-            else
-                $this->add_rule($rule);
+            $this->add_rule($rule);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -185,7 +180,7 @@ class Egress extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_block_port($name, $protocol, $port)
+    public function add_exception_port($name, $protocol, $port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -200,13 +195,10 @@ class Egress extends Firewall
         try {
             $rule->set_name($name);
             $rule->set_port($port);
-            $rule->set_protocol( $rule->convert_protocol_name($protocol) );
+            $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_flags(Rule::OUTGOING_BLOCK | Rule::ENABLED);
 
-            if ($rule->check_validation_errors())
-                $this->errors = $rule->copy_validation_errors(true);
-            else
-                $this->add_rule($rule);
+            $this->add_rule($rule);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
@@ -223,7 +215,7 @@ class Egress extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_block_port_range($name, $protocol, $from, $to)
+    public function add_exception_port_range($name, $protocol, $from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -231,8 +223,8 @@ class Egress extends Firewall
         //-----------
         Validation_Exception::is_valid($this->validate_name($name));
         Validation_Exception::is_valid($this->validate_protocol($protocol));
-        Validation_Exception::is_valid($this->validate_from_port($from));
-        Validation_Exception::is_valid($this->validate_to_port($to));
+        Validation_Exception::is_valid($this->validate_port($from));
+        Validation_Exception::is_valid($this->validate_port($to));
 
         if ($from >= $to)
             throw new Validation_Exception(lang('egress_firewall_port_from_to_invalid'), CLEAROS_ERROR);
@@ -241,21 +233,18 @@ class Egress extends Firewall
 
         try {
             $rule->set_name($name);
-            $rule->set_protocol( $rule->convert_protocol_name($protocol) );
+            $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_port_range($from, $to);
             $rule->set_flags(Rule::OUTGOING_BLOCK | Rule::ENABLED);
 
-            if ($rule->check_validation_errors())
-                $this->errors = $rule->copy_validation_errors(true);
-            else
-                $this->add_rule($rule);
+            $this->add_rule($rule);
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
 
     /**
-     * Add a standard service to the outgoing allow list.
+     * Add a standard service to the exception list.
      *
      * @param string service service name eg HTTP, FTP, SMTP
      *
@@ -263,11 +252,13 @@ class Egress extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_block_standard_service($service)
+    public function add_exception_standard_service($service)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        global $PORTS;
+        $metadata = new Metadata();
+
+        $ports = $metadata->get_ports_list();
 
         if ($service == "PPTP") {
             throw new Engine_Exception("TODO: No support for blocking outgoing PPTP traffic", COMMON_WARNING);
@@ -279,12 +270,12 @@ class Egress extends Firewall
             $rule = new Rule();
 
             try {
-                foreach ($PORTS as $port) {
+                foreach ($ports as $port) {
                     if ($port[3] != $service)
                         continue;
 
                     $rule->set_port($port[2]);
-                    $rule->set_protocol( $rule->convert_protocol_name($port[1]) );
+                    $rule->set_protocol($rule->convert_protocol_name($port[1]));
                     $rule->set_name(preg_replace("/\//", "", $service));
                     $rule->set_flags(Rule::OUTGOING_BLOCK | Rule::ENABLED);
                     $this->add_rule($rule);
@@ -305,7 +296,7 @@ class Egress extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function toggle_enable_block_destination($enabled, $host)
+    public function toggle_enable_exception_destination($enabled, $host)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -339,7 +330,7 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function toggle_enable_block_port($enabled, $protocol, $port)
+    public function toggle_enable_exception_port($enabled, $protocol, $port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -353,7 +344,7 @@ class Egress extends Firewall
         if ($from >= $to)
             throw new Validation_Exception(lang('egress_firewall_port_from_to_invalid'), CLEAROS_ERROR);
         try {
-            $rule->set_protocol( $rule->convert_protocol_name($protocol) );
+            $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_port($port);
             $rule->set_flags(Rule::OUTGOING_BLOCK);
 
@@ -381,20 +372,20 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function toggle_enable_block_port_range($enabled, $protocol, $from, $to)
+    public function toggle_enable_exception_port_range($enabled, $protocol, $from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Validation
         //-----------
         Validation_Exception::is_valid($this->validate_protocol($protocol));
-        Validation_Exception::is_valid($this->validate_from_port($from));
-        Validation_Exception::is_valid($this->validate_to_port($to));
+        Validation_Exception::is_valid($this->validate_port($from));
+        Validation_Exception::is_valid($this->validate_port($to));
 
         $rule = new Rule();
 
         try {
-            $rule->set_protocol( $rule->convert_protocol_name($protocol) );
+            $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_port_range($from, $to);
             $rule->set_flags(Rule::OUTGOING_BLOCK);
 
@@ -420,7 +411,7 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function delete_block_destination($host)
+    public function delete_exception_destination($host)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -445,7 +436,7 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function delete_block_port($protocol, $port)
+    public function delete_exception_port($protocol, $port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -457,7 +448,7 @@ class Egress extends Firewall
         $rule = new Rule();
 
         try {
-            $rule->set_protocol( $rule->convert_protocol_name($protocol) );
+            $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_port($port);
             $rule->set_flags(Rule::OUTGOING_BLOCK);
             $this->delete_rule($rule);
@@ -477,20 +468,20 @@ class Egress extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function delete_block_port_range($protocol, $from, $to)
+    public function delete_exception_port_range($protocol, $from, $to)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Validation
         //-----------
         Validation_Exception::is_valid($this->validate_protocol($protocol));
-        Validation_Exception::is_valid($this->validate_from_port($from));
-        Validation_Exception::is_valid($this->validate_to_port($to));
+        Validation_Exception::is_valid($this->validate_port($from));
+        Validation_Exception::is_valid($this->validate_port($to));
 
         $rule = new Rule();
 
         try {
-            $rule->set_protocol( $rule->convert_protocol_name($protocol) );
+            $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_port_range($from, $to);
             $rule->set_flags(Rule::OUTGOING_BLOCK);
             $this->delete_rule($rule);
@@ -505,15 +496,15 @@ class Egress extends Firewall
      * @return array array list of common services blocked
      */
 
-    public function get_common_block_list()
+    public function get_common_exception_list()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        global $domains;
+        $metadata = new Metadata();
 
         $byname = array();
 
-        foreach ($domains as $item)
+        foreach ($metadata->get_domains_list() as $item)
             array_push($byname, $item[1]);
 
         return $byname;
@@ -526,7 +517,7 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function get_block_hosts()
+    public function get_exception_hosts()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -537,6 +528,8 @@ class Egress extends Firewall
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
+
+        $metadata = new Metadata();
 
         foreach ($rules as $rule) {
             if (!($rule->get_flags() & Rule::OUTGOING_BLOCK))
@@ -552,7 +545,7 @@ class Egress extends Firewall
             $hostinfo['name'] = $rule->get_name();
             $hostinfo['enabled'] = $rule->is_enabled();
             $hostinfo['host'] = $rule->get_address();
-            $hostinfo['metainfo'] = $this->lookup_host_metainfo($hostinfo[host]);
+            $hostinfo['metainfo'] = $metadata->lookup_host_metainfo($hostinfo[host]);
 
             $hosts[] = $hostinfo;
         }
@@ -574,7 +567,7 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function get_block_port_ranges()
+    public function get_exception_port_ranges()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -596,18 +589,18 @@ class Egress extends Firewall
             if ($rule->get_flags() & (Rule::WIFI | Rule::CUSTOM))
                 continue;
 
-            if ($rule->get_protocol() != Rule::PROTO_TCP && $rule->get_protocol() != Rule::PROTO_UDP)
+            if ($rule->get_protocol() != self::PROTOCOL_TCP && $rule->get_protocol() != self::PROTOCOL_UDP)
                 continue;
 
             $info = array();
 
             switch ($rule->get_protocol()) {
 
-                case Rule::PROTO_TCP:
+                case self::PROTOCOL_TCP:
                     $info['protocol'] = "TCP";
                     break;
 
-                case Rule::PROTO_UDP:
+                case self::PROTOCOL_UDP:
                     $info['protocol'] = "UDP";
                     break;
             }
@@ -636,7 +629,7 @@ class Egress extends Firewall
      * @throws Engine_Exception
      */
 
-    public function get_block_ports()
+    public function get_exception_ports()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -658,18 +651,18 @@ class Egress extends Firewall
             if ($rule->get_flags() & (Rule::WIFI | Rule::CUSTOM))
                 continue;
 
-            if ($rule->get_protocol() != Rule::PROTO_TCP && $rule->get_protocol() != Rule::PROTO_UDP)
+            if ($rule->get_protocol() != self::PROTOCOL_TCP && $rule->get_protocol() != self::PROTOCOL_UDP)
                 continue;
 
             $info = array();
 
             switch ($rule->get_protocol()) {
 
-                case Rule::PROTO_TCP:
+                case self::PROTOCOL_TCP:
                     $info['protocol'] = "TCP";
                     break;
 
-                case Rule::PROTO_UDP:
+                case self::PROTOCOL_UDP:
                     $info['protocol'] = "UDP";
                     break;
             }
@@ -677,7 +670,7 @@ class Egress extends Firewall
             $info['port'] = $rule->get_port();
             $info['name'] = $rule->get_name();
             $info['enabled'] = $rule->is_enabled();
-            $info['service'] = $this->lookup_service($info['protocol'], $info['port']);
+            $info['service'] = $this->lookup_service($rule->get_protocol(), $rule->get_port());
             $portlist[] = $info;
         }
 
@@ -699,6 +692,22 @@ class Egress extends Firewall
     }
 
     /**
+     * Returns a list of valid mode options.
+     *
+     * @return array
+     */
+
+    function get_egress_state_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+            
+        $options = Array(
+            0 => lang('egress_firewall_allow_all_and_specify_block_destinations'),
+            1 => lang('egress_firewall_web_lang_block_all_and_specify_allow_destinations')
+        );
+        return $options;
+    }
+    /**
      * Sets state of egress mode.
      *
      * @param boolean $state state of egress mode
@@ -718,98 +727,6 @@ class Egress extends Firewall
     // V A L I D A T I O N   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * Validation routine for rule name.
-     *
-     * @param string $name name
-     *
-     * @return mixed void if name is valid, errmsg otherwise
-     */
-
-    function validate_name($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        if ($name == NULL || $name === '')
-            return lang('egress_firewall_invalid_name');
-    }
-
-    /**
-     * Validation routine for destination domain.
-     *
-     * @param string $destination destination domain
-     *
-     * @return mixed void if destination is valid, errmsg otherwise
-     */
-
-    function validate_destination($destination)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($destination == NULL || $destination === '')
-            return lang('egress_firewall_invalid_destination');
-    }
-
-    /**
-     * Validation routine for protocol.
-     *
-     * @param string $protocol protocol
-     *
-     * @return mixed void if protocol is valid, errmsg otherwise
-     */
-
-    function validate_protocol($protocol)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($protocol == NULL || $protocol === '')
-            return lang('egress_firewall_invalid_protocol');
-    }
-
-    /**
-     * Validation routine for port.
-     *
-     * @param string $port port
-     *
-     * @return mixed void if port is valid, errmsg otherwise
-     */
-
-    function validate_port($port)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (is_nan($port) || $port < 0 || $port > 65535)
-            return lang('egress_firewall_invalid_port');
-    }
-
-    /**
-     * Validation routine for from port.
-     *
-     * @param string $port port
-     *
-     * @return mixed void if port is valid, errmsg otherwise
-     */
-
-    function validate_from_port($port)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->validate_port($port);
-    }
- 
-    /**
-     * Validation routine for to port.
-     *
-     * @param string $port port
-     *
-     * @return mixed void if port is valid, errmsg otherwise
-     */
-
-    function validate_to_port($port)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->validate_port($port);
-    }
 }
 
 // vim: syntax=php ts=4

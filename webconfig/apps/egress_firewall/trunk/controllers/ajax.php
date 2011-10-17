@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Egress firewall controller.
+ * Account egress_firewall ajax controller.
  *
  * @category   Apps
- * @package    Egress_Firewall
+ * @package    Account Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -30,14 +30,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Egress firewall controller.
+ * Account Egress_Firewall ajax controller.
  *
  * @category   Apps
- * @package    Egress_Firewall
+ * @package    Account Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -45,71 +49,45 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/egress_firewall/
  */
 
-class Egress_Firewall extends ClearOS_Controller
+class Ajax extends ClearOS_Controller
 {
+
     /**
-     * Firewall (egress) overview.
+     * Egress_Firewall AJAX default controller
      *
      * @return view
      */
 
     function index()
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('egress_firewall');
-
-        // Load views
-        //-----------
-
-        $views = array('egress_firewall/port', 'egress_firewall/domain');
-
-        $this->page->view_forms($views, lang('egress_firewall_app_name'));
+        echo "These aren't the droids you're looking for...";
     }
 
     /**
-     * Egress mode.
+     * Get egress mode/state (allow or block all).
      *
-     * @return view
+     * @return JSON
      */
 
-    function mode()
+    function get_egress_state()
     {
+        clearos_profile(__METHOD__, __LINE__);
+
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Fri, 01 Jan 2010 05:00:00 GMT');
+        header('Content-type: application/json');
+
         // Load dependencies
         //------------------
 
         $this->load->library('egress_firewall/Egress');
         $this->lang->load('egress_firewall');
 
-        // Handle form submit
-        //-------------------
-
-        if ($this->input->post('submit')) {
-            try {
-                $this->egress->set_egress_state($this->input->post('state'));
-                $this->page->set_status_updated();
-                redirect('/egress_firewall');
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load view data
-        //---------------
-
         try {
-            $data['state_options'] = $this->egress->get_egress_state_options();
-            $data['state'] = $this->egress->get_egress_state();
+            $state = $this->egress->get_egress_state();
+            echo json_encode(Array('state' => ($state ? lang('egress_firewall_block_all') : lang('egress_firewall_allow_all'))));
         } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
+            echo json_encode(Array('state' => lang('base_unknown')));
         }
-
-        // Load views
-        //-----------
-
-        $this->page->view_form('egress_firewall/mode', $data, lang('egress_firewall_mode'));
     }
 }

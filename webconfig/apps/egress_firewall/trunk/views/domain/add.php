@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Incoming firewall add block host view.
+ * Egress firewall add domain view.
  *
  * @category   ClearOS
  * @package    Incoming_Firewall
@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/incoming_firewall/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/egress_firewall/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ $this->lang->load('firewall');
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('incoming_firewall/block/add');
+echo form_open('egress_firewall/domain/add');
 echo form_header(lang('firewall_host'));
 
 echo field_input('nickname', $nickname, lang('firewall_nickname'));
@@ -49,7 +49,7 @@ echo field_input('host', $host, lang('firewall_host'));
 echo field_button_set(
     array(
         form_submit_add('submit', 'high'),
-        anchor_cancel('/app/incoming_firewall/block')
+        anchor_cancel('/app/egress_firewall')
     )
 );
 
