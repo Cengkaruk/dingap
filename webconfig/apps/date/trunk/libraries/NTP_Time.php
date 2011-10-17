@@ -58,14 +58,14 @@ clearos_load_language('date');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\tasks\Cron as Cron;
 use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\tasks\Cron as Cron;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
-clearos_load_library('tasks/Cron');
 clearos_load_library('network/Network_Utils');
+clearos_load_library('tasks/Cron');
 
 // Exceptions
 //-----------
