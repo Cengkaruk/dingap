@@ -164,7 +164,7 @@ function theme_form_submit($name, $text, $importance, $class, $options)
 
 function theme_fieldset_header($title)
 {
-    return "<tr><td  class='theme-fieldset-header'>$title</td></tr>";
+    return "<tr><td  class='theme-fieldset-header' colspan='2'>$title</td></tr>";
 }
 
 /**
@@ -235,7 +235,7 @@ function _theme_button_set($buttons, $options, $type)
 
     if ($type === 'field') {
         return "
-            <tr><td >
+            <tr><td>
                 <div class='theme-button-set'$id>$button_html</div>
             </td></tr>
         ";
@@ -1137,7 +1137,7 @@ function theme_infobox($type, $title, $message, $options = NULL)
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
 
     return "
-        <div class='ui-widget' $id>
+        <div class='ui-widget infobox' $id>
             <div class='ui-corner-all info-regular $class' style=' '>
                 <h2>$title</h2>
                 
