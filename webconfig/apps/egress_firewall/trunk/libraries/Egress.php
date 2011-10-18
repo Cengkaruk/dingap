@@ -47,6 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('egress_firewall');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -341,8 +342,6 @@ class Egress extends Firewall
         Validation_Exception::is_valid($this->validate_protocol($protocol));
         Validation_Exception::is_valid($this->validate_port($port));
 
-        if ($from >= $to)
-            throw new Validation_Exception(lang('egress_firewall_port_from_to_invalid'), CLEAROS_ERROR);
         try {
             $rule->set_protocol($rule->convert_protocol_name($protocol));
             $rule->set_port($port);

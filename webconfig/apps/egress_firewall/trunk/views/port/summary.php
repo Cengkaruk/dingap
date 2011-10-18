@@ -61,7 +61,7 @@ $anchors = array(anchor_add('/app/egress_firewall/port/add'));
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($ports as $rule) {
-    $key = $rule['protocol_name'] . '/' . $rule['port'];
+    $key = $rule['protocol'] . '/' . $rule['port'];
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
 

@@ -26,8 +26,6 @@ $app['subcategory'] = lang('base_subcategory_firewall');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['controllers']['egress_firewall']['title'] = lang('egress_firewall_app_name');
-$app['controllers']['allow']['title'] = lang('egress_firewall_allowed_egress_connections');
-$app['controllers']['block']['title'] = lang('egress_firewall_blocked_egress_connections');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

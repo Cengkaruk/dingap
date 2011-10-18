@@ -179,38 +179,8 @@ class Port extends ClearOS_Controller
     function delete($protocol, $port)
     {
         $confirm_uri = '/app/egress_firewall/port/destroy/' . $protocol . '/' . $port;
-        $cancel_uri = '/app/egress_firewall/port';
+        $cancel_uri = '/app/egress_firewall';
         $items = array($protocol . ' ' . $port);
-
-        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
-    }
-
-    /**
-     * Delete IPsec rule.
-     *
-     * @return view
-     */
-
-    function delete_ipsec()
-    {
-        $confirm_uri = '/app/egress_firewall/port/destroy_ipsec';
-        $cancel_uri = '/app/egress_firewall/port';
-        $items = array('IPsec');
-
-        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
-    }
-
-    /**
-     * Delete PPTP rule.
-     *
-     * @return view
-     */
-
-    function delete_pptp()
-    {
-        $confirm_uri = '/app/egress_firewall/port/destroy_pptp';
-        $cancel_uri = '/app/egress_firewall/port';
-        $items = array('PPTP');
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
@@ -228,7 +198,7 @@ class Port extends ClearOS_Controller
     function delete_range($protocol, $from, $to)
     {
         $confirm_uri = '/app/egress_firewall/port/destroy_range/' . $protocol . '/' . $from . '/' . $to;
-        $cancel_uri = '/app/egress_firewall/port';
+        $cancel_uri = '/app/egress_firewall';
         $items = array($protocol . ' ' . $from . ':' . $to);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
@@ -257,7 +227,7 @@ class Port extends ClearOS_Controller
             $this->egress->delete_exception_port($protocol, $port);
 
             $this->page->set_status_deleted();
-            redirect('/egress_firewall/port');
+            redirect('/egress_firewall');
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
