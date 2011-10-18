@@ -1,11 +1,11 @@
 <?php
 
 /**
- * MySQL view.
+ * MySQL daemon controller.
  *
- * @category   ClearOS
+ * @category   Apps
  * @package    MySQL
- * @subpackage Views
+ * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -25,48 +25,43 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// Load dependencies
+// B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
-$this->lang->load('mysql');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Show warning if password is not set
+// D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-if (! $is_password_set)
-    echo infobox_critical(lang('mysql_lang_please_set_a_database_password'));
+require clearos_app_base('base') . '/controllers/daemon.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('mysql');
-echo form_header(lang('mysql_mysql'));
+/**
+ * MySQL daemon controller.
+ *
+ * @category   Apps
+ * @package    MySQL
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/mysql/
+ */
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields
-///////////////////////////////////////////////////////////////////////////////
-
-if ($is_password_set)
-    echo field_input('current_password', '', lang('base_current_password'));
-
-echo field_input('password', '', lang('base_password'));
-echo field_input('verify', '', lang('base_verify'));
-
-echo field_button_set(
-    array(form_submit_update('submit', 'high'))
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_footer();
-echo form_close();
+class Server extends Daemon
+{
+    function __construct()
+    {
+        parent::__construct('mysqld', 'mysql');
+    }
+}

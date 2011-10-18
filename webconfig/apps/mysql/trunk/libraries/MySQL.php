@@ -277,6 +277,23 @@ class MySQL extends Daemon
     }
 
     /**
+     * Validates password/verify.
+     *
+     * @param string $password password
+     * @param string $verify   verify password
+     *
+     * @return string error message if passwords do not match
+     */
+
+    public function validate_password_verify($password, $verify)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($password != $verify)
+            return lang('mysql_password_mismatch');
+    }
+
+    /**
      * Validates username.
      *
      * @param string $username username

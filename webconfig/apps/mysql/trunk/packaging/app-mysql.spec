@@ -3,7 +3,7 @@ Name: app-mysql
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: MySQL database summary..
+Summary: MySQL Database
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,10 +13,10 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-MySQL database long description...
+MySQL is an open-source, Relational Database Management System (RDMS).  It can be configured to run database driven applications, websites, CRM and practically any other resource requiring a relational storage service.
 
 %package core
-Summary: MySQL database summary.. - APIs and install
+Summary: MySQL Database - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -24,7 +24,7 @@ Requires: app-network-core
 Requires: mysql-server >= 5.1.52
 
 %description core
-MySQL database long description...
+MySQL is an open-source, Relational Database Management System (RDMS).  It can be configured to run database driven applications, websites, CRM and practically any other resource requiring a relational storage service.
 
 This package provides the core API and libraries.
 

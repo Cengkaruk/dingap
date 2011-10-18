@@ -58,51 +58,16 @@ class MySQL extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('mysql/MySQL');
         $this->lang->load('mysql');
-
-        // Set validation rules
-        //---------------------
-         
-        // $this->form_validation->set_policy('current_password', 'mysql/MySQL', 'validate_password', TRUE);
-        $this->form_validation->set_policy('password', 'mysql/MySQL', 'validate_password', TRUE);
-        $this->form_validation->set_policy('verify', 'mysql/MySQL', 'validate_password', TRUE);
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                if ($this->input->post($current_password))
-                    $current_password = $this->input->post($current_password);
-                else
-                    $current_password = '';
-
-
-                $this->mysql->set_root_password($current_password, $this->input->post($password));
-
-                $this->page->set_success(lang('base_system_updated'));
-            } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load view data
-        //---------------
-
-        try {
-            $is_running = $this->mysql->get_running_state();
-            $data['is_password_set'] = $this->mysql->is_root_password_set();
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
 
         // Load views
         //-----------
 
-        $this->page->view_form('mysql', $data, lang('mysql_mysql_database'));
+        $views = array(
+            'mysql/server',
+            'mysql/setting'
+        );
+
+        $this->page->view_forms($views, lang('mysql_mysql_database'));
     }
 }
