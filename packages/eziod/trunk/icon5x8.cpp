@@ -1,4 +1,4 @@
-static uint8_t icon_5x8_head = 0x0;
+//static uint8_t icon_5x8_head = 0x0;
 static uint8_t icon_5x8_tail = 0x7;
 static uint8_t icon_5x8_length = icon_5x8_tail + 1;
 static uint8_t icon_5x8_width = 5;

@@ -307,7 +307,6 @@ static int lua_getifup(lua_State *L)
 {
 	const char *device = luaL_checkstring(L, 1);
 	struct ifreq ifr;
-	struct sockaddr_in sa;
 
 	memset(&ifr, '\0', sizeof(struct ifreq));
 	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
@@ -360,8 +359,6 @@ static int lua_statvfs(lua_State *L)
 		(unsigned long long)stats.f_blocks) / 1024ul;
 	fsblkcnt_t kfree = ((unsigned long long)stats.f_frsize *
 		(unsigned long long)stats.f_bfree) / 1024ul;
-	fsblkcnt_t kavail = ((unsigned long long)stats.f_frsize *
-		(unsigned long long)stats.f_bavail) / 1024ul;
 	fsblkcnt_t kused = ktotal - kfree;
 
 	lua_pushnumber(L, ktotal);
@@ -526,11 +523,13 @@ static int lua_write_text_xy(lua_State *L)
 static int lua_save_state(lua_State *L)
 {
 	ezio->SaveState();
+    return 0;
 }
 
 static int lua_restore_state(lua_State *L)
 {
 	ezio->RestoreState();
+    return 0;
 }
 
 static void signal_handler(int signum)

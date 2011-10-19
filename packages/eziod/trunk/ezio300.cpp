@@ -57,7 +57,7 @@ static uint8_t ezioOutPrefix = EZIO_OUTPUT;
 
 ezio300::ezio300(const char *device, struct ezioIconData *icon_data)
 	throw(ezioException)
-	: device(device), fd_ezio(-1),
+	: fd_ezio(-1), device(device),
 	width(EZIO300_WIDTH), height(EZIO300_HEIGHT), cpl(EZIO300_CPL)
 {
 	struct termios tio;
@@ -212,8 +212,8 @@ ezioButton ezio300::ReadKey(uint32_t timeout) throw(ezioException)
 
 		struct timeval tv;
 		gettimeofday(&tv, NULL);
-		if ((tv.tv_sec - tv_base.tv_sec) * 1000000 + tv.tv_usec >= timeout)
-			break;
+		if ((tv.tv_sec - tv_base.tv_sec) * 1000000 +
+            tv.tv_usec >= (time_t)timeout) break;
 	}
 
 	return EZIO_BUTTON_NONE;
@@ -245,6 +245,8 @@ ezioButton ezio300::ReadInteger(int32_t &value,
 		case EZIO_BUTTON_ESC:
 		case EZIO_BUTTON_ENTER:
 			return button;
+        default:
+            break;
 		}
 	}
 
@@ -269,7 +271,6 @@ ezioButton ezio300::ReadIpAddress(const char *prompt, char ip[16]) throw(ezioExc
 
 	ezioButton button;
 
-	int32_t choice;
 	map<int32_t, const char *> choices;
 	choices[0] = "No";
 	choices[1] = "Yes";
@@ -319,7 +320,6 @@ int32_t ezio300::ReadChoice(const char *prompt, map<int32_t, const char *> &choi
 
 	while (ReadKey(250000) != EZIO_BUTTON_NONE);
 
-	ezioButton button;
 	map<int32_t, const char *>::iterator i = choices.begin();
 
 	while (true) {
@@ -342,6 +342,8 @@ int32_t ezio300::ReadChoice(const char *prompt, map<int32_t, const char *> &choi
 		case EZIO_BUTTON_ESC:
 			RestoreState();
 			return -1;
+        default:
+            break;
 		}
 	}
 
@@ -382,6 +384,8 @@ void ezio300::Write(ezioCommand command, uint8_t param) throw(ezioException)
 		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
+    default:
+        break;
 	}
 
 	switch (command) {
@@ -418,6 +422,8 @@ void ezio300::Write(ezioCommand command, uint8_t param) throw(ezioException)
 		if (ezioWrite(fd_ezio, &command, sizeof(uint8_t)) !=
 			sizeof(uint8_t)) throw ezioException(EZIOEX_WRITE);
 		return;
+    default:
+        break;
 	}
 
 	switch (command) {

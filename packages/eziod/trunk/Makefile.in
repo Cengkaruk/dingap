@@ -34,7 +34,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 sbin_PROGRAMS = eziod$(EXEEXT)
 subdir = .
-DIST_COMMON = $(am__configure_deps) $(srcdir)/Makefile.am \
+DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
 	$(srcdir)/eziod.spec.in $(top_srcdir)/configure depcomp \
 	install-sh missing
@@ -173,7 +173,7 @@ ACLOCAL_AMFLAGS = -I m4
 AM_CXXFLAGS = ${CXXFLAGS}
 EXTRA_DIST = ezio.h ezio300.h ezioex.h eziod.conf eziod.init eziod.modules icon5x8.cpp scripts/get_dyndnsinfo.php
 eziod_SOURCES = ezio300.cpp eziod.cpp
-eziod_CXXFLAGS = ${AM_CXXFLAGS} -D'_EZIO_PORT="/dev/ttyS1"' -D_EZIO_BAUD=2400
+eziod_CXXFLAGS = ${AM_CXXFLAGS} -D_EZIO_PORT=\"/dev/ttyS1\" -D_EZIO_BAUD=2400
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

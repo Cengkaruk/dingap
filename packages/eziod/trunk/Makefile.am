@@ -8,4 +8,4 @@ EXTRA_DIST = ezio.h ezio300.h ezioex.h eziod.conf eziod.init eziod.modules icon5
 sbin_PROGRAMS = eziod
 
 eziod_SOURCES = ezio300.cpp eziod.cpp
-eziod_CXXFLAGS = ${AM_CXXFLAGS} -D'_EZIO_PORT="/dev/ttyS1"' -D_EZIO_BAUD=2400
+eziod_CXXFLAGS = ${AM_CXXFLAGS} -D_EZIO_PORT=\"/dev/ttyS1\" -D_EZIO_BAUD=2400
