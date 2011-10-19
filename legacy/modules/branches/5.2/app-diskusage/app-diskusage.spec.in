@@ -14,7 +14,7 @@ Packager: ClearFoundation
 Requires: app-setup >= %VERSION%
 Requires: app-webconfig >= %VERSION%
 Requires: cloud-resource-monitor >= %VERSION%
-Requires: philesight >= 20091214-2.1
+Requires: philesight >= 20111015-1
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
