@@ -1,55 +1,42 @@
-# EZIOd RPM spec
-%define debug 1
-
-Name: eziod
-Version: @VER_MAJOR@.@VER_MINOR@
-Release: @VER_RELEASE@%{dist}
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Summary: EZIO-300 LCD panel server
+Release: 1%{dist}
 Vendor: ClearFoundation
-License: GPL
+License: GPLv2
 Group: System Environment/Daemons
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
-BuildRoot: /var/tmp/%{name}-%{version}
+URL: http://www.clearfoundation.com/
+BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 Requires: lm_sensors kmod-network-bypass kernel >= 2.6.18-164.11.1.v5
 Requires(post): /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
+BuildRequires: lm_sensors-libs
 BuildRequires: lm_sensors-devel
-Summary: EZIO-300 LCD panel server
+BuildRequires: lua-devel
 %description
 EZIOd is a daemon which controls the EZIO-300 LCD panel and buttons.
 
+# Prepare, configure
 %prep
+%setup -q
+%{configure}
 
-%setup
-
+# Build
 %build
-
-%if %{debug}
-CFLAGS="-g -O2 -pipe"
-%else
-CFLAGS="-O2 -s -pipe -mtune=%{_target_cpu}"
-%endif
-
-export CFLAGS="$CFLAGS"
-export CXXFLAGS="$CFLAGS"
-
-make
+make %{?_smp_mflags}
 
 # Install
 %install
-
-rm -rf $RPM_BUILD_ROOT
-
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
-mkdir -p -m 755 $RPM_BUILD_ROOT/etc/init.d
-mkdir -p -m 755 $RPM_BUILD_ROOT/etc/sysconfig/modules
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/eziod
-
-cp eziod $RPM_BUILD_ROOT/usr/sbin
-cp eziod.conf $RPM_BUILD_ROOT/etc
-cp eziod.init $RPM_BUILD_ROOT/etc/init.d/eziod
-cp eziod.modules $RPM_BUILD_ROOT/etc/sysconfig/modules/
-cp scripts/*.php $RPM_BUILD_ROOT/usr/share/eziod/
+make install DESTDIR=$RPM_BUILD_ROOT
+mkdir -p -m 755 $RPM_BUILD_ROOT/%{_sysconfdir}/init.d
+mkdir -p -m 755 $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/modules
+mkdir -p -m 755 $RPM_BUILD_ROOT/%{_datadir}/%{name}
+cp -v eziod.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}
+cp -v eziod.init ${RPM_BUILD_ROOT}/%{_sysconfdir}/init.d/eziod
+cp -v eziod.modules $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/modules/
+cp -v scripts/*.php $RPM_BUILD_ROOT/%{_datadir}/%{name}
 
 # Post install
 %post
@@ -77,9 +64,9 @@ fi
 # Files
 %files
 %defattr(-,root,root)
-%attr(0755,root,root)/usr/sbin/eziod
-%config(noreplace)/etc/eziod.conf
-%attr(0755,root,root)/etc/init.d/eziod
-%attr(0755,root,root)/etc/sysconfig/modules/eziod.modules
-%attr(0644,root,root)/usr/share/eziod/*.php
+%attr(0755,root,root)%{_sbindir}/eziod
+%config(noreplace)%{_sysconfdir}/eziod.conf
+%attr(0755,root,root)%{_sysconfdir}/init.d/eziod
+%attr(0755,root,root)%{_sysconfdir}/sysconfig/modules/eziod.modules
+%attr(0644,root,root)%{_datadir}/%{name}/*.php
 

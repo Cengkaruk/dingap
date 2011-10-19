@@ -21,6 +21,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <string>
 #include <map>
 #include <stack>
@@ -335,7 +339,7 @@ static int lua_get_sensor(lua_State *L)
 	int32_t feature = (int32_t)luaL_checknumber(L, 1);
 	double value = 0.0;
 	if (sensors_chip != NULL)
-		sensors_get_feature(*sensors_chip, feature, &value);
+		sensors_get_value(sensors_chip, feature, &value);
 
 	lua_pushnumber(L, value);
 	return 1;
@@ -597,7 +601,7 @@ int main(int argc, char *argv[])
 	}
 
 	int chip = 0;
-	sensors_chip = sensors_get_detected_chips(&chip);
+	sensors_chip = sensors_get_detected_chips(NULL, &chip);
 
 	signal(SIGINT, signal_handler);
 	signal(SIGTERM, signal_handler);

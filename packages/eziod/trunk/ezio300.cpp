@@ -21,6 +21,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <string>
 #include <exception>
 #include <iostream>
@@ -29,6 +33,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <termios.h>
 #include <fcntl.h>

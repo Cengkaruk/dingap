@@ -21,6 +21,10 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -436,7 +440,7 @@ ezioEmulator::ezioEmulator(ezioModel model)
 		0, 0))) throw ezioException(EZIOEX_SDL_CREATE_VIEW);
 
 	// Set caption
-	SDL_WM_SetCaption("EZIOemul v" _EZIO_VERSION, "EZIOemul");
+	SDL_WM_SetCaption("EZIOemul v" PACKAGE_VERSION, "EZIOemul");
 
 	// Start blink timer
 	cbt = 400;
