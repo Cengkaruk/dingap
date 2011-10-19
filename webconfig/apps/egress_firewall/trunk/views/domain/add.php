@@ -4,7 +4,7 @@
  * Egress firewall add domain view.
  *
  * @category   ClearOS
- * @package    Incoming_Firewall
+ * @package    Egress_Firewall
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
