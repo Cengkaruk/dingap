@@ -53,24 +53,128 @@ use \clearos\apps\disk_usage\Disk_Usage as Disk_Usage_Class;
 
 class Disk_Usage extends ClearOS_Controller
 {
-
     /**
      * Disk Usage default controller
      *
      * @return view
      */
 
-    function index()
+    function index($encoded_path = NULL, $xcoord = 0, $ycoord = 0)
     {
         // Load dependencies
         //------------------
 
         $this->lang->load('disk_usage');
+        $this->load->library('disk_usage/Philesight');
+
+        // Set default to / if path is not specified, decode
+        //--------------------------------------------------
+
+        if (is_null($encoded_path))
+            $encoded_path = strtr(base64_encode('/'),  '+/=', '-_.');
+
+        $real_path = base64_decode(strtr($encoded_path, '-_.', '+/='));
+
+        // Validation
+        //-----------
+        // This is to catch security shenanigans, end users won't see this.
+
+        try {
+            if ($this->philesight->validate_path($real_path))
+                throw new \Exception(lang('disk_usage_path_invalid'));
+
+            if ($this->philesight->validate_coordinate($xcoord))
+                throw new \Exception(lang('disk_usage_coordinate_invalid'));
+
+            if ($this->philesight->validate_coordinate($ycoord))
+                throw new \Exception(lang('disk_usage_coordinate_invalid'));
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['initialized'] = $this->philesight->is_initialized();
+            $data['real_path'] = $real_path;
+            $data['encoded_path'] = $encoded_path;
+            $data['xcoord'] = $xcoord;
+            $data['ycoord'] = $ycoord;
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Update database if not initialized
+        //-----------------------------------
+
+        if (! $data['initialized'])
+            $this->philesight->update_database();
 
         // Load view
         //----------
 
-        $this->page->view_form('disk_usage', NULL, lang('disk_usage_disk_usage'));
+        $this->page->view_form('disk_usage', $data, lang('disk_usage_app_name'));
     }
 
+    /**
+     * Returns image for given path.
+     *
+     * @param string $encoded_path encoded path
+     *
+     * @return PNG image
+     */
+
+    function get_image($encoded_path)
+    {
+        $this->load->library('disk_usage/Philesight');
+
+        $real_path = base64_decode(strtr($encoded_path, '-_.', '+/='));
+
+        // Validation
+        //-----------
+        // This is to catch security shenanigans, end users won't see this.
+
+// FIXME
+/*
+        if ($this->philesight->validate_path($real_path))
+            return;
+*/
+
+        header("Content-type: image/png");
+        echo $this->philesight->get_image($real_path);
+    }
+
+    /**
+     * Gets state of database.
+     *
+     * @return state
+     */
+
+    function get_state()
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('disk_usage/Philesight');
+
+        // Run synchronize
+        //----------------
+
+        try {
+            $data['error_code'] = 0;
+            $data['state'] = $this->philesight->is_initialized();
+        } catch (Exception $e) {
+            $data['error_code'] = clearos_exception_code($e);
+            $data['error_message'] = clearos_exception_message($e);
+        }
+
+        // Return status message
+        //----------------------
+
+        $this->output->set_header("Content-Type: application/json");
+        $this->output->set_output(json_encode($data));
+    }
 }

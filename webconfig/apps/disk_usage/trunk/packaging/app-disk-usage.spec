@@ -20,7 +20,7 @@ Summary: Disk Usage - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: philesight
+Requires: philesight >= 20111015-3
 
 %description core
 Displays your system hard disk usage.
@@ -37,6 +37,7 @@ cp -r * %{buildroot}/usr/clearos/apps/disk_usage/
 
 install -d -m 755 %{buildroot}/var/clearos/disk_usage
 install -D -m 0644 packaging/app-disk-usage.cron %{buildroot}/etc/cron.d/app-disk-usage
+install -D -m 0755 packaging/philesight-updatedb %{buildroot}/usr/sbin/philesight-updatedb
 
 %post
 logger -p local6.notice -t installer 'app-disk-usage - installing'
@@ -81,3 +82,4 @@ exit 0
 /usr/clearos/apps/disk_usage/language
 /usr/clearos/apps/disk_usage/libraries
 /etc/cron.d/app-disk-usage
+/usr/sbin/philesight-updatedb

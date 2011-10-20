@@ -4,7 +4,7 @@
  * Philesight class.
  *
  * @category   Apps
- * @package    Date
+ * @package    Disk_Usage
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -58,10 +58,12 @@ clearos_load_language('disk_usage');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
+clearos_load_library('base/Shell');
 
 // Exceptions
 //-----------
@@ -78,7 +80,7 @@ clearos_load_library('base/Validation_Exception');
  * Philesight class.
  *
  * @category   Apps
- * @package    Date
+ * @package    Disk_Usage
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -92,8 +94,9 @@ class Philesight extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const PHILESIGHT_COMMAND = '/usr/sbin/philesightcli';
-    const FILE_DATA = '/usr/webconfig/tmp/ps.db';
+    const COMMAND_PHILESIGHT_CLI = '/usr/sbin/philesightcli';
+    const COMMAND_PHILESIGHT_UPDATEDB = '/usr/sbin/philesight-updatedb';
+    const FILE_DATA = '/var/clearos/disk_usage/ps.db';
     const MAX_COORDINATE = 100000;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -122,9 +125,11 @@ class Philesight extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $path = realpath($path);
+
         Validation_Exception::is_valid($this->validate_path($path));
 
-        $command = escapeshellcmd(self::PHILESIGHT_COMMAND . ' --action image --path ' . $path);
+        $command = escapeshellcmd(self::COMMAND_PHILESIGHT_CLI . ' --action image --path ' . $path);
 
         ob_start();
         passthru($command);
@@ -148,12 +153,14 @@ class Philesight extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $path = realpath($path);
+
         Validation_Exception::is_valid($this->validate_path($path));
         Validation_Exception::is_valid($this->validate_coordinate($xcoord));
         Validation_Exception::is_valid($this->validate_coordinate($ycoord));
 
         $command = escapeshellcmd(
-            self::PHILESIGHT_COMMAND .  ' ' .
+            self::COMMAND_PHILESIGHT_CLI .  ' ' .
             '--action find' . ' ' .
             '--path ' . $path .  ' ' .
             '--xcoord ' . $xcoord . ' ' . 
@@ -164,7 +171,7 @@ class Philesight extends Engine
         passthru($command);
         $path = ob_get_clean();
 
-        return $path;
+        return trim($path);
     }
 
     /**
@@ -174,7 +181,7 @@ class Philesight extends Engine
      * @throws Engine_Exception
      */
 
-    public function initialized()
+    public function is_initialized()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -185,6 +192,28 @@ class Philesight extends Engine
         else
             return FALSE;
     }
+
+    /**
+     * Collects disk usage data.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function update_database()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $options['background'] = TRUE;
+        $options['validate_exit_code'] = FALSE;
+
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_PHILESIGHT_UPDATEDB, '', TRUE, $options);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N
+    ///////////////////////////////////////////////////////////////////////////////
 
     /**
      * Validation routine for coordinates.
@@ -199,24 +228,24 @@ class Philesight extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match('/^\d+$/', $coordinate) || ($coordinate > self::MAX_COORDINATE))
-            return lang('disk_usage_coordinate_is_invalid');
+            return lang('disk_usage_coordinate_invalid');
     }
 
     /**
      * Validation routine for path.
      *
-     * @param string $path path
+     * @param string $real_path real path
      *
      * @return string error message if path is invalid
      */
 
-    public function validate_path($path)
+    public function validate_path($real_path)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $path = realpath($path);
-
-        $folder = new Folder($path);
+        // FIXME: this should do a standard check
+        // since this won't catch the case when a folder is deleted
+        $folder = new Folder($real_path);
 
         if (! $folder->exists())
             return lang('disk_usage_path_invalid');

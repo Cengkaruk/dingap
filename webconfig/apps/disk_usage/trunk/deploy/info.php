@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('disk_usage_summary');
-$app['description'] = lang('disk_usage_page_intro');
+$app['description'] = lang('disk_usage_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('disk_usage_disk_usage');
+$app['name'] = lang('disk_usage_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_storage');
 
@@ -33,15 +32,17 @@ $app['controllers']['disk_usage']['tooltip'] = lang('disk_usage_app_tooltip');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'philesight'
+    'philesight >= 20111015-3'
 );
 
 $app['core_file_manifest'] = array( 
-   'app-disk-usage.cron' => array(
+    'app-disk-usage.cron' => array(
         'target' => '/etc/cron.d/app-disk-usage',
         'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
+    ),
+    'philesight-updatedb' => array(
+        'target' => '/usr/sbin/philesight-updatedb',
+        'mode' => '0755',
     )
 );
 

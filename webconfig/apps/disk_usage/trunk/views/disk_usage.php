@@ -36,12 +36,11 @@
 $this->lang->load('base');
 $this->lang->load('disk_usage');
 
-// TODO: implement an API call instead of file_exists test. 
-if (file_exists(CLEAROS_TEMP_DIR . "/ps.db")) {
-    $url = "https://" . $_SERVER['HTTP_HOST'] . "/cgi-bin/philesight.cgi";
-    echo "<iframe style='border:none;' src='$url' width='100%' height='550'>";
-    echo "<p>" . lang('disk_usage_iframe_not_supported') . "</p>";
-    echo "</iframe>";
-} else {
-    echo infobox_warning(lang('base_warning'), lang('disk_usage_not_available')); 
-}
+///////////////////////////////////////////////////////////////////////////////
+// Main
+///////////////////////////////////////////////////////////////////////////////
+
+echo "<div id='working'>&nbsp;</div>";
+echo "<div id='usage'><a href='" . clearos_app_htdocs('disk_usage') . "/get_image.php?path=$real_path&amp;'>";
+echo "<img width='500' height='500' src='/app/disk_usage/get_image/" . $encoded_path . "' ismap='ismap' alt='-' />";
+echo "</a></div>";
