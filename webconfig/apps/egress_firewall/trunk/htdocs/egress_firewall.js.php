@@ -4,7 +4,7 @@
  * Javascript helper for Egress Firewall.
  *
  * @category   Apps
- * @package    Mail_Archive
+ * @package    Egress_Firewall
  * @subpackage Javascript
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
