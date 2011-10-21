@@ -1,0 +1,23 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Set default configuration
+#--------------------------
+
+logger -p local6.notice -t installer "app-ntp-core - setting default configuration"
+
+if [ -e /etc/ntp.conf ]; then
+    cp /etc/ntp.conf /var/clearos/ntp/ntp.conf.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/ntp/deploy/ntp.conf /etc/ntp.conf
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-ntp-core - enabling NTP server"
+chkconfig ntpd on
+
+logger -p local6.notice -t installer "app-ntp-core - starting NTP server"
+service ntpd start
