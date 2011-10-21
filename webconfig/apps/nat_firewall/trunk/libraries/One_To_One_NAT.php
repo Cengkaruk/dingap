@@ -106,12 +106,12 @@ class One_To_One_NAT extends Firewall
     /**
      * Adds a port only 1:1 NAT rule.
      *
-     * @param string  $name      optional rule nickname
-     * @param string  $wan_ip   WAN IP address
-     * @param string  $lan_ip     LAN IP address
-     * @param string  $protocol  protocol - TCP or UDP
-     * @param integer $port      port number
-     * @param string  $interface External interface name (ie: eth0)
+     * @param string $name      optional rule nickname
+     * @param string $wan_ip    WAN IP address
+     * @param string $lan_ip    LAN IP address
+     * @param string $protocol  protocol - TCP or UDP
+     * @param string $port      port or port range
+     * @param string $interface External interface name (ie: eth0)
      *
      * @return void
      * @throws Engine_Exception
@@ -126,7 +126,7 @@ class One_To_One_NAT extends Firewall
         Validation_Exception::is_valid($this->validate_ip($lan_ip));
         Validation_Exception::is_valid($this->validate_protocol($protocol));
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 Validation_Exception::is_valid($this->validate_port_range($match[1], $match[2]));
             else
                 Validation_Exception::is_valid($this->validate_port($port));
@@ -148,7 +148,7 @@ class One_To_One_NAT extends Firewall
         }
 
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 $rule->set_port_range($match[1], $match[2]);
             else
                 $rule->set_port($port);
@@ -181,7 +181,7 @@ class One_To_One_NAT extends Firewall
         Validation_Exception::is_valid($this->validate_ip($lan_ip));
         Validation_Exception::is_valid($this->validate_protocol($protocol));
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 Validation_Exception::is_valid($this->validate_port_range($match[1], $match[2]));
             else
                 Validation_Exception::is_valid($this->validate_port($port));
@@ -208,7 +208,7 @@ class One_To_One_NAT extends Firewall
         }
 
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 $rule->set_port_range($match[1], $match[2]);
             else
                 $rule->set_port($port);
@@ -240,7 +240,7 @@ class One_To_One_NAT extends Firewall
         Validation_Exception::is_valid($this->validate_ip($lan_ip));
         Validation_Exception::is_valid($this->validate_protocol($protocol));
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 Validation_Exception::is_valid($this->validate_port_range($match[1], $match[2]));
             else
                 Validation_Exception::is_valid($this->validate_port_range($port, $port));
@@ -263,7 +263,7 @@ class One_To_One_NAT extends Firewall
         }
 
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 $rule->set_port_range($match[1], $match[2]);
             else
                 $rule->set_port($port);
@@ -306,7 +306,7 @@ class One_To_One_NAT extends Firewall
         Validation_Exception::is_valid($this->validate_ip($lan_ip));
         Validation_Exception::is_valid($this->validate_protocol($protocol));
         if ($port) {
-            if (preg_match('/(.*):|-(.*)/', $port, $match))
+            if (preg_match('/(.*):(.*)/', $port, $match))
                 Validation_Exception::is_valid($this->validate_port_range($match[1], $match[2]));
             else
                 Validation_Exception::is_valid($this->validate_port_range($port, $port));
@@ -331,7 +331,7 @@ class One_To_One_NAT extends Firewall
             }
 
             if ($port) {
-                if (preg_match('/(.*):|-(.*)/', $port, $match))
+                if (preg_match('/(.*):(.*)/', $port, $match))
                     $rule->set_port_range($match[1], $match[2]);
                 else
                     $rule->set_port($port);
@@ -356,15 +356,15 @@ class One_To_One_NAT extends Firewall
      * @throws Engine_Exception
      */
 
-    public function get_rules()
+    public function get_nat_rules()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $nat_list = array();
 
-        $rules = $this->get_rules();
+        $nat_rules = $this->get_rules();
 
-        foreach ($rules as $rule) {
+        foreach ($nat_rules as $rule) {
             if (!($rule->get_flags() & Rule::ONE_TO_ONE))
                 continue;
 
@@ -387,7 +387,7 @@ class One_To_One_NAT extends Firewall
 
         
             if ($rule->get_port()) {
-                if (preg_match('/(.*):|-(.*)/', $rule->get_port(), $match))
+                if (preg_match('/(.*):(.*)/', $rule->get_port(), $match))
                     $info['host'] = sprintf('%s|%s|%s|%d|%d', $lan_ip, $rule->get_address(), $info['protocol_name'], $match[1], $match[2]);
                 else
                     $info['host'] = sprintf('%s|%s|%s|%d', $lan_ip, $rule->get_address(), $info['protocol_name'], $rule->get_port());

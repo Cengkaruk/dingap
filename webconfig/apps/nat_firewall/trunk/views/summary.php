@@ -62,7 +62,7 @@ $anchors = array(anchor_add('/app/nat_firewall/add'));
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($rules as $rule) {
+foreach ($nat_rules as $rule) {
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
     $key = $rule['name'] . '/' . $rule['ip'] . '/' . $rule['protocol'] . '/' . $rule['port'];
@@ -75,13 +75,16 @@ foreach ($rules as $rule) {
             anchor_delete('/app/nat_firewall/incoming/delete/' . $key, 'low')
         )
     );
+
+    list($private_ip, $public_ip, $protocol, $port_start, $port_end) = split("\\|", $rule['host']);
+
     $item['details'] = array(
         $rule['name'],
-        $rule['interace'],
-        $rule['private_ip'],
-        $rule['public_ip'],
-        ($rule['protocol'] == Firewall::PROTOCOL_ALL ? lang('base_all') : $rule['protocol']),
-        ($rule['port'] == Firewall::CONSTANT_ALL_PORTS ? lang('base_all') : $rule['port'])
+        $rule['interface'],
+        $private_ip,
+        $public_ip,
+        (!$rule['protocol'] ? lang('base_all') : $rule['protocol_name']),
+        ($port_start == Firewall::CONSTANT_ALL_PORTS ? lang('base_all') : $port_start) . ($port_end ? ':' . $port_end : '')
     );
 
     $items[] = $item;
