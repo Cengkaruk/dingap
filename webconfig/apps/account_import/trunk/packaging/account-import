@@ -55,12 +55,17 @@ clearos_load_language('account_import');
 //--------
 
 use \clearos\apps\account_import\Account_Import as Account_Import;
-use \clearos\apps\users\User_Factory as User_Factory;
 use \clearos\apps\base\File as File;
+use \clearos\apps\users\User_Factory as User_Factory;
 
-clearos_load_library('base/File');
 clearos_load_library('account_import/Account_Import');
+clearos_load_library('base/File');
 clearos_load_library('users/User_Factory');
+
+// Exceptions
+//-----------
+
+use \Exception as Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // M A I N
@@ -109,6 +114,7 @@ try {
     $status = new File(CLEAROS_TEMP_DIR . "/" . Account_Import::FILE_STATUS, FALSE);
 
     $in_progress = $account_import->is_import_in_progress();
+
     if ($in_progress && $output == 'stdout') {
         update_status(0, 0, lang('account_import_already_in_progress'));
         exit(0);
@@ -127,6 +133,12 @@ try {
 // F U N C T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * Import.
+ *
+ * @return void
+ */
+
 function import()
 {
     global $account_import;
@@ -136,21 +148,26 @@ function import()
 
     // Grab CSV file to see how many users we're adding
     $total = count(file($filename)) - 1;
+
     if ($total <= 0) {
-       update_status(-1, 0, lang('account_import_zero_entries'));
-       return;
+        update_status(-1, 0, lang('account_import_zero_entries'));
+        return;
     }
+
     if (($handle = fopen($filename, "r")) !== FALSE) {
         $is_header = TRUE;
         $header = array();
         $user_no = 0;
+
         while (($data = fgetcsv($handle)) !== FALSE) {
             $user_info = array();
+
             if ($is_header) {
                 $is_header = FALSE;
                 $header = $data;
                 continue;
             }
+
             for ($counter = 0; $counter < count($data); $counter++) {
                 $user_fields = explode(".", $header[$counter]);
                 // FIXME
@@ -159,9 +176,11 @@ function import()
                 else
                     $user_info[$user_fields[0]][$user_fields[1]][$user_fields[2]] = $data[$counter];
             }
+
             $msg = lang('account_import_currently_importing') . ' ' . $user_info['core']['username'] . '.';
             update_status(0, $user_no / $total * 100, $msg);
             $user = User_Factory::create($user_info['core']['username']);
+
             try {
                 $user->add($user_info, $user_info['core']['password']);
                 $user_no++;
@@ -178,10 +197,21 @@ function import()
     fclose($handle);
 }
 
+/**
+ * Update status.
+ *
+ * @param string $code     status code
+ * @param string $progress progress
+ * @param string $msg      status message
+ *
+ * @return void
+ */
+
 function update_status($code, $progress, $msg)
 {
     global $status;
     global $output;
+
     if ($output == 'stdout') {
         echo $msg . "\n";
     } else {
@@ -193,7 +223,9 @@ function update_status($code, $progress, $msg)
         );
         $status->add_lines(json_encode($info) . "\n"); 
     }
+
     // TODO - REMOVEME
     sleep(1);
 }
+
 // vim: syntax=php
