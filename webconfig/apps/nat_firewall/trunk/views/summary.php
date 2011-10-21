@@ -45,8 +45,8 @@ $this->lang->load('firewall');
 $headers = array(
     lang('firewall_nickname'),
     lang('nat_firewall_interface'),
-    lang('nat_firewall_private_ip'),
-    lang('nat_firewall_public_ip'),
+    lang('nat_firewall_lan_ip'),
+    lang('nat_firewall_wan_ip'),
     lang('firewall_protocol'),
     lang('firewall_port')
 );
@@ -63,26 +63,33 @@ $anchors = array(anchor_add('/app/nat_firewall/add'));
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($nat_rules as $rule) {
+
+    // Parse out host info
+    list($lan_ip, $wan_ip, $protocol, $port_start, $port_end) = split("\\|", $rule['host']);
+
     $state = ($rule['enabled']) ? 'disable' : 'enable';
     $state_anchor = 'anchor_' . $state;
-    $key = $rule['name'] . '/' . $rule['ip'] . '/' . $rule['protocol'] . '/' . $rule['port'];
+    $key = $rule['name'] . '/' . $wan_ip . '/' . $lan_ip .
+        '/' . ($protocol ? $protocol : Firewall::PROTOCOL_ALL) .
+        '/' . ($port_start ? $port_start : '0') .
+        ($port_end ? ':' . $port_end : '') . '/' .
+        $rule['interface'];
 
     $item['title'] = $rule['name'];
-    $item['action'] = '/app/nat_firewall/incoming/delete/' . $key;
+    $item['action'] = '/app/nat_firewall/delete/' . $key;
     $item['anchors'] = button_set(
         array(
-            $state_anchor('/app/nat_firewall/incoming/' . $state . '/' . $key, 'high'),
-            anchor_delete('/app/nat_firewall/incoming/delete/' . $key, 'low')
+            $state_anchor('/app/nat_firewall/' . $state . '/' . $key, 'high'),
+            anchor_delete('/app/nat_firewall/delete/' . $key, 'low')
         )
     );
 
-    list($private_ip, $public_ip, $protocol, $port_start, $port_end) = split("\\|", $rule['host']);
 
     $item['details'] = array(
         $rule['name'],
         $rule['interface'],
-        $private_ip,
-        $public_ip,
+        $lan_ip,
+        $wan_ip,
         (!$rule['protocol'] ? lang('base_all') : $rule['protocol_name']),
         ($port_start == Firewall::CONSTANT_ALL_PORTS ? lang('base_all') : $port_start) . ($port_end ? ':' . $port_end : '')
     );

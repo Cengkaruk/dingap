@@ -65,20 +65,18 @@ class Nat_Firewall extends ClearOS_Controller
         $this->load->library('nat_firewall/One_To_One_NAT');
         $this->load->library('network/Iface_Manager');
 
-        // Sanity check - make sure there is a NAT interface configured
+        // Sanity check - make sure there is a external interface configured
         //-------------
 
-        /*
         $sanity_ok = FALSE;
         $network_interface = $this->iface_manager->get_interface_details();
         foreach ($network_interface as $interface => $detail) {
-            if ($detail['role'] == Role::ROLE_NAT)
+            if ($detail['role'] == Role::ROLE_EXTERNAL)
                 $sanity_ok = TRUE;
         }
-        */
 
-        //if (!$sanity_ok)
-        //    $this->page->set_message(lang('nat_firewall_network_not_configured'), 'warning');
+        if (!$sanity_ok)
+            $this->page->set_message(lang('nat_firewall_no_external_nic'), 'warning');
 
         // Load view data
         //---------------
@@ -169,8 +167,7 @@ class Nat_Firewall extends ClearOS_Controller
             $interfaces = $this->iface_manager->get_interface_details();
             // Only want external
             foreach ($interfaces as $key => $interface) {
-            // FIXME
-            //    if ($interface['role'] == Role::ROLE_EXTERNAL)
+                if ($interface['role'] == Role::ROLE_EXTERNAL)
                     $data['interfaces'][$key] = $key;
             }
             if (empty($data['interfaces']))
@@ -188,41 +185,46 @@ class Nat_Firewall extends ClearOS_Controller
     }
 
     /**
-     * Delete port forward host.
+     * Delete rule.
      *
-     * @param string $name     nickname
-     * @param string $ip       IP address
-     * @param string $protocol protocol
-     * @param string $port     port
+     * @param string $name      nickname
+     * @param string $wan_ip    IP address
+     * @param string $lan_ip    IP address
+     * @param string $protocol  protocol
+     * @param string $port      port
+     * @param string $interface port
      *
      * @return view
      */
 
-    function delete($name, $ip, $protocol, $port)
+    function delete($name, $wan_ip, $lan_ip, $protocol, $port, $interface)
     {
-        $confirm_uri = '/app/nat_firewall/destroy/' . $ip . '/' . $protocol . '/' . $port;
+        $this->lang->load('nat_firewall');
+        $confirm_uri = '/app/nat_firewall/destroy/' . $wan_ip . '/' . $lan_ip . '/' . $protocol . '/' . $port . '/' . $interface;
         $cancel_uri = '/app/nat_firewall';
-        $items = array($name . ' (' . $ip . ')');
+        $items = array($name . ' (' . $wan_ip . ' > ' . $lan_ip . ') ' . lang('nat_firewall_on') . ' ' . $interface);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
 
     /**
-     * Destroys port forward rule.
+     * Destroys rule.
      *
-     * @param string $ip       IP address
-     * @param string $protocol protocol
-     * @param string $port     port
+     * @param string $wan_ip    IP address
+     * @param string $lan_ip    IP address
+     * @param string $protocol  protocol
+     * @param string $port      port
+     * @param string $interface port
      *
      * @return view
      */
 
-    function destroy($ip, $protocol, $port)
+    function destroy($wan_ip, $lan_ip, $protocol, $port, $interface)
     {
         try {
             $this->load->library('nat_firewall/One_To_One_NAT');
 
-            $this->one_to_one_nat->delete_forward_port($ip, $protocol, ($port) ? $port : 0);
+            $this->one_to_one_nat->delete($wan_ip, $lan_ip, $protocol, ($port ? $port : 0), $interface);
 
             $this->page->set_status_deleted();
             redirect('/nat_firewall');
@@ -233,22 +235,24 @@ class Nat_Firewall extends ClearOS_Controller
     }
 
     /**
-     * Disables port forward rule.
+     * Disables rule.
      *
-     * @param string $name     nickname
-     * @param string $ip       IP address
-     * @param string $protocol protocol
-     * @param string $port     port
+     * @param string $name      nickname
+     * @param string $wan_ip    IP address
+     * @param string $lan_ip    IP address
+     * @param string $protocol  protocol
+     * @param string $port      port
+     * @param string $interface port
      *
      * @return view
      */
 
-    function disable($name, $ip, $protocol, $port)
+    function disable($name, $wan_ip, $lan_ip, $protocol, $port, $interface)
     {
         try {
             $this->load->library('nat_firewall/One_To_One_NAT');
 
-            $this->one_to_one_nat->toggle_enable_forward_port(FALSE, $ip, $protocol, ($port) ? $port : 0);
+            $this->one_to_one_nat->toggle_enable(FALse, $wan_ip, $lan_ip, $protocol, $port, $interface);
 
             $this->page->set_status_disabled();
             redirect('/nat_firewall');
@@ -259,22 +263,24 @@ class Nat_Firewall extends ClearOS_Controller
     }
 
     /**
-     * Enables port forward rule.
+     * Enables rule.
      *
-     * @param string $name     nickname
-     * @param string $ip       IP address
-     * @param string $protocol protocol
-     * @param string $port     port
+     * @param string $name      nickname
+     * @param string $wan_ip    IP address
+     * @param string $lan_ip    IP address
+     * @param string $protocol  protocol
+     * @param string $port      port
+     * @param string $interface port
      *
      * @return view
      */
 
-    function enable($name, $ip, $protocol, $port)
+    function enable($name, $wan_ip, $lan_ip, $protocol, $port, $interface)
     {
         try {
             $this->load->library('nat_firewall/One_To_One_NAT');
 
-            $this->one_to_one_nat->toggle_enable(TRUE, $ip, $protocol, ($port) ? $port : 0);
+            $this->one_to_one_nat->toggle_enable(TRUE, $wan_ip, $lan_ip, $protocol, $port, $interface);
 
             $this->page->set_status_enabled();
             redirect('/nat_firewall');

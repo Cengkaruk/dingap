@@ -287,12 +287,12 @@ class One_To_One_NAT extends Firewall
     /**
      * Delete an existing 1:1 NAT port range rule.
      *
-     * @param boolean $enabled state of rule
-     * @param string $wan_ip WAN IP address
-     * @param string $lan_ip LAN IP address
-     * @param string $protocol protocol - TCP or UDP
-     * @param string $port port number or range
-     * @param string $interface external interface name
+     * @param boolean $enabled   state of rule
+     * @param string  $wan_ip    WAN IP address
+     * @param string  $lan_ip    LAN IP address
+     * @param string  $protocol  protocol - TCP or UDP
+     * @param string  $port      port number or range
+     * @param string  $interface external interface name
      *
      * @return void
      * @throws Engine_Exception
