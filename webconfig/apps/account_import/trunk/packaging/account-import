@@ -223,9 +223,6 @@ function update_status($code, $progress, $msg)
         );
         $status->add_lines(json_encode($info) . "\n"); 
     }
-
-    // TODO - REMOVEME
-    sleep(1);
 }
 
 // vim: syntax=php
