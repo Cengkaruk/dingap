@@ -26,6 +26,9 @@ $app['subcategory'] = lang('base_subcategory_bandwidth_and_qos');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['controllers']['bandwidth']['title'] = lang('bandwidth_app_name');
+$app['controllers']['ifaces']['title'] = lang('bandwidth_network_interfaces');
+$app['controllers']['basic']['title'] = lang('bandwidth_basic_rules');
+$app['controllers']['advanced']['title'] = lang('bandwidth_advanced_rules');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

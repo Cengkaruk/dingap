@@ -99,33 +99,53 @@ clearos_load_library('base/Validation_Exception');
 
 class Bandwidth extends Firewall
 {
-	//////////////////////////////////////////////////////////////////////////////
-	// C O N S T A N T S
-	///////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
 
-	const FILE_CONFIG = '/etc/clearos/bandwidth.conf';
-	const MAX_IP_RANGE = 255;
-	const CONSTANT_SPEED_NOT_SET = 0;
+    const FILE_CONFIG = '/etc/clearos/bandwidth.conf';
+    const CONSTANT_SPEED_NOT_SET = 0;
 
-	const MODE_LIMIT = 0;
-	const MODE_RESERVE = 1;
-
-	const DIR_ORIGINATING_LAN = 0;
-	const DIR_DESTINED_LAN = 1;
-	const DIR_ORIGINATING_GW = 2;
-	const DIR_DESTINED_GW = 3;
-
-	const TYPE_BASIC = 1;
+    const MIN_SPEED = 2;
     const MAX_SPEED = 10000000;
+    const MAX_IP_RANGE = 255;
 
-	//////////////////////////////////////////////////////////////////////////////
-	// V A R I A B L E S
-	///////////////////////////////////////////////////////////////////////////////
+    const MATCH_DESTINATION = 0;
+    const MATCH_SOURCE = 1;
 
-	protected $is_loaded = false;
-	protected $config = array();
+    const MODE_LIMIT = 'limit';
+    const MODE_RESERVE = 'reserve';
 
-	///////////////////////////////////////////////////////////////////////////////
+    const DIRECTION_FROM_NETWORK = 'from_network';
+    const DIRECTION_TO_NETWORK = 'to_network';
+    const DIRECTION_FROM_SYSTEM = 'from_system';
+    const DIRECTION_TO_SYSTEM = 'to_system';
+
+    const PRIORITY_HIGHEST = 0;
+    const PRIORITY_VERY_HIGH = 1;
+    const PRIORITY_HIGH = 2;
+    const PRIORITY_MEDIUM = 3;
+    const PRIORITY_LOW = 4;
+    const PRIORITY_VERY_LOW = 5;
+    const PRIORITY_LOWEST = 6;
+
+    const TYPE_ADVANCED = 0;
+    const TYPE_BASIC = 1;
+    const TYPE_ALL = 2;
+
+    //////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $is_loaded = FALSE;
+    protected $config = array();
+
+    protected $directions = array();
+    protected $matches = array();
+    protected $modes = array();
+    protected $priorities = array();
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -138,323 +158,385 @@ class Bandwidth extends Firewall
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct();
+
+        $this->directions = array(
+            self::DIRECTION_FROM_NETWORK => lang('bandwidth_flowing_from_network'),
+            self::DIRECTION_TO_NETWORK => lang('bandwidth_flowing_to_network'),
+            self::DIRECTION_FROM_SYSTEM => lang('bandwidth_flowing_from_system'),
+            self::DIRECTION_TO_SYSTEM => lang('bandwidth_flowing_to_system'),
+        );
+
+        $this->modes = array(
+            self::MODE_LIMIT => lang('bandwidth_limit'),
+            self::MODE_RESERVE => lang('bandwidth_reserve'),
+        );
+
+        $this->priorities = array(
+            self::PRIORITY_HIGHEST => lang('base_highest'),
+            self::PRIORITY_VERY_HIGH => lang('base_very_high'),
+            self::PRIORITY_HIGH => lang('base_high'),
+            self::PRIORITY_MEDIUM => lang('base_medium'),
+            self::PRIORITY_LOW => lang('base_low'),
+            self::PRIORITY_VERY_LOW => lang('base_very_low'),
+            self::PRIORITY_LOWEST => lang('base_lowest'),
+        );
+
+        $this->matches = array(
+            self::MATCH_SOURCE => lang('bandwidth_source'),
+            self::MATCH_DESTINATION => lang('bandwidth_destination')
+        );
     }
 
     /**
-     * Add a new 'basic' Bandwidth Rule.
+     * Add an advanced bandwidth rule.
      *
-     * @param string  $name     bandwidth rule name
-     * @param integer $mode     rule mode, limit or reserve
-     * @param array   $service  service
-     * @param integer $dir      rule direction
-     * @param integer $speed    upstream/downstream rate
-     * @param integer $priority rule priority
-     * 
-     * @param return void
+     * @param string  $name            bandwidth rule name
+     * @param string  $iface           external interface
+     * @param string  $addr_type       addr type: 0 destination, 1 source
+     * @param string  $port_type       port type: 0 destination, 1 source
+     * @param string  $ip              IP address
+     * @param string  $port            port
+     * @param integer $priority        priority
+     * @param integer $upstream        upstream rate
+     * @param integer $upstream_ceil   upstream ceiling
+     * @param integer $downstream      downstream rate
+     * @param integer $downstream_ceil downstream ceiling
+     *
+     * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_basic_bandwidth_rule($name, $mode, $service, $dir, $speed, $priority)
+    public function add_advanced_rule($name, $iface, $addr_type, $port_type, $ip, $port, $priority, $upstream = 0, $upstream_ceil = 0, $downstream = 0, $downstream_ceil = 0)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_speed($speed));
+        Validation_Exception::is_valid($this->validate_name($name));
+        Validation_Exception::is_valid($this->validate_interface($iface));
+        Validation_Exception::is_valid($this->validate_match($addr_type));
+        Validation_Exception::is_valid($this->validate_match($port_type));
+        Validation_Exception::is_valid($this->validate_ip($ip));
+        Validation_Exception::is_valid($this->validate_port($port));
+        Validation_Exception::is_valid($this->validate_priority($priority));
+        Validation_Exception::is_valid($this->validate_rate($upstream));
+        Validation_Exception::is_valid($this->validate_rate($upstream_ceil));
+        Validation_Exception::is_valid($this->validate_rate($downstream));
+        Validation_Exception::is_valid($this->validate_rate($downstream_ceil));
 
-        try {
-            $flags = Rule::BANDWIDTH_RATE | Rule::BANDWIDTH_BASIC | Rule::ENABLED;
-
-            switch ($mode) {
-            case self::MODE_LIMIT:
-                $ceil = $speed;
-                break;
-            case self::MODE_RESERVE:
-                $ceil = 0;
-                break;
-            default:
-                // TODO: add validation error...
-                return;
-            }
-
-            $saddr = FALSE;
-            $sport = FALSE;
-            $internal = FALSE;
-
-            switch ($dir) {
-            case self::DIR_ORIGINATING_LAN:
-                $flags |= Rule::LOCAL_NETWORK;
-                $saddr = FALSE;
-                $sport = FALSE;
-                $internal = TRUE;
-                break;
-            case self::DIR_DESTINED_LAN:
-                $flags |= Rule::LOCAL_NETWORK;
-                $saddr = FALSE;
-                $sport = TRUE;
-                $internal = TRUE;
-                break;
-            case self::DIR_ORIGINATING_GW:
-                $flags |= Rule::EXTERNAL_ADDR;
-                $saddr = FALSE;
-                $sport = FALSE;
-                break;
-            case self::DIR_DESTINED_GW:
-                $flags |= Rule::EXTERNAL_ADDR;
-                $saddr = FALSE;
-                $sport = TRUE;
-                break;
-            default:
-                // TODO: add validation error...
-                return;
-            }
-
-            // TODO: Basic rules should use 'all' for the external interface name,
-            // and the firewall should dynamically duplicate these rules for each
-            // external interface.
-            $ifm = new Iface_Manager();
-            $ext_iflist = $ifm->GetExternalInterfaces();
-            $ports = explode(':', $service['port']);
-            foreach ($ports as $port) {
-                foreach ($ext_iflist as $ext_ifn) {
-                    $rule = new Rule();
-                    $rule->SetName($name);
-                    $rule->SetFlags($flags);
-                    $rule->SetAddress('0.0.0.0');
-                    $rule->SetPort($port);
-                    $rule->SetParameter(
-                        sprintf('%s:%d:%d:%d:%d:%d:%d:%d',
-                    $ext_ifn, $saddr, $sport, $priority,
-                    $speed, $ceil, $speed, $ceil));
-                    if ($rule->CheckValidationErrors() || (! empty($this->errors))) {
-                        $this->errors = array_merge($rule->CopyValidationErrors(TRUE), $this->errors);
-                        var_dump($this->errors);
-                    }
-                    else $this->AddRule($rule);
-                }
-            }
-
-        } catch (Exception $e) {
-            throw new Engine_Exception(lang('bandwidth_FIXME'));
-        }
-    }
-
-    /**
-     * Add a new Bandwidth Rule.
-     *
-     * @param  string  $name  the bandwidth rule name
-     * @param  string  $ifn  the external interface
-     * @param  string  $src_addr  addr type: 0 destination, 1 source
-     * @param  string  $src_port  src type: 0 destination, 1 source
-     * @param  string  $ip  the IP address
-     * @param  int  $port  the port
-     * @param  int  $priority  priority
-     * @param  int  $upstream  upstream rate
-     * @param  int  $upstream_ceil  upstream ceiling
-     * @param  int  $downstream  downstream rate
-     * @param  int  $downstream_ceil  downstream ceiling
-     * @throws  Validation_Exception, Engine_Exception
-     */
-
-    public function add_bandwidth_rule($name, $ifn, $src_addr, $src_port, $ip, $port, $priority, $upstream = 0, $upstream_ceil = 0, $downstream = 0, $downstream_ceil = 0)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_speed($upstream));
-        Validation_Exception::is_valid($this->validate_speed($upstream_ceil));
-        Validation_Exception::is_valid($this->validate_speed($downstream));
-        Validation_Exception::is_valid($this->validate_speed($downstream_ceil));
-
+// FIXME
+        /*
         if ($upstream == 0 && $downstream == 0)
             $this->AddValidationError(BANDWIDTH_LANG_ERRMSG_SPEED_MISSING, __METHOD__, __LINE__);
+        */
 
-        try {
-            $rule = new Rule();
-            $rule->SetFlags(Rule::BANDWIDTH_RATE | Rule::ENABLED);
-            $rule->SetName($name);
+        $rule = new Rule();
+        $rule->set_flags(Rule::BANDWIDTH_RATE | Rule::ENABLED);
+        $rule->set_name($name);
 
-            if (strlen($ip)) {
-                $rule->SetAddress($ip);
+        if (strlen($ip)) {
+            $rule->set_address($ip);
 
-                if (preg_match('/:/', $ip)) {
-                    list($lo, $hi) = explode(':', $ip);
-                    if (ip2long($hi) - ip2long($lo) > self::MAX_IP_RANGE) {
-                        $this->AddValidationError(BANDWIDTH_LANG_ERRMSG_IPRANGE_TOO_LARGE, __METHOD__, __LINE__);
-                    }
+            if (preg_match('/:/', $ip)) {
+                list($lo, $hi) = explode(':', $ip);
+                if (ip2long($hi) - ip2long($lo) > self::MAX_IP_RANGE) {
+                    $this->AddValidationError(BANDWIDTH_LANG_ERRMSG_IPRANGE_TOO_LARGE, __METHOD__, __LINE__);
                 }
             }
+        }
 
-            if (strlen($port)) $rule->SetPort($port);
+        if (strlen($port))
+            $rule->set_port($port);
 
-            $rule->SetParameter(sprintf('%s:%d:%d:%d:%d:%d:%d:%d',
-                $ifn, $src_addr, $src_port,
-                $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil));
+        $rule->set_parameter(
+            sprintf(
+                '%s:%d:%d:%d:%d:%d:%d:%d',
+                $iface, $addr_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
+            )
+        );
 
-            if ($rule->CheckValidationErrors() || (! empty($this->errors)))
-                $this->errors = array_merge($rule->CopyValidationErrors(TRUE), $this->errors);
-            else
-                $this->AddRule($rule);
-        } catch (Exception $e) {
-            throw new Engine_Exception(lang('bandwidth_FIXME'));
+        $this->add_rule($rule);
+    }
+
+    /**
+     * Adds a basic bandwidth rule.
+     *
+     * @param string  $mode      rule mode, limit or reserve
+     * @param array   $service   service
+     * @param string  $direction rule direction
+     * @param integer $rate      upstream/downstream rate
+     * @param integer $priority  rule priority
+     * 
+     * @return void
+     * @throws Validation_Exception, Engine_Exception
+     */
+
+    public function add_basic_rule($mode, $service, $direction, $rate, $priority)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_mode($mode));
+        Validation_Exception::is_valid($this->validate_service($service));
+        Validation_Exception::is_valid($this->validate_direction($direction));
+        Validation_Exception::is_valid($this->validate_rate($rate));
+        Validation_Exception::is_valid($this->validate_priority($priority));
+
+        $flags = Rule::BANDWIDTH_RATE | Rule::BANDWIDTH_BASIC | Rule::ENABLED;
+
+        $name = sprintf('bw_basic_%s_%c%c%c%c%c',
+            preg_replace('/\//', '', strtolower($service)),
+            97 + rand() % 26,
+            65 + rand() % 26,
+            48 + rand() % 10,
+            48 + rand() % 10,
+            65 + rand() % 26);
+
+        if ($mode == self::MODE_LIMIT)
+            $ceil = $rate;
+        else if ($mode == self::MODE_RESERVE)
+            $ceil = 0;
+
+        $saddr = FALSE;
+        $sport = FALSE;
+        $internal = FALSE;
+
+        switch ($direction) {
+            case self::DIRECTION_FROM_NETWORK:
+                $flags |= Rule::LOCAL_NETWORK;
+                $saddr = FALSE;
+                $sport = FALSE;
+                $internal = TRUE;
+                break;
+            case self::DIRECTION_TO_NETWORK:
+                $flags |= Rule::LOCAL_NETWORK;
+                $saddr = FALSE;
+                $sport = TRUE;
+                $internal = TRUE;
+                break;
+            case self::DIRECTION_FROM_SYSTEM:
+                $flags |= Rule::EXTERNAL_ADDR;
+                $saddr = FALSE;
+                $sport = FALSE;
+                break;
+            case self::DIRECTION_TO_SYSTEM:
+                $flags |= Rule::EXTERNAL_ADDR;
+                $saddr = FALSE;
+                $sport = TRUE;
+                break;
+            default:
+                return;
+        }
+
+        // TODO: Basic rules should use 'all' for the external interface name,
+        // and the firewall should dynamically duplicate these rules for each
+        // external interface.
+        $ifm = new Iface_Manager();
+        $ext_iflist = $ifm->get_external_interfaces();
+        $ports = $this->get_ports_list();
+
+        foreach ($ports as $port_info) {
+
+            if ($port_info[3] == $service) {
+                foreach ($ext_iflist as $ext_iface) {
+                    $rule = new Rule();
+                    $rule->set_name($name);
+                    $rule->set_flags($flags);
+                    $rule->set_address('0.0.0.0');
+                    $rule->set_port($port_info[2]);
+                    $rule->set_protocol($port_info[1]);
+                    $rule->set_parameter(
+                        sprintf(
+                            '%s:%d:%d:%d:%d:%d:%d:%d',
+                            $ext_iface, $saddr, $sport, $priority, $rate, $ceil, $rate, $ceil
+                        )
+                    );
+
+                    $this->add_rule($rule);
+                }
+            }
         }
     }
 
     /**
-     * Toggle the enabled status of an existing "basic" bandwidth rule.
+     * Returns list of supported directions.
      *
-     * @param  boolean  $enabled  the status
-     * @param  string  $name bandwidth rule ID
-     *
-     * @return  void
-     * @throws  Engine_Exception
+     * @return array list of supported directions
      */
 
-    public function toggle_enable_basic_bandwidth_rule($enabled, $name)
+    public function get_directions()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $rules = $this->get_rules();
-            foreach ($rules as $rule) {
-                if (!($rule->get_flags() & Rule::BANDWIDTH_RATE) ||
-                    !($rule->get_flags() & Rule::BANDWIDTH_BASIC))
-                    continue;
-                if (strcmp($rule->get_name(), $name)) continue;
+        return $this->directions;
+    }
 
-                $this->DeleteRule($rule);
-                ($enabled) ? $rule->enable() : $rule->Disable();
-                $this->AddRule($rule);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(lang('bandwidth_FIXME'));
-        }
+    /**
+     * Returns match types.
+     *
+     * @return array match types
+     */
+
+    public function get_matches()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->matches;
+    }
+
+    /**
+     * Returns list of supported modes.
+     *
+     * @return array list of supported modes
+     */
+
+    public function get_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->modes;
+    }
+
+    /**
+     * Returns list of supported priorities.
+     *
+     * @return array list of supported priorities
+     */
+
+    public function get_priorities()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->priorities;
     }
 
     /**
      * Toggle the enabled status of an existing bandwidth rule.
      *
-     * @param  boolean  $enabled  the status
-     * @param  string  $ifn  external interface
-     * @param  string  $src_addr  addr type: 0 destination, 1 source
-     * @param  string  $src_port  port type: 0 destination, 1 source
-     * @param  string  $ip  the IP address
-     * @param  string  $port  the port
-     * @param  int  $priority  priority
-     * @param  int  $upstream  upstream rate
-     * @param  int  $upstream_ceil  upstream ceiling
-     * @param  int  $downstream  downstream rate
-     * @param  int  $downstream_ceil  downstream rate
+     * @param boolean $enabled         status
+     * @param string  $iface           external interface
+     * @param string  $addr_type       addr type: 0 destination, 1 source
+     * @param string  $port_type       port type: 0 destination, 1 source
+     * @param string  $ip              IP address
+     * @param string  $port            port
+     * @param integer $priority        priority
+     * @param integer $upstream        upstream rate
+     * @param integer $upstream_ceil   upstream ceiling
+     * @param integer $downstream      downstream rate
+     * @param integer $downstream_ceil downstream ceiling
      *
-     * @return  void
-     * @throws  Engine_Exception
+     * @return void
+     * @throws Engine_Exception
      */
 
-    public function toggle_enable_bandwidth_rule($enabled, $ifn, $src_addr, $src_port, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
+    public function toggle_enable_bandwidth_rule($enabled, $iface, $addr_type, $port_type, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $rule = new Rule();
-            $rule->SetFlags(Rule::BANDWIDTH_RATE);
+        $rule = new Rule();
+        $rule->set_flags(Rule::BANDWIDTH_RATE);
 
-            if (strlen($ip))
-                $rule->SetAddress($ip);
+        if (strlen($ip))
+            $rule->set_address($ip);
 
-            if (strlen($port)) $rule->SetPort($port);
+        if (strlen($port))
+            $rule->set_port($port);
 
-            $rule->SetParameter(sprintf('%s:%d:%d:%d:%d:%d:%d:%d',
-                $ifn, $src_addr, $src_port,
-                $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil));
+        $rule->set_parameter(
+            sprintf(
+                '%s:%d:%d:%d:%d:%d:%d:%d',
+                $iface, $addr_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
+            )
+        );
 
-            if (! ($rule = $this->FindRule($rule)))
-                return;
+        if (! ($rule = $this->find_rule($rule)))
+            return;
 
-            $this->DeleteRule($rule);
+        $this->delete_rule($rule);
 
-            ($enabled) ? $rule->enable() : $rule->Disable();
+        if ($enabled)
+            $rule->enable();
+        else
+            $rule->disable();
 
-            $this->AddRule($rule);
-        } catch (Exception $e) {
-            throw new Engine_Exception(lang('bandwidth_FIXME'));
-        }
+        $this->add_rule($rule);
     }
 
     /**
-     * Delete an existing "basic" bandwidth rule.
+     * Deletes an existing "basic" bandwidth rule.
      *
-     * @param  string  $name basic bandwidth rule ID
+     * @param string $name basic bandwidth rule ID
      *
-     * @return  void
-     * @throws  Engine_Exception
+     * @return void
+     * @throws Engine_Exception
      */
 
-    public function delete_basic_bandwidth_rule($name)
+    public function delete_basic_rule($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $rules = $this->get_rules();
-            foreach ($rules as $rule) {
-                if (!($rule->get_flags() & Rule::BANDWIDTH_RATE) ||
-                    !($rule->get_flags() & Rule::BANDWIDTH_BASIC))
-                    continue;
-                if (strcmp($rule->get_name(), $name)) continue;
+        $rules = $this->get_rules();
 
-                $this->DeleteRule($rule);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(lang('bandwidth_FIXME'));
+        foreach ($rules as $rule) {
+            if (!($rule->get_flags() & Rule::BANDWIDTH_RATE) || !($rule->get_flags() & Rule::BANDWIDTH_BASIC))
+                continue;
+
+            if (strcmp($rule->get_name(), $name))
+                continue;
+
+            $this->delete_rule($rule);
         }
     }
 
     /**
      * Delete an existing bandwidth rule.
      *
-     * @param  string  $ifn  external interface
-     * @param  string  $src_addr  addr type: 0 destination, 1 source
-     * @param  string  $src_port  port type: 0 destination, 1 source
-     * @param  string  $ip  the IP address
-     * @param  string  $port  the port
-     * @param  int  $priority  priority
-     * @param  int  $upstream  upstream rate
-     * @param  int  $upstream_ceil  upstream ceiling
-     * @param  int  $downstream  downstream rate
-     * @param  int  $downstream_ceil  downstream rate
+     * @param string  $iface           external interface
+     * @param string  $addr_type       addr type: 0 destination, 1 source
+     * @param string  $port_type       port type: 0 destination, 1 source
+     * @param string  $ip              IP address
+     * @param string  $port            port
+     * @param integer $priority        priority
+     * @param integer $upstream        upstream rate
+     * @param integer $upstream_ceil   upstream ceiling
+     * @param integer $downstream      downstream rate
+     * @param integer $downstream_ceil downstream ceiling
      *
      * @return  void
      * @throws  Engine_Exception
      */
 
-    public function delete_bandwidth_rule($ifn, $src_addr, $src_port, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
+    public function delete_bandwidth_rule($iface, $addr_type, $port_type, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $rule = new Rule();
+        $rule = new Rule();
 
-            $rule->SetFlags(Rule::BANDWIDTH_RATE);
+        $rule->set_flags(Rule::BANDWIDTH_RATE);
 
-            if (strlen($ip))
-                $rule->SetAddress($ip);
+        if (strlen($ip))
+            $rule->set_address($ip);
 
-            if (strlen($port)) $rule->SetPort($port);
+        if (strlen($port))
+            $rule->set_port($port);
 
-            $rule->SetParameter(sprintf('%s:%d:%d:%d:%d:%d:%d:%d',
-                $ifn, $src_addr, $src_port,
-                $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil));
+        $rule->set_parameter(
+            sprintf(
+                '%s:%d:%d:%d:%d:%d:%d:%d',
+                $iface, $addr_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
+            )
+        );
 
-            $this->DeleteRule($rule);
-        } catch (Exception $e) {
-            throw new Engine_Exception(lang('bandwidth_FIXME'));
-        }
+        $this->delete_rule($rule);
     }
 
     /**
      * Get all bandwidth rules.
      *
+     * @param string $type type
+     *
      * @return array list of all bandwidth rules
      * @throws Engine_Exception
      */
 
-    public function get_bandwidth_rules()
+    public function get_bandwidth_rules($type = self::TYPE_ALL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -469,21 +551,22 @@ class Bandwidth extends Firewall
             $info = array();
             $info['name'] = $rule->get_name();
             $info['enabled'] = $rule->is_enabled();
-            $info['type'] = ($rule->get_flags() & Rule::BANDWIDTH_BASIC) ? self::TYPE_BASIC : 0;
+            $info['type'] = ($rule->get_flags() & Rule::BANDWIDTH_BASIC) ? self::TYPE_BASIC : self::TYPE_ADVANCED;
             $info['host'] = $rule->get_address();
             $info['port'] = $rule->get_port();
+            $info['service'] = $this->lookup_service(self::PROTOCOL_TCP, $info['port']);
             list(
                 $info['wanif'],
-                $info['src_addr'],
-                $info['src_port'],
+                $info['addr_type'],
+                $info['port_type'],
                 $info['priority'],
                 $info['upstream'],
                 $info['upstream_ceil'],
                 $info['downstream'],
-                $info['downstream_ceil']) = split(':', $rule->get_parameter());
+                $info['downstream_ceil']) = preg_split('/:/', $rule->get_parameter());
 
-            settype($info['src_addr'], 'int');
-            settype($info['src_port'], 'int');
+            settype($info['addr_type'], 'int');
+            settype($info['port_type'], 'int');
             settype($info['priority'], 'int');
             settype($info['upstream'], 'int');
             settype($info['upstream_ceil'], 'int');
@@ -491,19 +574,34 @@ class Bandwidth extends Firewall
             settype($info['downstream_ceil'], 'int');
 
             if ($rule->get_flags() & Rule::BANDWIDTH_BASIC) {
-                if ($rule->get_flags() & Rule::LOCAL_NETWORK &&
-                    $info['src_addr'] == 0 && $info['src_port'] == 0)
-                    $info['direction'] = self::DIR_ORIGINATING_LAN;
-                else if ($rule->get_flags() & Rule::LOCAL_NETWORK &&
-                    $info['src_addr'] == 0 && $info['src_port'] == 1)
-                    $info['direction'] = self::DIR_DESTINED_LAN;
-                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR &&
-                    $info['src_addr'] == 0 && $info['src_port'] == 0)
-                    $info['direction'] = self::DIR_ORIGINATING_GW;
-                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR &&
-                    $info['src_addr'] == 0 && $info['src_port'] == 1)
-                    $info['direction'] = self::DIR_DESTINED_GW;
-            } else $info['direction'] = -1;
+                if ($rule->get_flags() & Rule::LOCAL_NETWORK && $info['addr_type'] == 0 && $info['port_type'] == 0)
+                    $info['direction'] = self::DIRECTION_FROM_NETWORK;
+                else if ($rule->get_flags() & Rule::LOCAL_NETWORK && $info['addr_type'] == 0 && $info['port_type'] == 1)
+                    $info['direction'] = self::DIRECTION_TO_NETWORK;
+                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR && $info['addr_type'] == 0 && $info['port_type'] == 0)
+                    $info['direction'] = self::DIRECTION_FROM_SYSTEM;
+                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR && $info['addr_type'] == 0 && $info['port_type'] == 1)
+                    $info['direction'] = self::DIRECTION_TO_SYSTEM;
+            } else {
+                $info['direction'] = -1;
+            }
+
+            $info['direction_text'] = $this->directions[$info['direction']];
+
+            if ($info['upstream'] == $info['upstream_ceil'])
+                $info['mode'] = self::MODE_LIMIT;
+            else
+                $info['mode'] = self::MODE_RESERVE;
+
+            $info['mode_text'] = $this->modes[$info['mode']];
+
+            $info['priority_text'] = $this->priorities[$info['priority']];
+
+            if (($type === self::TYPE_BASIC) && ($info['type'] === self::TYPE_ADVANCED))
+                continue;
+
+            if (($type === self::TYPE_ADVANCED) && ($info['type'] === self::TYPE_BASIC))
+                continue;
 
             $entries[] = $info;
         }
@@ -513,6 +611,24 @@ class Bandwidth extends Firewall
 
     /**
      * Returns network interface details.
+     *
+     * @return array information about network interfaces
+     * @throws Engine_Exception
+     */
+
+    public function get_interface_settings($iface)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_interface($iface));
+
+        $ifaces = $this->get_interfaces();
+
+        return $ifaces[$iface];
+    }
+
+    /**
+     * Returns network interface details for all interfaces.
      *
      * @return array information about network interfaces
      * @throws Engine_Exception
@@ -538,14 +654,14 @@ class Bandwidth extends Firewall
             if (array_key_exists($iface, $this->config['BANDWIDTH_UPSTREAM'])) {
                 $ifaceinfo[$iface]['upstream'] = $this->config['BANDWIDTH_UPSTREAM'][$iface];
             } else {
-                $ifaceinfo[$iface]['upstream'] = 0;
+                $ifaceinfo[$iface]['upstream'] = '';
                 $ifaceinfo[$iface]['configured'] = FALSE;
             }
 
             if (array_key_exists($iface, $this->config['BANDWIDTH_DOWNSTREAM'])) {
                 $ifaceinfo[$iface]['downstream'] = $this->config['BANDWIDTH_DOWNSTREAM'][$iface];
             } else {
-                $ifaceinfo[$iface]['downstream'] = 0;
+                $ifaceinfo[$iface]['downstream'] = '';
                 $ifaceinfo[$iface]['configured'] = FALSE;
             }
         }
@@ -594,6 +710,40 @@ class Bandwidth extends Firewall
     }
 
     /**
+     * Sets the state of a rule.
+     *
+     * @param boolean $state state
+     * @param string  $name  name
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function set_basic_rule_state($state, $name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $rules = $this->get_rules();
+
+        foreach ($rules as $rule) {
+            if (!($rule->get_flags() & Rule::BANDWIDTH_RATE) || !($rule->get_flags() & Rule::BANDWIDTH_BASIC))
+                continue;
+
+            if (strcmp($rule->get_name(), $name))
+                continue;
+
+            $this->delete_rule($rule);
+
+            if ($state)
+                $rule->enable();
+            else
+                $rule->disable();
+
+            $this->add_rule($rule);
+        }
+    }
+
+    /**
      * Sets the state of the bandwidth manager.
      *
      * @param boolean $state state
@@ -630,8 +780,8 @@ class Bandwidth extends Firewall
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_interface($iface));
-        Validation_Exception::is_valid($this->validate_speed($upstream));
-        Validation_Exception::is_valid($this->validate_speed($downstream));
+        Validation_Exception::is_valid($this->validate_rate($upstream));
+        Validation_Exception::is_valid($this->validate_rate($downstream));
 
         if (! $this->is_loaded)
             $this->_load_configuration();
@@ -658,6 +808,22 @@ class Bandwidth extends Firewall
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validates direction.
+     *
+     * @param string $direction direction
+     *
+     * @return void
+     */
+
+    public function validate_direction($direction)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($direction, $this->directions))
+            return lang('bandwidth_direction_invalid');
+    }
+
+    /**
      * Validates network interface.
      *
      * @param string $iface interface
@@ -674,23 +840,73 @@ class Bandwidth extends Firewall
         $ifaces = $iface_manager->get_interfaces();
 
         if (!in_array($iface, $ifaces))
-            return lang('bandwidth_network_interface_is_invalid');
+            return lang('bandwidth_network_interface_invalid');
     }
 
     /**
-     * Validates speed.
+     * Validates match.
      *
-     * @param integer $speed speed in kbit/s
+     * @param string $match match
      *
      * @return void
      */
 
-    public function validate_speed($speed)
+    public function validate_match($match)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ((!preg_match("/^\d+$/", $speed) || ($speed > self::MAX_SPEED)))
-            return lang('bandwidth_speed_is_invalid');
+        if (! array_key_exists($match, $this->matches))
+            return lang('bandwidth_match_invalid');
+    }
+
+    /**
+     * Validates mode.
+     *
+     * @param string $mode mode
+     *
+     * @return void
+     */
+
+    public function validate_mode($mode)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($mode, $this->modes))
+            return lang('bandwidth_mode_invalid');
+    }
+
+    /**
+     * Validates priority.
+     *
+     * @param string $priority priority
+     *
+     * @return void
+     */
+
+    public function validate_priority($priority)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($priority, $this->priorities))
+            return lang('bandwidth_priority_invalid');
+    }
+
+    /**
+     * Validates rate.
+     *
+     * @param integer $rate rate in kbit/s
+     *
+     * @return void
+     */
+
+    public function validate_rate($rate)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match("/^\d+$/", $rate))
+            return lang('bandwidth_rate_invalid');
+        else if (($rate > self::MAX_SPEED) || ($rate < self::MIN_SPEED))
+            return lang('bandwidth_rate_out_of_range');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -733,9 +949,9 @@ class Bandwidth extends Firewall
                 $pairs = explode(' ', $value);
 
                 foreach ($pairs as $pair) {
-                    list($ifn, $speed) = explode(':', $pair, 2);
-                    if (! empty($ifn))
-                        $config[$key][$ifn] = $speed;
+                    list($iface, $rate) = explode(':', $pair, 2);
+                    if (! empty($iface))
+                        $config[$key][$iface] = $rate;
                 }
             }
         }
@@ -776,8 +992,8 @@ class Bandwidth extends Firewall
             } else {
                 $pairs = '';
 
-                foreach ($this->config[$key] as $ifn => $speed)
-                    $pairs .= "$ifn:$speed ";
+                foreach ($this->config[$key] as $iface => $rate)
+                    $pairs .= "$iface:$rate ";
 
                 $pairs = trim($pairs);
 
