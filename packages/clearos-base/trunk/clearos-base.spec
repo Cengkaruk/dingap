@@ -1,6 +1,6 @@
 Name: clearos-base
-Version: 5.9.9.2
-Release: 4%{dist}
+Version: 6.1.0
+Release: 0.beta2%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
@@ -8,7 +8,7 @@ Source: %{name}-%{version}.tar.gz
 Vendor: ClearFoundation
 Packager: ClearFoundation
 # Base product release information
-Requires: clearos-release >= 5.9.9.0
+Requires: clearos-release >= 6-6.1.0
 # Core system 
 Requires: cronie
 Requires: gnupg
@@ -19,7 +19,6 @@ Requires: man-pages
 Requires: mdadm
 Requires: mlocate
 Requires: ntpdate
-Requires: openssh-server
 Requires: openssh-clients
 Requires: pam
 Requires: postfix
