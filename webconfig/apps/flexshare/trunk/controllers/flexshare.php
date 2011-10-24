@@ -277,12 +277,9 @@ class Flexshare extends ClearOS_Controller
         //------------------
         try {
             $groups = $this->group_manager->get_details();
-            $users = $this->user_manager->get_details();
             $group_options[-1] = lang('base_select');
             foreach ($groups as $name => $group)
-                $group_options[$name] = lang('groups_group') . ' - ' . $name;
-            foreach ($users as $name => $user)
-                $group_options[$name] = lang('users_user') . ' - ' . $name;
+                $group_options[$name] = $name;
             $data['group_options'] = $group_options;
         } catch (Exception $e) {
             $this->page->view_exception($e);
