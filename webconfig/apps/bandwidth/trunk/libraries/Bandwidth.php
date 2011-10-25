@@ -110,8 +110,8 @@ class Bandwidth extends Firewall
     const MAX_SPEED = 10000000;
     const MAX_IP_RANGE = 255;
 
-    const MATCH_DESTINATION = 0;
-    const MATCH_SOURCE = 1;
+    const TYPE_DESTINATION = 0;
+    const TYPE_SOURCE = 1;
 
     const MODE_LIMIT = 'limit';
     const MODE_RESERVE = 'reserve';
@@ -140,8 +140,9 @@ class Bandwidth extends Firewall
     protected $is_loaded = FALSE;
     protected $config = array();
 
-    protected $directions = array();
-    protected $matches = array();
+    protected $advanced_directions = array();
+    protected $basic_directions = array();
+    protected $types = array();
     protected $modes = array();
     protected $priorities = array();
 
@@ -159,7 +160,12 @@ class Bandwidth extends Firewall
 
         parent::__construct();
 
-        $this->directions = array(
+        $this->advanced_directions = array(
+            self::DIRECTION_FROM_NETWORK => lang('bandwidth_flowing_from_network'),
+            self::DIRECTION_TO_NETWORK => lang('bandwidth_flowing_to_network'),
+        );
+
+        $this->basic_directions = array(
             self::DIRECTION_FROM_NETWORK => lang('bandwidth_flowing_from_network'),
             self::DIRECTION_TO_NETWORK => lang('bandwidth_flowing_to_network'),
             self::DIRECTION_FROM_SYSTEM => lang('bandwidth_flowing_from_system'),
@@ -181,9 +187,9 @@ class Bandwidth extends Firewall
             self::PRIORITY_LOWEST => lang('base_lowest'),
         );
 
-        $this->matches = array(
-            self::MATCH_SOURCE => lang('bandwidth_source'),
-            self::MATCH_DESTINATION => lang('bandwidth_destination')
+        $this->types = array(
+            self::TYPE_SOURCE => lang('bandwidth_source'),
+            self::TYPE_DESTINATION => lang('bandwidth_destination')
         );
     }
 
@@ -192,7 +198,7 @@ class Bandwidth extends Firewall
      *
      * @param string  $name            bandwidth rule name
      * @param string  $iface           external interface
-     * @param string  $addr_type       addr type: 0 destination, 1 source
+     * @param string  $ip_type         ip type: 0 destination, 1 source
      * @param string  $port_type       port type: 0 destination, 1 source
      * @param string  $ip              IP address
      * @param string  $port            port
@@ -206,21 +212,25 @@ class Bandwidth extends Firewall
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add_advanced_rule($name, $iface, $addr_type, $port_type, $ip, $port, $priority, $upstream = 0, $upstream_ceil = 0, $downstream = 0, $downstream_ceil = 0)
+    public function add_advanced_rule($name, $iface, $ip_type, $port_type, $ip, $port, $priority, $upstream = 0, $upstream_ceil = 0, $downstream = 0, $downstream_ceil = 0)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_name($name));
         Validation_Exception::is_valid($this->validate_interface($iface));
-        Validation_Exception::is_valid($this->validate_match($addr_type));
-        Validation_Exception::is_valid($this->validate_match($port_type));
+        Validation_Exception::is_valid($this->validate_type($ip_type));
+        Validation_Exception::is_valid($this->validate_type($port_type));
         Validation_Exception::is_valid($this->validate_ip($ip));
-        Validation_Exception::is_valid($this->validate_port($port));
+
+        if ($port)
+            Validation_Exception::is_valid($this->validate_port($port));
+
         Validation_Exception::is_valid($this->validate_priority($priority));
         Validation_Exception::is_valid($this->validate_rate($upstream));
         Validation_Exception::is_valid($this->validate_rate($upstream_ceil));
         Validation_Exception::is_valid($this->validate_rate($downstream));
         Validation_Exception::is_valid($this->validate_rate($downstream_ceil));
+
 
 // FIXME
         /*
@@ -232,16 +242,8 @@ class Bandwidth extends Firewall
         $rule->set_flags(Rule::BANDWIDTH_RATE | Rule::ENABLED);
         $rule->set_name($name);
 
-        if (strlen($ip)) {
+        if (strlen($ip))
             $rule->set_address($ip);
-
-            if (preg_match('/:/', $ip)) {
-                list($lo, $hi) = explode(':', $ip);
-                if (ip2long($hi) - ip2long($lo) > self::MAX_IP_RANGE) {
-                    $this->AddValidationError(BANDWIDTH_LANG_ERRMSG_IPRANGE_TOO_LARGE, __METHOD__, __LINE__);
-                }
-            }
-        }
 
         if (strlen($port))
             $rule->set_port($port);
@@ -249,7 +251,7 @@ class Bandwidth extends Firewall
         $rule->set_parameter(
             sprintf(
                 '%s:%d:%d:%d:%d:%d:%d:%d',
-                $iface, $addr_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
+                $iface, $ip_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
             )
         );
 
@@ -275,7 +277,7 @@ class Bandwidth extends Firewall
 
         Validation_Exception::is_valid($this->validate_mode($mode));
         Validation_Exception::is_valid($this->validate_service($service));
-        Validation_Exception::is_valid($this->validate_direction($direction));
+        Validation_Exception::is_valid($this->validate_basic_direction($direction));
         Validation_Exception::is_valid($this->validate_rate($rate));
         Validation_Exception::is_valid($this->validate_priority($priority));
 
@@ -356,110 +358,6 @@ class Bandwidth extends Firewall
     }
 
     /**
-     * Returns list of supported directions.
-     *
-     * @return array list of supported directions
-     */
-
-    public function get_directions()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->directions;
-    }
-
-    /**
-     * Returns match types.
-     *
-     * @return array match types
-     */
-
-    public function get_matches()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->matches;
-    }
-
-    /**
-     * Returns list of supported modes.
-     *
-     * @return array list of supported modes
-     */
-
-    public function get_modes()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->modes;
-    }
-
-    /**
-     * Returns list of supported priorities.
-     *
-     * @return array list of supported priorities
-     */
-
-    public function get_priorities()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->priorities;
-    }
-
-    /**
-     * Toggle the enabled status of an existing bandwidth rule.
-     *
-     * @param boolean $enabled         status
-     * @param string  $iface           external interface
-     * @param string  $addr_type       addr type: 0 destination, 1 source
-     * @param string  $port_type       port type: 0 destination, 1 source
-     * @param string  $ip              IP address
-     * @param string  $port            port
-     * @param integer $priority        priority
-     * @param integer $upstream        upstream rate
-     * @param integer $upstream_ceil   upstream ceiling
-     * @param integer $downstream      downstream rate
-     * @param integer $downstream_ceil downstream ceiling
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function toggle_enable_bandwidth_rule($enabled, $iface, $addr_type, $port_type, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $rule = new Rule();
-        $rule->set_flags(Rule::BANDWIDTH_RATE);
-
-        if (strlen($ip))
-            $rule->set_address($ip);
-
-        if (strlen($port))
-            $rule->set_port($port);
-
-        $rule->set_parameter(
-            sprintf(
-                '%s:%d:%d:%d:%d:%d:%d:%d',
-                $iface, $addr_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
-            )
-        );
-
-        if (! ($rule = $this->find_rule($rule)))
-            return;
-
-        $this->delete_rule($rule);
-
-        if ($enabled)
-            $rule->enable();
-        else
-            $rule->disable();
-
-        $this->add_rule($rule);
-    }
-
-    /**
      * Deletes an existing "basic" bandwidth rule.
      *
      * @param string $name basic bandwidth rule ID
@@ -489,7 +387,7 @@ class Bandwidth extends Firewall
      * Delete an existing bandwidth rule.
      *
      * @param string  $iface           external interface
-     * @param string  $addr_type       addr type: 0 destination, 1 source
+     * @param string  $ip_type         ip type: 0 destination, 1 source
      * @param string  $port_type       port type: 0 destination, 1 source
      * @param string  $ip              IP address
      * @param string  $port            port
@@ -503,7 +401,7 @@ class Bandwidth extends Firewall
      * @throws  Engine_Exception
      */
 
-    public function delete_bandwidth_rule($iface, $addr_type, $port_type, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
+    public function delete_advanced_rule($iface, $ip_type, $port_type, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -520,11 +418,76 @@ class Bandwidth extends Firewall
         $rule->set_parameter(
             sprintf(
                 '%s:%d:%d:%d:%d:%d:%d:%d',
-                $iface, $addr_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
+                $iface, $ip_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
             )
         );
 
         $this->delete_rule($rule);
+    }
+
+    /**
+     * Returns list of supported advanced directions.
+     *
+     * @return array list of supported advanced directions
+     */
+
+    public function get_advanced_directions()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->advanced_directions;
+    }
+
+    /**
+     * Returns list of supported basic directions.
+     *
+     * @return array list of supported basic directions
+     */
+
+    public function get_basic_directions()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->basic_directions;
+    }
+
+    /**
+     * Returns types.
+     *
+     * @return array types
+     */
+
+    public function get_types()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->types;
+    }
+
+    /**
+     * Returns list of supported modes.
+     *
+     * @return array list of supported modes
+     */
+
+    public function get_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->modes;
+    }
+
+    /**
+     * Returns list of supported priorities.
+     *
+     * @return array list of supported priorities
+     */
+
+    public function get_priorities()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->priorities;
     }
 
     /**
@@ -557,7 +520,7 @@ class Bandwidth extends Firewall
             $info['service'] = $this->lookup_service(self::PROTOCOL_TCP, $info['port']);
             list(
                 $info['wanif'],
-                $info['addr_type'],
+                $info['ip_type'],
                 $info['port_type'],
                 $info['priority'],
                 $info['upstream'],
@@ -565,7 +528,7 @@ class Bandwidth extends Firewall
                 $info['downstream'],
                 $info['downstream_ceil']) = preg_split('/:/', $rule->get_parameter());
 
-            settype($info['addr_type'], 'int');
+            settype($info['ip_type'], 'int');
             settype($info['port_type'], 'int');
             settype($info['priority'], 'int');
             settype($info['upstream'], 'int');
@@ -574,13 +537,13 @@ class Bandwidth extends Firewall
             settype($info['downstream_ceil'], 'int');
 
             if ($rule->get_flags() & Rule::BANDWIDTH_BASIC) {
-                if ($rule->get_flags() & Rule::LOCAL_NETWORK && $info['addr_type'] == 0 && $info['port_type'] == 0)
+                if ($rule->get_flags() & Rule::LOCAL_NETWORK && $info['ip_type'] == 0 && $info['port_type'] == 0)
                     $info['direction'] = self::DIRECTION_FROM_NETWORK;
-                else if ($rule->get_flags() & Rule::LOCAL_NETWORK && $info['addr_type'] == 0 && $info['port_type'] == 1)
+                else if ($rule->get_flags() & Rule::LOCAL_NETWORK && $info['ip_type'] == 0 && $info['port_type'] == 1)
                     $info['direction'] = self::DIRECTION_TO_NETWORK;
-                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR && $info['addr_type'] == 0 && $info['port_type'] == 0)
+                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR && $info['ip_type'] == 0 && $info['port_type'] == 0)
                     $info['direction'] = self::DIRECTION_FROM_SYSTEM;
-                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR && $info['addr_type'] == 0 && $info['port_type'] == 1)
+                else if ($rule->get_flags() & Rule::EXTERNAL_ADDR && $info['ip_type'] == 0 && $info['port_type'] == 1)
                     $info['direction'] = self::DIRECTION_TO_SYSTEM;
             } else {
                 $info['direction'] = -1;
@@ -710,6 +673,59 @@ class Bandwidth extends Firewall
     }
 
     /**
+     * Sets the state of an existing bandwidth rule.
+     *
+     * @param boolean $state           state
+     * @param string  $iface           external interface
+     * @param string  $ip_type         ip type: 0 destination, 1 source
+     * @param string  $port_type       port type: 0 destination, 1 source
+     * @param string  $ip              IP address
+     * @param string  $port            port
+     * @param integer $priority        priority
+     * @param integer $upstream        upstream rate
+     * @param integer $upstream_ceil   upstream ceiling
+     * @param integer $downstream      downstream rate
+     * @param integer $downstream_ceil downstream ceiling
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function set_advanced_rule_state($state, $iface, $ip_type, $port_type, $ip, $port, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $rule = new Rule();
+        $rule->set_flags(Rule::BANDWIDTH_RATE);
+
+        if (strlen($ip))
+            $rule->set_address($ip);
+
+        if (strlen($port))
+            $rule->set_port($port);
+
+        $rule->set_parameter(
+            sprintf(
+                '%s:%d:%d:%d:%d:%d:%d:%d',
+                $iface, $ip_type, $port_type, $priority, $upstream, $upstream_ceil, $downstream, $downstream_ceil
+            )
+        );
+
+        if (! ($rule = $this->find_rule($rule)))
+            return;
+
+        $this->delete_rule($rule);
+
+        if ($enabled)
+            $rule->enable();
+        else
+            $rule->disable();
+
+        $this->add_rule($rule);
+    }
+
+
+    /**
      * Sets the state of a rule.
      *
      * @param boolean $state state
@@ -808,18 +824,34 @@ class Bandwidth extends Firewall
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validates direction.
+     * Validates advanced direction.
      *
      * @param string $direction direction
      *
      * @return void
      */
 
-    public function validate_direction($direction)
+    public function validate_advanced_direction($direction)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! array_key_exists($direction, $this->directions))
+        if (! array_key_exists($direction, $this->advanced_directions))
+            return lang('bandwidth_direction_invalid');
+    }
+
+    /**
+     * Validates basic direction.
+     *
+     * @param string $direction direction
+     *
+     * @return void
+     */
+
+    public function validate_basic_direction($direction)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! array_key_exists($direction, $this->basic_directions))
             return lang('bandwidth_direction_invalid');
     }
 
@@ -844,19 +876,19 @@ class Bandwidth extends Firewall
     }
 
     /**
-     * Validates match.
+     * Validates type.
      *
-     * @param string $match match
+     * @param string $type type
      *
      * @return void
      */
 
-    public function validate_match($match)
+    public function validate_type($type)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! array_key_exists($match, $this->matches))
-            return lang('bandwidth_match_invalid');
+        if (! array_key_exists($type, $this->types))
+            return lang('bandwidth_type_invalid');
     }
 
     /**
@@ -903,6 +935,8 @@ class Bandwidth extends Firewall
     {
         clearos_profile(__METHOD__, __LINE__);
 
+// FIXME
+return;
         if (!preg_match("/^\d+$/", $rate))
             return lang('bandwidth_rate_invalid');
         else if (($rate > self::MAX_SPEED) || ($rate < self::MIN_SPEED))

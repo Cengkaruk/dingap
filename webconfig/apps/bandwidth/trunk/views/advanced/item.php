@@ -44,27 +44,26 @@ $this->lang->load('firewall');
 echo form_open('/bandwidth/advanced/add');
 echo form_header(lang('bandwidth_advanced_rule'));
 
-echo fieldset_header(lang('base_general_settings'));
+echo fieldset_header(lang('bandwidth_rule'));
 echo field_input('name', $name, lang('firewall_nickname'));
 echo field_dropdown('direction', $directions, $direction, lang('bandwidth_direction'));
 
 if (count($interfaces) > 1) {
     array_unshift($interfaces, lang('base_all'));
-    echo field_dropdown('ifaces', $interfaces, $iface, lang('bandwidth_network_interface'));
+    echo field_simple_dropdown('iface', $interfaces, $iface, lang('bandwidth_network_interface'));
 } else {
-    echo field_input('ifaces', $interfaces[0], lang('network_interface'), TRUE);
+    echo field_input('iface', $interfaces[0], lang('network_interface'), TRUE);
 }
 
 echo fieldset_footer();
 
 echo fieldset_header(lang('network_ip'));
-echo field_dropdown('ip_match', $matches, $ip_match, lang('bandwidth_match'));
-echo field_input('ip_low', $ip_low, lang('bandwidth_ip_start'));
-echo field_input('ip_high', $ip_high, lang('bandwidth_ip_end'));
+echo field_dropdown('ip_type', $types, $ip_type, lang('bandwidth_type'));
+echo field_input('ip', $ip, lang('network_ip'));
 echo fieldset_footer();
 
 echo fieldset_header(lang('network_port'));
-echo field_dropdown('port_match', $matches, $port_match, lang('bandwidth_match'));
+echo field_dropdown('port_type', $types, $port_type, lang('bandwidth_type'));
 echo field_input('port', $port, lang('network_port'));
 echo fieldset_footer();
 
@@ -77,7 +76,7 @@ echo fieldset_footer();
 
 echo field_button_set(
     array(
-        form_submit_update('submit'),
+        form_submit_add('submit'),
         anchor_cancel('/app/bandwidth/advanced')
     )
 );

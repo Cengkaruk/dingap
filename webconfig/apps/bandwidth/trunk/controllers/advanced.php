@@ -33,10 +33,6 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// D E P E N D E N C I E S
-///////////////////////////////////////////////////////////////////////////////
-
 use \clearos\apps\bandwidth\Bandwidth as Bandwidth;
 use \Exception as Exception;
 
@@ -104,30 +100,52 @@ class Advanced extends ClearOS_Controller
         //---------------------
 
         $this->form_validation->set_policy('name', 'bandwidth/Bandwidth', 'validate_name', TRUE);
+        $this->form_validation->set_policy('direction', 'bandwidth/Bandwidth', 'validate_advanced_direction', TRUE);
         $this->form_validation->set_policy('iface', 'bandwidth/Bandwidth', 'validate_interface', TRUE);
-        $this->form_validation->set_policy('ip_match', 'bandwidth/Bandwidth', 'validate_match', TRUE);
-        $this->form_validation->set_policy('port_match', 'bandwidth/Bandwidth', 'validate_match', TRUE);
-        $this->form_validation->set_policy('ip', 'bandwidth/Bandwidth', 'validate_ip');
-        $this->form_validation->set_policy('port', 'bandwidth/Bandwidth', 'validate_port');
-        $this->form_validation->set_policy('priority', 'bandwidth/Bandwidth', 'validate_priority', TRUE);
-// FIXME
 
-        $this->form_validation->set_policy('service', 'bandwidth/Bandwidth', 'validate_service', TRUE);
-        $this->form_validation->set_policy('direction', 'bandwidth/Bandwidth', 'validate_direction', TRUE);
+        $this->form_validation->set_policy('ip_type', 'bandwidth/Bandwidth', 'validate_type');
+        $this->form_validation->set_policy('ip', 'bandwidth/Bandwidth', 'validate_ip');
+
+        $this->form_validation->set_policy('port_type', 'bandwidth/Bandwidth', 'validate_type');
+        $this->form_validation->set_policy('port', 'bandwidth/Bandwidth', 'validate_port');
+
         $this->form_validation->set_policy('rate', 'bandwidth/Bandwidth', 'validate_rate', TRUE);
+        $this->form_validation->set_policy('ceiling', 'bandwidth/Bandwidth', 'validate_rate');
+        $this->form_validation->set_policy('priority', 'bandwidth/Bandwidth', 'validate_priority', TRUE);
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
         //-------------------
 
-        if (($this->input->post('submit') && $form_ok)) {
+        if ($this->input->post('submit') && $form_ok) {
+            if ($this->input->post('direction') == Bandwidth::DIRECTION_FROM_NETWORK) {
+                $download_rate = 0;
+                $download_ceiling = 0;
+                $upload_rate = $this->input->post('rate');
+                $upload_ceiling = $this->input->post('ceiling');
+            } else {
+                $download_rate = $this->input->post('rate');
+                $download_ceiling = $this->input->post('ceiling');
+                $upload_rate = 0;
+                $upload_ceiling = 0;
+            }
+
+            $ip = ($this->input->post('ip')) ? $this->input->post('ip') : '';
+
             try {
                 $this->bandwidth->add_advanced_rule(
-                    $this->input->post('mode'),
-                    $this->input->post('service'),
-                    $this->input->post('direction'),
-                    $this->input->post('rate'),
-                    $this->input->post('priority')
+                    $this->input->post('name'),
+                    $this->input->post('iface'),
+                    $this->input->post('ip_type'),
+                    $this->input->post('port_type'),
+                    $ip,
+                    $this->input->post('port'),
+                    $this->input->post('priority'),
+                    $upload_rate,
+                    $upload_ceiling,
+                    $download_rate,
+                    $download_ceiling
                 );
 
                 $this->page->set_status_added();
@@ -142,8 +160,8 @@ class Advanced extends ClearOS_Controller
         //------------------- 
 
         try {
-            $data['matches'] = $this->bandwidth->get_matches();
-            $data['directions'] = $this->bandwidth->get_directions();
+            $data['types'] = $this->bandwidth->get_types();
+            $data['directions'] = $this->bandwidth->get_advanced_directions();
             $data['priorities'] = $this->bandwidth->get_priorities();
             $data['interfaces'] = array_keys($this->bandwidth->get_interfaces());
         } catch (Exception $e) {

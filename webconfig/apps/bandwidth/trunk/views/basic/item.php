@@ -51,7 +51,7 @@ echo field_dropdown('priority', $priorities, $priority, lang('bandwidth_greed'))
 
 echo field_button_set(
     array(
-        form_submit_update('submit'),
+        form_submit_add('submit'),
         anchor_cancel('/app/bandwidth/basic')
     )
 );

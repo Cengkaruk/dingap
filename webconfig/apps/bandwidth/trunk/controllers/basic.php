@@ -101,7 +101,7 @@ class Basic extends ClearOS_Controller
 
         $this->form_validation->set_policy('mode', 'bandwidth/Bandwidth', 'validate_mode', TRUE);
         $this->form_validation->set_policy('service', 'bandwidth/Bandwidth', 'validate_service', TRUE);
-        $this->form_validation->set_policy('direction', 'bandwidth/Bandwidth', 'validate_direction', TRUE);
+        $this->form_validation->set_policy('direction', 'bandwidth/Bandwidth', 'validate_basic_direction', TRUE);
         $this->form_validation->set_policy('rate', 'bandwidth/Bandwidth', 'validate_rate', TRUE);
         $this->form_validation->set_policy('priority', 'bandwidth/Bandwidth', 'validate_priority', TRUE);
         $form_ok = $this->form_validation->run();
@@ -134,7 +134,7 @@ class Basic extends ClearOS_Controller
             $data['modes'] = $this->bandwidth->get_modes();
             $data['services'] = $this->bandwidth->get_standard_service_list();
             $data['protocols'] = $this->bandwidth->get_basic_protocols();
-            $data['directions'] = $this->bandwidth->get_directions();
+            $data['directions'] = $this->bandwidth->get_basic_directions();
             $data['priorities'] = $this->bandwidth->get_priorities();
         } catch (Exception $e) {
             $this->page->view_exception($e);

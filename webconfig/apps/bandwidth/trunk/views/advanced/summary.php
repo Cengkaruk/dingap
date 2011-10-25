@@ -35,17 +35,18 @@
 
 $this->lang->load('network');
 $this->lang->load('bandwidth');
+$this->lang->load('firewall');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('bandwidth_mode'),
-    lang('bandwidth_service'),
-    lang('bandwidth_direction'),
+    lang('firewall_nickname'),
+    lang('network_ip'),
+    lang('network_port'),
     lang('bandwidth_rate'),
-    lang('bandwidth_greed'),
+    lang('bandwidth_ceiling'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,11 +73,11 @@ foreach ($rules as $id => $details) {
         )
     );
     $item['details'] = array(
-        $details['mode_text'],
-        $details['service'],
-        $details['direction_text'],
-        $details['upstream'],
-        $details['priority_text'],
+        $details['name'],
+        $details['ip'],
+        $details['port'],
+        $details['rate'],
+        $details['ceiling'],
     );
 
     $items[] = $item;

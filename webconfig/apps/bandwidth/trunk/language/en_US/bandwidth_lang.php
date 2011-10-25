@@ -40,3 +40,5 @@ $lang['bandwidth_bandwidth'] = 'Bandwidth';
 $lang['bandwidth_source'] = 'Source';
 $lang['bandwidth_destination'] = 'Destination';
 $lang['bandwidth_match'] = 'Match';
+$lang['bandwidth_type'] = 'Type';
+$lang['bandwidth_rule'] = 'Rule';
