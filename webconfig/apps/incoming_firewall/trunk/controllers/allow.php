@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\firewall\Firewall as Firewall;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -439,5 +445,38 @@ class Allow extends ClearOS_Controller
             $this->page->view_exception($e);
             return;
         }
+    }
+
+    /**
+     * Add allow rule.
+     *
+     * @return view
+     */
+
+    function quick_add($nickname, $protocol, $port)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('incoming_firewall/Incoming');
+        $this->lang->load('incoming_firewall');
+        $this->lang->load('base');
+
+        // Handle form submit
+        //-------------------
+
+        if ($this->incoming->check_port($protocol, $port) == Firewall::CONSTANT_DISABLED)
+            $this->incoming->set_allow_port_state(TRUE, $protocol, $port);
+        else
+            $this->incoming->add_allow_port($nickname, $protocol, $port);
+
+        $this->page->set_status_updated();
+
+        $this->load->library('user_agent');
+
+        if ($this->agent->is_referral())
+            redirect($this->agent->referrer());
+        else
+            redirect('/incoming_firewall/allow');
     }
 }
