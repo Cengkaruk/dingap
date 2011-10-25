@@ -82,3 +82,5 @@ $lang['network_validate_unusual_gateway_setting'] = 'Your network settings inclu
 $lang['network_vendor'] = 'Vendor';
 $lang['network_waiting_for_connection'] = 'Internet connection is offline';
 $lang['network_network_connection_status_unknown'] = 'Network connection status is unknown.';
+$lang['network_firewall'] = 'Firewall';
+$lang['network_allow_connections'] = 'Allow Connections';

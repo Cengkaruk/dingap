@@ -224,6 +224,28 @@ class Network extends Engine
         return $modes;
     }
 
+    /**
+     * Returns status of inbound connections to firewall.
+     *
+     * Many apps (e.g. SMTP Server) will check to see if the inbound 
+     * connection is open... there's not much use in running an SMTP
+     * Server if nothing is allowed to connect to it from the Internet.
+     *
+     * @return boolean TRUE if inbound connections are firewalled
+     */
+
+    public function is_inbound_firewalled()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mode = $this->get_mode();
+
+        if (($mode === self::MODE_TRUSTED_GATEWAY) || ($mode === self::MODE_TRUSTED_STANDALONE))
+            return FALSE;
+        else
+            return TRUE;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
