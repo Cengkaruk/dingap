@@ -122,21 +122,10 @@ class Incoming extends Firewall
         Validation_Exception::is_valid($this->validate_protocol($protocol));
         Validation_Exception::is_valid($this->validate_port($port));
 
-        switch ($protocol) {
-
-            case 'TCP':
-                $protocol_flag = Firewall::PROTOCOL_TCP;
-                break;
-
-            case 'UDP':
-                $protocol_flag = Firewall::PROTOCOL_UDP;
-                break;
-        }
-
         $rule = new Rule();
 
         $rule->set_name($name);
-        $rule->set_protocol($protocol_flag);
+        $rule->set_protocol($rule->convert_protocol_name($protocol));
         $rule->set_port($port);
         $rule->set_flags(Rule::INCOMING_ALLOW | Rule::ENABLED);
 
@@ -164,20 +153,10 @@ class Incoming extends Firewall
         Validation_Exception::is_valid($this->validate_port($from));
         Validation_Exception::is_valid($this->validate_port($to));
 
-        switch ($protocol) {
-            case 'TCP':
-                $protocol_flag = Firewall::PROTOCOL_TCP;
-                break;
-
-            case 'UDP':
-                $protocol_flag = Firewall::PROTOCOL_UDP;
-                break;
-        }
-
         $rule = new Rule();
 
         $rule->set_name($name);
-        $rule->set_protocol($protocol_flag);
+        $rule->set_protocol($rule->convert_protocol_name($protocol));
         $rule->set_port_range($from, $to);
         $rule->set_flags(Rule::INCOMING_ALLOW | Rule::ENABLED);
 
@@ -280,7 +259,7 @@ class Incoming extends Firewall
         $ports = $this->get_allow_ports();
 
         foreach ($ports as $portinfo) {
-            if (($portinfo['port'] == $port) && ($portinfo['protocol'] == $protocol)) {
+            if (($portinfo['port'] == $port) && ($portinfo['protocol_name'] == $protocol)) {
                 if ($portinfo['enabled'])
                     return Firewall::CONSTANT_ENABLED;
                 else
