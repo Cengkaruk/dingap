@@ -144,6 +144,24 @@ class Mode_Engine extends Engine
     }
 
     /**
+     * Returns read only status.
+     *
+     * @return boolean TRUE if mode is read only
+     */
+
+    public function is_read_only()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mode = $this->get_mode();
+
+        if (($mode === self::MODE_SIMPLE_SLAVE) || ($mode === self::MODE_SLAVE))
+            return TRUE;
+        else
+            return FALSE;
+    }
+
+    /**
      * Sets mode.
      *
      * @param string $mode mode
