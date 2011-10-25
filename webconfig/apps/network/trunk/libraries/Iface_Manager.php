@@ -130,7 +130,7 @@ class Iface_Manager extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_interfaces($ignore_ppp, $ignore_lo)
+    public function get_interfaces($ignore_ppp = FALSE, $ignore_lo = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
