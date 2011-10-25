@@ -24,6 +24,7 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-accounts-core
 Requires: system-users-driver
+Requires: openssl
 
 %description core
 This is the user manager.  Testers: you will see a handful of built-in users here; these will not be shown in the final release.

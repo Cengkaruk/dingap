@@ -33,6 +33,7 @@ $app['requires'] = array(
 $app['core_requires'] = array(
     'app-accounts-core',
     'system-users-driver', 
+    'openssl',
 );
 
 
