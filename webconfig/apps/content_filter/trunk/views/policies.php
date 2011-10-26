@@ -34,66 +34,52 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('content_filter');
+$this->lang->load('groups');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('network_ip'),
-    lang('network_hostname'),
+    lang('content_filter_policy_name'),
+    lang('groups_group'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array(anchor_add('/app/dns/add/'));
+$anchors = array(anchor_add('/app/content_filter/policy/add'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($hosts as $real_ip => $entry) {
+foreach ($groups as $id => $details) {
+    if ($id === 1) {
+        $detail_buttons = button_set(
+            array(anchor_edit('/app/content_filter/policy/edit/' . $id))
+        );
+        $group = '';
+    } else {
+        $detail_buttons = button_set(
+            array(
+                anchor_edit('/app/content_filter/policy/edit/' . $id),
+                anchor_delete('/app/content_filter/policy/delete/' . $id)
+            )
+        );
+        $group = 'FIXME';
+    }
 
-    $ip = $entry['ip'];
-    $hostname = $entry['hostname'];
-    $alias = (count($entry['aliases']) > 0) ? $entry['aliases'][0] : '';
-    
-    // Add '...' to indicate more aliases exist
-    if (count($entry['aliases']) > 1)
-        $alias .= " ..."; 
+    // print_r($details);
 
-    ///////////////////////////////////////////////////////////////////////////
-    // Item buttons
-    ///////////////////////////////////////////////////////////////////////////
 
-    // Hide 127.0.0.1 entry
-
-    if (($ip === '127.0.0.1') || ($ip === '::1'))
-        continue;
-
-    $detail_buttons = button_set(
-        array(
-            anchor_edit('/app/dns/edit/' . $ip, 'high'),
-            anchor_delete('/app/dns/delete/' . $ip, 'high')
-        )
-    );
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Item details
-    ///////////////////////////////////////////////////////////////////////////
-
-    // TODO: not IPv6 friendly
-    // Order IPs in human-readable way
-    $order_ip = "<span style='display: none'>" . sprintf("%032b", ip2long($ip)) . "</span>$ip";
-
-    $item['title'] = $ip . " - " . $hostname;
-    $item['action'] = '/app/dns/edit/' . $ip;
+    $item['title'] = $details['groupname'];
+    $item['action'] = '/app/content_filter/policy/configure/' . $id;
     $item['anchors'] = $detail_buttons;
     $item['details'] = array(
-        $order_ip,
-        $hostname,
+        $details['groupname'],
+        $group
     );
 
     $items[] = $item;

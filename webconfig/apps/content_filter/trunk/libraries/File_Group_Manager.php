@@ -97,7 +97,7 @@ class File_Group_Manager extends Engine
      * @param string $demark   demarker
      */
 
-    public function __construct($filename, $demark = "#")
+    public function __construct($filename, $demark = '#')
     {
         clearos_profile(__METHOD__, __LINE__);
 

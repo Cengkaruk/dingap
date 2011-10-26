@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter controller.
+ * Content filter mime types controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Content filter controller.
+ * Content filter mime types controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -45,34 +45,73 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/content_filter/
  */
 
-class Content_Filter extends ClearOS_Controller
+class MIME_Types extends ClearOS_Controller
 {
     /**
-     * Content_Filter server summary view.
+     * Content filter mime types management default controller.
      *
      * @return view
      */
 
     function index()
     {
+        $this->edit(1);
+    }
+
+    /**
+     * Blacklist edit.
+     *
+     * @param integer $policy policy ID
+     *
+     * @return view
+     */
+
+    function edit($policy = 1)
+    {
         // Load libraries
         //---------------
 
         $this->lang->load('content_filter');
+        $this->load->library('content_filter/DansGuardian');
+
+        // Handle form submit
+        //-------------------
+
+        if ($this->input->post('submit')) {
+            // Note: . is not allowed in input keys in CodeIgniter
+            $mime_types = array();
+            $raw_mime_types = array_keys($this->input->post('mime_types'));
+
+            foreach ($raw_mime_types as $mime_type)
+                $mime_types[] = strtr($mime_type, '_', '.');
+
+            try {
+                $this->dansguardian->set_banned_mime_types($mime_types, $policy);
+                $this->dansguardian->reset(TRUE);
+
+                $this->page->set_status_updated();
+                redirect('/content_filter/policy/edit/' . $policy);
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['policy'] = $policy;
+            $data['all_mime_types'] = $this->dansguardian->get_possible_mime_types();
+            $data['banned_mime_types'] = $this->dansguardian->get_banned_mime_types($policy);
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Load views
         //-----------
 
-        $views = array(
-            'content_filter/server',
-            'content_filter/settings',
-            'content_filter/policy',
-        );
-// general settings
-// banned IP list
-// exempt IP list
-// groups
-
-        $this->page->view_forms($views, lang('content_filter_app_name'));
+        $this->page->view_form('content_filter/policy/mime_types', $data, lang('content_filter_mime_types'));
     }
 }

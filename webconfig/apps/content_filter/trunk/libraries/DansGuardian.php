@@ -57,6 +57,7 @@ clearos_load_language('content_filter');
 
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
+use \clearos\apps\base\File_Types as File_Types;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\content_filter\File_Group as File_Group;
 use \clearos\apps\content_filter\File_Group_Manager as File_Group_Manager;
@@ -64,6 +65,7 @@ use \clearos\apps\network\Network as Network;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
+clearos_load_library('base/File_Types');
 clearos_load_library('base/Folder');
 clearos_load_library('content_filter/File_Group');
 clearos_load_library('content_filter/File_Group_Manager');
@@ -72,12 +74,15 @@ clearos_load_library('network/Network');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\content_filter\Filter_Group_Not_Found_Exception as Filter_Group_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/Validation_Exception');
 clearos_load_library('content_filter/Filter_Group_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,6 +92,8 @@ clearos_load_library('content_filter/Filter_Group_Not_Found_Exception');
 /**
  * DansGuardian content filter class.
  *
+ * @category   Apps
+ * @package    Content_Filter
  * @category   Apps
  * @package    Content_Filter
  * @subpackage Libraries
@@ -110,11 +117,7 @@ class DansGuardian extends Daemon
     const FILE_CONFIG = '/etc/dansguardian-av/dansguardian.conf';
     const FILE_CONFIG_FILTER_GROUP = '/etc/dansguardian-av/dansguardianf%d.conf';
     const FILE_EXTENSIONS_LIST = '/etc/dansguardian-av/lists/bannedextensionlist';
-    const FILE_EXTENSIONS_LIST_ALL = '/etc/dansguardian-av/lists/bannedextensionlist.all';
-    const FILE_EXTENSIONS_LIST_USER = '/etc/dansguardian-av/lists/bannedextensionlist.user';
     const FILE_MIME_LIST = '/etc/dansguardian-av/lists/bannedmimetypelist';
-    const FILE_MIME_LIST_ALL = '/etc/dansguardian-av/lists/bannedmimetypelist.all';
-    const FILE_MIME_LIST_USER = '/etc/dansguardian-av/lists/bannedmimetypelist.user';
     const FILE_PHRASE_LIST = '/etc/dansguardian-av/lists/weightedphraselist';
     const FILE_GROUPS = '/etc/dansguardian-av/groups';
     const MAX_FILTER_GROUPS = 9;
@@ -295,6 +298,94 @@ class DansGuardian extends Daemon
     }
 
     /**
+     * Adds a new filter group.
+     *
+     * @param string $name filter group name
+     *
+     * @return integer new filter group ID
+     */
+
+    public function add_filter_group($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_group_name($name));
+
+        if ($this->exists_filter_group($name))
+            throw new Engine_Exception(lang('content_filter_group_already_exists'));
+
+        $folder = new Folder(self::BASE_PATH);
+        $files = $folder->get_listing();
+
+        // Look for next available filter group ID
+        //----------------------------------------
+
+        $id = 2;
+        $ids = array();
+
+        foreach ($files as $file) {
+            if (sscanf($file, 'dansguardianf%d', $id) != 1)
+                continue;
+            $ids[] = $id;
+        }
+
+        if (count($ids) == self::MAX_FILTER_GROUPS) {
+            throw new Engine_Exception(lang('content_filter_maximum_groups_already_configured'));
+        } else if (count($ids)) {
+            sort($ids);
+            $id = end($ids) + 1;
+        }
+
+        // Create new filter group by copying the default
+        //-----------------------------------------------
+
+        $file = new File(self::BASE_PATH . '/dansguardianf1.conf', TRUE);
+
+        $file->copy_to(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id));
+
+        $file = new File(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id), TRUE);
+
+        if ($file->replace_lines('/^groupname.*$/', "groupname = '$name'\n", 1) != 1)
+            $file->add_lines_after("groupname = '$name'\n", '/^#groupname.*$/');
+
+        // Default the group mode to "filtered"
+        $file->replace_lines('/^groupmode\s*=.*/', "groupmode = 1\n", 1);
+
+        foreach ($this->group_keys as $key) {
+            if (strstr($key, 'list') === FALSE)
+                continue; 
+
+            $value = str_replace(array('\'', '"'), '', $file->lookup_value("/^$key\s*=\s*/"));
+            $file->replace_one_line_by_pattern("/^$key\s*=.*$/", sprintf("%s = '%s%d'\n", $key, $value, $id));
+
+            if (!in_array($key, array('bannedsitelist', 'bannedurllist', 'weightedphraselist', 'exceptionfilesitelist'))) {
+                $emptylist = new File(sprintf('%s%d', $value, $id));
+
+                if (!$emptylist->exists())
+                    $emptylist->create('root', 'root', '0644');
+
+                continue;
+            }
+
+            $default = new File($value);
+
+            if ($default->exists()) {
+                $default->copy_to(sprintf('%s%d', $value, $id));
+            } else {
+                $emptylist = new File(sprintf('%s%d', $value, $id));
+                $emptylist->create('root', 'root', '0644');
+            }
+        }
+
+        // Resequence filter group IDs and set filter group count
+        //-------------------------------------------------------
+
+        $this->_sequence_filter_groups();
+
+        return $id;
+    }
+
+    /**
      * Adds web site or URL to grey list.
      *
      * @param string  $siteurl site or URL
@@ -332,7 +423,8 @@ class DansGuardian extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         $group = new File_Group($groupname, self::FILE_GROUPS);
-        $group->Add('');
+
+        $group->add('');
     }
 
     /**
@@ -381,67 +473,6 @@ class DansGuardian extends Daemon
         $group = new File_Group($groupname, self::FILE_GROUPS);
 
         $group->AddEntry($member);
-    }
-
-    /**
-     * Adds a new file extension to the user-defined list.
-     *
-     * @param string $extension   file extension
-     * @param string $description short description of the extension
-     *
-     * @return void
-     */
-
-    public function add_user_extension($extension, $description)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->IsValidExtension($extension) || preg_match("/\|/", $description))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_EXTENSION_INVALID, COMMON_WARNING);
-
-        // We accept extensions with or without the leading dot
-        $extension = preg_replace("/^\./", '', $extension);
-
-        $extension = str_pad(".$extension", 6);
-
-        if (strlen($description) == 0)
-            $description = $extension;
-
-        try {
-            $file = new File(self::FILE_EXTENSIONS_LIST_USER);
-            if (!$file->exists()) $file->create('root', 'root', '0644');
-            $file->add_lines("$extension|$description\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Adds a new MIME to the user-defined list.
-     *
-     * @param string $mime        MIME type
-     * @param string $description short description of the MIME type
-     *
-     * @return void
-     */
-
-    public function add_user_mime_type($mime, $description)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->IsValidMIME($mime) || preg_match("/\|/", $description))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_MIME_INVALID, COMMON_WARNING);
-
-        if (strlen($description) == 0)
-            $description = $mime;
-
-        try {
-            $file = new File(self::FILE_MIME_LIST_USER);
-            if (!$file->exists()) $file->create('root', 'root', '0644');
-            $file->add_lines("$mime|$description\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
     }
 
     /** 
@@ -494,19 +525,19 @@ class DansGuardian extends Daemon
      * @return array list of bad phrase list configurations
      */
 
-    public function clean_weighted_phraselists()
+    public function clean_phrase_lists()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $groups = $this->GetFilterGroups();
-        $phraselists = $this->GetPossibleWeightedPhrase();
+        $phrase_lists = $this->GetPossibleWeightedPhrase();
         $baddetails = array();
 
         foreach ($groups as $groupid => $info) {
             $configured = $this->GetWeightedPhraseLists($groupid, TRUE);
             $available = array();
 
-            foreach ($phraselists as $listid => $listinfo)
+            foreach ($phrase_lists as $listid => $listinfo)
                 $available[] = $listinfo['name'];
 
             $cleanlist = array();
@@ -545,62 +576,6 @@ class DansGuardian extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         $this->_delete_items_by_key('bannediplist', $ip);
-    }
-
-    /**
-     * Deletes file extension from the user-defined list.
-     *
-     * @param string $extension file extension
-     *
-     * @return void
-     */
-
-    public function delete_user_extension($extension)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $extension = str_replace('.', '\.', $extension);
-            $file = new File(self::FILE_EXTENSIONS_LIST_USER);
-            $file->delete_lines("/$extension.*/");
-            $file = new File(self::FILE_EXTENSIONS_LIST);
-            $file->delete_lines("/$extension.*/");
-            for ($i = 0; $i < self::MAX_FILTER_GROUPS; $i++) {
-                $file = new File(sprintf(self::FILE_EXTENSIONS_LIST . '%d', $i + 1));
-                if (!$file->exists()) continue;
-                $file->delete_lines("/$extension.*/");
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Deletes a MIME from the user-defined list.
-     *
-     * @param string $mime MIME type
-     *
-     * @return void
-     */
-
-    public function delete_user_mime_type($mime)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $mime = str_replace('/', '\/', $mime);
-            $file = new File(self::FILE_MIME_LIST_USER);
-            $file->delete_lines("/$mime.*/");
-            $file = new File(self::FILE_MIME_LIST);
-            $file->delete_lines("/$mime.*/");
-            for ($i = 0; $i < self::MAX_FILTER_GROUPS; $i++) {
-                $file = new File(sprintf(self::FILE_MIME_LIST . '%d', $i + 1));
-                if (!$file->exists()) continue;
-                $file->delete_lines("/$mime.*/");
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
     }
 
     /**
@@ -830,6 +805,30 @@ class DansGuardian extends Daemon
     }
 
     /**
+     * Checks existence of a group.
+     *
+     * @param string $name group name
+     *
+     * @return boolean TRUE if group name exists
+     * @throws Engine_Exception
+     */
+
+    public function exists_filter_group($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $cfg = $this->get_filter_group_configuration(0, $name);
+        } catch (Filter_Group_Not_Found_Exception $e) {
+            return FALSE;
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e));
+        }
+
+        return TRUE;
+    }
+
+    /**
      * Returns the access denied page.
      *
      * @return string access denited URL
@@ -850,7 +849,7 @@ class DansGuardian extends Daemon
      * @return array list of banned extensions
      */
 
-    public function get_banned_extensions($group = 1)
+    public function get_banned_file_extensions($group = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1123,9 +1122,9 @@ class DansGuardian extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $groupmanager = new File_Group_Manager(self::FILE_GROUPS);
+        $group_manager = new File_Group_Manager(self::FILE_GROUPS);
 
-        return $groupmanager->get_groups();
+        return $group_manager->get_groups();
     }
 
     /**
@@ -1211,11 +1210,28 @@ class DansGuardian extends Daemon
      * @return array list of file extensions
      */
 
-    public function get_extensions()
+    public function get_possible_file_extensions()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_keyed_configuration_by_filename(self::FILE_EXTENSIONS_LIST_ALL);
+        $file_types = new File_Types();
+        $system_extensions = $file_types->get_file_extensions();
+
+        // The array format is slightly different, so convert it to
+        // what is typically used in this class.
+    
+        $extensions = array();
+
+        foreach ($system_extensions as $extension => $details) {
+            $info['name'] = $extension;
+            $info['category'] = $details['category'];
+            $info['category_text'] = $details['category_text'];
+            $info['description'] = $details['description'];
+
+            $extensions[] = $info;
+        }
+
+        return $extensions;
     }
 
     /**
@@ -1229,19 +1245,6 @@ class DansGuardian extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         return $this->_get_configuration_value('reverseaddresslookups', -1);
-    }
-
-    /**
-     * Returns list of user-added file extensions.
-     *
-     * @return array list of user-added file extensions
-     */
-
-    public function get_user_extensions()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->_get_keyed_configuration_by_filename(self::FILE_EXTENSIONS_LIST_USER);
     }
 
     /**
@@ -1275,24 +1278,26 @@ class DansGuardian extends Daemon
      * @return array list of MIME types
      */
 
-    public function get_mime_types()
+    public function get_possible_mime_types()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_keyed_configuration_by_filename(self::FILE_MIME_LIST_ALL);
-    }
+        $file_types = new File_Types();
+        $system_mime_types = $file_types->get_mime_types();
 
-    /**
-     * Returns list of user-added MIME types.
-     *
-     * @return array list of user-added MIME types
-     */
+        // The array format is slightly different, so convert it to
+        // what is typically used in this class.
+    
+        $mime_types = array();
 
-    public function get_user_mime_types()
-    {
-        clearos_profile(__METHOD__, __LINE__);
+        foreach ($system_mime_types as $mime_type => $details) {
+            $info['name'] = $mime_type;
+            $info['description'] = $details['description'];
 
-        return $this->_get_keyed_configuration_by_filename(self::FILE_MIME_LIST_USER);
+            $mime_types[] = $info;
+        }
+
+        return $mime_types;
     }
 
     /**
@@ -1314,18 +1319,18 @@ class DansGuardian extends Daemon
      * @return array list of weighted phrase lists
      */
 
-    public function get_possible_weighted_phrase()
+    public function get_possible_phrase_lists()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $phraselistsinfo = array();
-        $phraselistslist = array();
+        $phrase_lists_info = array();
+        $phrase_lists_list = array();
         $folderlist = array();
 
         $folder = new Folder(self::PATH_PHRASELISTS);
 
         if (! $folder->exists())
-            return $phraselistslist;
+            return $phrase_lists_list;
 
         $folderlist = $folder->get_listing();
 
@@ -1339,7 +1344,7 @@ class DansGuardian extends Daemon
 
             if ($isfolder) {
 
-                // Not all phraselists directories contain weighted lists
+                // Not all phrase lists directories contain weighted lists
                 // (some contain just "banned" lists).
                 $filenames = $phrasefolder->get_listing();
                 $isweighted = FALSE;
@@ -1351,20 +1356,20 @@ class DansGuardian extends Daemon
                 }
 
                 if ($isweighted) {
-                    $phraselistsinfo['name'] = $foldername;
+                    $phrase_lists_info['name'] = $foldername;
                     $descriptiontag = 'DANSGUARDIAN_LANG_PHRASELIST_' . strtoupper($foldername);
 
                     if (defined("$descriptiontag"))
-                        $phraselistsinfo['description'] = constant($descriptiontag);
+                        $phrase_lists_info['description'] = constant($descriptiontag);
                     else
-                        $phraselistsinfo['description'] = '...';
+                        $phrase_lists_info['description'] = '...';
 
-                    $phraselistslist[] = $phraselistsinfo;
+                    $phrase_lists_list[] = $phrase_lists_info;
                 }
             }
         }
 
-        return $phraselistslist;
+        return $phrase_lists_list;
     }
 
     /**
@@ -1418,7 +1423,7 @@ class DansGuardian extends Daemon
      * @return array a list of the weight phrases
      */
 
-    public function get_weighted_phrase_lists($group = 1, $details = FALSE)
+    public function get_phrase_lists($group = 1, $details = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1500,59 +1505,49 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Set the list of banned extensions.
+     * Sets the list of banned file extensions.
      *
-     * @param array $banlist list of banned extensions
-     * @param integer $group group number
+     * @param array   $extensions list of file extensions
+     * @param integer $group_id   group ID
      *
      * @return void
+     * @throws Engine_Exception
      */
 
-    public function set_banned_extensions($banlist, $group = 1)
+    public function set_banned_file_extensions($extensions, $group_id = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_array($banlist))
-            $banlist = array($banlist);
+        Validation_Exception::is_valid($this->validate_file_extensions($extensions));
+        Validation_Exception::is_valid($this->validate_group_id($group_id));
 
-        foreach ($banlist as $value) {
-            if ($value && !$this->IsValidExtension($value))
-                throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_EXTENSION_INVALID, COMMON_ERROR);
-        }
-
-        $this->SetConfigurationByKey('bannedextensionlist', $banlist, $group);
+        $this->_set_configuration_by_key('bannedextensionlist', $extensions, $group_id);
     }
 
     /**
-     * Set the list of banned MIMEs.
+     * Sets the list of banned MIME types.
      *
-     * @param array $banlist list of MIMEs
-     * @param integer $group group number
+     * @param array   $mime_types list of MIME types
+     * @param integer $group_id   group ID
      *
      * @return void
+     * @throws Engine_Exception
      */
 
-    public function set_banned_mimes($banlist, $group = 1)
+    public function set_banned_mime_types($mime_types, $group_id = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
-        // Validate
-        //---------
 
-        if (! is_array($banlist))
-            $banlist = array($banlist);
+        Validation_Exception::is_valid($this->validate_mime_types($mime_types));
+        Validation_Exception::is_valid($this->validate_group_id($group_id));
 
-        foreach ($banlist as $value) {
-            if (! $this->IsValidMIME($value))
-                throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_MIME_INVALID, COMMON_ERROR);
-        }
-
-        $this->SetConfigurationByKey('bannedmimetypelist', $banlist, $group);
+        $this->_set_configuration_by_key('bannedmimetypelist', $mime_types, $group_id);
     }
 
     /**
      * Sets blacklist state.
      *
-     * @param array $list list of enabled blacklists
+     * @param array   $list  list of enabled blacklists
      * @param integer $group group number
      *
      * @return void
@@ -1594,9 +1589,8 @@ class DansGuardian extends Daemon
 
         $file = new File($bannedsitepath);
 
-        if (!$file->exists()) {
+        if (!$file->exists())
             $file->create('root', 'root', '0644');
-        }
 
         $file->delete_lines("/^\.Include.*/");
         $file->add_lines($domaindata);
@@ -1608,9 +1602,8 @@ class DansGuardian extends Daemon
 
         $file = new File($bannedurlpath);
 
-        if (!$file->exists()) {
+        if (!$file->exists())
             $file->create('root', 'root', '0644');
-        }
 
         $file->delete_lines("/^\.Include.*/");
         $file->add_lines($urldata);
@@ -1674,8 +1667,8 @@ class DansGuardian extends Daemon
         $file = new File(sprintf(self::FILE_CONFIG_FILTER_GROUP, $group), TRUE);
 
         try {
-            if($file->replace_lines('/^groupname.*$/', "groupname = '$name'\n", 1) != 1)
-                $file->add_linesAfter("groupname = '$name'\n", '/^#groupname.*$/');
+            if ($file->replace_lines('/^groupname.*$/', "groupname = '$name'\n", 1) != 1)
+                $file->add_lines_after("groupname = '$name'\n", '/^#groupname.*$/');
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
         }
@@ -1813,124 +1806,26 @@ class DansGuardian extends Daemon
      * @return void
      */
 
-    public function set_weighted_phrase_lists($weightphraselist, $group = 1)
+    public function set_phrase_lists($phrase_lists, $group = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidWeightPhraseList($weightphraselist))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_WEIGHT_PHRASE_LIST_INVALID, COMMON_ERROR);
+        Validation_Exception::is_valid($this->validate_phrase_lists($phrase_lists));
+        Validation_Exception::is_valid($this->validate_group_id($group));
 
         $lines = array();
 
-        foreach ($weightphraselist as $phraselist) {
-            $subfolder = new Folder(self::BASE_PATH. "/lists/phraselists/$phraselist");
+        foreach ($phrase_lists as $phrase_list) {
+            $subfolder = new Folder(self::BASE_PATH. "/lists/phraselists/$phrase_list");
             $listnames = $subfolder->get_listing();
 
             foreach ($listnames as $listname) {
                 if (preg_match('/weighted/', $listname))
-                    $lines[] = ".Include<" . self::BASE_PATH. "/lists/phraselists/$phraselist/$listname>";
+                    $lines[] = ".Include<" . self::BASE_PATH. "/lists/phraselists/$phrase_list/$listname>";
             }
         }
 
-        $this->SetConfigurationByKey('weightedphraselist', $lines, $group);
-    }
-
-    /**
-     * Add a new Filter Group
-     *
-     * @param string $name New Filter Group Name
-     *
-     * @return int $id New Filter Group Id
-     */
-
-    public function add_filter_group($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        try {
-            $cfg = $this->GetFilterGroupConfiguration(0, $name);
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_FILTER_GROUP_EXISTS, COMMON_ERROR);
-        } catch (Filter_Group_Not_Found_Exception $e) {
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-        $folder = new Folder(self::BASE_PATH);
-        $files = array();
-
-        try {
-            $files = $folder->get_listing();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-        // Look for next available filter group Id
-        //----------------------------------------
-
-        $id = 2;
-        $ids = array();
-        foreach ($files as $file) {
-            if (sscanf($file, 'dansguardianf%d', $id) != 1) continue;
-            $ids[] = $id;
-        }
-
-        if (count($ids) == self::MAX_FILTER_GROUPS)
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_MAX_FILTER_GROUPS, COMMON_ERROR);
-        else if (count($ids)) {
-            sort($ids);
-            $id = end($ids) + 1;
-        }
-
-        // Create new filter group by copying the default
-        //-----------------------------------------------
-
-        $file = new File(self::BASE_PATH . '/dansguardianf1.conf', TRUE);
-
-        try {
-            $file->CopyTo(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id));
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-        $file = new File(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id), TRUE);
-
-        try {
-            if($file->replace_lines('/^groupname.*$/', "groupname = '$name'\n", 1) != 1)
-                $file->add_linesAfter("groupname = '$name'\n", '/^#groupname.*$/');
-            // Default the group mode to "filtered"
-            $file->replace_lines('/^groupmode\s*=.*/', "groupmode = 1\n", 1);
-
-            foreach ($this->group_keys as $key) {
-                if (strstr($key, 'list') === FALSE) continue;
-                $value = str_replace(array('\'', '"'), '',
-                    $file->lookup_value("/^$key\s*=\s*/"));
-                $file->replace_one_line_by_pattern("/^$key\s*=.*$/",
-                    sprintf("%s = '%s%d'\n", $key, $value, $id));
-                if (!in_array($key,
-                    array('bannedsitelist', 'bannedurllist', 'weightedphraselist',
-                    'exceptionfilesitelist'))) {
-                    $emptylist = new File(sprintf('%s%d', $value, $id));
-                    if (!$emptylist->exists())
-                        $emptylist->Create('root', 'root', '0644');
-                    continue;
-                }
-                $default = new File($value);
-                if ($default->exists()) $default->CopyTo(sprintf('%s%d', $value, $id));
-                else {
-                    $emptylist = new File(sprintf('%s%d', $value, $id));
-                    $emptylist->Create('root', 'root', '0644');
-                }
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-
-        // Resequence filter group Ids and set filter group count
-        //-------------------------------------------------------
-
-        $this->SequenceFilterGroups();
-
-        return $id;
+        $this->_set_configuration_by_key('weightedphraselist', $lines, $group);
     }
 
     /**
@@ -1968,7 +1863,7 @@ class DansGuardian extends Daemon
             } catch (Exception $e) {
                 throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
             }
-            $this->SequenceFilterGroups();
+            $this->_sequence_filter_groups();
         } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
         }
@@ -1977,8 +1872,8 @@ class DansGuardian extends Daemon
     /**
      * Return the configuration array for the specified Filter Group if found.
      *
-     * @param int $id Filter Group Id
-     * @param string $name optional Filter Group Name
+     * @param integer $id   filter group ID
+     * @param string  $name option filter group name
      *
      * @return array $cfg Filter Group configuration
      */
@@ -1986,32 +1881,31 @@ class DansGuardian extends Daemon
     public function get_filter_group_configuration($id, $name = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
+
         $cfg = array();
 
         if ($id <= 0 && $name == NULL) {
-                throw new Filter_Group_Not_Found_Exception();
+            throw new Filter_Group_Not_Found_Exception();
         } else if ($id >= 1) {
             $cfg = $this->_get_configuration_by_filename(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id), FALSE);
 
-            if($cfg == NULL) {
+            if ($cfg == NULL)
                 throw new Filter_Group_Not_Found_Exception();
-            }
         } else {
             $folder = new Folder(self::BASE_PATH);
 
-            try {
-                $files = $folder->get_listing();
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-            }
+            $files = $folder->get_listing();
 
             $ids = array();
+
             foreach ($files as $file) {
-                if (sscanf($file, 'dansguardianf%d.conf', $id) != 1) continue;
+                if (sscanf($file, 'dansguardianf%d.conf', $id) != 1)
+                    continue;
                 $ids[] = $id;
             }
 
             $found = FALSE;
+
             foreach ($ids as $id) {
                 $cfg = $this->_get_configuration_by_filename(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id),
                     FALSE);
@@ -2022,22 +1916,29 @@ class DansGuardian extends Daemon
                     break;
                 }
 
-                if($found) break;
+                if ($found) break;
             }
 
-            if(!$found)
+            if (!$found)
                 throw new Filter_Group_Not_Found_Exception();
         }
 
         $group = array();
-        if ($id == 1) $group['groupname'] = DANSGUARDIAN_LANG_DEFAULT_GROUP;
+
+        if ($id == 1)
+            $group['groupname'] = lang('content_filter_default');
+
         foreach ($cfg as $line) {
             list($key, $value) = explode('=', str_replace(array('\'', '"'), '', $line), 2);
-            if ($id == 1 && $key == 'groupname') continue;
+
+            if ($id == 1 && $key == 'groupname')
+                continue;
+
             $group[trim($key)] = trim($value);
         }
 
         ksort($group);
+
         return $group;
     }
 
@@ -2094,6 +1995,7 @@ class DansGuardian extends Daemon
     public function add_filter_group_user($id, $user)
     {
         clearos_profile(__METHOD__, __LINE__);
+
         $groups = 0;
 
         try {
@@ -2208,30 +2110,148 @@ class DansGuardian extends Daemon
     public function get_filter_groups()
     {
         clearos_profile(__METHOD__, __LINE__);
+
         $groups = array();
         $folder = new Folder(self::BASE_PATH);
 
-        try {
-            $files = $folder->get_listing();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
+        $files = $folder->get_listing();
 
         $ids = array();
+
         foreach ($files as $file) {
-            if (sscanf($file, 'dansguardianf%d.conf', $id) != 1) continue;
+            if (sscanf($file, 'dansguardianf%d.conf', $id) != 1)
+                continue;
             $ids[] = $id;
         }
 
         foreach ($ids as $id)
-            $groups[$id] = $this->GetFilterGroupConfiguration($id);
+            $groups[$id] = $this->get_filter_group_configuration($id);
 
         return $groups;
     }
 
-    /*************************************************************************/
-    /* V A L I D A T I O N   R O U T I N E S                                 */
-    /*************************************************************************/
+    ///////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N
+    ///////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates group ID.
+     *
+     * @param integer $id group ID
+     *
+     * @return string error message if group ID is invalid
+     */
+
+    public function validate_group_id($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!is_numeric($id) || ($id < 0) || ($id > self::MAX_FILTER_GROUPS))
+            return lang('content_filter_group_id_invalid');
+    }
+
+    /**
+     * Validates group name.
+     *
+     * @param string $name group name
+     *
+     * @return string error message if group name is invalid
+     */
+
+    public function validate_group_name($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match('/^[a-z0-9_\-]+$/', $name))
+            return lang('content_filter_group_name_invalid');
+    }
+
+    /**
+     * Validation routine for file extensions list.
+     *
+     * @param array $extensions an array of file extensions
+     *
+     * @return string error message if extensions list is invalid
+     */
+
+    public function validate_file_extensions($extensions)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! is_array($extensions))
+            return lang('content_filter_file_extensions_invalid');
+
+        $valid_extensions = $this->get_possible_file_extensions();
+
+        foreach ($extensions as $extension) {
+            $is_valid = FALSE;
+
+            foreach ($valid_extensions as $valid_extension) {
+                if ($extension == $valid_extension['name'])
+                    $is_valid = TRUE;
+            }
+
+            if (! $is_valid)
+                return lang('content_filter_file_extension_invalid');
+        }
+    }
+
+    /**
+     * Validation routine for phrase lists.
+     *
+     * @param array $phrase_lists an array of phrase lists
+     *
+     * @return string error message if phrase list is invalid
+     */
+
+    public function validate_phrase_lists($phrase_lists)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! is_array($phrase_lists))
+            return lang('content_filter_phrase_list_invalid');
+
+        $valid_lists = $this->get_possible_phrase_lists();
+
+        foreach ($phrase_lists as $phrase_list) {
+            $is_valid = FALSE;
+
+            foreach ($valid_lists as $valid_list) {
+                if ($phrase_list == $valid_list['name'])
+                    $is_valid = TRUE;
+            }
+
+            if (! $is_valid)
+                return lang('content_filter_phrase_list_invalid');
+        }
+    }
+
+    /**
+     * Validates MIME type list.
+     *
+     * @param array $mime_types array of MIME types
+     *
+     * @return string error message if MIME types array is invalid
+     */
+
+    public function validate_mime_types($mime_types)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $valid_types = $this->get_possible_mime_types();
+
+        foreach ($mime_types as $mime_type) {
+            $is_valid = FALSE;
+
+            foreach ($valid_types as $valid_type) {
+                if ($mime_type == $valid_type['name'])
+                    $is_valid = TRUE;
+            }
+
+            if (! $is_valid)
+                return lang('content_filter_mime_type_invalid');
+        }
+    }
 
     /**
      * Validation routine for naughtyness limit.
@@ -2357,37 +2377,6 @@ class DansGuardian extends Daemon
             return TRUE;
 
         return FALSE;
-    }
-
-    /**
-     * Validation routine for weighted phrase lists.
-     *
-     * @param array $phraselists an array of phrase lists
-     *
-     * @return boolean TRUE if phrase lists are valid
-     */
-
-    public function is_valid_weight_phrase_list($phraselists)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! is_array($phraselists))
-            return FALSE;
-
-        $validlists = $this->GetPossibleWeightedPhrase();
-
-        foreach ($phraselists as $phraselist) {
-            $isvalid = FALSE;
-            foreach ($validlists as $validlist) {
-                if ($phraselist == $validlist['name'])
-                    $isvalid = TRUE;
-            }
-
-            if (! $isvalid)
-                return FALSE;
-        }
-
-        return TRUE;
     }
 
     /**
@@ -2827,7 +2816,7 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * (Re)sequence filter group Ids.
+     * (Re)sequence filter group IDs.
      *
      * Called automatically after adding or deleting a filter group.
      *

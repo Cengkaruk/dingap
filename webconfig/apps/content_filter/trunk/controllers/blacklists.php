@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter controller.
+ * Content filter blacklists controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Content filter controller.
+ * Content filter blacklists controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -45,34 +45,69 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/content_filter/
  */
 
-class Content_Filter extends ClearOS_Controller
+class Blacklists extends ClearOS_Controller
 {
     /**
-     * Content_Filter server summary view.
+     * Content filter blacklist management default controller.
      *
      * @return view
      */
 
     function index()
     {
+        $this->edit(1);
+    }
+
+    /**
+     * Blacklist edit.
+     *
+     * @param integer $policy policy ID
+     *
+     * @return view
+     */
+
+    function edit($policy = 1)
+    {
         // Load libraries
         //---------------
 
         $this->lang->load('content_filter');
+        $this->load->library('content_filter/DansGuardian');
+
+        // Handle form submit
+        //-------------------
+
+        if ($this->input->post('submit')) {
+            try {
+                $this->dansguardian->set_blacklists(
+                    array_keys($this->input->post('blacklist')),
+                    $policy
+                );
+                $this->dansguardian->reset(TRUE);
+
+                $this->page->set_status_updated();
+                redirect('/content_filter/policy/edit/' . $policy);
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['policy'] = $policy;
+            $data['all_blacklists'] = $this->dansguardian->get_possible_blacklists();
+            $data['active_blacklists'] = $this->dansguardian->get_blacklists($policy);
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Load views
         //-----------
 
-        $views = array(
-            'content_filter/server',
-            'content_filter/settings',
-            'content_filter/policy',
-        );
-// general settings
-// banned IP list
-// exempt IP list
-// groups
-
-        $this->page->view_forms($views, lang('content_filter_app_name'));
+        $this->page->view_form('content_filter/policy/blacklists', $data, lang('content_filter_blacklists'));
     }
 }
