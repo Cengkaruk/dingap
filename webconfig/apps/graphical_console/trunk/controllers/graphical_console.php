@@ -55,18 +55,27 @@ class Graphical_Console extends ClearOS_Controller
 
     function index()
     {
+        // Bail if this is not the console (but leave on in devel mode)
+        //-------------------------------------------------------------
+
+        if (! (is_console() || ($_SERVER['SERVER_PORT'] == 1501)))
+            redirect('/base/session/login');
+
         // Load libraries
         //---------------
 
         $this->lang->load('graphical_console');
         $this->load->library('network/Iface_Manager');
+        $this->load->library('base/OS');
 
         // Grab network info
         //------------------
 
         try {
             $data['lan_ips'] = $this->iface_manager->get_lan_ips();
-        } catch (Exception $e) {
+            $data['os_name'] = $this->os->get_name();
+            $data['os_version'] = $this->os->get_version();
+        } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
         }
