@@ -157,13 +157,7 @@ class Nat_Firewall extends ClearOS_Controller
         //---------------
 
         try {
-            $data['protocols'] = $this->one_to_one_nat->get_protocols();
-            // Only want TCP and UDP
-            foreach ($data['protocols'] as $key => $protocol) {
-                if ($key != One_To_One_NAT::PROTOCOL_TCP && $key != One_To_One_NAT::PROTOCOL_UDP)
-                    unset($data['protocols'][$key]);
-            }
-
+            $data['protocols'] = $this->one_to_one_nat->get_basic_protocols();
             $interfaces = $this->iface_manager->get_interface_details();
             // Only want external
             foreach ($interfaces as $key => $interface) {
