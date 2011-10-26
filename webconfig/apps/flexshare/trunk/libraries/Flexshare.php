@@ -76,8 +76,9 @@ use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\date\Time as Time;
 use \clearos\apps\ftp\ProFTPd as ProFTPd;
 use \clearos\apps\imap\Cyrus as Cyrus;
-use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
+use \clearos\apps\users\User_Utilities as User_Utilities;
 use \clearos\apps\mail_notification\Mail_Notification as Mail_Notification;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
 use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Iface_Manager as Iface_Manager;
 use \clearos\apps\network\Network as Network;
@@ -101,8 +102,9 @@ clearos_load_library('base/Shell');
 clearos_load_library('date/Time');
 clearos_load_library('ftp/ProFTPd');
 clearos_load_library('imap/Cyrus');
-clearos_load_library('ldap/LDAP_Utilities');
+clearos_load_library('users/User_Utilities');
 clearos_load_library('mail_notification/Mail_Notification');
+clearos_load_library('mode/Mode_Factory');
 clearos_load_library('network/Hostname');
 clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network');
@@ -161,7 +163,6 @@ class Flexshare extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const LOG_TAG = 'flexshare';
-    const CONSTANT_LOGIN_SHELL = '/sbin/nologin';
     const FILE_CONFIG = '/etc/clearos/flexshare.conf';
     const FILE_SMB_VIRTUAL = 'flexshare.conf';
     const FILE_FSTAB_CONFIG = '/etc/fstab';
@@ -244,9 +245,6 @@ class Flexshare extends Engine
     function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        //if (!extension_loaded("mysql"))
-         //   dl("mysql.so");
 
         //if (!extension_loaded("imap"))
          //   dl("imap.so");
@@ -1856,23 +1854,23 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: if (master)
+        // Bail if already initialized
 
-        try {
-            $file = new File(self::FILE_INITIALIZED);
+        $file = new File(self::FILE_INITIALIZED);
 
-            if ($file->exists())
-                return;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if ($file->exists())
+            return;
 
-        try {
-            // Generate random password
-            $password = LDAP_Utilities::generate_password();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        // Bail if we are a slave system
+
+        $mode = Mode_Factory::create();
+
+        if ($mode->is_read_only())
+            return;
+
+        // Generate random password
+
+        $password = User_Utilities::generate_password();
 
         // Check to see if flexshare user exists
 
@@ -1885,49 +1883,37 @@ class Flexshare extends Engine
             $adduser = TRUE;
         }
 
+print_r($currentinfo);
+return;
         // Add or update user account information
 
-        try {
-            if ($adduser) {
-                $userinfo = array();
-                $userinfo['password'] = $password;
-                $userinfo['verify'] = $password;
-                $userinfo['mailFlag'] = TRUE; // Mail-to-flexshare
-                $userinfo['ftpFlag'] = TRUE;  // Anonymous FTP
-                $userinfo['lastName'] = "System";
-                $userinfo['firstName'] = "Flexshare";
-                $userinfo['uid'] = self::CONSTANT_USERNAME;
-                $userinfo['homeDirectory'] = self::PATH_ROOT;
-                $userinfo['loginShell'] = self::CONSTANT_LOGIN_SHELL;
+        if ($adduser) {
+            $userinfo = array();
+            $userinfo['mailFlag'] = TRUE; // Mail-to-flexshare
+            $userinfo['ftpFlag'] = TRUE;  // Anonymous FTP
+            $userinfo['core']['last_name'] = 'System';
+            $userinfo['core']['first_name'] = 'Flexshare';
+            $userinfo['core']['home_directory'] = self::PATH_ROOT;
 
-                $user->Add($userinfo);
-            } else {
-                $userinfo = array();
-                $userinfo['password'] = $password;
-                $userinfo['verify'] = $password;
+            $user->add($userinfo, $password);
+        } else {
+            $userinfo = array();
 
-                if (! $currentinfo['mailFlag'])
-                    $userinfo['mailFlag'] = TRUE;
+            if (! $currentinfo['mailFlag'])
+                $userinfo['mailFlag'] = TRUE;
 
-                if (! $currentinfo['ftpFlag'])
-                    $userinfo['ftpFlag'] = TRUE;
+            if (! $currentinfo['ftpFlag'])
+                $userinfo['ftpFlag'] = TRUE;
 
-                $user->update($userinfo);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception("TODO - LDAP Initialization", CLEAROS_ERROR);
-            //throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            $user->update($userinfo);
+            $user->reset_password($password, $password, 'api');
         }
 
         // Set the password in flexshare
         // Set the initialized file
 
-        try { 
-            $this->set_password($password, $password);
-            $file->create("root", "root", "0644");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $this->set_password($password, $password);
+        $file->create("root", "root", "0644");
     }
 
     /**
@@ -3924,21 +3910,6 @@ echo 'shit';
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
     }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    /*
-    function __destruct()
-    {
-        // TODO
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->link != NULL)
-            mysql_close($this->link);
-    }
-    */
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   M E T H O D S

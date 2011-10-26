@@ -3,7 +3,7 @@ Name: app-flexshare
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: Flexshare app summary
+Summary: Flexshare
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,18 +13,20 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Flexshare app long description...
+Flexshares are flexible share resources that allow an administrator to quickly and easily define data sharing, collaboration and access areas via web, file, FTP and/or e-mail (as attachments).
 
 %package core
-Summary: Flexshare app summary - APIs and install
+Summary: Flexshare - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-cron-core
+Requires: app-mode-core
+Requires: app-tasks-core
+Requires: webconfig-php-imap
 Requires: ntpdate >= 4.2.4p8
 
 %description core
-Flexshare app long description...
+Flexshares are flexible share resources that allow an administrator to quickly and easily define data sharing, collaboration and access areas via web, file, FTP and/or e-mail (as attachments).
 
 This package provides the core API and libraries.
 
@@ -38,7 +40,9 @@ cp -r * %{buildroot}/usr/clearos/apps/flexshare/
 
 install -d -m 0755 %{buildroot}/var/flexshare
 install -d -m 0755 %{buildroot}/var/flexshare/shares
+install -D -m 0644 packaging/app-flexshare.cron %{buildroot}/etc/cron.d/app-flexshare
 install -D -m 0600 packaging/flexshare.conf %{buildroot}/etc/flexshare.conf
+install -D -m 0755 packaging/importflexemail %{buildroot}/usr/sbin/importflexemail
 install -D -m 0755 packaging/updateflexperms %{buildroot}/usr/sbin/updateflexperms
 
 %post
@@ -84,5 +88,7 @@ exit 0
 /usr/clearos/apps/flexshare/deploy
 /usr/clearos/apps/flexshare/language
 /usr/clearos/apps/flexshare/libraries
+/etc/cron.d/app-flexshare
 %config(noreplace) /etc/flexshare.conf
+/usr/sbin/importflexemail
 /usr/sbin/updateflexperms
