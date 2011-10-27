@@ -236,17 +236,17 @@ input.theme-form-important, x:-moz-any-link, x:default {
 
 td div.theme-button-set {
   margin-left: 15px;
-  margin-top: 5px;
+  margin-top: 3px;
 }
 
 .even td .theme-button-set {
-	margin-bottom: 0px;
-	margin-left:0px;
+	margin-bottom: 3px;
+	margin-left:2px;
 }
 
 .odd td .theme-button-set {
-	margin-bottom: 0px;
-	margin-left:0px;
+	margin-bottom: 3px;
+	margin-left:2px;
 }
 
 input.theme-form-unimportant { 
@@ -454,7 +454,7 @@ div.theme-button-set { background-image: url();  }
 }
 
 table.display td {
-	padding: 3px 2px;
+	padding: 1px 2px;
 }
 
 .ui-state-default .DataTables_sort_wrapper {
