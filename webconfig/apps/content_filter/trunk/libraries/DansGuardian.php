@@ -273,7 +273,7 @@ class DansGuardian extends Daemon
      * Adds web site or URL to exception list.
      *
      * @param string  $siteurl site or URL
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return void
      */
@@ -597,7 +597,7 @@ class DansGuardian extends Daemon
      * Deletes item from banned sites and URLs.
      *
      * @param string $siteurl site or URL
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return void
      */
@@ -655,7 +655,7 @@ class DansGuardian extends Daemon
      * Deletes site or URL from the exception list.
      *
      * @param string $siteurl site or URL
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return void
      */
@@ -683,7 +683,7 @@ class DansGuardian extends Daemon
      * Deletes site or URL from the grey list.
      *
      * @param string $siteurl site or URL
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return void
      */
@@ -844,7 +844,7 @@ class DansGuardian extends Daemon
     /**
      * Returns the banned extension list.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return array list of banned extensions
      */
@@ -859,30 +859,19 @@ class DansGuardian extends Daemon
     /**
      * Returns the list of banned URLs and sites.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return array list of banned URLs and sites
      */
 
-    public function get_banned_sites_and_urls($group = 1)
+    public function get_banned_sites_and_urls($group_id = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $sitelist = array();
-        $urllist = array();
-        $list = array();
+        $site_list = $this->_get_configuration_data_by_key('bannedsitelist', FALSE, $group_id);
+        $url_list = $this->_get_configuration_data_by_key('bannedurllist', FALSE, $group_id);
 
-        try {
-            $sitelist = $this->_get_configuration_data_by_key('bannedsitelist', FALSE, $group);
-        } catch (Exception $e) { }
-
-        try {
-            $urllist = $this->_get_configuration_data_by_key('bannedurllist', FALSE, $group);
-        } catch (Exception $e) { }
-
-        $list = array_merge($urllist, $sitelist);
-
-        return $list;
+        return array_merge($url_list, $site_list);
     }
 
     /**
@@ -915,7 +904,7 @@ class DansGuardian extends Daemon
     /**
      * Returns the banned MIME list.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return array list of banned MIMEs
      */
@@ -930,7 +919,7 @@ class DansGuardian extends Daemon
     /**
      * Returns activated blacklists.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return array list of activated blacklists
      */
@@ -1041,7 +1030,7 @@ class DansGuardian extends Daemon
     /**
      * Returns the sites and URLs in the exception list.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return array list of urls and sites in the exception list
      */
@@ -1070,7 +1059,7 @@ class DansGuardian extends Daemon
     /**
      * Returns the sites and URLs in the grey list.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return array list of urls and sites in the grey list
      */
@@ -1402,7 +1391,7 @@ class DansGuardian extends Daemon
     /**
      * Returns the reporting level.
      *
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return integer current reporting level
      */
@@ -1548,7 +1537,7 @@ class DansGuardian extends Daemon
      * Sets blacklist state.
      *
      * @param array   $list  list of enabled blacklists
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @return void
      */
@@ -2888,7 +2877,7 @@ class DansGuardian extends Daemon
      *
      * @param string  $key   configuration key
      * @param string  $value value for the configuration key
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @access private
      * @return void
@@ -2916,7 +2905,7 @@ class DansGuardian extends Daemon
      *
      * @param string  $key   configuration key
      * @param string  $lines array of lines in config file
-     * @param integer $group group number
+     * @param integer $group group ID
      *
      * @access private
      * @return void
