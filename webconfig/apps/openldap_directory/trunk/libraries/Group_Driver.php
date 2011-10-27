@@ -137,13 +137,6 @@ class Group_Driver extends Group_Engine
 
     const CONSTANT_NO_MEMBERS_USERNAME = 'nomembers';
     const CONSTANT_NO_MEMBERS_DN = 'No Members';
-    const CONSTANT_ALL_WINDOWS_USERS_GROUP = 'domain_users';
-
-    // Group policy
-    //-------------
-
-    const ALL_USERS_GROUP = 'allusers';
-    const ALL_USERS_GROUP_ID = '63000';
 
     // Group ID ranges
     //----------------

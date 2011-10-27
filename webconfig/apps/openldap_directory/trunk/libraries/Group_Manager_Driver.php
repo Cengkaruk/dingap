@@ -60,6 +60,7 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group_Engine as Group_Engine;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
@@ -67,8 +68,8 @@ clearos_load_library('base/File');
 clearos_load_library('groups/Group_Engine');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -199,45 +200,6 @@ class Group_Manager_Driver extends Engine
         return $group_list;
     }
 */
-
-    /**
-     * Initializes default group memberships.
-     *
-     * Both Linux and Windows (and perhaps other operating systems) require
-     * a default group to be assigned.  This method handles this assignment
-     * and also provides some extra group handling for built-in groups:
-     *
-     *  - allusers (a group that tracks all users)
-     *  - domain_users (a group that tracks all Windows domain users)
-     *
-     * @param string $username username
-     *
-     * @return void
-     */
-
-    public function initalize_group_memberships($username)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // FIXME: add Samba hook
-        // See if Samba is up and running
-        /*
-        $group = new Group_Driver(Group_Driver::CONSTANT_ALL_WINDOWS_USERS_GROUP); 
-        $samba_active = $group->exists();
-        */
-
-        // Add to "allusers" group
-        $group = new Group_Driver(Group_Driver::ALL_USERS_GROUP);
-        $group->add_member($username);
-
-        // Add domain_users group if Samba is up and running
-        /*
-        if ($samba_active) {
-            $group = new Group_Driver(Group_Driver::CONSTANT_ALL_WINDOWS_USERS_GROUP);
-            $group->add_member($username);
-        }
-        */
-    }
 
     /**
      * Updates group membership for given user.

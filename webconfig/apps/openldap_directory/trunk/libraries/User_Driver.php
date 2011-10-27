@@ -118,6 +118,7 @@ class User_Driver extends User_Engine
 
     const DEFAULT_HOMEDIR_PATH = '/home';
     const DEFAULT_LOGIN = '/sbin/nologin';
+    const DEFAULT_USER_GROUP = 'allusers';
     const DEFAULT_USER_GROUP_ID = '63000';
 
     // User ID ranges
@@ -228,6 +229,11 @@ class User_Driver extends User_Engine
         //-------------------------
 
         $this->ldaph->add($dn, $ldap_object);
+
+        // Initialize default group membership
+        //------------------------------------
+
+        $this->_initalize_group_memberships();
 
         // Handle plugins
         //---------------
@@ -1330,25 +1336,6 @@ return;
     }
 
     /**
-     * Handles running various hooks in an extension
-     *
-     * @param array $details extension details
-     * @return object extension object
-     */
-
-    protected function _load_extension($details)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        clearos_load_library($details['app'] . '/OpenLDAP_User_Extension');
-
-        $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_User_Extension';
-        $extension = new $class();
-
-        return $extension;
-    }
-
-    /**
      * Handles plugin attributes.
      *
      * @param array $user_info user info array
@@ -1373,6 +1360,43 @@ return;
                 $plugin->delete_member($this->username);
         }
     }
+
+    /**
+     * Initializes default group memberships.
+     *
+     * Both Linux and Windows (and perhaps other operating systems) require
+     * a default group to be assigned.  
+     *
+     * @return void
+     */
+
+    public function _initalize_group_memberships()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $group = new Group_Driver(User_Driver::DEFAULT_USER_GROUP);
+        $group->add_member($this->username);
+    }
+
+    /**
+     * Handles running various hooks in an extension
+     *
+     * @param array $details extension details
+     * @return object extension object
+     */
+
+    protected function _load_extension($details)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        clearos_load_library($details['app'] . '/OpenLDAP_User_Extension');
+
+        $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_User_Extension';
+        $extension = new $class();
+
+        return $extension;
+    }
+
 
     /**
      * Merges two LDAP object class lists.

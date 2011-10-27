@@ -53,7 +53,6 @@ clearos_load_language('openldap_directory');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
 //--------
 
 use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
@@ -63,6 +62,7 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
+use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('accounts/Accounts_Configuration');
@@ -72,11 +72,13 @@ clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
 clearos_load_library('openldap/LDAP_Driver');
+clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 
@@ -499,9 +501,13 @@ class OpenLDAP extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File("/etc/group");
-        $file->replace_lines("/^users:/", "");
-        $file->replace_lines("/^domain_users:/", "");
+        // TODO: move to a separate class in the base app, cleanup
+        $file = new File('/etc/group');
+        $file->replace_lines('/^users:/', '');
+        $file->replace_lines('/^domain_users:/', '');
+
+        $file = new File('/etc/default/useradd');
+        $file->replace_lines('/^GROUP=/', "GROUP=" . User_Driver::DEFAULT_USER_GROUP_ID . "\n");
     }
 
     /**
