@@ -47,8 +47,10 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Daemon');
+clearos_load_library('base/Shell');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -69,6 +71,12 @@ clearos_load_library('base/Daemon');
 class Nscd extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const COMMAND_NSCD = '/usr/sbin/nscd';
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -81,5 +89,20 @@ class Nscd extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct('nscd');
+    }
+
+    /**
+     * Clears the user (passwd) and group cache.
+     *
+     * @return void
+     */
+
+    public function clear_cache()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_NSCD, '-i passwd', TRUE);
+        $shell->execute(self::COMMAND_NSCD, '-i group', TRUE);
     }
 }
