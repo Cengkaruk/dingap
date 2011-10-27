@@ -1271,12 +1271,12 @@ function theme_summary_box($data)
         <h3>" . $data['name'] . "</h3>
         <table width='100%' id='sidebar_summary_table'>
             <tr>
-                <td width='50%'><b>" . lang('marketplace_version') . "</b></td>
-                <td width='50%'>" . $data['version'] . '-' . $data['release'] . "</td>
-            </tr>
-            <tr>
                 <td><b>" . lang('marketplace_vendor') . "</b></td>
                 <td>" . $data['vendor'] . "</td>
+            </tr>
+            <tr>
+                <td width='50%'><b>" . lang('marketplace_version') . "</b></td>
+                <td width='50%'>" . $data['version'] . '-' . $data['release'] . "</td>
             </tr>
             <tr id='sidebar_additional_info_row'>
                 <td valign='top'><b>" . lang('base_additional_info') . "</b></td>
@@ -1310,19 +1310,28 @@ function theme_summary_box($data)
                             $('#sidebar_additional_info').css('color', 'red');
                         } else {
                             $('#sidebar_additional_info_row').hide();
-                            // Version updates
-                            if (!json.up2date) {
-                                $('tbody', $('#sidebar_summary_table')).append(
+
+                            // We add rows in the reverse order to keep this section under the Version/Vendor
+
+                            // Redemption period
+                            if (json.license_info != undefined && json.license_info.redemption != undefined && json.license_info.redemption == true) {
+                                $('#sidebar_additional_info_row').after(
                                     c_row(
-                                        '" . lang('marketplace_upgrade') . "',
-                                        json.latest_version
+                                        '" . lang('base_status') . "',
+                                        '<span style=\'color: red\'>" . lang('marketplace_redemption') . "<\\/span>'
                                     )
                                 );
                             }
 
-                            // Everything below has to do with licensing which may not be present
-                            if (json.license_info == undefined)
-                                return;
+                            // No Subscription
+                            if (json.license_info != undefined && json.license_info.no_subscription != undefined && json.license_info.no_subscription == true) {
+                                $('#sidebar_additional_info_row').after(
+                                    c_row(
+                                        '" . lang('base_status') . "',
+                                        '<span style=\'color: red\'>" . lang('marketplace_expired_no_subsription') . "<\\/span>'
+                                    )
+                                );
+                            }
 
                             // Subscription?  A unit of 100 or greater represents a recurring subscription
                             if (json.license_info != undefined && json.license_info.unit >= 100) {
@@ -1334,14 +1343,14 @@ function theme_summary_box($data)
                                 else if (json.license_info.unit == 3000)
                                     bill_cycle = '" . lang('marketplace_billing_cycle_3_years') . "';
                 
-                                $('tbody', $('#sidebar_summary_table')).append(
+                                $('#sidebar_additional_info_row').after(
                                     c_row(
                                         '" . lang('marketplace_billing_cycle') . "',
                                         bill_cycle
                                     )
                                 );
                                 if (json.license_info.expire != undefined) {
-                                    $('tbody', $('#sidebar_summary_table')).append(
+                                    $('#sidebar_additional_info_row').after(
                                         c_row(
                                             '" . lang('marketplace_renewal_date') . "',
                                             $.datepicker.formatDate('MM d, yy', new Date(json.license_info.expire))
@@ -1349,24 +1358,17 @@ function theme_summary_box($data)
                                     );
                                 }
                             }
-                            // Redemption period
-                            if (json.license_info.redemption != undefined && json.license_info.redemption == true) {
-                                $('tbody', $('#sidebar_summary_table')).append(
+
+                            // Version updates
+                            if (!json.up2date) {
+                                $('#sidebar_additional_info_row').after(
                                     c_row(
-                                        '" . lang('base_status') . "',
-                                        '<span style=\'color: red\'>" . lang('marketplace_redemption') . "<\\/span>'
+                                        '" . lang('marketplace_upgrade') . "',
+                                        json.latest_version
                                     )
                                 );
                             }
-                            // No Subscription
-                            if (json.license_info.no_subscription != undefined && json.license_info.no_subscription == true) {
-                                $('tbody', $('#sidebar_summary_table')).append(
-                                    c_row(
-                                        '" . lang('base_status') . "',
-                                        '<span style=\'color: red\'>" . lang('marketplace_expired_no_subsription') . "<\\/span>'
-                                    )
-                                );
-                            }
+
                         }
                     },
                     error: function (xhr, text_status, error_thrown) {
