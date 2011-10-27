@@ -117,7 +117,6 @@ class User_Driver extends User_Engine
     //------------
 
     const DEFAULT_HOMEDIR_PATH = '/home';
-    const DEFAULT_HOMEDIR_PERMS = '0755';
     const DEFAULT_LOGIN = '/sbin/nologin';
     const DEFAULT_USER_GROUP_ID = '63000';
 
