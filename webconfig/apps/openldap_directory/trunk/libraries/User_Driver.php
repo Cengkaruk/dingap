@@ -55,6 +55,7 @@ clearos_load_language('users');
 // Classes
 //--------
 
+use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
@@ -67,6 +68,7 @@ use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
+clearos_load_library('accounts/Nscd');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('ldap/LDAP_Utilities');
@@ -82,6 +84,7 @@ clearos_load_library('users/User_Engine');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\users\User_Not_Found_Exception as User_Not_Found_Exception;
 
@@ -550,6 +553,8 @@ class User_Driver extends User_Engine
         $ldap_object = $this->_convert_password_to_attributes($password);
 
         $this->ldaph->modify($dn, $ldap_object);
+
+        $this->_synchronize();
     }
 
     /**
@@ -653,6 +658,8 @@ class User_Driver extends User_Engine
         sleep(2); // see comment
 
         $this->ldaph->modify($dn, $ldap_object);
+
+        $this->_synchronize();
     }
 
     /**
@@ -675,6 +682,8 @@ class User_Driver extends User_Engine
             if (method_exists($extension, 'unlock_hook'))
                 $extension->unlock_hook($this->username);
         }
+
+        $this->_synchronize();
     }
 
     /**
@@ -1466,6 +1475,11 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: reload nscd
+        try {
+            $nscd = new Nscd();
+            $nscd->clear_cache();
+        } catch (Exception $e) {
+            // Not fatal
+        }
     }
 }
