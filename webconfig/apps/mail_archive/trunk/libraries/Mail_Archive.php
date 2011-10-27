@@ -1893,7 +1893,7 @@ class Mail_Archive extends Engine
             $this->_load_config();
 
         if ($this->link == NULL)
-            $this->cConnect();
+            $this->connect();
 
         // Select the db name
         mysql_select_db($db_name);
