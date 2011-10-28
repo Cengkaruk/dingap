@@ -261,26 +261,6 @@ class File_Scan extends Engine
     }
 
     /**
-     * Enables antivirus definition updates.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function enable_updates()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $freshclam = new Daemon("freshclam");
-            $freshclam->set_boot_state(TRUE);
-            $freshclam->set_running_state(TRUE);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
-    }
-
-    /**
      * Returns array of directories configured to scan for viruses.
      *
      * @return array of directory names
@@ -821,8 +801,6 @@ class File_Scan extends Engine
 
         if ($this->is_scan_running())
             throw new Engine_Exception(ANTIVIRUS_LANG_RUNNING, CLEAROS_WARNING);
-
-        $this->enable_updates();
 
         try {
             $options = array();
