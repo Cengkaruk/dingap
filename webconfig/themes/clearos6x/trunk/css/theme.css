@@ -234,6 +234,18 @@ input.theme-form-important, x:-moz-any-link, x:default {
   clear: all;
 }
 
+/* This style sheet is a mess.  The following style is for UI dialog boxes with buttons */
+.ui-dialog .ui-dialog-buttonpane button { 
+  background: transparent url('../images/button-bg.png') repeat-x;
+  padding-left: 5px;
+  padding-right: 5px;
+  height: 18px;
+  border: 1px solid #d1d3d4;
+  color: #e1852e;
+  margin-top: 0px;
+  clear: all;
+}
+
 td div.theme-button-set {
   margin-left: 15px;
   margin-top: 3px;
