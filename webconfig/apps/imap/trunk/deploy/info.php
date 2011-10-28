@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'POP and IMAP Server';
-$app['description'] = 'The POP and IMAP servers provide standard messaging... blah blah blah.';  // FIXME
+$app['description'] = lang('imap_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('imap_imap_and_pop_server');
+$app['name'] = lang('imap_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_mail');
 
@@ -35,4 +34,8 @@ $app['controllers']['imap']['tooltip'] = 'Using secure protocols is a good secur
 
 $app['core_requires'] = array(
     'cyrus-imapd >= 2.3.16',
+);
+
+$app['core_file_manifest'] = array(
+    'cyrus-imapd.php'=> array('target' => '/var/clearos/base/daemon/cyrus-imapd.php'),
 );

@@ -3,7 +3,7 @@ Name: app-smtp
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: SMTP server and gateway
+Summary: SMTP Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,17 +13,17 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-SMTP description blah blah blah...
+SMTP Server description...
 
 %package core
-Summary: SMTP server and gateway - APIs and install
+Summary: SMTP Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: postfix >= 2.6.6
 
 %description core
-SMTP description blah blah blah...
+SMTP Server description...
 
 This package provides the core API and libraries.
 
@@ -35,6 +35,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/smtp
 cp -r * %{buildroot}/usr/clearos/apps/smtp/
 
+install -D -m 0644 packaging/postfix.php %{buildroot}/var/clearos/base/daemon/postfix.php
 
 %post
 logger -p local6.notice -t installer 'app-smtp - installing'
@@ -77,3 +78,4 @@ exit 0
 /usr/clearos/apps/smtp/deploy
 /usr/clearos/apps/smtp/language
 /usr/clearos/apps/smtp/libraries
+/var/clearos/base/daemon/postfix.php

@@ -27,3 +27,7 @@ $app['menu_enabled'] = FALSE;
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_only'] =  TRUE;
+
+$app['core_file_manifest'] = array(
+    'syswatch.php'=> array('target' => '/var/clearos/base/daemon/syswatch.php'),
+);

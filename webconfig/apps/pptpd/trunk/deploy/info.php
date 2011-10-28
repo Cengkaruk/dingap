@@ -50,3 +50,7 @@ $app['core_requires'] = array(
 $app['core_directory_manifest'] = array(
     '/var/clearos/pptpd' => array(),
 );
+
+$app['core_file_manifest'] = array(
+    'pptpd.php'=> array('target' => '/var/clearos/base/daemon/pptpd.php'),
+);

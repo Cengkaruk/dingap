@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('mysql_app_summary');
-$app['description'] = lang('mysql_app_long_description');
+$app['description'] = lang('mysql_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('mysql_mysql_database');
+$app['name'] = lang('mysql_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_database');
 
@@ -33,4 +32,5 @@ $app['core_requires'] = array(
 $app['core_file_manifest'] = array( 
     'mysql-default.conf' => array ( 'target' => '/etc/storage.d/mysql-default.conf' ),
     'mysql.php' => array( 'target' => '/var/clearos/storage/plugins/mysql.php' ),
+    'mysqld.php'=> array('target' => '/var/clearos/base/daemon/mysqld.php'),
 );

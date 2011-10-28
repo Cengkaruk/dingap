@@ -23,6 +23,8 @@ $lang['accounts_plugin'] = 'Plugin';
 $lang['accounts_extensions'] = 'Extensions';
 $lang['accounts_plugins'] = 'Plugins';
 
+$lang['accounts_accounts_caching_server'] = 'Accounts Caching Server';
+$lang['accounts_accounts_lookup_server'] = 'Accounts Lookup Server';
 
 ///////////////////////////////////////
 // From LDAP class

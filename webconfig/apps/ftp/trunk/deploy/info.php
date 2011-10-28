@@ -39,5 +39,8 @@ $app['core_directory_manifest'] = array(
     '/var/clearos/ftp/backup/' => array(),
 );
 
+$app['core_file_manifest'] = array(
+    'proftpd.php'=> array('target' => '/var/clearos/base/daemon/proftpd.php'),
+);
 
 // FIXME: need default configuration file

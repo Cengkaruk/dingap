@@ -3,7 +3,7 @@ Name: app-mysql
 Group: ClearOS/Apps
 Version: 5.9.9.0
 Release: 1%{dist}
-Summary: MySQL Database
+Summary: MySQL Server
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 MySQL is an open-source, Relational Database Management System (RDMS).  It can be configured to run database driven applications, websites, CRM and practically any other resource requiring a relational storage service.
 
 %package core
-Summary: MySQL Database - APIs and install
+Summary: MySQL Server - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
@@ -38,6 +38,7 @@ cp -r * %{buildroot}/usr/clearos/apps/mysql/
 
 install -D -m 0644 packaging/mysql-default.conf %{buildroot}/etc/storage.d/mysql-default.conf
 install -D -m 0644 packaging/mysql.php %{buildroot}/var/clearos/storage/plugins/mysql.php
+install -D -m 0644 packaging/mysqld.php %{buildroot}/var/clearos/base/daemon/mysqld.php
 
 %post
 logger -p local6.notice -t installer 'app-mysql - installing'
@@ -82,3 +83,4 @@ exit 0
 /usr/clearos/apps/mysql/libraries
 /etc/storage.d/mysql-default.conf
 /var/clearos/storage/plugins/mysql.php
+/var/clearos/base/daemon/mysqld.php

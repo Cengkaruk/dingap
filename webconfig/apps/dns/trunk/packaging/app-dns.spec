@@ -37,6 +37,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/dns
 cp -r * %{buildroot}/usr/clearos/apps/dns/
 
+install -D -m 0644 packaging/dnsmasq.php %{buildroot}/var/clearos/base/daemon/dnsmasq.php
 
 %post
 logger -p local6.notice -t installer 'app-dns - installing'
@@ -79,3 +80,4 @@ exit 0
 /usr/clearos/apps/dns/deploy
 /usr/clearos/apps/dns/language
 /usr/clearos/apps/dns/libraries
+/var/clearos/base/daemon/dnsmasq.php

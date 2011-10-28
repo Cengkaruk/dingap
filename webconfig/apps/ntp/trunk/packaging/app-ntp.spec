@@ -38,6 +38,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/ntp
 cp -r * %{buildroot}/usr/clearos/apps/ntp/
 
 install -d -m 0755 %{buildroot}/var/clearos/ntp
+install -D -m 0644 packaging/ntpd.php %{buildroot}/var/clearos/base/daemon/ntpd.php
 
 %post
 logger -p local6.notice -t installer 'app-ntp - installing'
@@ -81,3 +82,4 @@ exit 0
 /usr/clearos/apps/ntp/deploy
 /usr/clearos/apps/ntp/language
 /usr/clearos/apps/ntp/libraries
+/var/clearos/base/daemon/ntpd.php

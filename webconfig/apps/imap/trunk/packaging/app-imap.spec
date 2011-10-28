@@ -13,7 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-The POP and IMAP servers provide standard messaging... blah blah blah.
+IMAP and POP Server
 
 %package core
 Summary: IMAP and POP Server - APIs and install
@@ -23,7 +23,7 @@ Requires: app-base-core
 Requires: cyrus-imapd >= 2.3.16
 
 %description core
-The POP and IMAP servers provide standard messaging... blah blah blah.
+IMAP and POP Server
 
 This package provides the core API and libraries.
 
@@ -35,6 +35,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/imap
 cp -r * %{buildroot}/usr/clearos/apps/imap/
 
+install -D -m 0644 packaging/cyrus-imapd.php %{buildroot}/var/clearos/base/daemon/cyrus-imapd.php
 
 %post
 logger -p local6.notice -t installer 'app-imap - installing'
@@ -77,3 +78,4 @@ exit 0
 /usr/clearos/apps/imap/deploy
 /usr/clearos/apps/imap/language
 /usr/clearos/apps/imap/libraries
+/var/clearos/base/daemon/cyrus-imapd.php

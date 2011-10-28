@@ -42,10 +42,20 @@ $app['requires'] = array(
     'app-postfix',
 );
 
-// 'app-system-mysql-core
 $app['core_requires'] = array(
     'app-zarafa-extension-core',
     'app-openldap-directory-core', 
+    'system-mysql-server',
     'zarafa',
     'zarafa-webaccess',
+);
+
+$app['core_file_manifest'] = array(
+    'zarafa-dagent.php'=> array('target' => '/var/clearos/base/daemon/zarafa-dagent.php'),
+    'zarafa-gateway.php'=> array('target' => '/var/clearos/base/daemon/zarafa-gateway.php'),
+    'zarafa-ical.php'=> array('target' => '/var/clearos/base/daemon/zarafa-ical.php'),
+    'zarafa-indexer.php'=> array('target' => '/var/clearos/base/daemon/zarafa-indexer.php'),
+    'zarafa-monitor.php'=> array('target' => '/var/clearos/base/daemon/zarafa-monitor.php'),
+    'zarafa-server.php'=> array('target' => '/var/clearos/base/daemon/zarafa-server.php'),
+    'zarafa-spooler.php'=> array('target' => '/var/clearos/base/daemon/zarafa-spooler.php'),
 );

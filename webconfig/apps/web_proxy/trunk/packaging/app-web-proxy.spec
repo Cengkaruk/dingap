@@ -40,6 +40,7 @@ cp -r * %{buildroot}/usr/clearos/apps/web_proxy/
 
 install -d -m 0755 %{buildroot}/var/clearos/web_proxy
 install -d -m 0755 %{buildroot}/var/clearos/web_proxy/backup/
+install -D -m 0644 packaging/squid.php %{buildroot}/var/clearos/base/daemon/squid.php
 
 %post
 logger -p local6.notice -t installer 'app-web-proxy - installing'
@@ -84,3 +85,4 @@ exit 0
 /usr/clearos/apps/web_proxy/deploy
 /usr/clearos/apps/web_proxy/language
 /usr/clearos/apps/web_proxy/libraries
+/var/clearos/base/daemon/squid.php

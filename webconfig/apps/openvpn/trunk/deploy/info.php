@@ -48,3 +48,7 @@ $app['core_directory_manifest'] = array(
    '/var/clearos/openvpn' => array(),
    '/var/clearos/openvpn/backup' => array(),
 );
+
+$app['core_file_manifest'] = array(
+    'openvpn.php'=> array('target' => '/var/clearos/base/daemon/openvpn.php'),
+);

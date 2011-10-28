@@ -39,3 +39,7 @@ $app['core_requires'] = array(
     'app-network-core',
     'clamd',
 );
+
+$app['core_file_manifest'] = array(
+    'clamd.php'=> array('target' => '/var/clearos/base/daemon/clamd.php'),
+);

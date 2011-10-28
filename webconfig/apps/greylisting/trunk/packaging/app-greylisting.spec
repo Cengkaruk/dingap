@@ -20,7 +20,7 @@ Summary: Greylisting - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: postgrey
+Requires: postgrey >= 1.33-2
 
 %description core
 Greylisting description...
@@ -35,6 +35,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/greylisting
 cp -r * %{buildroot}/usr/clearos/apps/greylisting/
 
+install -D -m 0644 packaging/postgrey.php %{buildroot}/var/clearos/base/daemon/postgrey.php
 
 %post
 logger -p local6.notice -t installer 'app-greylisting - installing'
@@ -77,3 +78,4 @@ exit 0
 /usr/clearos/apps/greylisting/deploy
 /usr/clearos/apps/greylisting/language
 /usr/clearos/apps/greylisting/libraries
+/var/clearos/base/daemon/postgrey.php

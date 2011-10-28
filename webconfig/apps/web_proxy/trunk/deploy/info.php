@@ -45,3 +45,7 @@ $app['core_directory_manifest'] = array(
     '/var/clearos/web_proxy' => array(),
     '/var/clearos/web_proxy/backup/' => array(),
 );
+
+$app['core_file_manifest'] = array(
+    'squid.php'=> array('target' => '/var/clearos/base/daemon/squid.php'),
+);

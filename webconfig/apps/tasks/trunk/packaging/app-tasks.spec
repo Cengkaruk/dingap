@@ -3,7 +3,7 @@ Name: app-tasks-core
 Group: ClearOS/Libraries
 Version: 5.9.9.5
 Release: 1%{dist}
-Summary: Translation missing (tasks_tasks_scheduler) - APIs and install
+Summary: Task Scheduler - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -13,7 +13,7 @@ Requires: app-base-core
 Requires: cronie >= 1.4.4
 
 %description
-Task scheduler long description
+Task scheduler description
 
 This package provides the core API and libraries.
 
@@ -25,6 +25,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/tasks
 cp -r * %{buildroot}/usr/clearos/apps/tasks/
 
+install -D -m 0644 packaging/crond.php %{buildroot}/var/clearos/base/daemon/crond.php
 
 %post
 logger -p local6.notice -t installer 'app-tasks-core - installing'
@@ -53,3 +54,4 @@ exit 0
 /usr/clearos/apps/tasks/deploy
 /usr/clearos/apps/tasks/language
 /usr/clearos/apps/tasks/libraries
+/var/clearos/base/daemon/crond.php

@@ -1,5 +1,8 @@
 <?php
 
+$lang['imap_app_description'] = 'IMAP and POP Server';
+$lang['imap_app_name'] = 'IMAP and POP Server';
+
 $lang['imap_imap'] = 'IMAP';
 $lang['imap_imaps'] = 'Secure IMAP';
 $lang['imap_pop3'] = 'POP';

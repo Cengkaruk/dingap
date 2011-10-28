@@ -24,6 +24,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/syswatch
 cp -r * %{buildroot}/usr/clearos/apps/syswatch/
 
+install -D -m 0644 packaging/syswatch.php %{buildroot}/var/clearos/base/daemon/syswatch.php
 
 %post
 logger -p local6.notice -t installer 'app-syswatch-core - installing'
@@ -52,3 +53,4 @@ exit 0
 /usr/clearos/apps/syswatch/deploy
 /usr/clearos/apps/syswatch/language
 /usr/clearos/apps/syswatch/libraries
+/var/clearos/base/daemon/syswatch.php

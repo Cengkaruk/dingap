@@ -53,6 +53,9 @@ $app['core_file_manifest'] = array(
         'target' => '/usr/sbin/samba-init',
         'mode' => '0755',
     ),
+    'nmb.php'=> array('target' => '/var/clearos/base/daemon/nmb.php'),
+    'smb.php'=> array('target' => '/var/clearos/base/daemon/smb.php'),
+    'winbind.php'=> array('target' => '/var/clearos/base/daemon/winbind.php'),
 );
 
 $app['core_directory_manifest'] = array(

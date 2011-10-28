@@ -1,4 +1,6 @@
 <?php
+$lang['smtp_app_description'] = 'SMTP Server description...';
+$lang['smtp_app_name'] = 'SMTP Server';
 $lang['smtp_antispam'] = 'Antispam';
 $lang['smtp_bounced'] = 'Bounced';
 $lang['smtp_deferred'] = 'Deferred';

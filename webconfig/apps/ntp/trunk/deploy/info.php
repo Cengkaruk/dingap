@@ -44,3 +44,7 @@ $app['core_requires'] = array(
 $app['core_directory_manifest'] = array(
     '/var/clearos/ntp' => array(),
 );
+
+$app['core_file_manifest'] = array(
+    'ntpd.php'=> array('target' => '/var/clearos/base/daemon/ntpd.php'),
+);

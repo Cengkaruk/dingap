@@ -30,5 +30,9 @@ $app['subcategory'] = lang('base_subcategory_mail');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
-    'postgrey',
+    'postgrey >= 1.33-2',
+);
+
+$app['core_file_manifest'] = array(
+    'postgrey.php'=> array('target' => '/var/clearos/base/daemon/postgrey.php'),
 );

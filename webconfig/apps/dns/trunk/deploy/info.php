@@ -39,3 +39,7 @@ $app['core_requires'] = array(
     'dnsmasq >= 2.48',
     'net-tools',
 );
+
+$app['core_file_manifest'] = array(
+    'dnsmasq.php'=> array('target' => '/var/clearos/base/daemon/dnsmasq.php'),
+);

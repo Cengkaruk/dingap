@@ -37,6 +37,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/antivirus
 cp -r * %{buildroot}/usr/clearos/apps/antivirus/
 
+install -D -m 0644 packaging/clamd.php %{buildroot}/var/clearos/base/daemon/clamd.php
 
 %post
 logger -p local6.notice -t installer 'app-antivirus - installing'
@@ -79,3 +80,4 @@ exit 0
 /usr/clearos/apps/antivirus/deploy
 /usr/clearos/apps/antivirus/language
 /usr/clearos/apps/antivirus/libraries
+/var/clearos/base/daemon/clamd.php

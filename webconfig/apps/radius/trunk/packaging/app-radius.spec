@@ -49,6 +49,7 @@ install -D -m 0640 packaging/clearos-clients.conf %{buildroot}/etc/raddb/clearos
 install -D -m 0640 packaging/clearos-eap.conf %{buildroot}/etc/raddb/clearos-eap.conf
 install -D -m 0640 packaging/clearos-inner-tunnel %{buildroot}/etc/raddb/sites-available/clearos-inner-tunnel
 install -D -m 0640 packaging/clearos-users %{buildroot}/etc/raddb/clearos-users
+install -D -m 0644 packaging/radiusd.php %{buildroot}/var/clearos/base/daemon/radiusd.php
 
 %post
 logger -p local6.notice -t installer 'app-radius - installing'
@@ -96,3 +97,4 @@ exit 0
 %attr(0640,root,radiusd) /etc/raddb/clearos-eap.conf
 %attr(0640,root,radiusd) /etc/raddb/sites-available/clearos-inner-tunnel
 %attr(0640,root,radiusd) /etc/raddb/clearos-users
+/var/clearos/base/daemon/radiusd.php

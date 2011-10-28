@@ -39,6 +39,7 @@ cp -r * %{buildroot}/usr/clearos/apps/ftp/
 
 install -d -m 0755 %{buildroot}/var/clearos/ftp
 install -d -m 0755 %{buildroot}/var/clearos/ftp/backup/
+install -D -m 0644 packaging/proftpd.php %{buildroot}/var/clearos/base/daemon/proftpd.php
 
 %post
 logger -p local6.notice -t installer 'app-ftp - installing'
@@ -83,3 +84,4 @@ exit 0
 /usr/clearos/apps/ftp/deploy
 /usr/clearos/apps/ftp/language
 /usr/clearos/apps/ftp/libraries
+/var/clearos/base/daemon/proftpd.php

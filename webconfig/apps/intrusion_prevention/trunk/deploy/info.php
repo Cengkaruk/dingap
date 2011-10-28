@@ -42,3 +42,7 @@ $app['core_requires'] = array(
     'app-intrusion-detection-core',
     'snort >= 2.9.0.4',
 );
+
+$app['core_file_manifest'] = array(
+    'snortsam.php'=> array('target' => '/var/clearos/base/daemon/snortsam.php'),
+);

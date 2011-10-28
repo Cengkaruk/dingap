@@ -39,6 +39,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/intrusion_detection
 cp -r * %{buildroot}/usr/clearos/apps/intrusion_detection/
 
 install -d -m 0755 %{buildroot}/var/clearos/intrusion_detection
+install -D -m 0644 packaging/snort.php %{buildroot}/var/clearos/base/daemon/snort.php
 
 %post
 logger -p local6.notice -t installer 'app-intrusion-detection - installing'
@@ -82,3 +83,4 @@ exit 0
 /usr/clearos/apps/intrusion_detection/deploy
 /usr/clearos/apps/intrusion_detection/language
 /usr/clearos/apps/intrusion_detection/libraries
+/var/clearos/base/daemon/snort.php

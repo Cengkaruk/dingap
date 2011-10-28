@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('radius_app_summary');
-$app['description'] = lang('radius_app_long_description');
+$app['description'] = lang('radius_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('radius_radius_server');
+$app['name'] = lang('radius_app_name');
 $app['category'] = lang('base_category_network');
 $app['subcategory'] = lang('base_subcategory_infrastructure');
 
@@ -81,4 +80,5 @@ $app['core_file_manifest'] = array(
         'owner' => 'root',
         'group' => 'radiusd',
     ),
+    'radiusd.php'=> array('target' => '/var/clearos/base/daemon/radiusd.php'),
 );

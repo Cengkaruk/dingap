@@ -39,6 +39,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/intrusion_prevention
 cp -r * %{buildroot}/usr/clearos/apps/intrusion_prevention/
 
+install -D -m 0644 packaging/snortsam.php %{buildroot}/var/clearos/base/daemon/snortsam.php
 
 %post
 logger -p local6.notice -t installer 'app-intrusion-prevention - installing'
@@ -81,3 +82,4 @@ exit 0
 /usr/clearos/apps/intrusion_prevention/deploy
 /usr/clearos/apps/intrusion_prevention/language
 /usr/clearos/apps/intrusion_prevention/libraries
+/var/clearos/base/daemon/snortsam.php

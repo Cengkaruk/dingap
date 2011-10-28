@@ -44,6 +44,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/pptpd
 cp -r * %{buildroot}/usr/clearos/apps/pptpd/
 
 install -d -m 0755 %{buildroot}/var/clearos/pptpd
+install -D -m 0644 packaging/pptpd.php %{buildroot}/var/clearos/base/daemon/pptpd.php
 
 %post
 logger -p local6.notice -t installer 'app-pptpd - installing'
@@ -87,3 +88,4 @@ exit 0
 /usr/clearos/apps/pptpd/deploy
 /usr/clearos/apps/pptpd/language
 /usr/clearos/apps/pptpd/libraries
+/var/clearos/base/daemon/pptpd.php

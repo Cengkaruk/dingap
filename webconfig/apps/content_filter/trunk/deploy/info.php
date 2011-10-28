@@ -45,3 +45,7 @@ $app['core_directory_manifest'] = array(
     '/var/clearos/content_filter' => array(),
     '/var/clearos/content_filter/backup/' => array(),
 );
+
+$app['core_file_manifest'] = array(
+    'dansguardian-av.php'=> array('target' => '/var/clearos/base/daemon/dansguardian-av.php'),
+);

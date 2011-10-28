@@ -106,6 +106,7 @@ clearos_load_library('base/File_Not_Found_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/raid/
  */
 
+// FIXME: is extending Daemon correct?
 class Raid extends Daemon
 {
     ///////////////////////////////////////////////////////////////////////////////
