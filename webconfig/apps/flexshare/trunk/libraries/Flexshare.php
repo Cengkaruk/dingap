@@ -178,7 +178,7 @@ class Flexshare extends Engine
     const CMD_VALIDATE_SMBD = '/usr/bin/testparm';
     const CMD_MOUNT = "/bin/mount";
     const CMD_UMOUNT = "/bin/umount";
-    const CMD_PHP = "/usr/clearos/webconfig/usr/bin/php";
+    const CMD_PHP = "/usr/clearos/sandbox/usr/bin/php";
     const CMD_UPDATE_PERMS = "/usr/sbin/updateflexperms";
     const DIR_MAIL_UPLOAD = "email-upload";
     const CONSTANT_USERNAME = 'flexshare';
