@@ -22,13 +22,22 @@ $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_database');
 
 /////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+// FIXME: add tooltip about "root" account, it's the DB root, not system root
+// $app['controllers']['mysql']['tooltip'] = lang('mysql_app_tooltip');
+
+/////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
     'app-network-core', 
-    'mysql-server >= 5.1.52'
+    'mysql-server >= 5.1.52',
+    'phpMyAdmin >= 3.4.7'
 );
+
 $app['core_file_manifest'] = array( 
     'mysql-default.conf' => array ( 'target' => '/etc/storage.d/mysql-default.conf' ),
     'mysql.php' => array( 'target' => '/var/clearos/storage/plugins/mysql.php' ),

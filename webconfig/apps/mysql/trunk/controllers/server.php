@@ -60,8 +60,31 @@ require clearos_app_base('base') . '/controllers/daemon.php';
 
 class Server extends Daemon
 {
+    /**
+     * Server constructor.
+     */
+
     function __construct()
     {
         parent::__construct('mysqld', 'mysql');
+    }
+
+    /**
+     * Full daemon status.
+     *
+     * @return json daemon status encoded in json
+     */
+
+    function full_status()
+    {
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Content-type: application/json');
+
+        $this->load->library('mysql/MySQL');
+
+        $status['status'] = $this->mysql->get_status();
+        $status['is_password_set'] = $this->mysql->is_root_password_set();
+
+        echo json_encode($status);
     }
 }

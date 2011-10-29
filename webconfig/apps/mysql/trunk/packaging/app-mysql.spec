@@ -22,6 +22,7 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
 Requires: mysql-server >= 5.1.52
+Requires: phpMyAdmin >= 3.4.7
 
 %description core
 MySQL is an open-source, Relational Database Management System (RDMS).  It can be configured to run database driven applications, websites, CRM and practically any other resource requiring a relational storage service.

@@ -71,32 +71,39 @@ class Setting extends ClearOS_Controller
         // Set validation rules
         //---------------------
          
-        // $this->form_validation->set_policy('current_password', 'mysql/MySQL', 'validate_password', TRUE);
-        $this->form_validation->set_policy('password', 'mysql/MySQL', 'validate_password', TRUE);
-        $this->form_validation->set_policy('verify', 'mysql/MySQL', 'validate_password', TRUE);
+        if ($this->input->post('submit')) {
+            $this->form_validation->set_policy('current_password', 'mysql/MySQL', 'validate_password', TRUE);
+            $this->form_validation->set_policy('password', 'mysql/MySQL', 'validate_password', TRUE);
+            $this->form_validation->set_policy('verify', 'mysql/MySQL', 'validate_password', TRUE);
+        } else {
+            $this->form_validation->set_policy('new_password', 'mysql/MySQL', 'validate_password', TRUE);
+            $this->form_validation->set_policy('new_verify', 'mysql/MySQL', 'validate_password', TRUE);
+        }
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
         //-------------------
 
-        if (($this->input->post('submit') && $form_ok)) {
+        if (($this->input->post('submit') || $this->input->post('submit_new')) && $form_ok) {
             try {
-                $match = $this->mysql->validate_password_verify(
-                    $this->input->post('password'),
-                    $this->input->post('verify')
-                );
-
-                // form_validation widget can't handle two inputs?
-                if ($match)
-                    throw new Engine_Exception($match, CLEAROS_ERROR);
-
-                if ($this->input->post('current_password'))
+                if ($this->input->post('submit')) {
                     $current_password = $this->input->post('current_password');
-                else
+                    $password = $this->input->post('password');
+                    $verify = $this->input->post('verify');
+                } else {
                     $current_password = '';
+                    $password = $this->input->post('new_password');
+                    $verify = $this->input->post('new_verify');
+                }
 
+                $match = $this->mysql->validate_password_verify($password, $verify);
 
-                $this->mysql->set_root_password($current_password, $this->input->post('password'));
+                // FIXME: form_validation widget can't handle two inputs?
+                if ($match)
+                    throw new Engine_Exception($match);
+
+                $this->mysql->set_root_password($current_password, $password);
 
                 $this->page->set_message(lang('mysql_password_updated'), 'info');
                 redirect('/mysql');

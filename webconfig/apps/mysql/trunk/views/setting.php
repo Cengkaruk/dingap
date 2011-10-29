@@ -40,23 +40,50 @@ $this->lang->load('mysql');
 // Show warning if password is not set
 ///////////////////////////////////////////////////////////////////////////////
 
-if (! $is_password_set)
-    echo infobox_warning(lang('mysql_lang_please_set_a_database_password'));
+echo "<div id='mysql_not_running' style='display:none;'>";
+echo infobox_warning(lang('base_warning'), lang('mysql_management_tool_not_accessible'));
+echo "</div>";
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Password not set
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('mysql', array('autocomplete' => 'off'));
-echo form_header(lang('mysql_mysql'));
+echo "<div id='mysql_no_password' style='display:none;'>";
+echo infobox_warning(lang('base_warning'), lang('mysql_lang_please_set_a_database_password'));
+
+echo form_open('mysql');
+echo form_header(lang('base_password'));
+
+echo field_password('new_password', '', lang('base_password'));
+echo field_password('new_verify', '', lang('base_verify'));
+
+echo field_button_set(
+    array(form_submit_custom('submit_new', lang('mysql_set_password'), 'high'))
+);
+
+echo form_footer();
+echo form_close();
+
+echo "</div>";
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields
+// Password set
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($is_password_set)
-    echo field_password('current_password', '', lang('base_current_password'));
+echo "<div id='mysql_password_ok' style='display:none;'>";
 
+echo infobox_highlight(
+    lang('mysql_management_tool'),
+    lang('mysql_management_tool_help') . '<br><br>' .
+    "<p align='center'>" .  
+    anchor_custom('/mysql', lang('mysql_go_to_management_tool'), 'high', array('target' => '_blank')) . 
+    "</p>"
+);
+
+echo form_open('mysql');
+echo form_header(lang('base_password'));
+
+echo field_password('current_password', '', lang('base_current_password'));
 echo field_password('password', '', lang('base_password'));
 echo field_password('verify', '', lang('base_verify'));
 
@@ -64,9 +91,7 @@ echo field_button_set(
     array(form_submit_update('submit', 'high'))
 );
 
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
 echo form_footer();
 echo form_close();
+
+echo "</div>";
