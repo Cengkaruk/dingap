@@ -1408,12 +1408,16 @@ class RemoteBackupService extends WebconfigScript
 		// Throw an exception if rsync failed
 		switch ($exitcode) {
 		case 0:
+		// XXX: Partial transfer (23) are not considered fatal.
+		case 23:
+			$this->SyncFilesystem(true);
+			break;
 		// XXX: Vanished files (24) are not considered fatal.
 		case 24:
 			$this->SyncFilesystem(true);
 			break;
 		case 12:
-		// XXX: Data stream protocol error (12) really means filesystem full.
+		// XXX: Data stream protocol error (12) is returned if the filesystem is full.
 			throw new ServiceException(ServiceException::CODE_VOLUME_FULL, $exitcode);
 		default:
 			throw new ServiceException(ServiceException::CODE_RSYNC, $exitcode);
