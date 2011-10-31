@@ -1717,7 +1717,7 @@ class RemoteBackupService extends WebconfigScript
 			if ($config['type'] != RBS_TYPE_FILEDIR) continue;
 			if (array_key_exists('exclude', $config) && $config['exclude'])
 				fwrite($fh_exclude, $config['path'] . "\n");
-			else if (!file_exists($config['path'])) {
+			else if ($this->IsBackupMode() && !file_exists($config['path'])) {
 				$this->LogMessage('No such file or directory: ' . $config['path'], LOG_WARNING);
 				continue;
 			}

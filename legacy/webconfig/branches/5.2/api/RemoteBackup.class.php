@@ -69,8 +69,8 @@ class RemoteBackup extends Engine
 	const CLIENT_MODE0 = 0;
 	const CLIENT_MODE1 = 1;
 	const CMD_SCHEDULE = 'rbs-schedule.php';
-	const FILE_CUSTOM_BACKUP_SELECTION = '/tmp/rbs-custom-backup.dat';
-	const FILE_CUSTOM_RESTORE_SELECTION = '/tmp/rbs-custom-restore.dat';
+	const FILE_CUSTOM_BACKUP_SELECTION = '/var/lib/rbs/rbs-custom-backup.dat';
+	const FILE_CUSTOM_RESTORE_SELECTION = '/var/lib/rbs/rbs-custom-restore.dat';
 	const FILE_CUSTOM = '%s/rbs_custom-%s-%s.ini';
 	const FILE_HISTORY = '/var/lib/rbs/session-history.data';
 
