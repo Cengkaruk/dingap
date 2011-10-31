@@ -237,23 +237,17 @@ class WebconfigScript
 	public function SetTimeZone()
 	{
 		$tz_abrv = 'UTC';
-		$ph = popen('/bin/date \'+%Z\'', 'r');
+		$tz_offs = 0;
+		$ph = popen('/bin/date \'+%Z*%z\'', 'r');
 		if (is_resource($ph)) {
 			$buffer = chop(fgets($ph, 4096));
-			if (pclose($ph) == 0) $tz_abrv = $buffer;
+			if (pclose($ph) == 0) 
+				list($tz_abrv, $tz_offs) = explode('*', $buffer);
 		}
-		if (!class_exists('DateTimeZone')) {
-			if (!@date_default_timezone_set($tz_abrv)) {
-				if (!date_default_timezone_set('UTC'))
-					throw new ScriptException(ScriptException::CODE_INVALID_TIMEZONE);
-			}
-			return;
-		}
-		$tz_abrv_list = DateTimeZone::listAbbreviations();
-		if (!array_key_exists(strtolower($tz_abrv), $tz_abrv_list))
-			throw new ScriptException(ScriptException::CODE_INVALID_TIMEZONE);
-		if (!date_default_timezone_set($tz_abrv_list[strtolower($tz_abrv)][0]['timezone_id']))
-			throw new ScriptException(ScriptException::CODE_INVALID_TIMEZONE);
+		$tz_name = timezone_name_from_abbr($tz_abrv, $tz_offs * 36);
+		if (@date_default_timezone_set($tz_name)) return;
+		if (date_default_timezone_set('UTC')) return;
+		throw new ScriptException(ScriptException::CODE_INVALID_TIMEZONE);
 	}
 
 	// Lock a file

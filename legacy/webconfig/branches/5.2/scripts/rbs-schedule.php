@@ -35,15 +35,6 @@ define('RBS_DEFAULT_ATTEMPTS', 3);
 
 set_time_limit(0);
 
-// Set our time zone
-$tz = 'UTC';
-$ph = popen('/bin/date \'+%Z\'', 'r');
-if (is_resource($ph)) {
-	$buffer = chop(fgets($ph, 4096));
-	if (pclose($ph) == 0) $tz = $buffer;
-}
-date_default_timezone_set($tz);
-
 // Create an RBS client
 $rbs = new RemoteBackupService(basename($_SERVER['argv'][0]), false, false, false);
 
