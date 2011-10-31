@@ -938,6 +938,10 @@ $item_html
  * @param array  $items   items
  * @param array  $options options
  *
+ * Options:
+ *  id: DOM ID
+ *  group: flag for grouping
+ *
  * @return string HTML
  */
 
@@ -973,6 +977,46 @@ function theme_list_table($title, $anchors, $headers, $items, $options = NULL)
         $dom_id = $options['id'];
     else
         $dom_id = 'tbl_id_' . rand(0, 1000);
+
+	// Grouping
+	//---------
+
+	if (isset($options['grouping']) && $options['grouping']) {
+		$first_column_visible = 'false';
+		$first_column_fixed_sort = "[ 0, 'asc' ]";
+		$group_javascript = "
+        \"fnDrawCallback\": function ( oSettings ) {
+            if ( oSettings.aiDisplay.length == 0 )
+            {
+                return;
+            }
+             
+            var nTrs = $('#$dom_id tbody tr');
+            var iColspan = nTrs[0].getElementsByTagName('td').length;
+            var sLastGroup = \"\";
+            for ( var i=0 ; i<nTrs.length ; i++ )
+            {
+                var iDisplayIndex = oSettings._iDisplayStart + i;
+                var sGroup = oSettings.aoData[ oSettings.aiDisplay[iDisplayIndex] ]._aData[0];
+                if ( sGroup != sLastGroup )
+                {
+                    var nGroup = document.createElement( 'tr' );
+                    var nCell = document.createElement( 'td' );
+                    nCell.colSpan = iColspan;
+                    nCell.className = \"group\";
+                    nCell.innerHTML = sGroup;
+                    nGroup.appendChild( nCell );
+                    nTrs[i].parentNode.insertBefore( nGroup, nTrs[i] );
+                    sLastGroup = sGroup;
+                }
+            }
+        },
+		";
+	} else {
+		$first_column_visible = 'true';
+		$first_column_fixed_sort = '';
+		$group_javascript = '';
+	}
 
     // Item parsing
     //-------------
@@ -1020,12 +1064,15 @@ $item_html
 </div>
 <script type='text/javascript'>
 	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
-		\"aoColumnDefs\": [{ 
-			\"bSortable\": false, \"aTargets\": [ " . ($action_col ? "-1" : "") . " ] 
-		}],
+		\"aoColumnDefs\": [
+			{ \"bSortable\": false, \"aTargets\": [ " . ($action_col ? "-1" : "") . " ] },
+			{ \"bVisible\": $first_column_visible, \"aTargets\": [ 0 ] }
+		],
 		\"bJQueryUI\": true,
 		\"bPaginate\": false,
 		\"bFilter\": false,
+		$group_javascript
+		\"aaSortingFixed\": [ $first_column_fixed_sort ],
 		\"sPaginationType\": \"full_numbers\"
     });
 </script>
