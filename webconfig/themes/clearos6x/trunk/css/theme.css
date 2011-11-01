@@ -2052,6 +2052,11 @@ input.theme-form-submit-delete { }
 	margin-bottom: 10px\9;
 }
 
+#sdn_login_dialog {
+    background-image: url('../images/logo-clear-sdn.png');
+    background-repeat: no-repeat;
+    background-position: 300px 70px;
+}
 #sdn_login_dialog_message_bar {
     color: red;
     padding-top: 5px
