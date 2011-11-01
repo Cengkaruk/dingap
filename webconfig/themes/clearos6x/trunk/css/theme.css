@@ -88,6 +88,10 @@ a:active {
 
 button {background: white url(../images/button-bg.png) no-repeat top;}
 
+.ui-icon .ui-icon-alert {
+    background-image:url("../images/icon-warning.png");
+}
+
 #_label {
 	margin-left: 15px;
 }
@@ -2048,6 +2052,10 @@ input.theme-form-submit-delete { }
 	margin-bottom: 10px\9;
 }
 
+#sdn_login_dialog_message_bar {
+    color: red;
+    padding-top: 5px
+}
 
 /* 
  * Style looks strange when there are empty 'cells' and screw up width.
