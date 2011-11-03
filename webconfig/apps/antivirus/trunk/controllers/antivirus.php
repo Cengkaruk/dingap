@@ -83,7 +83,6 @@ class Antivirus extends ClearOS_Controller
                 $this->clamav->set_max_recursion($this->input->post('max_recursion'));
                 $this->clamav->set_block_encrypted($this->input->post('block_encrypted'));
 
-                $this->freshclam->reset(TRUE);
                 $this->clamav->reset(TRUE);
 
                 $this->page->set_status_updated();

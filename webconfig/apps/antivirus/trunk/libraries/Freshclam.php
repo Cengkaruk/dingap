@@ -56,22 +56,20 @@ clearos_load_language('antivirus');
 //--------
 
 use \clearos\apps\base\Configuration_File as Configuration_File;
-use \clearos\apps\base\Daemon as Daemon;
+use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
 
 clearos_load_library('base/Configuration_File');
-clearos_load_library('base/Daemon');
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
 
 // Exceptions
 //-----------
 
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,7 +88,7 @@ clearos_load_library('base/Validation_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/antivirus/
  */
 
-class Freshclam extends Daemon
+class Freshclam extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -119,8 +117,6 @@ class Freshclam extends Daemon
     public function __construct() 
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        parent::__construct('freshclam');
     }
 
     /**
