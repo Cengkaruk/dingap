@@ -53,6 +53,7 @@
  *
  * Options:
  * - state: enabled/disabled
+ * - target: href target (when enabled only)
  * 
  * @param string $url        URL
  * @param string $text       anchor text
@@ -69,12 +70,13 @@ function theme_anchor($url, $text, $importance, $class, $options)
 
     $id = isset($options['id']) ? ' id=' . $options['id'] : '';
     $text = htmlspecialchars($text, ENT_QUOTES);
+    $target = isset($options['target']) ? " target='" . $options['target'] . "'" : ''; 
 
     // FIXME: Aaron, I added the option of having a "disabled" anchor... hack is below.
     if (isset($options['state']) && ($options['state'] === FALSE))
         return  "<input disabled type='submit' name='' $id value='$text' class='theme-form-submit ui-corner-all $class $importance_class' /><span class='theme-form-input'>&nbsp; </span>\n";
     else
-        return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>";
+        return "<a href='$url'$id class='theme-anchor $class $importance_class'$target>$text</a>";
 }
 
 function theme_anchor_dialog($url, $text, $importance, $class, $options)
@@ -785,6 +787,78 @@ function theme_loading($size, $text = '', $options = NULL)
         return "<div style='padding-bottom: 5;'>$text</div><div $id class='theme-loading-$size'></div>\n";
     else
         return "<div $id class='theme-loading-$size'>$text</div>\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// A C T I O N  T A B L E
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Action table.
+ *
+ * @param string $title   table title
+ * @param array  $items   items
+ * @param array  $options options
+ *
+ * @return string HTML
+ */
+
+function theme_action_table($title, $items, $options = NULL)
+{
+        $action_col = FALSE;
+    
+    // Anchors
+    //--------
+
+    // Table ID
+    //---------
+
+    if (isset($options['id']))
+        $dom_id = $options['id'];
+    else
+        $dom_id = 'tbl_id_' . rand(0, 1000);
+
+    // Item parsing
+    //-------------
+
+    $item_html = '';
+
+    foreach ($items as $item) {
+        $item_html .= "\t<tr>\n";
+        $item_html .= "\t\t<td>" . $item['title'] . "</td>\n";
+        $item_html .= "\t\t<td>" . button_set($item['anchors']) . "</td>\n";
+        $item_html .= "\t</tr>\n";
+    }
+
+    // Action table
+    //-------------
+
+    return "
+
+<div class='theme-summary-table-container ui-widget'>
+  <div class='theme-summary-table-header ui-state-active ui-corner-top'>
+    <div class='theme-summary-table-title'>$title</div>
+  </div>
+  <table cellspacing='0' cellpadding='2' width='100%' border='0' class='theme-summary-table theme-summary-table-small display' id='$dom_id'>
+   <tbody>
+$item_html
+   </tbody>
+  </table>
+</div>
+<script type='text/javascript'>
+	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
+		\"aoColumnDefs\": [{ 
+			\"bSortable\": false, \"aTargets\": [ " . ($action_col ? "-1" : "") . " ] 
+		}],
+		\"bJQueryUI\": true,
+        \"bInfo\": false,
+		\"bPaginate\": false,
+		\"bFilter\": false,
+		\"bSort\": false,
+		\"sPaginationType\": \"full_numbers\"
+    });
+</script>
+    ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
