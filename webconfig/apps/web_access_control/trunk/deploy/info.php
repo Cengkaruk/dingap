@@ -5,8 +5,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'web_access_control';
-$app['version'] = '5.9.9.5';
-$app['release'] = '2';
+$app['version'] = '6.1.0.beta2';
+$app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';

@@ -1,9 +1,9 @@
 
 Name: app-network-visualiser
 Group: ClearOS/Apps
-Version: 5.9.9.5
+Version: 6.1.0.beta2
 Release: 1%{dist}
-Summary: Captures and displays data flow traversing your network in real-time, displaying source, destination and protocol information in addition to either bandwidth usage or total data captured over an interval
+Summary: Network Visualiser
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -16,7 +16,7 @@ Requires: app-base
 Captures and displays data flow traversing your network in real-time, displaying source, destination and protocol information in addition to either bandwidth usage or total data captured over an interval.
 
 %package core
-Summary: Captures and displays data flow traversing your network in real-time, displaying source, destination and protocol information in addition to either bandwidth usage or total data captured over an interval - APIs and install
+Summary: Network Visualiser - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core

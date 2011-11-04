@@ -1,8 +1,8 @@
 
 Name: app-samba
 Group: ClearOS/Apps
-Version: 5.9.9.5
-Release: 4%{dist}
+Version: 6.1.0.beta2
+Release: 1%{dist}
 Summary: Windows Settings
 License: GPLv3
 Packager: ClearFoundation
