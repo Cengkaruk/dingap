@@ -37,8 +37,10 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/ftp
 cp -r * %{buildroot}/usr/clearos/apps/ftp/
 
+install -d -m 0755 %{buildroot}/etc/clearos/ftp.d
 install -d -m 0755 %{buildroot}/var/clearos/ftp
 install -d -m 0755 %{buildroot}/var/clearos/ftp/backup/
+install -D -m 0644 packaging/authorize %{buildroot}/etc/clearos/ftp.d/authorize
 install -D -m 0644 packaging/proftpd.php %{buildroot}/var/clearos/base/daemon/proftpd.php
 
 %post
@@ -79,9 +81,11 @@ exit 0
 %exclude /usr/clearos/apps/ftp/packaging
 %exclude /usr/clearos/apps/ftp/tests
 %dir /usr/clearos/apps/ftp
+%dir /etc/clearos/ftp.d
 %dir /var/clearos/ftp
 %dir /var/clearos/ftp/backup/
 /usr/clearos/apps/ftp/deploy
 /usr/clearos/apps/ftp/language
 /usr/clearos/apps/ftp/libraries
+%config(noreplace) /etc/clearos/ftp.d/authorize
 /var/clearos/base/daemon/proftpd.php

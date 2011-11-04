@@ -35,12 +35,19 @@ $app['core_requires'] = array(
 );
 
 $app['core_directory_manifest'] = array(
+    '/etc/clearos/ftp.d' => array(),
     '/var/clearos/ftp' => array(),
     '/var/clearos/ftp/backup/' => array(),
 );
 
 $app['core_file_manifest'] = array(
     'proftpd.php'=> array('target' => '/var/clearos/base/daemon/proftpd.php'),
+    'authorize' => array(
+        'target' => '/etc/clearos/ftp.d/authorize',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
 );
-
-// FIXME: need default configuration file
