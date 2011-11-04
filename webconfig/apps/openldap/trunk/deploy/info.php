@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'OpenLDAP Directory';
-$app['description'] = 'OpenLDAP Directory...blah blah blah'; // FIXME: translate
+$app['description'] = lang('openldap_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Driver'; // FIXME
+$app['name'] = lang('openldap_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
 $app['menu_enabled'] = FALSE;
@@ -56,4 +55,5 @@ $app['core_file_manifest'] = array(
     'schema/rfc2739.schema' => array( 'target' => '/etc/openldap/schema/rfc2739.schema' ),
     'schema/samba.schema' => array( 'target' => '/etc/openldap/schema/samba.schema' ),
     'schema/zarafa.schema' => array( 'target' => '/etc/openldap/schema/zarafa.schema' ),
+    'slapd.php'=> array('target' => '/var/clearos/base/daemon/slapd.php'),
 );

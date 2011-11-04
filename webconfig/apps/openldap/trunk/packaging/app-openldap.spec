@@ -17,7 +17,7 @@ Requires: openldap-servers >= 2.4.19
 Requires: openssl
 
 %description
-OpenLDAP Directory...blah blah blah
+The OpenLDAP Driver description
 
 This package provides the core API and libraries.
 
@@ -41,6 +41,7 @@ install -D -m 0644 packaging/schema/rfc2307bis.schema %{buildroot}/etc/openldap/
 install -D -m 0644 packaging/schema/rfc2739.schema %{buildroot}/etc/openldap/schema/rfc2739.schema
 install -D -m 0644 packaging/schema/samba.schema %{buildroot}/etc/openldap/schema/samba.schema
 install -D -m 0644 packaging/schema/zarafa.schema %{buildroot}/etc/openldap/schema/zarafa.schema
+install -D -m 0644 packaging/slapd.php %{buildroot}/var/clearos/base/daemon/slapd.php
 
 %post
 logger -p local6.notice -t installer 'app-openldap-core - installing'
@@ -81,3 +82,4 @@ exit 0
 /etc/openldap/schema/rfc2739.schema
 /etc/openldap/schema/samba.schema
 /etc/openldap/schema/zarafa.schema
+/var/clearos/base/daemon/slapd.php
