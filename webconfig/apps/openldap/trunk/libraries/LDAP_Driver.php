@@ -338,7 +338,7 @@ class LDAP_Driver extends LDAP_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_null($this->config))
+        if (is_null($this->config['base_dn']))
             $this->_load_config();
 
         $base_dn = (empty($this->config['base_dn'])) ? '' : $this->config['base_dn'];
