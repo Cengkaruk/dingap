@@ -1,8 +1,7 @@
-
 Name: theme-clearos6x
 Group: Applications/Themes
-Version: 5.9.9.5
-Release: 2%{dist}
+Version: 6.1.0.beta2
+Release: 1%{dist}
 Summary: ClearOS Enterprise 6 theme
 License: Copyright 2011 ClearFoundation
 Packager: ClearFoundation
@@ -20,11 +19,9 @@ ClearOS Enterprise 6 webconfig theme
 %setup -q
 %build
 
-
 %install
 mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos/themes/clearos6x
 cp -r * $RPM_BUILD_ROOT/usr/clearos/themes/clearos6x
-
 
 %files
 %defattr(-,root,root)
