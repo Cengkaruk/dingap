@@ -1,7 +1,7 @@
-%define enginedir /usr/clearos/webconfig/
+%define enginedir /usr/clearos/sandbox/
 
 Name: webconfig-utils
-Version: 6.0.1
+Version: 6.1.1
 Release: 1%dist
 Group: Applications/Modules
 Summary: Web-based administration tool core
