@@ -12,6 +12,7 @@ Buildarch: noarch
 Requires: app-base-core
 Requires: app-openldap-directory-core
 Requires: app-organization
+Requires: app-users
 
 %description
 Contact account extension description ... blah blah blah.

@@ -11,6 +11,7 @@ Source: app-shell-extension-%{version}.tar.gz
 Buildarch: noarch
 Requires: app-base-core
 Requires: app-openldap-directory-core
+Requires: app-users
 
 %description
 Login Shell Extension description...

@@ -12,6 +12,7 @@ Buildarch: noarch
 Requires: app-base-core
 Requires: app-openldap-directory-core
 Requires: app-contact-extension-core
+Requires: app-users
 
 %description
 Zarafa Accounts Extension long description
@@ -26,6 +27,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/zarafa_extension
 cp -r * %{buildroot}/usr/clearos/apps/zarafa_extension/
 
+install -d -m 0755 %{buildroot}/var/clearos/zarafa_extension
+install -d -m 0755 %{buildroot}/var/clearos/zarafa_extension/backup
 install -D -m 0644 packaging/zarafa.php %{buildroot}/var/clearos/openldap_directory/extensions/10_zarafa.php
 
 %post
@@ -52,6 +55,8 @@ exit 0
 %exclude /usr/clearos/apps/zarafa_extension/packaging
 %exclude /usr/clearos/apps/zarafa_extension/tests
 %dir /usr/clearos/apps/zarafa_extension
+%dir /var/clearos/zarafa_extension
+%dir /var/clearos/zarafa_extension/backup
 /usr/clearos/apps/zarafa_extension/deploy
 /usr/clearos/apps/zarafa_extension/language
 /usr/clearos/apps/zarafa_extension/libraries
