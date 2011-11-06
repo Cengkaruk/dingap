@@ -136,7 +136,7 @@ class PPTPd extends Daemon
         $ethinfolist = array();
 
         $ifs = new Iface_Manager();
-        $ethlist = $ifs->get_interfaces(FALSE, TRUE);
+        $ethlist = $ifs->get_interfaces();
 
         foreach ($ethlist as $eth) {
             if (! preg_match('/^pptp[0-9]/', $eth))
@@ -148,7 +148,7 @@ class PPTPd extends Daemon
 
             // TODO: YAPH - yet another PPPoE hack
             if ($if->is_configured())
-                    continue;
+                continue;
 
             $address = $if->get_live_ip();
             $remote = $if->get_live_ip();

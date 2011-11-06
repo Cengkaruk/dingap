@@ -123,16 +123,32 @@ class Iface_Manager extends Engine
     /**
      * Returns array of interfaces (real and dynamic).
      *
-     * @param boolean $ignore_ppp ignore PPP interfaces
-     * @param boolean $ignore_lo  ignore loopback interfaces
+     * Filter options:
+     * - filter_imq: filters out IMQ interfaces (default: TRUE)
+     * - filter_ppp: filters out PPP interfaces (default: FALSE)
+     * - filter_loopback: filter out loopback interface (default: TRUE)
+     * - filter_pptp: filters out PPTP VPN interfaces (default: TRUE)
+     * - filter_sit: filters out sit interfaces (default: TRUE)
+     * - filter_tun: filters out tunnel (OpenVPN) interfaces (default: TRUE)
+     * - filter_virtual: filters out virtual interfaces (default: TRUE)
+     *
+     * @param array $filter filter options
      *
      * @return array list of network devices (using ifconfig.so)
      * @throws Engine_Exception
      */
 
-    public function get_interfaces($ignore_ppp = FALSE, $ignore_lo = TRUE)
+    public function get_interfaces($options = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $options['filter_imq'] = isset($options['filter_imq']) ? $options['filter_imq'] : TRUE;
+        $options['filter_ppp'] = isset($options['filter_ppp']) ? $options['filter_ppp'] : FALSE;
+        $options['filter_loopback'] = isset($options['filter_loopback']) ? $options['filter_loopback'] : TRUE;
+        $options['filter_pptp'] = isset($options['filter_pptp']) ? $options['filter_pptp'] : TRUE;
+        $options['filter_sit'] = isset($options['filter_sit']) ? $options['filter_sit'] : TRUE;
+        $options['filter_tun'] = isset($options['filter_tun']) ? $options['filter_tun'] : TRUE;
+        $options['filter_virtual'] = isset($options['filter_virtual']) ? $options['filter_virtual'] : TRUE;
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
@@ -173,17 +189,25 @@ class Iface_Manager extends Engine
         $interfaces = array();
 
         foreach ($rawlist as $iface) {
-            // Ignore IPv6-related sit0 interface for now
-            if (preg_match('/^sit/', $iface))
+            if ($options['filter_imq'] && preg_match('/^imq/', $iface))
                 continue;
 
-            if ($ignore_ppp && preg_match('/^pp/', $iface))
+            if ($options['filter_loopback'] && $iface == 'lo')
                 continue;
 
-            if (preg_match('/^imq/', $iface))
+            if ($options['filter_ppp'] && preg_match('/^ppp/', $iface))
                 continue;
 
-            if ($ignore_lo && $iface == 'lo')
+            if ($options['filter_pptp'] && preg_match('/^pptp/', $iface))
+                continue;
+
+            if ($options['filter_sit'] && preg_match('/^sit/', $iface))
+                continue;
+
+            if ($options['filter_tun'] && preg_match('/^tun/', $iface))
+                continue;
+
+            if ($options['filter_virtual'] && preg_match('/:/', $iface))
                 continue;
 
             $interfaces[] = $iface;
@@ -231,24 +255,50 @@ class Iface_Manager extends Engine
     /**
      * Returns detailed information on all network interfaces.
      *
+     * See get_interfaces for details on the options parameter. This method
+     * also adds the following options:
+     *
+     * - filter_ppp: filters out PPP interfaces (default: FALSE)
+     *
+     * @param array $options filter options
+     *
      * @return array information on all network interfaces.
      * @throws Engine_Exception
      */
 
-    public function get_interface_details()
+    public function get_interface_details($options)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $options['filter_1to1_nat'] = isset($options['filter_1to1_nat']) ? $options['filter_1to1_nat'] : TRUE;
+        $options['filter_non_configurable'] = isset($options['filter_non_configurable']) ? $options['filter_non_configurable'] : TRUE;
+        $options['filter_slave'] = isset($options['filter_slave']) ? $options['filter_slave'] : TRUE;
 
         if ($this->is_loaded)
             return $this->ethinfo;
 
         $slaveif = array();
-        $ethlist = $this->get_interfaces(FALSE, TRUE);
+        $ethlist = $this->get_interfaces($options);
 
         foreach ($ethlist as $eth) {
 
             $interface = new Iface($eth);
             $ifdetails = $interface->get_info();
+
+            // Filter options
+            //---------------
+
+            if ($options['filter_non_configurable'] && isset($ifdetails['configurable']) && !$ifdetails['configurable'])
+                continue;
+
+            if ($options['filter_slave'] && isset($ifdetails['master']) && $ifdetails['master'])
+                continue;
+
+            if ($options['filter_1to1_nat'] && isset($ifdetails['one-to-one-nat']) && $ifdetails['one-to-one-nat'])
+                continue;
+
+            // Core configuration
+            //-------------------
 
             foreach ($ifdetails as $key => $value)
                 $ethinfo[$eth][$key] = $value;
@@ -307,7 +357,7 @@ class Iface_Manager extends Engine
         $iface_manager = new Iface_Manager();
 
         $mode = $network->get_mode();
-        $ifaces = $iface_manager->get_interfaces(FALSE, TRUE);
+        $ifaces = $iface_manager->get_interfaces();
 
         foreach ($ifaces as $if) {
             $iface = new Iface($if);
@@ -446,13 +496,11 @@ class Iface_Manager extends Engine
     /**
      * Returns a list of interfaces configured with the given role.
      *
-     * @param boolean $exclude_virtual exclude virtual interfaces
-     *
      * @return array list of external interfaces
      * @throws Engine_Exception
      */
 
-    public function get_external_interfaces($exclude_virtual = TRUE)
+    public function get_external_interfaces()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -460,24 +508,7 @@ class Iface_Manager extends Engine
         $ethlist = $this->get_interface_details();
 
         foreach ($ethlist as $eth => $info) {
-            // Skip non-external interfaces
             if ($info['role'] != Role::ROLE_EXTERNAL)
-                continue;
-
-            // Skip interfaces used 'indirectly' (e.g. PPPoE, bonded interfaces)
-            if (isset($info['master']))
-                continue;
-
-            // Skip 1-to-1 NAT interfaces
-            if (isset($info['one-to-one-nat']) && $info['one-to-one-nat'])
-                continue;
-
-            // Skip non-configurable interfaces
-            if (! $info['configurable'])
-                continue;
-
-            // Skip virtual interfaces
-            if ($exclude_virtual && isset($info['virtual']) && $info['virtual'])
                 continue;
 
             $ifaces[] = $eth;   

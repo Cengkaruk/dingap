@@ -61,18 +61,6 @@ $anchors = array();
 $items = array();
 
 foreach ($network_interface as $interface => $detail) {
-	// Skip interfaces used 'indirectly' (e.g. PPPoE, bonded interfaces)
-	if (isset($detail['master']))
-		continue;
-
-	// Skip 1-to-1 NAT interfaces
-	if (isset($detail['one-to-one-nat']) && $detail['one-to-one-nat'])
-		continue;
-
-	// Skip non-configurable interfaces
-	if (! $detail['configurable'])
-		continue;
-
 	// Create summary
 	$ip = empty($detail['address']) ? '' : $detail['address'];
 	$speed = (isset($detail['speed']) && $detail['speed'] > 0) ? $detail['speed'] . " " . lang('base_megabits') : '';

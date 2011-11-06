@@ -1137,7 +1137,7 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // PPPoE interfaces are configurable, bug only if they already configured.
+        // PPPoE interfaces are configurable, but only if they already configured.
 
         if (preg_match('/^eth/', $this->iface)
             || preg_match('/^wlan/', $this->iface)
@@ -1182,8 +1182,10 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $options['filter_loopback'] = FALSE;
+
         $iface_manager = new Iface_Manager();
-        $interfaces = $iface_manager->get_interfaces(FALSE, FALSE);
+        $interfaces = $iface_manager->get_interfaces($options);
 
         foreach ($interfaces as $iface) {
             if ($this->iface === $iface)

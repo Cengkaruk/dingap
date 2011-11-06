@@ -388,21 +388,15 @@ class Dnsmasq extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $options['filter_ppp'] = TRUE;
+
         $interfaces = new Iface_Manager();
 
-        $ethlist = $interfaces->get_interfaces(TRUE, TRUE);
+        $ethlist = $interfaces->get_interfaces($options);
         $validlist = array();
 
         foreach ($ethlist as $eth) {
             $ethinfo = new Iface($eth);
-
-            // Skip non-configurable interfaces
-            if (! $ethinfo->is_configurable())
-                continue;
-
-            // Skip virtual interfaces... for now
-            if (preg_match("/:/", $eth))
-                continue;
 
             $validlist[] = $eth;
         }
