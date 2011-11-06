@@ -128,16 +128,6 @@ fi
 #	fi
 #fi
 
-# Changed default group on useradd
-#---------------------------------
-
-# FIXME: move to app-users
-#CHECK=`grep "^GROUP=100$" /etc/default/useradd 2>/dev/null`
-#if [ -n "$CHECK" ]; then
-#	logger -p local6.notice -t installer "clearos-base - changing default group ID"
-#	sed -i -e 's/^GROUP=100$/GROUP=63000/' /etc/default/useradd
-#fi
-
 # Sudo policies
 #--------------
 
