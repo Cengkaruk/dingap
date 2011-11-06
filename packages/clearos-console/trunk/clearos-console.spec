@@ -1,5 +1,5 @@
 Name: clearos-console
-Version: 5.9.9.1
+Version: 6.1.0.beta2
 Release: 1%{dist}
 Summary: Administration console module
 License: GPLv3 or later
@@ -66,15 +66,6 @@ if [ -n "$CHECK" ]; then
 	sleep 1
 	initctl reload-configuration >/dev/null 2>&1
 	killall -q launcher >/dev/null 2>&1
-fi
-
-CHECK=`grep "/usr/sbin/console" /etc/inittab 2>/dev/null`
-if [ -n "$CHECK" ]; then
-    grep -v "/usr/sbin/launcher" /etc/inittab > /etc/inittab.new
-    mv /etc/inittab.new /etc/inittab 
-	sleep 1
-	initctl reload-configuration >/dev/null 2>&1
-	killall -q lynx >/dev/null 2>&1
 fi
 
 # Install new console
