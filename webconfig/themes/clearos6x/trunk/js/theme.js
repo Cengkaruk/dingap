@@ -24,7 +24,7 @@ $(function(){
 	$('label').addClass('ui-widget ui-corner-all');
 });
 
-function theme_clearos_dialog_box(id, title, message)
+function theme_clearos_dialog_box(id, title, message, options)
 {
     $('#theme-page-container').append('<div id=\"' + id + '\" title=\"' + title + '\">' +
           '<p style=\"text-align: left;\">' +
@@ -32,6 +32,8 @@ function theme_clearos_dialog_box(id, title, message)
           '</p>' +
       '</div>'
     );
+    if (options == undefined)
+        options = new Object();
     $('#' + id).dialog({
         modal: true,
         resizable: false,
@@ -41,6 +43,8 @@ function theme_clearos_dialog_box(id, title, message)
                 text: lang_close,
                 click: function() {
                     $(this).dialog('close');
+                    if (options.reload_on_close)
+                        window.location.reload();
                 }
             }
         }
