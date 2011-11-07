@@ -155,6 +155,23 @@ try {
 		break;
 	}
 	exit($rc);
+} catch (ScriptException $e) {
+	if ($e->getCode() == ScriptException::CODE_INSTANCE) {
+		$rbs->LogMessage('A backup session is already in progress.', LOG_ERR);
+		unset($rbs);
+		exit(1);
+	}
+	if (isset($rbs)) {
+		$rbs->LogMessage(sprintf('[%s] %s',
+			$e->getCode(), $e->getMessage()), LOG_ERR);
+		unset($rbs);
+	}
+	$body = WEB_LANG_EMAIL_BODY_ERROR .
+		".\n\nException occured:";
+	$body .= sprintf("\nCode: %s, Message: %s",
+		$e->getCode(), $e->getMessage());
+	SendEmailOnError($body);
+	exit(1);
 } catch (Exception $e) {
 	if (isset($rbs)) {
 		$rbs->LogMessage(sprintf('[%s] %s',
