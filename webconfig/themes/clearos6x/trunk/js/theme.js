@@ -51,7 +51,7 @@ function theme_clearos_dialog_box(id, title, message)
 function theme_clearos_is_authenticated(action_type)
 {
 
-    data_payload = '';
+    data_payload = 'ci_csrf_token=' + $.cookie('ci_csrf_token');
     $('#sdn_login_dialog_message_bar').html('');
     // Password being sent - login attempt
     // Email being sent - lost/reset password attempt
@@ -61,7 +61,7 @@ function theme_clearos_is_authenticated(action_type)
             $('.autofocus').focus();
             return;
         } else {
-            data_payload = 'password=' + $('#sdn_password').val();
+            data_payload += '&password=' + $('#sdn_password').val();
         }
     } else if (action_type == 'lost_password') {
         if ($('#sdn_email').val() == '') {
@@ -69,7 +69,7 @@ function theme_clearos_is_authenticated(action_type)
             $('.autofocus').focus();
             return;
         } else {
-            data_payload = 'email=' + $('#sdn_email').val();
+            data_payload += '&email=' + $('#sdn_email').val();
         }
     }
 
@@ -80,6 +80,8 @@ function theme_clearos_is_authenticated(action_type)
         url: '/app/marketplace/ajax/is_authenticated',
         success: function(data) {
             if (data.code == 0 && data.authorized) {
+                // Might have pages where account is displayed (eg. Marketplace)
+                $('#display_sdn_username').html(data.sdn_username);
                 // Only case where authorized is true.
                 $('#sdn_login_dialog').dialog('close');
                 // If we're logged in and there is a 'check_sdn_edit' function defined on page, check to see if we need to get settings
