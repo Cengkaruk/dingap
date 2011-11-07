@@ -906,24 +906,31 @@ border-left: none;
 border-right: none;
 }
 
-.ui-tabs-nav .ui-state-active a {
-color: #FFFFFF;
+.ui-tabs-nav .ui-tabs-selected a {
+    color: #FFFFFF;
+    background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%;
+    border-top-right-radius: 10px;
+    -moz-border-radius-topright: 10px;	
+    -webkit-border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    -moz-border-radius-topleft: 10px;
+    -webkit-border-top-left-radius: 10px;
 }
 
-.ui-tabs-nav .ui-state-active a {
-color: #FFFFFF;
-background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%;
-border-top-right-radius: 10px;
--moz-border-radius-topright: 10px;	
--webkit-border-top-right-radius: 10px;
-border-top-left-radius: 10px;
--moz-border-radius-topleft: 10px;
--webkit-border-top-left-radius: 10px;
+.ui-tabs-nav a {
+    color: #FFFFFF;
+    background-color: #C6C6C6;
+    border-top-right-radius: 10px;
+    -moz-border-radius-topright: 10px;	
+    -webkit-border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
+    -moz-border-radius-topleft: 10px;
+    -webkit-border-top-left-radius: 10px;
 }
 
 .ui-tabs-nav .ui-state-active a:hover {
-color: #FFFFFF;
-background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%;
+    color: #FFFFFF;
+    background: #FFFFFF url(../images/main-nav-selected.png) repeat-x scroll 50% 50%;
 }
 
 
