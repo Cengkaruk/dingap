@@ -18,7 +18,27 @@
 #include "config.h"
 #endif
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <netinet/in.h>
+
+#include <string.h>
+
 #include <clearsync/csplugin.h>
+
+#define OPENSSL_THREAD_DEFINES
+#include <openssl/opensslconf.h>
+#ifndef OPENSSL_THREADS
+#error "Require OpenSSL with thread support"
+#endif
+#include <openssl/crypto.h>
+#include <openssl/err.h>
+#include <openssl/aes.h>
+#include <openssl/rand.h>
+#include <openssl/bn.h>
+
+#include "csplugin-socket.h"
 
 class csPluginConf;
 class csPluginXmlParser : public csXmlParser
