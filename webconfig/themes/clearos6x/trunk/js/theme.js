@@ -27,9 +27,8 @@ $(function(){
 function theme_clearos_dialog_box(id, title, message, options)
 {
     $('#theme-page-container').append('<div id=\"' + id + '\" title=\"' + title + '\">' +
-          '<p style=\"text-align: left;\">' +
-              '<span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:0 7px 0px 0;\"></span>' + message +
-          '</p>' +
+          '<div class=\"dialog_alert_icon\"></div>' +
+          '<div class=\"dialog_alert_text\">' + message + '</div>' +
       '</div>'
     );
     if (options == undefined)
@@ -91,6 +90,8 @@ function theme_clearos_is_authenticated(action_type)
                 // If we're logged in and there is a 'check_sdn_edit' function defined on page, check to see if we need to get settings
                 if (window.check_sdn_edit)
                     check_sdn_edit();
+                if (action_type == 'login' && reload_after_auth)
+                    window.location.reload();
             } else if (data.code == 0 && !data.authorized) {
                 // Auto-populate username
                 $('#sdn_username').val(data.sdn_username);

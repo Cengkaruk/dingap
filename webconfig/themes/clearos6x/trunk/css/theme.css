@@ -2069,6 +2069,24 @@ input.theme-form-submit-delete { }
     padding-top: 5px
 }
 
+#sdn_marketplace_setup_dialog {
+    background-image: url('../images/logo-clear-marketplace-setup.png');
+    background-repeat: no-repeat;
+    background-position: 300px 20px;
+}
+.dialog_alert_icon {
+    background-image: url('../images/alarm-small.png');
+    background-repeat: no-repeat;
+    background-position: 0px 5px;
+    width: 50;
+    height: 50;
+    float: left;
+    position: relative;
+}
+.dialog_alert_text {
+    text-align: left;
+    padding-top: 5px;
+}
 /* 
  * Style looks strange when there are empty 'cells' and screw up width.
 #app_list {border-left: 1px solid #d1d3d4; border-top: 1px solid #d1d3d4; padding: 0px;}
