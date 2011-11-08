@@ -309,7 +309,6 @@ class Routes extends Engine
         $ethlist = $interfaces->get_interface_details();
         $wanif = "";
 
-        // FIXME: Firewall dependency needs to be handled
         foreach ($ethlist as $eth => $info) {
             if (isset($info['role']) && ($info['role'] == Role::ROLE_EXTERNAL)) {
                 $wanif = $eth;

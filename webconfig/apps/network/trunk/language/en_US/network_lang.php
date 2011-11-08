@@ -1,6 +1,7 @@
 <?php
 
 $lang['network_automatic_dns_servers'] = 'Automatic DNS Servers';
+$lang['network_add_virtual_interface'] = 'Add Virtual Interface';
 
 $lang['network_app_description'] = 'IP settings - read only and wordsmith required.'; // FIXME
 $lang['network_app_name'] = 'IP Settings';
@@ -36,6 +37,7 @@ $lang['network_hostname_invalid'] = 'Hostname is invalid.';
 $lang['network_hostname_must_have_a_period'] = 'Full hostname must have at least one period.';
 $lang['network_hot_lan'] = 'Hot LAN';
 $lang['network_interface'] = 'Interface';
+$lang['network_interfaces'] = 'Interfaces';
 $lang['network_ip_invalid'] = 'IP address is invalid.';
 $lang['network_ip'] = 'IP Address';
 $lang['network_ip_not_part_of_network'] = 'IP address is not part of the network.';

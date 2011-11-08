@@ -37,12 +37,14 @@ $app['controllers']['iface']['title'] = lang('network_network_interfaces');
 $app['core_requires'] = array(
     'avahi',
     'bind-utils',
+    'bridge-utils',
     'dhclient',
     'ethtool',
     'net-tools',
     'ppp',
     'rp-pppoe',
     'syswatch',
+    'wireless-tools',
     'csplugin-filewatch',
 );
 

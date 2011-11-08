@@ -54,6 +54,7 @@ $(document).ready(function() {
 
     lang_yes = '<?php echo lang("base_yes"); ?>';
     lang_no = '<?php echo lang("base_no"); ?>';
+    lang_unknown = '<?php echo lang("base_unknown"); ?>';
     lang_megabits_per_second = '<?php echo lang("base_megabits_per_second"); ?>';
 
     // Network interface configuration
@@ -143,9 +144,10 @@ function showAllInterfaceInfo(payload) {
 
 function showInterfaceInfo(payload) {
     var link_text = (payload.link) ? lang_yes : lang_no;
+    var speed_text = (payload.speed > 0) ? payload.speed + ' ' + lang_megabits_per_second : lang_unknown;
 
     $('#link').html(link_text);
-    $('#speed').html(payload.speed + ' ' + lang_megabits_per_second);
+    $('#speed').html(speed_text);
 }
 
 /**

@@ -339,19 +339,18 @@ class Iface_Manager extends Engine
     }
 
     /**
-     * Returns an array of LAN IP addresses.
+     * Returns an array of trusted IP addresses.
      *
      * @return array LAN IPs
      * @throws Engine_Exception
      */
 
-    public function get_lan_ips()
+    public function get_trusted_ips()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $ips = array();
 
-        // FIXME: test this
         $role_object = new Role();
         $network = new Network();
         $iface_manager = new Iface_Manager();

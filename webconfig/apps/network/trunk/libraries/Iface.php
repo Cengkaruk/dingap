@@ -81,6 +81,7 @@ use \clearos\apps\network\Chap as Chap;
 use \clearos\apps\network\Iface as Iface;
 use \clearos\apps\network\Iface_Manager as Iface_Manager;
 use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\network\Role as Role;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
@@ -89,10 +90,12 @@ clearos_load_library('network/Chap');
 clearos_load_library('network/Iface');
 clearos_load_library('network/Iface_Manager');
 clearos_load_library('network/Network_Utils');
+clearos_load_library('network/Role');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
@@ -154,6 +157,7 @@ class Iface extends Engine
     const TYPE_BRIDGED_SLAVE = 'BridgeChild';
     const TYPE_ETHERNET = 'Ethernet';
     const TYPE_PPPOE = 'xDSL';
+    const TYPE_PPPOE_SLAVE = 'PPPoEChild';
     const TYPE_UNKNOWN = 'Unknown';
     const TYPE_VIRTUAL = 'Virtual';
     const TYPE_VLAN = 'VLAN';
@@ -800,6 +804,7 @@ class Iface extends Engine
      *  - TYPE_BRIDGE_SLAVE
      *  - TYPE_ETHERNET
      *  - TYPE_PPPOE
+     *  - TYPE_PPPOE_SLAVE
      *  - TYPE_VIRTUAL
      *  - TYPE_VLAN
      *  - TYPE_WIRELESS
@@ -870,6 +875,12 @@ class Iface extends Engine
 
         if (isset($netinfo['essid']))
             return self::TYPE_WIRELESS;
+
+        // PPPoE - you are a dirty protocol
+        //---------------------------------
+
+        if (isset($netinfo['bootproto']) && ($netinfo['bootproto'] === 'none'))
+            return self::TYPE_PPPOE_SLAVE;
 
         return self::TYPE_ETHERNET;
     }
@@ -1367,8 +1378,9 @@ class Iface extends Engine
         Validation_Exception::is_valid($this->validate_interface($eth));
         Validation_Exception::is_valid($this->validate_username($username));
         Validation_Exception::is_valid($this->validate_password($password));
-        Validation_Exception::is_valid($this->validate_mtu($mtu));
         Validation_Exception::is_valid($this->validate_peerdns($peerdns));
+        if (!empty($mtu))
+            Validation_Exception::is_valid($this->validate_mtu($mtu));
 
         // PPPoE hacking... again.
         // Before saving over an existing configuration, grab
@@ -1811,7 +1823,7 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME
+        // TODO
     }
 
     /**
@@ -1858,7 +1870,7 @@ class Iface extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME
+        // TODO
         // if (! preg_match('/^[a-zA-Z0-9:]+$/', $username))
         //    return lang('network_username_invalid');
     }

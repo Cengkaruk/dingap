@@ -33,6 +33,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\network\Iface as Iface;
+
 $this->lang->load('network');
 $this->lang->load('base');
 
@@ -52,7 +54,9 @@ $headers = array(
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array();
+$anchors = array(
+    // TODO: anchor_custom('/app/network/iface/add_virtual', lang('network_add_virtual_interface'))
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -78,15 +82,72 @@ foreach ($network_interface as $interface => $detail) {
 		$link = '';
 	}
 
+
+    // Network types
+/*
+    const TYPE_BONDED = 'Bonded';
+    const TYPE_BONDED_SLAVE = 'BondedChild';
+    const TYPE_BRIDGED = 'Bridge';
+    const TYPE_BRIDGED_SLAVE = 'BridgeChild';
+    const TYPE_ETHERNET = 'Ethernet';
+    const TYPE_PPPOE = 'xDSL';
+    const TYPE_PPPOE_SLAVE = 'PPPoEChild';
+    const TYPE_UNKNOWN = 'Unknown';
+    const TYPE_VIRTUAL = 'Virtual';
+    const TYPE_VLAN = 'VLAN';
+    const TYPE_WIRELESS = 'Wireless';
+*/
+
+    // Behavior when interface is configured
+    //--------------------------------------
+
     if ($detail['configured']) {
-        $buttons = array(
-            anchor_edit('/app/network/iface/edit/' . $interface),
-            anchor_delete('/app/network/iface/delete/' . $interface)
-        );
+
+        // Show edit/delete for supported Ethernet and PPPoE types
+        //--------------------------------------------------------
+
+        if (($detail['type'] === Iface::TYPE_ETHERNET) || ($detail['type'] === Iface::TYPE_PPPOE)) {
+            $buttons = array(
+                anchor_edit('/app/network/iface/edit/' . $interface),
+                anchor_delete('/app/network/iface/delete/' . $interface)
+            );
+
+        // Show view for bridged, bonded, and wireless types
+        //--------------------------------------------------
+
+        } else if (($detail['type'] === Iface::TYPE_BONDED)
+            || ($detail['type'] === Iface::TYPE_BRIDGED)
+            || ($detail['type'] === Iface::TYPE_WIRELESS)) 
+        {
+            $buttons = array(
+                anchor_view('/app/network/iface/view/' . $interface),
+            );
+
+        // Skip all other unsupported types
+        //---------------------------------
+
+        } else {
+            continue;
+        }
+
+    // Behavior when interface is not configured
+    //------------------------------------------
+
     } else {
-        $buttons = array(
-            anchor_add('/app/network/iface/add/' . $interface),
-        );
+        // Show only Ethernet interfaces
+        //------------------------------
+
+        if ($detail['type'] === Iface::TYPE_ETHERNET) {
+            $buttons = array(
+                anchor_add('/app/network/iface/add/' . $interface),
+            );
+
+        // Skip all other unsupported types
+        //---------------------------------
+
+        } else {
+            continue;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -112,7 +173,7 @@ foreach ($network_interface as $interface => $detail) {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-	lang('network_interface'),
+	lang('network_interfaces'),
 	$anchors,
 	$headers,
 	$items,
