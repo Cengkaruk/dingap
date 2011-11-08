@@ -87,26 +87,25 @@ function theme_anchor_dialog($url, $text, $importance, $class, $options)
     $text = htmlspecialchars($text, ENT_QUOTES);
 
     return "<a href='$url'$id class='theme-anchor $class $importance_class'>$text</a>
-<script type='text/javascript'>
-  $(document).ready(function() {
-  $('#" . $options['id'] . "_message').dialog({
-    autoOpen: false,
-    resizable: false,
-    modal: true,
-    closeOnEscape: true,
-    width: 400,
-    open: function(event, ui) {
-    },
-    close: function(event, ui) {
-    }
-  });
-  });
-  $('a#" . $options['id'] . "').click(function (e) {
-    e.preventDefault();
-    $('#" . $options['id'] . "_message').dialog('open');
-  });
-
-</script>
+        <script type='text/javascript'>
+            $(document).ready(function() {
+                $('#" . $options['id'] . "_message').dialog({
+                    autoOpen: false,
+                    resizable: false,
+                    modal: true,
+                    closeOnEscape: true,
+                    width: 400,
+                    open: function(event, ui) {
+                    },
+                    close: function(event, ui) {
+                    }
+                });
+            });
+            $('a#" . $options['id'] . "').click(function (e) {
+                e.preventDefault();
+                $('#" . $options['id'] . "_message').dialog('open');
+            });
+        </script>
 ";
 }
 
@@ -1410,99 +1409,6 @@ function theme_summary_box($data)
         </div>
     ");
 
-        $html .=
-        "<script type='text/javascript'>
-            $(document).ready(function() {
-                " . (($data['ajax']) ? 'get_marketplace_data(\'' . $data['basename'] . '\');' : '$(\'#sidebar_additional_info_row\').hide();') . "
-            });
-
-            function get_marketplace_data(basename) {
-                $.ajax({
-                    url: '/app/' + basename + '/get_marketplace_info',
-                    method: 'GET',
-                    dataType: 'json',
-                    success : function(json) {
-                        if (json.code != undefined && json.code != 0) {
-                            // Could put real message for codes < 0, but it gets a bit technical
-                            if (json.code < 0)
-                                $('#sidebar_additional_info').html('" . lang('marketplace_connection_failure') . "');
-                            else
-                                $('#sidebar_additional_info').html(json.errmsg);
-                            $('#sidebar_additional_info').css('color', 'red');
-                        } else {
-                            $('#sidebar_additional_info_row').hide();
-
-                            // We add rows in the reverse order to keep this section under the Version/Vendor
-
-                            // Redemption period
-                            if (json.license_info != undefined && json.license_info.redemption != undefined && json.license_info.redemption == true) {
-                                $('#sidebar_additional_info_row').after(
-                                    c_row(
-                                        '" . lang('base_status') . "',
-                                        '<span style=\'color: red\'>" . lang('marketplace_redemption') . "<\\/span>'
-                                    )
-                                );
-                            }
-
-                            // No Subscription
-                            if (json.license_info != undefined && json.license_info.no_subscription != undefined && json.license_info.no_subscription == true) {
-                                $('#sidebar_additional_info_row').after(
-                                    c_row(
-                                        '" . lang('base_status') . "',
-                                        '<span style=\'color: red\'>" . lang('marketplace_expired_no_subsription') . "<\\/span>'
-                                    )
-                                );
-                            }
-
-                            // Subscription?  A unit of 100 or greater represents a recurring subscription
-                            if (json.license_info != undefined && json.license_info.unit >= 100) {
-                                var bill_cycle = '" . lang('marketplace_billing_cycle_monthly') . "';
-                                if (json.license_info.unit == 1000)
-                                    bill_cycle = '" . lang('marketplace_billing_cycle_yearly') . "';
-                                else if (json.license_info.unit == 2000)
-                                    bill_cycle = '" . lang('marketplace_billing_cycle_2_years') . "';
-                                else if (json.license_info.unit == 3000)
-                                    bill_cycle = '" . lang('marketplace_billing_cycle_3_years') . "';
-                
-                                $('#sidebar_additional_info_row').after(
-                                    c_row(
-                                        '" . lang('marketplace_billing_cycle') . "',
-                                        bill_cycle
-                                    )
-                                );
-                                if (json.license_info.expire != undefined) {
-                                    $('#sidebar_additional_info_row').after(
-                                        c_row(
-                                            '" . lang('marketplace_renewal_date') . "',
-                                            $.datepicker.formatDate('MM d, yy', new Date(json.license_info.expire))
-                                        )
-                                    );
-                                }
-                            }
-
-                            // Version updates
-                            if (!json.up2date) {
-                                $('#sidebar_additional_info_row').after(
-                                    c_row(
-                                        '" . lang('marketplace_upgrade') . "',
-                                        json.latest_version
-                                    )
-                                );
-                            }
-
-                        }
-                    },
-                    error: function (xhr, text_status, error_thrown) {
-                        $('#sidebar_additional_info').html(xhr.responseText.toString());
-                    }
-                });
-            }
-
-            function c_row(field, value) {
-                return '<tr><td><b>' + field + '<\\/b><\\/td><td>' + value + '<\\/td><\\/tr>';
-            }
-
-        </script>";
     return $html;
 }
 

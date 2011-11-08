@@ -132,8 +132,10 @@ function theme_clearos_is_authenticated(action_type)
     });
 }
 
-function theme_clearos_on_page_ready()
+function theme_clearos_on_page_ready(my_location)
 {
+    get_marketplace_data(my_location.basename);
+
     // Insert login dialog
     $('#theme-page-container').append(
         '<div id=\'sdn_login_dialog\' title=\'' + sdn_org + ' ' + lang_sdn_authentication_required + '\' class=\'theme-hidden\'> \
@@ -178,11 +180,10 @@ function theme_clearos_on_page_ready()
                 click: function() {
                     // Go back to basename
                     $(this).dialog('close');
-                    regex = /\/app\/(\w+)\/.*/;
-                    my_basename = document.location.pathname.match(regex);
-                    if (my_basename == null)
+                    // If not at default controller, reload page
+                    if (!my_location.default_controller)
                         return;
-                    window.location = 'https://' + document.location.host + '/app/' + my_basename[1];
+                    window.location = 'https://' + document.location.host + '/app/' + my_location.basename;
                 }
             }
         }
@@ -206,5 +207,91 @@ function theme_clearos_on_page_ready()
         $('.autofocus').focus();
         $('.ui-dialog-buttonpane button:contains(\'' + lang_authenticate + '\') span').text(lang_reset_password_and_send);
     });
+}
 
+function get_marketplace_data(basename) {
+    $.ajax({
+        url: '/app/marketplace/ajax/get_app_details/' + basename,
+        method: 'GET',
+        dataType: 'json',
+        success : function(json) {
+            if (json.code != undefined && json.code != 0) {
+                // Could put real message for codes < 0, but it gets a bit technical
+                if (json.code < 0)
+                    $('#sidebar_additional_info').html(lang_marketplace_connection_failure);
+                else
+                    $('#sidebar_additional_info').html(json.errmsg);
+                $('#sidebar_additional_info').css('color', 'red');
+            } else {
+                $('#sidebar_additional_info_row').hide();
+
+                // We add rows in the reverse order to keep this section under the Version/Vendor
+
+                // Redemption period
+                if (json.license_info != undefined && json.license_info.redemption != undefined && json.license_info.redemption == true) {
+                    $('#sidebar_additional_info_row').after(
+                        c_row(
+                            lang_status,
+                            '<span style=\'color: red\'>' + lang_marketplace_redemption + '</span>'
+                        )
+                    );
+                }
+
+                // No Subscription
+                if (json.license_info != undefined && json.license_info.no_subscription != undefined && json.license_info.no_subscription == true) {
+                    $('#sidebar_additional_info_row').after(
+                        c_row(
+                            lang_status,
+                            '<span style=\'color: red\'>' + lang_marketplace_expired_no_subscription + '</span>'
+                        )
+                    );
+                }
+
+                // Subscription?  A unit of 100 or greater represents a recurring subscription
+                if (json.license_info != undefined && json.license_info.unit >= 100) {
+                    var bill_cycle = lang_marketplace_billing_cycle_monthly;
+                    if (json.license_info.unit == 1000)
+                        bill_cycle = lang_marketplace_billing_cycle_yearly;
+                    else if (json.license_info.unit == 2000)
+                        bill_cycle = lang_marketplace_billing_cycle_2_years;
+                    else if (json.license_info.unit == 3000)
+                        bill_cycle = lang_marketplace_billing_cycle_3_years;
+    
+                    $('#sidebar_additional_info_row').after(
+                        c_row(
+                            lang_marketplace_billing_cycle,
+                            bill_cycle
+                        )
+                    );
+                    if (json.license_info.expire != undefined) {
+                        $('#sidebar_additional_info_row').after(
+                            c_row(
+                                lang_marketplace_renewal_date,
+                                $.datepicker.formatDate('MM d, yy', new Date(json.license_info.expire))
+                            )
+                        );
+                    }
+                }
+
+                // Version updates
+                if (!json.up2date) {
+                    $('#sidebar_additional_info_row').after(
+                        c_row(
+                            lang_marketplace_upgrade,
+                            json.latest_version
+                        )
+                    );
+                }
+
+            }
+        },
+        error: function (xhr, text_status, error_thrown) {
+            $('#sidebar_additional_info').html(xhr.responseText.toString());
+        }
+    });
+}
+
+function c_row(field, value) {
+    // TODO style should be in CSS
+    return '<tr><td><b>' + field + '</b></td><td>' + value + '</td></tr>';
 }
