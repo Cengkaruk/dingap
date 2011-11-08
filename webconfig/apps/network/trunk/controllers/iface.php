@@ -211,6 +211,7 @@ class Iface extends ClearOS_Controller
         //---------------
 
         $this->load->library('network/Iface', $interface);
+        $this->load->library('network/Iface_Manager');
         $this->load->library('network/Role');
         $this->load->library('network/Routes');
         $this->lang->load('network');
@@ -275,6 +276,8 @@ class Iface extends ClearOS_Controller
                         $this->input->post('mtu'),
                         (bool) $this->input->post('pppoe_dns')
                     );
+
+                    $this->iface->enable(TRUE);
                 }
 
                 // Set routing
@@ -311,6 +314,7 @@ class Iface extends ClearOS_Controller
             $data['roles'] = $this->iface->get_supported_roles();
             $data['bootprotos'] = $this->iface->get_supported_bootprotos();
             $data['iface_info'] = $this->iface->get_info();
+            $data['iface_count'] = $this->iface_manager->get_interface_count();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

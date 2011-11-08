@@ -316,26 +316,12 @@ class Role extends Engine
 
         Validation_Exception::is_valid($this->validate_interface($interface));
 
-        // One day, there may be a need to filter items using the interface name.
-        // For now, return them all.
-
-        $network = new Network();
-
-        $mode = $network->get_mode();
-
-        if (($mode === Network::MODE_STANDALONE) || ($mode === Network::MODE_TRUSTED_STANDALONE)) {
-            $roles = array(
-                Role::ROLE_EXTERNAL => lang('network_external'),
-                Role::ROLE_LAN => lang('network_lan'),
-            );
-        } else {
-            $roles = array(
-                Role::ROLE_LAN => lang('network_lan'),
-                Role::ROLE_HOT_LAN => lang('network_hot_lan'),
-                Role::ROLE_EXTERNAL => lang('network_external'),
-                Role::ROLE_DMZ => lang('network_dmz'),
-            );
-        }
+        $roles = array(
+            Role::ROLE_LAN => lang('network_lan'),
+            Role::ROLE_HOT_LAN => lang('network_hot_lan'),
+            Role::ROLE_EXTERNAL => lang('network_external'),
+            Role::ROLE_DMZ => lang('network_dmz'),
+        );
 
         return $roles;
     }

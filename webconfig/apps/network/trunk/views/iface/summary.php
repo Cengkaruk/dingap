@@ -64,8 +64,7 @@ foreach ($network_interface as $interface => $detail) {
 	// Create summary
 	$ip = empty($detail['address']) ? '' : $detail['address'];
 	$speed = (isset($detail['speed']) && $detail['speed'] > 0) ? $detail['speed'] . " " . lang('base_megabits') : '';
-	$role = isset($detail['role']) ? $detail['role'] : '';
-	$roletext = isset($detail['roletext']) ? $detail['roletext'] : '';
+	$role = isset($detail['roletext']) ? $detail['roletext'] : '';
 	$bootproto = isset($detail['ifcfg']['bootprototext']) ? $detail['ifcfg']['bootprototext'] : '';
 
 	if (isset($detail['link'])) {
@@ -99,10 +98,10 @@ foreach ($network_interface as $interface => $detail) {
 	$item['anchors'] = button_set($buttons);
 	$item['details'] = array(
 		$interface,
-        $roletext,
-        $bootproto,
-        $ip,
-        $link,
+        "<span id='role_" . $interface . "'>$role</span>",
+        "<span id='bootproto_" . $interface . "'>$bootproto</span>",
+        "<span id='ip_" . $interface . "'>$ip</span>",
+        "<span id='link_" . $interface . "'>$link</span>",
 	);
 
 	$items[] = $item;
@@ -116,5 +115,6 @@ echo summary_table(
 	lang('network_interface'),
 	$anchors,
 	$headers,
-	$items
+	$items,
+    array('id' => 'network_summary')
 );

@@ -29,24 +29,148 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+clearos_load_language('network');
+
+///////////////////////////////////////////////////////////////////////////////
+// J A V A S C R I P T
+///////////////////////////////////////////////////////////////////////////////
+
 header('Content-Type:application/x-javascript');
 ?>
 
 $(document).ready(function() {
-    setFields();
-    setGateway();
 
-    $('#role').change(function() {
-        setGateway();
-    });
+    lang_yes = '<?php echo lang("base_yes"); ?>';
+    lang_no = '<?php echo lang("base_no"); ?>';
+    lang_megabits_per_second = '<?php echo lang("base_megabits_per_second"); ?>';
 
-    $('#bootproto').change(function() {
-        setFields();
+    // Network interface configuration
+    //--------------------------------
+
+    if ($('#role').length != 0)  {
+        setInterfaceFields();
         setGateway();
-    });
+        getInterfaceInfo();
+
+        $('#role').change(function() {
+            setGateway();
+        });
+
+        $('#bootproto').change(function() {
+            setInterfaceFields();
+            setGateway();
+        });
+
+    // Summary page
+    //-------------
+
+    } else if ($('#network_summary').length != 0)  {
+        getAllInteraceInfo();
+    }
 });
 
-function setFields() {
+/**
+ * Ajax call to get network information for all interfaces
+ */
+
+function getAllInteraceInfo() {
+
+    $.ajax({
+        url: '/app/network/get_all_info',
+        method: 'GET',
+        dataType: 'json',
+        success : function(payload) {
+            showAllInterfaceInfo(payload);
+            window.setTimeout(getAllInteraceInfo, 1000);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            window.setTimeout(getAllInteraceInfo, 1000);
+        }
+    });
+}
+
+/**
+ * Ajax call to get network information.
+ */
+
+function getInterfaceInfo() {
+    var iface = $('#interface').html();
+
+    $.ajax({
+        url: '/app/network/get_info/' + iface,
+        method: 'GET',
+        dataType: 'json',
+        success : function(payload) {
+            showInterfaceInfo(payload);
+            window.setTimeout(getInterfaceInfo, 1000);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            window.setTimeout(getInterfaceInfo, 1000);
+        }
+    });
+}
+
+/**
+ * Updates network information (IP, link) for all interfaces
+ */
+
+function showAllInterfaceInfo(payload) {
+    for (var iface in payload) {
+        var link_text = (payload[iface].link) ? lang_yes : lang_no;
+
+        $('#role_' + iface).html(payload[iface].roletext);
+        $('#bootproto_' + iface).html(payload[iface].bootprototext);
+        $('#ip_' + iface).html(payload[iface].address);
+        $('#link_' + iface).html(link_text);
+    }
+}
+
+/**
+ * Updates network information (IP, link)
+ */
+
+function showInterfaceInfo(payload) {
+    var link_text = (payload.link) ? lang_yes : lang_no;
+
+    $('#link').html(link_text);
+    $('#speed').html(payload.speed + ' ' + lang_megabits_per_second);
+}
+
+/**
+ * Sets visibility of gateway field.
+ *
+ * The gateway field should be shown on external interfaces with static IPs.
+ */
+
+function setGateway() {
+    role = $('#role').val();
+    type = $('#bootproto').val();
+
+    if (type == 'static') {
+        if (role == 'EXTIF')
+            $('#gateway_field').show();
+        else
+            $('#gateway_field').hide();
+    }
+}
+
+/**
+ * Sets visibility of network interface fields.
+ */
+
+function setInterfaceFields() {
     // Static
     $('#ipaddr_field').hide();
     $('#netmask_field').hide();
@@ -76,18 +200,6 @@ function setFields() {
         $('#password_field').show();
         $('#mtu_field').show();
         $('#pppoe_dns_field').show();
-    }
-}
-
-function setGateway() {
-    role = $('#role').val();
-    type = $('#bootproto').val();
-
-    if (type == 'static') {
-        if (role == 'EXTIF')
-            $('#gateway_field').show();
-        else
-            $('#gateway_field').hide();
     }
 }
 

@@ -70,4 +70,50 @@ class Network extends ClearOS_Controller
         
         $this->page->view_forms($views, lang('network_network'), $options);
     }
+
+    /**
+     * Network information.
+     *
+     * @return JSON network information
+     */
+
+    function get_all_info()
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('network/Iface_Manager');
+
+        // Dump JSON information
+        //----------------------
+
+        $network = $this->iface_manager->get_interface_details();
+
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Content-type: application/json');
+        echo json_encode($network);
+    }
+
+    /**
+     * Network information.
+     *
+     * @return JSON network information
+     */
+
+    function get_info($iface)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('network/Iface', $iface);
+
+        // Dump JSON information
+        //----------------------
+
+        $network = $this->iface->get_info();
+
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Content-type: application/json');
+        echo json_encode($network);
+    }
 }
