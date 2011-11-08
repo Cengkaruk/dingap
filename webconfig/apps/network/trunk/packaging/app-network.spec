@@ -22,12 +22,14 @@ License: LGPLv3
 Requires: app-base-core
 Requires: avahi
 Requires: bind-utils
+Requires: bridge-utils
 Requires: dhclient
 Requires: ethtool
 Requires: net-tools
 Requires: ppp
 Requires: rp-pppoe
 Requires: syswatch
+Requires: wireless-tools
 Requires: csplugin-filewatch
 
 %description core
