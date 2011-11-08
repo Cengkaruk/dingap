@@ -53,21 +53,25 @@ clearos_load_language('network');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
-use \clearos\apps\base\Folder as Folder;
-use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\network\Iface_Manager as Iface_Manager;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('base/Folder');
-clearos_load_library('network/Network_Utils');
 clearos_load_library('base/Shell');
+clearos_load_library('network/Iface_Manager');
+clearos_load_library('network/Network_Utils');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
@@ -176,75 +180,27 @@ class Resolver extends Engine
     }
 
     /**
-     * Validation routine for domain.
+     * Checks to see if DNS server settings are automatically set.
      *
-     * @param string $domain domain
-     *
-     * @return boolean TRUE if domain is valid
+     * @return boolean TRUE if DNS servers settings are automatically set
      */
 
-    public function is_valid_local_domain($domain)
+    public function is_automatically_configured()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $domain)
-            return TRUE;
+        $iface_manager = new Iface_Manager();
 
-        if (Network_Utils::is_valid_domain($domain))
-            return TRUE;
+        $ifaces = $iface_manager->get_interface_details();
 
-        return FALSE;
-    }
+        $is_automatic = FALSE;
 
-    /**
-     * Validation routine for search.
-     *
-     * @param string $search search
-     *
-     * @return boolean TRUE if search is valid
-     */
+        foreach ($ifaces as $iface => $details) {
+            if (isset($details['ifcfg']['peerdns']) && $details['ifcfg']['peerdns'])
+                $is_automatic = TRUE;
+        }
 
-    public function is_valid_search($search)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $search)
-            return TRUE;
-
-        if (Network_Utils::is_valid_domain($search))
-            return TRUE;
-
-        return FALSE;
-    }
-
-    /**
-     * Sets domain. 
-     *
-     * Setting the domain to blank will remove the line from /etc/resolv.conf.
-     *
-     * @param string $domain domain
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function set_local_domain($domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-
-        if (! $this->is_valid_local_domain($domain))
-            throw new Validation_Exception(RESOLVER_LANG_ERRMSG_DOMAIN_INVALID);
-
-        // Set the parameter
-        //------------------
-
-        if ($domain)
-            $this->_set_parameter('domain', 'domain ' . $domain);
-        else
-            $this->_set_parameter('domain', '');
+        return $is_automatic;
     }
 
     /**
@@ -288,37 +244,6 @@ class Resolver extends Engine
     }
 
     /**
-     * Sets search parameter.
-     *
-     * Setting the search to blank will remove the line from /etc/resolv.conf.
-     *
-     * @param string $search search
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function set_search($search)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-
-        if (! $this->is_valid_search($search))
-            throw new Validation_Exception(RESOLVER_LANG_ERRMSG_SEARCH_INVALID);
-
-        // Set the parameter
-        //------------------
-
-        if ($search)
-            $this->_set_parameter('search', 'search ' . $search);
-        else
-            $this->_set_parameter('search', '');
-
-    }
-
-    /**
      * Perform DNS lookup.
      *
      * Performs a test DNS lookup using an external DNS resolver.  The PHP
@@ -339,15 +264,11 @@ class Resolver extends Engine
         $result = array();
         $shell = new Shell();
 
-        try {
-            $servers = $this->get_nameserverss();
+        $servers = $this->get_nameserverss();
 
-            foreach ($servers as $server) {
-                if ($shell->execute('/usr/bin/dig', "@$server $domain +time=$timeout") == 0)
-                    return TRUE;
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_INFO);
+        foreach ($servers as $server) {
+            if ($shell->execute('/usr/bin/dig', "@$server $domain +time=$timeout") == 0)
+                return TRUE;
         }
 
         return FALSE;

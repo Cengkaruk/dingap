@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Network settings controller.
+ * Network DNS server controller.
  *
  * @category   Apps
  * @package    Network
@@ -41,7 +41,7 @@ use \clearos\apps\network\Network as Network;
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Network settings controller.
+ * Network DNS server controller.
  *
  * @category   Apps
  * @package    Network
@@ -52,10 +52,10 @@ use \clearos\apps\network\Network as Network;
  * @link       http://www.clearfoundation.com/docs/developer/apps/network/
  */
 
-class Settings extends ClearOS_Controller
+class DNS extends ClearOS_Controller
 {
     /**
-     * General settings overview.
+     * General DNS overview.
      *
      * @return view
      */
@@ -66,7 +66,7 @@ class Settings extends ClearOS_Controller
     }
 
     /**
-     * General settings edit view.
+     * General DNS edit view.
      *
      * @return view
      */
@@ -74,6 +74,17 @@ class Settings extends ClearOS_Controller
     function edit()
     {
         $this->_view_edit('edit');
+    }
+
+    /**
+     * General DNS read-only view.
+     *
+     * @return view
+     */
+
+    function view()
+    {
+        $this->_view_edit('view');
     }
 
     /**
@@ -89,14 +100,16 @@ class Settings extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('network/Network');
-        $this->load->library('network/Hostname');
+        $this->load->library('network/Resolver');
 
         // Set validation rules
         //---------------------
          
-        $this->form_validation->set_policy('network_mode', 'network/Network', 'validate_mode', TRUE);
-        $this->form_validation->set_policy('hostname', 'network/Hostname', 'validate_hostname', TRUE);
+        $dns = $this->input->post('dns');
+
+        for ($dns_id = 1; $dns_id <= count($dns); $dns_id++)
+            $this->form_validation->set_policy('dns[' . $dns_id . ']', 'network/Resolver', 'validate_ip');
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -104,28 +117,10 @@ class Settings extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $this->network->set_mode($this->input->post('network_mode'));
-                $this->hostname->set($this->input->post('hostname'));
-
-                // Open port 81 if going into standalone mode, or users
-                // will get locked out!
-
-                if (($this->input->post('network_mode') === Network::MODE_STANDALONE)
-                    && is_library_installed('incoming_firewall/Incoming')) {
-
-                    $this->load->library('incoming_firewall/Incoming');
-
-                    // FIXME: beta workaround - hard code 'TCP' for now (update firewall/Incoming class)
-                    $firewall_status = $this->incoming->check_port('TCP', '81');
-
-                    if ($firewall_status === Firewall::CONSTANT_NOT_CONFIGURED)
-                        $this->incoming->add_allow_port('webconfig', 'TCP', '81');
-                    else if ($firewall_status === Firewall::CONSTANT_DISABLED)
-                        $this->incoming->set_allow_port_state(TRUE, 'TCP', '81');
-                }
+                $this->resolver->set_nameservers($this->input->post('dns'));
 
                 $this->page->set_status_updated();
-                redirect('/network/settings');
+                redirect('/network/dns');
             } catch (Engine_Exception $e) {
                 $this->page->view_exception($e->get_message());
                 return;
@@ -137,9 +132,8 @@ class Settings extends ClearOS_Controller
 
         try {
             $data['form_type'] = $form_type;
-            $data['network_mode'] = $this->network->get_mode();
-            $data['network_modes'] = $this->network->get_supported_modes();
-            $data['hostname'] = $this->hostname->get();
+            $data['dns'] = $this->resolver->get_nameservers();
+            $data['is_automatic'] = $this->resolver->is_automatically_configured();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -151,6 +145,6 @@ class Settings extends ClearOS_Controller
         if (is_console())
             $options['type'] = MY_Page::TYPE_CONSOLE;
 
-        $this->page->view_form('settings/view_edit', $data, lang('base_settings'), $options);
+        $this->page->view_form('dns/view_edit', $data, lang('network_dns'), $options);
     }
 }

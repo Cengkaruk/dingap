@@ -2,6 +2,13 @@
 
 $lang['network_automatic_dns_servers'] = 'Automatic DNS Servers';
 $lang['network_add_virtual_interface'] = 'Add Virtual Interface';
+$lang['network_dns'] = 'DNS';
+$lang['network_too_many_dns_servers_warning'] = 'We do not recommend configuring more than 3 DNS servers.';
+$lang['network_no_dns_servers_warning'] = 'No DNS servers are configured.';
+$lang['network_network_degraded'] = 'Network Degraded';
+$lang['network_best_practices'] = 'Best Practices';
+$lang['network_dns_automatically_configured'] = 'DNS Automatically Configured';
+$lang['network_dns_automatically_configured_message'] = 'The DNS servers for this system are automatically configured.';
 
 $lang['network_app_description'] = 'IP settings - read only and wordsmith required.'; // FIXME
 $lang['network_app_name'] = 'IP Settings';
