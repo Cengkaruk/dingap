@@ -50,27 +50,6 @@ void csPluginConf::Reload(void)
     parser->Parse();
 }
 
-void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
-{
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
-}
-
-void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
-{
-    string text = tag->GetText();
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
-
-    if ((*tag) == "test-tag") {
-        if (!stack.size() || (*stack.back()) != "plugin")
-            ParseError("unexpected tag: " + tag->GetName());
-        if (!text.size())
-            ParseError("missing value for tag: " + tag->GetName());
-
-        csLog::Log(csLog::Debug, "%s: %s",
-        tag->GetName().c_str(), text.c_str());
-    }
-}
-
 class csPluginExample : public csPlugin
 {
 public:
@@ -97,6 +76,8 @@ csPluginExample::csPluginExample(const string &name,
 
 csPluginExample::~csPluginExample()
 {
+    Join();
+
     if (conf) delete conf;
 }
 
@@ -143,6 +124,27 @@ void *csPluginExample::Entry(void)
     csLog::Log(csLog::Debug, "%s: loops: %lu", name.c_str(), loops);
 
     return NULL;
+}
+
+void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
+{
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+}
+
+void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
+{
+    string text = tag->GetText();
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+
+    if ((*tag) == "test-tag") {
+        if (!stack.size() || (*stack.back()) != "plugin")
+            ParseError("unexpected tag: " + tag->GetName());
+        if (!text.size())
+            ParseError("missing value for tag: " + tag->GetName());
+
+        csLog::Log(csLog::Debug, "%s: %s",
+            tag->GetName().c_str(), text.c_str());
+    }
 }
 
 csPluginInit(csPluginExample);
