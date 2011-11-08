@@ -46,7 +46,6 @@ $app['core_requires'] = array(
     'rp-pppoe',
     'syswatch',
     'wireless-tools',
-    'csplugin-filewatch',
 );
 
 $app['core_directory_manifest'] = array(
@@ -63,14 +62,6 @@ $app['core_file_manifest'] = array(
     ),
    'network.conf' => array(
         'target' => '/etc/clearos/network.conf',
-        'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
-        'config' => TRUE,
-        'config_params' => 'noreplace',
-    ),
-    'filewatch-network.conf' => array(
-        'target' => '/etc/clearsync.d/filewatch-network.conf',
         'mode' => '0644',
         'owner' => 'root',
         'group' => 'root',
