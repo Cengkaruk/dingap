@@ -21,8 +21,12 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/ioctl.h>
 
 #include <netinet/in.h>
+#include <netdb.h>
+#include <net/if.h>
+#include <linux/sockios.h>
 
 #include <string.h>
 
@@ -31,47 +35,213 @@
 #include "csplugin-socket.h"
 
 csFileSyncSocket::csFileSyncSocket()
-    : state(Init), flags(None)
+    : state(Init), flags(None), timeout(0)
 {
-    memset(&tv_timeout, 0, sizeof(struct timeval));
     memset(&sa, 0, sizeof(struct sockaddr_in));
     sd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     if (sd < 0) throw csException(errno, "socket");
 }
 
 csFileSyncSocket::csFileSyncSocket(int sd, struct sockaddr_in &sa)
-    : state(Connected), flags(None), sd(sd)
+    : state(Connected), flags(None), sd(sd), timeout(0)
 {
-    memset(&tv_timeout, 0, sizeof(struct timeval));
     memcpy(&this->sa, &sa, sizeof(struct sockaddr_in));
 }
 
 csFileSyncSocket::~csFileSyncSocket()
 {
-    if (sd != -1) {
+    if (sd >= 0) {
         if (state == Connected) shutdown(sd, SHUT_RDWR);
         close(sd);
     }
 }
 
-size_t csFileSyncSocket::Read(size_t length, uint8_t *buffer)
+void csFileSyncSocket::Read(size_t &length, uint8_t *buffer)
 {
+	struct timeval tv;
+	uint8_t *ptr = buffer;
+	size_t bytes_read, bytes_left = length;
+
+	for (length = 0; bytes_left > 0; ) {
+        bytes_read = recv(sd, (char *)ptr, bytes_left, 0);
+
+		if (!bytes_read) throw csFileSyncSocketHangup();
+		else if (bytes_read == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                if (!(flags & WaitAll)) break;
+
+				gettimeofday(&tv, NULL);
+				if (tv.tv_sec - tv_active.tv_sec <= timeout) {
+					usleep(csFileSyncSocketRetry);
+					continue;
+				}
+				throw csFileSyncSocketTimeout();
+            }
+            throw csException(errno, "recv");
+        }
+
+		ptr += bytes_read;
+		this->bytes_read += bytes_read;
+		bytes_left -= bytes_read;
+		length += bytes_read;
+
+		gettimeofday(&tv_active, NULL);
+    }
 }
 
-size_t csFileSyncSocket::Write(size_t length, uint8_t *buffer)
+void csFileSyncSocket::Write(size_t &length, uint8_t *buffer)
 {
+	struct timeval tv;
+	uint8_t *ptr = buffer;
+	size_t bytes_wrote, bytes_left = length;
+
+	for (length = 0; bytes_left > 0; ) {
+        bytes_wrote = send(sd, (const char *)ptr, bytes_left, 0);
+
+		if (!bytes_wrote) throw csFileSyncSocketHangup();
+		else if (bytes_wrote == -1) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				if (!(flags & WaitAll)) break;
+
+				gettimeofday(&tv, NULL);
+				if (tv.tv_sec - tv_active.tv_sec <= timeout) {
+					usleep(csFileSyncSocketRetry);
+					continue;
+				}
+				throw csFileSyncSocketTimeout();
+			}
+            throw csException(errno, "send");
+		}
+
+		ptr += bytes_wrote;
+		this->bytes_wrote += bytes_wrote;
+		bytes_left -= bytes_wrote;
+		length += bytes_wrote;
+
+		gettimeofday(&tv_active, NULL);
+	}
 }
 
 csFileSyncSocketAccept::csFileSyncSocketAccept(
     const string &addr, in_port_t port)
     : csFileSyncSocket()
 {
+    int sd_ifr;
+    struct ifreq ifr;
+    struct sockaddr_in sa_ifaddr;
+    struct sockaddr_in *sa_result = &sa_ifaddr;
+    struct addrinfo hints, *result;
+
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(port);
+
+    if (addr == "all" || addr == "any")
+        sa.sin_addr.s_addr = htonl(INADDR_ANY);
+    else {
+        if ((sd_ifr = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+            throw csException(errno, "socket");
+
+        strncpy(ifr.ifr_name, addr.c_str(), IFNAMSIZ);
+
+        if (ioctl(sd_ifr, SIOCGIFADDR, &ifr) == 0) {
+            sa_ifaddr = *((struct sockaddr_in *)&ifr.ifr_addr);
+            sa.sin_addr.s_addr = sa_result->sin_addr.s_addr;
+
+            close(sd_ifr);
+        }
+        else {
+            close(sd_ifr);
+
+            memset(&hints, 0, sizeof(struct addrinfo));
+            hints.ai_family = AF_INET;
+            hints.ai_flags = AI_PASSIVE;
+
+            int rc;
+            if ((rc = getaddrinfo(addr.c_str(), NULL, &hints, &result)) != 0)
+                throw csException(rc, "getaddrinfo");
+
+            sa_result = (struct sockaddr_in *)result->ai_addr;
+            sa.sin_addr.s_addr = sa_result->sin_addr.s_addr;
+            freeaddrinfo(result);
+        }
+    }
+
+	int on = 1;
+	if (setsockopt(sd,
+		SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) != 0) {
+		throw csException(errno, "setsockopt: SO_REUSEADDR");
+	}
+
+	if (bind(sd, (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) < 0)
+		throw csException(errno, "bind");
+
+	if (listen(sd, SOMAXCONN) < 0)
+		throw csException(errno, "listen");
+
+    state = Accepting;
+}
+
+csFileSyncSocket *csFileSyncSocketAccept::Accept(void)
+{
+    if (state == Accepting) {
+        struct sockaddr_in sa_client;
+        socklen_t sa_len = sizeof(struct sockaddr_in);
+        int sd_client = accept(sd,
+            (struct sockaddr *)&sa_client, &sa_len);
+        if (sd_client < 0)
+            throw csException(errno, "accept");
+        return new csFileSyncSocket(sd_client, sa_client);
+    }
+    return NULL;
 }
 
 csFileSyncSocketConnect::csFileSyncSocketConnect(
     const string &host, in_port_t port)
     : csFileSyncSocket()
 {
+    struct addrinfo hints, *result;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_INET;
+    hints.ai_flags = AI_PASSIVE;
+
+    int rc;
+    if ((rc = getaddrinfo(host.c_str(), NULL, &hints, &result)) != 0)
+        throw csException(rc, "getaddrinfo");
+
+    struct sockaddr_in *sa_result =
+        (struct sockaddr_in *)result->ai_addr;
+
+    sa.sin_family = AF_INET;
+    sa.sin_port = htons(port);
+    sa.sin_addr.s_addr = sa_result->sin_addr.s_addr;
+
+    freeaddrinfo(result);
+    gettimeofday(&tv_active, NULL);
+
+    state = Connecting;
+}
+
+void csFileSyncSocketConnect::Connect(void)
+{
+    if (state == Connecting) {
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		if (tv.tv_sec - tv_active.tv_sec > timeout)
+            throw csFileSyncSocketTimeout();
+
+		if (connect(sd,
+            (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) == 0) {
+			state = Connected;
+			return;
+		}
+
+		if (errno == EISCONN) {
+			state = Connected;
+			return;
+		}
+
+        throw csFileSyncSocketConnecting();
+    }
 }
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

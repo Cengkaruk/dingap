@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#ifndef _CSPLUGIN_SOCKET_H
+#define _CSPLUGIN_SOCKET_H
+
+#define csFileSyncSocketRetry   80000
+
 class csFileSyncSocketTimeout : public csException
 {
 public:
@@ -28,19 +33,29 @@ public:
         : csException("csFileSyncSocketConnecting") { };
 };
 
+class csFileSyncSocketHangup : public csException
+{
+public:
+    explicit csFileSyncSocketHangup(void)
+        : csException("csFileSyncSocketHangup") { };
+};
+
 class csFileSyncSocket
 {
 public:
     enum State
     {
         Init,
+        Accepting,
+        Accepted,
+        Connecting,
         Connected,
     };
 
     enum Flags
     {
         None,
-        WaitAll = 0x01,
+        WaitAll = 0x1,
     };
 
     csFileSyncSocket();
@@ -49,20 +64,22 @@ public:
 
     int GetDescriptor(void) { return sd; };
 
-    void SetTimeout(time_t tv_sec, time_t tv_usec) {
-        tv_timeout.tv_sec = tv_sec;
-        tv_timeout.tv_usec = tv_usec;
+    void SetTimeout(time_t tv_sec) {
+        timeout = tv_sec;
     };
 
-    size_t Read(size_t length, uint8_t *buffer);
-    size_t Write(size_t length, uint8_t *buffer);
+    void Read(size_t &length, uint8_t *buffer);
+    void Write(size_t &length, uint8_t *buffer);
 
 protected:
     int sd;
     struct sockaddr_in sa;
     State state;
     Flags flags;
-    struct timeval tv_timeout;
+    time_t timeout;
+    struct timeval tv_active;
+    size_t bytes_read;
+    size_t bytes_wrote;
 };
 
 class csFileSyncSocketAccept : public csFileSyncSocket
@@ -80,5 +97,7 @@ public:
 
     void Connect(void);
 };
+
+#endif // _CSPLUGIN_SOCKET_H
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

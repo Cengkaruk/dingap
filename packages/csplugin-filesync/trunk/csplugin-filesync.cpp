@@ -40,6 +40,8 @@
 
 #include "csplugin-socket.h"
 
+#define csPluginFileSyncAuthKeyBits 256
+
 class csPluginConf;
 class csPluginXmlParser : public csXmlParser
 {
@@ -70,25 +72,51 @@ void csPluginConf::Reload(void)
     parser->Parse();
 }
 
-void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
+struct csPluginFileSyncPacket
 {
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+    uint32_t hdr_id:8, hdr_pad:8, hdr_len:16;
+    uint8_t *buffer;
+	AES_KEY authkey_encrypt;
+	AES_KEY authkey_decrypt;
+};
+
+class csPluginFileSyncSession : public csThread
+{
+public:
+    csPluginFileSyncSession(const uint8_t *authkey, size_t authkey_bits);
+    virtual ~csPluginFileSyncSession();
+
+    virtual void *Entry(void);
+
+protected:
+    struct csPluginFileSyncPacket pkt;
+};
+
+csPluginFileSyncSession::csPluginFileSyncSession(
+    const uint8_t *authkey, size_t authkey_bits)
+    : csThread()
+{
+    pkt.hdr_id = 0;
+    pkt.hdr_pad = 0;
+    pkt.hdr_len = 0;
+    pkt.buffer = new uint8_t[getpagesize() * 2];
+
+    if (AES_set_encrypt_key(authkey, authkey_bits, &pkt.authkey_encrypt) < 0)
+        throw csException(EINVAL, "Error setting AES encryption key");
+    if (AES_set_decrypt_key(authkey, authkey_bits, &pkt.authkey_decrypt) < 0)
+        throw csException(EINVAL, "Error setting AES decryption key");
 }
 
-void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
+csPluginFileSyncSession::~csPluginFileSyncSession()
 {
-    string text = tag->GetText();
-    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+    Join();
 
-    if ((*tag) == "test-tag") {
-        if (!stack.size() || (*stack.back()) != "plugin")
-            ParseError("unexpected tag: " + tag->GetName());
-        if (!text.size())
-            ParseError("missing value for tag: " + tag->GetName());
+    delete [] pkt.buffer;
+}
 
-        csLog::Log(csLog::Debug, "%s: %s",
-        tag->GetName().c_str(), text.c_str());
-    }
+void *csPluginFileSyncSession::Entry(void)
+{
+    return NULL;
 }
 
 class csPluginFileSync : public csPlugin
@@ -104,19 +132,31 @@ public:
 
 protected:
     friend class csPluginXmlParser;
+    void SetAuthKey(const string &key);
 
     csPluginConf *conf;
+    uint8_t *authkey;
+	size_t authkey_bits;
+	size_t authkey_bytes;
+    struct csPluginFileSyncPacket pkt;
 };
 
 csPluginFileSync::csPluginFileSync(const string &name,
     csEventClient *parent, size_t stack_size)
-    : csPlugin(name, parent, stack_size), conf(NULL)
+    : csPlugin(name, parent, stack_size), conf(NULL),
+    authkey_bits(csPluginFileSyncAuthKeyBits),
+    authkey_bytes(csPluginFileSyncAuthKeyBits / 8)
 {
+    authkey = new uint8_t[authkey_bytes];
+
     csLog::Log(csLog::Debug, "%s: Initialized.", name.c_str());
 }
 
 csPluginFileSync::~csPluginFileSync()
 {
+    Join();
+
+    delete [] authkey;
     if (conf) delete conf;
 }
 
@@ -163,6 +203,37 @@ void *csPluginFileSync::Entry(void)
     csLog::Log(csLog::Debug, "%s: loops: %lu", name.c_str(), loops);
 
     return NULL;
+}
+
+void csPluginFileSync::SetAuthKey(const string &key)
+{
+	size_t i, j, byte;
+
+	for (i = 0, j = 0; i < authkey_bytes; i += 2, j++) {
+		if (sscanf(key.c_str() + i, "%2x", &byte) != 1)
+			throw csException(EINVAL, "Authkey parse error");
+		authkey[j] = (uint8_t)byte;
+	}
+}
+
+void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
+{
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+}
+
+void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
+{
+    string text = tag->GetText();
+    csPluginConf *_conf = static_cast<csPluginConf *>(conf);
+
+    if ((*tag) == "authkey") {
+        if (!stack.size() || (*stack.back()) != "plugin")
+            ParseError("unexpected tag: " + tag->GetName());
+        if (!text.size())
+            ParseError("missing value for tag: " + tag->GetName());
+
+        _conf->parent->SetAuthKey(text);
+    }
 }
 
 csPluginInit(csPluginFileSync);
