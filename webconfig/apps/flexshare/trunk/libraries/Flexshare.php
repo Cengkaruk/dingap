@@ -1883,8 +1883,6 @@ class Flexshare extends Engine
             $adduser = TRUE;
         }
 
-print_r($currentinfo);
-return;
         // Add or update user account information
 
         if ($adduser) {
