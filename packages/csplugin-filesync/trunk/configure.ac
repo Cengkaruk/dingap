@@ -14,8 +14,8 @@ AC_PROG_INSTALL
 AM_PROG_LIBTOOL
 
 # Checks for libraries.
-AC_CHECK_LIB([crypto], [AES_encrypt], [], [
-	AC_MSG_ERROR([AES_encrypt not found but is required.])])
+AC_CHECK_LIB([rsync], [rs_strerror], [], [AC_MSG_ERROR([librsync not found.])])
+AC_CHECK_LIB([crypto], [AES_encrypt], [], [AC_MSG_ERROR([libcrypto not found.])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([clearsync/csplugin.h])

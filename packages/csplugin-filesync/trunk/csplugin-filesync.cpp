@@ -27,6 +27,8 @@
 
 #include <clearsync/csplugin.h>
 
+#include <librsync.h>
+
 #define OPENSSL_THREAD_DEFINES
 #include <openssl/opensslconf.h>
 #ifndef OPENSSL_THREADS
@@ -41,6 +43,44 @@
 #include "csplugin-socket.h"
 
 #define csPluginFileSyncAuthKeyBits 256
+
+static rs_result rs_cb_read(
+    void *ctx, char *buffer, size_t length, size_t *bytes_read)
+{
+    csFileSyncSocket *skt = (csFileSyncSocket *)ctx;
+
+    try {
+        skt->Read(*bytes_read, (uint8_t *)buffer);
+    } catch (csException &e) {
+    }
+
+    return RS_DONE;
+}
+
+static rs_result rs_cb_basis(
+    void *ctx, char *buffer, size_t length, off_t offset, size_t *bytes_read)
+{
+    csFileSyncSocket *skt = (csFileSyncSocket *)ctx;
+
+    try {
+    } catch (csException &e) {
+    }
+
+    return RS_DONE;
+}
+
+static rs_result rs_cb_write(
+    void *ctx, const char *buffer, size_t length, size_t *bytes_wrote)
+{
+    csFileSyncSocket *skt = (csFileSyncSocket *)ctx;
+
+    try {
+        skt->Write(*bytes_wrote, (uint8_t *)buffer);
+    } catch (csException &e) {
+    }
+
+    return RS_DONE;
+}
 
 class csPluginConf;
 class csPluginXmlParser : public csXmlParser
@@ -74,7 +114,7 @@ void csPluginConf::Reload(void)
 
 struct csPluginFileSyncPacket
 {
-    uint32_t hdr_id:8, hdr_pad:8, hdr_len:16;
+    uint32_t hdr_id:4, hdr_flag:4, hdr_pad:8, hdr_len:16;
     uint8_t *buffer;
 	AES_KEY authkey_encrypt;
 	AES_KEY authkey_decrypt;
@@ -83,22 +123,23 @@ struct csPluginFileSyncPacket
 class csPluginFileSyncSession : public csThread
 {
 public:
-    csPluginFileSyncSession(const uint8_t *authkey, size_t authkey_bits);
+    csPluginFileSyncSession(
+        csFileSyncSocket *skt, const uint8_t *authkey, size_t authkey_bits);
     virtual ~csPluginFileSyncSession();
 
     virtual void *Entry(void);
 
 protected:
+    csFileSyncSocket *skt;
     struct csPluginFileSyncPacket pkt;
 };
 
 csPluginFileSyncSession::csPluginFileSyncSession(
+    csFileSyncSocket *skt,
     const uint8_t *authkey, size_t authkey_bits)
-    : csThread()
+    : csThread(), skt(skt)
 {
-    pkt.hdr_id = 0;
-    pkt.hdr_pad = 0;
-    pkt.hdr_len = 0;
+    pkt.hdr_id = pkt.hdr_flag = pkt.hdr_pad = pkt.hdr_len = 0;
     pkt.buffer = new uint8_t[getpagesize() * 2];
 
     if (AES_set_encrypt_key(authkey, authkey_bits, &pkt.authkey_encrypt) < 0)
@@ -111,11 +152,31 @@ csPluginFileSyncSession::~csPluginFileSyncSession()
 {
     Join();
 
+    delete skt;
     delete [] pkt.buffer;
 }
 
 void *csPluginFileSyncSession::Entry(void)
 {
+    bool run = true;
+
+    while (run) {
+        csEvent *event = EventPopWait();
+
+        switch (event->GetId()) {
+        case csEVENT_QUIT:
+            run = false;
+            break;
+
+//        case csEVENT_TIMER:
+//            csLog::Log(csLog::Debug, "%s: Tick: %lu", name.c_str(),
+//                static_cast<csTimerEvent *>(event)->GetTimer()->GetId());
+            break;
+        }
+
+        delete event;
+    }
+
     return NULL;
 }
 
