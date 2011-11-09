@@ -223,6 +223,7 @@ function get_marketplace_data(basename) {
                     $('#sidebar_additional_info').html(json.errmsg);
                 $('#sidebar_additional_info').css('color', 'red');
             } else {
+                // This was just a placeholder
                 $('#sidebar_additional_info_row').hide();
 
                 // We add rows in the reverse order to keep this section under the Version/Vendor
@@ -282,7 +283,23 @@ function get_marketplace_data(basename) {
                         )
                     );
                 }
-
+            }
+            if (json.complementary_apps.length > 0) {
+                comp_apps = '<h3>' + lang_marketplace_recommended_apps + '</h3>' +
+                    '<p>' + lang_marketplace_sidebar_recommended_apps.replace('APP_NAME', '<b>' + json.name + '</b>') + ':</p><ul>';
+                for (index = 0 ; index < json.complementary_apps.length; index++) {
+                    comp_apps += '<li><a href=\'/app/marketplace/view/' +
+                        json.complementary_apps[index].basename + '\'>' +
+                        json.complementary_apps[index].name + '</a>\n';
+                    // TODO - Couldn't make rating look decent.  Arrow with roll down maybe?
+                    for (var counter = 0 ; counter < json.complementary_apps[index].rating; counter++)
+                        comp_apps += '<div class=\'star_on\' />';
+                    for (var counter = 5 ; counter > json.complementary_apps[index].rating; counter--)
+                        comp_apps += '<div class=\'star_off\' />';
+                    comp_apps += '</li>';
+                }
+                comp_apps += '</ul>';
+                $('#sidebar-recommended-apps').html(comp_apps);
             }
         },
         error: function (xhr, text_status, error_thrown) {

@@ -1305,6 +1305,31 @@ color: white;
   font-size: 14px;
 }
 
+#sidebar-recommended-apps ul {
+    list-style-type: disc;
+    padding-left: 20px;
+}
+#sidebar-recommended-apps a {
+  color: #686868;
+}
+#sidebar-recommended-apps a:hover {
+  color: #62799A;
+}
+.star_on {
+	background-image: url(../images/star_on.png);
+    background-repeat: no-repeat;
+    height: 11;
+    width: 11;
+    float:right;
+}
+.star_off {
+	background-image: url(../images/star_off.png);
+    background-repeat: no-repeat;
+    height: 11;
+    width: 11;
+    float:right;
+}
+
 .theme-field-checkboxes {
   float:left;
   height:23px;

@@ -1391,12 +1391,12 @@ function theme_summary_box($data)
         <h3>" . $data['name'] . "</h3>
         <table width='100%' id='sidebar_summary_table'>
             <tr>
-                <td><b>" . lang('marketplace_vendor') . "</b></td>
-                <td>" . $data['vendor'] . "</td>
+                <td width='55%'><b>" . lang('marketplace_vendor') . "</b></td>
+                <td width='45%'>" . $data['vendor'] . "</td>
             </tr>
             <tr>
-                <td width='50%'><b>" . lang('marketplace_version') . "</b></td>
-                <td width='50%'>" . $data['version'] . '-' . $data['release'] . "</td>
+                <td><b>" . lang('marketplace_version') . "</b></td>
+                <td>" . $data['version'] . '-' . $data['release'] . "</td>
             </tr>
             <tr id='sidebar_additional_info_row'>
                 <td valign='top'><b>" . lang('base_additional_info') . "</b></td>
@@ -1406,6 +1406,8 @@ function theme_summary_box($data)
         </table>
         <div class='marketplace-linkback'>" .
         anchor_custom('/app/marketplace/view/' . $data['basename'], lang('base_visit_marketplace')) . "
+        </div>
+        <div id='sidebar-recommended-apps'>
         </div>
     ");
 
