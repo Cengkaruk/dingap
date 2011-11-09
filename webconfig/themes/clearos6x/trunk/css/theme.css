@@ -1296,9 +1296,7 @@ color: white;
 #theme-sidebar-container .theme-dialogbox-info  {
   border: none;	
   background: none;
-  padding-left: 5px;
-  padding-top: 3px;
-  padding-bottom: 5px;
+  padding: 3 5;
 }
 
 #theme-sidebar-container h3 {
