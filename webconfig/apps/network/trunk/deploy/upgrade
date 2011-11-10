@@ -47,23 +47,12 @@ for CONFIG in $CONFIGS; do
     fi
 done
 
-# FIXME: re-enable when API is ready
-# /usr/share/system/modules/network/upgrade-api
+# Re-enable when API is ready
+#----------------------------
+/usr/clearos/apps/network/deploy/upgrade-api
 
 # ip-up.local changes
 #--------------------
-
-CHECK=`grep '/etc/rc.d/init.d/firewall' /etc/ppp/ip-up.local 2>/dev/null`
-if [ -n "$CHECK" ]; then
-    logger -p local6.notice -t installer "app-network-core - removing really really old PPP firewall extras"
-    mv /etc/ppp/ip-up.local /var/clearos/network/backup/ip-up.local.$TIMESTAMP
-fi
-
-CHECK=`grep '/usr/local/system/scripts/firewall-up' /etc/ppp/ip-up.local 2>/dev/null`
-if [ -n "$CHECK" ]; then
-    logger -p local6.notice -t installer "app-network-core - removing really old PPP firewall extras"
-    mv /etc/ppp/ip-up.local /var/clearos/network/backup/ip-up.local.$TIMESTAMP
-fi
 
 CHECK=`grep '/usr/share/system/scripts/firewall-up' /etc/ppp/ip-up.local 2>/dev/null`
 if [ -n "$CHECK" ]; then
@@ -73,22 +62,6 @@ fi
 
 # PPPoE configuration file changes
 #---------------------------------
-
-if [ -e /etc/ppp/pppoe.conf ]; then
-    if [ -e /etc/sysconfig/network-scripts/ifcfg-ppp0 ]; then
-        logger -p local6.notice -t installer "app-network-core - unable to convert old pppoe.conf file"
-    else
-        logger -p local6.notice -t installer "app-network-core - converting old pppoe.conf file"
-        cp /etc/ppp/pppoe.conf /etc/sysconfig/network-scripts/ifcfg-ppp0
-        mv /etc/ppp/pppoe.conf /etc/ppp/pppoe.conf-moved-to-etc_sysconfig_network-scripts_ifcfg-ppp0
-        grep -v "^#" /etc/sysconfig/network-scripts/ifcfg-ppp0 > /tmp/ifcfg.ppp0.new
-        mv /tmp/ifcfg.ppp0.new /etc/sysconfig/network-scripts/ifcfg-ppp0
-        grep -v "^[[:space:]]*$" /etc/sysconfig/network-scripts/ifcfg-ppp0 > /tmp/ifcfg.ppp0.new
-        mv /tmp/ifcfg.ppp0.new /etc/sysconfig/network-scripts/ifcfg-ppp0
-        sed -e 's/TYPE=.*/TYPE=xDSL/' /etc/sysconfig/network-scripts/ifcfg-ppp0 > /tmp/ifcfg.ppp0.new
-        mv /tmp/ifcfg.ppp0.new /etc/sysconfig/network-scripts/ifcfg-ppp0
-    fi
-fi
 
 if [ -e /etc/sysconfig/network-scripts/ifcfg-ppp0 ]; then
     . /etc/sysconfig/network-scripts/ifcfg-ppp0

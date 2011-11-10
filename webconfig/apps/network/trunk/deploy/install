@@ -22,6 +22,15 @@ if [ -n "$CHECK" ]; then
     /sbin/service pppoe-server stop >/dev/null 2>&1
 fi
 
+# KLUDGE - remove anaconda default network configuration files
+#-------------------------------------------------------------
+
+# FIXME: discuss with ClearOS installer maintainer
+
+for ETH in `seq 1 20`; do
+    ITS_ANACONDA=`grep NM_CONTROLLED /etc/sysconfig/network-scripts/ifcfg-eth$ETH 2>/dev/null`
+    [ -n "$ITS_ANACONDA" ] && rm -f /etc/sysconfig/network-scripts/ifcfg-eth$ETH
+done
 
 # FIXMEFIXME - disable bandwidth
 echo "BANDWIDTH_QOS=off" > /etc/clearos/bandwidth.conf

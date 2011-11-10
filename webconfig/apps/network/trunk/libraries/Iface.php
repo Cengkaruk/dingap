@@ -1321,6 +1321,11 @@ class Iface extends Engine
                 $netinfo['bootprototext'] = lang('network_bootproto_static');
         }
 
+        // Set some default based on behavior of network scripts
+        if ((($netinfo['bootproto'] == self::BOOTPROTO_PPPOE) || ($netinfo['bootproto'] == self::BOOTPROTO_DHCP))
+            && (!isset($netinfo['peerdns'])))
+            $netinfo['peerdns'] = TRUE;
+
         return $netinfo;
     }
 

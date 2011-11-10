@@ -34,7 +34,6 @@ $app['controllers']['settings']['title'] = lang('base_settings');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-// FIXME add 'wireless-tools',
 $app['core_requires'] = array(
     'avahi',
     'bind-utils',

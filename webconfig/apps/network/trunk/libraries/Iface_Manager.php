@@ -266,7 +266,7 @@ class Iface_Manager extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_interface_details($options)
+    public function get_interface_details($options = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 

@@ -212,14 +212,17 @@ class Network extends Engine
     {
         $modes = array();
 
-        $iface_manager = new Iface_Manager();
-        $iface_count = $iface_manager->get_interface_count();
-
-        if ($iface_count > 1)
-            $modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
-
-        $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
         $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_standalone_no_firewall');
+
+        if (clearos_app_installed('firewall')) {
+            $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
+
+            $iface_manager = new Iface_Manager();
+            $iface_count = $iface_manager->get_interface_count();
+
+            if ($iface_count > 1)
+                $modes[self::MODE_GATEWAY] = lang('network_mode_gateway');
+        }
 
         return $modes;
     }
