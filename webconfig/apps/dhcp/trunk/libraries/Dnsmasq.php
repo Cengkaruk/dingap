@@ -776,7 +776,7 @@ class Dnsmasq extends Daemon
         if ($this->subnet_exists($interface))
             $this->delete_subnet($interface);
 
-        $this->add_subnet($interface, $gateway, $start, $end, $dns, $wins, $lease_time, $tftp, $ntp);
+        $this->add_subnet($interface, $start, $end, $lease_time, $gateway, $dns_list, $wins, $tftp, $ntp);
     }
 
     /**
@@ -854,7 +854,7 @@ class Dnsmasq extends Daemon
 
         $file = new File(self::FILE_LEASES);
 
-        // FIXME: do we need the IP?
+        // TODO: we may need to match on the IP too
         if ($file->exists()) 
             $file->delete_lines("/[0-9]*\s+$mac\s+/i");
     }
