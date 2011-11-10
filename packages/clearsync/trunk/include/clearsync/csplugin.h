@@ -21,6 +21,11 @@ using namespace std;
 
 #ifndef _CS_INTERNAL
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
+
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -36,6 +41,11 @@ using namespace std;
 #include <expat.h>
 #include <regex.h>
 
+#include <netinet/in.h>
+#include <netdb.h>
+#include <net/if.h>
+#include <linux/sockios.h>
+
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>
 #include <clearsync/csconf.h>
@@ -44,6 +54,7 @@ using namespace std;
 #include <clearsync/cstimer.h>
 #include <clearsync/csutil.h>
 #include <clearsync/csthread.h>
+#include <clearsync/cssocket.h>
 
 #endif // !_CS_INTERNAL
 

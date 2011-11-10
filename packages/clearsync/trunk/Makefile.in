@@ -84,7 +84,8 @@ libclearsync_la_LIBADD =
 am_libclearsync_la_OBJECTS = libclearsync_la-csconf.lo \
 	libclearsync_la-csevent.lo libclearsync_la-cslog.lo \
 	libclearsync_la-csplugin.lo libclearsync_la-csthread.lo \
-	libclearsync_la-cstimer.lo libclearsync_la-csutil.lo
+	libclearsync_la-cssocket.lo libclearsync_la-cstimer.lo \
+	libclearsync_la-csutil.lo
 libclearsync_la_OBJECTS = $(am_libclearsync_la_OBJECTS)
 libclearsync_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) \
@@ -247,13 +248,14 @@ AM_CXXFLAGS = ${CXXFLAGS} -I./include
 EXTRA_DIST = csmain.h doc/clearsync.conf doc/clearsyncd.init
 lib_LTLIBRARIES = libclearsync.la
 libclearsync_la_SOURCES = csconf.cpp csevent.cpp cslog.cpp csplugin.cpp \
-	csthread.cpp cstimer.cpp csutil.cpp
+	csthread.cpp cssocket.cpp cstimer.cpp csutil.cpp
 
 libclearsync_la_CXXFLAGS = ${AM_CXXFLAGS} -D_CS_INTERNAL=1
 libclearsync_la_includedir = $(includedir)/clearsync
 libclearsync_la_include_HEADERS = include/clearsync/csconf.h include/clearsync/csevent.h \
 	include/clearsync/csexception.h include/clearsync/cslog.h include/clearsync/csplugin.h \
-	include/clearsync/csthread.h include/clearsync/cstimer.h include/clearsync/csutil.h
+	include/clearsync/csthread.h include/clearsync/cssocket.h include/clearsync/cstimer.h \
+	include/clearsync/csutil.h
 
 clearsyncd_SOURCES = csmain.cpp
 clearsyncd_LDADD = libclearsync.la
@@ -407,6 +409,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-csevent.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-cslog.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-csplugin.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-cssocket.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-csthread.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-cstimer.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libclearsync_la-csutil.Plo@am__quote@
@@ -466,6 +469,13 @@ libclearsync_la-csthread.lo: csthread.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='csthread.cpp' object='libclearsync_la-csthread.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclearsync_la_CXXFLAGS) $(CXXFLAGS) -c -o libclearsync_la-csthread.lo `test -f 'csthread.cpp' || echo '$(srcdir)/'`csthread.cpp
+
+libclearsync_la-cssocket.lo: cssocket.cpp
+@am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclearsync_la_CXXFLAGS) $(CXXFLAGS) -MT libclearsync_la-cssocket.lo -MD -MP -MF $(DEPDIR)/libclearsync_la-cssocket.Tpo -c -o libclearsync_la-cssocket.lo `test -f 'cssocket.cpp' || echo '$(srcdir)/'`cssocket.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/libclearsync_la-cssocket.Tpo $(DEPDIR)/libclearsync_la-cssocket.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='cssocket.cpp' object='libclearsync_la-cssocket.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclearsync_la_CXXFLAGS) $(CXXFLAGS) -c -o libclearsync_la-cssocket.lo `test -f 'cssocket.cpp' || echo '$(srcdir)/'`cssocket.cpp
 
 libclearsync_la-cstimer.lo: cstimer.cpp
 @am__fastdepCXX_TRUE@	$(LIBTOOL)  --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libclearsync_la_CXXFLAGS) $(CXXFLAGS) -MT libclearsync_la-cstimer.lo -MD -MP -MF $(DEPDIR)/libclearsync_la-cstimer.Tpo -c -o libclearsync_la-cstimer.lo `test -f 'cstimer.cpp' || echo '$(srcdir)/'`cstimer.cpp
