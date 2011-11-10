@@ -9,7 +9,7 @@ Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
 Summary: ClearSync system sychronization tool
-BuildRequires: expat-devel
+BuildRequires: expat-devel openssl-devel
 Requires: initscripts /sbin/service
 Requires(pre): /sbin/ldconfig, /usr/sbin/useradd, /usr/bin/getent
 Requires(postun): /usr/sbin/userdel

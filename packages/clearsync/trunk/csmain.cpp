@@ -43,6 +43,13 @@
 #include <dirent.h>
 #include <regex.h>
 
+#define OPENSSL_THREAD_DEFINES
+#include <openssl/opensslconf.h>
+#ifndef OPENSSL_THREADS
+#error "OpenSSL missing thread support"
+#endif
+#include <openssl/crypto.h>
+
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>
 #include <clearsync/csconf.h>
@@ -53,6 +60,21 @@
 #include <clearsync/csplugin.h>
 
 #include "csmain.h"
+
+static pthread_mutex_t **csCryptoMutex = NULL;
+
+static void cs_crypto_lock(int mode, int n, const char *file, int line)
+{
+    if (csCryptoMutex == NULL) {
+        csLog::Log(csLog::Error, "libcrypto mutexes not initialized!");
+        return;
+    }
+
+    if (mode & CRYPTO_LOCK)
+        pthread_mutex_lock(csCryptoMutex[n]);
+    else
+        pthread_mutex_unlock(csCryptoMutex[n]);
+}
 
 void *csSignalHandler::Entry(void)
 {
@@ -358,6 +380,18 @@ csMain::csMain(int argc, char *argv[])
             }
             fclose(h_pid);
         }
+    }
+
+    int crypto_locks = CRYPTO_num_locks();
+    if (crypto_locks > 0) {
+        csCryptoMutex = new pthread_mutex_t *[crypto_locks];
+        for (int i = 0; i < crypto_locks; i++) {
+            csCryptoMutex[i] = new pthread_mutex_t;
+            pthread_mutex_init(csCryptoMutex[i], NULL);
+        }
+        CRYPTO_set_locking_callback(cs_crypto_lock);
+        csLog::Log(csLog::Debug,
+            "Initialized %d libcrypto lock(s)", crypto_locks);
     }
 
     csMainXmlParser *parser = new csMainXmlParser();

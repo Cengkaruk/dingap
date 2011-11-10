@@ -23,6 +23,8 @@ AC_CHECK_LIB([expat], [XML_ParserCreate], [], [
 	AC_MSG_ERROR([XML_ParserCreate not found but is required.])])
 AC_CHECK_LIB([pthread], [pthread_create], [], [
 	AC_MSG_ERROR([pthread_create not found but is required.])])
+AC_CHECK_LIB([crypto], [CRYPTO_set_locking_callback], [], [
+	AC_MSG_ERROR([CRYPTO_set_locking_callback not found but is required.])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
