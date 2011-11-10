@@ -10,6 +10,7 @@ Packager: ClearFoundation
 # Base product release information
 Requires: clearos-release >= 6-6.1.0
 # Core system 
+# Note: urw-fonts is needed for graphical boot
 Requires: audit
 Requires: cronie
 Requires: gnupg
@@ -30,6 +31,7 @@ Requires: selinux-policy-targeted
 Requires: sudo
 Requires: rsyslog
 Requires: telnet
+Requires: urw-fonts
 Requires: yum
 # Common tools used in install and upgrade scripts for app-* packages
 Requires: bc
@@ -70,22 +72,22 @@ gcc -O2 app-realpath.c -o app-realpath
 %install
 rm -rf $RPM_BUILD_ROOT
 
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/sbin
-mkdir -p -m 755 $RPM_BUILD_ROOT/usr/share/clearos/base/scripts
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/clearos
+mkdir -p -m 755 $RPM_BUILD_ROOT/usr/clearos
+mkdir -p -m 755 $RPM_BUILD_ROOT/var/clearos
+
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/cron.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/init.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/security/limits.d
+mkdir -p -m 755 $RPM_BUILD_ROOT%{_sbindir}
 
 install -m 644 etc/cron.d/app-servicewatch $RPM_BUILD_ROOT/etc/cron.d/app-servicewatch
 install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 etc/security/limits.d/95-clearos.conf $RPM_BUILD_ROOT/etc/security/limits.d/
-install -m 755 sbin/addsudo $RPM_BUILD_ROOT/usr/sbin/addsudo
-install -m 755 scripts/* $RPM_BUILD_ROOT/usr/share/clearos/base/scripts/
+install -m 755 addsudo $RPM_BUILD_ROOT%{_sbindir}/addsudo
 
 # Helper tools
 install -m 755 utils/app-passwd $RPM_BUILD_ROOT%{_sbindir}
@@ -176,7 +178,7 @@ fi
 if [ $1 -eq 1 ]; then
     logger -p local6.notice -t installer "clearos-base - disabling audit on boot"
     /sbin/chkconfig auditd off >/dev/null 2>&1
-if
+fi
 
 # Postfix should be disabled unless specifically required
 #--------------------------------------------------------
@@ -197,15 +199,13 @@ fi
 %defattr(-,root,root)
 %dir /etc/clearos
 %dir /usr/clearos
+%dir /var/clearos
 /etc/cron.d/app-servicewatch
 /etc/logrotate.d/compliance
 /etc/logrotate.d/system
 /etc/init.d/functions-automagic
 /etc/security/limits.d/95-clearos.conf
-/usr/sbin/addsudo
+%{_sbindir}/addsudo
 %{_sbindir}/app-passwd
 %{_sbindir}/app-rename
 %{_sbindir}/app-realpath
-%dir /usr/share/clearos/base
-%dir /usr/share/clearos/base/scripts
-/usr/share/clearos/base/scripts/*
