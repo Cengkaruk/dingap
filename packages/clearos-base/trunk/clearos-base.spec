@@ -10,6 +10,7 @@ Packager: ClearFoundation
 # Base product release information
 Requires: clearos-release >= 6-6.1.0
 # Core system 
+Requires: audit
 Requires: cronie
 Requires: gnupg
 Requires: grub
@@ -168,6 +169,14 @@ if [ -n "$CHECK" ]; then
 		echo "PRUNEPATHS = \"/afs /media /net /sfs /tmp /udev /var/spool/cups /var/spool/squid /var/tmp\"" >> /etc/updatedb.conf
 	fi
 fi
+
+# Disable audit by default.  Create Audit app if it is desired
+#-------------------------------------------------------------
+
+if [ $1 -eq 1 ]; then
+    logger -p local6.notice -t installer "clearos-base - disabling audit on boot"
+    /sbin/chkconfig auditd off >/dev/null 2>&1
+if
 
 # Postfix should be disabled unless specifically required
 #--------------------------------------------------------
