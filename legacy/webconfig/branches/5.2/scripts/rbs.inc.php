@@ -513,6 +513,9 @@ class RemoteBackupService extends WebconfigScript
 	// Maximum rsync retries
 	const MAX_RSYNC_RETRIES = 30;
 
+	// Default rsync I/O timeout (10 minutes)
+	const RSYNC_TIMEOUT = 600;
+
 	// Suva/2 socket path
 	const PATH_RBSDATA = '/var/lib/rbs';
 
@@ -964,6 +967,12 @@ class RemoteBackupService extends WebconfigScript
 	// Session timestamp
 	private $session_timestamp = null;
 
+	// Rsync timeout
+	private $rsync_timeout = self::RSYNC_TIMEOUT;
+
+	// Rsync bandwidth limit (in KBytes/s)
+	private $rsync_bwlimit = 0;
+
 	public function __construct($name, $is_server = false)
 	{
 		parent::__construct($name);
@@ -1048,6 +1057,12 @@ class RemoteBackupService extends WebconfigScript
 		if (!count($this->config))
 			throw new ServiceException(ServiceException::CODE_CONFIG_INVALID);
 		$this->LoadConfigurationNodes();
+
+		if (array_key_exists('rsync-timeout', $this->config))
+			$this->rsync_timeout = $this->config['rsync-timeout'];
+		if (array_key_exists('rsync-bwlimit', $this->config))
+			$this->rsync_bwlimit = $this->config['rsync-bwlimit'];
+
 		return $this->config;
 	}
 
@@ -1367,7 +1382,10 @@ class RemoteBackupService extends WebconfigScript
 		try {
 			$this->SetStatusCode($status);
 
-			$additional_flags = null;
+			// Set global rsync flags
+			$additional_flags = ' --timeout=' . $this->rsync_timeout;
+			if ($this->rsync_bwlimit > 0)
+				$additional_flags .= ' --bwlimit=' . $this->rsync_bwlimit;
 
 			// Set-up rsync environment
 			$env = null;
