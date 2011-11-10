@@ -308,6 +308,7 @@ protected:
     size_t authkey_bits;
     size_t authkey_bytes;
 
+    vector<csPluginFileSyncSessionMaster *> server;
     vector<csPluginFileSyncSessionMaster *> master;
     vector<csPluginFileSyncSessionSlave *> slave;
 };
@@ -327,6 +328,9 @@ csPluginFileSync::~csPluginFileSync()
 {
     Join();
 
+    vector<csPluginFileSyncSessionMaster *>::iterator i;
+    for (i = server.begin(); i != server.end(); i++)
+        delete (*i);
     vector<csPluginFileSyncSessionMaster *>::iterator mi;
     for (mi = master.begin(); mi != master.end(); mi++)
         delete (*mi);
@@ -350,35 +354,18 @@ void csPluginFileSync::SetConfigurationFile(const string &conf_filename)
 
 void *csPluginFileSync::Entry(void)
 {
-    csLog::Log(csLog::Info, "%s: Running.", name.c_str());
-    csTimer *timer = new csTimer(500, 3, 3, this);
-
-    unsigned long loops = 0ul;
-    GetStateVar("loops", loops);
-    csLog::Log(csLog::Debug, "%s: loops: %lu", name.c_str(), loops);
-
-    for (bool run = true; run; loops++) {
+    bool run = true;
+    while (run) {
         csEvent *event = EventPopWait();
 
         switch (event->GetId()) {
         case csEVENT_QUIT:
-            csLog::Log(csLog::Info, "%s: Terminated.", name.c_str());
             run = false;
-            break;
-
-        case csEVENT_TIMER:
-            csLog::Log(csLog::Debug, "%s: Tick: %lu", name.c_str(),
-                static_cast<csTimerEvent *>(event)->GetTimer()->GetId());
             break;
         }
 
         delete event;
     }
-
-    delete timer;
-
-    SetStateVar("loops", loops);
-    csLog::Log(csLog::Debug, "%s: loops: %lu", name.c_str(), loops);
 
     return NULL;
 }
@@ -401,7 +388,7 @@ csPluginFileSyncSession *csPluginFileSync::CreateSession(
         csPluginFileSyncSessionMaster *session;
         session = new csPluginFileSyncSessionMaster(skt,
             authkey, authkey_bits);
-        master.push_back(session);
+        server.push_back(session);
         return static_cast<csPluginFileSyncSession *>(session);
     }
     else if (type == Slave) {
@@ -428,6 +415,7 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         if (!tag->ParamExists("port") ||
             tag->GetParamValue("port").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
+
         in_port_t port = (in_port_t)atoi(tag->GetParamValue("port").c_str());
         csSocketAccept *skt;
         skt = new csSocketAccept(tag->GetParamValue("bind"), port);
@@ -447,6 +435,7 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         if (!tag->ParamExists("interval") ||
             tag->GetParamValue("interval").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
+
         in_port_t port = (in_port_t)atoi(tag->GetParamValue("port").c_str());
         time_t interval = (time_t)atoi(tag->GetParamValue("interval").c_str());
         csSocketConnect *skt;
@@ -463,6 +452,7 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
             if (!tag->ParamExists("name") ||
                 tag->GetParamValue("name").size() == 0)
                 ParseError("parameter missing: " + tag->GetName());
+
             csPluginFileSyncFile *file = new csPluginFileSyncFile();
             file->name = new string(tag->GetParamValue("name"));
             tag->SetData((void *)file);
@@ -471,14 +461,18 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
             if (!tag->ParamExists("name") ||
                 tag->GetParamValue("name").size() == 0)
                 ParseError("parameter missing: " + tag->GetName());
+
             csPluginFileSyncFile *file = new csPluginFileSyncFile();
             file->name = new string(tag->GetParamValue("name"));
+
             if (tag->ParamExists("presync") &&
                 tag->GetParamValue("presync").size())
                 file->presync = new string(tag->GetParamValue("presync"));
+
             if (tag->ParamExists("postsync") &&
                 tag->GetParamValue("postsync").size())
                 file->postsync = new string(tag->GetParamValue("postsync"));
+
             tag->SetData((void *)file);
         }
         else
