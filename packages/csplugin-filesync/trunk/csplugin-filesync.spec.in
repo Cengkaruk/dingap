@@ -10,6 +10,7 @@ Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
 Requires: clearsync
 BuildRequires: clearsync-devel expat-devel
+BuildRequires: openssl-devel librsync-devel
 Summary: ClearSync FileSync plugin
 Requires(pre): /sbin/ldconfig
 

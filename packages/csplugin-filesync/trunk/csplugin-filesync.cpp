@@ -18,13 +18,6 @@
 #include "config.h"
 #endif
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <string.h>
-
 #include <clearsync/csplugin.h>
 
 #include <librsync.h>
@@ -40,14 +33,12 @@
 #include <openssl/rand.h>
 #include <openssl/bn.h>
 
-#include "csplugin-socket.h"
-
 #define csPluginFileSyncAuthKeyBits 256
 
 static rs_result rs_cb_read(
     void *ctx, char *buffer, size_t length, size_t *bytes_read)
 {
-    csFileSyncSocket *skt = (csFileSyncSocket *)ctx;
+    csSocket *skt = (csSocket *)ctx;
 
     try {
         skt->Read(*bytes_read, (uint8_t *)buffer);
@@ -60,7 +51,7 @@ static rs_result rs_cb_read(
 static rs_result rs_cb_basis(
     void *ctx, char *buffer, size_t length, off_t offset, size_t *bytes_read)
 {
-    csFileSyncSocket *skt = (csFileSyncSocket *)ctx;
+    csSocket *skt = (csSocket *)ctx;
 
     try {
     } catch (csException &e) {
@@ -72,7 +63,7 @@ static rs_result rs_cb_basis(
 static rs_result rs_cb_write(
     void *ctx, const char *buffer, size_t length, size_t *bytes_wrote)
 {
-    csFileSyncSocket *skt = (csFileSyncSocket *)ctx;
+    csSocket *skt = (csSocket *)ctx;
 
     try {
         skt->Write(*bytes_wrote, (uint8_t *)buffer);
@@ -127,8 +118,18 @@ struct csPluginFileSyncPacket
     AES_KEY authkey_decrypt;
 };
 
-struct csPluginFileSyncFile
+class csPluginFileSyncFile
 {
+public:
+    csPluginFileSyncFile()
+    : name(NULL), path(NULL), presync(NULL), postsync(NULL) { };
+    virtual ~csPluginFileSyncFile() {
+        if (name) delete name;
+        if (path) delete path;
+        if (presync) delete presync;
+        if (postsync) delete postsync;
+    };
+
     string *name;
     string *path;
     string *presync;
@@ -139,21 +140,21 @@ class csPluginFileSyncSession : public csThread
 {
 public:
     csPluginFileSyncSession(
-        csFileSyncSocket *skt, const uint8_t *authkey, size_t authkey_bits);
+        csSocket *skt, const uint8_t *authkey, size_t authkey_bits);
     virtual ~csPluginFileSyncSession();
 
     virtual void *Entry(void) = 0;
 
-    void AddFile(struct csPluginFileSyncFile *add_file);
+    void AddFile(csPluginFileSyncFile *add_file);
 
 protected:
-    csFileSyncSocket *skt;
+    csSocket *skt;
     struct csPluginFileSyncPacket pkt;
     map<string, csPluginFileSyncFile *> file;
 };
 
 csPluginFileSyncSession::csPluginFileSyncSession(
-    csFileSyncSocket *skt,
+    csSocket *skt,
     const uint8_t *authkey, size_t authkey_bits)
     : csThread(), skt(skt)
 {
@@ -170,9 +171,12 @@ csPluginFileSyncSession::~csPluginFileSyncSession()
 {
     delete skt;
     delete [] pkt.buffer;
+    map<string, csPluginFileSyncFile *>::iterator i;
+    for (i = file.begin(); i != file.end(); i++)
+        delete i->second;
 }
 
-void csPluginFileSyncSession::AddFile(struct csPluginFileSyncFile *add_file)
+void csPluginFileSyncSession::AddFile(csPluginFileSyncFile *add_file)
 {
     map<string, csPluginFileSyncFile *>::iterator i;
     i = file.find(*(add_file->name));
@@ -185,7 +189,7 @@ class csPluginFileSyncSessionMaster : public csPluginFileSyncSession
 {
 public:
     csPluginFileSyncSessionMaster(
-        csFileSyncSocket *skt, const uint8_t *authkey, size_t authkey_bits)
+        csSocket *skt, const uint8_t *authkey, size_t authkey_bits)
         : csPluginFileSyncSession(skt, authkey, authkey_bits) { };
     virtual ~csPluginFileSyncSessionMaster();
     virtual void *Entry(void);
@@ -226,7 +230,7 @@ class csPluginFileSyncSessionSlave : public csPluginFileSyncSession
 {
 public:
     csPluginFileSyncSessionSlave(
-        csFileSyncSocket *skt, const uint8_t *authkey, size_t authkey_bits,
+        csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
         time_t tv_interval);
     virtual ~csPluginFileSyncSessionSlave();
     virtual void *Entry(void);
@@ -236,7 +240,7 @@ protected:
 };
 
 csPluginFileSyncSessionSlave::csPluginFileSyncSessionSlave(
-    csFileSyncSocket *skt, const uint8_t *authkey, size_t authkey_bits,
+    csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
     time_t tv_interval)
     : csPluginFileSyncSession(skt, authkey, authkey_bits), interval(NULL)
 {
@@ -293,10 +297,11 @@ public:
 
 protected:
     friend class csPluginXmlParser;
+
     void SetAuthKey(const string &key);
     csPluginFileSyncSession *CreateSession(
         csPluginFileSyncSessionType type,
-        csFileSyncSocket *skt, time_t interval = 0);
+        csSocket *skt, time_t interval = 0);
 
     csPluginConf *conf;
     uint8_t *authkey;
@@ -321,6 +326,13 @@ csPluginFileSync::csPluginFileSync(const string &name,
 csPluginFileSync::~csPluginFileSync()
 {
     Join();
+
+    vector<csPluginFileSyncSessionMaster *>::iterator mi;
+    for (mi = master.begin(); mi != master.end(); mi++)
+        delete (*mi);
+    vector<csPluginFileSyncSessionSlave *>::iterator si;
+    for (si = slave.begin(); si != slave.end(); si++)
+        delete (*si);
 
     delete [] authkey;
     if (conf) delete conf;
@@ -383,7 +395,7 @@ void csPluginFileSync::SetAuthKey(const string &key)
 }
 
 csPluginFileSyncSession *csPluginFileSync::CreateSession(
-    csPluginFileSyncSessionType type, csFileSyncSocket *skt, time_t interval)
+    csPluginFileSyncSessionType type, csSocket *skt, time_t interval)
 {
     if (type == Master) {
         csPluginFileSyncSessionMaster *session;
@@ -410,13 +422,15 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
     if ((*tag) == "master") {
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
-        if (!tag->ParamExists("bind"))
+        if (!tag->ParamExists("bind") ||
+            tag->GetParamValue("bind").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
-        if (!tag->ParamExists("port"))
+        if (!tag->ParamExists("port") ||
+            tag->GetParamValue("port").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
         in_port_t port = (in_port_t)atoi(tag->GetParamValue("port").c_str());
-        csFileSyncSocketAccept *skt;
-        skt = new csFileSyncSocketAccept(tag->GetParamValue("bind"), port);
+        csSocketAccept *skt;
+        skt = new csSocketAccept(tag->GetParamValue("bind"), port);
         csPluginFileSyncSession *session;
         session = _conf->parent->CreateSession(csPluginFileSync::Master, skt);
         tag->SetData((void *)session);
@@ -424,16 +438,19 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
     else if ((*tag) == "slave") {
         if (!stack.size() || (*stack.back()) != "plugin")
             ParseError("unexpected tag: " + tag->GetName());
-        if (!tag->ParamExists("host"))
+        if (!tag->ParamExists("host") ||
+            tag->GetParamValue("host").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
-        if (!tag->ParamExists("port"))
+        if (!tag->ParamExists("port") ||
+            tag->GetParamValue("port").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
-        if (!tag->ParamExists("interval"))
+        if (!tag->ParamExists("interval") ||
+            tag->GetParamValue("interval").size() == 0)
             ParseError("parameter missing: " + tag->GetName());
         in_port_t port = (in_port_t)atoi(tag->GetParamValue("port").c_str());
         time_t interval = (time_t)atoi(tag->GetParamValue("interval").c_str());
-        csFileSyncSocketConnect *skt;
-        skt = new csFileSyncSocketConnect(tag->GetParamValue("host"), port);
+        csSocketConnect *skt;
+        skt = new csSocketConnect(tag->GetParamValue("host"), port);
         csPluginFileSyncSession *session;
         session = _conf->parent->CreateSession(
             csPluginFileSync::Slave, skt, interval);
@@ -443,22 +460,24 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         if (!stack.size())
             ParseError("unexpected tag: " + tag->GetName());
         else if (*stack.back() == "master") {
-            if (!tag->ParamExists("name"))
+            if (!tag->ParamExists("name") ||
+                tag->GetParamValue("name").size() == 0)
                 ParseError("parameter missing: " + tag->GetName());
-            struct csPluginFileSyncFile *file;
-            file = new struct csPluginFileSyncFile;
+            csPluginFileSyncFile *file = new csPluginFileSyncFile();
             file->name = new string(tag->GetParamValue("name"));
             tag->SetData((void *)file);
         }
         else if (*stack.back() == "slave") {
-            if (!tag->ParamExists("name"))
+            if (!tag->ParamExists("name") ||
+                tag->GetParamValue("name").size() == 0)
                 ParseError("parameter missing: " + tag->GetName());
-            struct csPluginFileSyncFile *file;
-            file = new struct csPluginFileSyncFile;
+            csPluginFileSyncFile *file = new csPluginFileSyncFile();
             file->name = new string(tag->GetParamValue("name"));
-            if (tag->ParamExists("presync"))
+            if (tag->ParamExists("presync") &&
+                tag->GetParamValue("presync").size())
                 file->presync = new string(tag->GetParamValue("presync"));
-            if (tag->ParamExists("postsync"))
+            if (tag->ParamExists("postsync") &&
+                tag->GetParamValue("postsync").size())
                 file->postsync = new string(tag->GetParamValue("postsync"));
             tag->SetData((void *)file);
         }
@@ -482,6 +501,8 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
     else if ((*tag) == "file") {
         if (!stack.size())
             ParseError("unexpected tag: " + tag->GetName());
+        if (!tag->GetText().size())
+            ParseError("missing value for tag: " + tag->GetName());
         else if ((*stack.back()) == "master") {
             struct csPluginFileSyncFile *file;
             file = (struct csPluginFileSyncFile *)tag->GetData();
