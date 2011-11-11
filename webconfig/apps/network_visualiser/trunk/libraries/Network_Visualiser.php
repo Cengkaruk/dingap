@@ -7,7 +7,7 @@
  * @package    Network_Visualiser
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2003-2011 ClearFoundation
+ * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/network_visualiser/
  */
@@ -85,7 +85,7 @@ clearos_load_library('base/Validation_Exception');
  * @package    Network_Visualiser
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2003-2011 ClearFoundation
+ * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/network_visualiser/
  */
@@ -96,12 +96,12 @@ class Network_Visualiser
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-	const CMD_JNETTOP = '/usr/bin/jnettop';
-	const FILE_CONFIG = '/etc/jnettop.conf';
-	const FILE_DUMP = 'jnettop.dmp';
+    const CMD_JNETTOP = '/usr/bin/jnettop';
+    const FILE_CONFIG = '/etc/jnettop.conf';
+    const FILE_DUMP = 'jnettop.dmp';
 
-	protected $config = null;
-	protected $is_loaded = FALSE;
+    protected $config = NULL;
+    protected $is_loaded = FALSE;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -128,19 +128,19 @@ class Network_Visualiser
         if (! $this->is_loaded)
             $this->_load_config();
 
-		try {
-			$fields = array();
+        try {
+            $fields = array();
 
-			if (!$this->is_loaded)
-				$this->_load_config();
+            if (!$this->is_loaded)
+                $this->_load_config();
 
-			$values = $this->config['fields'];
-			$fields = explode(',', $values);
-			return $fields;
-		} catch (Exception $e) {
-			// Return default entry
-			return array('srcname');
-		}
+            $values = $this->config['fields'];
+            $fields = explode(',', $values);
+            return $fields;
+        } catch (Exception $e) {
+            // Return default entry
+            return array('srcname');
+        }
     }
 
     /**
@@ -153,8 +153,8 @@ class Network_Visualiser
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		if (!$this->is_loaded)
-			$this->_load_config();
+        if (!$this->is_loaded)
+            $this->_load_config();
 
         return $this->config['interface'];
     }
@@ -169,8 +169,8 @@ class Network_Visualiser
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		if (!$this->is_loaded)
-			$this->_load_config();
+        if (!$this->is_loaded)
+            $this->_load_config();
 
         return $this->config['interval'];
     }
@@ -185,61 +185,63 @@ class Network_Visualiser
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		if (!$this->is_loaded)
-			$this->_load_config();
+        if (!$this->is_loaded)
+            $this->_load_config();
 
         return $this->config['display'];
     }
 
-    /* Executes a test to see if mail can be sent through the SMTP server.
+    /**
+     * Executes a test to see if mail can be sent through the SMTP server.
      *
      * @param string $interface a valid NIC interface
      * @param int    $interval  interval, in seconds
+     *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-	function initialize($interface, $interval)
-	{
+    function initialize($interface, $interval)
+    {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP);
+        try {
+            $file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP);
 
-			if ($file->exists())
-				$file->delete();
+            if ($file->exists())
+                $file->delete();
             $file->create('webconfig', 'webconfig', '0644');
             $file->add_lines("timestamp=" . time() . "\n");
             sleep(1);
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
+        }
 
-		try {
-			$shell = new Shell();
-			$args = "-i $interface --display text -t $interval --format";
-			$fields = $this->get_fields();
-			$args .= " '";
-			foreach ($fields as $field)
-				$args .= "\$" . $field . "\$,"; 
-			// Strip off the last comma separator and replace with single quote
-			$args = preg_replace("/,$/", "'", $args);
-			$options = array('env' => "LANG=en_US", 'background' => TRUE, 'log' => self::FILE_DUMP);
-			$retval = $shell->execute(self::CMD_JNETTOP, $args, TRUE, $options);
-		} catch (Exception $e) {
+        try {
+            $shell = new Shell();
+            $args = "-i $interface --display text -t $interval --format";
+            $fields = $this->get_fields();
+            $args .= " '";
+            foreach ($fields as $field)
+                $args .= "\$" . $field . "\$,"; 
+            // Strip off the last comma separator and replace with single quote
+            $args = preg_replace("/,$/", "'", $args);
+            $options = array('env' => "LANG=en_US", 'background' => TRUE, 'log' => self::FILE_DUMP);
+            $retval = $shell->execute(self::CMD_JNETTOP, $args, TRUE, $options);
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
+        }
 
-		if ($retval != 0) {
-			$errstr = $shell->get_last_output_line();
-			throw new Engine_Exception($errstr, CLEAROS_ERROR);
-		} else {
-			$lines = $shell->get_output();
-			foreach ($lines as $line) {
-				echo $line;
-			}
-		}
-	}
+        if ($retval != 0) {
+            $errstr = $shell->get_last_output_line();
+            throw new Engine_Exception($errstr, CLEAROS_ERROR);
+        } else {
+            $lines = $shell->get_output();
+            foreach ($lines as $line) {
+                echo $line;
+            }
+        }
+    }
 
     /**
      * Set the interval.
@@ -345,7 +347,7 @@ class Network_Visualiser
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		$options = array(
+        $options = array(
             'totalbps' => lang('network_visualiser_field_total_bps'),
             'totalbytes' => lang('network_visualiser_field_total_bytes')
         );
@@ -363,20 +365,20 @@ class Network_Visualiser
     {
         clearos_profile(__METHOD__, __LINE__);
 
-		try {
-			$file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP);
+        try {
+            $file = new File(CLEAROS_TEMP_DIR . "/" . self::FILE_DUMP);
 
-			if (!$file->Exists()) {
+            if (!$file->Exists()) {
                 throw new Engine_Exception(lang('network_visualiser_no_data'), CLEAROS_ERROR);
                 $file_as_array = array (
                     'code' => 1,
-                    'errmsg' => lang('network_visualiser_no_data' )
+                    'errmsg' => lang('network_visualiser_no_data')
                 );
                 return $file_as_array;
             }
-		} catch (Exception $e) {
+        } catch (Exception $e) {
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-		}
+        }
 
         $timestamp = time();
 
@@ -405,7 +407,7 @@ class Network_Visualiser
         if (empty($file_as_array)) {
             $file_as_array = array (
                 'code' => 1,
-                'errmsg' => lang('network_visualiser_no_data' )
+                'errmsg' => lang('network_visualiser_no_data')
             );
             return $file_as_array;
         }
@@ -495,17 +497,21 @@ class Network_Visualiser
     /**
      * Validation routine for interface.
      *
-     * @param string $interface interface
+     * @param string $iface interface
      *
      * @return mixed void if interface is valid, errmsg otherwise
      */
 
-    public function validate_interface($interface)
+    public function validate_interface($iface)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (FALSE)
-            return lang('network_visualiser_interface_is_invalid');
+        $iface_manager = new Iface_Manager();
+
+        $ifaces = $iface_manager->get_interfaces();
+
+        if (! in_array($iface, $ifaces))
+            return lang('network_network_interface_invalid');
     }
 
     /**
@@ -521,7 +527,6 @@ class Network_Visualiser
         clearos_profile(__METHOD__, __LINE__);
 
         if (FALSE)
-            return lang('network_visualiser_display_is_invalid');
+            return lang('network_visualiser_display_invalid');
     }
-
 }

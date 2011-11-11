@@ -17,6 +17,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
+$this->lang->load('network');
 $this->lang->load('network_visualiser');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,7 +36,7 @@ $headers = array(
     lang('network_visualiser_protocol'),
     lang('network_visualiser_destination'),
     lang('network_visualiser_destination_port'),
-    ($display == 'totalbps' ? lang('network_visualiser_bandwidth') : lang('network_visualiser_total_transfer'))
+    ($display == 'totalbps' ? lang('network_bandwidth') : lang('network_visualiser_total_transfer'))
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,11 +54,11 @@ echo summary_table(
         'id' => 'report',
         'no_action' => TRUE,
         'sorting-type' => array(
-            null,
-            null,
-            null,
-            null,
-            null,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
             'title-numeric'
         )
     )

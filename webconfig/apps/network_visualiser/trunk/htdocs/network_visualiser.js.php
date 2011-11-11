@@ -4,7 +4,7 @@
  * Javascript helper for Nework Visualiser.
  *
  * @category   Apps
- * @package    Intrusion_Detection_Updates
+ * @package    Network_Visualiser
  * @subpackage Javascript
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation

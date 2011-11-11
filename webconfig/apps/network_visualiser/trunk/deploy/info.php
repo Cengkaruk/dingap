@@ -27,6 +27,7 @@ $app['subcategory'] = lang('base_subcategory_bandwidth_and_qos');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'app-network-core',
     'jnettop'
 );
 
