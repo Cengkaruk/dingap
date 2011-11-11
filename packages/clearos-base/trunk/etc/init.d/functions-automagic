@@ -109,8 +109,8 @@ automagic_interface_info() {
 #
 #----------------------------------------------------------------------------
 
-if [ -e /etc/clearos/firewall.conf ]; then
-	source /etc/clearos/firewall.conf
+if [ -e /etc/clearos/network.conf ]; then
+	source /etc/clearos/network.conf
 
 	# PPPOEKLUDGE: define the real interface used by PPPoE
 	NETCFGDIR="/etc/sysconfig/network-scripts"
