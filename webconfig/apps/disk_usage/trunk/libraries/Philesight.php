@@ -243,8 +243,7 @@ class Philesight extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: this should do a standard check
-        // since this won't catch the case when a folder is deleted
+        // TODO: this won't catch the case when a folder is deleted
         $folder = new Folder($real_path);
 
         if (! $folder->exists())

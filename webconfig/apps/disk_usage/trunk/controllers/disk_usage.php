@@ -135,13 +135,9 @@ class Disk_Usage extends ClearOS_Controller
 
         // Validation
         //-----------
-        // This is to catch security shenanigans, end users won't see this.
 
-// FIXME
-/*
         if ($this->philesight->validate_path($real_path))
             return;
-*/
 
         header("Content-type: image/png");
         echo $this->philesight->get_image($real_path);
