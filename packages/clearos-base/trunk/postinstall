@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# FIXME: discuss with ClearOS installer maintainer
+
+for ETH in `seq 1 20`; do
+    ITS_ANACONDA=`grep NM_CONTROLLED /etc/sysconfig/network-scripts/ifcfg-eth$ETH 2>/dev/null`
+    if [ -n "$ITS_ANACONDA" ]; then 
+        logger -p local6.notice -t installer "app-network-core - removing anaconda network configuration"
+        rm -f /etc/sysconfig/network-scripts/ifcfg-eth$ETH
+    fi 
+done
