@@ -13,7 +13,7 @@ set -e
 	rm -f $DB_FILE
 	rm -f $DB_FILE.temp
 
-	./philesight --db $DB_FILE.temp --index /
+	./philesight --db $DB_FILE.temp --only-dirs --index /
 
 	chown root.webconfig $DB_FILE.temp
 	chmod 640 $DB_FILE.temp
