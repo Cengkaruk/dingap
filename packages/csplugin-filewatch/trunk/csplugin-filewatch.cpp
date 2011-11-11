@@ -674,7 +674,7 @@ bool csPluginFileWatch::AddWatch(csInotifyConf *conf_watch)
     try {
         conf_watch->Resolve();
     } catch (csException &e) {
-        csLog::Log(csLog::Warning, "%s: Error creating watch: %s: %s",
+        csLog::Log(csLog::Debug, "%s: Error creating watch: %s: %s",
             name.c_str(), e.estring.c_str(), e.what()); 
         return false;
     }
