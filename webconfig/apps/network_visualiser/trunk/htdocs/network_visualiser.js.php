@@ -1,5 +1,7 @@
 <?php
 
+// FIXME: CSRF protection fix required
+
 /**
  * Javascript helper for Nework Visualiser.
  *
@@ -154,4 +156,5 @@ jQuery.fn.dataTableExt.oSort['title-numeric-desc'] = function(a,b) {
 };
 ";
 
-// vim: syntax=php ts=4
+// vim: ts=4 syntax=javascript
+?>

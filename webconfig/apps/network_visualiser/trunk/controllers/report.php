@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \Exception as Exception;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -45,26 +51,32 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/network_visualiser/
  */
 
-class Network_Visualiser extends ClearOS_Controller
+class Report extends ClearOS_Controller
 {
     /**
-     * Network Visualiser summary view.
+     * Network Visualiser default controller
      *
      * @return view
      */
 
     function index()
     {
-        // Load libraries
-        //---------------
+        // Load dependencies
+        //------------------
 
+        $this->load->library('network_visualiser/Network_Visualiser');
         $this->lang->load('network_visualiser');
+
+        $this->network_visualiser->initialize(
+            $this->network_visualiser->get_interface(),
+            $this->network_visualiser->get_interval()
+        );
 
         // Load views
         //-----------
 
-        $views = array('network_visualiser/settings','network_visualiser/report');
+        $data['display'] = $this->network_visualiser->get_display();
 
-        $this->page->view_forms($views, lang('network_visualiser_app_name'));
+        $this->page->view_form('report', $data, lang('network_visualiser_app_name'),  array('type' => 'report'));
     }
 }

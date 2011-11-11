@@ -41,7 +41,7 @@ $this->lang->load('network_visualiser');
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('network_visualiser/edit');
+echo form_open('network_visualiser/settings');
 echo form_header(lang('base_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,6 @@ echo form_header(lang('base_settings'));
 $read_only = FALSE;
 $buttons = array(
     form_submit_update('submit'),
-    anchor_cancel('/app/network_visualiser')
 );
 
 echo field_dropdown('interval', $interval_options, $interval, lang('network_visualiser_interval'), $read_only);
