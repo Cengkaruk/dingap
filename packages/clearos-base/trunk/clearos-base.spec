@@ -87,7 +87,9 @@ install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
 install -m 755 etc/security/limits.d/95-clearos.conf $RPM_BUILD_ROOT/etc/security/limits.d/
+
 install -m 755 addsudo $RPM_BUILD_ROOT%{_sbindir}/addsudo
+install -m 755 postinstall $RPM_BUILD_ROOT%{_sbindir}/postinstall
 
 # Helper tools
 install -m 755 utils/app-passwd $RPM_BUILD_ROOT%{_sbindir}
@@ -206,6 +208,7 @@ fi
 /etc/init.d/functions-automagic
 /etc/security/limits.d/95-clearos.conf
 %{_sbindir}/addsudo
+%{_sbindir}/postinstall
 %{_sbindir}/app-passwd
 %{_sbindir}/app-rename
 %{_sbindir}/app-realpath
