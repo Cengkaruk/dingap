@@ -140,17 +140,10 @@ if (! empty($plugins)) {
 
 foreach ($info_map['extensions'] as $extension => $parameters) {
 
-    // FIXME: skip Samba for now
-    if ($extension === 'samba')
-        continue;
-
-    // Use the extension name for the title
-    //-------------------------------------
-
-    echo fieldset_header($extensions[$extension]['nickname']);
-
     // Echo out the specific info field
     //---------------------------------
+
+    $fields = '';
 
     foreach ($parameters as $key_name => $details) {
         $name = "user_info[extensions][$extension][$key_name]";
@@ -161,17 +154,21 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
             continue;
 
         if ($details['field_type'] === 'list') {
-            echo field_dropdown($name, $details['field_options'], $value, $description, $read_only);
+            $fields .= field_dropdown($name, $details['field_options'], $value, $description, $read_only);
         } else if ($details['field_type'] === 'simple_list') {
-            echo field_simple_dropdown($name, $details['field_options'], $value, $description, $read_only);
+            $fields .= field_simple_dropdown($name, $details['field_options'], $value, $description, $read_only);
         } else if ($details['field_type'] === 'text') {
-            echo field_input($name, $value, $description, $read_only);
+            $fields .= field_input($name, $value, $description, $read_only);
         } else if ($details['field_type'] === 'integer') {
-            echo field_input($name, $value, $description, $read_only);
+            $fields .= field_input($name, $value, $description, $read_only);
         }
     }
 
-    echo fieldset_footer();
+    if (! empty($fields)) {
+        echo fieldset_header($extensions[$extension]['nickname']);
+        echo $fields;
+        echo fieldset_footer();
+    }
 }
 
 echo field_button_set($buttons);
