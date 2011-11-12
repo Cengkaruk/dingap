@@ -1,5 +1,6 @@
 #!/bin/sh
 
-# FIXME: alpha only
-[ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize >/dev/null 2>&1
-[ -x /usr/sbin/samba-init ] && /usr/sbin/samba-init >/dev/null 2>&1
+# TODO: should we run the Samba sanity check here?
+[ -x /usr/sbin/add-windows-group-info ] && /usr/sbin/add-windows-group-info >/dev/null 2>&1
+
+exit 0

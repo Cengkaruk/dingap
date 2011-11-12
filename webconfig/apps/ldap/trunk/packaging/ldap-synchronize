@@ -54,5 +54,11 @@ clearos_load_library('ldap/LDAP_Factory');
 // M A I N
 ///////////////////////////////////////////////////////////////////////////////
 
-$ldap = LDAP_Factory::create();
-$ldap->synchronize();
+// TODO: the file_exists check should be replaced by a call to
+// LDAP_Configuration->get_driver() call (similar to Accounts_Configuration).
+// We'll wait for the Samba 4 integration to see how things really work though.
+
+if (file_exists('/var/clearos/openldap/initialized.php')) {
+    $ldap = LDAP_Factory::create();
+    $ldap->synchronize();
+}

@@ -157,7 +157,7 @@ try {
 // Handle mode setting and dispatch
 //--------------------------------------------------------------------
 
-$modes = $ldap->get_supported_modes();
+$modes = $ldap->get_modes();
 
 while ($ldap->validate_mode($mode)) {
     echo "\nAvailable modes:\n\n";
