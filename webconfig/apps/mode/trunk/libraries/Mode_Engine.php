@@ -94,7 +94,7 @@ class Mode_Engine extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const FILE_CONFIG = '/etc/clearos/mode.conf';
+    const FILE_CONFIG = '/var/clearos/mode/mode.conf';
 
     const MODE_SIMPLE_MASTER = 'simple_master';
     const MODE_SIMPLE_SLAVE = 'simple_slave';
@@ -136,9 +136,6 @@ class Mode_Engine extends Engine
 
         if (! $this->is_loaded)
             $this->_load_config();
-
-        if (empty($this->config['mode']))
-            $this->config['mode'] = self::MODE_STANDALONE;
 
         return $this->config['mode'];
     }

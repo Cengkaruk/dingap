@@ -25,6 +25,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/mode
 cp -r * %{buildroot}/usr/clearos/apps/mode/
 
+install -d -m 0755 %{buildroot}/var/clearos/mode
+install -D -m 0644 packaging/mode.conf %{buildroot}/var/clearos/mode
 
 %post
 logger -p local6.notice -t installer 'app-mode-core - installing'
@@ -50,6 +52,8 @@ exit 0
 %exclude /usr/clearos/apps/mode/packaging
 %exclude /usr/clearos/apps/mode/tests
 %dir /usr/clearos/apps/mode
+%dir /var/clearos/mode
 /usr/clearos/apps/mode/deploy
 /usr/clearos/apps/mode/language
 /usr/clearos/apps/mode/libraries
+%config(noreplace) /var/clearos/mode
