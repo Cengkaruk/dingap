@@ -82,22 +82,6 @@ foreach ($network_interface as $interface => $detail) {
 		$link = '';
 	}
 
-
-    // Network types
-/*
-    const TYPE_BONDED = 'Bonded';
-    const TYPE_BONDED_SLAVE = 'BondedChild';
-    const TYPE_BRIDGED = 'Bridge';
-    const TYPE_BRIDGED_SLAVE = 'BridgeChild';
-    const TYPE_ETHERNET = 'Ethernet';
-    const TYPE_PPPOE = 'xDSL';
-    const TYPE_PPPOE_SLAVE = 'PPPoEChild';
-    const TYPE_UNKNOWN = 'Unknown';
-    const TYPE_VIRTUAL = 'Virtual';
-    const TYPE_VLAN = 'VLAN';
-    const TYPE_WIRELESS = 'Wireless';
-*/
-
     // Behavior when interface is configured
     //--------------------------------------
 

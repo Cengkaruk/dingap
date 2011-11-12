@@ -13,7 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-IP settings - read only and wordsmith required.
+IP settings description...
 
 %package core
 Summary: IP Settings - APIs and install
@@ -32,7 +32,7 @@ Requires: syswatch
 Requires: wireless-tools
 
 %description core
-IP settings - read only and wordsmith required.
+IP settings description...
 
 This package provides the core API and libraries.
 

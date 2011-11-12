@@ -12,6 +12,7 @@ $lang['network_dns_automatically_configured_message'] = 'The DNS servers for thi
 
 $lang['network_app_description'] = 'IP settings description...'; // FIXME
 $lang['network_app_name'] = 'IP Settings';
+$lang['network_bandwidth'] = 'Bandwidth';
 $lang['network_bootproto_bootp'] = 'BootP';
 $lang['network_bootproto_dhcp'] = 'DHCP';
 $lang['network_bootproto_pppoe'] = 'PPPoE';
