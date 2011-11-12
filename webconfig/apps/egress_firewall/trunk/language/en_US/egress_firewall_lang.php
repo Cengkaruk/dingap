@@ -10,7 +10,6 @@ $lang['egress_firewall_port_from_to_invalid'] = 'Invalid port range.';
 $lang['egress_firewall_destination_ports'] = 'Destination Port(s)';
 $lang['egress_firewall_destination_domains'] = 'Destination Domains';
 $lang['egress_firewall_mode'] = 'Mode';
-$lang['egress_firewall_configure_mode'] = 'Configure Mode';
 $lang['egress_firewall_block_all'] = 'Block All';
 $lang['egress_firewall_allow_all'] = 'Allow All';
 $lang['egress_firewall_allow_all_and_specify_block_destinations'] = 'Allow all outgoing traffic - specify block destinations';

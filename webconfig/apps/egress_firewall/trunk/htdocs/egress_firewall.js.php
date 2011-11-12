@@ -60,7 +60,7 @@ $(document).ready(function() {
       '<tr>' +
       '  <td><b>" . lang('base_action') . "</b></td>' +
       '  <td>' +
-      '<a class=\'theme-button-set-first theme-button-set-last theme-anchor theme-anchor-add theme-anchor-important ui-button ui-widget ui-state-default ui-button-text-only ui-corner-left ui-corner-right\' href=\'/app/egress_firewall/mode\' role=\'button\' aria-disabled=\'false\'><span class=\'ui-button-text\'></span>" . lang('egress_firewall_configure_mode') . "</a>' + 
+      '<a class=\'theme-button-set-first theme-button-set-last theme-anchor theme-anchor-add theme-anchor-important ui-button ui-widget ui-state-default ui-button-text-only ui-corner-left ui-corner-right\' href=\'/app/egress_firewall/mode\' role=\'button\' aria-disabled=\'false\'><span class=\'ui-button-text\'></span>" . lang('base_configure') . "</a>' + 
       '</td>' +
       '</tr>'
     );
