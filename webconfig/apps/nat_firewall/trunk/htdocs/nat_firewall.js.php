@@ -54,7 +54,6 @@ function check_protocol_port() {
 }
 
 $(document).ready(function() {
-clearos_dialog_box('unique', 'Warning', 'My message');
 
     if ($(location).attr('href').match('.*\/add$') != null) {
         $('#port').css('width', '100');
