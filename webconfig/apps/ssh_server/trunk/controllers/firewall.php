@@ -67,8 +67,9 @@ class Firewall extends ClearOS_Controller
         $this->lang->load('base');
         $this->load->library('network/Network');
         $this->load->library('ssh_server/OpenSSH');
-//  FIXME: make this options
-        $this->load->library('incoming_firewall/Port');
+
+        if (clearos_app_installed('incoming_firewall'))
+            $this->load->library('incoming_firewall/Port');
 
         // Set validation rules
         //---------------------
@@ -84,7 +85,11 @@ class Firewall extends ClearOS_Controller
 
         try {
             $data['port']= $this->openssh->get_port();
-            $data['is_firewalled'] = $this->port->is_firewalled('TCP', $data['port']);
+
+            if (clearos_app_installed('incoming_firewall'))
+                $data['is_firewalled'] = $this->port->is_firewalled('TCP', $data['port']);
+            else
+                $data['is_firewalled'] = FALSE;
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

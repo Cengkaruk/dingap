@@ -12,6 +12,7 @@ $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
 $app['description'] = lang('ssh_server_app_description');
+$app['tooltip'] = lang('ssh_server_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
@@ -25,13 +26,10 @@ $app['subcategory'] = lang('base_subcategory_infrastructure');
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
+$app['controllers']['settings']['title'] = lang('base_settings');
+$app['controllers']['server']['title'] = lang('base_server');
+$app['controllers']['firewall']['title'] = lang('ssh_server_firewall');
 $app['controllers']['ssh_server']['title'] = lang('ssh_server_app_name');
-
-// FIXME: redirect is broken?
-// $app['controllers']['settings']['title'] = lang('base_settings');
-
-// FIXME: not working in summary view?
-// $app['controllers']['ssh_server']['tooltip'] = lang('ssh_server_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

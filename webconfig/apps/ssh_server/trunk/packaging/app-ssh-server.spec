@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-SSH Server description
+SSH is a network protocol for allowing remote access to the systems Command Line Interface, or CLI.
 
 %package core
 Summary: SSH Server - APIs and install
@@ -25,7 +25,7 @@ Requires: app-network-core
 Requires: openssh-server >= 5.3p1
 
 %description core
-SSH Server description
+SSH is a network protocol for allowing remote access to the systems Command Line Interface, or CLI.
 
 This package provides the core API and libraries.
 
