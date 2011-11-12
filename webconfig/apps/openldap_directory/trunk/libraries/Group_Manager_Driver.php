@@ -324,6 +324,19 @@ class Group_Manager_Driver extends Engine
                     $group_info['members'][] = $usermap_dn[$membercn];
             }
 
+            // Add group info from extensions
+            //-------------------------------
+
+            $accounts = new Accounts_Driver();
+            $extensions = $accounts->get_extensions();
+
+            foreach ($extensions as $extension_name => $details) {
+                $extension = Utilities::load_group_extension($details);
+
+                if (method_exists($extension, 'get_info_hook'))
+                    $group_info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+            }
+
             // Add group to list
             //------------------
 

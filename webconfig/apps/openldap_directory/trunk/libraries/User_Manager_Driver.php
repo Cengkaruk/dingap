@@ -274,7 +274,7 @@ class User_Manager_Driver extends User_Manager_Engine
                 $extensions = $accounts->get_extensions();
 
                 foreach ($extensions as $extension_name => $details) {
-                    $extension = Utilities::load_extension($details);
+                    $extension = Utilities::load_user_extension($details);
 
                     if (method_exists($extension, 'get_info_hook')) {
                         $userinfo['extensions'][$extension_name] = $extension->get_info_hook($attributes);

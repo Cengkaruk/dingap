@@ -19,5 +19,5 @@ clearos_load_language('openldap_directory');
 
 $driver['driver'] = 'openldap_directory';
 $driver['app'] = 'openldap_directory';
-$driver['name'] = 'OpenLDAP Accounts';
-$driver['description'] = 'OpenLDAP Accounts driver...'; // FIXME: translate
+$driver['name'] = lang('openldap_directory_directory_driver');
+$driver['description'] = lang('openldap_directory_directory_driver_description');

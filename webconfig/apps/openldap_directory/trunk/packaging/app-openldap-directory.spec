@@ -18,7 +18,6 @@ Requires: app-groups-core
 Requires: app-ldap-core
 Requires: app-network-core
 Requires: app-openldap-core
-Requires: app-samba-core
 Requires: app-users-core
 Requires: authconfig
 Requires: nss-pam-ldapd
@@ -27,7 +26,6 @@ Requires: openldap >= 2.4.19
 Requires: openldap-clients >= 2.4.19
 Requires: openldap-servers >= 2.4.19
 Requires: pam_ldap
-Requires: samba-winbind-clients
 Requires: webconfig-php-ldap
 
 %description

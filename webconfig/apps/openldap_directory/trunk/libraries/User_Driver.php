@@ -965,7 +965,7 @@ class User_Driver extends User_Engine
                 Validation_Exception::is_valid($this->$validator($detail));
             }
         }
-//pete
+//pete FIXME
 return;
 
         // Validate passwords
@@ -1388,7 +1388,7 @@ return;
     }
 
     /**
-     * Handles running various hooks in an extension
+     * Loads an extension.
      *
      * @param array $details extension details
      * @return object extension object
@@ -1405,7 +1405,6 @@ return;
 
         return $extension;
     }
-
 
     /**
      * Merges two LDAP object class lists.

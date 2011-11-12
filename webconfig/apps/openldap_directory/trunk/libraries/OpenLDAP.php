@@ -53,6 +53,7 @@ clearos_load_language('openldap_directory');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
 //--------
 
 use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
@@ -61,6 +62,8 @@ use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
@@ -71,6 +74,8 @@ clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Shell');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('mode/Mode_Factory');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
@@ -108,6 +113,7 @@ class OpenLDAP extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     // General
+    const DEFAULT_DOMAIN = 'system.lan';
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
 
@@ -361,27 +367,19 @@ class OpenLDAP extends Engine
     /**
      * Initializes the OpenLDAP accounts system.
      *
-     * @param boolean $force forces initialization if TRUE
+     * @param string  $domain base domain
+     * @param boolean $force nforces initialization if TRUE
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function initialize($force = FALSE)
+    public function initialize($domain = self::DEFAULT_DOMAIN, $force = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (($this->is_initialized() && !$force))
             return;
-
-        // Check underlying OpenLDAP configuration
-        //----------------------------------------
-
-        $ldap = new LDAP_Driver();
-
-        // FIXME:
-        // $status = $ldap->get_system_status()
-        // if ($status == unitialized)
 
         // Set initializing
         //-----------------
@@ -391,13 +389,37 @@ class OpenLDAP extends Engine
         if (! $file->exists())
             $file->create('root', 'root', '0644');
 
+        // Go through initalization process
+        //---------------------------------
+
         try {
+            // Set driver so status information knows where to look
+            //-----------------------------------------------------
+
+            $this->_set_driver();
+            $ldap = new LDAP_Driver();
+
+            // Initialize LDAP with appropriate mode
+            //--------------------------------------
+
+            $sysmode = Mode_Factory::create();
+            $mode = $sysmode->get_mode();
+
+            // FIXME: add slave mode
+            if ($mode === Mode_Engine::MODE_MASTER)
+                $ldap->initialize_master($domain, NULL, $force);
+            else if ($mode === Mode_Engine::MODE_STANDALONE)
+                $ldap->initialize_standalone($domain, NULL, $force);
+
+            // Post LDAP tasks
+            //----------------
+
             $this->_initialize_authconfig();
             $this->_remove_overlaps();
             $this->_initialize_caching();
-            $this->_set_initialized();
-        } catch (Engine_Exception $e) {
-            // Do cleanup
+        } catch (Exception $e) {
+            $file->delete();
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         $file->delete();
@@ -511,10 +533,10 @@ class OpenLDAP extends Engine
     }
 
     /**
-     * Sets initialized flag
+     * Sets driver.
      */
 
-    protected function _set_initialized()
+    protected function _set_driver()
     {
         clearos_profile(__METHOD__, __LINE__);
 

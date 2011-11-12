@@ -61,7 +61,6 @@ use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\User_Manager_Driver as User_Manager_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
-use \clearos\apps\samba\Samba as Samba;
 
 clearos_load_library('base/File');
 clearos_load_library('groups/Group_Engine');
@@ -69,11 +68,11 @@ clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/User_Manager_Driver');
 clearos_load_library('openldap_directory/Utilities');
-clearos_load_library('samba/Samba');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
@@ -83,6 +82,7 @@ clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('groups/Group_Not_Found_Exception');
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -150,6 +150,7 @@ class Group_Driver extends Group_Engine
 
     protected $ldaph = NULL;
     protected $group_name = NULL;
+    protected $extensions = array();
     protected $info_map = array();
     protected $usermap_dn = NULL;
     protected $usermap_username = NULL;
@@ -216,7 +217,7 @@ class Group_Driver extends Group_Engine
         if ($unique_warning)
             throw new Validation_Exception($unique_warning);
 
-        // FIXME - deal with flexshare conflicts somehow
+        // TODO - deal with flexshare conflicts somehow
 
         // Convert array into LDAP object
         //-------------------------------
@@ -227,13 +228,16 @@ class Group_Driver extends Group_Engine
 
         $ldap_object = Utilities::convert_array_to_attributes($info, $this->info_map);
 
-        // FIXME: add plugin for Samba and Google Apps (Mail)
-        // FIXME: and update objectclass handling below
         $ldap_object['objectClass'] = array(
             'top',
             'posixGroup',
             'groupOfNames'
         );
+
+        // Add LDAP attributes from extensions
+        //------------------------------------
+
+        $ldap_object = $this->_add_attributes_hook($info, $ldap_object);
 
         // Handle group members
         //---------------------
@@ -579,6 +583,26 @@ class Group_Driver extends Group_Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Runs add_attributes hook in extensions.
+     */
+
+    protected function _add_attributes_hook($group_info, $ldap_object)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = Utilities::load_group_extension($details);
+
+            if ($extension && method_exists($extension, 'add_attributes_hook')) {
+                $hook_object = $extension->add_attributes_hook($group_info, $ldap_object);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
+            }
+        }
+
+        return $ldap_object;
+    }
+
+    /**
      * Converts group array to LDAP attributes.
      *
      * The GroupManager class uses this method.  However, we do not want this
@@ -606,21 +630,6 @@ class Group_Driver extends Group_Engine
         $attributes['gidNumber'] = $group_info['gid'];
         $attributes['cn'] = $group_info['group'];
         $attributes['description'] = $group_info['description'];
-
-        // Add Samba attributes if it is active
-        // FIXME: move to extension
-        if (file_exists(COMMON_CORE_DIR . "/api/Samba.class.php")) {
-            require_once(COMMON_CORE_DIR . "/api/Samba.class.php");
-
-            $samba = new Samba();
-            if ($samba->IsDirectoryInitialized()) {
-                $sid = $samba->GetDomainSid();
-                $attributes['sambaSID'] = $sid . '-' . $group_info['gid'];
-                $attributes['sambaGroupType'] = 2;
-                $attributes['displayName'] = $group_info['group'];
-                $attributes['objectClass'][] = 'sambaGroupMapping';
-            }
-        }
 
         $attributes['member'] = array();
 
@@ -675,6 +684,27 @@ class Group_Driver extends Group_Engine
         }
 
         return $group_info;
+    }
+
+    /**
+     * Returns extension list.
+     *
+     * @access private
+     * @return array extension list
+     */
+
+    protected function _get_extensions()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! empty($this->extensions))
+            return $this->extensions;
+
+        $accounts = new Accounts_Driver();
+
+        $this->extensions = $accounts->get_extensions();
+
+        return $this->extensions;
     }
 
     /**
@@ -742,6 +772,16 @@ class Group_Driver extends Group_Engine
 
         $info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
+        // Add user info from extensions
+        //------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = Utilities::load_group_extension($details);
+
+            if (method_exists($extension, 'get_info_hook'))
+                $info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+        }
+
         // Convert RFC2307BIS CN member list to username member list
         //----------------------------------------------------------
 
@@ -761,15 +801,6 @@ class Group_Driver extends Group_Engine
             if (!empty($this->usermap_dn[$membercn]))
                 $info['members'][] = $this->usermap_dn[$membercn];
         }
-
-        // Add group type
-        //---------------
-
-        // FIXME: move to Samba extension
-        /*
-        if (! empty($info['sambaSID']))
-            $info['sambaSID'] = $info['sambaSID'];
-        */
 
         if (preg_match('/_plugin$/', $this->group_name))
             $group_info['type'] = Group_Engine::TYPE_PLUGIN;

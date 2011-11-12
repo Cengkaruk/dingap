@@ -5,9 +5,3 @@
 
 # Restart webconfig due to LDAP library
 /usr/sbin/webconfig-restart
-
-# FIXME - hack for alpha build
-if [ ! -e /var/clearos/accounts/state ]; then
-    logger -p local6.notice -t installer 'app-openldap-directory-core - setting accounts driver'
-    echo "driver = openldap_directory" > /var/clearos/accounts/state
-fi

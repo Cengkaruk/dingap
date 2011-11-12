@@ -40,7 +40,6 @@ $app['core_requires'] = array(
     'app-ldap-core',
     'app-network-core',
     'app-openldap-core',
-    'app-samba-core',
     'app-users-core',
     'authconfig',
     'nss-pam-ldapd',
@@ -49,7 +48,6 @@ $app['core_requires'] = array(
     'openldap-clients >= 2.4.19',
     'openldap-servers >= 2.4.19',
     'pam_ldap',
-    'samba-winbind-clients',
     'webconfig-php-ldap'
 );
 

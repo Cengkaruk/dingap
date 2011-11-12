@@ -270,7 +270,7 @@ class Utilities extends Engine
      * @return object extension object
      */
 
-    public static function load_extension($details)
+    public static function load_user_extension($details)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -280,5 +280,82 @@ class Utilities extends Engine
         $extension = new $class();
 
         return $extension;
+    }
+
+    /**
+     * Loads group extension.
+     *
+     * @param array $details extension details
+     * @return object extension object
+     */
+
+    public static function load_group_extension($details)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! clearos_load_library($details['app'] . '/OpenLDAP_Group_Extension'))
+            return;
+
+        $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_Group_Extension';
+        $extension = new $class();
+
+        return $extension;
+    }
+
+    /**
+     * Merges two LDAP object class lists.
+     *
+     * @param array $array1 LDAP object class list
+     * @param array $array2 LDAP object class list
+     *
+     * @return array object class list
+     */
+
+    public static function merge_ldap_object_classes($array1, $array2)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $raw_merged = array_merge($array1, $array2);
+        $raw_merged = array_unique($raw_merged);
+
+        // PHPism.  Merged arrays have gaps in the keys of the array.
+        // The LDAP object barfs on this, so we need to re-key.
+
+        $merged = array();
+
+        foreach ($raw_merged as $class)
+            $merged[] = $class;
+
+        return $merged;
+    }
+
+    /**
+     * Merges two LDAP object arrays.
+     *
+     * @param array $array1 LDAP object array
+     * @param array $array2 LDAP object array
+     *
+     * @return array LDAP object array
+     */
+
+    public static function merge_ldap_objects($array1, $array2)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Handle object class array
+
+        if (isset($array1['objectClass']) && isset($array2['objectClass']))
+            $object_classes = Utilities::merge_ldap_object_classes($array1['objectClass'], $array2['objectClass']);
+        else if (isset($array1['objectClass']))
+            $object_classes = $array1['objectClass'];
+        else if (isset($array2['objectClass']))
+            $object_classes = $array2['objectClass'];
+
+        $ldap_object = array_merge($array1, $array2);
+
+        if (isset($object_classes))
+            $ldap_object['objectClass'] = $object_classes;
+
+        return $ldap_object;
     }
 }
