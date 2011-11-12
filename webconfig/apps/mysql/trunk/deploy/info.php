@@ -12,6 +12,8 @@ $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
 $app['description'] = lang('mysql_app_description');
+// FIXME: add tooltip about "root" account, it's the DB root, not system root
+$app['tooltip'] = lang('mysql_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
@@ -25,8 +27,6 @@ $app['subcategory'] = lang('base_subcategory_database');
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
-// FIXME: add tooltip about "root" account, it's the DB root, not system root
-// $app['controllers']['mysql']['tooltip'] = lang('mysql_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

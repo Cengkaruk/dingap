@@ -12,6 +12,7 @@ $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
 $app['description'] = lang('disk_usage_app_description');
+$app['tooltip'] = lang('disk_usage_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
@@ -20,12 +21,6 @@ $app['description'] = lang('disk_usage_app_description');
 $app['name'] = lang('disk_usage_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_storage');
-
-/////////////////////////////////////////////////////////////////////////////
-// Controllers
-/////////////////////////////////////////////////////////////////////////////
-
-$app['controllers']['disk_usage']['tooltip'] = lang('disk_usage_app_tooltip');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

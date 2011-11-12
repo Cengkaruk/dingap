@@ -12,6 +12,7 @@ $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
 $app['description'] = lang('imap_app_description');
+$app['tooltip'] = 'Using secure protocols is a good security practice and one that we strongly recommend.'; // FIXME translate
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
@@ -26,7 +27,6 @@ $app['subcategory'] = lang('base_subcategory_mail');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['controllers']['imap']['title'] = $app['name'];
-$app['controllers']['imap']['tooltip'] = 'Using secure protocols is a good security practice and one that we strongly recommend.'; // FIXME translate
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
