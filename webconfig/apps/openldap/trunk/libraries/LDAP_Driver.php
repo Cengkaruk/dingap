@@ -97,14 +97,15 @@ clearos_load_library('openldap_directory/Utilities');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
-use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
-clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
 clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -552,26 +553,6 @@ class LDAP_Driver extends LDAP_Engine
         return $message;
     }
 
-// FIXME
-// add a "run_import" for background mode
-    public function import()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $import = new File(self::FILE_LDIF_BACKUP, TRUE);
-
-            if (! $import->Exists())
-                return FALSE;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        $this->_import_ldif(self::FILE_LDIF_BACKUP);
-
-        return TRUE;
-    }
-
     /**
      * Initializes the LDAP database in master mode.
      *
@@ -613,7 +594,7 @@ class LDAP_Driver extends LDAP_Engine
         $options['start'] = $start;
         $options['master'] = $master;
 
-        // FIXME: load domain from master node / SDN request
+        // TODO: load domain from master node / SDN request
         $this->_initialize(self::MODE_SLAVE, $domain, $password, $options);
     }
 
@@ -1003,7 +984,7 @@ return;
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME
+        // TODO
         if (empty($password))
             return lang('base_password_is_invalid');
     }
@@ -1075,12 +1056,8 @@ return;
         // Determine our hostname and generate an LDAP password (if required)
         //-------------------------------------------------------------------
 
-        // FIXME: hostname class is busted
-        /*
         $hostnameinfo = new Hostname();
-        $hostname = $hostnameinfo->Get();
-        */
-        $hostname = 'test.lan';
+        $hostname = $hostnameinfo->get();
 
         // Generate the configuration files
         //---------------------------------
@@ -1167,7 +1144,7 @@ return;
         if ($file->exists())
             $file->delete();
 
-        $file->create('root', 'root', '0644'); // FIXME: put permissions back to 0600
+        $file->create('root', 'webconfig', '0640');
         $file->add_lines($config);
 
         $this->config = NULL;
