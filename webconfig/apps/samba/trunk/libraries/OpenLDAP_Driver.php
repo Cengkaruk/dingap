@@ -355,8 +355,7 @@ class OpenLDAP_Driver extends Engine
         }
 
         // Archive the files (usually in /var/lib/samba)
-// FIXME: re-enable
-//        $this->_archive_state_files();
+        $this->_archive_state_files();
 
         // Set workgroup
         $samba->set_workgroup($domain);
@@ -450,11 +449,10 @@ class OpenLDAP_Driver extends Engine
         }
 
         $group_manager = new Group_Manager_Driver();
-// FIXME:  this should be returning Samba details too
-        $group_details = $group_manager->get_details();
+        $group_details = $group_manager->get_details(Group_Driver::TYPE_ALL);
 
         // Add/Update the groups
-        //--------------------------------------------------------
+        //----------------------
 
         $attributes['objectClass'] = array(
             'top',
@@ -463,10 +461,24 @@ class OpenLDAP_Driver extends Engine
             'sambaGroupMapping'
         );
 
-        foreach ($group_details as $group_info) {
-            if (isset($group_info['sambaSID']))
+        foreach ($group_details as $group_name => $group_info) {
+
+            // Skip system (non-LDAP) groups
+            //------------------------------
+
+            if ($group_info['type'] === Group_Driver::TYPE_SYSTEM)
                 continue;
 
+            // Skip groups with existing Samba attributes
+            //-------------------------------------------
+
+            if (isset($group_info['extensions']['samba']['sid']))
+                continue;
+
+            // Update group
+            //-------------
+
+            // TODO: push this to Group_Driver->update();
             $dn = "cn=" . $this->ldaph->dn_escape($group_info['group_name']) . "," . OpenLDAP::get_groups_container();
             $attributes['sambaSID'] = $domain_sid . '-' . $group_info['gid_number'];
             $attributes['sambaGroupType'] = 2;

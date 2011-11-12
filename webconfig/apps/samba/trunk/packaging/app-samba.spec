@@ -46,6 +46,7 @@ cp -r * %{buildroot}/usr/clearos/apps/samba/
 install -d -m 0755 %{buildroot}/var/clearos/samba
 install -d -m 0755 %{buildroot}/var/clearos/samba/backup
 install -D -m 0755 packaging/add-samba-directories %{buildroot}/usr/sbin/add-samba-directories
+install -D -m 0755 packaging/add-windows-group-info %{buildroot}/usr/sbin/add-windows-group-info
 install -D -m 0644 packaging/nmb.php %{buildroot}/var/clearos/base/daemon/nmb.php
 install -D -m 0755 packaging/samba-init %{buildroot}/usr/sbin/samba-init
 install -D -m 0644 packaging/smb.ldap.conf %{buildroot}/var/clearos/ldap/synchronize/smb.ldap.conf
@@ -97,6 +98,7 @@ exit 0
 /usr/clearos/apps/samba/language
 /usr/clearos/apps/samba/libraries
 /usr/sbin/add-samba-directories
+/usr/sbin/add-windows-group-info
 /var/clearos/base/daemon/nmb.php
 /usr/sbin/samba-init
 /var/clearos/ldap/synchronize/smb.ldap.conf

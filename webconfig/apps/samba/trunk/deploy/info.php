@@ -49,6 +49,10 @@ $app['core_file_manifest'] = array(
         'target' => '/usr/sbin/add-samba-directories',
         'mode' => '0755',
     ),
+    'add-windows-group-info' => array(
+        'target' => '/usr/sbin/add-windows-group-info',
+        'mode' => '0755',
+    ),
     'samba-init' => array(
         'target' => '/usr/sbin/samba-init',
         'mode' => '0755',
