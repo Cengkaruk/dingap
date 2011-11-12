@@ -18,9 +18,9 @@ clearos_load_language('accounts');
 ///////////////////////////////////////////////////////////////////////////////
 
 $configlet = array(
-	'title' => lang('accounts_accounts_caching_server'),
-	'package' => 'nscd',
-	'process_name' => 'nscd',
+    'title' => lang('accounts_accounts_caching_server'),
+    'package' => 'nscd',
+    'process_name' => 'nscd',
     'pid_file' => '/var/run/nscd/nscd.pid',
-	'reloadable' => TRUE,
+    'reloadable' => FALSE,
 );

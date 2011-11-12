@@ -28,8 +28,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.  
 //
 ///////////////////////////////////////////////////////////////////////////////
-// FIXME - Aaron styling
-// FIXME - discuss logos and stuff
+// FIXME: translate
 
 ///////////////////////////////////////////////////////////////////////////////
 // Load dependencies
@@ -37,7 +36,6 @@
 
 $this->lang->load('base');
 $this->lang->load('accounts');
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Accounts Setup
@@ -60,7 +58,7 @@ echo form_open('accounts/info');
 echo form_header(lang('accounts_account_manager_configuration'));
 echo "
 <tr>
-    <td align='center'><img src='$ad_logo' alt='Active Directory Connector'><br><br></td>
+    <td align='center' width='250'><img src='$ad_logo' alt='Active Directory Connector'><br><br></td>
     <td>
         <p>With the Active Directory Connector, you can use users and groups defined in
         your Microsoft AD system.</p>
@@ -90,13 +88,5 @@ echo "</div>";
 ///////////////////////////////////////////////////////////////////////////////
 
 echo "<div id='accounts_status_widget'>";
-
-echo form_open('accounts/info');
-echo form_header(lang('accounts_account_manager_status'));
-
-echo field_view(lang('base_status'), '...', 'accounts_status');
-
-echo form_footer();
-echo form_close();
-
+echo infobox_highlight(lang('accounts_account_manager_status'), '<div id="accounts_status"></div>');
 echo "</div>";

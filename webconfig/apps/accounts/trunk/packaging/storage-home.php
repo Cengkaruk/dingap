@@ -17,7 +17,6 @@ clearos_load_language('accounts');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-// FIXME: translate
-$plugin['name'] = 'Home Directory Storage Plugin';
-$plugin['nickname'] = 'Home Directory';
-$plugin['description'] = 'The home directory storage plugin ... blah blah blah.';
+$plugin['name'] = lang('accounts_home_directory_storage_plugin');
+$plugin['nickname'] = lang('accounts_home_directory;');
+$plugin['description'] = lang('accounts_home_directory_storage_plugin_description');

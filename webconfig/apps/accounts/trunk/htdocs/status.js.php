@@ -55,12 +55,12 @@ $(document).ready(function() {
 
     $("#initialize_openldap").click(function(){
         $('#accounts_status_lock').val('on');
-        $("#accounts_status").html('<div class="theme-loading"></div>');
+        $("#accounts_status").html('<div class="theme-loading-normal"></div>');
         $("#accounts_configuration_widget").hide();
         $("#accounts_status_widget").show();
 
         $.ajax({
-            url: '/app/accounts/bootstrap/',
+            url: '/app/accounts/bootstrap/index/force',
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
@@ -117,9 +117,8 @@ $(document).ready(function() {
         if (payload.status_message) {
             $('#accounts_status_lock').val('on');
 
-            // FIXME: Aaron
             if (payload.status == 'initializing')
-                $("#accounts_status").html('<div class="theme-loading"></div>');
+                $("#accounts_status").html('<div class="theme-loading-normal">' + payload.status_message + '</div>');
             else
                 $("#accounts_status").html(payload.status_message);
         }

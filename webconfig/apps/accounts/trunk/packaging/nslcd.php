@@ -18,9 +18,9 @@ clearos_load_language('accounts');
 ///////////////////////////////////////////////////////////////////////////////
 
 $configlet = array(
-	'title' => lang('accounts_accounts_caching_server'),
-	'package' => 'nss-pam-ldapd',
-	'process_name' => 'nslcd',
+    'title' => lang('accounts_accounts_caching_server'),
+    'package' => 'nss-pam-ldapd',
+    'process_name' => 'nslcd',
     'pid_file' => '/var/run/nslcd/nslcd.pid',
-	'reloadable' => TRUE,
+    'reloadable' => FALSE,
 );

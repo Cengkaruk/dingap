@@ -57,6 +57,6 @@ class Accounts extends ClearOS_Controller
 
         $views = array('accounts/status', 'accounts/plugins', 'accounts/extensions');
 
-        $this->page->view_forms($views, 'Plugins and Extensions'); // FIXME: translate
+        $this->page->view_forms($views, lang('accounts_app_name'));
 	}
 }

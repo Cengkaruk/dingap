@@ -119,13 +119,13 @@ class Status extends ClearOS_Controller
         // Load view data
         //---------------
 
-        $data['marketplace_installed'] = (clearos_marketplace_installed()) ? TRUE : FALSE;
+        $data['marketplace_installed'] = (clearos_app_installed('marketplace')) ? TRUE : FALSE;
         $data['directory_server_installed'] = (clearos_app_installed('directory_server')) ? TRUE : FALSE;
         $data['openldap_installed'] = (clearos_app_installed('openldap_directory')) ? TRUE : FALSE;
         $data['ad_installed'] = (clearos_app_installed('active_directory')) ? TRUE : FALSE;
 
 // FIXME
-// $data['directory_server_installed'] = FALSE;
+$data['directory_server_installed'] = FALSE;
 
         try {
             $this->load->factory('accounts/Accounts_Factory');
