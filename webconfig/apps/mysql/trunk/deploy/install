@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Restart webconfig due to MySQL library
+/usr/sbin/webconfig-restart

@@ -2,6 +2,7 @@
 
 $lang['mysql_app_name'] = 'MySQL Server';
 $lang['mysql_app_description'] = 'MySQL is an open-source, Relational Database Management System (RDMS).  It can be configured to run database driven applications, websites, CRM and practically any other resource requiring a relational storage service.';
+$lang['mysql_app_tooltip'] = 'The root account used by the database is different than the one used by the system!';
 $lang['mysql_mysql_database'] = 'MySQL Database';
 $lang['mysql_access_denied'] = 'Access is denied.';
 $lang['mysql_password_updated'] = 'Password updated succesfully.';

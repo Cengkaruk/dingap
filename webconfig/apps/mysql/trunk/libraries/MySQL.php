@@ -66,6 +66,7 @@ clearos_load_library('network/Network_Utils');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
