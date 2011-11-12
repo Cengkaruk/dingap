@@ -476,7 +476,7 @@ function _get_footer($page)
 
 function _get_banner($page, $menus)
 {
-    if (clearos_marketplace_installed())
+    if (clearos_app_installed('marketplace'))
         $marketplace_link = "<a href='/app/marketplace'>" . lang('base_marketplace') . "</a>&nbsp;&nbsp;|&nbsp;";
     else
         $marketplace_link = '';
