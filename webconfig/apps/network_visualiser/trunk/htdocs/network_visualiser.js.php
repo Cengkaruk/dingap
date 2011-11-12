@@ -1,7 +1,5 @@
 <?php
 
-// FIXME: CSRF protection fix required
-
 /**
  * Javascript helper for Nework Visualiser.
  *
@@ -59,7 +57,7 @@ function get_traffic_data() {
     $.ajax({
         type: 'POST',
         dataType: 'json',
-        data: 'display=' + display,
+        data: 'ci_csrf_token=' + $.cookie('ci_csrf_token') + '&display=' + display,
         url: '/app/network_visualiser/ajax/get_traffic_data',
         success: function(json) {
             if (json.code != 0) {
@@ -101,6 +99,7 @@ function reset_scan() {
     $.ajax({
         type: 'POST',
         dataType: 'json',
+        data: 'ci_csrf_token=' + $.cookie('ci_csrf_token'),
         url: '/app/network_visualiser/ajax/reset_scan',
         success: function(json) {
             if (json.code != 0) {
