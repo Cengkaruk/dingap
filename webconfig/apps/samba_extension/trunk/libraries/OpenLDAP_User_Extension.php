@@ -98,11 +98,10 @@ class OpenLDAP_User_Extension extends Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const COMMAND_PDBEDIT = '/usr/bin/pdbedit';
-
-    // UID/GID/RID ranges -- see http://www.clearfoundation.com/docs/developer/features/cleardirectory/uids_gids_and_rids
+    // see http://www.clearfoundation.com/docs/developer/features/cleardirectory/uids_gids_and_rids
     const CONSTANT_SPECIAL_RID_MAX = '1000'; // RIDs below this number are reserved
     const CONSTANT_SPECIAL_RID_OFFSET = '1000000'; // Offset used to map <1000 RIDs to UIDs
+    const COMMAND_PDBEDIT = '/usr/bin/pdbedit';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -115,7 +114,7 @@ class OpenLDAP_User_Extension extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Samba OpenLDAP_Extension constructor.
+     * Samba OpenLDAP user extension constructor.
      */
 
     public function __construct()
@@ -138,7 +137,7 @@ class OpenLDAP_User_Extension extends Engine
      * - home_path_state flag to indicate roaming profile state
      * - sid (sambaSID)
      *
-     * @param array $user_info user information in hash array
+     * @param array $user_info   user information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
@@ -155,7 +154,7 @@ class OpenLDAP_User_Extension extends Engine
         $samba_driver = new OpenLDAP_Driver();
 
         if (!$samba_driver->is_directory_initialized())
-            return;
+            return array();
 
         // Process attributes
         //-------------------
@@ -169,7 +168,11 @@ class OpenLDAP_User_Extension extends Engine
         //-------------
 
         if (! isset($user_info['samba']['sid'])) {
-            $rid = ($ldap_object['uidNumber'] < self::CONSTANT_SPECIAL_RID_MAX) ? self::CONSTANT_SPECIAL_RID_OFFSET + $ldap_object['uidNumber'] : $ldap_object['uidNumber'];
+            if ($ldap_object['uidNumber'] < self::CONSTANT_SPECIAL_RID_MAX) 
+                $rid =  self::CONSTANT_SPECIAL_RID_OFFSET + $ldap_object['uidNumber'];
+            else
+                $rid = $ldap_object['uidNumber'];
+        
             $user_info['samba']['sid'] = $sid . '-' . $rid;
         }
 
@@ -213,6 +216,17 @@ class OpenLDAP_User_Extension extends Engine
     public function add_post_processing_hook($username, $user_info)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        // Bail if Samba has not been initialized
+        //---------------------------------------
+
+        $samba_driver = new OpenLDAP_Driver();
+
+        if (!$samba_driver->is_directory_initialized())
+            return;
+
+        // Add user to domain_users group
+        //-------------------------------
 
         $group = new Group_Driver('domain_users');
 
@@ -269,8 +283,6 @@ class OpenLDAP_User_Extension extends Engine
     /** 
      * Returns user info hash array.
      *
-     * @param array $attributes LDAP attributes
-     *
      * @return array user info array
      * @throws Engine_Exception
      */
@@ -296,7 +308,7 @@ class OpenLDAP_User_Extension extends Engine
     /** 
      * Update LDAP attributes hook.
      *
-     * @param array $user_info user information in hash array
+     * @param array $user_info   user information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
@@ -321,39 +333,36 @@ class OpenLDAP_User_Extension extends Engine
         // Handle special flag attributes
         //-------------------------------
 
-        // TODO: see if this is really required
-
         return $attributes;
     }
 
     /**
      * Set password hook.
      *
-     * @param string $password password
+     * @param array  $user_info       info user information in hash array
+     * @param array  $password_object password LDAP object
+     * @param string $password        password
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception 
      */
 
-    public function set_password_attributes_hook($password, $ldap_object)
+    public function set_password_attributes_hook($user_info, $password_object, $password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $attributes = array();
 
-        // FIXME
-        // if (isset($old_attributes['sambaSID'])) {
-            $attributes['sambaNTPassword'] = $ldap_object['clearMicrosoftNTPassword'];
+        if (isset($user_info['extensions']['samba']['sid'])) {
+            $attributes['sambaNTPassword'] = $password_object['clearMicrosoftNTPassword'];
             $attributes['sambaPwdLastSet'] = time();
-        // }
+        }
     
         return $attributes;
     }
 
     /** 
      * Unlock LDAP attributes hook.
-     *
-     * @param array $user_info user information in hash array
-     * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
      * @throws Engine_Exception
@@ -363,7 +372,7 @@ class OpenLDAP_User_Extension extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-/*
+        /*
         try {
             $shell = new Shell();
             $exitcode = $shell->Execute(self::CMD_PDBEDIT, '-c "[]" -z -u ' . $username, TRUE);
@@ -373,14 +382,22 @@ class OpenLDAP_User_Extension extends Engine
         } catch (Exception $e) {
             throw new Engine_Exception($e->GetMessage(), COMMON_WARNING);
         }
-
-*/
+        */
     }
+
+    /**
+     * Validates SID.
+     *
+     * @param string $sid SID
+     *
+     * @return error message if SID is invalid
+     */
 
     public function validate_sid($sid)
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // For testing exposing the SID in the GUI.  Disabled.
         // return "das ist bad sid.";
     }
 }

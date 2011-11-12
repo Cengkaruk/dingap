@@ -83,7 +83,7 @@ class OpenLDAP_Group_Extension extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Samba OpenLDAP_Extension constructor.
+     * Samba OpenLDAP_group extension constructor.
      */
 
     public function __construct()
@@ -94,7 +94,7 @@ class OpenLDAP_Group_Extension extends Engine
     /** 
      * Add LDAP attributes hook.
      *
-     * @param array $user_info user information in hash array
+     * @param array $group_info  group information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
