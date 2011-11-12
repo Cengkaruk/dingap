@@ -9,7 +9,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/pptpd/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/pptpd/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
  */
 
 class FTP extends ClearOS_Controller

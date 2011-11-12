@@ -12,6 +12,8 @@ Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-network
+Requires: app-users
+Requires: app-groups
 Requires: proftpd >= 1.3.3e
 
 %description

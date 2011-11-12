@@ -27,6 +27,8 @@ $app['subcategory'] = lang('base_subcategory_file');
 
 $app['requires'] = array(
     'app-network', 
+    'app-users',
+    'app-groups',
     'proftpd >= 1.3.3e'
 );
 
