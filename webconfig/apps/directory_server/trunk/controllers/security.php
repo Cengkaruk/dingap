@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Directory server controller.
+ * Directory server security controller.
  *
  * @category   Apps
  * @package    Directory_Server
@@ -29,12 +29,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Directory server controller.
+ * Directory_server security controller.
+ *
+ * We are actually initializing two layers here:
+ * - The base LDAP layer using the (basically, an empty LDAP directory)
+ * - The base accounts layer (all things related to user accounts)
  *
  * @category   Apps
  * @package    Directory_Server
@@ -45,26 +51,68 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/directory_server/
  */
 
-class Directory_Server extends ClearOS_Controller
+class Security extends ClearOS_Controller
 {
     /**
-     * Directory server summary view.
+     * Directory server security controller
      *
      * @return view
      */
 
     function index()
     {
-        // Load libraries
-        //---------------
+        $this->_item('view');
+    }
+
+    function edit()
+    {
+        $this->_item('edit');
+    }
+
+    function _item($form_type)
+    {
+        // Load dependencies
+        //------------------
 
         $this->lang->load('directory_server');
+        $this->load->library('openldap/LDAP_Driver');
+
+        // Set validation rules
+        //---------------------
+
+        $this->form_validation->set_policy('policy', 'openldap/LDAP_Driver', 'validate_security_policy', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->ldap_driver->set_security_policy($this->input->post('policy'));
+                $this->ldap_driver->reset(TRUE);
+
+                $this->page->set_status_updated();
+            } catch (Engine_Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['form_type'] = $form_type;
+            $data['policies'] = $this->ldap_driver->get_security_policies();
+            $data['policy'] = $this->ldap_driver->get_security_policy();
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Load views
         //-----------
 
-        $views = array('directory_server/settings', 'directory_server/security', 'directory_server/information');
-
-        $this->page->view_forms($views, lang('directory_server_app_name'));
+        $this->page->view_form('security', $data, lang('directory_server_app_name'));
     }
 }

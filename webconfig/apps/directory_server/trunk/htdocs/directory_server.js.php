@@ -62,7 +62,7 @@ $(document).ready(function() {
 
     function getDirectoryInfo() {
         $.ajax({
-            url: '/app/directory_server/get_info',
+            url: '/app/directory_server/information/get_info',
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
@@ -76,7 +76,7 @@ $(document).ready(function() {
     }
 
     function showDirectoryInfo(payload) {
-        if (payload.accounts_status == 'ok') {
+        if (payload.base_dn.length > 0) {
             $("#directory_information").show();
         } else {
             $("#directory_information").hide();
