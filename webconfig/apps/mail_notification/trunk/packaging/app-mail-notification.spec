@@ -23,10 +23,6 @@ Requires: app-base-core
 Requires: app-network-core
 Requires: postfix
 Requires: Swift
-Requires: app-users
-Requires: app-samba-core
-Requires: app-groups
-Requires: app-accounts
 
 %description core
 Mail Notification description....

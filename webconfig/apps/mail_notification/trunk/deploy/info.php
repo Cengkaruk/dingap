@@ -26,15 +26,10 @@ $app['subcategory'] = lang('base_subcategory_settings');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-// FIXME: beta hack in dependencies
 $app['core_requires'] = array(
     'app-network-core',
     'postfix',
     'Swift',
-    'app-users',
-    'app-samba-core',
-    'app-groups',
-    'app-accounts',
 );
 
 $app['core_file_manifest'] = array(
