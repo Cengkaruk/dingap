@@ -1,6 +1,6 @@
 <?php
 
-$lang['bandwidth_app_description'] = 'Bandwidth Manager description...'; // FIXME
+$lang['bandwidth_app_description'] = 'Bandwidth Manager is an essential tool for administrators who wish to implement Quality of Service for services such as browsing, VoIP and SSH so that no one individual or application can adversely affect the performance of the entire network.';
 $lang['bandwidth_app_name'] = 'Bandwidth Manager';
 
 $lang['bandwidth_configuration_file_missing'] = 'Configuration file is missing.';
