@@ -324,11 +324,11 @@ class User_Driver extends User_Engine
         //---------------------------------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'delete_attributes_hook')) {
                 $hook_object = $extension->delete_attributes_hook();
-                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
         }
 
@@ -336,7 +336,7 @@ class User_Driver extends User_Engine
         //----------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'delete_hook'))
                 $extension->delete_hook();
@@ -435,7 +435,7 @@ class User_Driver extends User_Engine
         //------------------------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'get_info_hook'))
                 $info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
@@ -467,7 +467,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'get_info_defaults_hook'))
                 $info['extensions'][$extension_name] = $extension->get_info_defaults_hook($attributes);
@@ -496,7 +496,7 @@ class User_Driver extends User_Engine
         //----------------------------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'get_info_map_hook'))
                 $info_map['extensions'][$extension_name] = $extension->get_info_map_hook();
@@ -644,11 +644,11 @@ class User_Driver extends User_Engine
         //------------------------------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'set_password_attributes_hook')) {
                 $hook_object = $extension->set_password_attributes_hook($password, $ldap_object);
-                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
         }
 
@@ -677,7 +677,7 @@ class User_Driver extends User_Engine
         //----------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'unlock_hook'))
                 $extension->unlock_hook($this->username);
@@ -725,11 +725,11 @@ class User_Driver extends User_Engine
         //---------------------------------------
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'update_attributes_hook')) {
                 $hook_object = $extension->update_attributes_hook($user_info, $ldap_object);
-                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
         }
 
@@ -1014,11 +1014,11 @@ return;
         clearos_profile(__METHOD__, __LINE__);
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'add_attributes_hook')) {
                 $hook_object = $extension->add_attributes_hook($user_info, $ldap_object);
-                $ldap_object = $this->_merge_ldap_objects($ldap_object, $hook_object);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
         }
 
@@ -1035,7 +1035,7 @@ return;
         clearos_profile(__METHOD__, __LINE__);
 
         foreach ($this->_get_extensions() as $extension_name => $details) {
-            $extension = $this->_load_extension($details);
+            $extension = Utilities::load_user_extension($details);
 
             if (method_exists($extension, 'add_post_processing_hook'))
                 $extension->add_post_processing_hook($this->username, $user_info);
@@ -1218,7 +1218,7 @@ return;
         if (isset($old_attributes['objectClass'])) {
             $old_classes = $old_attributes['objectClass'];
             array_shift($old_classes);
-            $ldap_object['objectClass'] = $this->_merge_ldap_object_classes($this->core_classes, $old_classes);
+            $ldap_object['objectClass'] = Utilities::merge_ldap_object_classes($this->core_classes, $old_classes);
         } else {
             $ldap_object['objectClass'] = $this->core_classes;
         }
@@ -1385,82 +1385,6 @@ return;
 
         $group = new Group_Driver(User_Driver::DEFAULT_USER_GROUP);
         $group->add_member($this->username);
-    }
-
-    /**
-     * Loads an extension.
-     *
-     * @param array $details extension details
-     * @return object extension object
-     */
-
-    protected function _load_extension($details)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        clearos_load_library($details['app'] . '/OpenLDAP_User_Extension');
-
-        $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_User_Extension';
-        $extension = new $class();
-
-        return $extension;
-    }
-
-    /**
-     * Merges two LDAP object class lists.
-     *
-     * @param array $array1 LDAP object class list
-     * @param array $array2 LDAP object class list
-     *
-     * @return array object class list
-     */
-
-    protected function _merge_ldap_object_classes($array1, $array2)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $raw_merged = array_merge($array1, $array2);
-        $raw_merged = array_unique($raw_merged);
-
-        // PHPism.  Merged arrays have gaps in the keys of the array.
-        // The LDAP object barfs on this, so we need to re-key.
-
-        $merged = array();
-
-        foreach ($raw_merged as $class)
-            $merged[] = $class;
-
-        return $merged;
-    }
-
-    /**
-     * Merges two LDAP object arrays.
-     *
-     * @param array $array1 LDAP object array
-     * @param array $array2 LDAP object array
-     *
-     * @return array LDAP object array
-     */
-
-    protected function _merge_ldap_objects($array1, $array2)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Handle object class array
-
-        if (isset($array1['objectClass']) && isset($array2['objectClass']))
-            $object_classes = $this->_merge_ldap_object_classes($array1['objectClass'], $array2['objectClass']);
-        else if (isset($array1['objectClass']))
-            $object_classes = $array1['objectClass'];
-        else if (isset($array2['objectClass']))
-            $object_classes = $array2['objectClass'];
-
-        $ldap_object = array_merge($array1, $array2);
-
-        if (isset($object_classes))
-            $ldap_object['objectClass'] = $object_classes;
-
-        return $ldap_object;
     }
 
     /**
