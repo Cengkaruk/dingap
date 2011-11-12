@@ -284,7 +284,7 @@ function get_marketplace_data(basename) {
                     );
                 }
             }
-            if (json.complementary_apps.length > 0) {
+            if (json.complementary_apps != undefined && json.complementary_apps.length > 0) {
                 comp_apps = '<h3>' + lang_marketplace_recommended_apps + '</h3>' +
                     '<p>' + lang_marketplace_sidebar_recommended_apps.replace('APP_NAME', '<b>' + json.name + '</b>') + ':</p><ul>';
                 for (index = 0 ; index < json.complementary_apps.length; index++) {
