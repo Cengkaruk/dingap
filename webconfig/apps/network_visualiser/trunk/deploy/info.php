@@ -34,6 +34,10 @@ $app['controllers']['report']['title'] = lang('base_report');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['requires'] = array(
+    'app-network',
+);
+
 $app['core_requires'] = array(
     'app-network-core',
     'jnettop'

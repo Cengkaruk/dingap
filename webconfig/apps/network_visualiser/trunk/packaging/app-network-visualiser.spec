@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-network
 
 %description
 Captures and displays data flow traversing your network in real-time, displaying source, destination and protocol information in addition to either bandwidth usage or total data captured over an interval.
@@ -20,6 +21,7 @@ Summary: Network Visualiser - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
+Requires: app-network-core
 Requires: jnettop
 
 %description core
