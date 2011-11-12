@@ -1,7 +1,7 @@
 <?php
 
 $lang['groups_app_name'] = 'Groups';
-$lang['groups_app_description'] = 'This is the group manager.  Testers: the final release will not display all those Windows groups so prominently since that is too noisy (Print Operators).'; // FIXME
+$lang['groups_app_description'] = 'Groups description...';
 $lang['groups_edit_members'] = 'Edit Members';
 $lang['groups_group_name'] = 'Group Name';
 $lang['groups_description'] = 'Description';

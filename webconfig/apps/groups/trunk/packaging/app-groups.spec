@@ -15,7 +15,7 @@ Requires: app-accounts
 Requires: app-users
 
 %description
-This is the group manager.  Testers: the final release will not display all those Windows groups so prominently since that is too noisy (Print Operators).
+Groups description...
 
 %package core
 Summary: Groups - APIs and install
@@ -26,7 +26,7 @@ Requires: app-accounts-core
 Requires: system-groups-driver
 
 %description core
-This is the group manager.  Testers: the final release will not display all those Windows groups so prominently since that is too noisy (Print Operators).
+Groups description...
 
 This package provides the core API and libraries.
 
