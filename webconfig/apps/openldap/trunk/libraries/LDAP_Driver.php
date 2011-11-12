@@ -401,8 +401,14 @@ class LDAP_Driver extends LDAP_Engine
 
         if (is_null($this->config))
             $this->_load_config();
-        
-        $mode = (empty($this->config['mode'])) ? '' : $this->config['mode'];
+
+        // Return the configured mode if OpenLDAP has been already initialized        
+        if (! empty($this->config['mode']))
+            return $this->config['mode'];
+
+        // Otherwise, return the mode implied by the system mode
+        $system_mode = Mode::create();
+        $mode = $system_mode->get_mode();
 
         return $mode;
     }
@@ -421,6 +427,33 @@ class LDAP_Driver extends LDAP_Engine
         $mode = $this->get_mode();
 
         return $this->modes[$mode];
+    }
+
+    /**
+     * Returns a list of available modes.
+     *
+     * @return array list of modes
+     * @throws Engine_Exception
+     */
+
+    public function get_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $system_mode = Mode::create();
+        $system_modes = $system_mode->get_modes();
+
+        $modes = array();
+        $modes[self::MODE_STANDALONE] = lang('ldap_standalone');
+
+        foreach ($system_modes as $mode => $mode_text) {
+            if (($mode === Mode_Engine::MODE_SIMPLE_MASTER) || ($mode === Mode_Engine::MODE_MASTER))
+                $modes[self::MODE_MASTER] = lang('ldap_master');
+            else if ( ($mode === Mode_Engine::MODE_SIMPLE_SLAVE) || ($mode === Mode_Engine::MODE_SLAVE))
+                $modes[self::MODE_SLAVE] = lang('ldap_slave');
+        }
+
+        return $modes;
     }
 
     /** 
@@ -467,22 +500,6 @@ class LDAP_Driver extends LDAP_Engine
         }
 
         return $policy;
-    }
-
-    /**
-     * Returns a list of available modes.
-     *
-     * @return array list of modes
-     * @throws Engine_Exception
-     */
-
-    public function get_supported_modes()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $mode = Mode::create();
-
-        return $mode->get_modes();
     }
 
     /**
@@ -936,12 +953,6 @@ return;
         clearos_profile(__METHOD__, __LINE__);
 
         $this->_synchronize_files();
-
-// FIXME: do we still need a background?
-//        $options['background'] = $background;
-        $shell = new Shell();
-        // FIXME
-        // $shell->Execute(self::COMMAND_LDAPSYNC, "full", TRUE, $options);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
