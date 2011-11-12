@@ -53,11 +53,6 @@ class Trusted extends ClearOS_Controller
 
     function index($mode = 'edit')
 	{
-		// Handle theme mode redirects
-		//----------------------------
-
-        $this->page->theme_redirect('/smtp');
-
 		// Load libraries
 		//---------------
 
