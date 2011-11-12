@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * Login shell OpenLDAP user extension.
+ *
+ * @category   Apps
+ * @package    Shell_Extension
+ * @subpackage Configuration
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/shell_extension/
+ */
+
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////

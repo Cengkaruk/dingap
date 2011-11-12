@@ -107,7 +107,7 @@ class OpenLDAP_User_Extension extends Engine
     /** 
      * Add LDAP attributes hook.
      *
-     * @param array $user_info user information in hash array
+     * @param array $user_info   user information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
@@ -184,7 +184,7 @@ class OpenLDAP_User_Extension extends Engine
     /** 
      * Update LDAP attributes hook.
      *
-     * @param array $user_info user information in hash array
+     * @param array $user_info   user information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
