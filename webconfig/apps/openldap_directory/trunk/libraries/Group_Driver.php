@@ -4,7 +4,7 @@
  * OpenLDAP group driver.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
@@ -113,7 +113,7 @@ clearos_load_library('groups/Group_Not_Found_Exception');
  * member: cn=Doug McKenzie,ou=Users,ou=Accounts,dc=example,dc=org
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation

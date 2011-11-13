@@ -4,7 +4,7 @@
  * OpenLDAP group manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation

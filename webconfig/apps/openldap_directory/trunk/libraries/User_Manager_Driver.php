@@ -4,7 +4,7 @@
  * OpenLDAP user manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation
@@ -84,7 +84,7 @@ clearos_load_library('users/User_Manager_Engine');
  * OpenLDAP user manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2011 ClearFoundation

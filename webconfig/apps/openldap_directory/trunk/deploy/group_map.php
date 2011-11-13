@@ -1,15 +1,15 @@
 <?php
 
 /**
- * OpenLDAP group mapping.
+ * Directory server group mapping.
  *
  * @category   Apps
- * @package    OpenLDAP
- * @subpackage Libraries
+ * @package    OpenLDAP_Directory
+ * @subpackage Configuration
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
 ///////////////////////////////////////////////////////////////////////////////

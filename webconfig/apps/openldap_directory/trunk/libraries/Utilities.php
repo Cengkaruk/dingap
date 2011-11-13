@@ -4,7 +4,7 @@
  * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
@@ -71,7 +71,7 @@ clearos_load_library('openldap_directory/OpenLDAP');
  * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation

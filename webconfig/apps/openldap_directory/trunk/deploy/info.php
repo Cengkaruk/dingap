@@ -20,15 +20,19 @@ $app['description'] = lang('openldap_directory_app_description');
 $app['name'] = lang('openldap_directory_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
-$app['menu_enabled'] = FALSE;
+
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['openldap_directory']['title'] = lang('openldap_directory_app_name');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-$app['core_only'] = TRUE;
-
 $app['core_provides'] = array(
+    'system-accounts',
     'system-accounts-driver',
     'system-groups-driver',
     'system-users-driver',

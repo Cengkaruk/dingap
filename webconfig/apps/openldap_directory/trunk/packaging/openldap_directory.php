@@ -19,5 +19,5 @@ clearos_load_language('openldap_directory');
 
 $driver['driver'] = 'openldap_directory';
 $driver['app'] = 'openldap_directory';
-$driver['name'] = lang('openldap_directory_directory_driver');
-$driver['description'] = lang('openldap_directory_directory_driver_description');
+$driver['name'] = lang('openldap_directory_openldap_directory_driver');
+$driver['description'] = lang('openldap_directory_openldap_directory_driver_description');
