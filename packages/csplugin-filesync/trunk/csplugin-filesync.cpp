@@ -20,6 +20,8 @@
 
 #include <clearsync/csplugin.h>
 
+#include <sys/select.h>
+
 #include <librsync.h>
 
 #define OPENSSL_THREAD_DEFINES
@@ -38,7 +40,7 @@
 static rs_result rs_cb_read(
     void *ctx, char *buffer, size_t length, size_t *bytes_read)
 {
-    csSocket *skt = (csSocket *)ctx;
+    csSocket *skt = static_cast<csSocket *>(ctx);
 
     try {
         skt->Read(*bytes_read, (uint8_t *)buffer);
@@ -51,7 +53,7 @@ static rs_result rs_cb_read(
 static rs_result rs_cb_basis(
     void *ctx, char *buffer, size_t length, off_t offset, size_t *bytes_read)
 {
-    csSocket *skt = (csSocket *)ctx;
+    csSocket *skt = static_cast<csSocket *>(ctx);
 
     try {
     } catch (csException &e) {
@@ -63,7 +65,7 @@ static rs_result rs_cb_basis(
 static rs_result rs_cb_write(
     void *ctx, const char *buffer, size_t length, size_t *bytes_wrote)
 {
-    csSocket *skt = (csSocket *)ctx;
+    csSocket *skt = static_cast<csSocket *>(ctx);
 
     try {
         skt->Write(*bytes_wrote, (uint8_t *)buffer);
@@ -73,12 +75,252 @@ static rs_result rs_cb_write(
     return RS_DONE;
 }
 
+struct csPluginFileSyncPacket
+{
+    uint32_t hdr_id:4, hdr_flag:4, hdr_pad:8, hdr_len:16;
+    uint8_t *buffer;
+    AES_KEY authkey_encrypt;
+    AES_KEY authkey_decrypt;
+};
+
 class csPluginFileSyncSessionDuplicateFile : public csException
 {
 public:
     explicit csPluginFileSyncSessionDuplicateFile(const string &name)
         : csException(name.c_str()) { };
 };
+
+class csPluginFileSyncFile
+{
+public:
+    csPluginFileSyncFile()
+    : name(NULL), path(NULL), presync(NULL), postsync(NULL) { };
+    csPluginFileSyncFile(csPluginFileSyncFile *src);
+    virtual ~csPluginFileSyncFile() {
+        if (name) delete name;
+        if (path) delete path;
+        if (presync) delete presync;
+        if (postsync) delete postsync;
+    };
+
+    string *name;
+    string *path;
+    string *presync;
+    string *postsync;
+};
+
+csPluginFileSyncFile::csPluginFileSyncFile(csPluginFileSyncFile *src)
+    : name(NULL), path(NULL), presync(NULL), postsync(NULL)
+{
+    if (src->name) name = new string(*(src->name));
+    if (src->path) name = new string(*(src->path));
+    if (src->presync) name = new string(*(src->presync));
+    if (src->postsync) name = new string(*(src->postsync));
+}
+
+class csPluginFileSyncConfig
+{
+public:
+    csPluginFileSyncConfig(csSocket *skt);
+    virtual ~csPluginFileSyncConfig();
+
+    void AddFile(csPluginFileSyncFile *add_file);
+    void AddFile(csPluginFileSyncConfig *config);
+    inline csSocket *GetSocket(void) { return skt; };
+    inline void SetSocket(csSocket *skt) { this->skt = skt; };
+
+protected:
+    csSocket *skt;
+    map<string, csPluginFileSyncFile *> file;
+};
+
+csPluginFileSyncConfig::csPluginFileSyncConfig(csSocket *skt)
+    : skt(skt) { }
+
+csPluginFileSyncConfig::~csPluginFileSyncConfig()
+{
+    delete skt;
+    map<string, csPluginFileSyncFile *>::iterator i;
+    for (i = file.begin(); i != file.end(); i++)
+        delete i->second;
+}
+
+void csPluginFileSyncConfig::AddFile(csPluginFileSyncFile *add_file)
+{
+    map<string, csPluginFileSyncFile *>::iterator i;
+    i = file.find(*(add_file->name));
+    if (i != file.end())
+        throw csPluginFileSyncSessionDuplicateFile(*(add_file->name));
+    file[*(add_file->name)] = add_file;
+}
+
+void csPluginFileSyncConfig::AddFile(csPluginFileSyncConfig *config)
+{
+    map<string, csPluginFileSyncFile *>::iterator i;
+    for (i = file.begin(); i != file.end(); i++) {
+        csPluginFileSyncFile *new_file = new csPluginFileSyncFile(i->second);
+        config->AddFile(new_file);
+    }
+}
+
+class csPluginFileSyncSession : public csThread
+{
+public:
+    csPluginFileSyncSession(csSocket *skt,
+        const uint8_t *authkey, size_t authkey_bits);
+    csPluginFileSyncSession(csPluginFileSyncConfig *config,
+        const uint8_t *authkey, size_t authkey_bits);
+    virtual ~csPluginFileSyncSession();
+
+    virtual void *Entry(void) = 0;
+    virtual void Run(void) = 0;
+
+    csPluginFileSyncConfig *config;
+
+protected:
+    struct csPluginFileSyncPacket pkt;
+};
+
+csPluginFileSyncSession::csPluginFileSyncSession(csSocket *skt,
+    const uint8_t *authkey, size_t authkey_bits)
+    : csThread(), config(NULL)
+{
+    config = new csPluginFileSyncConfig(skt);
+
+    pkt.hdr_id = pkt.hdr_flag = pkt.hdr_pad = pkt.hdr_len = 0;
+    pkt.buffer = new uint8_t[getpagesize() * 2];
+
+    if (AES_set_encrypt_key(authkey, authkey_bits, &pkt.authkey_encrypt) < 0)
+        throw csException(EINVAL, "Error setting AES encryption key");
+    if (AES_set_decrypt_key(authkey, authkey_bits, &pkt.authkey_decrypt) < 0)
+        throw csException(EINVAL, "Error setting AES decryption key");
+}
+
+csPluginFileSyncSession::csPluginFileSyncSession(csPluginFileSyncConfig *config,
+    const uint8_t *authkey, size_t authkey_bits)
+    : csThread(), config(config)
+{
+    pkt.hdr_id = pkt.hdr_flag = pkt.hdr_pad = pkt.hdr_len = 0;
+    pkt.buffer = new uint8_t[getpagesize() * 2];
+
+    if (AES_set_encrypt_key(authkey, authkey_bits, &pkt.authkey_encrypt) < 0)
+        throw csException(EINVAL, "Error setting AES encryption key");
+    if (AES_set_decrypt_key(authkey, authkey_bits, &pkt.authkey_decrypt) < 0)
+        throw csException(EINVAL, "Error setting AES decryption key");
+}
+
+csPluginFileSyncSession::~csPluginFileSyncSession()
+{
+    delete config;
+    delete [] pkt.buffer;
+}
+
+class csPluginFileSyncSessionMaster : public csPluginFileSyncSession
+{
+public:
+    csPluginFileSyncSessionMaster(
+        csPluginFileSyncConfig *config, const uint8_t *authkey, size_t authkey_bits);
+    virtual ~csPluginFileSyncSessionMaster();
+    virtual void *Entry(void);
+    virtual void Run(void);
+};
+
+csPluginFileSyncSessionMaster::csPluginFileSyncSessionMaster(
+    csPluginFileSyncConfig *config, const uint8_t *authkey, size_t authkey_bits)
+    : csPluginFileSyncSession(config, authkey, authkey_bits)
+{
+}
+
+csPluginFileSyncSessionMaster::~csPluginFileSyncSessionMaster()
+{
+    Join();
+}
+
+void *csPluginFileSyncSessionMaster::Entry(void)
+{
+    bool run = true;
+
+    while (run) {
+        csEvent *event = EventPopWait();
+
+        switch (event->GetId()) {
+        case csEVENT_QUIT:
+            run = false;
+            break;
+        }
+
+        delete event;
+    }
+
+    return NULL;
+}
+
+void csPluginFileSyncSessionMaster::Run(void)
+{
+}
+
+class csPluginFileSyncSessionSlave : public csPluginFileSyncSession
+{
+public:
+    csPluginFileSyncSessionSlave(
+        csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
+        time_t tv_interval);
+    virtual ~csPluginFileSyncSessionSlave();
+    virtual void *Entry(void);
+    virtual void Run(void) { };
+
+protected:
+    csTimer *interval;
+};
+
+static cstimer_id_t csSlaveSessionInterval = 1;
+
+csPluginFileSyncSessionSlave::csPluginFileSyncSessionSlave(
+    csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
+    time_t tv_interval)
+    : csPluginFileSyncSession(skt, authkey, authkey_bits), interval(NULL)
+{
+    cstimer_id_t id = __sync_fetch_and_add(&csSlaveSessionInterval, 1);
+    interval = new csTimer(id, tv_interval, tv_interval, this);
+}
+
+csPluginFileSyncSessionSlave::~csPluginFileSyncSessionSlave()
+{
+    Join();
+
+    if (interval) delete interval;
+}
+
+void *csPluginFileSyncSessionSlave::Entry(void)
+{
+    bool run = true;
+
+    interval->Start();
+
+    while (run) {
+        csEvent *event = EventPopWait();
+
+        switch (event->GetId()) {
+        case csEVENT_QUIT:
+            run = false;
+            break;
+
+        case csEVENT_TIMER:
+            interval->Stop();
+            csLog::Log(csLog::Debug, "Starting slave check-in: %lu",
+                static_cast<csTimerEvent *>(event)->GetTimer()->GetId());
+            try {
+                Run();
+            } catch (csException &e) {
+            }
+            break;
+        }
+
+        delete event;
+    }
+
+    return NULL;
+}
 
 class csPluginConf;
 class csPluginXmlParser : public csXmlParser
@@ -110,183 +352,9 @@ void csPluginConf::Reload(void)
     parser->Parse();
 }
 
-struct csPluginFileSyncPacket
-{
-    uint32_t hdr_id:4, hdr_flag:4, hdr_pad:8, hdr_len:16;
-    uint8_t *buffer;
-    AES_KEY authkey_encrypt;
-    AES_KEY authkey_decrypt;
-};
-
-class csPluginFileSyncFile
-{
-public:
-    csPluginFileSyncFile()
-    : name(NULL), path(NULL), presync(NULL), postsync(NULL) { };
-    virtual ~csPluginFileSyncFile() {
-        if (name) delete name;
-        if (path) delete path;
-        if (presync) delete presync;
-        if (postsync) delete postsync;
-    };
-
-    string *name;
-    string *path;
-    string *presync;
-    string *postsync;
-};
-
-class csPluginFileSyncSession : public csThread
-{
-public:
-    csPluginFileSyncSession(
-        csSocket *skt, const uint8_t *authkey, size_t authkey_bits);
-    virtual ~csPluginFileSyncSession();
-
-    virtual void *Entry(void) = 0;
-
-    void AddFile(csPluginFileSyncFile *add_file);
-
-protected:
-    csSocket *skt;
-    struct csPluginFileSyncPacket pkt;
-    map<string, csPluginFileSyncFile *> file;
-};
-
-csPluginFileSyncSession::csPluginFileSyncSession(
-    csSocket *skt,
-    const uint8_t *authkey, size_t authkey_bits)
-    : csThread(), skt(skt)
-{
-    pkt.hdr_id = pkt.hdr_flag = pkt.hdr_pad = pkt.hdr_len = 0;
-    pkt.buffer = new uint8_t[getpagesize() * 2];
-
-    if (AES_set_encrypt_key(authkey, authkey_bits, &pkt.authkey_encrypt) < 0)
-        throw csException(EINVAL, "Error setting AES encryption key");
-    if (AES_set_decrypt_key(authkey, authkey_bits, &pkt.authkey_decrypt) < 0)
-        throw csException(EINVAL, "Error setting AES decryption key");
-}
-
-csPluginFileSyncSession::~csPluginFileSyncSession()
-{
-    delete skt;
-    delete [] pkt.buffer;
-    map<string, csPluginFileSyncFile *>::iterator i;
-    for (i = file.begin(); i != file.end(); i++)
-        delete i->second;
-}
-
-void csPluginFileSyncSession::AddFile(csPluginFileSyncFile *add_file)
-{
-    map<string, csPluginFileSyncFile *>::iterator i;
-    i = file.find(*(add_file->name));
-    if (i != file.end())
-        throw csPluginFileSyncSessionDuplicateFile(*(add_file->name));
-    file[*(add_file->name)] = add_file;
-}
-
-class csPluginFileSyncSessionMaster : public csPluginFileSyncSession
-{
-public:
-    csPluginFileSyncSessionMaster(
-        csSocket *skt, const uint8_t *authkey, size_t authkey_bits)
-        : csPluginFileSyncSession(skt, authkey, authkey_bits) { };
-    virtual ~csPluginFileSyncSessionMaster();
-    virtual void *Entry(void);
-
-protected:
-};
-
-csPluginFileSyncSessionMaster::~csPluginFileSyncSessionMaster()
-{
-    Join();
-}
-
-void *csPluginFileSyncSessionMaster::Entry(void)
-{
-    bool run = true;
-
-    while (run) {
-        csEvent *event = EventPopWait();
-
-        switch (event->GetId()) {
-        case csEVENT_QUIT:
-            run = false;
-            break;
-
-//        case csEVENT_TIMER:
-//            csLog::Log(csLog::Debug, "%s: Tick: %lu", name.c_str(),
-//                static_cast<csTimerEvent *>(event)->GetTimer()->GetId());
-            break;
-        }
-
-        delete event;
-    }
-
-    return NULL;
-}
-
-class csPluginFileSyncSessionSlave : public csPluginFileSyncSession
-{
-public:
-    csPluginFileSyncSessionSlave(
-        csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
-        time_t tv_interval);
-    virtual ~csPluginFileSyncSessionSlave();
-    virtual void *Entry(void);
-
-protected:
-    csTimer *interval;
-};
-
-csPluginFileSyncSessionSlave::csPluginFileSyncSessionSlave(
-    csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
-    time_t tv_interval)
-    : csPluginFileSyncSession(skt, authkey, authkey_bits), interval(NULL)
-{
-    interval = new csTimer(500, tv_interval, tv_interval, this);
-}
-
-csPluginFileSyncSessionSlave::~csPluginFileSyncSessionSlave()
-{
-    Join();
-
-    if (interval) delete interval;
-}
-
-void *csPluginFileSyncSessionSlave::Entry(void)
-{
-    bool run = true;
-
-    while (run) {
-        csEvent *event = EventPopWait();
-
-        switch (event->GetId()) {
-        case csEVENT_QUIT:
-            run = false;
-            break;
-
-//        case csEVENT_TIMER:
-//            csLog::Log(csLog::Debug, "%s: Tick: %lu", name.c_str(),
-//                static_cast<csTimerEvent *>(event)->GetTimer()->GetId());
-            break;
-        }
-
-        delete event;
-    }
-
-    return NULL;
-}
-
 class csPluginFileSync : public csPlugin
 {
 public:
-    enum csPluginFileSyncSessionType
-    {
-        Master,
-        Slave
-    };
-
     csPluginFileSync(const string &name,
         csEventClient *parent, size_t stack_size);
     virtual ~csPluginFileSync();
@@ -298,17 +366,18 @@ public:
 protected:
     friend class csPluginXmlParser;
 
+    inline void PollSessions(void);
+    inline void StartSession(csPluginFileSyncConfig *session);
+
     void SetAuthKey(const string &key);
-    csPluginFileSyncSession *CreateSession(
-        csPluginFileSyncSessionType type,
-        csSocket *skt, time_t interval = 0);
+    csPluginFileSyncSession *CreateSession(csSocket *skt, time_t interval = 0);
 
     csPluginConf *conf;
     uint8_t *authkey;
     size_t authkey_bits;
     size_t authkey_bytes;
 
-    vector<csPluginFileSyncSessionMaster *> server;
+    vector<csPluginFileSyncConfig *> server;
     vector<csPluginFileSyncSessionMaster *> master;
     vector<csPluginFileSyncSessionSlave *> slave;
 };
@@ -320,15 +389,13 @@ csPluginFileSync::csPluginFileSync(const string &name,
     authkey_bytes(csPluginFileSyncAuthKeyBits / 8)
 {
     authkey = new uint8_t[authkey_bytes];
-
-    csLog::Log(csLog::Debug, "%s: Initialized.", name.c_str());
 }
 
 csPluginFileSync::~csPluginFileSync()
 {
     Join();
 
-    vector<csPluginFileSyncSessionMaster *>::iterator i;
+    vector<csPluginFileSyncConfig *>::iterator i;
     for (i = server.begin(); i != server.end(); i++)
         delete (*i);
     vector<csPluginFileSyncSessionMaster *>::iterator mi;
@@ -356,7 +423,10 @@ void *csPluginFileSync::Entry(void)
 {
     bool run = true;
     while (run) {
-        csEvent *event = EventPopWait();
+        PollSessions();
+
+        csEvent *event = EventPopWait(100);
+        if (event == _CS_EVENT_NONE) continue;
 
         switch (event->GetId()) {
         case csEVENT_QUIT:
@@ -370,6 +440,54 @@ void *csPluginFileSync::Entry(void)
     return NULL;
 }
 
+void csPluginFileSync::PollSessions(void)
+{
+    fd_set fds;
+    int max_fd = -1;
+    struct timeval tv_timeout;
+
+    FD_ZERO(&fds);
+    memset(&tv_timeout, 0, sizeof(struct timeval));
+
+    vector<csPluginFileSyncConfig *>::iterator si;
+    for (si = server.begin(); si != server.end(); si++) {
+        csSocket *skt = (*si)->GetSocket();
+        int fd = skt->GetDescriptor();
+        if (fd > max_fd) max_fd = fd;
+        FD_SET(fd, &fds);
+    }
+
+    if (max_fd > -1) {
+        int rc = select(max_fd + 1,
+            &fds, NULL, NULL, &tv_timeout);
+        switch (rc) {
+        case -1:
+            throw csException(errno, "select");
+        case 0:
+            break;
+        default:
+            for (si = server.begin(); si != server.end(); si++) {
+                csSocket *skt = (*si)->GetSocket();
+                if (FD_ISSET(skt->GetDescriptor(), &fds)) {
+                    StartSession((*si));
+                }
+            }
+        }
+    }
+}
+
+void csPluginFileSync::StartSession(csPluginFileSyncConfig *config)
+{
+    csSocketAccept *skt_server = static_cast<csSocketAccept *>(config->GetSocket());
+    csSocket *skt = skt_server->Accept();
+    csPluginFileSyncSessionMaster *session = NULL;
+    csPluginFileSyncConfig *new_config = new csPluginFileSyncConfig(skt);
+    config->AddFile(new_config);
+    session = new csPluginFileSyncSessionMaster(new_config, authkey, authkey_bits);
+    master.push_back(session);
+    session->Start();
+}
+
 void csPluginFileSync::SetAuthKey(const string &key)
 {
     size_t i, j, byte;
@@ -381,25 +499,13 @@ void csPluginFileSync::SetAuthKey(const string &key)
     }
 }
 
-csPluginFileSyncSession *csPluginFileSync::CreateSession(
-    csPluginFileSyncSessionType type, csSocket *skt, time_t interval)
+csPluginFileSyncSession *csPluginFileSync::CreateSession(csSocket *skt, time_t interval)
 {
-    if (type == Master) {
-        csPluginFileSyncSessionMaster *session;
-        session = new csPluginFileSyncSessionMaster(skt,
-            authkey, authkey_bits);
-        server.push_back(session);
-        return static_cast<csPluginFileSyncSession *>(session);
-    }
-    else if (type == Slave) {
-        csPluginFileSyncSessionSlave *session;
-        session = new csPluginFileSyncSessionSlave(skt,
-            authkey, authkey_bits, interval);
-        slave.push_back(session);
-        return static_cast<csPluginFileSyncSession *>(session);
-    }
-
-    return NULL;
+    csPluginFileSyncSessionSlave *session;
+    session = new csPluginFileSyncSessionSlave(skt,
+        authkey, authkey_bits, interval);
+    slave.push_back(session);
+    return static_cast<csPluginFileSyncSession *>(session);
 }
 
 void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
@@ -419,9 +525,9 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         in_port_t port = (in_port_t)atoi(tag->GetParamValue("port").c_str());
         csSocketAccept *skt;
         skt = new csSocketAccept(tag->GetParamValue("bind"), port);
-        csPluginFileSyncSession *session;
-        session = _conf->parent->CreateSession(csPluginFileSync::Master, skt);
-        tag->SetData((void *)session);
+        csPluginFileSyncConfig *config = new csPluginFileSyncConfig(skt);
+        _conf->parent->server.push_back(config);
+        tag->SetData((void *)config);
     }
     else if ((*tag) == "slave") {
         if (!stack.size() || (*stack.back()) != "plugin")
@@ -441,8 +547,7 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         csSocketConnect *skt;
         skt = new csSocketConnect(tag->GetParamValue("host"), port);
         csPluginFileSyncSession *session;
-        session = _conf->parent->CreateSession(
-            csPluginFileSync::Slave, skt, interval);
+        session = _conf->parent->CreateSession(skt, interval);
         tag->SetData((void *)session);
     }
     else if ((*tag) == "file") {
@@ -501,10 +606,10 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
             struct csPluginFileSyncFile *file;
             file = (struct csPluginFileSyncFile *)tag->GetData();
             file->path = new string(tag->GetText());
-            csPluginFileSyncSession *session;
-            session = static_cast<csPluginFileSyncSession *>(stack.back()->GetData());
+            csPluginFileSyncConfig *config;
+            config = static_cast<csPluginFileSyncConfig *>(stack.back()->GetData());
             try {
-                session->AddFile(file);
+                config->AddFile(file);
             } catch (csPluginFileSyncSessionDuplicateFile &e) {
                 csLog::Log(csLog::Error,
                     "%s: Duplicate file definition: %s",
@@ -519,7 +624,7 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
             csPluginFileSyncSession *session;
             session = static_cast<csPluginFileSyncSession *>(stack.back()->GetData());
             try {
-                session->AddFile(file);
+                session->config->AddFile(file);
             } catch (csPluginFileSyncSessionDuplicateFile &e) {
                 csLog::Log(csLog::Error,
                     "%s: Duplicate file definition: %s",
