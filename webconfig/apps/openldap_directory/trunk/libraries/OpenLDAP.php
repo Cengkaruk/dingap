@@ -526,7 +526,6 @@ class OpenLDAP extends Engine
         // TODO: move to a separate class in the base app, cleanup
         $file = new File('/etc/group');
         $file->replace_lines('/^users:/', '');
-        $file->replace_lines('/^domain_users:/', '');
 
         $file = new File('/etc/default/useradd');
         $file->replace_lines('/^GROUP=/', "GROUP=" . User_Driver::DEFAULT_USER_GROUP_ID . "\n");

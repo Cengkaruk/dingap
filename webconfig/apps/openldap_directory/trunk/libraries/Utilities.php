@@ -274,7 +274,8 @@ class Utilities extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        clearos_load_library($details['app'] . '/OpenLDAP_User_Extension');
+        if (! clearos_load_library($details['app'] . '/OpenLDAP_User_Extension'))
+            return;
 
         $class = '\clearos\apps\\' . $details['app'] . '\OpenLDAP_User_Extension';
         $extension = new $class();

@@ -326,7 +326,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'delete_attributes_hook')) {
+            if ($extension && method_exists($extension, 'delete_attributes_hook')) {
                 $hook_object = $extension->delete_attributes_hook();
                 $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
@@ -338,7 +338,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'delete_hook'))
+            if ($extension && method_exists($extension, 'delete_hook'))
                 $extension->delete_hook();
         }
 
@@ -437,7 +437,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'get_info_hook'))
+            if ($extension && method_exists($extension, 'get_info_hook'))
                 $info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
         }
 
@@ -469,7 +469,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'get_info_defaults_hook'))
+            if ($extension && method_exists($extension, 'get_info_defaults_hook'))
                 $info['extensions'][$extension_name] = $extension->get_info_defaults_hook($attributes);
         }
 
@@ -498,7 +498,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'get_info_map_hook'))
+            if ($extension && method_exists($extension, 'get_info_map_hook'))
                 $info_map['extensions'][$extension_name] = $extension->get_info_map_hook();
         }
 
@@ -542,15 +542,34 @@ class User_Driver extends User_Engine
         Validation_Exception::is_valid($this->validate_username($requested_by, FALSE, FALSE));
         // FIXME: Validate password/verify
 
-        // Set passwords in LDAP
-        //----------------------
+        // Get handle
+        //-----------
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
         $dn = $this->_get_dn_for_uid($this->username);
+        $user_info = $this->get_info();
+
+        // Convert password into LDAP attributes
+        //--------------------------------------
 
         $ldap_object = $this->_convert_password_to_attributes($password);
+
+        // Add LDAP attributes from extensions
+        //------------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = Utilities::load_user_extension($details);
+
+            if ($extension && method_exists($extension, 'set_password_attributes_hook')) {
+                $hook_object = $extension->set_password_attributes_hook($user_info, $ldap_object, $password);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
+            }
+        }
+
+        // Set passwords in LDAP
+        //----------------------
 
         $this->ldaph->modify($dn, $ldap_object);
 
@@ -639,6 +658,7 @@ class User_Driver extends User_Engine
         //--------------------------------------
 
         $ldap_object = $this->_convert_password_to_attributes($password);
+        $user_info = $this->get_info();
 
         // Add LDAP attributes from extensions
         //------------------------------------
@@ -646,8 +666,8 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'set_password_attributes_hook')) {
-                $hook_object = $extension->set_password_attributes_hook($password, $ldap_object);
+            if ($extension && method_exists($extension, 'set_password_attributes_hook')) {
+                $hook_object = $extension->set_password_attributes_hook($user_info, $ldap_object, $password);
                 $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
         }
@@ -679,7 +699,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'unlock_hook'))
+            if ($extension && method_exists($extension, 'unlock_hook'))
                 $extension->unlock_hook($this->username);
         }
 
@@ -727,7 +747,7 @@ class User_Driver extends User_Engine
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'update_attributes_hook')) {
+            if ($extension && method_exists($extension, 'update_attributes_hook')) {
                 $hook_object = $extension->update_attributes_hook($user_info, $ldap_object);
                 $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
@@ -1016,7 +1036,7 @@ return;
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'add_attributes_hook')) {
+            if ($extension && method_exists($extension, 'add_attributes_hook')) {
                 $hook_object = $extension->add_attributes_hook($user_info, $ldap_object);
                 $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
             }
@@ -1037,7 +1057,7 @@ return;
         foreach ($this->_get_extensions() as $extension_name => $details) {
             $extension = Utilities::load_user_extension($details);
 
-            if (method_exists($extension, 'add_post_processing_hook'))
+            if ($extension && method_exists($extension, 'add_post_processing_hook'))
                 $extension->add_post_processing_hook($this->username, $user_info);
         }
     }
