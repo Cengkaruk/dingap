@@ -1410,7 +1410,7 @@ class RemoteBackupService extends WebconfigScript
 					self::PATH_RSYNC, $additional_flags,
 					self::PATH_RSYNC_EXCLUDE, self::PATH_RSYNC_INCLUDE, $src, $dst), $env, true);
 
-				if ($exitcode != 12) break;
+				if ($exitcode != 12 && $exitcode != 30) break;
 				$this->LogMessage("Data sync failed with error code: " .
 					"$exitcode, retries: $retries", LOG_WARNING);
 				if ($retries++ >= self::MAX_RSYNC_RETRIES) break;
