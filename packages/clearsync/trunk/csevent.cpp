@@ -84,6 +84,9 @@ csEventClient::csEventClient()
 
     pthread_mutex_lock(event_client_mutex);
     event_client.push_back(this);
+#ifdef _CS_DEBUG
+    csLog::Log(csLog::Debug, "EventClient: added new client: %p", this);
+#endif
     pthread_mutex_unlock(event_client_mutex);
 }
 
@@ -103,6 +106,9 @@ csEventClient::~csEventClient()
         i != event_client.end(); i++) {
         if ((*i) != this) continue;
         event_client.erase(i);
+#ifdef _CS_DEBUG
+        csLog::Log(csLog::Debug, "EventClient: deleted client: %p", this);
+#endif
         break;
     }
 
@@ -116,6 +122,9 @@ csEventClient::~csEventClient()
         pthread_mutex_destroy(event_client_mutex);
         delete event_client_mutex;
         event_client_mutex = NULL;
+#ifdef _CS_DEBUG
+        csLog::Log(csLog::Debug, "EventClient(%p): destroyed client mutex.", this);
+#endif
     }
 
     csCriticalSection::Unlock();
@@ -146,7 +155,10 @@ void csEventClient::EventPush(csEvent *event, csEventClient *src)
         event_queue.insert(event_queue.begin(), event);
     else
         event_queue.push_back(event);
-
+#ifdef _CS_DEBUG
+    csLog::Log(csLog::Debug, "EventPush: src: %p, dst: %p, id: %04x",
+        src, this, event->GetId());
+#endif
     pthread_cond_broadcast(&event_condition);
     pthread_mutex_unlock(&event_queue_mutex);
 }
@@ -186,7 +198,7 @@ void csEventClient::EventDispatch(csEvent *event, csEventClient *dst)
 
 csEvent *csEventClient::EventPop(void)
 {
-    csEvent *event = NULL;
+    csEvent *event = _CS_EVENT_NONE;
     pthread_mutex_lock(&event_queue_mutex);
 
     if (event_queue.size()) {
@@ -198,13 +210,18 @@ csEvent *csEventClient::EventPop(void)
     }
 
     pthread_mutex_unlock(&event_queue_mutex);
+#ifdef _CS_DEBUG
+    if (event != _CS_EVENT_NONE) {
+        csLog::Log(csLog::Debug, "EventPop(%p): id: %04x", this, event->GetId());
+    }
+#endif
     return event;
 }
 
 csEvent *csEventClient::EventPopWait(time_t wait_ms)
 {
     int rc;
-    csEvent *event = NULL;
+    csEvent *event = _CS_EVENT_NONE;
     struct timespec ts_abstime;
 
     if (wait_ms > 0) {
@@ -224,7 +241,7 @@ csEvent *csEventClient::EventPopWait(time_t wait_ms)
 
     for ( ;; ) {
         event = EventPop();
-        if (event != NULL) break;
+        if (event != _CS_EVENT_NONE) break;
 
         pthread_mutex_lock(&event_condition_mutex);
         if (wait_ms == 0) {

@@ -28,6 +28,9 @@ using namespace std;
 // Broadcast event client type
 #define _CS_EVENT_BROADCAST     ((csEventClient *)-1)
 
+// No event in queue
+#define _CS_EVENT_NONE          ((csEvent *)NULL)
+
 typedef unsigned long csevent_id_t;
 typedef unsigned long csevent_flag_t;
 
