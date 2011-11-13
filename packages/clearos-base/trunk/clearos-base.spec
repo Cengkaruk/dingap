@@ -10,7 +10,8 @@ Packager: ClearFoundation
 # Base product release information
 Requires: clearos-release >= 6-6.1.0
 # Core system 
-# Note: urw-fonts is needed for graphical boot
+# - urw-fonts is needed for graphical boot
+# - openssh-server is in core group, but need to disable it
 Requires: audit
 Requires: cronie
 Requires: gnupg
@@ -23,6 +24,7 @@ Requires: mlocate
 Requires: nano
 Requires: ntpdate
 Requires: openssh-clients
+Requires: openssh-server
 Requires: pam
 Requires: postfix
 Requires: perl
@@ -180,6 +182,14 @@ fi
 if [ $1 -eq 1 ]; then
     logger -p local6.notice -t installer "clearos-base - disabling audit on boot"
     /sbin/chkconfig auditd off >/dev/null 2>&1
+fi
+
+# Disable SSH server by default.  Install SSH Server app if it is desired
+#------------------------------------------------------------------------
+
+if [ $1 -eq 1 ]; then
+    logger -p local6.notice -t installer "clearos-base - disabling SSH server on boot"
+    /sbin/chkconfig sshd off >/dev/null 2>&1
 fi
 
 # Postfix should be disabled unless specifically required
