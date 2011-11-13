@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# FIXME - just a temporary cleanup for the 6.0.0 alpha/beta - remove
+if [ -d /etc/clearos/date ]; then
+    rm -rf /etc/clearos/date
+fi
+
 # Add sudoers entries
 #--------------------
 

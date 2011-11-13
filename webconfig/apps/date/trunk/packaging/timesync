@@ -2,7 +2,7 @@
 
 # Just a simple wrapper to run ntpdate and hwclock
 
-SERVER=`grep ^ntp_syncserver /etc/system/ntpdate 2>/dev/null | sed 's/.*=[[:space:]]*//'`
+SERVER=`grep ^ntp_server /etc/clearos/date.conf 2>/dev/null | sed 's/.*=[[:space:]]*//'`
 if [ -z "$SERVER" ]; then
 	SERVER="time-a.nist.gov"
 fi

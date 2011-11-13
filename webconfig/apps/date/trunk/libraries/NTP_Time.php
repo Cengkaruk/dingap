@@ -106,7 +106,7 @@ class NTP_Time extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const FILE_CROND = 'app-date';
-    const FILE_CONFIG = '/etc/clearos/date';
+    const FILE_CONFIG = '/etc/clearos/date.conf';
     const DEFAULT_SERVER = 'time.clearsdn.com';
     const DEFAULT_CRONTAB_TIME = '2 2 * * *';
     const COMMAND_NTPDATE = '/usr/sbin/ntpdate';

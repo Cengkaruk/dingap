@@ -38,6 +38,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/date
 cp -r * %{buildroot}/usr/clearos/apps/date/
 
 install -D -m 0644 packaging/app-date.cron %{buildroot}/etc/cron.d/app-date
+install -D -m 0644 packaging/date.conf %{buildroot}/etc/clearos/date.conf
 install -D -m 0755 packaging/timesync %{buildroot}/usr/sbin/timesync
 
 %post
@@ -82,4 +83,5 @@ exit 0
 /usr/clearos/apps/date/language
 /usr/clearos/apps/date/libraries
 /etc/cron.d/app-date
+%config(noreplace) /etc/clearos/date.conf
 /usr/sbin/timesync

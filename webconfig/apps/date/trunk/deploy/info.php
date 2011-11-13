@@ -33,17 +33,16 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array( 
-   'app-date.cron' => array(
+    'app-date.cron' => array(
         'target' => '/etc/cron.d/app-date',
-        'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
     ),
-
-   'timesync' => array(
+    'date.conf' => array(
+        'target' => '/etc/clearos/date.conf',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
+    'timesync' => array(
         'target' => '/usr/sbin/timesync',
         'mode' => '0755',
-        'owner' => 'root',
-        'group' => 'root',
     ),
 );
