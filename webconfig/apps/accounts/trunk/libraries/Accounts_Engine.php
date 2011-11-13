@@ -149,6 +149,8 @@ class Accounts_Engine extends Engine
 
         $list = $folder->get_listing();
 
+        $plugins = array();
+
         foreach ($list as $plugin_file) {
             if (! preg_match('/\.php$/', $plugin_file))
                 continue;
