@@ -22,7 +22,6 @@ Requires: man-pages
 Requires: mdadm
 Requires: mlocate
 Requires: nano
-Requires: ntpdate
 Requires: openssh-clients
 Requires: openssh-server
 Requires: pam
