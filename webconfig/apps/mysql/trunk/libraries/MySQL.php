@@ -203,13 +203,10 @@ class MySQL extends Daemon
             throw new Engine_Exception($error);
         }
 
-        // FIXME: exception handling is busted
         try {
             $shell->Execute(
                 self::COMMAND_MYSQLADMIN, "-u$username $passwd_param -h$hostname --protocol=tcp flush-privileges"
             );
-        } catch (Engine_Exception $e) {
-            // Not fatal if it fails
         } catch (Exception $e) {
             // Not fatal if it fails
         }
@@ -259,7 +256,7 @@ class MySQL extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_hostname($hostname))
-            return lang('mysql_hostname_is_invalid');
+            return lang('mysql_hostname_invalid');
     }
 
     /**
@@ -274,7 +271,8 @@ class MySQL extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: review password handling on command line (dangerous)
+        if (empty($password))
+            return lang('mysql_password_invalid');
     }
 
     /**
@@ -307,6 +305,6 @@ class MySQL extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^([a-z0-9_\-\.\$]+)$/', $username))
-            return lang('mysql_username_is_invalid');
+            return lang('mysql_username_invalid');
     }
 }
