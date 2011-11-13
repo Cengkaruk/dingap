@@ -92,4 +92,4 @@ try {
 
 $encoded_path = strtr(base64_encode($real_path),  '+/=', '-_.');
 
-header('Location: https://192.168.55.6:1501/app/disk_usage/index/' . $encoded_path . '/' . $xcoord . '/' . $ycoord); 
+header('Location: https://' . $_SERVER['HTTP_HOST'] . '/app/disk_usage/index/' . $encoded_path . '/' . $xcoord . '/' . $ycoord);
