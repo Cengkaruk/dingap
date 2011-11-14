@@ -174,21 +174,6 @@ class Chap extends Engine
     }
 
     /**
-     * Returns a list of usernames from the CHAP/PAP secrets file.
-     *
-     * @deprecated  deprecated since framework version 6.0, use get_secrets() instead.
-     * @return      array list of secrets.
-     * @throws      Exception
-     */
-
-    public function get_users() 
-    {
-        clearos_deprecated(__METHOD__, __LINE__, 'deprecated; use get_secrets()');
-
-        return $this->get_secrets();
-    }
-
-    /**
      * Returns an array of secrets from the CHAP/PAP secrets file.
      *
      * @return array list of secrets.
