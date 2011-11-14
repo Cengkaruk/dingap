@@ -76,7 +76,8 @@ class csMain;
 class csMainConf : public csConf
 {
 public:
-    csMainConf(csMain *parent, const char *filename, csMainXmlParser *parser);
+    csMainConf(csMain *parent, const char *filename,
+        csMainXmlParser *parser, int argc, char *argv[]);
     virtual ~csMainConf();
 
     virtual void Reload(void);

@@ -90,7 +90,8 @@ public:
 class csConf
 {
 public:
-    csConf(const char *filename, csXmlParser *parser);
+    csConf(const char *filename, csXmlParser *parser,
+        int argc = 0, char *argv[] = NULL);
     virtual ~csConf();
 
     virtual void Reload(void) { parser->Reset(); };
@@ -100,6 +101,8 @@ public:
 protected:
     string filename;
     csXmlParser *parser;
+    int argc;
+    char **argv;
 };
 
 #endif // _CSCONF_H

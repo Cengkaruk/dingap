@@ -34,7 +34,7 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 ])
 
 # Checks for header files.
-AC_CHECK_HEADERS([limits.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h])
+AC_CHECK_HEADERS([limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
@@ -48,7 +48,7 @@ AC_TYPE_UINT8_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([clock_gettime endpwent getpagesize gettimeofday localtime_r memset pathconf socket strcasecmp strerror])
+AC_CHECK_FUNCS([clock_gettime endpwent getpagesize gettimeofday localtime_r memset pathconf regcomp socket strcasecmp strerror])
 
 AC_CONFIG_FILES([Makefile clearsync.spec])
 AC_OUTPUT

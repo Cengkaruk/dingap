@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 2%{dist}
+Release: 3%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -64,14 +64,14 @@ fi
 # Post install
 %post
 /sbin/ldconfig
-/sbin/chkconfig --add clearsyncd 2>&1 || :
-/sbin/service clearsyncd condrestart 2>&1 || :
+/sbin/chkconfig --add clearsyncd >/dev/null 2>&1 || :
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Post uninstall
 %postun
 /sbin/ldconfig
 if [ -f /var/lock/subsys/clearsyncd ]; then
-    killall -TERM clearsyncd 2>&1 || :
+    killall -TERM clearsyncd 2>&1 >/dev/null || :
     sleep 2
 fi
 

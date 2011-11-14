@@ -15770,7 +15770,10 @@ fi
 
 
 
-for ac_header in limits.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h syslog.h unistd.h
+
+
+
+for ac_header in limits.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/ioctl.h sys/socket.h sys/time.h syslog.h unistd.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if { as_var=$as_ac_Header; eval "test \"\${$as_var+set}\" = set"; }; then
@@ -17188,7 +17191,8 @@ fi
 
 
 
-for ac_func in clock_gettime endpwent getpagesize gettimeofday localtime_r memset pathconf socket strcasecmp strerror
+
+for ac_func in clock_gettime endpwent getpagesize gettimeofday localtime_r memset pathconf regcomp socket strcasecmp strerror
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5

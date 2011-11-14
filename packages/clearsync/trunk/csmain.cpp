@@ -254,8 +254,9 @@ void csMainXmlParser::ParseElementClose(csXmlTag *tag)
 }
 
 csMainConf::csMainConf(csMain *parent,
-    const char *filename, csMainXmlParser *parser)
-    : csConf(filename, parser),
+    const char *filename, csMainXmlParser *parser,
+    int argc, char *argv[])
+    : csConf(filename, parser, argc, argv),
     parent(parent), version(-1), plugin_dir(_CS_PLUGIN_CONF) { }
 
 csMainConf::~csMainConf() { }
@@ -395,7 +396,7 @@ csMain::csMain(int argc, char *argv[])
     }
 
     csMainXmlParser *parser = new csMainXmlParser();
-    conf = new csMainConf(this, conf_filename.c_str(), parser);
+    conf = new csMainConf(this, conf_filename.c_str(), parser, argc, argv);
     parser->SetConf(dynamic_cast<csConf *>(conf));
 
     conf->Reload();

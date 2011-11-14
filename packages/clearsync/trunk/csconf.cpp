@@ -184,8 +184,9 @@ void csXmlParser::ParseError(const string &what)
         buffer[XML_GetCurrentByteIndex(p)]);
 }
 
-csConf::csConf(const char *filename, csXmlParser *parser)
-    : filename(filename), parser(parser)
+csConf::csConf(const char *filename, csXmlParser *parser,
+    int argc, char *argv[])
+    : filename(filename), parser(parser), argc(argc), argv(argv)
 {
 }
 
