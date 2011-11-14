@@ -22,6 +22,7 @@ Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
+Requires: csplugin-routewatch
 Requires: snort >= 2.9.0.4
 Requires: snort-gpl-rules
 
@@ -39,6 +40,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/intrusion_detection
 cp -r * %{buildroot}/usr/clearos/apps/intrusion_detection/
 
 install -d -m 0755 %{buildroot}/var/clearos/intrusion_detection
+install -D -m 0644 packaging/routewatch-intrusion-detection.conf %{buildroot}/etc/clearsync.d/routewatch-intrusion-detection.conf
 install -D -m 0644 packaging/snort.php %{buildroot}/var/clearos/base/daemon/snort.php
 
 %post
@@ -83,4 +85,5 @@ exit 0
 /usr/clearos/apps/intrusion_detection/deploy
 /usr/clearos/apps/intrusion_detection/language
 /usr/clearos/apps/intrusion_detection/libraries
+/etc/clearsync.d/routewatch-intrusion-detection.conf
 /var/clearos/base/daemon/snort.php
