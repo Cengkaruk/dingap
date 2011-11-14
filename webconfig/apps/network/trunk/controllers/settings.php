@@ -148,7 +148,7 @@ class Settings extends ClearOS_Controller
         // Load views
         //-----------
 
-        if (is_console())
+        if (clearos_console())
             $options['type'] = MY_Page::TYPE_CONSOLE;
 
         $this->page->view_form('settings/view_edit', $data, lang('base_settings'), $options);

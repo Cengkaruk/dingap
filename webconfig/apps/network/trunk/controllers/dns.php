@@ -142,7 +142,7 @@ class DNS extends ClearOS_Controller
         // Load views
         //-----------
 
-        if (is_console())
+        if (clearos_console())
             $options['type'] = MY_Page::TYPE_CONSOLE;
 
         $this->page->view_form('dns/view_edit', $data, lang('network_dns'), $options);

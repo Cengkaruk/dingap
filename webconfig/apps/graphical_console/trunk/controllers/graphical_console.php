@@ -58,7 +58,7 @@ class Graphical_Console extends ClearOS_Controller
         // Bail if this is not the console (but leave on in devel mode)
         //-------------------------------------------------------------
 
-        if (! (is_console() || ($_SERVER['SERVER_PORT'] == 1501)))
+        if (! (clearos_console() || ($_SERVER['SERVER_PORT'] == 1501)))
             redirect('/base/session/login');
 
         // Load libraries
