@@ -1,3 +1,4 @@
+
 $(function(){
 	// Anchors
 	$(".theme-anchor").button();
@@ -51,14 +52,14 @@ function theme_clearos_dialog_box(id, title, message, options)
     $('.ui-dialog-titlebar-close').hide();
 }
 
-function theme_clearos_is_authenticated(action_type)
+function theme_clearos_is_authenticated()
 {
 
     data_payload = 'ci_csrf_token=' + $.cookie('ci_csrf_token');
     $('#sdn_login_dialog_message_bar').html('');
     // Password being sent - login attempt
     // Email being sent - lost/reset password attempt
-    if (action_type == 'login') {
+    if (auth_options.action_type == 'login') {
         if ($('#sdn_password').val() == '') {
             $('#sdn_login_dialog_message_bar').html(lang_sdn_password_invalid);
             $('.autofocus').focus();
@@ -66,7 +67,7 @@ function theme_clearos_is_authenticated(action_type)
         } else {
             data_payload += '&password=' + $('#sdn_password').val();
         }
-    } else if (action_type == 'lost_password') {
+    } else if (auth_options.action_type == 'lost_password') {
         if ($('#sdn_email').val() == '') {
             $('#sdn_login_dialog_message_bar').html(lang_sdn_email_invalid);
             $('.autofocus').focus();
@@ -90,7 +91,7 @@ function theme_clearos_is_authenticated(action_type)
                 // If we're logged in and there is a 'check_sdn_edit' function defined on page, check to see if we need to get settings
                 if (window.check_sdn_edit)
                     check_sdn_edit();
-                if (action_type == 'login' && reload_after_auth)
+                if (auth_options.action_type == 'login' && auth_options.reload_after_auth)
                     window.location.reload();
             } else if (data.code == 0 && !data.authorized) {
                 // Auto-populate username
@@ -172,7 +173,11 @@ function theme_clearos_on_page_ready(my_location)
             'authenticate': {
                 text: lang_authenticate,
                 click: function() {
-                    theme_clearos_is_authenticated(($('#sdn_lost_password_group').is(':visible') ? 'lost_password' : 'login'));
+                    auth_options.action_type = 'login';
+
+                    if ($('#sdn_lost_password_group').is(':visible'))
+                        auth_options.action_type = 'lost_password';
+                    theme_clearos_is_authenticated();
                 }
             },
             'close': {
@@ -190,13 +195,17 @@ function theme_clearos_on_page_ready(my_location)
     });
 
     $('input#sdn_password').keyup(function(event) {
-        if (event.keyCode == 13)
-            theme_clearos_is_authenticated('login');
+        if (event.keyCode == 13) {
+            auth_options.action_type = 'login';
+            theme_clearos_is_authenticated();
+        }
     });
 
     $('input#sdn_email').keyup(function(event) {
-        if (event.keyCode == 13)
-            theme_clearos_is_authenticated('lost_password');
+        if (event.keyCode == 13) {
+            auth_options.action_type = 'lost_password';
+            theme_clearos_is_authenticated();
+        }
     });
 
     $('a#sdn_forgot_password').click(function (e) {
