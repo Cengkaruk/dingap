@@ -1861,6 +1861,7 @@ input.theme-form-submit-delete { }
 	-webkit-border-radius: 9px;
 	height: 172px;
 	padding-left: 0px;
+	padding-right: 0px;
 	width: 268px;
 }
 
