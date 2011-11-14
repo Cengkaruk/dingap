@@ -111,7 +111,7 @@ class Settings extends ClearOS_Controller
                 // will get locked out!
 
                 if (($this->input->post('network_mode') === Network::MODE_STANDALONE)
-                    && is_library_installed('incoming_firewall/Incoming')) {
+                    && clearos_library_installed('incoming_firewall/Incoming')) {
 
                     $this->load->library('incoming_firewall/Incoming');
 

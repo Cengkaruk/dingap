@@ -859,7 +859,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('web/Httpd'))
+        if (!clearos_library_installed('web/Httpd'))
             return;
 
         $httpd = new Httpd();
@@ -1250,7 +1250,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('ftp/ProFTPd'))
+        if (!clearos_library_installed('ftp/ProFTPd'))
             return;
 
         $confs = array();
@@ -1650,7 +1650,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('samba/Smbd'))
+        if (!clearos_library_installed('samba/Smbd'))
             return;
 
         // Create a unique file identifier
@@ -1808,7 +1808,7 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('aliases/Aliases'))
+        if (!clearos_library_installed('aliases/Aliases'))
             return;
 
         $aliases = new Aliases();
@@ -3371,7 +3371,7 @@ class Flexshare extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            if (!is_library_installed('smtp/Postfix'))
+            if (!clearos_library_installed('smtp/Postfix'))
                 return;
 
             $postfix = new Postfix();
@@ -3397,9 +3397,9 @@ class Flexshare extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('smtp/Postfix'))
+        if (!clearos_library_installed('smtp/Postfix'))
             return;
-        if (!is_library_installed('imap/Cyrus'))
+        if (!clearos_library_installed('imap/Cyrus'))
             return;
 
         $req_check = FALSE;
@@ -3475,9 +3475,9 @@ echo 'fuck';
         $mymessage = array();
         $files = array();
         $mailing_list = array();
-        if (!is_library_installed('smtp/Postfix'))
+        if (!clearos_library_installed('smtp/Postfix'))
             return;
-        if (!is_library_installed('imap/Cyrus'))
+        if (!clearos_library_installed('imap/Cyrus'))
             return;
 
 echo 'shit';
@@ -4012,7 +4012,7 @@ echo 'shit';
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_library_installed('web/Httpd'))
+        if (!clearos_library_installed('web/Httpd'))
             return;
 
         $httpd = new Httpd();
