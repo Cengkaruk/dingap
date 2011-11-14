@@ -157,7 +157,7 @@ function theme_clearos_on_page_ready(my_location)
         <div style=\'padding: 0 170 10 0; text-align: right\' id=\'sdn_login_dialog_message_bar\'></div> \
         </div>'
     );
-    // TODO move to global scope
+
     $('#sdn_login_dialog').dialog({
         autoOpen: false,
         bgiframe: true,
@@ -268,7 +268,7 @@ function get_marketplace_data(basename) {
                         $('#sidebar_additional_info_row').after(
                             c_row(
                                 lang_marketplace_renewal_date,
-                                $.datepicker.formatDate('MM d, yy', new Date(json.license_info.expire))
+                                $.datepicker.formatDate('M d, yy', new Date(json.license_info.expire))
                             )
                         );
                     }
