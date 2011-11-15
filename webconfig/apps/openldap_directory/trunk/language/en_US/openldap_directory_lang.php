@@ -1,7 +1,7 @@
 <?php
 
 $lang['openldap_directory_app_name'] = 'Directory Server';
-$lang['openldap_directory_app_description'] = 'Directory Server description...'; // FIXME
+$lang['openldap_directory_app_description'] = 'The directory server is an implementation (using OpenLDAP) of the Lightweight Directory Access Protocol.  The directory contains information on user records, computers, access controls etc. that can be accessed by services running on the server in addition to other systems access the directory remotely across a network.';
 $lang['openldap_directory_extensions'] = 'Extensions';
 $lang['openldap_directory_plugins'] = 'Plugins';
 $lang['openldap_directory_publish_policy'] = 'Publish Policy';
