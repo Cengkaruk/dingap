@@ -3,7 +3,7 @@ Name: app-samba-extension-core
 Group: ClearOS/Libraries
 Version: 6.1.0.beta2
 Release: 1%{dist}
-Summary: Samba Account Extension - APIs and install
+Summary: Samba Extension - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -15,7 +15,7 @@ Requires: app-samba-core
 Requires: app-users
 
 %description
-Contact account extension description ... blah blah blah.
+Samba Extension description
 
 This package provides the core API and libraries.
 
