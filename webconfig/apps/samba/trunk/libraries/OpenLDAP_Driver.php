@@ -117,6 +117,13 @@ clearos_load_library('samba/Samba_Not_Initialized_Exception');
 class OpenLDAP_Driver extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const FILE_INITIALIZED = '/var/clearos/samba/initialized';
+    const CACHE_FLAG_TIME = 60; // in seconds
+
+    ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -357,8 +364,12 @@ class OpenLDAP_Driver extends Engine
         // Archive the files (usually in /var/lib/samba)
         $this->_archive_state_files();
 
-        // Set workgroup
+        // Set Samba
         $samba->set_workgroup($domain);
+        $samba->set_password_servers(array());
+        $samba->set_realm('');
+        $samba->set_mode(Samba::MODE_PDC);
+        $samba->set_wins_server_and_support('', TRUE);
 
         // Bootstrap the domain SID
         $domainsid = $this->_initialize_domain_sid();
@@ -406,6 +417,27 @@ class OpenLDAP_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // To speed things up on multiple requests (read: user import)
+        // user a cache file instead of an expensive LDAP read.
+        //------------------------------------------------------------
+
+        clearstatcache();
+
+        $file = new File(self::FILE_INITIALIZED);
+
+        if ($file->exists()) {
+            $stat = stat(self::FILE_INITIALIZED);
+            $cache_time = time() - $stat['ctime'];
+
+            if ($cache_time < self::CACHE_FLAG_TIME)
+                return TRUE;
+
+            $file->delete();
+        }
+
+        // Read LDAP if file does not exist
+        //---------------------------------
+
         if ($this->ldaph === NULL)
             $this->_get_ldap_handle();
 
@@ -417,10 +449,15 @@ class OpenLDAP_Driver extends Engine
 
         $entry = $this->ldaph->get_first_entry($result);
 
-        if ($entry)
+        if ($entry) {
+            if ($file->exists())
+                $file->delete();
+
+            $file->create('root', 'root', '0644');
             return TRUE;
-        else
+        } else {
             return FALSE;
+        }
     }
 
     /**

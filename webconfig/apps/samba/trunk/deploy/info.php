@@ -39,7 +39,7 @@ $app['core_requires'] = array(
     'app-network-core', 
     'app-openldap-directory-core', 
     'samba-client >= 3.5.4',
-    'samba-winbind-clients >= 3.5.4',
+    'samba-winbind >= 3.5.4',
 );
 
 $app['core_file_manifest'] = array( 

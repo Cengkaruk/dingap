@@ -120,21 +120,15 @@ clearos_load_library('samba/Samba_Share_Not_Found_Exception');
 class Samba extends Software
 {
     ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
+    // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
-
-    protected $loaded = FALSE;
-    protected $shares = array();
-    protected $values = array();
-    protected $booleans = array();
-    protected $modes = array();
-    protected $raw_lines = array();
 
     // Files and paths
     const FILE_CONFIG = '/etc/samba/smb.conf';
     const FILE_DOMAIN_SID = '/etc/samba/domainsid';
     const FILE_LOCAL_SID = '/etc/samba/localsid';
     const FILE_LOCAL_SYSTEM_INITIALIZED = '/etc/system/initialized/sambalocal';
+    const FILE_DOMAIN_SID_CACHE = '/var/clearos/samba/domain_sid_cache';
     const PATH_STATE = '/var/lib/samba';
     const PATH_STATE_BACKUP = '/var/lib/samba';
 
@@ -175,6 +169,7 @@ class Samba extends Software
     const CONSTANT_WINADMIN_USERNAME = 'winadmin';
     const CONSTANT_GUEST_CN = 'Guest Account';
     const CONSTANT_GID_DOMAIN_COMPUTERS = '1000515';
+    const CONSTANT_DOMAIN_SID_CACHE_TIME = 120;
 
     // Default configuration values
     const DEFAULT_PASSWORD_CHAT = '*password:* %n\n *password:* %n\n *successfully.*';
@@ -182,6 +177,17 @@ class Samba extends Software
     const DEFAULT_ADD_MACHINE_SCRIPT = '/usr/sbin/samba-add-machine "%u"';
     const DEFAULT_OS_LEVEL = '20';
     const DEFAULT_ADMIN_PRIVS = 'SeMachineAccountPrivilege SePrintOperatorPrivilege SeAddUsersPrivilege SeDiskOperatorPrivilege SeMachineAccountPrivilege SeTakeOwnershipPrivilege';
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    protected $loaded = FALSE;
+    protected $shares = array();
+    protected $values = array();
+    protected $booleans = array();
+    protected $modes = array();
+    protected $raw_lines = array();
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -277,6 +283,28 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Using the net command is expensive, so cache this data
+        //-------------------------------------------------------
+
+        clearstatcache();
+
+        $file = new File(self::FILE_DOMAIN_SID_CACHE, FALSE);
+
+        if ($file->exists()) {
+            $stat = stat(self::FILE_DOMAIN_SID_CACHE);
+            $cache_time = time() - $stat['ctime'];
+
+            if ($cache_time < self::CONSTANT_DOMAIN_SID_CACHE_TIME) {
+                $sid = $file->get_contents();
+                return $sid;
+            }
+
+            $file->delete();
+        }
+
+        // Get SID from net command
+        //-------------------------
+
         $shell = new Shell();
         $shell->execute(self::COMMAND_NET, 'getdomainsid', TRUE);
 
@@ -291,6 +319,17 @@ class Samba extends Software
                 break;
             }
         }
+
+        // Cache SID
+        //----------
+
+        $file = new File(self::FILE_DOMAIN_SID_CACHE, TRUE);
+
+        if ($file->exists())
+            $file->delete();
+
+        $file->create('root', 'webconfig', '0644');  // FIXME: change to 640 post-testing
+        $file->add_lines("$sid\n");
 
         return $sid;
     }
@@ -563,6 +602,28 @@ class Samba extends Software
             return "";
         else
             return $this->shares['global']['passwd program']['value'];
+    }
+
+    /**
+     * Returns password server list.
+     *
+     * @return array list of password servers
+     * @throws Engine_Exception
+     */
+
+    public function get_password_servers()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->loaded)
+            $this->_load();
+
+        $raw_value = $this->shares['global']['password server']['value'];
+
+        $raw_value = preg_replace('/,/', ' ', $raw_value);
+        $servers = preg_split('/\s+/', $raw_value);
+
+        return $servers;
     }
 
     /**
@@ -1472,6 +1533,24 @@ class Samba extends Software
     }
 
     /**
+     * Sets password server list.
+     *
+     * @param array $servers password server list
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function set_password_servers($servers)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $server_list = implode($servers, ' ');
+
+        $this->_set_share_info('global', 'password server', $server_list);
+    }
+
+    /**
      * Sets preferred master state.
      *
      * @param boolean $state preferred master state.
@@ -1593,7 +1672,8 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_realm($realm));
+        if (! empty($realm))
+            Validation_Exception::is_valid($this->validate_realm($realm));
 
         $realm = strtolower($realm);
 
