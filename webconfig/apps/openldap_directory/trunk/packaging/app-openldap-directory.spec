@@ -1,14 +1,27 @@
 
-Name: app-openldap-directory-core
-Group: ClearOS/Libraries
+Name: app-openldap-directory
+Group: ClearOS/Apps
 Version: 6.1.0.beta2
 Release: 1%{dist}
-Summary: OpenLDAP Directory - APIs and install
-License: LGPLv3
+Summary: Directory Server
+License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
-Source: app-openldap-directory-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
+Requires: %{name}-core = %{version}-%{release}
+Requires: app-base
+Requires: app-users
+Requires: app-groups
+
+%description
+Directory Server description...
+
+%package core
+Summary: Directory Server - APIs and install
+Group: ClearOS/Libraries
+License: LGPLv3
+Provides: system-accounts
 Provides: system-accounts-driver
 Provides: system-groups-driver
 Provides: system-users-driver
@@ -28,13 +41,13 @@ Requires: openldap-servers >= 2.4.19
 Requires: pam_ldap
 Requires: webconfig-php-ldap
 
-%description
-OpenLDAP Directory description...
+%description core
+Directory Server description...
 
 This package provides the core API and libraries.
 
 %prep
-%setup -q -n app-openldap-directory-%{version}
+%setup -q
 %build
 
 %install
@@ -48,6 +61,9 @@ install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/acc
 install -D -m 0644 packaging/pam_ldap.conf %{buildroot}/var/clearos/ldap/synchronize/pam_ldap.conf
 
 %post
+logger -p local6.notice -t installer 'app-openldap-directory - installing'
+
+%post core
 logger -p local6.notice -t installer 'app-openldap-directory-core - installing'
 
 if [ $1 -eq 1 ]; then
@@ -60,6 +76,11 @@ exit 0
 
 %preun
 if [ $1 -eq 0 ]; then
+    logger -p local6.notice -t installer 'app-openldap-directory - uninstalling'
+fi
+
+%preun core
+if [ $1 -eq 0 ]; then
     logger -p local6.notice -t installer 'app-openldap-directory-core - uninstalling'
     [ -x /usr/clearos/apps/openldap_directory/deploy/uninstall ] && /usr/clearos/apps/openldap_directory/deploy/uninstall
 fi
@@ -67,6 +88,12 @@ fi
 exit 0
 
 %files
+%defattr(-,root,root)
+/usr/clearos/apps/openldap_directory/controllers
+/usr/clearos/apps/openldap_directory/htdocs
+/usr/clearos/apps/openldap_directory/views
+
+%files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/openldap_directory/packaging
 %exclude /usr/clearos/apps/openldap_directory/tests

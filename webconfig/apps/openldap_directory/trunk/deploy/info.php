@@ -31,6 +31,11 @@ $app['controllers']['openldap_directory']['title'] = lang('openldap_directory_ap
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['requires'] = array(
+    'app-users',
+    'app-groups',
+);
+
 $app['core_provides'] = array(
     'system-accounts',
     'system-accounts-driver',

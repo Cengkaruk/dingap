@@ -781,6 +781,58 @@ class User_Driver extends User_Engine
     }
 
     ///////////////////////////////////////////////////////////////////////////////
+    // F R I E N D  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns LDAP attributes to add a user.
+     *
+     * @param array $user_info user information
+     * @param array $password  password
+     *
+     * @access private
+     * @return array LDAP attributes
+     */
+
+    public function get_add_attributes($user_info, $password)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Validate
+        //---------
+
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE));
+        Validation_Exception::is_valid($this->validate_password($password));
+        Validation_Exception::is_valid($this->validate_user_info($user_info));
+
+        // Convert user_info and password into LDAP attributes
+        //----------------------------------------------------
+
+        $user_object = $this->_convert_user_array_to_attributes($user_info, FALSE);
+        $password_object = $this->_convert_password_to_attributes($password);
+
+        $ldap_object = array_merge($user_object, $password_object);
+
+        // Add LDAP attributes from extensions
+        //------------------------------------
+
+        $ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
+
+        $dn['dn'] = 'cn=' . LDAP_Client::dn_escape($ldap_object['cn']) . ',' . OpenLDAP::get_users_container();
+        $ldap_object = Utilities::merge_ldap_objects($dn, $ldap_object);
+
+// pete
+        // FIXME: - check for uniqueness for username and full name
+        // - update all_users group
+        // - handle plugins
+        // - check post processing hooks 
+        //   - Samba: add user to domain_users
+        // - synchronize
+
+        return $ldap_object;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -1156,7 +1208,8 @@ return;
         $openldap = new OpenLDAP();
 
         try {
-            $old_attributes = $this->_get_user_attributes();
+            if ($is_modify)
+                $old_attributes = $this->_get_user_attributes();
         } catch (User_Not_Found_Exception $e) {
             // Not fatal
         }
@@ -1189,7 +1242,7 @@ return;
         } else {
             if (isset($user_info['core']['first_name']) || isset($user_info['core']['last_name']))
                 $ldap_object['cn'] = $user_info['core']['first_name'] . ' ' . $user_info['core']['last_name'];
-            else
+            else if (isset($old_attributes['cn'][0]))
                 $ldap_object['cn'] = $old_attributes['cn'][0];
         }
 
@@ -1204,7 +1257,7 @@ return;
 
         if (! $is_modify) {
             if (isset($user_info['core']['uid_number']))
-                $ldap_object['nidNumber'] = $user_info['core']['uid_number'];
+                $ldap_object['uidNumber'] = $user_info['core']['uid_number'];
             else {
                 $accounts = new Accounts_Driver();
                 $ldap_object['uidNumber'] = $accounts->get_next_uid_number();

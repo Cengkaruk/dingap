@@ -130,20 +130,6 @@ class Accounts_Driver extends Accounts_Engine
     }
 
     /**
-     * Exports users, groups and computers.
-     *
-     * @throws Engine_Exception, Validation_Exception
-     * @return string
-     */
-
-    public function export()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: move from userimport class
-    }
-
-    /**
      * Returns capabililites.
      *
      * @return string capabilities
@@ -154,6 +140,20 @@ class Accounts_Driver extends Accounts_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         return Accounts_Engine::CAPABILITY_READ_WRITE;
+    }
+
+    /**
+     * Returns state of driver.
+     *
+     * @return boolean state of driver
+     * @throws Engine_Exception
+     */
+
+    public function get_driver_status()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return $this->_get_driver_status(self::DRIVER_NAME);
     }
 
     /**
@@ -183,21 +183,6 @@ class Accounts_Driver extends Accounts_Engine
         }
 
         return $this->extensions;
-    }
-
-    /**
-     * Returns state of driver.
-     *
-     * Returns 
-     * @return boolean state of driver
-     * @throws Engine_Exception
-     */
-
-    public function get_driver_status()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->_get_driver_status(self::DRIVER_NAME);
     }
 
     /**
@@ -312,19 +297,6 @@ class Accounts_Driver extends Accounts_Engine
             $status = Accounts_Engine::STATUS_OFFLINE;
 
         return $status;
-    }
-
-    /**
-     * Imports users, groups and computers from LDIF.
-     *
-     * @return void
-     */
-
-    public function import()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: move from userimport class
     }
 
     /**
