@@ -961,44 +961,45 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Returns list of available blacklists.
+     * Returns blanket block policy.
      *
-     * @return array list of available blacklists
+     * @param integer $group group ID
+     *
+     * @return boolean TRUE if blanket block policy is enabled.
      */
 
-    public function get_possible_blacklists()
+    public function get_blanket_block($group = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $blacklistsinfo = array();
-        $blacklistslist = array();
-        $folderlist = array();
+        $ban_list = $this->get_banned_sites_and_urls($group);
 
-        $folder = new Folder(self::PATH_BLACKLISTS);
+        if (in_array('**', $ban_list))
+            return TRUE;
+        else
+            return FALSE;
+    }
 
-        if ($folder->exists())
-            $folderlist = $folder->get_listing();
+    /**
+     * Returns list of available blacklists.
+    /**
+     * Returns block IP domains policy.
+     *
+     * @param integer $group group ID
+     *
+     * @return boolean TRUE if block IP domains policy is enabled.
+     */
 
-        // Create our list (with descriptions)
-        //------------------------------------
+    public function get_block_ip_domains($group = 1)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-        foreach ($folderlist as $foldername) {
-            $folder = new Folder(self::PATH_BLACKLISTS . "/$foldername");
+        $ban_list = $this->get_banned_sites_and_urls($group);
 
-            if ($folder->is_directory()) {
-                $blacklistsinfo['name'] = $foldername;
-                $descriptiontag = 'DANSGUARDIAN_LANG_BLACKLIST_' . strtoupper(preg_replace("/[\-_]/", '', $foldername));
-
-                if (defined("$descriptiontag"))
-                    $blacklistsinfo['description'] = constant($descriptiontag);
-                else
-                    $blacklistsinfo['description'] = '...';
-
-                $blacklistslist[] = $blacklistsinfo;
-            }
-        }
-
-        return $blacklistslist;
+        if (in_array('*ip', $ban_list))
+            return TRUE;
+        else
+            return FALSE;
     }
 
     /**
@@ -1178,6 +1179,53 @@ class DansGuardian extends Daemon
     }
 
     /**
+     * Returns the weight phrase list.
+     *
+     * @param integer $group group ID
+     * @param boolean $details flag get full list including languagues
+     *
+     * @return array a list of the weight phrases
+     */
+
+    public function get_phrase_lists($group = 1, $details = FALSE)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $rawlines = $this->_get_configuration_data_by_key('weightedphraselist', FALSE, $group);
+        $list = array();
+
+        foreach ($rawlines as $line) {
+            if (preg_match('/^.Include/', $line)) {
+                $listitem = preg_replace("/.*\/phraselists\//", '', $line);
+
+                if ($details)
+                    $listitem = preg_replace("/>\s*/", '', $listitem);
+                else
+                    $listitem = preg_replace("/\/weighted[a-z\_]*>\s*$/", '', $listitem);
+
+                $list[] = $listitem;
+            }
+        }
+
+        $list = array_unique($list);
+
+        return $list;
+    }
+
+    /**
+     * Sets the access denied page.
+     *
+     * @return void
+     */
+
+    public function set_access_denied_url($url)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->set_configuration_value('accessdeniedaddress', $url);
+    }
+
+    /**
      * Returns the PICS level.
      *
      * @return string current PICS level
@@ -1191,6 +1239,47 @@ class DansGuardian extends Daemon
         $pics = preg_replace("/.*pics./i", "", $pics);
 
         return $pics;
+    }
+
+    /**
+     * Returns list of available blacklists.
+     *
+     * @return array list of available blacklists
+     */
+
+    public function get_possible_blacklists()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $blacklistsinfo = array();
+        $blacklistslist = array();
+        $folderlist = array();
+
+        $folder = new Folder(self::PATH_BLACKLISTS);
+
+        if ($folder->exists())
+            $folderlist = $folder->get_listing();
+
+        // Create our list (with descriptions)
+        //------------------------------------
+
+        foreach ($folderlist as $foldername) {
+            $folder = new Folder(self::PATH_BLACKLISTS . "/$foldername");
+
+            if ($folder->is_directory()) {
+                $blacklistsinfo['name'] = $foldername;
+                $descriptiontag = 'DANSGUARDIAN_LANG_BLACKLIST_' . strtoupper(preg_replace("/[\-_]/", '', $foldername));
+
+                if (defined("$descriptiontag"))
+                    $blacklistsinfo['description'] = constant($descriptiontag);
+                else
+                    $blacklistsinfo['description'] = '...';
+
+                $blacklistslist[] = $blacklistsinfo;
+            }
+        }
+
+        return $blacklistslist;
     }
 
     /**
@@ -1224,16 +1313,40 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Returns reverse DNS look-ups.
+     * Returns possible filter modes.
      *
-     * @return string 'on' or 'off'
+     * @return array list of filter modes
      */
 
-    public function get_reverse_lookups()
+    public function get_possible_filter_modes()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_value('reverseaddresslookups', -1);
+        return array(
+            '0' => lang('content_filter_ban_all'),
+            '1' => lang('content_filter_normal_filtering'),
+            '2' => lang('content_filter_no_filtering'),
+        );
+    }
+
+    /**
+     * Returns possible naughtyness limits.
+     *
+     * @return array list of naughtyness limits
+     */
+
+    public function get_possible_naughtyness_limits()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return array(
+            '50' => lang('content_filter_very_aggressive'),
+            '100' => lang('content_filter_aggressive'),
+            '150' => lang('content_filter_normal'),
+            '200' => lang('content_filter_lax'),
+            '400' => lang('content_filter_very_lax'),
+            '99999' => lang('base_disabled'),
+        );
     }
 
     /**
@@ -1362,6 +1475,24 @@ class DansGuardian extends Daemon
     }
 
     /**
+     * Returns possible reporting levels.
+     *
+     * @return array list of reporting levels
+     */
+
+    public function get_possible_reporting_levels()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return array(
+            '-1' => lang('content_filter_stealth_mode'),
+            '1' => lang('content_filter_short_report'),
+            '2' => lang('content_filter_full_report'),
+            '3' => lang('content_filter_custom_report'),
+        );
+    }
+
+    /**
      * Returns the proxy IP (default: 127.0.0.1).
      *
      * @return string proxy IP
@@ -1404,50 +1535,16 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Returns the weight phrase list.
+     * Returns reverse DNS look-ups.
      *
-     * @param integer $group group ID
-     * @param boolean $details flag get full list including languagues
-     *
-     * @return array a list of the weight phrases
+     * @return string 'on' or 'off'
      */
 
-    public function get_phrase_lists($group = 1, $details = FALSE)
+    public function get_reverse_lookups()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $rawlines = $this->_get_configuration_data_by_key('weightedphraselist', FALSE, $group);
-        $list = array();
-
-        foreach ($rawlines as $line) {
-            if (preg_match('/^.Include/', $line)) {
-                $listitem = preg_replace("/.*\/phraselists\//", '', $line);
-
-                if ($details)
-                    $listitem = preg_replace("/>\s*/", '', $listitem);
-                else
-                    $listitem = preg_replace("/\/weighted[a-z\_]*>\s*$/", '', $listitem);
-
-                $list[] = $listitem;
-            }
-        }
-
-        $list = array_unique($list);
-
-        return $list;
-    }
-
-    /**
-     * Sets the access denied page.
-     *
-     * @return void
-     */
-
-    public function set_access_denied_url($url)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->set_configuration_value('accessdeniedaddress', $url);
+        return $this->_get_configuration_value('reverseaddresslookups', -1);
     }
 
     /**

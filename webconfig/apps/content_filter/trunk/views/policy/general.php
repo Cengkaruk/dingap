@@ -36,19 +36,10 @@
 $this->lang->load('base');
 $this->lang->load('content_filter');
 
-$mode = 'edit';
-if ($mode === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/content_filter')
-    );
-} else {
-    $read_only = TRUE;
-    $buttons = array(
-        anchor_edit('/app/content_filter/settings/edit'),
-    );
-}
+$buttons = array(
+    form_submit_update('submit'),
+    anchor_cancel('/app/content_filter/policy/edit/' . $policy)
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
@@ -57,7 +48,14 @@ if ($mode === 'edit') {
 echo form_open('/app/content_filter/settings/edit');
 echo form_header(lang('base_settings'));
 
-echo field_toggle_enable_disable('reverse', $reverse, lang('content_filter_reverse_address_lookups'), $read_only);
+echo field_dropdown('group_mode', $group_modes, $group_mode, lang('content_filter_filter_mode'));
+echo field_dropdown('naughtyness_limit', $naughtyness_limits, $naughtyness_limit, lang('content_filter_dynamic_scan_sensitivity'));
+echo field_dropdown('reporting_level', $reporting_levels, $reporting_level, lang('content_filter_reporting_level'));
+echo field_toggle_enable_disable('disable_content_scan', $disable_content_scan, lang('content_filter_virus_scan'));
+echo field_toggle_enable_disable('deep_url_analysis', $deep_url_analysis, lang('content_filter_deep_url_analysis'));
+echo field_toggle_enable_disable('block_downloads', $block_downloads, lang('content_filter_block_downloads'));
+echo field_toggle_enable_disable('blanket_block', $blanket_block, lang('content_filter_blanket_block'));
+echo field_toggle_enable_disable('block_ip_domains', $block_ip_domains, lang('content_filter_block_ip_domains'));
 echo field_button_set($buttons);
 
 echo form_footer();

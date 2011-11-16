@@ -50,8 +50,8 @@ $buttons = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('content_filter_file_extension'),
     lang('base_category'),
+    lang('content_filter_file_extension'),
     lang('base_description'),
 );
 
@@ -64,8 +64,8 @@ foreach ($all_file_extensions as $extension) {
     $item['name'] = 'extensions[' . $extension['name'] . ']';
     $item['state'] = in_array($extension['name'], $banned_file_extensions) ? TRUE : FALSE;
     $item['details'] = array(
-        $extension['name'],
         $extension['category_text'],
+        $extension['name'],
         $extension['description'],
     );
 
@@ -76,13 +76,16 @@ foreach ($all_file_extensions as $extension) {
 // List table
 ///////////////////////////////////////////////////////////////////////////////
 
+$options['grouping'] = TRUE;
+
 echo form_open('content_filter/file_extensions/edit/' . $policy);
 
 echo list_table(
     lang('content_filter_file_extensions'),
     $buttons,
     $headers,
-    $items
+    $items,
+    $options
 );
 
 echo form_close();
