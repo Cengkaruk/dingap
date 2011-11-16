@@ -41,7 +41,7 @@ $this->lang->load('users');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($form_type === 'edit') {
-    $read_only = FALSE;
+    $description_read_only = FALSE;
     $group_name_read_only = TRUE;
 
     $form_path = '/groups/edit/' . $group_info['group_name'];
@@ -52,7 +52,7 @@ if ($form_type === 'edit') {
         anchor_delete('/app/groups/delete/' . $group_info['group_name'])
     );
 } else if ($form_type === 'view') {
-    $read_only = TRUE;
+    $description_read_only = TRUE;
     $group_name_read_only = TRUE;
 
     $form_path = '/groups/view/' . $group_info['group_name'];
@@ -60,7 +60,7 @@ if ($form_type === 'edit') {
         anchor_cancel('/app/groups/')
     );
 } else {
-    $read_only = FALSE;
+    $description_read_only = FALSE;
     $group_name_read_only = FALSE;
 
     $form_path = '/groups/add';
@@ -78,7 +78,7 @@ echo form_open($form_path);
 echo form_header(lang('groups_group'));
 
 echo field_input('group_name', $group_info['group_name'], lang('groups_group_name'), $group_name_read_only);
-echo field_input('description', $group_info['description'], lang('groups_description'), $read_only);
+echo field_input('description', $group_info['description'], lang('groups_description'), $description_read_only);
 
 echo field_button_set($buttons);
 

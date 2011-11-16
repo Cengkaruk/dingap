@@ -41,10 +41,18 @@ $this->lang->load('groups');
 // Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-$headers = array(
-    lang('groups_group'),
-    lang('groups_description'),
-);
+$description_available = FALSE;
+
+if ($description_available) {
+    $headers = array(
+        lang('groups_group'),
+        lang('groups_description'),
+    );
+} else {
+    $headers = array(
+        lang('groups_group')
+    );
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Anchors 
@@ -62,30 +70,47 @@ foreach ($groups as $group_name => $info) {
 
     if ($mode === 'view') {
         $normal_anchors = array();
-        $buttons = array(
-            anchor_custom('/app/groups/view_members/' . $group_name, lang('groups_view_members'), 'high'),
-            anchor_view('/app/groups/view/' . $group_name, 'low'),
-        );
-    } else if ($info['type'] === Group::TYPE_NORMAL) {
-        $buttons = array(
-            anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
-            anchor_edit('/app/groups/edit/' . $group_name, 'low'),
-            anchor_delete('/app/groups/delete/' . $group_name, 'low')
-        );
+
+        if ($description_available) {
+            $buttons = array(
+                anchor_custom('/app/groups/view_members/' . $group_name, lang('groups_view_members'), 'high'),
+                anchor_view('/app/groups/view/' . $group_name, 'low'),
+            );
+        } else {
+            $buttons = array(
+                anchor_custom('/app/groups/view_members/' . $group_name, lang('groups_view_members'), 'high'),
+            );
+        }
     } else {
-        $buttons = array(
-            anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
-            anchor_edit('/app/groups/edit/' . $group_name, 'low'),
-        );
+         if ($info['type'] === Group::TYPE_NORMAL) {
+            $buttons = array(
+                anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
+                anchor_edit('/app/groups/edit/' . $group_name, 'low'),
+                anchor_delete('/app/groups/delete/' . $group_name, 'low')
+            );
+        } else {
+            $buttons = array(
+                anchor_custom('/app/groups/edit_members/' . $group_name, lang('groups_edit_members'), 'high'),
+                anchor_edit('/app/groups/edit/' . $group_name, 'low'),
+            );
+        }
     }
 
     $item['title'] = $group_name;
     $item['action'] = '/app/groups/edit/' . $group_name;
     $item['anchors'] = button_set($buttons);
-    $item['details'] = array(
-        $group_name,
-        $info['description'],
-    );
+
+    if ($description_available) {
+        $item['details'] = array(
+            $group_name,
+            $info['description'],
+        );
+    } else {
+        $item['details'] = array(
+            $group_name,
+            $info['description'],
+        );
+    }
 
     if ($info['type'] === Group::TYPE_NORMAL)
         $normal_items[] = $item;

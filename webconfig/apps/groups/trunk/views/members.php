@@ -59,13 +59,12 @@ $headers = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($users as $username => $details) {
-
     $item['title'] = $username;
     $item['name'] = 'users[' . $username . ']';
     $item['state'] = (in_array($username, $group_info['members'])) ? TRUE : FALSE;
     $item['details'] = array(
         $username,
-        $details['full_name']
+        $details['core']['full_name']
     );
 
     $items[] = $item;
@@ -77,11 +76,13 @@ foreach ($users as $username => $details) {
 
 echo form_open('/groups/edit_members/' . $group_info['group_name']);
 
+// FIXME: implement read_only in theme
 echo list_table(
     lang('groups_group_members') . ' - ' .  $group_info['group_name'],
     $buttons,
     $headers,
-    $items
+    $items,
+    array('read_only' => TRUE)
 );
 
 echo form_close();
