@@ -1,7 +1,7 @@
 <?php
 
 $lang['content_filter_app_name'] = 'Content Filter';
-$lang['content_filter_app_description'] = 'Content Filter description...'; // FIXME
+$lang['content_filter_app_description'] = 'The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.';
 $lang['content_filter_reverse_address_lookups'] = 'Reverse Address Lookups';
 $lang['content_filter_group_policies'] = 'Group Policies';
 $lang['content_filter_blacklists'] = 'Blacklists';

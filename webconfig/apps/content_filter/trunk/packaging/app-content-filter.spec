@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-Content Filter description...
+The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.
 
 %package core
 Summary: Content Filter - APIs and install
@@ -26,7 +26,7 @@ Requires: app-firewall-core
 Requires: squid >= 3.1.10
 
 %description core
-Content Filter description...
+The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.
 
 This package provides the core API and libraries.
 
