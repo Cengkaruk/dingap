@@ -43,32 +43,44 @@
 #include <clearsync/cssocket.h>
 
 csSocket::csSocket()
-    : state(Init), flags(None), timeout(0)
+    : sd(-1), state(Init), flags(None), timeout(0)
 {
     memset(&sa, 0, sizeof(struct sockaddr_in));
-    sd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-    if (sd < 0) throw csException(errno, "socket");
+    Create();
 }
 
 csSocket::csSocket(int sd, struct sockaddr_in &sa)
-    : state(Connected), flags(None), sd(sd), timeout(0)
+    : sd(sd), state(Connected), flags(None), timeout(0)
 {
     memcpy(&this->sa, &sa, sizeof(struct sockaddr_in));
 }
 
 csSocket::~csSocket()
 {
+    Close();
+}
+
+void csSocket::Create(void)
+{
+    sd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    if (sd < 0) throw csException(errno, "socket");
+}
+
+void csSocket::Close(void)
+{
     if (sd >= 0) {
         if (state == Connected) shutdown(sd, SHUT_RDWR);
         close(sd);
+        sd = -1;
     }
+    state = Init;
 }
 
 void csSocket::Read(size_t &length, uint8_t *buffer)
 {
 	struct timeval tv;
 	uint8_t *ptr = buffer;
-	size_t bytes_read, bytes_left = length;
+	ssize_t bytes_read, bytes_left = length;
 
 	for (length = 0; bytes_left > 0; ) {
         bytes_read = recv(sd, (char *)ptr, bytes_left, 0);
@@ -101,7 +113,7 @@ void csSocket::Write(size_t &length, uint8_t *buffer)
 {
 	struct timeval tv;
 	uint8_t *ptr = buffer;
-	size_t bytes_wrote, bytes_left = length;
+	ssize_t bytes_wrote, bytes_left = length;
 
 	for (length = 0; bytes_left > 0; ) {
         bytes_wrote = send(sd, (const char *)ptr, bytes_left, 0);
@@ -229,9 +241,16 @@ csSocketConnect::csSocketConnect(
     state = Connecting;
 }
 
+void csSocketConnect::Close(void)
+{
+    csSocket::Close();
+    gettimeofday(&tv_active, NULL);
+    state = Connecting;
+}
+
 void csSocketConnect::Connect(void)
 {
-    if (state == Connecting) {
+    while (state == Connecting) {
 		struct timeval tv;
 		gettimeofday(&tv, NULL);
 		if (tv.tv_sec - tv_active.tv_sec > timeout)
@@ -240,15 +259,18 @@ void csSocketConnect::Connect(void)
 		if (connect(sd,
             (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) == 0) {
 			state = Connected;
-			return;
+			continue;
 		}
 
 		if (errno == EISCONN) {
 			state = Connected;
-			return;
+			continue;
 		}
 
-        throw csSocketConnecting();
+        if (errno != EALREADY && errno != EINPROGRESS)
+            throw csException(errno, "connect");
+
+        usleep(csSocketRetry);
     }
 }
 

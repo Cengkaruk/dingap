@@ -329,7 +329,9 @@ csPluginLoader::csPluginLoader(const string &so_name,
 
 csPluginLoader::~csPluginLoader()
 {
+#ifndef _CS_DEBUG
     if (so_handle != NULL) dlclose(so_handle);
+#endif
     csLog::Log(csLog::Debug, "Plugin dereferenced: %s", so_name.c_str());
 }
 

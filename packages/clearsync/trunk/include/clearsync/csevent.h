@@ -24,6 +24,7 @@ using namespace std;
 #define csEVENT_RELOAD          0x0001
 #define csEVENT_TIMER           0x0002
 #define csEVENT_PLUGIN          0x0003
+#define csEVENT_USER            0x1000
 
 // Broadcast event client type
 #define _CS_EVENT_BROADCAST     ((csEventClient *)-1)

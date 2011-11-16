@@ -64,10 +64,18 @@ public:
     csSocket(int sd, struct sockaddr_in &sa);
     virtual ~csSocket();
 
+    virtual void Create(void);
+    virtual void Close(void);
     int GetDescriptor(void) { return sd; };
 
     void SetTimeout(time_t tv_sec) {
         timeout = tv_sec;
+    };
+    void SetWaitAll(bool enable = true) {
+        if (enable)
+            flags = WaitAll;
+        else
+            flags = None;
     };
 
     void Read(size_t &length, uint8_t *buffer);
@@ -97,6 +105,7 @@ class csSocketConnect : public csSocket
 public:
     csSocketConnect(const string &host, in_port_t port);
 
+    virtual void Close(void);
     void Connect(void);
 };
 
