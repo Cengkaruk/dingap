@@ -32,7 +32,6 @@ Requires: openldap >= 2.4.19
 Requires: openldap-clients >= 2.4.19
 Requires: openldap-servers >= 2.4.19
 Requires: pam_ldap
-Requires: samba-winbind-clients
 Requires: webconfig-php-ldap
 
 %description core

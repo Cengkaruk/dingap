@@ -49,6 +49,5 @@ $app['core_requires'] = array(
     'openldap-clients >= 2.4.19',
     'openldap-servers >= 2.4.19',
     'pam_ldap',
-    'samba-winbind-clients',
     'webconfig-php-ldap'
 );
