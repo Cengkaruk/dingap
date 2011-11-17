@@ -151,10 +151,12 @@ class OpenLDAP_Group_Extension extends Engine
         $samba_driver = new OpenLDAP_Driver();
 
         if (!$samba_driver->is_directory_initialized())
-            return;
+            return array();
 
         // Return info array
         //------------------
+
+        $info = array();
 
         if (isset($attributes['sambaSID']))
             $info['sid'] = $attributes['sambaSID'][0];
