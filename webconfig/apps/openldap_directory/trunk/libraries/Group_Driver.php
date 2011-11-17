@@ -182,6 +182,7 @@ class Group_Driver extends Group_Engine
      * Adds a group to the system.
      *
      * @param string $description group description
+     * @param array  $members     member list
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
@@ -576,6 +577,74 @@ class Group_Driver extends Group_Engine
 
         if (! preg_match('/^([a-zA-Z]+[0-9a-zA-Z\.\-_\s]*)$/', $group_name))
             return lang('groups_group_name_invalid');
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // F R I E N D   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns LDAP attributes to add a group.
+     *
+     * This method does not validate the uniqueness of the group name.
+     *
+     * @param string $description group description
+     * @param array  $members     member list
+     *
+     * @access private
+     * @return void
+     * @throws Validation_Exception, Engine_Exception
+     */
+
+    public function get_add_attributes($description, $gid_number, $members = array())
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Validate
+        //---------
+
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        // TODO: validate gid_number
+
+        // Convert array into LDAP object
+        //-------------------------------
+
+        // $info['gid_number'] = $this->_get_next_gid_number();
+        $info['gid_number'] = $gid_number;
+        $info['description'] = $description;
+        $info['group_name'] = $this->group_name;
+
+        $ldap_object = Utilities::convert_array_to_attributes($info, $this->info_map);
+
+        $ldap_object['objectClass'] = array(
+            'top',
+            'posixGroup',
+            'groupOfNames'
+        );
+
+        // Add LDAP attributes from extensions
+        //------------------------------------
+
+        $ldap_object = $this->_add_attributes_hook($info, $ldap_object);
+
+        // Handle group members
+        //---------------------
+
+        $ldap_object['member'] = array();
+
+        if (empty($members))
+            $members = array(self::CONSTANT_NO_MEMBERS_DN);
+
+        $users_container = OpenLDAP::get_users_container();    
+
+        foreach ($members as $member)
+            $ldap_object['member'][] = 'cn=' . $member . ',' . $users_container;
+
+
+        $dn['dn'] = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
+        $ldap_object = Utilities::merge_ldap_objects($dn, $ldap_object);
+
+        return $ldap_object;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
