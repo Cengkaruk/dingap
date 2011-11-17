@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # TODO: should we run the Samba sanity check here?
+[ -x /usr/sbin/samba-init ] && /usr/sbin/samba-init >/dev/null 2>&1
 [ -x /usr/sbin/add-windows-group-info ] && /usr/sbin/add-windows-group-info >/dev/null 2>&1
 
 exit 0
