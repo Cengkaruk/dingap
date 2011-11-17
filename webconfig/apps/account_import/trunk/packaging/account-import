@@ -150,7 +150,7 @@ function import()
     $total = count(file($filename)) - 1;
 
     if ($total <= 0) {
-        update_status(-1, 0, lang('account_import_zero_entries'));
+        update_status(-1, 0, lang('account_import_no_entries'));
         return;
     }
 
