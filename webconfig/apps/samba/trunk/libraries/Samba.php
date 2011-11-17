@@ -2537,7 +2537,7 @@ class Samba extends Software
         $options['stdin'] = TRUE;
 
         $shell = new Shell();
-        $exitcode = $shell->Execute(self::COMMAND_NET, 'idmap secret alloc ' . $password, TRUE, $options);
+        $exitcode = $shell->Execute(self::COMMAND_NET, "idmap secret '*' $password", TRUE, $options);
     }
 
     /**

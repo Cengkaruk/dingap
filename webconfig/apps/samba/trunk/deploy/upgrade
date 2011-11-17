@@ -1,9 +1,32 @@
 #!/bin/sh
 
-# Sudoers entry
+# Sudoers entries
+#----------------
+
 /usr/sbin/addsudo /usr/bin/net app-samba-core
 /usr/sbin/addsudo /usr/bin/smbpasswd app-samba-core
 /usr/sbin/addsudo /usr/sbin/add-samba-directories app-samba-core
 
 # LDAP synchronize trigger
+#-------------------------
+
 [ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize
+
+# idmap changes (again!)
+#-----------------------
+
+CHECK=`grep "^idmap[[:space:]]*uid[[:space:]]*=" /etc/samba/smb.conf 2>/dev/null`
+
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-samba-core - deleting deprecated parameter: idmap uid"
+    grep -v "^idmap[[:space:]]*uid[[:space:]]*=" /etc/samba/smb.conf > /etc/samba/smb.conf.new
+    mv /etc/samba/smb.conf.new /etc/samba/smb.conf
+fi
+
+CHECK=`grep "^idmap[[:space:]]*gid[[:space:]]*=" /etc/samba/smb.conf 2>/dev/null`
+
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-samba-core - deleting deprecated parameter: idmap gid"
+    grep -v "^idmap[[:space:]]*gid[[:space:]]*=" /etc/samba/smb.conf > /etc/samba/smb.conf.new
+    mv /etc/samba/smb.conf.new /etc/samba/smb.conf
+fi

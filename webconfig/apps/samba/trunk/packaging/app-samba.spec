@@ -15,7 +15,7 @@ Requires: app-accounts
 Requires: app-groups
 Requires: app-users
 Requires: app-network
-Requires: samba >= 3.5.4
+Requires: samba >= 3.6.1
 
 %description
 Translation missing (samba_app_long_description)
@@ -27,8 +27,8 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
 Requires: app-openldap-directory-core
-Requires: samba-client >= 3.5.4
-Requires: samba-winbind >= 3.5.4
+Requires: samba-client >= 3.6.1
+Requires: samba-winbind >= 3.6.1
 
 %description core
 Translation missing (samba_app_long_description)

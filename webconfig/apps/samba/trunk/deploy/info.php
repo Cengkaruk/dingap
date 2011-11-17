@@ -32,14 +32,14 @@ $app['requires'] = array(
     'app-groups',
     'app-users',
     'app-network',
-    'samba >= 3.5.4',
+    'samba >= 3.6.1',
 );
 
 $app['core_requires'] = array(
     'app-network-core', 
     'app-openldap-directory-core', 
-    'samba-client >= 3.5.4',
-    'samba-winbind >= 3.5.4',
+    'samba-client >= 3.6.1',
+    'samba-winbind >= 3.6.1',
 );
 
 $app['core_file_manifest'] = array( 

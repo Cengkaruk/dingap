@@ -19,7 +19,7 @@ clearos_load_language('samba');
 
 $configlet = array(
 	'title' => lang('samba_winbind_server'),
-	'package' => 'samba',
+	'package' => 'samba-winbind',
 	'process_name' => 'winbindd',
 	'pid_file' => '/var/run/winbindd.pid',
 	'reloadable' => FALSE,

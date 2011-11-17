@@ -41,15 +41,13 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
 use \clearos\apps\ldap\LDAP_Factory as LDAP_Factory;
 use \clearos\apps\mode\Mode_Engine as Mode_Engine;
 use \clearos\apps\mode\Mode_Factory as Mode_Factory;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\samba\OpenLDAP_Driver as OpenLDAP_Driver;
 use \clearos\apps\samba\Samba as Samba;
+use \clearos\apps\samba\Winbind as Winbind;
 
 clearos_load_library('ldap/LDAP_Factory');
 clearos_load_library('mode/Mode_Engine');
@@ -57,6 +55,7 @@ clearos_load_library('mode/Mode_Factory');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('samba/OpenLDAP_Driver');
 clearos_load_library('samba/Samba');
+clearos_load_library('samba/Winbind');
 
 ///////////////////////////////////////////////////////////////////////////////
 // M A I N
@@ -105,6 +104,10 @@ if ($mode === Mode_Engine::MODE_MASTER)
 else if ($mode === Mode_Engine::MODE_STANDALONE)
     $samba_driver->initialize_master_system('System', NULL, $force);
 
-
+// FIXME
 $samba = new Samba();
 $samba->_clean_secrets_file();
+
+$winbind = new Winbind();
+$winbind->set_boot_state(TRUE);
+$winbind->set_running_state(TRUE);
