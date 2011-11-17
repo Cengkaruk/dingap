@@ -117,16 +117,9 @@ class LDAP_Utilities extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $unicode = '';
+        $encoded_password = iconv('UTF-8', 'UTF-16LE', $password);
 
-        for ($i = 0; $i < strlen($password); $i++) {
-            $a = ord($password{$i}) << 8;
-            $unicode .= sprintf("%X", $a);
-        }
-
-        $packed_unicode = pack('H*', $unicode);
-
-        return strtoupper(bin2hex(hash('md4', $packed_unicode)));
+        return strtoupper(bin2hex(hash('md4', $encoded_password, TRUE)));
     }
 
     /**
