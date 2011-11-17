@@ -100,9 +100,9 @@ $accounts_ldap->initialize($force);
 //----------------------------------
 
 if ($mode === Mode_Engine::MODE_MASTER)
-    $samba_driver->initialize_master_system('System', NULL, $force);
+    $samba_driver->initialize_master_system('CLEARSYSTEM', NULL, $force);
 else if ($mode === Mode_Engine::MODE_STANDALONE)
-    $samba_driver->initialize_master_system('System', NULL, $force);
+    $samba_driver->initialize_master_system('CLEARSYSTEM', NULL, $force);
 
 // FIXME
 $samba = new Samba();
