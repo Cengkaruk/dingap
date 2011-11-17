@@ -44,6 +44,7 @@ $app['core_directory_manifest'] = array(
    '/var/clearos/openldap/provision' => array(),
 );
 
+    // FIXME 'schema/samba.schema' => array( 'target' => '/etc/openldap/schema/samba.schema' ),
 $app['core_file_manifest'] = array(
     'schema/clearfoundation.schema' => array( 'target' => '/etc/openldap/schema/clearfoundation.schema' ),
     'schema/clearcenter.schema' => array( 'target' => '/etc/openldap/schema/clearcenter.schema' ),
@@ -53,7 +54,6 @@ $app['core_file_manifest'] = array(
     'schema/RADIUS-LDAPv3.schema' => array( 'target' => '/etc/openldap/schema/RADIUS-LDAPv3.schema' ),
     'schema/rfc2307bis.schema' => array( 'target' => '/etc/openldap/schema/rfc2307bis.schema' ),
     'schema/rfc2739.schema' => array( 'target' => '/etc/openldap/schema/rfc2739.schema' ),
-    'schema/samba.schema' => array( 'target' => '/etc/openldap/schema/samba.schema' ),
     'schema/zarafa.schema' => array( 'target' => '/etc/openldap/schema/zarafa.schema' ),
     'slapd.php'=> array('target' => '/var/clearos/base/daemon/slapd.php'),
 );
