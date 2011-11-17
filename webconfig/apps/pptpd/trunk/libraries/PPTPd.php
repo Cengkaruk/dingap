@@ -338,7 +338,7 @@ class PPTPd extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME: improve interface
+        // TODO: improve interface
         //    return lang('pptpd_ip_range_invalid');
     }
 

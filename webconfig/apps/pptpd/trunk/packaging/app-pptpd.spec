@@ -12,6 +12,7 @@ Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-accounts
+Requires: app-incoming-firewall
 Requires: app-groups
 Requires: app-users
 Requires: app-network
@@ -27,8 +28,10 @@ Requires: app-base-core
 Requires: app-network-core
 Requires: app-pptpd-plugin-core
 Requires: app-samba-extension-core
+Requires: app-incoming-firewall-core
 Requires: csplugin-routewatch
 Requires: pptpd >= 1.3.4
+Requires: samba-winbind
 
 %description core
 PPTP Server description... wordsmith please.
@@ -44,6 +47,8 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/pptpd
 cp -r * %{buildroot}/usr/clearos/apps/pptpd/
 
 install -d -m 0755 %{buildroot}/var/clearos/pptpd
+install -d -m 0755 %{buildroot}/var/clearos/pptpd/backup
+install -D -m 0644 packaging/authorize %{buildroot}/etc/clearos/pptpd.d/authorize
 install -D -m 0644 packaging/pptpd.php %{buildroot}/var/clearos/base/daemon/pptpd.php
 
 %post
@@ -85,7 +90,9 @@ exit 0
 %exclude /usr/clearos/apps/pptpd/tests
 %dir /usr/clearos/apps/pptpd
 %dir /var/clearos/pptpd
+%dir /var/clearos/pptpd/backup
 /usr/clearos/apps/pptpd/deploy
 /usr/clearos/apps/pptpd/language
 /usr/clearos/apps/pptpd/libraries
+%config(noreplace) /etc/clearos/pptpd.d/authorize
 /var/clearos/base/daemon/pptpd.php

@@ -1,0 +1,6 @@
+#%PAM-1.0
+auth       include	password-auth
+account    required     pam_listfile.so item=group sense=allow file=/etc/clearos/pptpd.d/authorize onerr=fail
+account    required	pam_nologin.so
+account    include	password-auth
+session    include	password-auth

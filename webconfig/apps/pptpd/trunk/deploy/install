@@ -8,10 +8,18 @@ TIMESTAMP=`date "+%b-%d-%Y-%T"`
 logger -p local6.notice -t installer "app-pptpd-core - setting default configuration"
 
 if [ -e /etc/ppp/options.pptpd ]; then
-    cp /etc/ppp/options.pptpd /var/clearos/pptpd/options.pptpd.$TIMESTAMP
+    cp /etc/ppp/options.pptpd /var/clearos/pptpd/backup/options.pptpd.$TIMESTAMP
 fi
 
 cp /usr/clearos/apps/pptpd/deploy/options.pptpd /etc/ppp/options.pptpd
+
+logger -p local6.notice -t installer "app-pptpd-core - setting default PAM configuration"
+
+if [ -e /etc/pam.d/ppp ]; then
+    cp /etc/pam.d/ppp /var/clearos/pptpd/backup/ppp.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/pptpd/deploy/ppp-pam /etc/pam.d/ppp
 
 # Set default start/boot
 #-----------------------
@@ -21,3 +29,9 @@ chkconfig pptpd on
 
 logger -p local6.notice -t installer "app-pptpd-core - starting PPTP server"
 service pptpd start
+
+logger -p local6.notice -t installer "app-pptpd-core - enabling Winbind server"
+chkconfig winbind on
+
+logger -p local6.notice -t installer "app-pptpd-core - starting Winbind server"
+service winbind start

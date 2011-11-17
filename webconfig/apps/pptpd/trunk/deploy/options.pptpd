@@ -2,7 +2,7 @@ lock
 auth
 proxyarp
 asyncmap 0
-require-chap
+refuse-pap
 refuse-chap
 refuse-mschap
 require-mschap-v2
@@ -10,5 +10,6 @@ require-mppe-128
 lcp-echo-failure 10
 lcp-echo-interval 30
 nobsdcomp
+enable-session
 plugin winbind.so
 ntlm_auth-helper "/usr/bin/ntlm_auth --helper-protocol=ntlm-server-1"

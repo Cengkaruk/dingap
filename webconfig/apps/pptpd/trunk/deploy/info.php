@@ -34,6 +34,7 @@ $app['controllers']['settings']['title'] = lang('base_settings');
 
 $app['requires'] = array(
     'app-accounts',
+    'app-incoming-firewall',
     'app-groups',
     'app-users',
     'app-network',
@@ -43,14 +44,25 @@ $app['core_requires'] = array(
     'app-network-core',
     'app-pptpd-plugin-core',
     'app-samba-extension-core',
+    'app-incoming-firewall-core',
     'csplugin-routewatch',
     'pptpd >= 1.3.4',
+    'samba-winbind',
 );
 
 $app['core_directory_manifest'] = array(
     '/var/clearos/pptpd' => array(),
+    '/var/clearos/pptpd/backup' => array(),
 );
 
 $app['core_file_manifest'] = array(
     'pptpd.php'=> array('target' => '/var/clearos/base/daemon/pptpd.php'),
+    'authorize' => array(
+        'target' => '/etc/clearos/pptpd.d/authorize',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
 );
