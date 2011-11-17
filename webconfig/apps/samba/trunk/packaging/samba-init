@@ -94,7 +94,7 @@ else if ($mode === Mode_Engine::MODE_STANDALONE)
 // Initialize user/group LDAP containers (accounts)
 //-------------------------------------------------
 
-$accounts_ldap->initialize($force);
+$accounts_ldap->initialize(OpenLDAP::DEFAULT_DOMAIN, $force);
 
 // Initialize Samba for users/groups
 //----------------------------------
