@@ -15,7 +15,7 @@ Requires: app-users
 Requires: app-groups
 
 %description
-Directory Server description...
+The directory server is an implementation (using OpenLDAP) of the Lightweight Directory Access Protocol.  The directory contains information on user records, computers, access controls etc. that can be accessed by services running on the server in addition to other systems access the directory remotely across a network.
 
 %package core
 Summary: Directory Server - APIs and install
@@ -42,7 +42,7 @@ Requires: pam_ldap
 Requires: webconfig-php-ldap
 
 %description core
-Directory Server description...
+The directory server is an implementation (using OpenLDAP) of the Lightweight Directory Access Protocol.  The directory contains information on user records, computers, access controls etc. that can be accessed by services running on the server in addition to other systems access the directory remotely across a network.
 
 This package provides the core API and libraries.
 
