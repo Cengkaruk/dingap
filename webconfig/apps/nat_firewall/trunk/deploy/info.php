@@ -27,8 +27,6 @@ $app['subcategory'] = lang('base_subcategory_firewall');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['controllers']['nat_firewall']['title'] = lang('nat_firewall_app_name');
-$app['controllers']['allow']['title'] = lang('nat_firewall_allowed_incoming_connections');
-$app['controllers']['block']['title'] = lang('nat_firewall_blocked_incoming_connections');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

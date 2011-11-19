@@ -44,7 +44,6 @@ $this->lang->load('firewall');
 
 $headers = array(
     lang('firewall_nickname'),
-    lang('nat_firewall_interface'),
     lang('nat_firewall_lan_ip'),
     lang('nat_firewall_wan_ip'),
     lang('firewall_protocol'),
@@ -87,7 +86,6 @@ foreach ($nat_rules as $rule) {
 
     $item['details'] = array(
         $rule['name'],
-        $rule['interface'],
         $lan_ip,
         $wan_ip,
         (!$rule['protocol'] ? lang('base_all') : $rule['protocol_name']),

@@ -4,7 +4,7 @@
  * One-to-One NAT firewall class.
  *
  * @category   Apps
- * @package    One_To_One_NAT
+ * @package    NAT_Firewall
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -64,6 +64,7 @@ clearos_load_library('firewall/Rule');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
@@ -78,7 +79,7 @@ clearos_load_library('base/Validation_Exception');
  * 1-to-1 NAT firewall class.
  *
  * @category   Apps
- * @package    One_To_One_NAT
+ * @package    NAT_Firewall
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -125,27 +126,18 @@ class One_To_One_NAT extends Firewall
         Validation_Exception::is_valid($this->validate_ip($wan_ip));
         Validation_Exception::is_valid($this->validate_ip($lan_ip));
         Validation_Exception::is_valid($this->validate_protocol($protocol));
+        Validation_Exception::is_valid($this->validate_interface($interface));
+
         if ($port) {
             if (preg_match('/(.*):(.*)/', $port, $match))
                 Validation_Exception::is_valid($this->validate_port_range($match[1], $match[2]));
             else
                 Validation_Exception::is_valid($this->validate_port($port));
         }
-        Validation_Exception::is_valid($this->validate_interface($interface));
  
         $rule = new Rule();
 
         $rule->set_name($name);
-
-        switch ($protocol) {
-            case 'TCP':
-                $rule->set_protocol(Firewall::PROTOCOL_TCP);
-                break;
-
-            case 'UDP':
-                $rule->set_protocol(Firewall::PROTOCOL_UDP);
-                break;
-        }
 
         if ($port) {
             if (preg_match('/(.*):(.*)/', $port, $match))
@@ -153,6 +145,8 @@ class One_To_One_NAT extends Firewall
             else
                 $rule->set_port($port);
         }
+
+        $rule->set_protocol($rule->convert_protocol_name($protocol));
         $rule->set_flags(Rule::ONE_TO_ONE | Rule::ENABLED);
         $rule->set_address($wan_ip);
         $rule->set_parameter($interface . '_' . $lan_ip);

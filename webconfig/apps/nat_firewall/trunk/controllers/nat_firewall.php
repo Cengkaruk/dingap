@@ -68,14 +68,9 @@ class Nat_Firewall extends ClearOS_Controller
         // Sanity check - make sure there is a external interface configured
         //-------------
 
-        $sanity_ok = FALSE;
-        $network_interface = $this->iface_manager->get_interface_details();
-        foreach ($network_interface as $interface => $detail) {
-            if ($detail['role'] == Role::ROLE_EXTERNAL)
-                $sanity_ok = TRUE;
-        }
+        $ifaces = $this->iface_manager->get_external_interfaces();
 
-        if (!$sanity_ok)
+        if (count($ifaces) < 1)
             $this->page->set_message(lang('nat_firewall_no_external_nic'), 'warning');
 
         // Load view data
@@ -116,11 +111,12 @@ class Nat_Firewall extends ClearOS_Controller
         $this->form_validation->set_policy('interface', 'nat_firewall/One_To_One_NAT', 'validate_interface', TRUE);
         $this->form_validation->set_policy('private_ip', 'nat_firewall/One_To_One_NAT', 'validate_ip', TRUE);
         $this->form_validation->set_policy('public_ip', 'nat_firewall/One_To_One_NAT', 'validate_ip', TRUE);
-            
+
         if ($this->input->post('all') != 'on') {
             $this->form_validation->set_policy('protocol', 'nat_firewall/One_To_One_NAT', 'validate_protocol', TRUE);
-            $this->form_validation->set_policy('port', 'nat_firewall/One_To_One_NAT', 'validate_port', TRUE);
+            $this->form_validation->set_policy('port', 'nat_firewall/One_To_One_NAT', 'validate_port');
         }
+
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -128,20 +124,20 @@ class Nat_Firewall extends ClearOS_Controller
 
         if (($this->input->post('submit') && $form_ok)) {
             try {
-                $my_protocol = $this->input->post('protocol');
-                $my_port = $this->input->post('port');
-
                 if ($this->input->post('all') == 'on') {
-                    $my_protocol = One_To_One_NAT::PROTOCOL_ALL;
-                    $my_port = One_To_One_NAT::CONSTANT_ALL_PORTS;
+                    $protocol = One_To_One_NAT::PROTOCOL_ALL;
+                    $port = One_To_One_NAT::CONSTANT_ALL_PORTS;
+                } else {
+                    $protocol = $this->input->post('protocol');
+                    $port = $this->input->post('port');
                 }
 
                 $this->one_to_one_nat->add(
                     $this->input->post('nickname'),
                     $this->input->post('public_ip'),
                     $this->input->post('private_ip'),
-                    $this->input->post('protocol'),
-                    $this->input->post('port'),
+                    $protocol,
+                    $port,
                     $this->input->post('interface')
                 );
 
@@ -158,15 +154,7 @@ class Nat_Firewall extends ClearOS_Controller
 
         try {
             $data['protocols'] = $this->one_to_one_nat->get_basic_protocols();
-            $interfaces = $this->iface_manager->get_interface_details();
-            // Only want external
-            foreach ($interfaces as $key => $interface) {
-                if ($interface['role'] == Role::ROLE_EXTERNAL)
-                    $data['interfaces'][$key] = $key;
-            }
-            if (empty($data['interfaces']))
-                $data['interfaces'][-1] = lang('base_select');
-            
+            $data['interfaces'] = $this->iface_manager->get_external_interfaces();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -246,7 +234,7 @@ class Nat_Firewall extends ClearOS_Controller
         try {
             $this->load->library('nat_firewall/One_To_One_NAT');
 
-            $this->one_to_one_nat->toggle_enable(FALse, $wan_ip, $lan_ip, $protocol, $port, $interface);
+            $this->one_to_one_nat->toggle_enable(FALSE, $wan_ip, $lan_ip, $protocol, $port, $interface);
 
             $this->page->set_status_disabled();
             redirect('/nat_firewall');

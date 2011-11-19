@@ -4,7 +4,7 @@
  * Javascript helper for NAT Firewall.
  *
  * @category   Apps
- * @package    Nat_Firewall
+ * @package    NAT_Firewall
  * @subpackage Javascript
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
