@@ -885,9 +885,12 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
 
     // Tabs are just for clean indentation HTML output
     $header_html = '';
+    $empty_row = '';
 
-    foreach ($headers as $header)
+    foreach ($headers as $header) {
         $header_html .= "\n\t\t" . trim("<th>$header</th>");
+        $empty_row .= '<td>&nbsp; </td>';
+    }
 
     // Action column?
     $action_col = TRUE;
@@ -895,8 +898,10 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
         $action_col = FALSE;
     
     // No title in the action header
-    if ($action_col)
+    if ($action_col) {
         $header_html .= "\n\t\t" . trim("<th>&nbsp; </th>");
+        $empty_row .= "<td>&nbsp; </td>";
+    }
 
     // Anchors
     //--------
@@ -912,16 +917,18 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     // Item parsing
     //-------------
 
-    $item_html = '';
+    if (empty($item_html)) {
+        $item_html = "<tr>$empty_row</tr>";
+    } else {
+        foreach ($items as $item) {
+            $item_html .= "\t<tr>\n";
 
-    foreach ($items as $item) {
-        $item_html .= "\t<tr>\n";
+            foreach ($item['details'] as $value)
+                $item_html .= "\t\t" . "<td>$value</td>\n";
 
-        foreach ($item['details'] as $value)
-            $item_html .= "\t\t" . "<td>$value</td>\n";
-
-        $item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
-        $item_html .= "\t</tr>\n";
+            $item_html .= "\t\t<td>" . $item['anchors'] . "</td>";
+            $item_html .= "\t</tr>\n";
+        }
     }
 
     // Size
