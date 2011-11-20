@@ -917,7 +917,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     // Item parsing
     //-------------
 
-    if (empty($item_html)) {
+    if (empty($items)) {
         $item_html = "<tr>$empty_row</tr>";
     } else {
         foreach ($items as $item) {
