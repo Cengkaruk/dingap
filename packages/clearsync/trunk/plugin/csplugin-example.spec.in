@@ -40,7 +40,7 @@ cp -v csplugin-example.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 # Post install
 %post
 /sbin/ldconfig
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Add command(s) to sudo configuration
 #CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
@@ -62,7 +62,7 @@ cp -v csplugin-example.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 # Post uninstall
 %postun
 /sbin/ldconfig
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Files
 %files
