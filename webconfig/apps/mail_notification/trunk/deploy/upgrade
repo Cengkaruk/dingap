@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [ -e /etc/mailer.conf ]; then
+    logger -p local6.notice -t installer "app-mail-notification-core - moving configuration file to new location"
+    mv /etc/mailer.conf /etc/clearos/mail_notification.conf
+fi

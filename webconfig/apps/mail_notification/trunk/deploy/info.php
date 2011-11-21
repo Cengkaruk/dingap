@@ -33,9 +33,9 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array(
-    'mailer.conf' => array(
-        'target' => '/etc/mailer.conf',
-        'mode' => '0755',
+    'mail_notification.conf' => array(
+        'target' => '/etc/clearos/mail_notification.conf',
+        'mode' => '0600',
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),

@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \Exception as Exception;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -69,7 +75,15 @@ class Mail_Notification extends ClearOS_Controller
         $this->_view_edit('edit');
     }
 
-    function _view_edit($mode = null)
+    /**
+     * View/edit common view
+     *
+     * @param string $mode form mode
+     *
+     * @return view
+     */
+
+    function _view_edit($mode = NULL)
     {
         // Load dependencies
         //------------------
@@ -87,7 +101,7 @@ class Mail_Notification extends ClearOS_Controller
         $this->form_validation->set_policy('username', 'mail_notification/Mail_Notification', 'validate_username', FALSE);
         $this->form_validation->set_policy('password', 'mail_notification/Mail_Notification', 'validate_password', FALSE);
         $this->form_validation->set_policy('port', 'mail_notification/Mail_Notification', 'validate_port', TRUE);
-        $this->form_validation->set_policy('ssl', 'mail_notification/Mail_Notification', 'validate_ssl', TRUE);
+        $this->form_validation->set_policy('encryption', 'mail_notification/Mail_Notification', 'validate_encryption', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
@@ -97,10 +111,11 @@ class Mail_Notification extends ClearOS_Controller
             try {
                 $this->mail_notification->set_host($this->input->post('host'));
                 $this->mail_notification->set_port($this->input->post('port'));
-                $this->mail_notification->set_ssl($this->input->post('ssl'));
+                $this->mail_notification->set_encryption($this->input->post('encryption'));
                 $this->mail_notification->set_username($this->input->post('username'));
                 $this->mail_notification->set_password($this->input->post('password'));
                 $this->mail_notification->set_sender($this->input->post('sender'));
+
                 $this->page->set_status_updated();
                 redirect('/mail_notification');
             } catch (Exception $e) {
@@ -115,11 +130,11 @@ class Mail_Notification extends ClearOS_Controller
         try {
             $data['host'] = $this->mail_notification->get_host();
             $data['port'] = $this->mail_notification->get_port();
-            $data['ssl'] = $this->mail_notification->get_ssl();
+            $data['encryption'] = $this->mail_notification->get_encryption();
             $data['username'] = $this->mail_notification->get_username();
             $data['password'] = $this->mail_notification->get_password();
             $data['sender'] = $this->mail_notification->get_sender();
-            $data['ssl_options'] = $this->mail_notification->get_ssl_options();
+            $data['encryption_options'] = $this->mail_notification->get_encryption_options();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -158,8 +173,17 @@ class Mail_Notification extends ClearOS_Controller
                 redirect('/mail_notification');
             } catch (Exception $e) {
                 $this->page->set_message(clearos_exception_message($e));
+                redirect('/mail_notification');
             }
         }
+
+        // Load view data
+        //---------------
+
+        $data['email'] = ($this->input->post('email')) ? '' : $this->input->post('email');
+
+        // Load views
+        //-----------
 
         $this->page->view_form('mail_notification/test', $data, lang('mail_notification_test'));
     }

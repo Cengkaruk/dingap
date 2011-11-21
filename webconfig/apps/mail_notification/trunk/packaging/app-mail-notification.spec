@@ -37,7 +37,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/mail_notification
 cp -r * %{buildroot}/usr/clearos/apps/mail_notification/
 
-install -D -m 0755 packaging/mailer.conf %{buildroot}/etc/mailer.conf
+install -D -m 0600 packaging/mail_notification.conf %{buildroot}/etc/clearos/mail_notification.conf
 
 %post
 logger -p local6.notice -t installer 'app-mail-notification - installing'
@@ -80,4 +80,4 @@ exit 0
 /usr/clearos/apps/mail_notification/deploy
 /usr/clearos/apps/mail_notification/language
 /usr/clearos/apps/mail_notification/libraries
-%config(noreplace) /etc/mailer.conf
+%config(noreplace) /etc/clearos/mail_notification.conf

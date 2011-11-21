@@ -55,24 +55,34 @@ clearos_load_language('mail_notification');
 // Classes
 //--------
 
-use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\Configuration_File as Configuration_File;
+use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 
-clearos_load_library('base/Engine');
 clearos_load_library('base/Configuration_File');
+clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('network/Hostname');
+clearos_load_library('network/Network_Utils');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
+
+// External libraries
+//-------------------
+
+include_once 'Swift/lib/Swift.php';
+include_once 'Swift/lib/Swift/File.php';
+include_once 'Swift/lib/Swift/Connection/SMTP.php';
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -100,7 +110,11 @@ class Mail_Notification extends Engine
     protected $config = NULL;
     protected $message = NULL;
 
-    const FILE_CONFIG = '/etc/mailer.conf';
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const FILE_CONFIG = '/etc/clearos/mail_notification.conf';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -110,22 +124,174 @@ class Mail_Notification extends Engine
      * Mail_Notification constructor.
      */
 
-    function __construct()
+    public function __construct()
     {
-        set_include_path(get_include_path() . PATH_SEPARATOR . '/usr/clearos/webconfig/var/lib/php');
-        include_once 'Swift/lib/Swift.php';
-        include_once 'Swift/lib/Swift/File.php';
-        include_once 'Swift/lib/Swift/Connection/SMTP.php';
+        clearos_profile(__METHOD__, __LINE__);
     }
 
-    /** Send a plain text message.
+    /**
+     * Clears data structures.
+     *
+     * @return void
+     */
+
+    public function clear()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        unset($this->message);
+    }
+
+    /**
+     * Adds an email to the send-to (recipient) address field.
+     *
+     * @param mixed $recipient a string or array (address, name) representing a recipient's email address
+     *
+     * @return void
+     * @throws Validation_Exception
+     */
+
+    public function add_recipient($recipient)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $address = $this->_parse_email_address($recipient);
+
+        Validation_Exception::is_valid($this->validate_email($address['address']));
+        
+        $this->message['recipient'][] = $address;
+    }
+
+    /**
+     * Returns encryption type.
+     *
+     * @return string encryption type
+     * @throws Engine_Exception
+     */
+
+    public function get_encryption()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['encryption'];
+    }
+
+    /**
+     * Returns the SSL type options for the SMTP server.
+     *
+     * @return array
+     */
+
+    public function get_encryption_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $options = array(
+            \Swift_Connection_SMTP::ENC_OFF => lang('mail_notification_none'),
+            \Swift_Connection_SMTP::ENC_SSL => lang('mail_notification_ssl'),
+            \Swift_Connection_SMTP::ENC_TLS => lang('mail_notification_tls')
+        );
+
+        return $options;
+    }
+
+    /**
+     * Returns SMTP host.
+     *
+     * @return string host
+     * @throws Engine_Exception
+     */
+
+    public function get_host()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['host'];
+    }
+
+    /**
+     * Returns SMTP password.
+     *
+     * @return string password
+     * @throws Engine_Exception
+     */
+
+    public function get_password()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['password'];
+    }
+
+    /**
+     * Returns SMTP port.
+     *
+     * @return int port
+     * @throws Engine_Exception
+     */
+
+    public function get_port()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['port'];
+    }
+
+    /**
+     * Returns sender address.
+     *
+     * @return string sender address
+     * @throws Engine_Exception
+     */
+
+    public function get_sender()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['sender'];
+    }
+
+    /**
+     * Returns SMTP username.
+     *
+     * @return string username
+     * @throws Engine_Exception
+     */
+
+    public function get_username()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['username'];
+    }
+
+    /**
+     * Sends a plain text message.
      *
      * @return void
      *
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function send()
+    public function send()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -143,7 +309,7 @@ class Mail_Notification extends Engine
         } else {
             foreach ($this->message['recipient'] as $address) {
                 if ($this->validate_email($address['address']))
-                    throw new Validation_Exception(lang('mail_notification_recipient') . ' - ' . lang('base_invalid') . ' (' . $address['address'] . ')');
+                    throw new Validation_Exception(lang('mail_notification_recipient_invalid'));
             }
         }
 
@@ -166,7 +332,7 @@ class Mail_Notification extends Engine
 
         try {
             $smtp = new \Swift_Connection_SMTP(
-                $this->config['host'], intval($this->config['port']), intval($this->config['ssl'])
+                $this->config['host'], intval($this->config['port']), intval($this->config['encryption'])
             );
             if ($this->config['username'] != NULL && !empty($this->config['username'])) {
                 $smtp->setUsername($this->config['username']);
@@ -288,300 +454,22 @@ class Mail_Notification extends Engine
         }
     }
 
-    /* Executes a test to see if mail can be sent through the SMTP server.
-     *
-     * @param string @email a valid email to send test to
-     * @return bool
-     * @throws ValidationException, EngineException
-     */
-
-    function test_relay($email)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->add_recipient($email);
-        $this->set_subject(lang('mail_notification_test'));
-        $this->set_body(lang('mail_notification_test_success'));
-        $this->send();
-    }
-
     /**
-     * Clears data structures.
+     * Sets the SMTP use of encryption.
      *
-     * @return void
-     */
-
-    function clear()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        unset($this->message);
-    }
-
-    /**
-     * Parse an email address.
-     *
-     * @param mixed $raw email address (as a string or array of parts)
-     *
-     * @access private
-     * @return array
-     * @throws EngineException
-     */
-
-    function _parse_email_address($raw)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $address = array();
-
-        if (! is_array($raw))
-            $address[0] = $raw;
-        else
-            $address = $raw;
-
-        $match = NULL;
-
-        // Format Some Guy <someguy@domain.com>
-        if (preg_match("/^(.*) +<(.*)>$/", $address[0], $match)) {
-            $address[0] = $match[2];
-            $address[1] = $match[1];
-        }
-
-        // Format <someguy@domain.com> Some Guy
-        if (preg_match("/^<(.*)> +(.*)$/", $address[0], $match)) {
-            $address[0] = $match[2];
-            $address[1] = $match[1];
-        }
-
-        // Format someguy@domain.com Some Guy
-        if (preg_match("/^([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4}) +(.*)$/iu", $address[0], $match)) {
-            $address[0] = $match[1];
-            $address[1] = $match[2];
-        }
-
-        // Format Some Guy someguy@domain.com
-        if (preg_match("/^(.*) +([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4})$/iu", $address[0], $match)) {
-            $address[0] = $match[2];
-            $address[1] = $match[1];
-        }
-
-        // Remove any <>
-        $address[0] = ereg_replace("\<|\>", "", $address[0]);
-        if (isset($address[1]))
-            $address[1] = ereg_replace("\<|\>", "", $address[1]);
-
-        // Check if array is reversed
-        if (isset($address[1]) && isset($address[0]) 
-            && $this->validate_email($address[1]) == NULL 
-            && $this->validate_email($address[0])
-        ) {
-            $temp = $address;
-            $address[0] = $temp[1];
-            $address[1] = $temp[0];
-        }
-
-        $email = array('address' => $address[0], 'name' => isset($address[1]) ? $address[1] : NULL);
-        return $email;
-    }
-
-    /**
-     * Adds an email to the send-to (recipient) address field.
-     *
-     * @param mixed $recipient a string or array (address, name) representing a recipient's email address
+     * @param string $encryption type of encryption
      *
      * @return void
      * @throws Validation_Exception
      */
 
-    function add_recipient($recipient)
+    public function set_encryption($encryption)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $address = $this->_parse_email_address($recipient);
-
-        // Validation
-        // ----------
-        Validation_Exception::is_valid($this->validate_email($address['address']));
+        Validation_Exception::is_valid($this->validate_encryption($encryption));
         
-        $this->message['recipient'][] = $address;
-    }
-
-    /**
-     * Returns sender address.
-     *
-     * @return string sender address
-     * @throws Engine_Exception
-     */
-
-    function get_sender()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config['sender'];
-    }
-
-    /**
-     * Returns the SSL type options for the SMTP server.
-     *
-     * @return array
-     */
-
-    function get_ssl_options()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $options = array(
-            \Swift_Connection_SMTP::ENC_OFF=>lang('mail_notification_none'),
-            \Swift_Connection_SMTP::ENC_SSL=>lang('mail_notification_ssl'),
-            \Swift_Connection_SMTP::ENC_TLS=>lang('mail_notification_tls')
-        );
-        return $options;
-    }
-
-    /**
-     * Returns SMTP host.
-     *
-     * @return string host
-     * @throws Engine_Exception
-     */
-
-    function get_host()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config['host'];
-    }
-
-    /**
-     * Returns SMTP port.
-     *
-     * @return int port
-     * @throws Engine_Exception
-     */
-
-    function get_port()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config['port'];
-    }
-
-    /**
-     * Returns SMTP SSL flag.
-     *
-     * @return boolean ssl 
-     * @throws Engine_Exception
-     */
-
-    function get_ssl()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config['ssl'];
-    }
-
-    /**
-     * Returns SMTP username.
-     *
-     * @return string username
-     * @throws Engine_Exception
-     */
-
-    function get_username()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config['username'];
-    }
-
-    /**
-     * Returns SMTP password.
-     *
-     * @return string password
-     * @throws Engine_Exception
-     */
-
-    function get_password()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        return $this->config['password'];
-    }
-
-    /**
-     * Sets the sender email address field.
-     *
-     * @param mixed $sender a string or array (address, name) representing the sender's email address
-     *
-     * @return void
-     * @throws Validation_Exception
-     */
-
-    function set_sender($sender)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $address = $this->_parse_email_address($sender);
-
-        Validation_Exception::is_valid($this->validate_email($address['address']));
-        
-        $this->_set_parameter('sender', $sender);
-    }
-
-    /**
-     * Sets the reply to email address field.
-     *
-     * @param mixed $replyto a string or array (address, name) representing the replyto email address
-     *
-     * @return void
-     * @throws Validation_Exception
-     */
-
-    function set_replyto($replyto)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $address = $this->_parse_email_address($replyto);
-
-        Validation_Exception::is_valid($this->validate_email($address['address']));
-        
-        $this->_set_parameter('replyto', $replyto);
-    }
-
-    /**
-     * Sets the subject field.
-     *
-     * @param string $subject the email subject
-     *
-     * @return void
-     * @throws Validation_Exception
-     */
-
-    function set_subject($subject)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_subject($subject));
-        
-        $this->message['subject'] = $subject;
+        $this->_set_parameter('encryption', $encryption);
     }
 
     /**
@@ -593,7 +481,7 @@ class Mail_Notification extends Engine
      * @throws Validation_Exception
      */
 
-    function set_host($host)
+    public function set_host($host)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -603,75 +491,29 @@ class Mail_Notification extends Engine
     }
 
     /**
-     * Sets the SMTP port.
+     * Sets the message attachments to be sent.
      *
-     * @param int $port SMTP port
-     *
-     * @return void
-     * @throws Validation_Exception
-     */
-
-    function set_port($port)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_port($port));
-        
-        $this->_set_parameter('port', $port);
-    }
-
-    /**
-     * Sets the SMTP use of SSL.
-     *
-     * @param boolean $ssl use SSL flag
+     * @param array $attachments associative array containing the message attachments to be included
      *
      * @return void
      * @throws Validation_Exception
      */
 
-    function set_ssl($ssl)
+    public function set_message_attachments($attachments)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_ssl($ssl));
-        
-        $this->_set_parameter('ssl', $ssl);
-    }
+        foreach ($attachments as $attachment) {
+            Validation_Exception::is_valid($this->validate_attachment($attachment));
+            if (!isset($attachment['type']))
+                $attachment['type'] = 'application/octet-stream';
+            if (!isset($attachment['encoding']))
+                $attachment['encoding'] = 'base64';
+            if (!isset($attachment['disposition']))
+                $attachment['disposition'] = 'attachment';
 
-    /**
-     * Sets the SMTP username.
-     *
-     * @param string $username SMTP username
-     *
-     * @return void
-     * @throws Validation_Exception
-     */
-
-    function set_username($username)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_username($username));
-        
-        $this->_set_parameter('username', $username);
-    }
-
-    /**
-     * Sets the SMTP password.
-     *
-     * @param string $password SMTP password
-     *
-     * @return void
-     * @throws Validation_Exception
-     */
-
-    function set_password($password)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_password($password));
-        
-        $this->_set_parameter('password', $password);
+            $this->message['parts'][] = $attachment;
+        }
     }
 
     /**
@@ -683,7 +525,7 @@ class Mail_Notification extends Engine
      * @throws ValidationEException
      */
 
-    function set_body($body)
+    public function set_message_body($body)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -701,13 +543,14 @@ class Mail_Notification extends Engine
      * @throws Validation_Exception
      */
 
-    function set_html_body($html)
+    public function set_message_html_body($html)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_html_body($html));
 
         $html = array($html, "text/html");
+
         $this->message['parts'][] = $html;
     }
 
@@ -720,7 +563,7 @@ class Mail_Notification extends Engine
      * @throws Validation_Exception
      */
 
-    function set_part($part)
+    public function set_message_part($part)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -728,82 +571,114 @@ class Mail_Notification extends Engine
     }
 
     /**
-     * Sets the message attachments to be sent.
+     * Sets the subject field.
      *
-     * @param array $attachments associative array containing the message attachments to be included
+     * @param string $subject the email subject
      *
      * @return void
      * @throws Validation_Exception
      */
 
-    function set_attachments($attachments)
+    public function set_message_subject($subject)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        foreach ($attachments as $attachment) {
-            Validation_Exception::is_valid($this->validate_attachment($attachment));
-            if (!isset($attachment['type']))
-                $attachment['type'] = 'application/octet-stream';
-            if (!isset($attachment['encoding']))
-                $attachment['encoding'] = 'base64';
-            if (!isset($attachment['disposition']))
-                $attachment['disposition'] = 'attachment';
-
-            $this->message['parts'][] = $attachment;
-        }
+        Validation_Exception::is_valid($this->validate_subject($subject));
+        
+        $this->message['subject'] = $subject;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // P R I V A T E   M E T H O D S
-    ///////////////////////////////////////////////////////////////////////////////
-
     /**
-     * Loads configuration files.
+     * Sets the SMTP password.
+     *
+     * @param string $password SMTP password
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Validation_Exception
      */
 
-    protected function _load_config()
+    public function set_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $configfile = new Configuration_File(self::FILE_CONFIG);
-
-        try {
-            $this->config = $configfile->Load();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        $this->is_loaded = TRUE;
+        Validation_Exception::is_valid($this->validate_password($password));
+        
+        $this->_set_parameter('password', $password);
     }
 
     /**
-     * Generic set routine.
+     * Sets the SMTP port.
      *
-     * @param string $key   key name
-     * @param string $value value for the key
+     * @param int $port SMTP port
      *
-     * @return  void
-     * @throws Engine_Exception
+     * @return void
+     * @throws Validation_Exception
      */
 
-    function _set_parameter($key, $value)
+    public function set_port($port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            $match = $file->replace_lines("/^$key\s*=\s*/", "$key=$value\n");
+        Validation_Exception::is_valid($this->validate_port($port));
+        
+        $this->_set_parameter('port', $port);
+    }
 
-            if (!$match)
-                $file->add_lines("$key=$value\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+    /**
+     * Sets the sender email address field.
+     *
+     * @param mixed $sender a string or array (address, name) representing the sender's email address
+     *
+     * @return void
+     * @throws Validation_Exception
+     */
 
-        $this->is_loaded = FALSE;
+    public function set_sender($sender)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $address = $this->_parse_email_address($sender);
+
+        Validation_Exception::is_valid($this->validate_email($address['address']));
+        
+        $this->_set_parameter('sender', $sender);
+    }
+
+    /**
+     * Sets the SMTP username.
+     *
+     * @param string $username SMTP username
+     *
+     * @return void
+     * @throws Validation_Exception
+     */
+
+    public function set_username($username)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_username($username));
+        
+        $this->_set_parameter('username', $username);
+    }
+
+    /**
+     * Executes a test to see if mail can be sent through the SMTP server.
+     *
+     * @param string $email a valid email to send test to
+     *
+     * @return bool
+     * @throws ValidationException, EngineException
+     */
+
+    public function test_relay($email)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->add_recipient($email);
+        $this->set_message_subject(lang('mail_notification_test'));
+        $this->set_message_body(lang('mail_notification_test_success'));
+        $this->send();
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -822,8 +697,8 @@ class Mail_Notification extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!preg_match("/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}/i", $email))
-            return lang('mail_notification_email_is_invalid');
+        if (!preg_match("/^([a-zA-Z0-9])+([a-zA-Z0-9\._-])*@([a-zA-Z0-9_-])+([a-zA-Z0-9\._-]+)+$/", $email))
+            return lang('mail_notification_email_invalid');
     }
 
     /**
@@ -839,7 +714,7 @@ class Mail_Notification extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (preg_match("/.*\n.*/", $subject))
-            return lang('mail_notification_subject_is_invalid');
+            return lang('mail_notification_subject_invalid');
     }
 
     /**
@@ -854,8 +729,8 @@ class Mail_Notification extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($port < 1 || $port > 65535)
-            return lang('mail_notification_port_is_invalid');
+        if (! Network_Utils::is_valid_port($port))
+            return lang('mail_notification_port_invalid');
     }
 
     /**
@@ -873,23 +748,23 @@ class Mail_Notification extends Engine
         $hostname = new Hostname();
 
         if ($hostname->validate_hostname($host))
-            return lang('mail_notification_host_is_invalid');
+            return lang('mail_notification_host_invalid');
     }
 
     /**
      * Validation routine for SMTP SSL.
      *
-     * @param string $ssl SMTP ssl
+     * @param string $encryption SMTP encryption
      *
-     * @return mixed void if SMTP ssl is valid, errmsg otherwise
+     * @return mixed void if SMTP encryption is valid, errmsg otherwise
      */
 
-    public function validate_ssl($ssl)
+    public function validate_encryption($encryption)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_bool($ssl))
-            return lang('mail_notification_ssl_is_invalid');
+        if (is_bool($encryption))
+            return lang('mail_notification_encryption_invalid');
     }
 
     /**
@@ -905,7 +780,7 @@ class Mail_Notification extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match("/^[A-Z0-9._%+-@]*$/i", $username))
-            return lang('mail_notification_username_is_invalid');
+            return lang('mail_notification_username_invalid');
     }
 
     /**
@@ -921,7 +796,7 @@ class Mail_Notification extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match("/^[A-Z0-9._%+-@$\\?\\(\\)]*$/i", $password))
-            return lang('mail_notification_password_is_invalid');
+            return lang('mail_notification_password_invalid');
     }
 
     /**
@@ -960,7 +835,7 @@ class Mail_Notification extends Engine
      * @return mixed void if attachment is valid, errmsg otherwise
      */
 
-    function validate_attachment($attachment)
+    public function validate_attachment($attachment)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -975,5 +850,154 @@ class Mail_Notification extends Engine
 
         if (!$file->exists())
             return lang('mail_notification_attachment_file_not_found') . ' - ' . $attachment['filename'];
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E   M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Loads configuration files.
+     *
+     * @access private
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _load_config()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $config_file = new Configuration_File(self::FILE_CONFIG);
+
+        $this->config = $config_file->load();
+
+        // Set defaults
+        //-------------
+
+        if (! isset($this->config['encryption']))
+            $this->config['encryption'] = '';
+
+        if (! isset($this->config['host']))
+            $this->config['host'] = 'localhost';
+
+        if (! isset($this->config['port']))
+            $this->config['port'] = 25;
+
+        if (! isset($this->config['sender']))
+            $this->config['sender'] = '';
+
+        if (! isset($this->config['username']))
+            $this->config['username'] = '';
+
+        if (! isset($this->config['password']))
+            $this->config['password'] = '';
+
+        $this->is_loaded = TRUE;
+    }
+
+    /**
+     * Parse an email address.
+     *
+     * @param mixed $raw email address (as a string or array of parts)
+     *
+     * @access private
+     * @return array
+     * @throws EngineException
+     */
+
+    protected function _parse_email_address($raw)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $address = array();
+
+        if (! is_array($raw))
+            $address[0] = $raw;
+        else
+            $address = $raw;
+
+        $match = array();
+
+        // Format Some Guy <someguy@domain.com>
+        if (preg_match("/^(.*) +<(.*)>$/", $address[0], $match)) {
+            $address[0] = $match[2];
+            $address[1] = $match[1];
+        }
+
+        $match = array();
+
+        // Format <someguy@domain.com> Some Guy
+        if (preg_match("/^<(.*)> +(.*)$/", $address[0], $match)) {
+            $address[0] = $match[2];
+            $address[1] = $match[1];
+        }
+
+        $match = array();
+
+        // Format someguy@domain.com Some Guy
+        // TODO: preg compilation  errors
+        /*
+        if (preg_match("/^([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4}) +(.*)$/iu", $address[0], $match)) {
+            $address[0] = $match[1];
+            $address[1] = $match[2];
+        }
+
+        $match = array();
+
+        // Format Some Guy someguy@domain.com
+        if (preg_match("/^(.*) +([a-z0-9\._-\+]+@+[a-z0-9\._-]+\.+[a-z]{2,4})$/iu", $address[0], $match)) {
+            $address[0] = $match[2];
+            $address[1] = $match[1];
+        }
+        */
+
+        // Remove any <>
+        $address[0] = preg_replace('/[<>|]/', '', $address[0]);
+
+        if (isset($address[1]))
+            $address[1] = preg_replace('/[<>|]/', '', $address[1]);
+
+        // Check if array is reversed
+        if (isset($address[1]) && isset($address[0]) 
+            && $this->validate_email($address[1]) == NULL 
+            && $this->validate_email($address[0])
+        ) {
+            $temp = $address;
+            $address[0] = $temp[1];
+            $address[1] = $temp[0];
+        }
+
+        $email = array('address' => $address[0], 'name' => isset($address[1]) ? $address[1] : NULL);
+
+        return $email;
+    }
+
+    /**
+     * Generic set routine.
+     *
+     * @param string $key   key name
+     * @param string $value value for the key
+     *
+     * @access private
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _set_parameter($key, $value)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $file = new File(self::FILE_CONFIG, TRUE);
+            $match = $file->replace_lines("/^$key\s*=\s*/", "$key=$value\n");
+
+            if (!$match)
+                $file->add_lines("$key=$value\n");
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+
+        $this->is_loaded = FALSE;
     }
 }

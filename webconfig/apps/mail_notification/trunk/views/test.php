@@ -43,20 +43,13 @@ $this->lang->load('mail_notification');
 echo form_open('mail_notification/test');
 echo form_header(lang('mail_notification_test'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-$buttons = array(
-    form_submit_custom('submit', lang('mail_notification_send_now'), 'high'),
-    anchor_cancel('/app/mail_notification')
-);
 echo field_input('email', $email, lang('mail_notification_send_email_to'), FALSE);
-echo field_button_set($buttons);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set(
+    array(
+        form_submit_custom('submit', lang('mail_notification_send_now'), 'high'),
+        anchor_cancel('/app/mail_notification')
+    )
+);
 
 echo form_footer();
 echo form_close();
