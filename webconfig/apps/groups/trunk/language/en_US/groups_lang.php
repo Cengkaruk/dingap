@@ -1,7 +1,7 @@
 <?php
 
 $lang['groups_app_name'] = 'Groups';
-$lang['groups_app_description'] = 'Groups description...';
+$lang['groups_app_description'] = 'The groups app allows an administrator to create, delete and modify groups on the system.  Groups can be used to efficiently manage permissions in accessing server resources.';
 $lang['groups_edit_members'] = 'Edit Members';
 $lang['groups_group_name'] = 'Group Name';
 $lang['groups_description'] = 'Description';
