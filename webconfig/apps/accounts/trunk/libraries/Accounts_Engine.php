@@ -174,6 +174,7 @@ class Accounts_Engine extends Engine
      * Returns state of driver.
      *
      * @param string $driver_to_check driver to check
+     *
      * @return integer state of driver
      * @throws Engine_Exception
      */

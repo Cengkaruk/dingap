@@ -191,6 +191,8 @@ class Accounts_Configuration extends Engine
     /**
      * Sets the accounts driver.
      *
+     * @param string $driver driver
+     *
      * @return void
      * @throws Engine_Exception, Validation_Exception
      */

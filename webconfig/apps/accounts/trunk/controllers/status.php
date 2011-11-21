@@ -56,6 +56,8 @@ class Status extends ClearOS_Controller
 {
     /**
      * Default controller.
+     *
+     * @return view
      */
 
     function index()
@@ -66,6 +68,8 @@ class Status extends ClearOS_Controller
 
     /**
      * Returns state of account system
+     *
+     * @return boolean state of accounts driver
      */
 
     function unhappy()
@@ -93,6 +97,8 @@ class Status extends ClearOS_Controller
 
     /**
      * Status widget.
+     *
+     * @return view accoutns status  view
      */
 
     function widget()
@@ -112,6 +118,8 @@ class Status extends ClearOS_Controller
 
     /**
      * Returns accounts status.
+     *
+     * @return JSON accounts status information
      */
 
     function get_info()
@@ -120,12 +128,9 @@ class Status extends ClearOS_Controller
         //---------------
 
         $data['marketplace_installed'] = (clearos_app_installed('marketplace')) ? TRUE : FALSE;
-        $data['directory_server_installed'] = (clearos_app_installed('directory_server')) ? TRUE : FALSE;
+        $data['openldap_directory_installed'] = (clearos_app_installed('openldap_directory')) ? TRUE : FALSE;
         $data['openldap_installed'] = (clearos_app_installed('openldap_directory')) ? TRUE : FALSE;
         $data['ad_installed'] = (clearos_app_installed('active_directory')) ? TRUE : FALSE;
-
-// FIXME
-$data['directory_server_installed'] = FALSE;
 
         try {
             $this->load->factory('accounts/Accounts_Factory');

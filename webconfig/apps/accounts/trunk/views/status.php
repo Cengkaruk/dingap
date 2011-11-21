@@ -48,7 +48,7 @@ $ad_installed_action = anchor_custom('/app/active_directory', lang('accounts_con
 $ad_marketplace_action = anchor_custom('/app/marketplace/view/active_directory', lang('accounts_install_active_directory_connector'));
 $openldap_installed_action = anchor_javascript('initialize_openldap', lang('accounts_initialize_builtin_directory'));
 $openldap_marketplace_action = anchor_custom('/app/marketplace/view/openldap_directory', lang('accounts_install_builtin_directory'));
-$directory_installed_action = anchor_custom('/app/directory_server', lang('accounts_configure_builtin_directory'));
+$directory_installed_action = anchor_custom('/app/openldap_directory', lang('accounts_configure_builtin_directory'));
 
 echo "<input id='accounts_status_lock' value='off' type='hidden'>\n";
 
@@ -71,7 +71,7 @@ echo "
     <td>
         <p>The native Directory Server provides the most flexibility
         when it comes to supporting third party apps.</p>
-        <div id='directory_server_installed'>$directory_installed_action</div>
+        <div id='openldap_directory_installed'>$directory_installed_action</div>
         <div id='openldap_installed'>$openldap_installed_action</div>
         <div id='openldap_marketplace'>$openldap_marketplace_action</div>
     </td>

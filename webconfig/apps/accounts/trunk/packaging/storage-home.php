@@ -18,5 +18,5 @@ clearos_load_language('accounts');
 ///////////////////////////////////////////////////////////////////////////////
 
 $plugin['name'] = lang('accounts_home_directory_storage_plugin');
-$plugin['nickname'] = lang('accounts_home_directory;');
+$plugin['nickname'] = lang('accounts_home_directory');
 $plugin['description'] = lang('accounts_home_directory_storage_plugin_description');

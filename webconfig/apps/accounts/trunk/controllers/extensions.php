@@ -85,6 +85,14 @@ class Extensions extends ClearOS_Controller
         $this->page->view_form('extensions', $data, lang('accounts_extensions'));
     }
 
+    /** 
+     * Extension view
+     *
+     * @param string $extension extension
+     *
+     * @return view
+     */
+
     function view($extension)
     {
         // Load dependencies

@@ -47,16 +47,18 @@
 
 class Accounts extends ClearOS_Controller
 {
-	/**
-	 * Accounts overview.
-	 */
+    /**
+     * Accounts overview.
+     *
+     * @return view
+     */
 
-	function index()
-	{
+    function index()
+    {
         $this->load->language('accounts');
 
         $views = array('accounts/status', 'accounts/plugins', 'accounts/extensions');
 
         $this->page->view_forms($views, lang('accounts_app_name'));
-	}
+    }
 }

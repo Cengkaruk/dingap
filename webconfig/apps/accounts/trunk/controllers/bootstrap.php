@@ -50,6 +50,8 @@ class Bootstrap extends ClearOS_Controller
     /**
      * Bootstrap default controller
      *
+     * @param string $force force initialization
+     *
      * @return view
      */
 

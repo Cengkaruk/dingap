@@ -92,6 +92,8 @@ class Bootstrap extends Engine
     /**
      * Initialized the default accounts driver.
      *
+     * @param boolean $force flag to initialize even on a system already initialized
+     *
      * @return string accounts driver
      * @throws Engine_Exception
      */

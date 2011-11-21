@@ -57,7 +57,7 @@ foreach ($plugins as $plugin => $details) {
 
     $item['title'] = $details['nickname'];
     $item['action'] = '/app/accounts/plugins/view/' . $plugin;
-    $item['anchors'] = anchor_view('/app/accounts/plugins/view/' . $plugin);
+    $item['anchors'] = ''; // FIXME: anchor_view('/app/accounts/plugins/view/' . $plugin);
     $item['details'] = array(
         $details['nickname'],
     );

@@ -137,20 +137,20 @@ $(document).ready(function() {
             $("#ad_marketplace").hide();
         }
 
-        if (payload.directory_server_installed) {
-            $("#directory_server_installed").show();
+        if (payload.openldap_directory_installed) {
+            $("#openldap_directory_installed").show();
             $("#openldap_installed").hide();
             $("#openldap_marketplace").hide();
         } else if (payload.openldap_installed) {
-            $("#directory_server_installed").hide();
+            $("#openldap_directory_installed").hide();
             $("#openldap_installed").show();
             $("#openldap_marketplace").hide();
         } else if (payload.marketplace_installed) {
-            $("#directory_server_installed").hide();
+            $("#openldap_directory_installed").hide();
             $("#openldap_installed").hide();
             $("#openldap_marketplace").show();
         } else {
-            $("#directory_server_installed").hide();
+            $("#openldap_directory_installed").hide();
             $("#openldap_installed").hide();
             $("#openldap_marketplace").hide();
         }
