@@ -193,7 +193,7 @@ class Time extends Engine
         $zonelist = array();
 
         foreach ($zones as $zone)
-            $zonelist[] = $zone;
+            $zonelist[$zone] = preg_replace('/_/', ' ', $zone);
 
         return $zonelist;
     }

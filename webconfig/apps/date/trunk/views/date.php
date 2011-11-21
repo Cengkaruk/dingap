@@ -37,34 +37,43 @@ $this->lang->load('base');
 $this->lang->load('date');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
+if ($form_type === 'edit') {
+    $read_only = FALSE;
+    $buttons = array( 
+        form_submit_update('submit'),
+        anchor_cancel('/app/date')
+    );
+} else {
+    $read_only = TRUE;
+    $buttons = array( 
+        anchor_edit('/app/date/edit'),
+        anchor_javascript('sync', lang('date_synchronize_now'), 'high')
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Infobox 
+///////////////////////////////////////////////////////////////////////////////
+
+echo "<div id='result_box'>";
+echo infobox_highlight(lang('base_status'), lang('date_synchronization_changed_time_by_x_seconds:') . ' ' .  "<span id='result'></span>");
+echo "</div>";
+
+///////////////////////////////////////////////////////////////////////////////
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('date');
 echo form_header(lang('base_settings'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
+echo field_input('date', $date, lang('date_date'), TRUE);
+echo field_input('time', $time, lang('date_time'), TRUE);
+echo field_dropdown('time_zone', $time_zones, $time_zone, lang('date_time_zone'), $read_only);
 
-echo field_input('date', $date, lang('date_date'), TRUE, array('id' => 'date'));
-echo field_input('time', $time, lang('date_time'), TRUE, array('id' => 'time'));
-echo field_simple_dropdown('time_zone', $time_zones, $time_zone, lang('date_time_zone'));
-
-echo field_button_set(
-    array( 
-        form_submit_update('submit', 'high'),
-        anchor_javascript('sync', lang('date_synchronize_now'), 'high')
-    )
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
-
-echo "<div id='result_box'>";
-echo infobox_highlight(lang('base_status'), lang('date_synchronization_changed_time_by_x_seconds:') . ' ' .  "<span id='result'></span>");
-echo "</div>";

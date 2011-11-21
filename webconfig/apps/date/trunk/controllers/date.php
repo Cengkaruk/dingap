@@ -48,12 +48,47 @@
 class Date extends ClearOS_Controller
 {
     /**
-     * Date default controller
+     * Date default controller.
      *
      * @return view
      */
 
     function index()
+    {
+        $this->view();
+    }
+
+    /**
+     * Date settings edit view.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Date settings view view.
+     *
+     * @return view
+     */
+
+    function view()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * Date default controller
+     *
+     * @param string $form_type form type
+     *
+     * @return view
+     */
+
+    function _view_edit($form_type)
     {
         // Load dependencies
         //------------------
@@ -84,6 +119,7 @@ class Date extends ClearOS_Controller
         //---------------
 
         try {
+            $data['form_type'] = $form_type;
             $data['time_zone'] = $this->time->get_time_zone();
             $data['time_zones'] = $this->time->get_time_zone_list();
 
