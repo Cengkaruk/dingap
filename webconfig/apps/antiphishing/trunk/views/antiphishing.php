@@ -37,26 +37,35 @@ $this->lang->load('antivirus');
 $this->lang->load('base');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
+if ($form_mode === 'edit') {
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/antiphishing')
+    );
+} else {
+    $read_only = TRUE;
+    $buttons = array(
+        anchor_edit('/app/antiphishing/edit')
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('antiphishing');
 echo form_header(lang('base_settings'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
+echo field_toggle_enable_disable('signatures', $signatures, lang('antiphishing_signature_engine'), $read_only);
+echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antiphishing_heuristics_engine'), $read_only);
+echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antiphishing_block_ssl_mismatch'), $read_only);
+echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antiphishing_block_cloaked'), $read_only);
 
-echo field_toggle_enable_disable('signatures', $signatures, lang('antiphishing_signature_engine'));
-echo field_toggle_enable_disable('scan_urls', $scan_urls, lang('antiphishing_heuristics_engine'));
-echo field_toggle_enable_disable('block_ssl_mismatch', $block_ssl_mismatch, lang('antiphishing_block_ssl_mismatch'));
-echo field_toggle_enable_disable('block_cloak', $block_cloak, lang('antiphishing_block_cloaked'));
-
-echo field_button_set( array( form_submit_update('submit', 'high') ));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();

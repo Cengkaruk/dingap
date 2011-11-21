@@ -48,12 +48,47 @@
 class Antiphishing extends ClearOS_Controller
 {
     /**
-     * Antiphishing default controller
+     * Antiphishing default controller.
      *
      * @return view
      */
 
     function index()
+    {
+        $this->view();
+    }
+
+    /**
+     * Antiphishing edit view.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Antiphishing view view.
+     *
+     * @return view
+     */
+
+    function view()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * Antiphishing default controller
+     *
+     * @param string $form_mode form mode
+     *
+     * @return view
+     */
+
+    function _view_edit($form_mode)
     {
         // Load libraries
         //---------------
@@ -94,6 +129,7 @@ class Antiphishing extends ClearOS_Controller
         //---------------
 
         try {
+            $data['form_mode'] = $form_mode;
             $data['scan_urls'] = $this->clamav->get_phishing_scan_urls_state();
             $data['signatures'] = $this->clamav->get_phishing_signatures_state();
             $data['block_cloak'] = $this->clamav->get_phishing_always_block_cloak();
