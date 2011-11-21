@@ -304,15 +304,18 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id 
 
     $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
     $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $span_id_html = (isset($options['span_id'])) ? $options['span_id'] : $input_id . '_span';
     $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
 
     if (($name !== NULL) || ($value != NULL))
-        $hidden_input = "<input type='hidden' name='$name' value='$value'>";
+        $hidden_input = "<input type='hidden' name='$name' value='$value' id='$input_id'>";
+    else
+        $hidden_input = '';
 
     return "
         <tr id='$field_id_html' class='theme-fieldview" . $hide_field . "'>
             <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
-            <td class='right-field-content'><span id='$input_id'>$text</span>$hidden_input</td>
+            <td class='right-field-content'><span id='$span_id_html'>$text</span>$hidden_input</td>
         </tr>
     ";
 }
@@ -1289,6 +1292,10 @@ function theme_infobox($type, $title, $message, $options = NULL)
         $class = 'ui-state-error';
         $iconclass = 'ui-icon-alert';
     } else if ($type === 'highlight') {
+        $class = 'ui-state-default';
+        $iconclass = 'ui-icon-info';
+    } else {
+        // TODO: review default
         $class = 'ui-state-default';
         $iconclass = 'ui-icon-info';
     }
