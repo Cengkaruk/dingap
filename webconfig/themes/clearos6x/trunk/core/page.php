@@ -669,7 +669,7 @@ function _get_menu($menu_data)
             // Detect active category for given page
             //--------------------------------------
 
-            if ($page['category'] == $highlight['category']) {
+            if (isset($page['category']) && isset($highlight['category']) && ($page['category'] == $highlight['category'])) {
                 $active_category_number = $category_count;
                 $class = 'sfCurrent';
             } else {
@@ -721,7 +721,7 @@ function _get_menu($menu_data)
         // Page transition
         //----------------
 
-        $activeClass = ($url == $highlight['page']) ? 'menu-item-active' : '';
+        $activeClass = (isset($highlight['page']) && ($url == $highlight['page'])) ? 'menu-item-active' : '';
 
         $top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
         $left_menu .= "\t\t\t\t<li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
