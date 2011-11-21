@@ -48,12 +48,47 @@
 class Language extends ClearOS_Controller
 {
     /**
-     * Language default controller
+     * Language default controller.
      *
      * @return view
      */
 
     function index()
+    {
+        $this->view();
+    }
+
+    /**
+     * Language edit view.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Language view view.
+     *
+     * @return view
+     */
+
+    function view()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * Language view/edit common controller
+     *
+     * @param string $form_type form type
+     *
+     * @return view
+     */
+
+    function _view_edit($form_type)
     {
         // Load dependencies
         //------------------
@@ -92,6 +127,7 @@ class Language extends ClearOS_Controller
         //---------------
 
         try {
+            $data['form_type'] = $form_type;
             $data['code'] = $this->locale->get_language_code();
             $data['languages'] = $this->locale->get_languages();
         } catch (Exception $e) {

@@ -36,30 +36,39 @@
 $this->lang->load('base');
 $this->lang->load('language');
 
+///////////////////////////////////////////////////////////////////////////////
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
 // Sort by value instead of language code.
 asort($languages);
 
+if ($form_type === 'edit') {
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/language')
+    );
+} else {
+    $read_only = TRUE;
+    $buttons = array(
+        anchor_edit('/app/language/edit')
+    );
+}
+
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('language');
 echo form_header(lang('base_settings'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form Fields and Buttons
-///////////////////////////////////////////////////////////////////////////////
+echo field_dropdown('code', $languages, $code, lang('language_default_system_language'), $read_only);
 
-echo field_dropdown('code', $languages, $code, lang('language_default_system_language'));
-echo field_checkbox('session', TRUE, lang('language_update_my_login_session'));
+if ($form_type === 'edit')
+    echo field_checkbox('session', TRUE, lang('language_update_my_login_session'));
 
-echo field_button_set(
-    array(form_submit_update('submit'))
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
