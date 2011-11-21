@@ -1,7 +1,7 @@
 # ClearSync File Watch Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 8%{dist}
+Release: 9%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
@@ -40,7 +40,7 @@ rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filewatch.la
 # Post install
 %post
 /sbin/ldconfig
-/sbin/service clearsyncd condrestart 2>&1 || :
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Add command(s) to sudo configuration
 CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
@@ -62,7 +62,7 @@ fi
 # Post uninstall
 %postun
 /sbin/ldconfig
-/sbin/service clearsyncd condrestart 2>&1 || :
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Files
 %files
