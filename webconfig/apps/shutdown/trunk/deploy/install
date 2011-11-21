@@ -1,4 +1,0 @@
-#!/bin/sh
-
-# Add sudoers entries
-/usr/sbin/addsudo /sbin/shutdown app-shutdown-core
