@@ -37,29 +37,38 @@ $this->lang->load('base');
 $this->lang->load('organization');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('organization');
+if ($form_mode === 'edit') {
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/organization')
+    );
+} else {
+    $read_only = TRUE;
+    $buttons = array(
+        anchor_edit('/app/organization/edit')
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Form
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_open('organization/edit');
 echo form_header(lang('base_settings'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form Fields and Buttons
-///////////////////////////////////////////////////////////////////////////////
+echo field_input('organization', $organization, lang('organization_organization'), $read_only);
+echo field_input('unit', $unit, lang('organization_unit'), $read_only);
+echo field_input('street', $street, lang('organization_street_address'), $read_only);
+echo field_input('city', $city, lang('organization_city'), $read_only);
+echo field_input('region', $region, lang('organization_region'), $read_only);
+echo field_dropdown('country', $countries, $country, lang('organization_country'), $read_only);
+echo field_input('postal_code', $postal_code, lang('organization_postal_code'), $read_only);
 
-echo field_input('organization', $organization, lang('organization_organization'));
-echo field_input('unit', $unit, lang('organization_unit'));
-echo field_input('street', $street, lang('organization_street_address'));
-echo field_input('city', $city, lang('organization_city'));
-echo field_input('region', $region, lang('organization_region'));
-echo field_dropdown('country', $countries, $country, lang('organization_country'));
-echo field_input('postal_code', $postal_code, lang('organization_postal_code'));
-
-echo field_button_set(array(form_submit_update('submit', 'high')));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();

@@ -30,6 +30,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Exceptions
+//-----------
+
+use \Exception as Exception;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -48,12 +57,47 @@
 class Organization extends ClearOS_Controller
 {
     /**
-     * Organization default controller
+     * Organization default controller.
      *
      * @return view
      */
 
     function index()
+    {
+        $this->view();
+    }
+
+    /**
+     * Organization edit view.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Organization view view.
+     *
+     * @return view
+     */
+
+    function view()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * Organization view/edit form.
+     *
+     * @param string $form_mode form mode
+     *
+     * @return view
+     */
+
+    function _view_edit($form_mode)
     {
         // Load dependencies
         //------------------
@@ -98,6 +142,7 @@ class Organization extends ClearOS_Controller
         //---------------
 
         try {
+            $data['form_mode'] = $form_mode;
             $data['organization'] = $this->organization->get_organization();
             $data['unit'] = $this->organization->get_unit();
             $data['street'] = $this->organization->get_street();
