@@ -183,15 +183,6 @@ function theme_fieldset_footer()
 // A N C H O R  A N D  B U T T O N  S E T S
 ///////////////////////////////////////////////////////////////////////////////
 
-function theme_button_set($buttons, $options)
-{
-    return _theme_button_set($buttons, $options, 'normal');
-}
-function theme_field_button_set($buttons, $options)
-{
-    return _theme_button_set($buttons, $options, 'field');
-}
-
 /**
  * Button set.
  *
@@ -202,6 +193,44 @@ function theme_field_button_set($buttons, $options)
  * @param array  $options options
  * @param string $type    button set type
  *
+ * @return string HTML for button set
+ */
+
+function theme_button_set($buttons, $options = array())
+{
+    return _theme_button_set($buttons, $options, 'normal');
+}
+
+/**
+ * Field button set.
+ *
+ * This is the same as a button set, but used in a form with fields.
+ *
+ * Supported options:
+ * - id 
+ *
+ * @param array  $buttons list of buttons in HTML format
+ * @param array  $options options
+ *
+ * @return string HTML for field button set
+ */
+
+function theme_field_button_set($buttons, $options = array())
+{
+    return _theme_button_set($buttons, $options, 'field');
+}
+
+/**
+ * Internal button set handler.
+ *
+ * Supported options:
+ * - id 
+ *
+ * @param array  $buttons list of buttons in HTML format
+ * @param array  $options options
+ * @param string $type    button set type
+ *
+ * @access private
  * @return string HTML for button set
  */
 
