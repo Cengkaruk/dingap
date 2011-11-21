@@ -54,12 +54,36 @@ use \Exception as Exception;
 class Settings extends ClearOS_Controller
 {
     /**
-     * NTP settings controller.
+     * SSH server settings controller.
      *
      * @return view
      */
 
     function index()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * SSH server settings controller.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Common edit/view controller.
+     *
+     * @param string $form_type form type
+     *
+     * @return view View
+     */
+
+    function _view_edit($form_type)
     {
         // Load dependencies
         //------------------
@@ -98,6 +122,7 @@ class Settings extends ClearOS_Controller
         //---------------
 
         try {
+            $data['form_type'] = $form_type;
             $data['port'] = $this->openssh->get_port();
             $data['password_authentication'] = $this->openssh->get_password_authentication_policy();
             $data['permit_root_login'] = $this->openssh->get_permit_root_login_policy();

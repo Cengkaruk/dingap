@@ -38,19 +38,35 @@ $this->lang->load('network');
 $this->lang->load('ssh_server');
 
 ///////////////////////////////////////////////////////////////////////////////
+// Form type handling
+///////////////////////////////////////////////////////////////////////////////
+
+if ($form_type === 'edit') {
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/ssh_server/settings')
+    );
+} else {
+    $read_only = TRUE;
+    $buttons = array(
+        anchor_edit('/app/ssh_server/settings/edit')
+    );
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('ssh_server/settings');
+echo form_open('ssh_server/settings/edit');
 echo form_header(lang('base_settings'));
 
-echo field_input('port', $port, lang('network_port'));
-echo field_toggle_enable_disable('password_authentication', $password_authentication, lang('ssh_server_allow_passwords'));
-echo field_dropdown('permit_root_login', $permit_root_logins, $permit_root_login, lang('ssh_server_allow_root_login'));
+echo field_input('port', $port, lang('network_port'), $read_only);
+echo field_toggle_enable_disable('password_authentication', $password_authentication, lang('ssh_server_allow_passwords'), $read_only);
+echo field_dropdown('permit_root_login', $permit_root_logins, $permit_root_login, lang('ssh_server_allow_root_login'), $read_only);
 
-echo field_button_set(
-    array(form_submit_update('submit', 'high'))
-);
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
