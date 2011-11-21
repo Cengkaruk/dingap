@@ -130,10 +130,14 @@ function getInterfaceInfo() {
 function showAllInterfaceInfo(payload) {
     for (var iface in payload) {
         var link_text = (payload[iface].link) ? lang_yes : lang_no;
+        var ip_text = '';
+
+        if (payload[iface].configured)
+           ip_text = (payload[iface].address) ? payload[iface].address : '<div class="theme-loading-small"></div>';
 
         $('#role_' + iface).html(payload[iface].roletext);
         $('#bootproto_' + iface).html(payload[iface].bootprototext);
-        $('#ip_' + iface).html(payload[iface].address);
+        $('#ip_' + iface).html(ip_text);
         $('#link_' + iface).html(link_text);
     }
 }

@@ -73,9 +73,7 @@ $speed = (isset($iface_info['speed']) && ($iface_info['speed'] > 0)) ? $iface_in
 $dns = (isset($iface_info['ifcfg']['peerdns'])) ? $iface_info['ifcfg']['peerdns'] : TRUE;
 $role_read_only = ($iface_count <= 1) ? TRUE : $read_only;
 
-// FIXME: requires an internal change to get it working.  Review.
-// $bootproto_read_only = (isset($iface_info['type']) && $iface_info['type'] === Iface::TYPE_PPPOE) ? TRUE : $read_only;
-$bootproto_read_only = FALSE;
+$bootproto_read_only = (isset($iface_info['type']) && $iface_info['type'] === Iface::TYPE_PPPOE) ? TRUE : $read_only;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form open

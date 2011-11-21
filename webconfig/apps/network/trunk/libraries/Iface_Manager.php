@@ -152,7 +152,7 @@ class Iface_Manager extends Engine
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         $handle = @ifconfig_init();
@@ -229,7 +229,7 @@ class Iface_Manager extends Engine
 
         if (!extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         $count = 0;

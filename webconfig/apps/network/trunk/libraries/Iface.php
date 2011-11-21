@@ -393,7 +393,7 @@ class Iface extends Engine
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         $handle = @ifconfig_init();
@@ -514,9 +514,9 @@ class Iface extends Engine
 
             for ($inx = count($results); $inx > (count($results) - $last_lines); $inx--) {
                 if (preg_match('/Timeout waiting for/', $results[$inx]))
-                    return lang('network_no_pppoe_server_found');
+                    return lang('network_pppoe_server_not_found');
                 else if (preg_match('/LCP: timeout/', $results[$inx]))
-                    return lang('network_no_pppoe_server_found');
+                    return lang('network_pppoe_server_not_found');
                 else if (preg_match('/PAP authentication failed/', $results[$inx]))
                     return lang('network_pppoe_authentication_failed');
             }
@@ -529,9 +529,9 @@ class Iface extends Engine
 
             for ($inx = count($results); $inx > (count($results) - $last_lines); $inx--) {
                 if (preg_match('/No DHCPOFFERS received/', $results[$inx]))
-                    return lang('network_no_dhcp_server_found');
+                    return lang('network_dhcp_server_not_found');
                 else if (preg_match('/DHCPDISCOVER/', $results[$inx]))
-                    return lang('network_too_long_waiting_for_dhcp');
+                    return lang('network_dhcp_server_did_not_respond');
             }
         }
 
@@ -602,7 +602,7 @@ class Iface extends Engine
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         $handle = @ifconfig_init();
@@ -628,7 +628,7 @@ class Iface extends Engine
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         $handle = @ifconfig_init();
@@ -653,7 +653,7 @@ class Iface extends Engine
         // Using ioctl(2) calls (from custom extension ifconfig.so).
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         // This method is from: /var/webconfig/lib/ifconfig.so
@@ -678,7 +678,7 @@ class Iface extends Engine
 
         if (! extension_loaded('ifconfig')) {
             if (!@dl('ifconfig.so'))
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
         }
 
         $handle = @ifconfig_init();
@@ -1069,7 +1069,7 @@ class Iface extends Engine
         if ($details['device'] == NULL) {
             if (!$is_usb) {
                 fclose($fh);
-                throw new Engine_Exception(lang('base_something_weird_happened'));
+                throw new Engine_Exception(lang('network_network_error_occurred'));
             }
 
             // For USB devices, this isn't an error
@@ -1322,7 +1322,8 @@ class Iface extends Engine
         }
 
         // Set some default based on behavior of network scripts
-        if ((($netinfo['bootproto'] == self::BOOTPROTO_PPPOE) || ($netinfo['bootproto'] == self::BOOTPROTO_DHCP))
+        if ((isset($netinfo['bootproto']) 
+            && (($netinfo['bootproto'] == self::BOOTPROTO_PPPOE) || ($netinfo['bootproto'] == self::BOOTPROTO_DHCP)))
             && (!isset($netinfo['peerdns'])))
             $netinfo['peerdns'] = TRUE;
 
@@ -1844,7 +1845,7 @@ class Iface extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($peerdns))
-            return lang('network_peerdns_invalid');
+            return lang('network_automatic_dns_server_flag_invalid');
     }
 
     /**
