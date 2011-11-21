@@ -43,12 +43,15 @@ $this->lang->load('dhcp');
 echo form_open('dhcp/leases/add');
 echo form_header(lang('dhcp_static_lease'));
 
+$mac = isset($lease['mac']) ? $lease['mac'] : '';
+$ip = isset($lease['ip']) ? $lease['ip'] : '';
+
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('mac', $lease['mac'], lang('network_mac_address'));
-echo field_input('ip', $lease['ip'], lang('network_ip'));
+echo field_input('mac', $mac, lang('network_mac_address'));
+echo field_input('ip', $ip, lang('network_ip'));
 
 echo field_button_set(
     array(

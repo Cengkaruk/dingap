@@ -74,7 +74,7 @@ class Leases extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('dhcp/leases/summary', $data);
+        $this->page->view_form('dhcp/leases/summary', $data, lang('dhcp_leases'));
     }
 
     /**
@@ -95,7 +95,7 @@ class Leases extends ClearOS_Controller
         //---------------------
 
         $this->form_validation->set_policy('ip', 'dhcp/Dnsmasq', 'validate_ip', TRUE);
-        $this->form_validation->set_policy('mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE);
+        $this->form_validation->set_policy('mac', 'dhcp/Dnsmasq', 'validate_mac', TRUE, TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit

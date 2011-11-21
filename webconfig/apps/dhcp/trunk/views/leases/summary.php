@@ -86,7 +86,6 @@ foreach ($leases as $key => $details) {
         $details['hostname'],
         $vendor,
         $order_date,
-        $full_actions
     );
 
     $items[] = $item;

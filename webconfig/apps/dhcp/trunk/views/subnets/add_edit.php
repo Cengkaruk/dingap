@@ -54,6 +54,10 @@ if ($form_type === 'edit') {
     );
 }
 
+$dns1 = isset($dns[0]) ? $dns[0] : '';
+$dns2 = isset($dns[1]) ? $dns[1] : '';
+$dns3 = isset($dns[2]) ? $dns[2] : '';
+
 ///////////////////////////////////////////////////////////////////////////////
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,9 +75,9 @@ echo field_dropdown('lease_time', $lease_times, $lease_time, lang('dhcp_lease_ti
 echo field_input('gateway', $gateway, lang('dhcp_gateway'));
 echo field_input('start', $start, lang('dhcp_ip_range_start'));
 echo field_input('end', $end, lang('dhcp_ip_range_end'));
-echo field_input('dns1', $dns[0], lang('dhcp_dns') . " #1");
-echo field_input('dns2', $dns[1], lang('dhcp_dns') . " #2");
-echo field_input('dns3', $dns[2], lang('dhcp_dns') . " #3");
+echo field_input('dns1', $dns1, lang('dhcp_dns') . " #1");
+echo field_input('dns2', $dns2, lang('dhcp_dns') . " #2");
+echo field_input('dns3', $dns3, lang('dhcp_dns') . " #3");
 echo field_input('wins', $wins, lang('dhcp_wins'));
 echo field_input('tftp', $tftp, lang('dhcp_tftp'));
 echo field_input('ntp', $ntp, lang('dhcp_ntp'));

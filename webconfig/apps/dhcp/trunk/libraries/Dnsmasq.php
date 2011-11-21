@@ -679,6 +679,29 @@ class Dnsmasq extends Daemon
     }
 
     /**
+     * Returns state of lease for given MAC address.
+     *
+     * @param string $mac MAC address
+     *
+     * @return array array containing lease data
+     * @throws Engine_Exception
+     */
+
+    public function exists_lease($mac)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $leases = $this->get_leases();
+
+        foreach ($leases as $lease) {
+            if ($lease['mac'] === $mac)
+                return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    /**
      * Sets state of authoritative flag.
      *
      * @param boolean $state authoritative state
@@ -697,7 +720,7 @@ class Dnsmasq extends Daemon
             $this->_load_config();
 
         // Cleans out invalid duplicates
-        if ($this->config['dhcp-authoritative'])
+        if (isset($this->config['dhcp-authoritative']))
             unset($this->config['dhcp-authoritative']);
 
         if ($state)
@@ -1162,17 +1185,21 @@ class Dnsmasq extends Daemon
     /**
      * Validates MAC address
      *
-     * @param string $mac MAC address
+     * @param string  $mac              MAC address
+     * @param boolean $check_uniqueness checks to see if MAC is unique
      *
      * @return string error message if MAC address is invalid
      */
 
-    public function validate_mac($mac)
+    public function validate_mac($mac, $check_uniqueness = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_mac($mac))
             return lang('network_mac_address_invalid');
+
+        if ($check_uniqueness && $this->exists_lease($mac))
+            return lang('network_mac_address_already_exists');
     }
 
     /**

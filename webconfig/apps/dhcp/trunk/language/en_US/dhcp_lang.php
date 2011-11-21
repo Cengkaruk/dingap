@@ -3,6 +3,7 @@
 $lang['dhcp_app_name'] = 'DHCP Server';
 $lang['dhcp_app_description'] = 'The DHCP (Dynamic Host Configuration Protocol) Server provides automatic IP settings to devices on your network.';
 
+$lang['network_mac_address_already_exists'] = 'MAC address already exists.';
 $lang['dhcp_lease_type_invalid'] = 'Lease type is invalid.';
 $lang['dhcp_state_invalid'] = 'State is invalid';
 

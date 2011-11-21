@@ -75,7 +75,7 @@ class Subnets extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('dhcp/subnets/summary', $data);
+        $this->page->view_form('dhcp/subnets/summary', $data, lang('dhcp_subnets'));
     }
 
     /**
