@@ -338,6 +338,7 @@ function _theme_field_input_password($name, $value, $label, $error, $input_id, $
 {
     $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
     $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $error_id_html = (isset($options['error_id'])) ? $options['error_id'] : $input_id . '_error';
     $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
 
     $error_html = (empty($error)) ? "" : "<br/><span class='theme-validation-error' id='$error_id_html'>$error</span>";
@@ -920,6 +921,8 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     if (empty($items)) {
         $item_html = "<tr>$empty_row</tr>";
     } else {
+        $item_html = '';
+
         foreach ($items as $item) {
             $item_html .= "\t<tr>\n";
 
@@ -985,7 +988,7 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
    </thead>
    <tbody>
 $item_html
-   </tbody>$legend_html
+   </tbody>
   </table>
 </div>
 <script type='text/javascript'>
