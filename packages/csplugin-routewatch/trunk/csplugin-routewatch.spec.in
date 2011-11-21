@@ -40,7 +40,7 @@ rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-routewatch.la
 # Post install
 %post
 /sbin/ldconfig
-/sbin/service clearsyncd condrestart 2>&1 || :
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Add command(s) to sudo configuration
 CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
@@ -71,7 +71,7 @@ fi
 # Post uninstall
 %postun
 /sbin/ldconfig
-/sbin/service clearsyncd condrestart 2>&1 || :
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Files
 %files
