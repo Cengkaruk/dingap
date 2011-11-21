@@ -299,12 +299,12 @@ function get_marketplace_data(basename) {
                 for (index = 0 ; index < json.complementary_apps.length; index++) {
                     comp_apps += '<li><a href=\'/app/marketplace/view/' +
                         json.complementary_apps[index].basename + '\'>' +
-                        json.complementary_apps[index].name + '</a>\n';
+                        json.complementary_apps[index].name + '</a><div>\n';
                     for (var counter = 5 ; counter > json.complementary_apps[index].rating; counter--)
                         comp_apps += '<div class=\'star_off\' />';
                     for (var counter = 0 ; counter < json.complementary_apps[index].rating; counter++)
                         comp_apps += '<div class=\'star_on\' />';
-                    comp_apps += '</li>';
+                    comp_apps += '</div></li>';
                 }
                 comp_apps += '</ul>';
                 $('#sidebar-recommended-apps').html(comp_apps);
