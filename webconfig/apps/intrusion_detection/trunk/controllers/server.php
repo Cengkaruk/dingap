@@ -60,6 +60,10 @@ require clearos_app_base('base') . '/controllers/daemon.php';
 
 class Server extends Daemon
 {
+    /**
+     * Server controller constructor.
+     */
+
     function __construct()
     {
         parent::__construct('snort', 'intrusion_detection');

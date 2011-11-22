@@ -174,7 +174,7 @@ class Snort extends Daemon
     /**
      * Returns list of rule set types.
      *
-     * @returns array list of rule set types
+     * @return array list of rule set types
      * @throws Engine_Exception
      */
 
@@ -188,7 +188,9 @@ class Snort extends Daemon
     /**
      * Returns vendor information.
      *
-     * @returns array vendor information
+     * @param string $vendor vendor
+     *
+     * @return array vendor information
      * @throws Engine_Exception
      */
 
@@ -230,7 +232,7 @@ class Snort extends Daemon
      * @param string $vendor    vendor
      * @param array  $rule_sets state of rule sets
      *
-     * @returns void
+     * @return void
      * @throws Engine_Exception, Validation_Exception
      */
 
@@ -391,7 +393,7 @@ class Snort extends Daemon
      * Saves the current rule set lists.
      *
      * @param string $vendor vendor
-     * @param $list  list of rule sets
+     * @param array  $list   list of rule sets
      *
      * @access private
      * @return void

@@ -65,7 +65,7 @@ class Settings extends ClearOS_Controller
         //-------------------
 
         if ($this->input->post('submit')) {
-             try {
+            try {
                 $this->snort->set_rule_sets('gpl', $this->input->post('rule_sets'));
                 $this->snort->reset(TRUE);
 
