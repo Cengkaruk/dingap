@@ -54,6 +54,8 @@ $anchors = array(anchor_add('/app/intrusion_prevention/white_list/add/'));
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
+$items = array();
+
 foreach ($white_list as $ip) {
 
     $item['title'] = $ip;

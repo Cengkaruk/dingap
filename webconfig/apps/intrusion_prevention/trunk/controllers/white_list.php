@@ -121,7 +121,7 @@ class White_List extends ClearOS_Controller
         // Load the views
         //---------------
 
-        $this->page->view_form('add_edit', $data, lang('intrusion_prevention_white_list'));
+        $this->page->view_form('add_edit', array(), lang('intrusion_prevention_white_list'));
     }
 
     /**
