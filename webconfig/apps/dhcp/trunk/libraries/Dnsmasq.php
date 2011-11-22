@@ -1199,7 +1199,7 @@ class Dnsmasq extends Daemon
             return lang('network_mac_address_invalid');
 
         if ($check_uniqueness && $this->exists_lease($mac))
-            return lang('network_mac_address_already_exists');
+            return lang('dhcp_mac_address_already_exists');
     }
 
     /**
