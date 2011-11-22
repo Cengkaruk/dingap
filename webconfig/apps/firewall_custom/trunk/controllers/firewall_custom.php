@@ -99,12 +99,7 @@ class Firewall_Custom extends ClearOS_Controller
         //---------------------
 
         $this->form_validation->set_policy('entry', 'firewall_custom/Firewall_Custom', 'validate_entry', TRUE);
-        $this->form_validation->set_policy(
-            'description',
-            'firewall_custom/Firewall_Custom',
-            'validate_description',
-            TRUE
-        );
+        $this->form_validation->set_policy('description', 'firewall_custom/Firewall_Custom', 'validate_description', TRUE);
 
         // Handle form submit
         //-------------------
@@ -118,7 +113,7 @@ class Firewall_Custom extends ClearOS_Controller
                         $this->input->post('description'),
                         $this->input->post('enabled')
                     );
-                    $this->page->set_message(lang('firewall_custom_rule_updated'), 'info');
+                    $this->page->set_status_updated();
                 } else {
                     $this->firewall_custom->add_rule(
                         $this->input->post('entry'),
@@ -176,9 +171,9 @@ class Firewall_Custom extends ClearOS_Controller
                 $data['description'],
                 !$data['enabled']
             );
-            $this->page->set_message(lang('firewall_custom_rule_updated'), 'info');
+            $this->page->set_status_updated();
         } catch (Exception $e) {
-            $this->page->set_message(clearos_exception_message($e));
+            $this->page->view_exception($e);
         }
 
         redirect('/firewall_custom');
@@ -214,6 +209,7 @@ class Firewall_Custom extends ClearOS_Controller
         }
 
         $rule = $this->firewall_custom->get_rule($line);
+
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, array($rule['description']));
     }
 
@@ -237,13 +233,13 @@ class Firewall_Custom extends ClearOS_Controller
 
         try {
             $this->firewall_custom->set_rule_priority($line, $priority);
-            $this->page->set_message(lang('firewall_custom_priority_updated'), 'info');
+            $this->page->set_status_updated();
         } catch (Exception $e) {
-            $this->page->set_message(clearos_exception_message($e));
+            $this->page->view_exception($e);
         }
 
-        //redirect('/firewall_custom');
         $data['rules'] = $this->firewall_custom->get_rules();
+
         $this->page->view_form('summary', $data, lang('firewall_custom_overview'));
     }
 }

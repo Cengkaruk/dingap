@@ -66,9 +66,11 @@ clearos_load_library('base/File');
 
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_Not_Found_Exception');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -180,7 +182,7 @@ class Firewall_Custom extends Engine
             if (preg_match('/^\s*#\s*iptables\s+(.*)/', $this->configuration[$line], $match))
                 $this->configuration[$line] = 'iptables ' . $match[1];
             else
-                throw new Engine_Exception(lang('firewall_custom_something_wrong'), COMMON_WARNING);
+                throw new Engine_Exception(lang('firewall_custom_configuration_file_parse_error'));
             
         } else {
             $this->configuration[$line] = '# ' . $this->configuration[$line]; 
@@ -226,11 +228,8 @@ class Firewall_Custom extends Engine
         if (! $this->is_loaded)
             $this->_load_configuration();
 
-        if (!isset($entry) || $entry == '')
-            throw new Engine_Exception(lang('firewall_custom_no_rule'), CLEAROS_WARNING);
-
-        if (!preg_match("/^iptables.*$/", $entry))
-            throw new Engine_Exception(lang('firewall_custom_invalid_rule'), CLEAROS_WARNING);
+        Validation_Exception::is_valid($this->validate_entry($entry));
+        Validation_Exception::is_valid($this->validate_description($description));
 
         if ($priority > 0)
             array_unshift(
@@ -286,6 +285,9 @@ class Firewall_Custom extends Engine
     public function update_rule($line, $entry, $description, $enabled)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_entry($entry));
+        Validation_Exception::is_valid($this->validate_description($description));
 
         if (! $this->is_loaded)
             $this->_load_configuration();
@@ -446,6 +448,9 @@ class Firewall_Custom extends Engine
 
         if (!preg_match("/^iptables.*/", $iptables))
             return lang('firewall_custom_must_start_iptables');
+
+        if (preg_match("/;/", $iptables))
+            return lang('firewall_custom_firewall_rule_invalid');
     }
 
     /**
@@ -460,7 +465,7 @@ class Firewall_Custom extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!preg_match("/.*/", $iptables))
-            return lang('firewall_custom_description_is_invalid');
+        if (!preg_match("/^([\w\.\-_ ])+$/", $description))
+            return lang('firewall_custom_description_invalid');
     }
 }
