@@ -145,22 +145,24 @@ foreach ($info_map['extensions'] as $extension => $parameters) {
 
     $fields = '';
 
-    foreach ($parameters as $key_name => $details) {
-        $name = "user_info[extensions][$extension][$key_name]";
-        $value = $user_info['extensions'][$extension][$key_name];
-        $description =  $details['description'];
+    if (! empty($parameters)) {
+        foreach ($parameters as $key_name => $details) {
+            $name = "user_info[extensions][$extension][$key_name]";
+            $value = $user_info['extensions'][$extension][$key_name];
+            $description =  $details['description'];
 
-        if (isset($details['field_priority']) && ($details['field_priority'] !== 'normal'))
-            continue;
+            if (isset($details['field_priority']) && ($details['field_priority'] !== 'normal'))
+                continue;
 
-        if ($details['field_type'] === 'list') {
-            $fields .= field_dropdown($name, $details['field_options'], $value, $description, $read_only);
-        } else if ($details['field_type'] === 'simple_list') {
-            $fields .= field_simple_dropdown($name, $details['field_options'], $value, $description, $read_only);
-        } else if ($details['field_type'] === 'text') {
-            $fields .= field_input($name, $value, $description, $read_only);
-        } else if ($details['field_type'] === 'integer') {
-            $fields .= field_input($name, $value, $description, $read_only);
+            if ($details['field_type'] === 'list') {
+                $fields .= field_dropdown($name, $details['field_options'], $value, $description, $read_only);
+            } else if ($details['field_type'] === 'simple_list') {
+                $fields .= field_simple_dropdown($name, $details['field_options'], $value, $description, $read_only);
+            } else if ($details['field_type'] === 'text') {
+                $fields .= field_input($name, $value, $description, $read_only);
+            } else if ($details['field_type'] === 'integer') {
+                $fields .= field_input($name, $value, $description, $read_only);
+            }
         }
     }
 
