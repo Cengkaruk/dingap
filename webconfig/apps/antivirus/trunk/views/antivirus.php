@@ -36,6 +36,10 @@
 $this->lang->load('antivirus');
 $this->lang->load('base');
 
+///////////////////////////////////////////////////////////////////////////////
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
 $max_files_options[100] = 100;
 $max_files_options[200] = 200;
 $max_files_options[300] = 300;
@@ -86,28 +90,33 @@ $checks_options = array(
     '24' => lang('base_hourly'),
 );
 
+if ($form_mode === 'edit') {
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/antivirus')
+    );
+} else {
+    $read_only = TRUE;
+    $buttons = array(
+        anchor_edit('/app/antivirus/edit')
+    );
+}
+
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('antivirus');
 echo form_header(lang('base_settings'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
+echo field_toggle_enable_disable('block_encrypted', $block_encrypted, lang('antivirus_block_encrypted_files'), $read_only);
+echo field_dropdown('max_files', $max_files_options, $max_files, lang('antivirus_maximum_files'), $read_only);
+echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lang('antivirus_maximum_file_size'), $read_only);
+echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antivirus_maximum_recursion'), $read_only);
+echo field_dropdown('checks', $checks_options, $checks, lang('antivirus_update_interval'), $read_only);
 
-echo field_toggle_enable_disable('block_encrypted', $block_encrypted, lang('antivirus_block_encrypted_files'));
-echo field_dropdown('max_files', $max_files_options, $max_files, lang('antivirus_maximum_files'));
-echo field_dropdown('max_file_size', $max_file_size_options, $max_file_size, lang('antivirus_maximum_file_size'));
-echo field_dropdown('max_recursion', $max_recursion_options, $max_recursion, lang('antivirus_maximum_recursion'));
-echo field_dropdown('checks', $checks_options, $checks, lang('antivirus_update_interval'));
-
-echo field_button_set( array( form_submit_update('submit') ));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
+echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();

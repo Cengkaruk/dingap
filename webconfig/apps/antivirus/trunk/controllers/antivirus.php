@@ -48,12 +48,47 @@
 class Antivirus extends ClearOS_Controller
 {
     /**
-     * Antivirus default controller
+     * Antivirus default controller.
      *
      * @return view
      */
 
     function index()
+    {
+        $this->view();
+    }
+
+    /**
+     * Antivirus edit view.
+     *
+     * @return view
+     */
+
+    function edit()
+    {
+        $this->_view_edit('edit');
+    }
+
+    /**
+     * Antivirus view view.
+     *
+     * @return view
+     */
+
+    function view()
+    {
+        $this->_view_edit('view');
+    }
+
+    /**
+     * Antivirus common view/edit view.
+     *
+     * @param string $form_mode form mode
+     *
+     * @return view
+     */
+
+    function _view_edit($form_mode)
     {
         // Load libraries
         //---------------
@@ -96,6 +131,7 @@ class Antivirus extends ClearOS_Controller
         //---------------
 
         try {
+            $data['form_mode'] = $form_mode;
             $data['checks'] = $this->freshclam->get_checks_per_day();
             $data['max_files'] = $this->clamav->get_max_files();
             $data['max_file_size'] = $this->clamav->get_max_file_size();
