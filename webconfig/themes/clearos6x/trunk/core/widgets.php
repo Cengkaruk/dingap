@@ -304,18 +304,18 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id 
 
     $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
     $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
-    $span_id_html = (isset($options['span_id'])) ? $options['span_id'] : $input_id . '_span';
+    $text_id_html = (isset($options['text_id'])) ? $options['text_id'] : $input_id . '_text';
     $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
 
     if (($name !== NULL) || ($value != NULL))
-        $hidden_input = "<input type='hidden' name='$name' value='$value' id='$input_id'>";
+        $input_html = "<input type='hidden' name='$name' value='$value' id='$input_id'>";
     else
-        $hidden_input = '';
+        $input_html = '';
 
     return "
         <tr id='$field_id_html' class='theme-fieldview" . $hide_field . "'>
             <td class='left-field-content'><label for='$input_id' id='$label_id_html'>$label</label></td>
-            <td class='right-field-content'><span id='$span_id_html'>$text</span>$hidden_input</td>
+            <td class='right-field-content'><span id='$text_id_html'>$text</span>$input_html</td>
         </tr>
     ";
 }
