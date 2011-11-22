@@ -1,9 +1,9 @@
 <?php
 
+$lang['contact_extension_app_description'] = 'The Contact Extension extends the directory with user contact information such as phone number, address, and e-mail.';
+$lang['contact_extension_app_name'] = 'Contact Extension';
 $lang['contact_extension_contact_account_extension'] = 'Contact Account Extension';
 $lang['contact_extension_contact'] = 'Contact';
-$lang['contact_extension_telephone_numbers'] = 'Telephone Numbers';
-$lang['contact_extension_address'] = 'Address';
 $lang['contact_extension_city'] = 'City';
 $lang['contact_extension_country'] = 'Country';
 $lang['contact_extension_fax_number'] = 'Fax Number';

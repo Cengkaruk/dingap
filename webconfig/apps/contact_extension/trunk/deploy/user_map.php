@@ -4,8 +4,8 @@
  * Contact OpenLDAP user extension.
  *
  * @category   Apps
- * @package    Contact_Directory_Extension
- * @subpackage Libraries
+ * @package    Contact_Extension
+ * @subpackage Configuration
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -54,7 +54,7 @@ clearos_load_library('base/Country');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 /*
-// FIXME: mobile?
+// TODO: mobile number field?
 
     'mobile' => array(
         'type' => 'string',
@@ -80,6 +80,18 @@ try {
 }
 
 $info_map = array(
+    'mail' => array(
+        'type' => 'string',
+        'field_type' => 'text',
+        'field_priority' => 'read_only',
+        'required' => FALSE,
+        'validator' => 'validate_email',
+        'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
+        'description' => lang('contact_extension_email'),
+        'object_class' => 'clearAccount',
+        'attribute' => 'mail'
+    ),
+
     'city' => array(
         'type' => 'string',
         'field_type' => 'text',
@@ -112,17 +124,6 @@ $info_map = array(
         'description' => lang('contact_extension_fax_number'),
         'object_class' => 'clearAccount',
         'attribute' => 'facsimileTelephoneNumber' 
-    ),
-
-    'mail' => array(
-        'type' => 'string',
-        'field_type' => 'text',
-        'required' => FALSE,
-        'validator' => 'validate_email',
-        'validator_class' => 'contact_extension/OpenLDAP_User_Extension',
-        'description' => lang('contact_extension_email'),
-        'object_class' => 'clearAccount',
-        'attribute' => 'mail'
     ),
 
     'organization' => array(

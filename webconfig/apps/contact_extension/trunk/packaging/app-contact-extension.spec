@@ -3,7 +3,7 @@ Name: app-contact-extension-core
 Group: ClearOS/Libraries
 Version: 6.1.0.beta2
 Release: 1%{dist}
-Summary: Contact Account Extension - APIs and install
+Summary: Contact Extension - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -15,7 +15,7 @@ Requires: app-organization
 Requires: app-users
 
 %description
-Contact account extension description ... blah blah blah.
+The Contact Extension extends the directory with user contact information such as phone number, address, and e-mail.
 
 This package provides the core API and libraries.
 

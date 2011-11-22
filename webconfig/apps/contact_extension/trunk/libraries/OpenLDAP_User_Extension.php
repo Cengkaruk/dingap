@@ -57,11 +57,13 @@ clearos_load_language('base');
 
 use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\organization\Organization as Organization;
 
 clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
+clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('organization/Organization');
 
@@ -111,7 +113,7 @@ class OpenLDAP_User_Extension extends Engine
     /** 
      * Add LDAP attributes hook.
      *
-     * @param array $user_info user information in hash array
+     * @param array $user_info   user information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
@@ -122,21 +124,18 @@ class OpenLDAP_User_Extension extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if (empty($user_info['extensions']['contact']))
+            return array();
+
         // Set defaults
         //-------------
 
-        if (empty($user_info['contact']))
-            return array();
-
-        /*
-        if (! isset($user_info['contact']['mail']))
-            $user_info['contact']['mail'] = $this->username . "@" . $directory->get_base_internet_domain();
-        */
+        $user_info['extensions']['contact']['mail'] = $ldap_object['uid'] . '@' . OpenLDAP::get_base_internet_domain();
 
         // Convert to LDAP attributes
         //---------------------------
 
-        $attributes = Utilities::convert_array_to_attributes($user_info['contact'], $this->info_map);
+        $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['contact'], $this->info_map, FALSE);
 
         return $attributes;
     }
@@ -162,13 +161,13 @@ class OpenLDAP_User_Extension extends Engine
     /**
      * Returns user info hash array.
      *
-     * @param array $attributes LDAP attributes
+     * @param string $username username
      *
      * @return array user info array
      * @throws Engine_Exception
      */
 
-    public function get_info_defaults_hook($attributes)
+    public function get_info_defaults_hook($username)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -202,7 +201,7 @@ class OpenLDAP_User_Extension extends Engine
     /** 
      * Update LDAP attributes hook.
      *
-     * @param array $user_info user information in hash array
+     * @param array $user_info   user information in hash array
      * @param array $ldap_object LDAP object
      *
      * @return array LDAP attributes
@@ -219,10 +218,15 @@ class OpenLDAP_User_Extension extends Engine
         if (! isset($user_info['extensions']['contact']))
             return array();
 
+        // Set defaults
+        //-------------
+
+        $user_info['extensions']['contact']['mail'] = $ldap_object['uid'] . '@' . OpenLDAP::get_base_internet_domain();
+
         // Convert to LDAP attributes
         //---------------------------
 
-        $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['contact'], $this->info_map);
+        $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['contact'], $this->info_map, TRUE);
 
         return $attributes;
     }
@@ -285,16 +289,16 @@ class OpenLDAP_User_Extension extends Engine
     /**
      * Validation routine for e-mail address.
      *
-     * @param string $mail e-mail address
+     * @param string $email e-mail address
      *
      * @return string error message if e-mail address invalid
      */
 
-    public function validate_email($address)
+    public function validate_email($email)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match("/^([a-z0-9_\-\.\$]+)@/", $address))
+        if (! preg_match("/^([a-z0-9_\-\.\$]+)@/", $email))
             return lang('contact_extension_email_is_invalid');
     }
 

@@ -19,5 +19,5 @@ clearos_load_language('contact_extension');
 
 $extension['extension'] = 'contact';
 $extension['app'] = 'contact_extension';
-$extension['name'] = lang('contact_extension_contact_extension');
+$extension['name'] = lang('contact_extension_app_name');
 $extension['nickname'] = lang('contact_extension_contact');
