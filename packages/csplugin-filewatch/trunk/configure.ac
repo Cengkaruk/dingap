@@ -12,17 +12,23 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_CXX
 AC_PROG_INSTALL
 AM_PROG_LIBTOOL
+AC_PROG_RANLIB
 
 # Checks for libraries.
 
 # Checks for header files.
-AC_CHECK_HEADERS([sys/time.h sys/inotify.h])
+AC_HEADER_STDBOOL
+AC_CHECK_HEADERS([limits.h sys/time.h sys/inotify.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_C_INLINE
 AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT8_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset strerror])
+AC_CHECK_FUNCS([memset strdup strerror strncasecmp realloc realpath])
 
 # Output
 AC_CONFIG_FILES([Makefile csplugin-filewatch.spec])
