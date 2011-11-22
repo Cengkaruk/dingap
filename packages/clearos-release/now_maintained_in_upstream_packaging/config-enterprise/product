@@ -19,7 +19,7 @@ samba_comment = ClearOS Enterprise
 
 # Java Web Services
 jws_nodes = 1
-jws_prefix = cos6.ws
+jws_prefix = cos6-ws
 jws_domain = clearsdn.com
 jws_realm = ws
 jws_version = 1.0
