@@ -13,7 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-Graphical console tool for configuring the network.
+The Graphical Console allows administrators to configure basic settings in a user-friendly graphical environment
 
 %package core
 Summary: Graphical Console - APIs and install
@@ -30,7 +30,7 @@ Requires: xorg-x11-server-Xorg
 Requires: xorg-x11-xinit
 
 %description core
-Graphical console tool for configuring the network.
+The Graphical Console allows administrators to configure basic settings in a user-friendly graphical environment
 
 This package provides the core API and libraries.
 
