@@ -1,5 +1,10 @@
 <?php
 
+$lang['bandwidth_ip_or_hostname'] = 'IP or Hostname';
+$lang['bandwidth_match_address'] = 'Match Address';
+$lang['bandwidth_match_port'] = 'Match Port';
+$lang['bandwidth_address_invalid'] = 'Address is invalid.';
+
 $lang['bandwidth_app_description'] = 'Bandwidth Manager is an essential tool for administrators who wish to implement Quality of Service for services such as browsing, VoIP and SSH so that no one individual or application can adversely affect the performance of the entire network.';
 $lang['bandwidth_app_name'] = 'Bandwidth Manager';
 

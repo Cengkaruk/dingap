@@ -103,8 +103,8 @@ class Advanced extends ClearOS_Controller
         $this->form_validation->set_policy('direction', 'bandwidth/Bandwidth', 'validate_advanced_direction', TRUE);
         $this->form_validation->set_policy('iface', 'bandwidth/Bandwidth', 'validate_interface', TRUE);
 
-        $this->form_validation->set_policy('ip_type', 'bandwidth/Bandwidth', 'validate_type');
-        $this->form_validation->set_policy('ip', 'bandwidth/Bandwidth', 'validate_ip');
+        $this->form_validation->set_policy('address_type', 'bandwidth/Bandwidth', 'validate_type');
+        $this->form_validation->set_policy('address', 'bandwidth/Bandwidth', 'validate_address');
 
         $this->form_validation->set_policy('port_type', 'bandwidth/Bandwidth', 'validate_type');
         $this->form_validation->set_policy('port', 'bandwidth/Bandwidth', 'validate_port');
@@ -131,15 +131,15 @@ class Advanced extends ClearOS_Controller
                 $upload_ceiling = 0;
             }
 
-            $ip = ($this->input->post('ip')) ? $this->input->post('ip') : '';
+            $address = ($this->input->post('address')) ? $this->input->post('address') : '';
 
             try {
                 $this->bandwidth->add_advanced_rule(
                     $this->input->post('name'),
                     $this->input->post('iface'),
-                    $this->input->post('ip_type'),
+                    $this->input->post('address_type'),
                     $this->input->post('port_type'),
-                    $ip,
+                    $address,
                     $this->input->post('port'),
                     $this->input->post('priority'),
                     $upload_rate,

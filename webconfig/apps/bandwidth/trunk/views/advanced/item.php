@@ -57,16 +57,15 @@ if (count($interfaces) > 1) {
 
 echo fieldset_footer();
 
-echo fieldset_header(lang('network_ip'));
-echo field_dropdown('ip_type', $types, $ip_type, lang('bandwidth_type'));
-echo field_input('ip', $ip, lang('network_ip'));
+echo fieldset_header(lang('bandwidth_match_address'));
+echo field_dropdown('address_type', $types, $address_type, lang('bandwidth_type'));
+echo field_input('address', $address, lang('bandwidth_ip_or_hostname'));
 echo fieldset_footer();
 
-echo fieldset_header(lang('network_port'));
+echo fieldset_header(lang('bandwidth_match_port'));
 echo field_dropdown('port_type', $types, $port_type, lang('bandwidth_type'));
 echo field_input('port', $port, lang('network_port'));
 echo fieldset_footer();
-
 
 echo fieldset_header(lang('bandwidth_bandwidth'));
 echo field_input('rate', $rate, lang('bandwidth_rate'));
