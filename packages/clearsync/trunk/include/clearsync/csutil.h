@@ -57,5 +57,7 @@ void csHexDump(FILE *fh, const void *data, uint32_t length);
 uid_t csGetUserId(const string &user);
 gid_t csGetGroupId(const string &group);
 
+void csSHA1(const string &filename, uint8_t *digest);
+
 #endif // _CSUTIL_H
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

@@ -32,6 +32,13 @@
 #include <pwd.h>
 #include <grp.h>
 
+#define OPENSSL_THREAD_DEFINES
+#include <openssl/opensslconf.h>
+#ifndef OPENSSL_THREADS
+#error "OpenSSL missing thread support"
+#endif
+#include <openssl/sha.h>
+
 #include <clearsync/csexception.h>
 #include <clearsync/csutil.h>
 
@@ -261,6 +268,25 @@ gid_t csGetGroupId(const string &group)
     delete [] buffer;
 
     return gid;
+}
+
+void csSHA1(const string &filename, uint8_t *digest)
+{
+    SHA_CTX ctx;
+    size_t bytes;
+    long page_size = ::csGetPageSize();
+    uint8_t buffer[page_size];
+    FILE *fh = fopen(filename.c_str(), "r");
+    if (fh == NULL)
+        throw csException(errno, filename.c_str());
+    if (SHA1_Init(&ctx) != 1)
+        throw csException(EINVAL, "SHA1_Init");
+    while (!feof(fh)) {
+        if ((bytes = fread(buffer, 1, page_size, fh)) <= 0) break;
+        SHA1_Update(&ctx, buffer, bytes);
+    }
+    fclose(fh);
+    SHA1_Final(digest, &ctx);
 }
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4
