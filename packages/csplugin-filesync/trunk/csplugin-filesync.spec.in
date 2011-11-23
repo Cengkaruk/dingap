@@ -41,29 +41,79 @@ cp -v csplugin-filesync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 # Post install
 %post
 /sbin/ldconfig
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Add command(s) to sudo configuration
-#CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
-#if [ -z "$CHECK" ]; then
-#    echo "Cmnd_Alias CLEARSYNC = " >> /etc/sudoers
-#	echo "clearsync ALL=NOPASSWD: CLEARSYNC" >> /etc/sudoers
-#fi
+CHECK=`grep "^clearsync[[:space:]]*" /etc/sudoers`
+if [ -z "$CHECK" ]; then
+    echo "Cmnd_Alias CLEARSYNC = " >> /etc/sudoers
+	echo "clearsync ALL=NOPASSWD: CLEARSYNC" >> /etc/sudoers
+fi
 
-#CMD=/sbin/service
-#LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
-#CHECK=`echo $LINE, | grep $CMD,`
-#if [ -z "$CHECK" ]; then
-#	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
-#	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
-#	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
-#	chmod 440 /etc/sudoers
-#fi
+CMD=/usr/bin/stat
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
+
+CMD=/usr/bin/sha1sum
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
+
+CMD=/bin/cp
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
+
+CMD=/bin/mv
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
+
+CMD=/bin/chown
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
+
+CMD=/bin/chmod
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep $CMD,`
+if [ -z "$CHECK" ]; then
+	ESCAPE=`echo $CMD | sed 's/\//\\\\\//g'`
+	sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+	sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+	chmod 440 /etc/sudoers
+fi
 
 # Post uninstall
 %postun
 /sbin/ldconfig
-/etc/init.d/clearsyncd condrestart
+/sbin/service clearsyncd condrestart >/dev/null 2>&1 || :
 
 # Files
 %files
