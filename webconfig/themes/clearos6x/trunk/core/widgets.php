@@ -302,15 +302,18 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id 
     if (is_null($input_id))
         $input_id = 'clearos_' . mt_rand();
 
+    if (is_null($name))
+        $name = 'clearos_' . mt_rand();
+
+    if (is_null($value))
+        $value = '';
+
     $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
     $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
     $text_id_html = (isset($options['text_id'])) ? $options['text_id'] : $input_id . '_text';
     $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
 
-    if (($name !== NULL) || ($value != NULL))
-        $input_html = "<input type='hidden' name='$name' value='$value' id='$input_id'>";
-    else
-        $input_html = '';
+    $input_html = "<input type='hidden' name='$name' value='$value' id='$input_id'>";
 
     return "
         <tr id='$field_id_html' class='theme-fieldview" . $hide_field . "'>
