@@ -311,7 +311,8 @@ function get_marketplace_data(basename) {
             }
         },
         error: function (xhr, text_status, error_thrown) {
-            $('#sidebar_additional_info').html(xhr.responseText.toString());
+            // FIXME: Firebug issue?
+            // $('#sidebar_additional_info').html(xhr.responseText.toString());
         }
     });
 }
