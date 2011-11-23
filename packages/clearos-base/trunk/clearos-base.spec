@@ -1,6 +1,6 @@
 Name: clearos-base
-Version: 6.1.0
-Release: 0.beta2%{dist}
+Version: 6.1.0.beta2
+Release: 1%{dist}
 Summary: Initializes the system environment
 License: GPLv3 or later
 Group: ClearOS/Core
@@ -83,7 +83,6 @@ mkdir -p -m 755 $RPM_BUILD_ROOT/etc/init.d
 mkdir -p -m 755 $RPM_BUILD_ROOT/etc/security/limits.d
 mkdir -p -m 755 $RPM_BUILD_ROOT%{_sbindir}
 
-install -m 644 etc/cron.d/app-servicewatch $RPM_BUILD_ROOT/etc/cron.d/app-servicewatch
 install -m 644 etc/logrotate.d/compliance $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 644 etc/logrotate.d/system $RPM_BUILD_ROOT/etc/logrotate.d/
 install -m 755 etc/init.d/functions-automagic $RPM_BUILD_ROOT/etc/init.d/
@@ -211,7 +210,6 @@ fi
 %dir /etc/clearos
 %dir /usr/clearos
 %dir /var/clearos
-/etc/cron.d/app-servicewatch
 /etc/logrotate.d/compliance
 /etc/logrotate.d/system
 /etc/init.d/functions-automagic
