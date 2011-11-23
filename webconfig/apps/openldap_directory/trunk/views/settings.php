@@ -74,13 +74,32 @@ $mode = LDAP::MODE_SLAVE;
 */
 
 ///////////////////////////////////////////////////////////////////////////////
+// Status boxes
+///////////////////////////////////////////////////////////////////////////////
+
+echo "<div id='infoboxes' style='display:none;'>";
+
+echo infobox_highlight(lang(
+    'openldap_directory_directory_status'),
+    "<div id='initializing_status'></div>",
+    array('id' => 'initializing_box', 'hidden' => TRUE)
+);
+
+echo "</div>";
+
+///////////////////////////////////////////////////////////////////////////////
 // Main form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('openldap_directory');
+echo "<div id='directory_configuration' style='display:none;'>";
+
+echo "<input type='hidden' id='validated' value='$validated'>";
+echo "validated $validated";
+
+echo form_open('openldap_directory/settings/edit');
 echo form_header(lang('base_settings'));
 
-echo field_view(lang('openldap_directory_mode'), $mode_text);
+echo field_view(lang('openldap_directory_mode'), $mode_text, 'mode_settings');
 
 if (($mode === LDAP::MODE_MASTER) || ($mode === LDAP::MODE_STANDALONE)) {
     echo field_input('domain', $domain, lang('openldap_directory_base_domain'), $read_only);
@@ -91,7 +110,12 @@ if (($mode === LDAP::MODE_MASTER) || ($mode === LDAP::MODE_STANDALONE)) {
         echo field_input('master_password', $master, lang('openldap_directory_master_password'), $read_only);
 }
 
+echo field_dropdown('policy', $policies, $policy, lang('openldap_directory_publish_policy'), $read_only);
+
 echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
+
+echo "</div>";
+

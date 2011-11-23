@@ -1,7 +1,4 @@
 #!/bin/sh
 
-# Sudoers entry
-/usr/sbin/addsudo /usr/sbin/authconfig app-openldap-core
-
 # Restart webconfig due to LDAP library
 /usr/sbin/webconfig-restart

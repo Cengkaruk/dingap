@@ -162,7 +162,7 @@ class Utilities extends Engine
      * @return array LDAP attributes
      */
 
-    public static function convert_array_to_attributes($array, $mapping)
+    public static function convert_array_to_attributes($array, $mapping, $is_modify = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -175,7 +175,7 @@ class Utilities extends Engine
 
                 // Delete
                 if (($value === NULL) || ($value === '')) {
-                    // if ($is_modify) FIXME
+                    if ($is_modify)
                         $ldap_object[$attribute] = array();
 
                 // Add/modify

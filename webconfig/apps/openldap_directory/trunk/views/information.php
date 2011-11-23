@@ -46,7 +46,7 @@ echo form_open('openldap_directory');
 echo form_header(lang('openldap_directory_directory_information'));
 
 echo fieldset_header(lang('openldap_directory_capabilities'));
-echo field_view(lang('openldap_directory_mode'), '', 'mode_text');
+echo field_view(lang('openldap_directory_mode'), '', 'mode');
 echo fieldset_footer();
 
 echo fieldset_header(lang('openldap_directory_connection_information'));

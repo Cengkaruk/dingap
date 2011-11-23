@@ -55,6 +55,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/openldap_directory
 cp -r * %{buildroot}/usr/clearos/apps/openldap_directory/
 
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory
+install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/backup
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/extensions
 install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
@@ -99,6 +100,7 @@ exit 0
 %exclude /usr/clearos/apps/openldap_directory/tests
 %dir /usr/clearos/apps/openldap_directory
 %dir /var/clearos/openldap_directory
+%dir /var/clearos/openldap_directory/backup
 %dir /var/clearos/openldap_directory/extensions
 /usr/clearos/apps/openldap_directory/deploy
 /usr/clearos/apps/openldap_directory/language

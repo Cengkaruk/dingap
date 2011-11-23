@@ -31,6 +31,14 @@ $app['controllers']['openldap_directory']['title'] = lang('openldap_directory_ap
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+// FIXME: beta only - remove for final
+$app['obsoletes'] = array(
+    'app-directory-server',
+);
+$app['core_obsoletes'] = array(
+    'app-directory-server-core',
+);
+
 $app['requires'] = array(
     'app-users',
     'app-groups',
@@ -68,5 +76,6 @@ $app['core_file_manifest'] = array(
 
 $app['core_directory_manifest'] = array(
    '/var/clearos/openldap_directory' => array(),
+   '/var/clearos/openldap_directory/backup' => array(),
    '/var/clearos/openldap_directory/extensions' => array(),
 );

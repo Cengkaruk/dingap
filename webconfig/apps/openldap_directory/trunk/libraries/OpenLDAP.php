@@ -114,8 +114,15 @@ class OpenLDAP extends Engine
 
     // General
     const DEFAULT_DOMAIN = 'system.lan';
+    const CONSTANT_BASE_DB_NUM = 3;
+
+    // Paths
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
+    const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
+    const FILE_LDIF_BACKUP = '/etc/openldap/backup.ldif';
+    const PATH_LDAP_BACKUP = '/var/clearos/openldap_directory/backup/';
+    const PATH_LDAP = '/var/lib/ldap';
 
     // Containers
     const SUFFIX_COMPUTERS = 'ou=Computers,ou=Accounts';
@@ -365,6 +372,26 @@ class OpenLDAP extends Engine
     }
 
     /**
+     * Imports backup LDAP database from LDIF.
+     *
+     * @return boolean true if import file exists
+     */
+
+    public function import()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $import = new File(self::FILE_LDIF_BACKUP, true);
+
+        if (! $import->exists())
+            return FALSE;
+
+        $this->_import_ldif(self::FILE_LDIF_BACKUP);
+
+        return TRUE;
+    }
+
+    /**
      * Initializes the OpenLDAP accounts system.
      *
      * @param string  $domain base domain
@@ -447,6 +474,64 @@ class OpenLDAP extends Engine
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E  M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Imports an LDIF file.
+     *
+     * @param string $ldif LDIF file
+     *
+     * @access private
+     * @return void
+     * @throws EngineException, ValidationException
+     */
+
+    protected function _import_ldif($ldif)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $ldap = new LDAP_Driver();
+
+        clearos_log('openldap_directory', lang('openldap_directory_preparing_import'));
+
+        // Shutdown LDAP if running
+        //-------------------------
+
+        $was_running = $ldap->get_running_state();
+
+        if ($was_running) {
+            clearos_log('openldap_directory', lang('openldap_directory_shutting_down_ldap_server'));
+            $ldap->set_running_state(FALSE);
+        }
+
+        // Backup old LDAP
+        //----------------
+
+        $filename = self::PATH_LDAP_BACKUP . '/' . "backup-" . strftime("%m-%d-%Y-%H-%M-%S", time()) . ".ldif";
+        $this->export($filename);
+
+        // Clear out old database
+        //-----------------------
+
+        $folder = new Folder(self::PATH_LDAP);
+
+        $file_list = $folder->GetRecursiveListing();
+
+        foreach ($file_list as $filename) {
+            if (!preg_match('/DB_CONFIG$/', $filename)) {
+                $file = new File(self::PATH_LDAP . '/' . $filename, TRUE);
+                $file->delete();
+            }
+        }
+
+        // Import new database
+        //--------------------
+
+        clearos_log('openldap_directory', lang('openldap_directory_importing_data'));
+
+        $shell = new Shell();
+        $shell->Execute(self::COMMAND_SLAPADD, '-n2 -l ' . self::FILE_ACCESSLOG_DATA, TRUE);
+        $shell->Execute(self::COMMAND_SLAPADD, '-n3 -l ' . $ldif, true);
+    }
 
     /**
      * Initializes authconfig.

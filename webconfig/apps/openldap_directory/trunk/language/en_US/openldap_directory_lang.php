@@ -22,4 +22,4 @@ $lang['openldap_directory_master_password'] = 'Master Password';
 $lang['openldap_directory_security_policies'] = 'Security Policies';
 $lang['openldap_directory_openldap_directory_driver'] = 'OpenLDAP Directory Driver';
 $lang['openldap_directory_openldap_directory_driver_description'] = 'The OpenLDAP driver for directory services';
-
+$lang['openldap_directory_directory_status'] = 'Directory Status';

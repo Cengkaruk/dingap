@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Sudoers entry
+/usr/sbin/addsudo /usr/sbin/authconfig app-openldap-core
+/usr/sbin/addsudo /usr/sbin/slapcat app-openldap-core

@@ -471,7 +471,7 @@ class User_Driver extends User_Engine
             $extension = Utilities::load_user_extension($details);
 
             if ($extension && method_exists($extension, 'get_info_defaults_hook'))
-                $info['extensions'][$extension_name] = $extension->get_info_defaults_hook($attributes);
+                $info['extensions'][$extension_name] = $extension->get_info_defaults_hook($this->username);
         }
 
         return $info;

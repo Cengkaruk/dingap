@@ -82,13 +82,13 @@ class Settings extends ClearOS_Controller
         //---------------------
          
         $this->form_validation->set_policy('domain', 'openldap/LDAP_Driver', 'validate_domain', TRUE);
-
+        $this->form_validation->set_policy('policy', 'openldap/LDAP_Driver', 'validate_security_policy', TRUE);
         $form_ok = $this->form_validation->run();
 
         // Handle form submit
         //-------------------
 
-        if (($this->input->post('initialize') && $form_ok)) {
+        if (($this->input->post('submit') && $form_ok)) {
             try {
                 // Don't set the domain in slave mode
 /*
@@ -98,11 +98,16 @@ class Settings extends ClearOS_Controller
                     $this->ldap_driver->set_domain($this->input->post('domain'), TRUE);
 */
 
-                $this->ldap_driver->initialize_standalone($this->input->post('domain'));
-                $this->ldap_driver->reset(TRUE);
+                $data['validated'] = TRUE;
 
-                $this->page->set_status_updated();
-            } catch (Engine_Exception $e) {
+                //$this->ldap_driver->set_security_policy($this->input->post('policy'));
+                // $this->ldap_driver->initialize_standalone($this->input->post('domain'));
+
+                // $this->ldap_driver->set_domain($this->input->post('domain'));
+                // $this->ldap_driver->reset(TRUE);
+
+//                $this->page->set_status_updated();
+            } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
             }
@@ -113,11 +118,13 @@ class Settings extends ClearOS_Controller
 
         try {
             $data['form_type'] = $form_type;
+            $data['policies'] = $this->ldap_driver->get_security_policies();
+            $data['policy'] = $this->ldap_driver->get_security_policy();
             $data['domain'] = $this->ldap_driver->get_base_internet_domain();
             $data['mode'] = $this->ldap_driver->get_mode();
             $data['mode_text'] = $this->ldap_driver->get_mode_text();
             $data['status'] = $this->accounts_driver->get_driver_status();
-        } catch (Engine_Exception $e) {
+        } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -125,7 +132,7 @@ class Settings extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('settings', $data, lang('openldap_directory_app_name'));
+        $this->page->view_form('openldap_directory/settings', $data, lang('openldap_directory_app_name'));
     }
 
     /**
@@ -145,7 +152,7 @@ class Settings extends ClearOS_Controller
         try {
             $this->ldap_driver->initialize_standalone($domain);
             $this->ldap_driver->reset(TRUE);
-        } catch (Engine_Exception $e) {
+        } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
@@ -157,20 +164,24 @@ class Settings extends ClearOS_Controller
 
     function update($domain)
     {
-        // Load dependencies
-        //------------------
+        // Load libraries
+        //---------------
 
         $this->load->library('openldap/LDAP_Driver');
 
         // Handle form submit
         //-------------------
 
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Fri, 01 Jan 2010 05:00:00 GMT');
+        header('Content-type: application/json');
+
         try {
-            $this->ldap_driver->set_domain($domain);
-            $this->ldap_driver->reset(TRUE);
-        } catch (Engine_Exception $e) {
-            $this->page->view_exception($e);
-            return;
+            $this->ldap_driver->set_domain($this->input->post('domain'));
+            $this->ldap_driver->reset(FALSE);
+            echo json_encode(array('code' => 0));
+        } catch (Exception $e) {
+            echo json_encode(array('code' => clearos_exception_code($e), 'error_message' => clearos_exception_message($e)));
         }
     }
 }

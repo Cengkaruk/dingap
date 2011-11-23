@@ -63,7 +63,7 @@ class OpenLDAP_Directory extends ClearOS_Controller
         // Load views
         //-----------
 
-        $views = array('openldap_directory/settings', 'openldap_directory/security', 'openldap_directory/information');
+        $views = array('openldap_directory/settings', 'openldap_directory/information');
 
         $this->page->view_forms($views, lang('openldap_directory_app_name'));
     }
