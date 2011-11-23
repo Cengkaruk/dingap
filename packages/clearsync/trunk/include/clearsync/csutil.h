@@ -34,17 +34,17 @@ protected:
 class csRegEx
 {
 public:
-	csRegEx(const char *expr, size_t nmatch = 0, int flags = REG_EXTENDED);
-	virtual ~csRegEx();
+    csRegEx(const char *expr, size_t nmatch = 0, int flags = REG_EXTENDED);
+    virtual ~csRegEx();
 
-	int Execute(const char *subject);
-	const char *GetMatch(size_t match);
+    int Execute(const char *subject);
+    const char *GetMatch(size_t match);
 
 protected:
-	regex_t regex;
-	regmatch_t *match;
-	size_t nmatch;
-	char **matches;
+    regex_t regex;
+    regmatch_t *match;
+    size_t nmatch;
+    char **matches;
 };
 
 long csGetPageSize(void);

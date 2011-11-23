@@ -78,68 +78,68 @@ void csSocket::Close(void)
 
 void csSocket::Read(size_t &length, uint8_t *buffer)
 {
-	struct timeval tv;
-	uint8_t *ptr = buffer;
-	ssize_t bytes_read, bytes_left = length;
+    struct timeval tv;
+    uint8_t *ptr = buffer;
+    ssize_t bytes_read, bytes_left = length;
 
-	for (length = 0; bytes_left > 0; ) {
+    for (length = 0; bytes_left > 0; ) {
         bytes_read = recv(sd, (char *)ptr, bytes_left, 0);
 
-		if (!bytes_read) throw csSocketHangup();
-		else if (bytes_read == -1) {
-			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+        if (!bytes_read) throw csSocketHangup();
+        else if (bytes_read == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 if (!(flags & WaitAll)) break;
 
-				gettimeofday(&tv, NULL);
-				if (tv.tv_sec - tv_active.tv_sec <= timeout) {
-					usleep(csSocketRetry);
-					continue;
-				}
-				throw csSocketTimeout();
+                gettimeofday(&tv, NULL);
+                if (tv.tv_sec - tv_active.tv_sec <= timeout) {
+                    usleep(csSocketRetry);
+                    continue;
+                }
+                throw csSocketTimeout();
             }
             throw csException(errno, "recv");
         }
 
-		ptr += bytes_read;
-		this->bytes_read += bytes_read;
-		bytes_left -= bytes_read;
-		length += bytes_read;
+        ptr += bytes_read;
+        this->bytes_read += bytes_read;
+        bytes_left -= bytes_read;
+        length += bytes_read;
 
-		gettimeofday(&tv_active, NULL);
+        gettimeofday(&tv_active, NULL);
     }
 }
 
 void csSocket::Write(size_t &length, uint8_t *buffer)
 {
-	struct timeval tv;
-	uint8_t *ptr = buffer;
-	ssize_t bytes_wrote, bytes_left = length;
+    struct timeval tv;
+    uint8_t *ptr = buffer;
+    ssize_t bytes_wrote, bytes_left = length;
 
-	for (length = 0; bytes_left > 0; ) {
+    for (length = 0; bytes_left > 0; ) {
         bytes_wrote = send(sd, (const char *)ptr, bytes_left, 0);
 
-		if (!bytes_wrote) throw csSocketHangup();
-		else if (bytes_wrote == -1) {
-			if (errno == EAGAIN || errno == EWOULDBLOCK) {
-				if (!(flags & WaitAll)) break;
+        if (!bytes_wrote) throw csSocketHangup();
+        else if (bytes_wrote == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                if (!(flags & WaitAll)) break;
 
-				gettimeofday(&tv, NULL);
-				if (tv.tv_sec - tv_active.tv_sec <= timeout) {
-					usleep(csSocketRetry);
-					continue;
-				}
-				throw csSocketTimeout();
-			}
+                gettimeofday(&tv, NULL);
+                if (tv.tv_sec - tv_active.tv_sec <= timeout) {
+                    usleep(csSocketRetry);
+                    continue;
+                }
+                throw csSocketTimeout();
+            }
             throw csException(errno, "send");
-		}
+        }
 
-		ptr += bytes_wrote;
-		this->bytes_wrote += bytes_wrote;
-		bytes_left -= bytes_wrote;
-		length += bytes_wrote;
+        ptr += bytes_wrote;
+        this->bytes_wrote += bytes_wrote;
+        bytes_left -= bytes_wrote;
+        length += bytes_wrote;
 
-		gettimeofday(&tv_active, NULL);
-	}
+        gettimeofday(&tv_active, NULL);
+    }
 }
 
 csSocketAccept::csSocketAccept(
@@ -186,17 +186,17 @@ csSocketAccept::csSocketAccept(
         }
     }
 
-	int on = 1;
-	if (setsockopt(sd,
-		SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) != 0) {
-		throw csException(errno, "setsockopt: SO_REUSEADDR");
-	}
+    int on = 1;
+    if (setsockopt(sd,
+        SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) != 0) {
+        throw csException(errno, "setsockopt: SO_REUSEADDR");
+    }
 
-	if (bind(sd, (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) < 0)
-		throw csException(errno, "bind");
+    if (bind(sd, (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) < 0)
+        throw csException(errno, "bind");
 
-	if (listen(sd, SOMAXCONN) < 0)
-		throw csException(errno, "listen");
+    if (listen(sd, SOMAXCONN) < 0)
+        throw csException(errno, "listen");
 
     state = Accepting;
 }
@@ -251,21 +251,21 @@ void csSocketConnect::Close(void)
 void csSocketConnect::Connect(void)
 {
     while (state == Connecting) {
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		if (tv.tv_sec - tv_active.tv_sec > timeout)
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        if (tv.tv_sec - tv_active.tv_sec > timeout)
             throw csSocketTimeout();
 
-		if (connect(sd,
+        if (connect(sd,
             (struct sockaddr *)&sa, sizeof(struct sockaddr_in)) == 0) {
-			state = Connected;
-			continue;
-		}
+            state = Connected;
+            continue;
+        }
 
-		if (errno == EISCONN) {
-			state = Connected;
-			continue;
-		}
+        if (errno == EISCONN) {
+            state = Connected;
+            continue;
+        }
 
         if (errno != EALREADY && errno != EINPROGRESS)
             throw csException(errno, "connect");
