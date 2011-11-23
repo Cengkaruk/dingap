@@ -159,7 +159,7 @@ class LDAP_Driver extends LDAP_Engine
     const FILE_LDIF_NEW_DOMAIN = '/var/clearos/openldap/provision/newdomain.ldif';
     const FILE_LDIF_OLD_DOMAIN = '/var/clearos/openldap/provision/olddomain.ldif';
     const PATH_LDAP = '/var/lib/ldap';
-    const PATH_LDAP_BACKUP = '/var/clearos/openldap/provision';
+    const PATH_LDAP_BACKUP = '/var/clearos/openldap/backup';
 
     // Internal configuration
     const FILE_PROVISION_ACCESSLOG_DATA = 'deploy/provision/provision.accesslog.ldif';
@@ -219,28 +219,26 @@ class LDAP_Driver extends LDAP_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $export = new File($ldif, TRUE);
+        $export = new File($ldif, TRUE);
 
-            if ($export->exists())
-                $export->delete();
+        if ($export->exists())
+            $export->delete();
 
-            if ($this->ldaph === NULL)
-                $this->ldaph = $this->get_ldap_handle();
+        $export->create('root', 'root', '0600');
 
-            $was_running = $this->get_running_state();
+        if ($this->ldaph === NULL)
+            $this->ldaph = $this->get_ldap_handle();
 
-            if ($was_running)
-                $this->set_running_state(FALSE);
+        $was_running = $this->get_running_state();
 
-            $shell = new Shell();
-            $shell->execute(self::COMMAND_SLAPCAT, "-n$dbnum -l " . $ldif, TRUE);
+        if ($was_running)
+            $this->set_running_state(FALSE);
 
-            if ($was_running)
-                $this->set_running_state(TRUE);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_SLAPCAT, "-n$dbnum -l " . $ldif, TRUE);
+
+        if ($was_running)
+            $this->set_running_state(TRUE);
     }
 
     /** 
@@ -551,6 +549,30 @@ class LDAP_Driver extends LDAP_Engine
         $message = $file->lookup_value('/status_message =/');
 
         return $message;
+    }
+
+    /**
+     * Imports backup LDAP database from LDIF.
+     *
+     * @return boolean true if import file exists
+     */
+
+    public function import()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $import = new File(self::FILE_LDIF_BACKUP, TRUE);
+
+        if (! $import->exists())
+            return FALSE;
+
+        $this->_import_ldif(self::FILE_LDIF_BACKUP);
+
+        $this->synchronize();
+
+        // TODO: should this restart Nscd?
+
+        return TRUE;
     }
 
     /**
@@ -1270,11 +1292,16 @@ return;
 
         // Backup old LDAP
         //----------------
-/*
-FIXME: re-enable backup
+
         $filename = self::PATH_LDAP_BACKUP . '/' . "backup-" . strftime("%m-%d-%Y-%H-%M-%S", time()) . ".ldif";
-        $this->export($filename);
-*/
+
+        try {
+            if ($this->is_initialized())
+                $this->export($filename);
+        } catch (Exception $e) {
+            // Exports can fail if LDAP is busted
+        }
+
         // Clear out old database
         //-----------------------
 
@@ -1296,24 +1323,13 @@ FIXME: re-enable backup
         $shell->execute(self::COMMAND_SLAPADD, '-n2 -l ' . $this->file_provision_accesslog_data, TRUE);
         $shell->execute(self::COMMAND_SLAPADD, '-n3 -l ' . $ldif, TRUE);
 
-        // Set flag to indicate Kolab has been initialized
-        //-----------------------------------------------
-
-        /* FIXME: move to kolab
-        $file = new File(self::FILE_KOLAB_SETUP);
-
-        if (! $file->exists())
-            $file->create("root", "root", "0644");
-        */
-
         // Fix file permissions
         //---------------------
 
-        $folder->chown("ldap", "ldap", TRUE);
+        $folder->chown('ldap', 'ldap', TRUE);
 
-        if ($was_running) {
+        if ($was_running)
             $this->set_running_state(TRUE);
-        }
     }
 
     /**
