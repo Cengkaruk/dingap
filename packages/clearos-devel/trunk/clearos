@@ -504,6 +504,22 @@ function spec($options)
             $core_provides .= "Provides: $provide\n";
     }
 
+    // Provides
+    //---------
+
+    $obsoletes = '';
+    $core_obsoletes = '';
+
+    if (isset($app['obsoletes'])) {
+        foreach ($app['obsoletes'] as $provide)
+            $obsoletes .= "Obsoletes: $provide\n";
+    }
+
+    if (isset($app['core_obsoletes'])) {
+        foreach ($app['core_obsoletes'] as $provide)
+            $core_obsoletes .= "Obsoletes: $provide\n";
+    }
+
     // Dependencies
     //-------------
 
@@ -544,7 +560,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 " . $provides . 
 "Requires: %{name}-core = %{version}-%{release}
-" . $requires . "
+" . $requires . $obsoletes . "
 %description
 {$app['description']}
 
@@ -552,7 +568,7 @@ Buildarch: noarch
 Summary: {$app['name']} - APIs and install
 Group: ClearOS/Libraries
 License: {$app['license_core']}
-" . $core_provides . $core_requires . "
+" . $core_provides . $core_requires . $core_obsoletes . "
 %description core
 {$app['description']}
 
