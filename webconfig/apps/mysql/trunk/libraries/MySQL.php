@@ -271,8 +271,9 @@ class MySQL extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (empty($password))
-            return lang('mysql_password_invalid');
+        // TODO
+        // if (empty($password))
+        //    return lang('mysql_password_invalid');
     }
 
     /**
