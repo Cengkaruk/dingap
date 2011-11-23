@@ -69,6 +69,7 @@ clearos_load_library('network/Network_Utils');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
 clearos_load_library('base/Validation_Exception');
@@ -228,9 +229,13 @@ class SnortSam extends Daemon
 
         $lines = array();
 
-        $shell = new Shell();
-        $shell->execute(self::COMMAND_STATE, ' -q -d :', TRUE);
-        $lines = $shell->get_output();
+        try {
+            $shell = new Shell();
+            $shell->execute(self::COMMAND_STATE, ' -q -d :', TRUE);
+            $lines = $shell->get_output();
+        } catch (Exception $e) {
+            return array();
+        }
 
         $blockinfo = array();
         $block_list = array();
