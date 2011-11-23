@@ -20,6 +20,7 @@
 
 #include <string>
 #include <stdexcept>
+#include <vector>
 
 #include <unistd.h>
 #include <stdio.h>
@@ -28,6 +29,8 @@
 #include <pthread.h>
 #include <errno.h>
 #include <regex.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/csutil.h>
@@ -139,59 +142,125 @@ long csGetPageSize(void)
 
 int csExecute(const string &command)
 {
+    long page_size = ::csGetPageSize();
+    char buffer[page_size];
     FILE *ph = popen(command.c_str(), "r");
     if (ph == NULL) return errno;
-    char buffer[::csGetPageSize()];
     while (!feof(ph)) {
-        if (!fgets(buffer, ::csGetPageSize(), ph)) break;
+        if (!fgets(buffer, (int)page_size, ph)) break;
+    }
+    return pclose(ph);
+}
+
+int csExecute(const string &command, vector<string> &output)
+{
+    long page_size = ::csGetPageSize();
+    char buffer[page_size];
+    FILE *ph = popen(command.c_str(), "r");
+    if (ph == NULL) return errno;
+    while (!feof(ph)) {
+        if (!fgets(buffer, (int)page_size, ph)) break;
+        output.push_back(buffer);
     }
     return pclose(ph);
 }
 
 void csHexDump(FILE *fh, const void *data, uint32_t length)
 {
-	uint8_t c, *p = (uint8_t *)data;
-	char bytestr[4] = { 0 };
-	char addrstr[10] = { 0 };
-	char hexstr[16 * 3 + 5] = { 0 };
-	char charstr[16 * 1 + 5] = { 0 };
+    uint8_t c, *p = (uint8_t *)data;
+    char bytestr[4] = { 0 };
+    char addrstr[10] = { 0 };
+    char hexstr[16 * 3 + 5] = { 0 };
+    char charstr[16 * 1 + 5] = { 0 };
 
-	for (uint32_t n = 1; n <= length; n++) {
-		if (n % 16 == 1) {
-			// Store address for this line
-			snprintf(addrstr, sizeof(addrstr),
-				"%.5x", (uint32_t)(p - (uint8_t *)data));
-		}
+    for (uint32_t n = 1; n <= length; n++) {
+        if (n % 16 == 1) {
+            // Store address for this line
+            snprintf(addrstr, sizeof(addrstr),
+                "%.5x", (uint32_t)(p - (uint8_t *)data));
+        }
             
-		c = *p;
-		if (isprint(c) == 0) c = '.';
+        c = *p;
+        if (isprint(c) == 0) c = '.';
 
-		// Store hex str (for left side)
-		snprintf(bytestr, sizeof(bytestr), "%02X ", *p);
-		strncat(hexstr, bytestr, sizeof(hexstr) - strlen(hexstr) - 1);
+        // Store hex str (for left side)
+        snprintf(bytestr, sizeof(bytestr), "%02X ", *p);
+        strncat(hexstr, bytestr, sizeof(hexstr) - strlen(hexstr) - 1);
 
-		// Store char str (for right side)
-		snprintf(bytestr, sizeof(bytestr), "%c", c);
-		strncat(charstr, bytestr, sizeof(charstr) - strlen(charstr) - 1);
+        // Store char str (for right side)
+        snprintf(bytestr, sizeof(bytestr), "%c", c);
+        strncat(charstr, bytestr, sizeof(charstr) - strlen(charstr) - 1);
 
-		if(n % 16 == 0) { 
-			// Line completed
-			fprintf(fh,
+        if(n % 16 == 0) { 
+            // Line completed
+            fprintf(fh,
                 "%5.5s:  %-49.49s %s\n", addrstr, hexstr, charstr);
-			hexstr[0] = 0;
-			charstr[0] = 0;
-		} else if(n % 8 == 0) {
-			// Half line: add whitespaces
-			strncat(hexstr, " ", sizeof(hexstr) - strlen(hexstr) -1);
-		}
-		// Next byte...
-		p++;
-	}
+            hexstr[0] = 0;
+            charstr[0] = 0;
+        } else if(n % 8 == 0) {
+            // Half line: add whitespaces
+            strncat(hexstr, " ", sizeof(hexstr) - strlen(hexstr) -1);
+        }
+        // Next byte...
+        p++;
+    }
 
-	if (strlen(hexstr) > 0) {
-		// Print rest of buffer if not empty
+    if (strlen(hexstr) > 0) {
+        // Print rest of buffer if not empty
         fprintf(fh, "%5.5s:  %-49.49s %s\n", addrstr, hexstr, charstr);
-	}
+    }
+}
+
+uid_t csGetUserId(const string &user)
+{
+    struct passwd pwd;
+    struct passwd *result;
+    char *buffer;
+    long buffer_size;
+    int rc;
+
+    buffer_size = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (buffer_size == -1) buffer_size = 16384;
+
+    buffer = new char[buffer_size];
+    rc = getpwnam_r(user.c_str(),
+        &pwd, buffer, (size_t)buffer_size, &result);
+    if (result == NULL) {
+        delete [] buffer;
+        if (rc == 0)
+            throw csException("User not found", user.c_str());
+        throw csException(rc, "getpwnam_r");
+    }
+    uid_t uid = pwd.pw_uid;
+    delete [] buffer;
+
+    return uid;
+}
+
+gid_t csGetGroupId(const string &group)
+{
+    struct group grp;
+    struct group *result;
+    char *buffer;
+    long buffer_size;
+    int rc;
+
+    buffer_size = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (buffer_size == -1) buffer_size = 16384;
+
+    buffer = new char[buffer_size];
+    rc = getgrnam_r(group.c_str(),
+        &grp, buffer, (size_t)buffer_size, &result);
+    if (result == NULL) {
+        delete [] buffer;
+        if (rc == 0)
+            throw csException("Group not found", group.c_str());
+        throw csException(rc, "getgrnam_r");
+    }
+    gid_t gid = grp.gr_gid;
+    delete [] buffer;
+
+    return gid;
 }
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

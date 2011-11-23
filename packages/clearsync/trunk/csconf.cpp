@@ -29,6 +29,8 @@
 #include <errno.h>
 #include <expat.h>
 #include <regex.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/csconf.h>

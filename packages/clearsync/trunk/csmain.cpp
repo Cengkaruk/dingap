@@ -42,6 +42,8 @@
 #include <limits.h>
 #include <dirent.h>
 #include <regex.h>
+#include <pwd.h>
+#include <grp.h>
 
 #define OPENSSL_THREAD_DEFINES
 #include <openssl/opensslconf.h>

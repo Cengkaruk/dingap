@@ -48,8 +48,14 @@ protected:
 };
 
 long csGetPageSize(void);
+
 int csExecute(const string &command);
+int csExecute(const string &command, vector<string> &output);
+
 void csHexDump(FILE *fh, const void *data, uint32_t length);
+
+uid_t csGetUserId(const string &user);
+gid_t csGetGroupId(const string &group);
 
 #endif // _CSUTIL_H
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

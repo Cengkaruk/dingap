@@ -40,6 +40,8 @@ using namespace std;
 #include <signal.h>
 #include <expat.h>
 #include <regex.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <netinet/in.h>
 #include <netdb.h>

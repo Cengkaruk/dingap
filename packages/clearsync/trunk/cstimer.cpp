@@ -29,6 +29,8 @@
 #include <signal.h>
 #include <time.h>
 #include <regex.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include <clearsync/csexception.h>
 #include <clearsync/cslog.h>
