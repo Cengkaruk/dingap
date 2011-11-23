@@ -504,8 +504,8 @@ function spec($options)
             $core_provides .= "Provides: $provide\n";
     }
 
-    // Provides
-    //---------
+    // Obsoletes
+    //----------
 
     $obsoletes = '';
     $core_obsoletes = '';
