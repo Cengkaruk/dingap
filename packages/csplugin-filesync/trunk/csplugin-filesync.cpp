@@ -119,7 +119,7 @@ class csPluginFileSyncFile
 public:
     csPluginFileSyncFile()
     : name(NULL), path(NULL), presync(NULL), postsync(NULL),
-    user(NULL), group(NULL), rx_stat(NULL) { Initialize(); };
+    user(NULL), group(NULL), rx_stat(NULL), rx_sha1sum(NULL) { Initialize(); };
     csPluginFileSyncFile(csPluginFileSyncFile *src);
     virtual ~csPluginFileSyncFile() {
         if (name) delete name;
@@ -129,6 +129,7 @@ public:
         if (user) delete user;
         if (group) delete group;
         if (rx_stat) delete rx_stat;
+        if (rx_sha1sum) delete rx_sha1sum;
     };
 
     void Initialize(void) {
@@ -136,6 +137,9 @@ public:
         memset(&st_info, 0, sizeof(struct stat));
         rx_stat = new csRegEx(
             "^([0-7]{3,4}):([a-z_][a-z0-9_-]*[$]?):([a-z_][a-z0-9_-]*[$]?)",
+            REG_EXTENDED | REG_ICASE | REG_NEWLINE);
+        rx_sha1sum = new csRegEx(
+            "^([a-f0-9]{40})",
             REG_EXTENDED | REG_ICASE | REG_NEWLINE);
     };
     void Refresh(void);
@@ -149,11 +153,12 @@ public:
     uint8_t sha[SHA_DIGEST_LENGTH];
     struct stat st_info;
     csRegEx *rx_stat;
+    csRegEx *rx_sha1sum;
 };
 
 csPluginFileSyncFile::csPluginFileSyncFile(csPluginFileSyncFile *src)
     : name(NULL), path(NULL), presync(NULL), postsync(NULL),
-    user(NULL), group(NULL), rx_stat(NULL)
+    user(NULL), group(NULL), rx_stat(NULL), rx_sha1sum(NULL)
 {
     if (src->name) name = new string(*(src->name));
     if (src->path) path = new string(*(src->path));
@@ -218,8 +223,38 @@ void csPluginFileSyncFile::Refresh(void)
                 "Group not found: %s", st_group);
         }
 
-        csLog::Log(csLog::Debug, "user: %s (%d), group: %s (%d), mode: %s",
-            st_user, uid, st_group, gid, st_mode);
+        os.str("");
+        os << csPluginFileSyncSudo << " ";
+        os << "/usr/bin/sha1sum ";
+        os << "\"" << path->c_str() << "\" ";
+        os << "2>/dev/null";
+
+        output.clear();
+        rc = ::csExecute(os.str(), output);
+        csLog::Log(csLog::Debug,
+            "Execute: %s = %d", os.str().c_str(), rc);
+
+        if (rc != 0 || output.size() == 0)
+            throw csException(EINVAL, path->c_str());
+
+        i = output.begin();
+        if (rx_sha1sum->Execute((*i).c_str()) == REG_NOMATCH) {
+            csLog::Log(csLog::Debug, "No match: %s", (*i).c_str());
+            throw csException(EINVAL, path->c_str());
+        }
+
+        const char *sha1sum = NULL;
+        try {
+            sha1sum = rx_sha1sum->GetMatch(1);
+        } catch (csException &e) {
+        }
+
+        if (sha1sum == NULL)
+            throw csException(EINVAL, path->c_str());
+
+        csLog::Log(csLog::Debug,
+            "user: %s (%d), group: %s (%d), mode: %s, sha: %s",
+            st_user, uid, st_group, gid, st_mode, sha1sum);
     }
 }
 
@@ -610,6 +645,13 @@ void csPluginFileSyncSessionSlave::Run()
     map<string, csPluginFileSyncFile *>::iterator i;
 
     for (i = config->file.begin(); i != config->file.end(); i++) {
+        try {
+            i->second->Refresh();
+        } catch (csException &e) {
+            csLog::Log(csLog::Debug, "Refresh: %s: %s (%s)",
+                i->first.c_str(), e.what(), e.estring.c_str());
+        }
+
         WritePacket(
             idFileRequest, argNone,
             (const uint8_t *)i->first.c_str(), i->first.size());
