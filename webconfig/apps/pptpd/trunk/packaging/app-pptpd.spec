@@ -46,6 +46,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/pptpd
 cp -r * %{buildroot}/usr/clearos/apps/pptpd/
 
+install -d -m 0755 %{buildroot}/etc/clearos/pptpd.d
 install -d -m 0755 %{buildroot}/var/clearos/pptpd
 install -d -m 0755 %{buildroot}/var/clearos/pptpd/backup
 install -D -m 0644 packaging/authorize %{buildroot}/etc/clearos/pptpd.d/authorize
@@ -89,6 +90,7 @@ exit 0
 %exclude /usr/clearos/apps/pptpd/packaging
 %exclude /usr/clearos/apps/pptpd/tests
 %dir /usr/clearos/apps/pptpd
+%dir /etc/clearos/pptpd.d
 %dir /var/clearos/pptpd
 %dir /var/clearos/pptpd/backup
 /usr/clearos/apps/pptpd/deploy

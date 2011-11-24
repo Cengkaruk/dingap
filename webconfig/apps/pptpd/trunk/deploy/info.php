@@ -51,6 +51,7 @@ $app['core_requires'] = array(
 );
 
 $app['core_directory_manifest'] = array(
+    '/etc/clearos/pptpd.d' => array(),
     '/var/clearos/pptpd' => array(),
     '/var/clearos/pptpd/backup' => array(),
 );
