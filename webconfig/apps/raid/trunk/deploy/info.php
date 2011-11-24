@@ -21,6 +21,7 @@ $app['description'] = 'RAID....'; // FIXME
 $app['name'] = lang('raid_raid');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_storage');
+$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
