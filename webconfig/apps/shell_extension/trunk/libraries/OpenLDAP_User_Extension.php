@@ -121,7 +121,8 @@ class OpenLDAP_User_Extension extends Engine
         // Set defaults
         //-------------
 
-        $user_info['extensions']['shell']['login_shell'] = '/sbin/nologin';
+        if (empty($user_info['extensions']['shell']['login_shell']))
+            $user_info['extensions']['shell']['login_shell'] = '/sbin/nologin';
 
         // Convert to LDAP attributes
         //---------------------------
