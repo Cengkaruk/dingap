@@ -12,6 +12,7 @@ Requires: iptraf
 Requires: kbd
 Requires: tconsole
 Requires: upstart
+BuildArch: noarch
 BuildRoot: %_tmppath/%name-%version-buildroot
 
 %description
