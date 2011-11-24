@@ -22,6 +22,6 @@ $configlet = array(
 	'package' => 'dnsmasq',
 	'process_name' => 'dnsmasq',
 	'pid_file' => '/var/run/dnsmasq.pid',
-	'reloadable' => TRUE,
+	'reloadable' => FALSE,
 	'url' => '/app/dns'
 );
