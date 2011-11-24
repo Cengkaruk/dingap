@@ -409,25 +409,20 @@ class Firewall_Custom extends Engine
         // Delete any old temp file lying around
         //--------------------------------------
 
-        $newfile = new File(self::FILE_CONFIG . '.cctmp');
+        $file = new File(self::FILE_CONFIG);
 
-        if ($newfile->exists())
-            $newfile->delete();
+        if ($file->exists())
+            $file->delete();
 
         // Create temp file
         //-----------------
 
-        $newfile->create('root', 'root', '0755');
+        $file->create('root', 'root', '0755');
 
         // Write out the file
         //-------------------
 
-        $newfile->add_lines(implode("\n", $this->configuration) . "\n");
-
-        // Copy the new config over the old config
-        //----------------------------------------
-
-        $newfile->move_to(self::FILE_CONFIG);
+        $file->add_lines(implode("\n", $this->configuration) . "\n");
     }
 
     ///////////////////////////////////////////////////////////////////////////////
