@@ -219,3 +219,7 @@ fi
 %{_sbindir}/app-passwd
 %{_sbindir}/app-rename
 %{_sbindir}/app-realpath
+
+%changelog
+* Wed Nov 23 2011 ClearFoundation <developer@clearfoundation.com> - 6.1.0.beta2-1
+- Started changelog
