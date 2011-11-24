@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'LDAP Manager';
-$app['description'] = 'The LDAP mode manager... master/slave/standalone.'; // FIXME: translate
+$app['description'] = lang('ldap_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Mode'; // FIXME
+$app['name'] = lang('ldap_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_settings');
 $app['menu_enabled'] = FALSE;
@@ -51,10 +50,6 @@ $app['core_file_manifest'] = array(
     ),
    'ldap-init' => array(
         'target' => '/usr/sbin/ldap-init',
-        'mode' => '0755',
-    ),
-   'ldap-manager' => array(
-        'target' => '/usr/sbin/ldap-manager',
         'mode' => '0755',
     ),
    'ldap-synchronize' => array(

@@ -29,6 +29,10 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 ///////////////////////////////////////////////////////////////////////////////
+//
+// TODO: this is incomplete/broken.
+//
+///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
@@ -244,7 +248,7 @@ function initialize_slave()
 
 function initialize_active_directory($options)
 {
-    // FIXME: if ! installed.
+    // TODO: if ! installed.
 
     clearos_load_library('active_directory/Active_Directory');
 

@@ -3,7 +3,7 @@ Name: app-ldap-core
 Group: ClearOS/Libraries
 Version: 6.1.0.beta2
 Release: 1%{dist}
-Summary: Mode - APIs and install
+Summary: LDAP Engine - APIs and install
 License: LGPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -15,7 +15,7 @@ Requires: openssl
 Requires: system-ldap-driver
 
 %description
-The LDAP mode manager... master/slave/standalone.
+The LDAP Engine provides a common framework for all the available LDAP implementations including OpenLDAP and Active Directory.
 
 This package provides the core API and libraries.
 
@@ -30,7 +30,6 @@ cp -r * %{buildroot}/usr/clearos/apps/ldap/
 install -d -m 0755 %{buildroot}/var/clearos/ldap
 install -d -m 0755 %{buildroot}/var/clearos/ldap/synchronize
 install -D -m 0755 packaging/ldap-init %{buildroot}/usr/sbin/ldap-init
-install -D -m 0755 packaging/ldap-manager %{buildroot}/usr/sbin/ldap-manager
 install -D -m 0755 packaging/ldap-synchronize %{buildroot}/usr/sbin/ldap-synchronize
 install -D -m 0755 packaging/poststart-ldap %{buildroot}/usr/sbin/poststart-ldap
 install -D -m 0755 packaging/prestart-ldap %{buildroot}/usr/sbin/prestart-ldap
@@ -65,7 +64,6 @@ exit 0
 /usr/clearos/apps/ldap/language
 /usr/clearos/apps/ldap/libraries
 /usr/sbin/ldap-init
-/usr/sbin/ldap-manager
 /usr/sbin/ldap-synchronize
 /usr/sbin/poststart-ldap
 /usr/sbin/prestart-ldap
