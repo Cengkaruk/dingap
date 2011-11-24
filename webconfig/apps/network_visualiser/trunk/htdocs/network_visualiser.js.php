@@ -115,27 +115,26 @@ function reset_scan() {
     });
 }
 
-var ben = true;
 function format_number (bytes) {
+    bits = bytes * 8;
 
     if (display == 'totalbytes') {
         var sizes = [" .
-            "'" . lang('base_bytes') . "'," .
-            "'" . lang('base_kilobytes') . "'," .
-            "'" . lang('base_megabytes') . "'," .
-            "'" . lang('base_gigabytes') . "'
+            "'" . lang('base_bits') . "'," .
+            "'" . lang('base_kilobits') . "'," .
+            "'" . lang('base_megabits') . "'," .
+            "'" . lang('base_gigabits') . "'
         ];
     } else {
-        bytes = bytes / 8;
         var sizes = [" .
-            "'" . lang('base_bytes_per_second') . "'," .
-            "'" . lang('base_kilobytes_per_second') . "'," .
-            "'" . lang('base_megabytes_per_second') . "'," .
-            "'" . lang('base_gigabytes_per_second') . "'
+            "'" . lang('base_bits_per_second') . "'," .
+            "'" . lang('base_kilobits_per_second') . "'," .
+            "'" . lang('base_megabits_per_second') . "'," .
+            "'" . lang('base_gigabits_per_second') . "'
         ];
     }
-    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-    return ((i == 0)? (bytes / Math.pow(1024, i)) : (bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
+    var i = parseInt(Math.floor(Math.log(bits) / Math.log(1024)));
+    return ((i == 0)? (bits / Math.pow(1024, i)) : (bits / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
 jQuery.fn.dataTableExt.oSort['title-numeric-asc']  = function(a,b) {

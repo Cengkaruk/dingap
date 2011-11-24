@@ -348,8 +348,8 @@ class Network_Visualiser
         clearos_profile(__METHOD__, __LINE__);
 
         $options = array(
-            'totalbps' => lang('network_visualiser_field_total_bps'),
-            'totalbytes' => lang('network_visualiser_field_total_bytes')
+            'totalbps' => lang('network_visualiser_bandwidth'),
+            'totalbytes' => lang('network_visualiser_total_transfer')
         );
 
         return $options;
