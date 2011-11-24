@@ -55,9 +55,14 @@ int csExecute(const string &command, vector<string> &output);
 void csHexDump(FILE *fh, const void *data, uint32_t length);
 
 uid_t csGetUserId(const string &user);
+void csGetUserName(uid_t uid, string &name);
+
 gid_t csGetGroupId(const string &group);
+void csGetGroupName(gid_t gid, string &name);
 
 void csSHA1(const string &filename, uint8_t *digest);
+
+void csHexToBinary(const string &hex, uint8_t *bin, size_t length);
 
 #endif // _CSUTIL_H
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4

@@ -244,6 +244,30 @@ uid_t csGetUserId(const string &user)
     return uid;
 }
 
+void csGetUserName(uid_t uid, string &name)
+{
+    struct passwd pwd;
+    struct passwd *result;
+    char *buffer;
+    long buffer_size;
+    int rc;
+
+    buffer_size = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (buffer_size == -1) buffer_size = 16384;
+
+    buffer = new char[buffer_size];
+    rc = getpwuid_r(uid,
+        &pwd, buffer, (size_t)buffer_size, &result);
+    if (result == NULL) {
+        delete [] buffer;
+        if (rc == 0)
+            throw csException(EINVAL, "User ID not found");
+        throw csException(rc, "getpwuid_r");
+    }
+    name.assign(pwd.pw_name);
+    delete [] buffer;
+}
+
 gid_t csGetGroupId(const string &group)
 {
     struct group grp;
@@ -270,6 +294,30 @@ gid_t csGetGroupId(const string &group)
     return gid;
 }
 
+void csGetGroupName(gid_t gid, string &name)
+{
+    struct group grp;
+    struct group *result;
+    char *buffer;
+    long buffer_size;
+    int rc;
+
+    buffer_size = sysconf(_SC_GETGR_R_SIZE_MAX);
+    if (buffer_size == -1) buffer_size = 16384;
+
+    buffer = new char[buffer_size];
+    rc = getgrgid_r(gid,
+        &grp, buffer, (size_t)buffer_size, &result);
+    if (result == NULL) {
+        delete [] buffer;
+        if (rc == 0)
+            throw csException(EINVAL, "Group ID not found");
+        throw csException(rc, "getgrgid_r");
+    }
+    name.assign(grp.gr_name);
+    delete [] buffer;
+}
+
 void csSHA1(const string &filename, uint8_t *digest)
 {
     SHA_CTX ctx;
@@ -287,6 +335,19 @@ void csSHA1(const string &filename, uint8_t *digest)
     }
     fclose(fh);
     SHA1_Final(digest, &ctx);
+}
+
+void csHexToBinary(const string &hex, uint8_t *bin, size_t length)
+{
+    if (hex.size() != length * 2)
+        throw csException(EINVAL, "Invalid hex string length");
+
+    size_t i, j, byte;
+    for (i = 0, j = 0; i < length * 2; i += 2, j++) {
+        if (sscanf(hex.c_str() + i, "%2x", &byte) != 1)
+            throw csException(EINVAL, "Hex string parse error");
+        bin[j] = (uint8_t)byte;
+    }
 }
 
 // vi: expandtab shiftwidth=4 softtabstop=4 tabstop=4
