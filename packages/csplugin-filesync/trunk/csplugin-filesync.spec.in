@@ -1,7 +1,7 @@
 # ClearSync FileSync Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 1%{dist}
+Release: 2%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
@@ -9,7 +9,8 @@ Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
 Requires: clearsync
-BuildRequires: clearsync-devel expat-devel
+BuildRequires: clearsync-devel >= 1.2-5
+BuildRequires: expat-devel
 BuildRequires: openssl-devel librsync-devel
 Summary: ClearSync FileSync plugin
 Requires(pre): /sbin/ldconfig
@@ -70,7 +71,7 @@ if [ -z "$CHECK" ]; then
 	chmod 440 /etc/sudoers
 fi
 
-CMD=/bin/cp
+CMD=/bin/cat
 LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
 CHECK=`echo $LINE, | grep $CMD,`
 if [ -z "$CHECK" ]; then
