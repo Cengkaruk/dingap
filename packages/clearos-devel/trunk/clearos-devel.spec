@@ -1,6 +1,6 @@
 Name: clearos-devel
-Version: 6.1.0
-Release: 0.beta1%{dist}
+Version: 6.1.0.beta2
+Release: 1%{dist}
 Summary: ClearOS developer tools
 License: GPLv3
 Group: ClearOS/Tools
