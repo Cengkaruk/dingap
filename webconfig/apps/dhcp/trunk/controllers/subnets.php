@@ -123,6 +123,7 @@ class Subnets extends ClearOS_Controller
             $this->load->library('dhcp/Dnsmasq');
     
             $this->dnsmasq->delete_subnet($iface);
+            $this->dnsmasq->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/dhcp/subnets');
