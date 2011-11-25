@@ -27,7 +27,7 @@ include /etc/openldap/schema/kolab2.schema
 include /etc/openldap/schema/horde.schema
 
 # Samba extension
-include /etc/openldap/schema/samba.schema
+include /etc/openldap/schema/samba3.schema
 
 # Zarafa extension
 include /etc/openldap/schema/zarafa.schema
@@ -43,7 +43,7 @@ argsfile /var/run/openldap/slapd.args
 #TLSCertificateFile     /etc/openldap/cacerts/cert.pem
 #TLSCertificateKeyFile  /etc/openldap/cacerts/key.pem
 
-# FIXME: does Kolab really need this?
+# TODO: does Kolab really need this?
 #rootDSE /etc/openldap/rootDSE.ldif
 
 defaultsearchbase "@@@base_dn@@@"
@@ -54,8 +54,6 @@ loglevel 0
 
 sizelimit 10000
 
-# FIXME: review
-# modulepath /usr/lib/openldap
 moduleload accesslog.la
 moduleload ppolicy.la
 moduleload syncprov.la

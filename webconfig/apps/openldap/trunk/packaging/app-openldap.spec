@@ -40,6 +40,7 @@ install -D -m 0644 packaging/schema/kolab2.schema %{buildroot}/etc/openldap/sche
 install -D -m 0644 packaging/schema/pcn.schema %{buildroot}/etc/openldap/schema/pcn.schema
 install -D -m 0644 packaging/schema/rfc2307bis.schema %{buildroot}/etc/openldap/schema/rfc2307bis.schema
 install -D -m 0644 packaging/schema/rfc2739.schema %{buildroot}/etc/openldap/schema/rfc2739.schema
+install -D -m 0644 packaging/schema/samba.schema %{buildroot}/etc/openldap/schema/samba3.schema
 install -D -m 0644 packaging/schema/zarafa.schema %{buildroot}/etc/openldap/schema/zarafa.schema
 install -D -m 0644 packaging/slapd.php %{buildroot}/var/clearos/base/daemon/slapd.php
 
@@ -81,5 +82,6 @@ exit 0
 /etc/openldap/schema/pcn.schema
 /etc/openldap/schema/rfc2307bis.schema
 /etc/openldap/schema/rfc2739.schema
+/etc/openldap/schema/samba3.schema
 /etc/openldap/schema/zarafa.schema
 /var/clearos/base/daemon/slapd.php

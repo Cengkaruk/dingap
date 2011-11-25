@@ -131,6 +131,7 @@ class LDAP_Driver extends LDAP_Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const CONSTANT_BASE_DB_NUM = 3;
+    const CONSTANT_BIND_DN_PREFIX = 'cn=manager,ou=Internal';
 
     // Policies
     const POLICY_LAN = 'lan';
@@ -467,7 +468,7 @@ class LDAP_Driver extends LDAP_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         return array(
-            self::POLICY_LOCALHOST => lang('ldap_unpublished'),
+            self::POLICY_LOCALHOST => lang('ldap_not_published'),
             self::POLICY_LAN => lang('ldap_local_network'),
         );
     }
@@ -519,16 +520,20 @@ class LDAP_Driver extends LDAP_Engine
 
         $file = new File(self::FILE_INITIALIZED);
 
-        if (! $this->is_initialized())
-            return LDAP_Engine::STATUS_UNINITIALIZED;
-
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        if ($this->ldaph->is_online())
+        $initialization_status = $this->_get_initialization_status();
+
+        if (! empty($initialization_status)) {
+            $status = LDAP_Engine::STATUS_BUSY;
+        } else if (! $this->is_initialized()) {
+            $status = LDAP_Engine::STATUS_UNINITIALIZED;
+        } else if ($this->ldaph->is_online()) {
             $status = LDAP_Engine::STATUS_ONLINE;
-        else
+        } else {
             $status = LDAP_Engine::STATUS_OFFLINE;
+        }
 
         return $status;
     }
@@ -662,121 +667,85 @@ class LDAP_Driver extends LDAP_Engine
      * Changes base domain used in directory
      *
      * @param string $domain domain
-     * @param boolean $background run in background
      *
      * @return void
      */
 
-    public function set_domain($domain, $background = FALSE)
+    public function set_base_internet_domain($domain)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_domain($domain));
 
-        // Validate: set_domain is not valid when system is in slave mode
+        // Validate: method is not valid when system is in slave mode
+        //-----------------------------------------------------------
+
         $mode = $this->get_mode();
 
         if ($mode === self::MODE_SLAVE)
             throw new Validation_Exception(lang('openldap_domain_cannot_be_changed_in_slave_mode'));
 
-//        if ($this->is_initialized()) {
-        if (FALSE) {
+        // Bail if this has not been initialized
+        //--------------------------------------
 
-        } else {
-            // Generate a password
-            //--------------------
-
-            $password = LDAP_Utilities::generate_password();
-
-            // Set initializing
-            //-----------------
-
-            $file = new File(self::FILE_INITIALIZING);
-
-            if (! $file->exists())
-                $file->create('root', 'root', '0644');
-
-            // Run ldap-manager
-            //-----------------
-
-// FIXME - remove TRUE flag
-            try {
-                if ($mode === self::MODE_STANDALONE)
-                    $this->initialize_standalone($domain, $password, TRUE);
-                else if ($mode === self::MODE_MASTER)
-                    $this->initialize_master($domain, $password);
-            } catch (Engine_Exception $e) {
-                // Do cleanup
-            }
-
-            $file->delete();
-return;
-// pete
-        }
-
-        if ($background) {
-            try {
-                $options['background'] = TRUE;
-                $shell = new Shell();
-                $shell->Execute(Engine::COMMAND_API, 'Directory SetDomain ' . $domain, TRUE, $options);
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-            }
-
+        if (! $this->is_initialized())
             return;
-        }
+
+        // Bail if the domain hasn't changed
+        //----------------------------------
+
+        if ($domain === $this->get_base_internet_domain())
+            return;
+
+        // Prep file parsing
+        //------------------
+
+        $this->_set_initialization_status(lang('openldap_preparing_system'));
 
         if ($this->ldaph === NULL)
             $this->ldaph = $this->get_ldap_handle();
 
-        $was_running = FALSE;
-
         try {
-            // Grab hostname
-            //--------------
-
-            $hostnameobj = new Hostname();
-            $hostname = $hostnameobj->Get();
-
             // Dump LDAP database to export file
             //----------------------------------
 
             $was_running = $this->get_running_state();
-            $this->Export(self::FILE_LDIF_OLD_DOMAIN, self::CONSTANT_BASE_DB_NUM);
+            $this->export(self::FILE_LDIF_OLD_DOMAIN, self::CONSTANT_BASE_DB_NUM);
+
+            // Grab hostname
+            //--------------
+
+            $hostnameobj = new Hostname();
+            $hostname = $hostnameobj->get();
 
             // Load LDAP export file
             //----------------------
 
             $export = new File(self::FILE_LDIF_OLD_DOMAIN, TRUE);
-            $exportlines = $export->GetContentsAsArray();
-
-            // Load Kolab configuration file
-            //------------------------------
-
-// FIXME - FILE_KOLAB_CONFIG should not be here.
-            $kolabconfig = new File(LDAP::FILE_KOLAB_CONFIG);
-            $kolablines = $kolabconfig->GetContentsAsArray();
+            $exportlines = $export->get_contents_as_array();
 
             // Load LDAP configuration
             //------------------------
 
             $ldapconfig = new File(self::FILE_SLAPD_CONFIG);
-            $ldaplines = $ldapconfig->GetContentsAsArray();
+            $ldaplines = $ldapconfig->get_contents_as_array();
 
             // Load LDAP information
             //----------------------
 
-            $basedn = $this->ldaph->GetBaseDn();
+            $basedn = $this->ldaph->get_base_dn();
 
         } catch (Exception $e) {
             if ($was_running)
                 $this->set_running_state(TRUE);
 
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
         
         // Remove word wrap from LDIF data
         //--------------------------------
+
+        $this->_set_initialization_status(lang('openldap_generating_configuration'));
 
         $cleanlines = array();
 
@@ -803,6 +772,7 @@ return;
 
         $ldiflines = array();
 
+        // TODO: Handle Kolab externally - leave it here for now.
         foreach ($cleanlines as $line) {
             if (preg_match("/$basedn/", $line))
                 $ldiflines[] = preg_replace("/$basedn/", $newbasedn, $line);
@@ -824,18 +794,6 @@ return;
                 $ldiflines[] = $line;
         }
 
-        // Rewrite Kolab configuration file
-        //---------------------------------
-
-        $newkolablines = array();
-
-        foreach ($kolablines as $line) {
-            if (preg_match("/^fqdnhostname/", $line))
-                $newkolablines[] = "fqdnhostname : $hostname";
-            else
-                $newkolablines[] = preg_replace("/$basedn/", $newbasedn, $line);
-        }
-
         // Rewrite LDAP configuration file
         //--------------------------------
 
@@ -844,70 +802,54 @@ return;
         foreach ($ldaplines as $line)
             $newldaplines[] = preg_replace("/$basedn/", $newbasedn, $line);
 
+        //---------------------------------------------------------------
         // Implement file changes
-        //-----------------------
+        //---------------------------------------------------------------
+
+        // LDAP export file
+        //-----------------
+
+        $newexport = new File(self::FILE_LDIF_NEW_DOMAIN);
+
+        if ($newexport->exists())
+            $newexport->delete();
+
+        $newexport->create('root', 'root', '0600');
+        $newexport->dump_contents_from_array($ldiflines);
+
+        // LDAP configuration
+        //--------------------
+
+        $newldap = new File(self::FILE_SLAPD_CONFIG, TRUE);
+
+        if ($newldap->exists())
+            $newldap->delete();
+
+        $newldap->create('root', 'ldap', '0640');
+        $newldap->dump_contents_from_array($newldaplines);
+
+        // Import
+        //-------
+
+        $this->_set_initialization_status(lang('openldap_importing_data'));
+
+        $this->_import_ldif(self::FILE_LDIF_NEW_DOMAIN);
+
+        // Set new base DN in configuration
+        //---------------------------------
+
+        $file = new File(self::FILE_CONFIG);
+        $file->replace_lines('/^base_dn\s*=/', "base_dn = $newbasedn\n");
+        $file->replace_lines('/^bind_dn\s*=/', "bind_dn = " . self::CONSTANT_BIND_DN_PREFIX . ",$newbasedn\n");
+
+        $this->_set_initialization_status('');
+
+        // Tell other LDAP dependent apps to grab latest configuration
+        //------------------------------------------------------------
 
         try {
-            // LDAP export file
-            //-----------------
-
-            $newexport = new File(self::FILE_LDIF_NEW_DOMAIN);
-
-            if ($newexport->Exists())
-                $newexport->Delete();
-
-            $newexport->Create('root', 'root', '0600');
-            $newexport->DumpContentsFromArray($ldiflines);
-
-            // LDAP configuration
-            //--------------------
-
-            $newldap = new File(self::FILE_SLAPD_CONFIG, TRUE);
-
-            if ($newldap->Exists())
-                $newldap->Delete();
-
-            $newldap->Create('root', 'ldap', '0640');
-            $newldap->DumpContentsFromArray($newldaplines);
-
-            // Kolab configuration
-            //--------------------
-
-// FIXME - FILE_KOLAB_CONFIG should not be here.
-            $newconfig = new File(LDAP::FILE_KOLAB_CONFIG, TRUE);
-
-            if ($newconfig->Exists())
-                $newconfig->Delete();
-
-            $newconfig->Create('root', 'root', '0600');
-            $newconfig->DumpContentsFromArray($newkolablines);
-
-            // Import
-            //-------
-
-            $this->_import_ldif(self::FILE_LDIF_NEW_DOMAIN);
-
-            // Perform Authconfig initialization in case LDAP has been manually initialized
-            //-----------------------------------------------------------------------------
-
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        try {
-            // TODO: Should not need to explicitly call _CleanSecretsFile
-            // FIXME: this shold not be here
-            if (file_exists(COMMON_CORE_DIR . '/api/Samba.class.php')) {
-                require_once('Samba.class.php');
-                // $samba = new Samba();
-                $samba->_CleanSecretsFile('');
-            }
-
-            // Tell other LDAP dependent apps to grab latest configuration
-            // TODO: move this to a daemon
             if ($was_running)
                 $this->synchronize(FALSE);
-
         } catch (Exception $e) {
             // Not fatal
         }
@@ -1032,6 +974,27 @@ return;
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Returns status message.
+     * 
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _get_initialization_status()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_STATUS);
+
+        if (! $file->exists())
+            return '';
+
+        $status = $file->lookup_value('/^status_message\s*=\s*/');
+
+        return $status;
+    }
+
+    /**
      * Common initialization routine for the LDAP modes.
      *
      * @param string $mode LDAP server mode
@@ -1060,7 +1023,7 @@ return;
         // KLUDGE: shutdown Samba or it will try to write information to LDAP
         //-------------------------------------------------------------------
 
-        $this->_set_status(lang('openldap_preparing_system'));
+        $this->_set_initialization_status(lang('openldap_preparing_system'));
 
         $samba_list = array('smb', 'nmb', 'winbind');
 
@@ -1084,7 +1047,7 @@ return;
         // Generate the configuration files
         //---------------------------------
 
-        $this->_set_status(lang('openldap_generating_configuration'));
+        $this->_set_initialization_status(lang('openldap_generating_configuration'));
 
         $this->_initialize_configuration($mode, $domain, $password, $hostname, $master_hostname);
 
@@ -1100,20 +1063,20 @@ return;
         // Import the base LDIF data
         //--------------------------
 
-        $this->_set_status(lang('openldap_importing_data'));
+        $this->_set_initialization_status(lang('openldap_importing_data'));
 
         $this->_import_ldif(self::FILE_DATA);
 
         // Do some cleanup tasks
         //----------------------
 
-        $this->_set_status(lang('openldap_preparing_startup'));
+        $this->_set_initialization_status(lang('openldap_preparing_startup'));
 
         $this->_set_initialized();
         $this->_set_startup($start);
         $this->synchronize();
 
-        $this->_set_status('');
+        $this->_set_initialization_status('');
     }
 
     /**
@@ -1142,7 +1105,7 @@ return;
         $base_dn_rdn = preg_replace('/dc=/', '', $base_dn_rdn);
 
         $bind_pw = $password;
-        $bind_dn = "cn=manager,ou=Internal,$base_dn";
+        $bind_dn = self::CONSTANT_BIND_DN_PREFIX . ',' . $base_dn;
 
         $shell = new Shell();
 
@@ -1378,7 +1341,7 @@ return;
      * @throws Engine_Exception
      */
 
-    protected function _set_status($message)
+    protected function _set_initialization_status($message)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1409,16 +1372,8 @@ return;
 
         $this->set_boot_state(TRUE);
 
-        /*
-        FIXME
-        $ldapsync = new Daemon("ldapsync");
-        $ldapsync->set_boot_state(TRUE);
-        */
-
-        if ($start) {
+        if ($start)
             $this->restart();
-            // FIXME $ldapsync->restart();
-        }
     }
 
     /**

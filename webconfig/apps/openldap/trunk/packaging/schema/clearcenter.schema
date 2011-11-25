@@ -13,10 +13,10 @@
 #
 ###########################################################################
 
-objectIdentifier ClearCenterRoot 1.3.6.1.4.1.654321
-objectIdentifier ClearCenterLDAP ClearCenterRoot:2
-objectIdentifier ClearCenterAttribute ClearCenterLDAP:1
-objectIdentifier ClearCenterObjectClass ClearCenterLDAP:2
+# objectIdentifier ClearCenterRoot 1.3.6.1.4.1.654321
+# objectIdentifier ClearCenterLDAP ClearCenterRoot:2
+# objectIdentifier ClearCenterAttribute ClearCenterLDAP:1
+# objectIdentifier ClearCenterObjectClass ClearCenterLDAP:2
 
 ###########################################################################
 #

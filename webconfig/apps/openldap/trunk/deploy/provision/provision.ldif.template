@@ -146,7 +146,7 @@ homeDirectory: /home/guest
 loginShell: /sbin/nologin
 
 #----------------------------------------------------------
-# Internal users - FIXME: review
+# Internal users - TODO: review
 #----------------------------------------------------------
 
 dn: cn=manager,ou=Internal,@@@base_dn@@@
