@@ -57,6 +57,8 @@ class Users extends ClearOS_Controller
 {
     /**
      * Users overview.
+     *
+     * @return view
      */
 
     function index()
@@ -67,7 +69,7 @@ class Users extends ClearOS_Controller
         $this->load->module('accounts/status');
 
         if ($this->status->unhappy()) {
-            $this->status->widget();
+            $this->status->widget('users');
             return;
         }
 
@@ -110,8 +112,10 @@ class Users extends ClearOS_Controller
 
     function add($username = NULL)
     {
-        if (!isset($username) && $this->input->post('username'))
-            $username = $this->input->post('username');
+        if (!isset($username)) {
+            $user_info = $this->input->post('user_info');
+            $username = isset($user_info['core']['username']) ? $user_info['core']['username'] : '';
+        }
 
         $this->_item($username, 'add');
     }
@@ -222,33 +226,46 @@ class Users extends ClearOS_Controller
         // Validate prep
         //--------------
 
+        // FIXME: how to catch validation for
+        // - full name uniqueness
+        // - password/verify
+        // FIXME: add groups
+
         $info_map = $this->user->get_info_map();
-        $this->load->library('form_validation');
 
         // Validate core
         //--------------
 
         foreach ($info_map['core'] as $key => $details) {
+            $required = (isset($details['required'])) ? $details['required'] : FALSE;
             $full_key = 'user_info[core][' . $key . ']';
-            $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
+            $check_exists = ($form_type === 'add') ? TRUE : FALSE;
+
+            if (!(($key === 'username') && ($form_type === 'edit')))
+                $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator'], $required, $check_exists);
         }
 
         // Validate extensions
         //--------------------
 
-        foreach ($info_map['extensions'] as $extension => $parameters) {
-            foreach ($parameters as $key => $details) {
-                $full_key = 'user_info[extensions][' . $extension . '][' . $key . ']';
-                $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator']);
+        if (! empty($info_map['extensions'])) {
+            foreach ($info_map['extensions'] as $extension => $parameters) {
+                foreach ($parameters as $key => $details) {
+                    $required = (isset($details['required'])) ? $details['required'] : FALSE;
+                    $full_key = 'user_info[extensions][' . $extension . '][' . $key . ']';
+                    $this->form_validation->set_policy($full_key, $details['validator_class'], $details['validator'], $required);
+                }
             }
         }
 
         // Validate plugins
         //-----------------
 
-        foreach ($info_map['plugins'] as $plugin) {
-            $full_key = 'user_info[plugins][' . $plugin . '][state]';
-            $this->form_validation->set_policy($full_key, 'accounts/Accounts_Engine', 'validate_plugin_state');
+        if (! empty($info_map['plugins'])) {
+            foreach ($info_map['plugins'] as $plugin) {
+                $full_key = 'user_info[plugins][' . $plugin . '][state]';
+                $this->form_validation->set_policy($full_key, 'accounts/Accounts_Engine', 'validate_plugin_state');
+            }
         }
 
         $form_ok = $this->form_validation->run();
@@ -256,7 +273,7 @@ class Users extends ClearOS_Controller
         // Handle form submit
         //-------------------
 
-        if ($this->input->post('submit') && ($form_ok === TRUE)) {
+        if ($this->input->post('submit') && ($form_ok)) {
             try {
                 if ($form_type === 'add')
                     $this->user->add($this->input->post('user_info'), $this->input->post('password'));
@@ -277,7 +294,6 @@ class Users extends ClearOS_Controller
         try {
             $data['form_type'] = $form_type;
 
-            $data['username'] = $username;
             $data['info_map'] = $info_map;
 
             if ($form_type === 'add')

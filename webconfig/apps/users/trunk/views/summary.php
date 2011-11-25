@@ -52,8 +52,8 @@ if ($mode === 'view') {
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-	lang('users_username'),
-	lang('users_full_name'),
+    lang('users_username'),
+    lang('users_full_name'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,15 +86,15 @@ foreach ($users as $username => $info) {
     else
         $full_name = $info['core']['first_name'] . ' ' . $info['core']['last_name'];
 
-	$item['title'] = $username;
-	$item['action'] = '/app/users/edit/' . $username;
-	$item['anchors'] = button_set($buttons);
-	$item['details'] = array(
-		$username,
-		$full_name,
-	);
+    $item['title'] = $username;
+    $item['action'] = '/app/users/edit/' . $username;
+    $item['anchors'] = button_set($buttons);
+    $item['details'] = array(
+        $username,
+        $full_name,
+    );
 
-	$items[] = $item;
+    $items[] = $item;
 }
 
 sort($items);
@@ -104,8 +104,8 @@ sort($items);
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-	lang('users_user_manager'),
-	$anchors,
-	$headers,
-	$items
+    lang('users_user_manager'),
+    $anchors,
+    $headers,
+    $items
 );
