@@ -73,6 +73,7 @@ $lang['network_mode_trusted_gateway'] = 'Trusted Gateway';
 $lang['network_mode_standalone_no_firewall'] = 'Standalone - No Firewall';
 $lang['network_mtu'] = 'MTU';
 $lang['network_mtu_invalid'] = 'MTU is invalid.';
+$lang['network_port'] = 'Port';
 $lang['network_netmask_invalid'] = 'Netmask is invalid.';
 $lang['network_netmask_invalid'] = 'Netmask is invalid.';
 $lang['network_netmask'] = 'Netmask';
