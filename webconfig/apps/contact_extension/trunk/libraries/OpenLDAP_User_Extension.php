@@ -135,6 +135,9 @@ class OpenLDAP_User_Extension extends Engine
         // Convert to LDAP attributes
         //---------------------------
 
+        if ($user_info['extensions']['contact']['country'] == '__')
+            unset($user_info['extensions']['contact']['country']);
+
         $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['contact'], $this->info_map, FALSE);
 
         return $attributes;
@@ -226,6 +229,9 @@ class OpenLDAP_User_Extension extends Engine
         // Convert to LDAP attributes
         //---------------------------
 
+        if ($user_info['extensions']['contact']['country'] == '__')
+            unset($user_info['extensions']['contact']['country']);
+
         $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['contact'], $this->info_map, TRUE);
 
         return $attributes;
@@ -266,7 +272,7 @@ class OpenLDAP_User_Extension extends Engine
         $country_object = new Country();
         $country_list = $country_object->get_list();
 
-        if (! array_key_exists($country, $country_list))
+        if (($country != '__') && (! array_key_exists($country, $country_list)))
             return lang('contact_extension_country_is_invalid');
     }
 

@@ -71,9 +71,10 @@ clearos_load_library('base/Country');
 // Load list of countries
 
 try {
+    // TODO: discuss how to deal with "not specified".  See validate_country too.
     $country = new Country();
     $country_list = $country->get_list();
-    $country_list['0'] = ' -- ' . lang('base_not_specified') . ' -- ';
+    $country_list['__'] = ' -- ' . lang('base_not_specified') . ' -- ';
     asort($country_list);
 } catch (Exception $e) {
     // 
