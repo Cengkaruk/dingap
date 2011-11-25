@@ -63,7 +63,9 @@ class Bandwidth extends ClearOS_Controller
         // Load views
         //-----------
 
-        $views = array('bandwidth/ifaces', 'bandwidth/basic', 'bandwidth/advanced');
+        // FIXME
+        // $views = array('bandwidth/ifaces', 'bandwidth/basic', 'bandwidth/advanced');
+        $views = array('bandwidth/ifaces', 'bandwidth/basic');
 
         $this->page->view_forms($views, lang('bandwidth_app_name'));
     }

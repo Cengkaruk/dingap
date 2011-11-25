@@ -1,8 +1,8 @@
 
 Name: app-bandwidth
 Group: ClearOS/Apps
-Version: 5.9.9.2
-Release: 4%{dist}
+Version: 6.1.0.beta2
+Release: 1%{dist}
 Summary: Bandwidth Manager
 License: GPLv3
 Packager: ClearFoundation
@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-Bandwidth Manager description...
+Bandwidth Manager is an essential tool for administrators who wish to implement Quality of Service for services such as browsing, VoIP and SSH so that no one individual or application can adversely affect the performance of the entire network.
 
 %package core
 Summary: Bandwidth Manager - APIs and install
@@ -25,7 +25,7 @@ Requires: app-network-core
 Requires: app-firewall-core
 
 %description core
-Bandwidth Manager description...
+Bandwidth Manager is an essential tool for administrators who wish to implement Quality of Service for services such as browsing, VoIP and SSH so that no one individual or application can adversely affect the performance of the entire network.
 
 This package provides the core API and libraries.
 

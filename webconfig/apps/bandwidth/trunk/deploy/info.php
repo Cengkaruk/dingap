@@ -5,8 +5,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'bandwidth';
-$app['version'] = '5.9.9.2';
-$app['release'] = '4';
+$app['version'] = '6.1.0.beta2';
+$app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
