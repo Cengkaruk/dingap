@@ -86,6 +86,7 @@ class LDAP_Engine extends Daemon
     const STATUS_UNINITIALIZED = 'uninitialized';
     const STATUS_OFFLINE = 'offline';
     const STATUS_ONLINE = 'online';
+    const STATUS_BUSY = 'busy';
 
     const PATH_SYNCHRONIZE = '/var/clearos/ldap/synchronize';
 

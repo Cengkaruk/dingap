@@ -8,3 +8,5 @@ $lang['ldap_master'] = 'Master';
 $lang['ldap_slave'] = 'Slave'; 
 $lang['ldap_standalone'] = 'Standalone';
 $lang['ldap_base_domain'] = 'Base Domain';
+$lang['ldap_not_published'] = 'Not Published';
+$lang['ldap_local_network'] = 'Local Network';
