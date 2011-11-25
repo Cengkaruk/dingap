@@ -8,7 +8,7 @@ Group: System/Plugins
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
-Requires: clearsync
+Requires: clearsync >= 1.2-5 /sbin/service /usr/bin/sudo
 BuildRequires: clearsync-devel >= 1.2-5
 BuildRequires: expat-devel
 BuildRequires: openssl-devel librsync-devel
