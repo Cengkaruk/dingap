@@ -356,15 +356,17 @@ public:
     };
 
     csPluginFileSyncSession(csSocket *skt,
-        const uint8_t *authkey, size_t authkey_bits)
-        : csThread(), config(NULL) {
+        const uint8_t *authkey, size_t authkey_bits,
+        size_t stack_size)
+        : csThread(stack_size), config(NULL) {
         config = new csPluginFileSyncConfig(skt);
         config->skt->SetWaitAll();
         InitializePacket(authkey, authkey_bits);
     };
     csPluginFileSyncSession(csPluginFileSyncConfig *config,
-        const uint8_t *authkey, size_t authkey_bits)
-        : csThread(), config(config) {
+        const uint8_t *authkey, size_t authkey_bits,
+        size_t stack_size)
+        : csThread(stack_size), config(config) {
         config->skt->SetWaitAll();
         InitializePacket(authkey, authkey_bits);
     };
@@ -427,7 +429,7 @@ ssize_t csPluginFileSyncSession::ReadPacket(PacketId &id, PacketArg &arg)
         config->skt->Read(length, pkt.buffer);
     } catch (csException &e) {
         csLog::Log(csLog::Error,
-            "Error reading packet header: %s", e.what());
+            "Error reading packet header: %s: %s", e.estring.c_str());
         return -1;
     }
 
@@ -524,8 +526,9 @@ class csPluginFileSyncSessionMaster : public csPluginFileSyncSession
 {
 public:
     csPluginFileSyncSessionMaster(csEventClient *parent,
-        csPluginFileSyncConfig *config, const uint8_t *authkey, size_t authkey_bits)
-        : csPluginFileSyncSession(config, authkey, authkey_bits),
+        csPluginFileSyncConfig *config, const uint8_t *authkey, size_t authkey_bits,
+        size_t stack_size)
+        : csPluginFileSyncSession(config, authkey, authkey_bits, stack_size),
         parent(parent) { };
     virtual ~csPluginFileSyncSessionMaster() { Join(); };
     virtual void *Entry(void);
@@ -585,6 +588,7 @@ void csPluginFileSyncSessionMaster::Run(void)
                 i->second->Refresh();
             } catch (csException &e) {
                 WritePacket(idException);
+                continue;
             }
             if (memcmp(i->second->sha, pkt.payload, SHA_DIGEST_LENGTH)) {
                 size_t bytes;
@@ -669,7 +673,7 @@ class csPluginFileSyncSessionSlave : public csPluginFileSyncSession
 public:
     csPluginFileSyncSessionSlave(
         csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
-        time_t tv_interval);
+        time_t tv_interval, size_t stack_size);
     virtual ~csPluginFileSyncSessionSlave();
     virtual void *Entry(void);
 
@@ -695,8 +699,8 @@ static cstimer_id_t csSlaveSessionInterval = 1;
 
 csPluginFileSyncSessionSlave::csPluginFileSyncSessionSlave(
     csSocket *skt, const uint8_t *authkey, size_t authkey_bits,
-    time_t tv_interval)
-    : csPluginFileSyncSession(skt, authkey, authkey_bits),
+    time_t tv_interval, size_t stack_size)
+    : csPluginFileSyncSession(skt, authkey, authkey_bits, stack_size),
     tv_interval(tv_interval), timer(NULL)
 {
     cstimer_id_t id = __sync_fetch_and_add(&csSlaveSessionInterval, 1);
@@ -846,7 +850,6 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
 //    csLog::Log(csLog::Debug, "user: %s, group: %s, mode: %lo",
 //        user.c_str(), group.c_str(), mode);
 
-    WritePacket(idOk);
     CloseTemporaryFiles();
 
     char *tmp = new char[256];
@@ -854,9 +857,12 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
     int fd = mkstemp(tmp);
     if (fd < 0) {
         delete [] tmp;
+        WritePacket(idException);
         throw csException(errno, "mkstemp");
     }
     tmp_file[fd] = tmp;
+
+    WritePacket(idOk);
 
     for ( ;; ) {
         PacketId id = idNone;
@@ -985,6 +991,8 @@ protected:
     inline void DestroySession(csEventClient *client);
 
     csPluginConf *conf;
+    size_t stack_size;
+
     uint8_t *authkey;
     size_t authkey_bits;
     size_t authkey_bytes;
@@ -996,7 +1004,7 @@ protected:
 
 csPluginFileSync::csPluginFileSync(const string &name,
     csEventClient *parent, size_t stack_size)
-    : csPlugin(name, parent, stack_size), conf(NULL),
+    : csPlugin(name, parent, stack_size), conf(NULL), stack_size(stack_size),
     authkey_bits(csPluginFileSyncAuthKeyBits),
     authkey_bytes(csPluginFileSyncAuthKeyBits / 8)
 {
@@ -1125,7 +1133,7 @@ void csPluginFileSync::StartSession(csPluginFileSyncConfig *config)
     config->AddFile(new_config);
 
     session = new csPluginFileSyncSessionMaster(
-        this, new_config, authkey, authkey_bits);
+        this, new_config, authkey, authkey_bits, stack_size);
     master.push_back(session);
     session->Start();
 }
@@ -1185,7 +1193,8 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
         skt = new csSocketConnect(tag->GetParamValue("host"), port);
         csPluginFileSyncSessionSlave *session;
         session = new csPluginFileSyncSessionSlave(skt,
-            _conf->parent->authkey, _conf->parent->authkey_bits, interval);
+            _conf->parent->authkey, _conf->parent->authkey_bits,
+            interval, _conf->parent->stack_size);
         _conf->parent->slave.push_back(session);
         tag->SetData((void *)session);
     }
@@ -1234,7 +1243,7 @@ void csPluginXmlParser::ParseElementClose(csXmlTag *tag)
         if (!tag->GetText().size())
             ParseError("missing value for tag: " + tag->GetName());
 
-        csHexToBinary(tag->GetText(),
+        ::csHexToBinary(tag->GetText(),
             _conf->parent->authkey, _conf->parent->authkey_bytes);
     }
     else if ((*tag) == "file") {
