@@ -1,7 +1,7 @@
 # ClearSync FileSync Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 3%{dist}
+Release: 4%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins

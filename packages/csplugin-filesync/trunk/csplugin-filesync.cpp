@@ -612,6 +612,22 @@ void csPluginFileSyncSessionMaster::Run(void)
 
 void csPluginFileSyncSessionMaster::SynchronizeFile(csPluginFileSyncFile *file)
 {
+    int rc;
+
+    if (file->presync != NULL) {
+        rc = ::csExecute(file->presync->c_str());
+        csLog::Log(csLog::Debug,
+            "%s: Execute: %s = %d",
+            name.c_str(), file->presync->c_str(), rc);
+        if (rc != 0) {
+            csLog::Log(csLog::Error,
+                "%s: Pre-sync command failed for: %s",
+                name.c_str(), file->name->c_str());
+            WritePacket(idException);
+            return;
+        }
+    }
+
     int (*pfclose)(FILE *fh) = &fclose;
     FILE *fh = fopen(file->path->c_str(), "r");
     if (fh == NULL && errno != EACCES)
@@ -651,6 +667,17 @@ void csPluginFileSyncSessionMaster::SynchronizeFile(csPluginFileSyncFile *file)
     }
     else
         WritePacket(idData, argEndOfFile);
+
+    if (file->postsync != NULL) {
+        rc = ::csExecute(file->postsync->c_str());
+        csLog::Log(csLog::Debug, "%s: Execute: %s = %d",
+            name.c_str(), file->postsync->c_str(), rc);
+        if (rc != 0) {
+            csLog::Log(csLog::Error,
+                "%s: Post-sync command failed for: %s",
+                name.c_str(), file->name->c_str());
+        }
+    }
 }
 
 class csPluginFileSyncSessionSlave : public csPluginFileSyncSession
@@ -1226,6 +1253,15 @@ void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
 
             csPluginFileSyncFile *file = new csPluginFileSyncFile();
             file->name = new string(tag->GetParamValue("name"));
+
+            if (tag->ParamExists("presync") &&
+                tag->GetParamValue("presync").size())
+                file->presync = new string(tag->GetParamValue("presync"));
+
+            if (tag->ParamExists("postsync") &&
+                tag->GetParamValue("postsync").size())
+                file->postsync = new string(tag->GetParamValue("postsync"));
+
             tag->SetData((void *)file);
         }
         else if (*stack.back() == "slave") {
