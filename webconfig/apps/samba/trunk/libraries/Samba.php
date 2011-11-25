@@ -130,7 +130,7 @@ class Samba extends Software
     const FILE_LOCAL_SYSTEM_INITIALIZED = '/etc/system/initialized/sambalocal';
     const FILE_DOMAIN_SID_CACHE = '/var/clearos/samba/domain_sid_cache';
     const PATH_STATE = '/var/lib/samba';
-    const PATH_STATE_BACKUP = '/var/lib/samba';
+    const PATH_STATE_BACKUP = '/var/clearos/samba';
 
     // Commands
     const COMMAND_NET = '/usr/bin/net';
