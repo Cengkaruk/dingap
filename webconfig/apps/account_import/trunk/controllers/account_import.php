@@ -62,6 +62,16 @@ class Account_Import extends ClearOS_Controller
 
     function index()
     {
+        // Show account status widget if we're not in a happy state
+        //---------------------------------------------------------
+
+        $this->load->module('accounts/status');
+
+        if ($this->status->unhappy()) {
+            $this->status->widget('account_import');
+            return;
+        }
+
         // Load dependencies
         //------------------
 

@@ -27,6 +27,7 @@ $app['subcategory'] = lang('base_subcategory_accounts_manager');
 
 $app['requires'] = array(
     'app-users',
+    'app-groups',
 );
 
 $app['core_file_manifest'] = array(
