@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# Enable on boot for local caching
+logger -p local6.notice -t installer "app-dns-core - enabling dnsmasq on boot"
+chkconfig --add dnsmasq
+chkconfig --level 2345 dnsmasq on
+
+# Create default configuration
+logger -p local6.notice -t installer "app-dns-core - creating default configuration"
+cp /usr/clearos/apps/dns/deploy/dnsmasq.conf /etc/dnsmasq.conf
+
+# Set boot policy
+logger -p local6.notice -t installer "app-dns-core - enabling dnsmasq server"
+/sbin/chkconfig dnsmasq on
