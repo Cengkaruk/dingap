@@ -4,7 +4,7 @@
  * Account import/export controller.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -43,7 +43,7 @@ use \clearos\apps\account_import\Account_Import as Import;
  * Account Import/Export controller.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -53,7 +53,6 @@ use \clearos\apps\account_import\Account_Import as Import;
 
 class Account_Import extends ClearOS_Controller
 {
-
     /**
      * Account_Import default controller
      *

@@ -4,7 +4,7 @@
  * Account import/export ajax controller.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -41,7 +41,7 @@
  * Account Import/Export ajax controller.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -51,7 +51,6 @@
 
 class Ajax extends ClearOS_Controller
 {
-
     /**
      * Account_Import AJAX default controller
      *
@@ -75,7 +74,6 @@ class Ajax extends ClearOS_Controller
 
         header('Cache-Control: no-cache, must-revalidate');
         header('Expires: Fri, 01 Jan 2010 05:00:00 GMT');
-//        header('Content-type: application/json');
 
         // Load dependencies
         //------------------

@@ -12,6 +12,7 @@ Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-users
+Requires: app-groups
 
 %description
 Perform bulk import of users to the system using the Account Import/Export app.

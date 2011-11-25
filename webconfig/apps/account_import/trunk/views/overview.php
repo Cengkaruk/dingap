@@ -4,7 +4,7 @@
  * Account Import/Export overview.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation

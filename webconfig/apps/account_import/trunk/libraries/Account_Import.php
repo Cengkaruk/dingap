@@ -178,7 +178,7 @@ class Account_Import extends Engine
     /**
      * Returns JSON-encoded data indicating progress of import currently running.
      *
-     * @return String
+     * @return string
      * @throws Engine_Exception
      */
 
@@ -203,6 +203,7 @@ class Account_Import extends Engine
     /**
      * Perform an account export.
      *
+     * @return void
      * @throws Engine_Exception
      */
 
@@ -210,16 +211,13 @@ class Account_Import extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            // TODO
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        // TODO
     }
 
     /**
      * Perform an account import.
      *
+     * @return void
      * @throws Engine_Exception, File_Not_Found_Exception
      */
 
@@ -247,7 +245,8 @@ class Account_Import extends Engine
     /**
      * Put the CSV file in the cache directory, ready for import begin.
      *
-     * @filename string CSV filename
+     * @param string $filename string CSV filename
+     *
      * @return void
      * @throws Engine_Exception, File_Not_Found_Exception
      */
@@ -262,8 +261,8 @@ class Account_Import extends Engine
                 throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);
 
             // Move uploaded file to cache
-            $file->move_to(self::FOLDER_ACCOUNT_IMPORT. '/' . self::FILE_CSV);
-            $file->chown('root','root'); 
+            $file->move_to(self::FOLDER_ACCOUNT_IMPORT . '/' . self::FILE_CSV);
+            $file->chown('root', 'root'); 
             $file->chmod(600);
         } catch (File_Not_Found_Exception $e) {
             throw new File_Not_Found_Exception(clearos_exception_message($e), CLEAROS_ERROR);

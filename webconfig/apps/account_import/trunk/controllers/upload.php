@@ -4,7 +4,7 @@
  * Account import/export controller.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -43,7 +43,7 @@ use \clearos\apps\account_import\Account_Import as Account_Import;
  * File upload controller.
  *
  * @category   Apps
- * @package    Account Import
+ * @package    Account_Import
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -53,12 +53,11 @@ use \clearos\apps\account_import\Account_Import as Account_Import;
 
 class Upload extends ClearOS_Controller
 {
-
-    function __construct()
-    {
-        parent::__construct();
-        //$this->load->helper(array('form', 'url'));
-    }
+    /**
+     * Default controller.
+     *
+     * @return view
+     */
 
     function index()
     {

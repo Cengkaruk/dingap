@@ -30,9 +30,6 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-//TODO Devel environment requirement
-//putenv('CLEAROS_BOOTSTRAP=/home/benjamin/clearos/webconfig/framework/trunk/shared');
-
 ///////////////////////////////////////////////////////////////////////////////
 // B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
@@ -170,7 +167,6 @@ function import()
 
             for ($counter = 0; $counter < count($data); $counter++) {
                 $user_fields = explode(".", $header[$counter]);
-                // FIXME
                 if (count($user_fields) == 2)
                     $user_info[$user_fields[0]][$user_fields[1]] = $data[$counter];
                 else
