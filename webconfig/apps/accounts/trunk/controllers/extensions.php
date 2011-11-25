@@ -1,15 +1,15 @@
 <?php
 
 /**
- * OpenLDAP extensions controller.
+ * Accounts extensions controller.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    Accounts
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,15 +34,15 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * OpenLDAP extensions controller.
+ * Accounts extensions controller.
  *
  * @category   Apps
- * @package    OpenLDAP_Accounts
+ * @package    Accounts
  * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/accounts/
  */
 
 class Extensions extends ClearOS_Controller

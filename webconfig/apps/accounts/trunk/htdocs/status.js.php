@@ -64,6 +64,9 @@ $(document).ready(function() {
             method: 'GET',
             dataType: 'json',
             success : function(payload) {
+                var app_redirect = $('#app_redirect').val();
+                var redirect = (app_redirect) ? '/app/' + app_redirect : '/app/accounts';
+                window.location.href = redirect;
             },
             error: function (XMLHttpRequest, textStatus, errorThrown) {
             }
@@ -129,30 +132,29 @@ $(document).ready(function() {
         if (payload.ad_installed) {
             $("#ad_installed").show();
             $("#ad_marketplace").hide();
+            $("#ad_not_available").hide();
         } else if (payload.marketplace_installed) {
             $("#ad_installed").hide();
             $("#ad_marketplace").show();
+            $("#ad_not_available").hide();
         } else {
             $("#ad_installed").hide();
             $("#ad_marketplace").hide();
+            $("#ad_not_available").show();
         }
 
         if (payload.openldap_directory_installed) {
             $("#openldap_directory_installed").show();
-            $("#openldap_installed").hide();
-            $("#openldap_marketplace").hide();
-        } else if (payload.openldap_installed) {
+            $("#openldap_directory_marketplace").hide();
+            $("#openldap_driver_installed").hide();
+        } else if (payload.openldap_driver_installed) {
             $("#openldap_directory_installed").hide();
-            $("#openldap_installed").show();
-            $("#openldap_marketplace").hide();
-        } else if (payload.marketplace_installed) {
-            $("#openldap_directory_installed").hide();
-            $("#openldap_installed").hide();
-            $("#openldap_marketplace").show();
+            $("#openldap_directory_marketplace").hide();
+            $("#openldap_driver_installed").show();
         } else {
             $("#openldap_directory_installed").hide();
-            $("#openldap_installed").hide();
-            $("#openldap_marketplace").hide();
+            $("#openldap_directory_marketplace").show();
+            $("#openldap_driver_installed").hide();
         }
 	}
 });

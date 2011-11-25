@@ -101,7 +101,7 @@ class Status extends ClearOS_Controller
      * @return view accoutns status  view
      */
 
-    function widget()
+    function widget($app_redirect)
     {
         // Load dependencies
         //------------------
@@ -111,7 +111,11 @@ class Status extends ClearOS_Controller
         // Load views
         //-----------
 
+        if (! preg_match('/^([a-zA-Z0-9_])*/', $app_redirect))
+            return;
+
         $options['javascript'] = array(clearos_app_htdocs('accounts') . '/status.js.php');
+        $data['app_redirect'] = $app_redirect;
 
         $this->page->view_form('accounts/status', $data, lang('base_server_status'), $options);
     }
@@ -129,7 +133,6 @@ class Status extends ClearOS_Controller
 
         $data['marketplace_installed'] = (clearos_app_installed('marketplace')) ? TRUE : FALSE;
         $data['openldap_directory_installed'] = (clearos_app_installed('openldap_directory')) ? TRUE : FALSE;
-        $data['openldap_installed'] = (clearos_app_installed('openldap_directory')) ? TRUE : FALSE;
         $data['ad_installed'] = (clearos_app_installed('active_directory')) ? TRUE : FALSE;
 
         try {
