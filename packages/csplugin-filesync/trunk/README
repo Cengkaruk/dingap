@@ -1,0 +1,49 @@
+ClearSync Plugin: File Sync
+---------------------------
+
+The file sync plugin is a simple master/slave file synchronization tool.
+Slaves connect to a master over a common TCP port at repeating intervals.
+Every packet is signed using SHA1 and then encrypted using a 256-bit AES shared
+key.  For each configured file, the slave sends it's local SHA1 signature to
+the master.  The master compares this with it's own and if they differ, informs
+the slave a sync is required.  The master also sends the file's ownership and
+access rights to the slave which are used to ensure the slave's version is in
+sync.
+
+
+CONFIGURATION
+-------------
+
+The file sync plugin has one global configuration tag, <authkey>, which is a
+256-bit AES key specified as a 64-byte hexadecimal string.  This is a mandatory
+tag for both master and slave configurations.  There are two configuration
+block types, <master ...> and <slave ...>.  These blocks contain the list of
+files.  For the master, these are the files to export for synchronization, and
+inversely for the slave, these are the files requested from the master to sync.
+The <master ...> and <slave ...> blocks have required parameters that specify
+the TCP address and port to either bind on or connect to respectively.
+
+The global authentication key, common between master and slave configurations,
+is formatted similar to (64 characters long):
+
+<authkey>0123456789abcdef ... 0123456789abcdef</authkey>
+
+An example <master ...> block may look like this:
+
+  <master bind="all" port="8154">
+    <file name="Hosts File">/etc/hosts</file>
+    <file name="SSL Certificate">/etc/ssl/somecert.pem</file>
+  </master>
+
+An example <slave ...> block may look like this:
+
+  <slave host="192.168.10.1" port="8154" interval="600">
+    <file name="Hosts File">/etc/hosts</file>
+    <file name="SSL Certificate">/etc/ssl/somecert.pem</file>
+  </slave>
+
+The <file ...> tag for slaves have two optional parameters.  They are
+presync="" and postsync="" which specify external commands to run just before
+and just after a sync operation.  If the presync command exits with a non-zero value the sync operation is aborted.
+
+vi: textwidth=79 syntax=txt

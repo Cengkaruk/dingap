@@ -46,6 +46,8 @@
 #define csPluginFileSyncSudo        "/usr/bin/sudo"
 #endif
 
+static const char *csPluginName = NULL;
+
 __attribute__ ((unused)) static rs_result rs_cb_read(
     void *ctx, char *buffer, size_t length, size_t *bytes_read)
 {
@@ -189,14 +191,15 @@ void csPluginFileSyncFile::ExecuteExternal(CommandType type)
 
         rc = ::csExecute(os.str(), output);
         csLog::Log(csLog::Debug,
-            "Execute: %s = %d", os.str().c_str(), rc);
+            "%s: Execute: %s = %d", csPluginName, os.str().c_str(), rc);
 
         if (rc != 0 || output.size() == 0)
             throw csException(EINVAL, path->c_str());
 
         i = output.begin();
         if (rx_stat->Execute((*i).c_str()) == REG_NOMATCH) {
-            csLog::Log(csLog::Debug, "No match: %s", (*i).c_str());
+            csLog::Log(csLog::Debug, "%s: No match: %s",
+                csPluginName, (*i).c_str());
             throw csException(EINVAL, path->c_str());
         }
 
@@ -226,15 +229,16 @@ void csPluginFileSyncFile::ExecuteExternal(CommandType type)
 
         output.clear();
         rc = ::csExecute(os.str(), output);
-        csLog::Log(csLog::Debug,
-            "Execute: %s = %d", os.str().c_str(), rc);
+        csLog::Log(csLog::Debug, "%s: Execute: %s = %d",
+            csPluginName, os.str().c_str(), rc);
 
         if (rc != 0 || output.size() == 0)
             throw csException(EINVAL, path->c_str());
 
         i = output.begin();
         if (rx_sha1sum->Execute((*i).c_str()) == REG_NOMATCH) {
-            csLog::Log(csLog::Debug, "No match: %s", (*i).c_str());
+            csLog::Log(csLog::Debug, "%s: No match: %s",
+                csPluginName, (*i).c_str());
             throw csException(EINVAL, path->c_str());
         }
 
@@ -275,13 +279,6 @@ void csPluginFileSyncFile::Refresh(void)
         ::csGetUserName(st_info.st_uid, *user);
         ::csGetGroupName(st_info.st_uid, *group);
     }
-#if 0
-    csLog::Log(csLog::Debug,
-        "user: %s, group: %s, mode: %lo, sha:",
-        user->c_str(), group->c_str(),
-        (unsigned long)(~S_IFMT & st_info.st_mode));
-    csHexDump(stderr, sha, SHA_DIGEST_LENGTH);
-#endif
 }
 
 class csPluginFileSyncSession;
@@ -401,8 +398,6 @@ void csPluginFileSyncSession::InitializePacket(const uint8_t *authkey, size_t au
     if (pkt.size_max_payload % csPluginFileSyncAuthKeyBits)
         pkt.size_max_payload -= pkt.size_max_payload % csPluginFileSyncAuthKeyBits;
 
-    //csLog::Log(csLog::Debug, "max payload size: %d", pkt.size_max_payload);
-
     pkt.hdr_union = 0;
     pkt.buffer = new uint8_t[pkt.size_buffer];
     pkt.sha = pkt.buffer;
@@ -411,9 +406,6 @@ void csPluginFileSyncSession::InitializePacket(const uint8_t *authkey, size_t au
 
     if (RAND_bytes(pkt.buffer, pkt.size_buffer) == 0)
         throw csException(EINVAL, "Error gathering random bytes");
-
-    //csLog::Log(csLog::Debug, "Encrypt/decrypt key (%d bits):", authkey_bits);
-    //csHexDump(stderr, authkey, 32);
 
     if (AES_set_encrypt_key(authkey, authkey_bits, &pkt.authkey_encrypt) < 0)
         throw csException(EINVAL, "Error setting AES encryption key");
@@ -429,33 +421,24 @@ ssize_t csPluginFileSyncSession::ReadPacket(PacketId &id, PacketArg &arg)
         config->skt->Read(length, pkt.buffer);
     } catch (csException &e) {
         csLog::Log(csLog::Error,
-            "Error reading packet header: %s: %s", e.estring.c_str());
+            "%s: Error reading packet header: %s: %s",
+            csPluginName, e.estring.c_str());
         return -1;
     }
 
-    //csLog::Log(csLog::Debug, "ReadPacket: raw header: %ld", length);
-    //csHexDump(stderr, pkt.buffer, csPluginFileSyncAuthKeyBits);
-
     for (uint32_t i = 0; i < csPluginFileSyncAuthKeyBits; i += AES_BLOCK_SIZE)
         AES_decrypt(pkt.buffer + i, pkt.buffer + i, &pkt.authkey_decrypt);
-
-    //csLog::Log(csLog::Debug, "ReadPacket: decrypted");
-    //csHexDump(stderr, pkt.buffer, csPluginFileSyncAuthKeyBits);
 
     uint8_t sha[SHA_DIGEST_LENGTH];
     SHA1(pkt.header, csPluginFileSyncAuthKeyBits - SHA_DIGEST_LENGTH, sha);
 
     if (memcmp(pkt.sha, sha, SHA_DIGEST_LENGTH)) {
-        csLog::Log(csLog::Error, "Packet authentication failure.");
+        csLog::Log(csLog::Error,
+            "%s: Packet authentication failure", csPluginName);
         return -1;
     }
 
     memcpy(&pkt.hdr_union, pkt.header, sizeof(uint32_t));
-    //csLog::Log(csLog::Debug,
-    //    "ReadPacket: length: %d, blk: %hhu, pad: %hhu, union: 0x%08x",
-    //    pkt.hdr.blk * csPluginFileSyncAuthKeyBits - pkt.hdr.pad,
-    //    pkt.hdr.blk, pkt.hdr.pad, pkt.hdr_union);
-    //csHexDump(stderr, pkt.buffer, csPluginFileSyncAuthKeyBits);
 
     for (uint8_t i = 1; i < pkt.hdr.blk; i++) {
         length = csPluginFileSyncAuthKeyBits;
@@ -464,12 +447,14 @@ ssize_t csPluginFileSyncSession::ReadPacket(PacketId &id, PacketArg &arg)
                 pkt.buffer + (csPluginFileSyncAuthKeyBits * i));
         } catch (csException &e) {
             csLog::Log(csLog::Error,
-                "Error reading packet payload: %s", e.what());
+                "%s: Error reading packet payload: %s",
+                csPluginName, e.what());
             return -1;
         }
         if (length != csPluginFileSyncAuthKeyBits) {
             csLog::Log(csLog::Error,
-                "Error reading payload block: %d", length);
+                "%s: Error reading payload block: %d",
+                csPluginName, length);
             return -1;
         }
     }
@@ -506,16 +491,10 @@ ssize_t csPluginFileSyncSession::WritePacket(
 
     SHA1(pkt.header, csPluginFileSyncAuthKeyBits - SHA_DIGEST_LENGTH, pkt.sha);
 
-    //csLog::Log(csLog::Debug,
-    //    "WritePacket: length: %d, blk: %hhu, pad: %hhu, union: 0x%08x",
-    //    length, pkt.hdr.blk, pkt.hdr.pad, pkt.hdr_union);
-    //csHexDump(stderr, pkt.buffer, csPluginFileSyncAuthKeyBits);
-
     uint32_t total = pkt.hdr.blk * csPluginFileSyncAuthKeyBits;
     for (uint32_t i = 0; i < total; i += AES_BLOCK_SIZE)
         AES_encrypt(pkt.buffer + i, pkt.buffer + i, &pkt.authkey_encrypt);
 
-    //csHexDump(stderr, pkt.buffer, csPluginFileSyncAuthKeyBits);
     size_t bytes = pkt.hdr.blk * csPluginFileSyncAuthKeyBits;
     config->skt->Write(bytes, pkt.buffer);
 
@@ -649,8 +628,8 @@ void csPluginFileSyncSessionMaster::SynchronizeFile(csPluginFileSyncFile *file)
         if (bytes == 0) {
             if (!feof(fh) && ferror(fh)) {
                 fclose(fh);
-                csLog::Log(csLog::Error,
-                    "File read error: %s", file->name->c_str());
+                csLog::Log(csLog::Error, "%s: File read error: %s",
+                    csPluginName, file->name->c_str());
                 WritePacket(idException);
                 return;
             }
@@ -660,8 +639,8 @@ void csPluginFileSyncSessionMaster::SynchronizeFile(csPluginFileSyncFile *file)
     }
 
     if (pfclose(fh) != 0) {
-        csLog::Log(csLog::Error,
-            "File/pipe close failure: %s", file->name->c_str());
+        csLog::Log(csLog::Error, "%s: File/pipe close failure: %s",
+            csPluginName, file->name->c_str());
         WritePacket(idException);
     }
     else
@@ -741,15 +720,16 @@ void *csPluginFileSyncSessionSlave::Entry(void)
                     Run();
                 } catch (csException &e) {
                     csLog::Log(csLog::Error,
-                        "Session exception: %s: %s",
-                        e.estring.c_str(), e.what());
+                        "%s: Session exception: %s: %s",
+                        csPluginName, e.estring.c_str(), e.what());
                 }
             } catch (csSocketTimeout &e) {
                 csLog::Log(csLog::Warning,
-                    "Time-out while connecting");
+                    "%s: Time-out while connecting", csPluginName);
             } catch (csException &e) {
                 csLog::Log(csLog::Error,
-                    "Error establishing connection: %s", e.what());
+                    "%s: Error establishing connection: %s",
+                    csPluginName, e.what());
             }
 
             CloseTemporaryFiles();
@@ -780,8 +760,8 @@ void csPluginFileSyncSessionSlave::Run()
         try {
             i->second->Refresh();
         } catch (csException &e) {
-            csLog::Log(csLog::Debug, "Refresh: %s: %s (%s)",
-                i->first.c_str(), e.what(), e.estring.c_str());
+            csLog::Log(csLog::Debug, "%s: Refresh: %s: %s (%s)",
+                csPluginName, i->first.c_str(), e.what(), e.estring.c_str());
         }
 
         memcpy(pkt.payload, i->second->sha, SHA_DIGEST_LENGTH);
@@ -794,7 +774,8 @@ void csPluginFileSyncSessionSlave::Run()
         length = ReadPacket(id, arg);
         if (id == idException) {
             csLog::Log(csLog::Warning,
-                "Remote file exception: %s", i->first.c_str());
+                "%s: Remote file exception: %s",
+                csPluginName, i->first.c_str());
             continue;
         }
         if (id == idOk) continue;
@@ -803,7 +784,8 @@ void csPluginFileSyncSessionSlave::Run()
         else if (id == idTerminate) return;
         else {
             csLog::Log(csLog::Error,
-                "Unexpected packet id: 0x%02x", id);
+                "%s: Unexpected packet id: 0x%02x",
+                csPluginName, id);
             break;
         }
     }
@@ -813,6 +795,8 @@ void csPluginFileSyncSessionSlave::Run()
 
 void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
 {
+    int rc;
+    ostringstream os;
     size_t user_size, group_size;
     uint8_t *ptr = pkt.payload + SHA_DIGEST_LENGTH + sizeof(size_t);
 
@@ -833,7 +817,8 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
         uid = ::csGetUserId(user);
     } catch (csException &e) {
         csLog::Log(csLog::Error,
-            "User not found for file: %s", file->name->c_str());
+            "%s: User not found for file: %s",
+            csPluginName, file->name->c_str());
         WritePacket(idException);
         return;
     }
@@ -842,13 +827,25 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
         gid = ::csGetUserId(group);
     } catch (csException &e) {
         csLog::Log(csLog::Error,
-            "Group not found for file: %s", file->name->c_str());
+            "%s: Group not found for file: %s",
+            csPluginName, file->name->c_str());
         WritePacket(idException);
         return;
     }
 
-//    csLog::Log(csLog::Debug, "user: %s, group: %s, mode: %lo",
-//        user.c_str(), group.c_str(), mode);
+    if (file->presync != NULL) {
+        rc = ::csExecute(file->presync->c_str());
+        csLog::Log(csLog::Debug,
+            "%s: Execute: %s = %d",
+            csPluginName, file->presync->c_str(), rc);
+        if (rc != 0) {
+            csLog::Log(csLog::Error,
+                "%s: Pre-sync command failed for: %s",
+                csPluginName, file->name->c_str());
+            WritePacket(idException);
+            return;
+        }
+    }
 
     CloseTemporaryFiles();
 
@@ -877,7 +874,8 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
         }
         else if (id == idException) {
             csLog::Log(csLog::Warning,
-                "Remote file exception: %s", file->name->c_str());
+                "%s: Remote file exception: %s",
+                csPluginName, file->name->c_str());
             return;
         }
     }
@@ -889,26 +887,24 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
 
     if (memcmp(file->sha, sha, SHA_DIGEST_LENGTH)) {
         csLog::Log(csLog::Error,
-            "File integrity check failed for: %s",
-            file->name->c_str());
+            "%s: File integrity check failed for: %s",
+            csPluginName, file->name->c_str());
         return;
     }
 
-    int rc;
-
-    ostringstream os;
+    os.str("");
     os << csPluginFileSyncSudo << " ";
     os << "/bin/chown " << user << ":" << group << " ";
     os << "\"" << tmp << "\" ";
     os << "2>/dev/null";
     
     rc = ::csExecute(os.str());
-    csLog::Log(csLog::Debug,
-        "Execute: %s = %d", os.str().c_str(), rc);
+    csLog::Log(csLog::Debug, "%s: Execute: %s = %d",
+        csPluginName, os.str().c_str(), rc);
     if (rc != 0) {
         csLog::Log(csLog::Error,
-            "Unable to set file ownership for: %s",
-            file->name->c_str());
+            "%s: Unable to set file ownership for: %s",
+            csPluginName, file->name->c_str());
         return;
     }
 
@@ -920,12 +916,12 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
     os << "2>/dev/null";
 
     rc = ::csExecute(os.str());
-    csLog::Log(csLog::Debug,
-        "Execute: %s = %d", os.str().c_str(), rc);
+    csLog::Log(csLog::Debug, "%s: Execute: %s = %d",
+        csPluginName, os.str().c_str(), rc);
     if (rc != 0) {
         csLog::Log(csLog::Error,
-            "Unable to set file mode for: %s",
-            file->name->c_str());
+            "%s: Unable to set file mode for: %s",
+            csPluginName, file->name->c_str());
         return;
     }
 
@@ -937,13 +933,26 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
     os << "2>/dev/null";
 
     rc = ::csExecute(os.str());
-    csLog::Log(csLog::Debug,
-        "Execute: %s = %d", os.str().c_str(), rc);
+    csLog::Log(csLog::Debug, "%s: Execute: %s = %d",
+        csPluginName, os.str().c_str(), rc);
     if (rc != 0) {
-        csLog::Log(csLog::Error,
-            "Unable to move file: %s",
-            file->name->c_str());
+        csLog::Log(csLog::Error, "%s: Unable to move file: %s",
+            csPluginName, file->name->c_str());
         return;
+    }
+
+    csLog::Log(csLog::Info, "%s: File synchronized: %s",
+        csPluginName, file->name->c_str());
+
+    if (file->postsync != NULL) {
+        rc = ::csExecute(file->postsync->c_str());
+        csLog::Log(csLog::Debug, "%s: Execute: %s = %d",
+            csPluginName, file->postsync->c_str(), rc);
+        if (rc != 0) {
+            csLog::Log(csLog::Error,
+                "%s: Post-sync command failed for: %s",
+                csPluginName, file->name->c_str());
+        }
     }
 }
 
@@ -1056,6 +1065,8 @@ void csPluginFileSync::ValidateConfiguration(void)
 
 void *csPluginFileSync::Entry(void)
 {
+    csPluginName = name.c_str();
+
     sigset_t signal_set;
     sigemptyset(&signal_set);
     sigaddset(&signal_set, SIGCHLD);
@@ -1147,10 +1158,11 @@ void csPluginFileSync::DestroySession(csEventClient *client)
         if ((*i) != session) continue;
         delete (*i);
         master.erase(i);
-        csLog::Log(csLog::Debug, "Destroyed master session.");
         return;
     }
-    csLog::Log(csLog::Warning, "Failed to destroy master session, not found.");
+    csLog::Log(csLog::Warning,
+        "%s: Failed to destroy master session, not found.",
+        csPluginName);
 }
 
 void csPluginXmlParser::ParseElementOpen(csXmlTag *tag)
