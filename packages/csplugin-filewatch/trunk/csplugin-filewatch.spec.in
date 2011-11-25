@@ -1,14 +1,14 @@
 # ClearSync File Watch Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 9%{dist}
+Release: 10%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
 Packager: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}
-Requires: clearsync >= 1.1 /sbin/service
+Requires: clearsync >= 1.1 /sbin/service /usr/bin/sudo
 BuildRequires: clearsync-devel >= 1.1
 BuildRequires: expat-devel
 Summary: ClearSync file watch plugin
