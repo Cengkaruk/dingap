@@ -11,4 +11,14 @@ if [ -e /etc/proftpd.conf ]; then
     mv /etc/proftpd.conf /var/clearos/ftp/backup/proftpd.conf.$TIMESTAMP
 fi
 
+chmod 640 /etc/proftpd.conf
 cp /usr/clearos/apps/ftp/deploy/proftpd.conf /etc/proftpd.conf
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-ftp-core - enabling FTP server"
+chkconfig proftpd on
+
+logger -p local6.notice -t installer "app-ftp-core - starting FTP server"
+service proftpd start
