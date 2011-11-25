@@ -1,7 +1,7 @@
 # ClearSync FileSync Plugin RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 2%{dist}
+Release: 3%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System/Plugins
@@ -32,8 +32,6 @@ make %{?_smp_mflags}
 make install DESTDIR=$RPM_BUILD_ROOT
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filesync.a
 rm -f ${RPM_BUILD_ROOT}/%{_libdir}/libcsplugin-filesync.la
-mkdir -vp ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
-cp -v csplugin-filesync.conf ${RPM_BUILD_ROOT}/%{_sysconfdir}/clearsync.d
 
 # Clean-up
 %clean
@@ -119,6 +117,5 @@ fi
 # Files
 %files
 %defattr(-,root,root)
-%config(noreplace) %{_sysconfdir}/clearsync.d/csplugin-filesync.conf
 %{_libdir}/libcsplugin-filesync.so*
 
