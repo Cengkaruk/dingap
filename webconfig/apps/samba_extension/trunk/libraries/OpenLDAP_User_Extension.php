@@ -167,24 +167,24 @@ class OpenLDAP_User_Extension extends Engine
         // Set defaults
         //-------------
 
-        if (! isset($user_info['samba']['sid'])) {
+        if (! isset($user_info['extensions']['samba']['sid'])) {
             if ($ldap_object['uidNumber'] < self::CONSTANT_SPECIAL_RID_MAX) 
                 $rid =  self::CONSTANT_SPECIAL_RID_OFFSET + $ldap_object['uidNumber'];
             else
                 $rid = $ldap_object['uidNumber'];
         
-            $user_info['samba']['sid'] = $sid . '-' . $rid;
+            $user_info['extensions']['samba']['sid'] = $sid . '-' . $rid;
         }
 
         // Convert to LDAP attributes
         //---------------------------
 
-        $attributes = Utilities::convert_array_to_attributes($user_info['samba'], $this->info_map);
+        $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['samba'], $this->info_map, FALSE);
 
         // Handle special flag attributes
         //-------------------------------
 
-        if (isset($user_info['samba']['flags_disabled']) && $user_info['samba']['flags_disabled'])
+        if (isset($user_info['extensions']['samba']['flags_disabled']) && $user_info['extensions']['samba']['flags_disabled'])
             $attributes['sambaAcctFlags'] = '[UD         ]';
         else
             $attributes['sambaAcctFlags'] = '[U          ]';
@@ -297,7 +297,7 @@ class OpenLDAP_User_Extension extends Engine
         $samba_driver = new OpenLDAP_Driver();
 
         if (!$samba_driver->is_directory_initialized())
-            return;
+            return array();
 
         // Return info map
         //----------------
@@ -322,13 +322,13 @@ class OpenLDAP_User_Extension extends Engine
         // Return if nothing needs to be done
         //-----------------------------------
 
-        if (! isset($user_info['samba']))
+        if (! isset($user_info['extensions']['samba']))
             return array();
 
         // Convert to LDAP attributes
         //---------------------------
 
-        $attributes = Utilities::convert_array_to_attributes($user_info['samba'], $this->info_map);
+        $attributes = Utilities::convert_array_to_attributes($user_info['extensions']['samba'], $this->info_map, FALSE);
 
         // Handle special flag attributes
         //-------------------------------
