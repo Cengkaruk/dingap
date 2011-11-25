@@ -203,14 +203,22 @@ void csMainXmlParser::ParseElementOpen(csXmlTag *tag)
         }
 
         if (plugin != NULL) {
-            plugin->GetPlugin()->SetConfigurationFile(_conf->filename);
-            tag->SetData(plugin->GetPlugin());
-            _conf->parent->plugin[tag->GetParamValue("name")] = plugin;
+            try {
+                plugin->GetPlugin()->SetConfigurationFile(_conf->filename);
+                tag->SetData(plugin->GetPlugin());
+                _conf->parent->plugin[tag->GetParamValue("name")] = plugin;
 
-            csLog::Log(csLog::Debug,
-                "Plugin: %s (%s), stack size: %ld",
-                tag->GetParamValue("name").c_str(),
-                tag->GetParamValue("library").c_str(), stack_size);
+                csLog::Log(csLog::Debug,
+                    "Plugin: %s (%s), stack size: %ld",
+                    tag->GetParamValue("name").c_str(),
+                    tag->GetParamValue("library").c_str(), stack_size);
+            } catch (csException &e) {
+                csLog::Log(csLog::Error,
+                    "Configuration error: %s: %s: %s",
+                    tag->GetParamValue("name").c_str(),
+                    e.estring.c_str(), e.what());
+                delete plugin;
+            }
         }
     }
 }

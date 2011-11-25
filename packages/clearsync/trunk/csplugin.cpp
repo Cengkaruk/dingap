@@ -297,8 +297,7 @@ csPluginLoader::csPluginLoader(const string &so_name,
     const string &name, csEventClient *parent, size_t stack_size)
     : so_name(so_name), so_handle(NULL)
 {
-    so_handle = dlopen(so_name.c_str(),
-        RTLD_LAZY | RTLD_LOCAL | RTLD_DEEPBIND);
+    so_handle = dlopen(so_name.c_str(), RTLD_NOW);
     if (so_handle == NULL) throw csException(dlerror());
 
     char *dlerror_string;

@@ -1,7 +1,7 @@
 # ClearSync RPM spec
 Name: @PACKAGE_TARNAME@
 Version: @PACKAGE_VERSION@
-Release: 5%{dist}
+Release: 6%{dist}
 Vendor: ClearFoundation
 License: GPL
 Group: System Environment/Daemons
@@ -24,6 +24,7 @@ Report bugs to: @PACKAGE_BUGREPORT@
 Summary: ClearSync plugin development files
 Group: Development/Libraries
 Requires: @PACKAGE_TARNAME@ = @PACKAGE_VERSION@
+BuildArch: noarch
 
 %description devel
 ClearSync plugin development files
