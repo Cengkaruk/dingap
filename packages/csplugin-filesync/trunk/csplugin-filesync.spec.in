@@ -11,7 +11,8 @@ BuildRoot: /var/tmp/%{name}-%{version}
 Requires: clearsync >= 1.2-5 /sbin/service /usr/bin/sudo
 BuildRequires: clearsync-devel >= 1.2-5
 BuildRequires: expat-devel
-BuildRequires: openssl-devel librsync-devel
+BuildRequires: openssl-devel
+#BuildRequires: librsync-devel
 Summary: ClearSync FileSync plugin
 Requires(pre): /sbin/ldconfig
 

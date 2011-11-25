@@ -15,7 +15,7 @@ AM_PROG_LIBTOOL
 AC_PROG_RANLIB
 
 # Checks for libraries.
-AC_CHECK_LIB([rsync], [rs_strerror], [], [AC_MSG_ERROR([librsync not found.])])
+#AC_CHECK_LIB([rsync], [rs_strerror], [], [AC_MSG_ERROR([librsync not found.])])
 AC_CHECK_LIB([crypto], [AES_encrypt], [], [AC_MSG_ERROR([libcrypto not found.])])
 
 # Checks for header files.
