@@ -15,7 +15,7 @@ Requires: app-accounts
 Requires: app-groups
 
 %description
-This is the user manager.  Testers: you will see a handful of built-in users here; these will not be shown in the final release.
+The users app allows an administrator to create, delete and modify users on the system.  Marketplace apps that plugin directly to the user directory will automatically display options available to a user account.
 
 %package core
 Summary: Users - APIs and install
@@ -27,7 +27,7 @@ Requires: system-users-driver
 Requires: openssl
 
 %description core
-This is the user manager.  Testers: you will see a handful of built-in users here; these will not be shown in the final release.
+The users app allows an administrator to create, delete and modify users on the system.  Marketplace apps that plugin directly to the user directory will automatically display options available to a user account.
 
 This package provides the core API and libraries.
 

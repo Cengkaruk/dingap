@@ -1,7 +1,7 @@
 <?php
 
 $lang['users_app_name'] = 'Users';
-$lang['users_app_description'] = 'The users app allows an administrator to create, delete and modify users on the system.  Marketplace apps that plugin directly to the user directory (eg. PPTP VPN App) will automatically display options available to a user account.';
+$lang['users_app_description'] = 'The users app allows an administrator to create, delete and modify users on the system.  Marketplace apps that plugin directly to the user directory will automatically display options available to a user account.';
 
 $lang['users_first_name_invalid'] = 'First name is invalid.';
 $lang['users_last_name_invalid'] = 'Last name is invalid.';
