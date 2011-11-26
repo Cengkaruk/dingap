@@ -123,16 +123,16 @@ fi
 # Disable SELinux
 #----------------
 
-# if [ -d /etc/selinux ]; then
-#	CHECK=`grep ^SELINUX= /etc/selinux/config 2>/dev/null | sed 's/.*=//'`
-#	if [ -z "$CHECK" ]; then
-#		logger -p local6.notice -t installer "clearos-base - disabling SELinux with new configuration"
-#		echo "SELINUX=disabled" >> /etc/selinux/config
-#	elif [ "$CHECK" != "disabled" ]; then
-#		logger -p local6.notice -t installer "clearos-base - disabling SELinux"
-#		sed -i -e 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
-#	fi
-#fi
+if [ -d /etc/selinux ]; then
+	CHECK=`grep ^SELINUX= /etc/selinux/config 2>/dev/null | sed 's/.*=//'`
+	if [ -z "$CHECK" ]; then
+		logger -p local6.notice -t installer "clearos-base - disabling SELinux with new configuration"
+		echo "SELINUX=disabled" >> /etc/selinux/config
+	elif [ "$CHECK" != "disabled" ]; then
+		logger -p local6.notice -t installer "clearos-base - disabling SELinux"
+		sed -i -e 's/^SELINUX=.*/SELINUX=disabled/' /etc/selinux/config
+	fi
+fi
 
 # Sudo policies
 #--------------
