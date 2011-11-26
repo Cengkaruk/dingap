@@ -214,7 +214,7 @@ class Network extends Engine
 
         $modes[self::MODE_TRUSTED_STANDALONE] = lang('network_mode_standalone_no_firewall');
 
-        if (clearos_app_installed('firewall')) {
+        if (clearos_library_installed('firewall/Firewall')) {
             $modes[self::MODE_STANDALONE] = lang('network_mode_standalone');
 
             $iface_manager = new Iface_Manager();
