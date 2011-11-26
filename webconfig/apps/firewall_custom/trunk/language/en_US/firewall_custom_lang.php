@@ -1,7 +1,7 @@
 <?php   
 
 $lang['firewall_custom_app_description'] = 'Allows customized firewall rules to be added.';
-$lang['firewall_custom_app_name'] = 'Custom';
+$lang['firewall_custom_app_name'] = 'Custom Firewall';
 $lang['firewall_custom_overview'] = 'Custom Firewall Utility';
 $lang['firewall_custom_rules'] = 'Rules';
 $lang['firewall_custom_rule'] = 'Rule';

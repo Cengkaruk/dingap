@@ -3,7 +3,7 @@ Name: app-firewall-custom
 Group: ClearOS/Apps
 Version: 6.1.0.beta2
 Release: 1%{dist}
-Summary: Custom
+Summary: Custom Firewall
 License: GPLv3
 Packager: ClearFoundation
 Vendor: ClearFoundation
@@ -17,7 +17,7 @@ Requires: app-firewall-core
 Allows customized firewall rules to be added.
 
 %package core
-Summary: Custom - APIs and install
+Summary: Custom Firewall - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
