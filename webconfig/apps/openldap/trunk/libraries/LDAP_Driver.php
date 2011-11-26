@@ -523,7 +523,7 @@ class LDAP_Driver extends LDAP_Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        $initialization_status = $this->_get_initialization_status();
+        $initialization_status = $this->_get_system_status_message();
 
         if (! empty($initialization_status)) {
             $status = LDAP_Engine::STATUS_BUSY;
@@ -549,11 +549,7 @@ class LDAP_Driver extends LDAP_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File(self::FILE_STATUS);
-
-        $message = $file->lookup_value('/status_message =/');
-
-        return $message;
+        return $this->_get_system_status_message();
     }
 
     /**
@@ -661,6 +657,23 @@ class LDAP_Driver extends LDAP_Engine
             return TRUE;
         else
             return FALSE;
+    }
+
+    /**
+     * Prepares system to be initialized.
+     *
+     * In order to support asynchronous initialization, this method provides
+     * a way to indicate that an asynchronous initialization has been
+     * requested.
+     *
+     * @return void
+     */
+
+    public function prepare_initialize()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->_set_initialization_status(lang('openldap_preparing_system'));
     }
 
     /**
@@ -980,7 +993,7 @@ class LDAP_Driver extends LDAP_Engine
      * @throws Engine_Exception
      */
 
-    protected function _get_initialization_status()
+    protected function _get_system_status_message()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1017,8 +1030,10 @@ class LDAP_Driver extends LDAP_Engine
         // Bail if LDAP is already initialized (and not a re-initialize)
         //--------------------------------------------------------------
 
-        if ($this->is_initialized() && (!$force))
+        if ($this->is_initialized() && (!$force)) {
+            $this->_set_initialization_status('');
             return;
+        }
 
         // KLUDGE: shutdown Samba or it will try to write information to LDAP
         //-------------------------------------------------------------------
