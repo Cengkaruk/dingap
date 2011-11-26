@@ -15,7 +15,7 @@ Requires: app-accounts
 Requires: app-users
 
 %description
-Groups description...
+The groups app allows an administrator to create, delete and modify groups on the system.  Groups can be used to efficiently manage permissions in accessing server resources.
 
 %package core
 Summary: Groups - APIs and install
@@ -26,7 +26,7 @@ Requires: app-accounts-core
 Requires: system-groups-driver
 
 %description core
-Groups description...
+The groups app allows an administrator to create, delete and modify groups on the system.  Groups can be used to efficiently manage permissions in accessing server resources.
 
 This package provides the core API and libraries.
 
