@@ -575,10 +575,11 @@ void csPluginFileSyncSessionMaster::Run(void)
     map<string, csPluginFileSyncFile *>::iterator i;
 
     while (true) {
+        id = idNone;
         length = ReadPacket(id, arg);
 
         if (id != idFileRequest) {
-            if (id == idTerminate) break;
+            if (id == idNone || id == idTerminate) break;
             throw csException(EINVAL, "Invalid packet ID");
         }
         if (length <= SHA_DIGEST_LENGTH)
@@ -621,7 +622,8 @@ void csPluginFileSyncSessionMaster::Run(void)
 
                 id = idNone;
                 length = ReadPacket(id, arg);
-                if (id != idOk) continue;
+                if (length < 0) return;
+                else if (id != idOk) continue;
 
                 SynchronizeFile(i->second);
             }
