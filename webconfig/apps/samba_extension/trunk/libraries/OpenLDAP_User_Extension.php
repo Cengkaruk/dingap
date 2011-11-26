@@ -167,7 +167,7 @@ class OpenLDAP_User_Extension extends Engine
         // Set defaults
         //-------------
 
-        if (! isset($user_info['extensions']['samba']['sid'])) {
+        if (empty($user_info['extensions']['samba']['sid'])) {
             if ($ldap_object['uidNumber'] < self::CONSTANT_SPECIAL_RID_MAX) 
                 $rid =  self::CONSTANT_SPECIAL_RID_OFFSET + $ldap_object['uidNumber'];
             else
