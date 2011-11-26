@@ -157,10 +157,23 @@ class Allow extends ClearOS_Controller
         // Load the view data 
         //------------------- 
 
-        $data['services'] = $this->incoming->get_standard_service_list();
+        // Create a list of already configured ports
+        $services = $this->incoming->get_standard_service_list();
+        $allow = $this->incoming->get_allow_ports();
+        $exists = array();
+
+        foreach ($allow as $details)
+            $exists[] = $details['service'];
+
+        // Get te form data
         $data['protocols'] = $this->incoming->get_basic_protocols();
-        // FIXME: trim services list for rules that are already enabled
- 
+        $data['services'] = array();
+
+        foreach ($services as $service) {
+            if (! in_array($service, $exists))
+                $data['services'][] = $service;
+        }
+
         // Load the views
         //---------------
 
