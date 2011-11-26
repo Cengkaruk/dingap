@@ -942,7 +942,7 @@ class User_Driver extends User_Engine
 
         if ($check_uniqueness) {
             $openldap = new OpenLDAP();
-            $message = $openldap->check_uniqueness($username);
+            $message = $openldap->check_uniqueness_message($username);
 
             if ($message)
                 return $message;
@@ -986,7 +986,7 @@ class User_Driver extends User_Engine
                 Validation_Exception::is_valid($this->$validator($detail));
             }
         }
-//pete FIXME
+// FIXME 
 return;
 
         // Validate passwords

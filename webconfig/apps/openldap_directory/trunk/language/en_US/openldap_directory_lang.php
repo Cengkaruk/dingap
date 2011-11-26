@@ -23,3 +23,7 @@ $lang['openldap_directory_security_policies'] = 'Security Policies';
 $lang['openldap_directory_openldap_directory_driver'] = 'OpenLDAP Directory Driver';
 $lang['openldap_directory_openldap_directory_driver_description'] = 'The OpenLDAP driver for directory services';
 $lang['openldap_directory_directory_status'] = 'Directory Status';
+$lang['openldap_directory_username_with_this_name_exists'] = 'Username with this name already exists.';
+$lang['openldap_directory_group_with_this_name_exists'] = 'Group with this name already exists.';
+$lang['openldap_directory_alias_with_this_name_exists'] = 'Alias with this name already exists.';
+$lang['openldap_directory_importing_data'] = 'Importing data.';

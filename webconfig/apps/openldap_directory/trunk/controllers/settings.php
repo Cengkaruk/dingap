@@ -69,6 +69,44 @@ class Settings extends ClearOS_Controller
         $this->_item('edit');
     }
 
+    function view($action)
+    {
+        $this->_item('view');
+    }
+
+    /**
+     * Updates domain.
+     */
+
+    function action($action)
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('openldap/LDAP_Driver');
+        $this->load->library('openldap_directory/OpenLDAP');
+
+        // Handle form submit
+        //-------------------
+
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Expires: Fri, 01 Jan 2010 05:00:00 GMT');
+        header('Content-type: application/json');
+
+        try {
+            if ($action === 'initialize')
+                $this->openldap->initialize($this->input->post('domain'));
+            else
+                $this->ldap_driver->set_base_internet_domain($this->input->post('domain'));
+
+            $this->ldap_driver->reset(FALSE);
+            echo json_encode(array('code' => 0));
+        } catch (Exception $e) {
+            echo json_encode(array('code' => clearos_exception_code($e), 'error_message' => clearos_exception_message($e)));
+        }
+    }
+
+
     function _item($form_type)
     {
         // Load dependencies
@@ -88,25 +126,11 @@ class Settings extends ClearOS_Controller
         // Handle form submit
         //-------------------
 
-        if (($this->input->post('submit') && $form_ok)) {
+        if ((($this->input->post('update') || $this->input->post('initialize')) && $form_ok)) {
             try {
-                // Don't set the domain in slave mode
-/*
-                $mode = $this->ldap_driver->get_mode();
-
-                if ($mode !== LDAP_Engine::MODE_SLAVE)
-                    $this->ldap_driver->set_domain($this->input->post('domain'), TRUE);
-*/
-
-                $data['validated'] = TRUE;
-
-                //$this->ldap_driver->set_security_policy($this->input->post('policy'));
-                // $this->ldap_driver->initialize_standalone($this->input->post('domain'));
-
-                // $this->ldap_driver->set_domain($this->input->post('domain'));
-                // $this->ldap_driver->reset(TRUE);
-
-//                $this->page->set_status_updated();
+                $this->ldap_driver->set_security_policy($this->input->post('policy'));
+                $this->ldap_driver->prepare_initialize();
+                $data['validated_action'] = ($this->input->post('update')) ? 'update' : 'initialize';
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -117,13 +141,20 @@ class Settings extends ClearOS_Controller
         //---------------
 
         try {
-            $data['form_type'] = $form_type;
             $data['policies'] = $this->ldap_driver->get_security_policies();
             $data['policy'] = $this->ldap_driver->get_security_policy();
             $data['domain'] = $this->ldap_driver->get_base_internet_domain();
             $data['mode'] = $this->ldap_driver->get_mode();
             $data['mode_text'] = $this->ldap_driver->get_mode_text();
+            $data['system_status'] = $this->ldap_driver->get_system_status();
             $data['status'] = $this->accounts_driver->get_driver_status();
+
+            // Go straight to edit mode when unitialized
+            if ($data['system_status'] === LDAP_Engine::STATUS_UNINITIALIZED)
+                $data['form_type'] = 'edit';
+            else
+                $data['form_type'] = $form_type;
+
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -133,55 +164,5 @@ class Settings extends ClearOS_Controller
         //-----------
 
         $this->page->view_form('openldap_directory/settings', $data, lang('openldap_directory_app_name'));
-    }
-
-    /**
-     * Initializes domain.
-     */
-
-    function initialize($domain)
-    {
-        // Load dependencies
-        //------------------
-
-        $this->load->library('openldap/LDAP_Driver');
-
-        // Handle form submit
-        //-------------------
-
-        try {
-            $this->ldap_driver->initialize_standalone($domain);
-            $this->ldap_driver->reset(TRUE);
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
-    }
-
-    /**
-     * Updates domain.
-     */
-
-    function update($domain)
-    {
-        // Load libraries
-        //---------------
-
-        $this->load->library('openldap/LDAP_Driver');
-
-        // Handle form submit
-        //-------------------
-
-        header('Cache-Control: no-cache, must-revalidate');
-        header('Expires: Fri, 01 Jan 2010 05:00:00 GMT');
-        header('Content-type: application/json');
-
-        try {
-            $this->ldap_driver->set_domain($this->input->post('domain'));
-            $this->ldap_driver->reset(FALSE);
-            echo json_encode(array('code' => 0));
-        } catch (Exception $e) {
-            echo json_encode(array('code' => clearos_exception_code($e), 'error_message' => clearos_exception_message($e)));
-        }
     }
 }

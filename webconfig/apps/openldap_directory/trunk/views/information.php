@@ -36,11 +36,16 @@
 $this->lang->load('base');
 $this->lang->load('openldap_directory');
 
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
+
 ///////////////////////////////////////////////////////////////////////////////
 // Main form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo "<div id='directory_information'>";
+if ($status === Accounts_Engine::DRIVER_OTHER)
+    return;
+
+echo "<div id='directory_information' style='display:none;'>";
 
 echo form_open('openldap_directory');
 echo form_header(lang('openldap_directory_directory_information'));

@@ -135,7 +135,6 @@ class OpenLDAP extends Engine
     const DRIVER_NAME = 'openldap_directory';
 
     // Status codes for username/group/alias uniqueness
-    // FIXME: might return just strings instead
     const STATUS_ALIAS_EXISTS = 'alias';
     const STATUS_GROUP_EXISTS = 'group';
     const STATUS_USERNAME_EXISTS = 'user';
@@ -165,7 +164,7 @@ class OpenLDAP extends Engine
      *
      * @param string $id username, group or alias
      *
-     * @return string warning message if ID is not unique
+     * @return string warning type if ID is not unique
      */
 
     public function check_uniqueness($id)
@@ -178,38 +177,30 @@ class OpenLDAP extends Engine
         // Check for duplicate user
         //-------------------------
 
-        try {
-            $result = $this->ldaph->search(
-                "(&(objectclass=inetOrgPerson)(uid=$id))",
-                self::get_users_container(),
-                array('dn')
-            );
+        $result = $this->ldaph->search(
+            "(&(objectclass=inetOrgPerson)(uid=$id))",
+            self::get_users_container(),
+            array('dn')
+        );
 
-            $entry = $this->ldaph->get_first_entry($result);
+        $entry = $this->ldaph->get_first_entry($result);
 
-            if ($entry)
-                return "Username already exists."; // FIXME self::STATUS_USERNAME_EXISTS;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if ($entry)
+            return self::STATUS_USERNAME_EXISTS;
 
         // Check for duplicate alias
         //--------------------------
 
-        try {
-            $result = $this->ldaph->Search(
-                "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
-                self::get_users_container(),
-                array('dn')
-            );
+        $result = $this->ldaph->Search(
+            "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
+            self::get_users_container(),
+            array('dn')
+        );
 
-            $entry = $this->ldaph->get_first_entry($result);
+        $entry = $this->ldaph->get_first_entry($result);
 
-            if ($entry)
-                return "Mail alias already exists."; // FIXME self::STATUS_ALIAS_EXISTS;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if ($entry)
+            return self::STATUS_ALIAS_EXISTS;
 
         // Check for duplicate group
         //--------------------------
@@ -217,22 +208,44 @@ class OpenLDAP extends Engine
         // The "displayName" is used in Samba group mapping.  In other words,
         // the "displayName" is what is used by Windows networking (not the cn).
 
-        try {
-            $result = $this->ldaph->Search(
-                "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
-                self::get_groups_container(),
-                array('dn')
-            );
+        $result = $this->ldaph->Search(
+            "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
+            self::get_groups_container(),
+            array('dn')
+        );
 
-            $entry = $this->ldaph->get_first_entry($result);
+        $entry = $this->ldaph->get_first_entry($result);
 
-            if ($entry)
-                return "Group already exists."; // self::STATUS_GROUP_EXISTS;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if ($entry)
+            return self::STATUS_GROUP_EXISTS;
 
-        // FIXME: Flexshares?  How do we deal with this in master/replica mode?
+        // TODO: Flexshares?  How do we deal with this in master/replica mode?
+
+        return self::STATUS_UNIQUE;
+    }
+
+    /**
+     * Check for overlapping usernames, groups and aliases in the directory.
+     *
+     * @param string $id username, group or alias
+     *
+     * @return string warning message if ID is not unique
+     */
+
+    public function check_uniqueness_message($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $status = $this->check_uniqueness($id);
+
+        if ($status === self::STATUS_USERNAME_EXISTS)
+            return lang('openldap_directory_username_with_this_name_exists');
+        else if ($status === self::STATUS_ALIAS_EXISTS)
+            return lang('openldap_directory_alias_with_this_name_exists');
+        else if ($status === self::STATUS_GROUP_EXISTS)
+            return lang('openldap_directory_group_with_this_name_exists');
+        else
+            return '';
     }
 
     /** 
@@ -444,6 +457,17 @@ class OpenLDAP extends Engine
             $this->_initialize_authconfig();
             $this->_remove_overlaps();
             $this->_initialize_caching();
+
+            // FIXME: add Samba here for now
+            if (clearos_load_library('samba/OpenLDAP_Driver')) {
+                $samba_driver = new \clearos\apps\samba\OpenLDAP_Driver();
+                $samba_driver->initialize_master_system('CLEARSYSTEM', NULL, $force);
+
+                clearos_load_library('samba/Winbind');
+                $winbind = new \clearos\apps\samba\Winbind();
+                $winbind->set_boot_state(TRUE);
+                $winbind->set_running_state(TRUE);
+            }
         } catch (Exception $e) {
             $file->delete();
             throw new Engine_Exception(clearos_exception_message($e));

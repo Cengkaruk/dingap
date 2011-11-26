@@ -89,7 +89,8 @@ class Information extends ClearOS_Controller
             $data['base_dn'] = $this->ldap_driver->get_base_dn();
             $data['bind_dn'] = $this->ldap_driver->get_bind_dn();
             $data['bind_password'] = $this->ldap_driver->get_bind_password();
-            $data['ldap_status'] = $this->ldap_driver->get_system_status();
+            $data['ldap_system_status'] = $this->ldap_driver->get_system_status();
+            $data['ldap_system_message'] = $this->ldap_driver->get_system_message();
 
             // Account driver information
             $data['accounts_status'] = $this->accounts_driver->get_driver_status();

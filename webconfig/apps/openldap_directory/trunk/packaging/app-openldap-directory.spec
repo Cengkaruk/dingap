@@ -13,6 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 Requires: app-users
 Requires: app-groups
+Obsoletes: app-directory-server
 
 %description
 The directory server is an implementation (using OpenLDAP) of the Lightweight Directory Access Protocol.  The directory contains information on user records, computers, access controls etc. that can be accessed by services running on the server in addition to other systems access the directory remotely across a network.
@@ -40,6 +41,7 @@ Requires: openldap-clients >= 2.4.19
 Requires: openldap-servers >= 2.4.19
 Requires: pam_ldap
 Requires: webconfig-php-ldap
+Obsoletes: app-directory-server-core
 
 %description core
 The directory server is an implementation (using OpenLDAP) of the Lightweight Directory Access Protocol.  The directory contains information on user records, computers, access controls etc. that can be accessed by services running on the server in addition to other systems access the directory remotely across a network.

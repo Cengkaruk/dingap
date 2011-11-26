@@ -213,7 +213,7 @@ class Group_Driver extends Group_Engine
         }
 
         $openldap = new OpenLDAP();
-        $unique_warning = $openldap->check_uniqueness($this->group_name);
+        $unique_warning = $openldap->check_uniqueness_message($this->group_name);
 
         if ($unique_warning)
             throw new Validation_Exception($unique_warning);

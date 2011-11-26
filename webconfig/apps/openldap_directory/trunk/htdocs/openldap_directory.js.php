@@ -55,7 +55,7 @@ $(document).ready(function() {
     // Translations
     //-------------
 
-    lang_initializing = '<?php echo lang("base_initializing..."); ?>';
+    lang_busy = '<?php echo lang("base_busy..."); ?>';
     lang_success = '<?php echo lang("openldap_directory_directory_updated"); ?>';
 
     // Prep
@@ -69,21 +69,17 @@ $(document).ready(function() {
     // Run connection attempt
     //-----------------------
 
-    if ($("#validated").val() == 1) {
+    if ($("#validated_action").val().length != 0) {
         $("#infoboxes").show();
-        $("#initializing_status").html('<div class="theme-loading-normal">' + lang_initializing + '</div>');
+        $("#initializing_status").html('<div class="theme-loading-normal">' + lang_busy + '</div>');
         $("#initializing_box").show();
         $("#directory_information").hide();
         $("#directory_configuration").hide();
 
-        updateDomain();
-    } else {
-        $("#directory_information").show();
-        $("#directory_configuration").show();
-
-        getDirectoryInfo();
+        doDomainAction($("#validated_action").val());
     }
 
+    getDirectoryInfo();
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -94,17 +90,19 @@ $(document).ready(function() {
  * Initializes/updates directory.
  */
 
-function updateDomain() {
+function doDomainAction(action) {
     $.ajax({
         type: 'POST',
         dataType: 'json',
         data: 'ci_csrf_token=' + $.cookie('ci_csrf_token') + '&domain=' + $("#domain").val(),
-        url: '/app/openldap_directory/settings/update',
+        url: '/app/openldap_directory/settings/action/' + action,
         success: function(payload) {
             if (payload.code == 0) {
+                $("#infoboxes").hide();
                 $("#initializing_box").hide();
                 $("#directory_information").show();
                 $("#directory_configuration").hide();
+                window.location.href = "/app/openldap_directory";
             } else {
                 $("#initializing_status").html(payload.error_message);
                 $("#directory_configuration").show();
@@ -139,7 +137,25 @@ function getDirectoryInfo() {
  */
 
 function showDirectoryInfo(payload) {
-    if (payload.ldap_status == 'online') {
+    if (payload.ldap_system_status == 'uninitialized')  {
+        // Status box
+        $("#infoboxes").hide();
+        $("#initializing_box").hide();
+        
+        // Configuration box
+        $("#directory_configuration").show();
+
+        // Information
+        $("#directory_information").hide();
+    } else if ((payload.ldap_system_status == 'online') && ($("#validated_action").val().length == 0)) {
+        // Status box
+        $("#infoboxes").hide();
+        $("#initializing_box").hide();
+
+        // Configuration box
+        $("#directory_configuration").show();
+
+        // Information
         $("#mode_text").html(payload.mode_text);
         $("#base_dn_text").html(payload.base_dn);
         $("#bind_dn_text").html(payload.bind_dn);
@@ -147,12 +163,17 @@ function showDirectoryInfo(payload) {
         $("#users_container_text").html(payload.users_container);
         $("#groups_container_text").html(payload.groups_container);
         $("#computers_container_text").html(payload.computers_container);
-        $("#result").html('');
         $("#directory_information").show();
-        $("#directory_configuration").show();
     } else {
+        // Status box
+        $("#infoboxes").show();
+        $("#initializing_box").show();
+
+        // Infobox
         $("#directory_information").hide();
         $("#directory_configuration").hide();
+        if (payload.ldap_system_message && (payload.ldap_system_message.length > 0))
+            $("#initializing_status").html('<div class="theme-loading-normal">' + payload.ldap_system_message + '</div>');
     }
 }
 
