@@ -425,6 +425,16 @@ ssize_t csPluginFileSyncSession::ReadPacket(PacketId &id, PacketArg &arg)
 
     try {
         config->skt->Read(length, pkt.buffer);
+    } catch (csSocketHangup &e) {
+        csLog::Log(csLog::Error,
+            "%s: Error reading packet header: Hang-up",
+            name.c_str());
+        return -1;
+    } catch (csSocketTimeout &e) {
+        csLog::Log(csLog::Error,
+            "%s: Error reading packet header: Time-out",
+            name.c_str());
+        return -1;
     } catch (csException &e) {
         csLog::Log(csLog::Error,
             "%s: Error reading packet header: %s: %s",
@@ -451,6 +461,16 @@ ssize_t csPluginFileSyncSession::ReadPacket(PacketId &id, PacketArg &arg)
         try {
             config->skt->Read(length,
                 pkt.buffer + (csPluginFileSyncAuthKeyBits * i));
+        } catch (csSocketHangup &e) {
+            csLog::Log(csLog::Error,
+                "%s: Error reading packet payload: Hang-up",
+                name.c_str());
+            return -1;
+        } catch (csSocketTimeout &e) {
+            csLog::Log(csLog::Error,
+                "%s: Error reading packet payload: Time-out",
+                name.c_str());
+            return -1;
         } catch (csException &e) {
             csLog::Log(csLog::Error,
                 "%s: Error reading packet payload: %s",
@@ -576,25 +596,26 @@ void csPluginFileSyncSessionMaster::Run(void)
                 continue;
             }
             if (memcmp(i->second->sha, pkt.payload, SHA_DIGEST_LENGTH)) {
-                size_t bytes;
+                uint32_t bytes;
                 uint8_t *ptr = pkt.payload + SHA_DIGEST_LENGTH;
 
                 memcpy(pkt.payload, i->second->sha, SHA_DIGEST_LENGTH);
 
                 bytes = i->second->user->size();
-                memcpy(ptr, &bytes, sizeof(size_t));
-                memcpy(ptr + sizeof(size_t), i->second->user->c_str(), bytes);
+                memcpy(ptr, &bytes, sizeof(uint32_t));
+                memcpy(ptr + sizeof(uint32_t), i->second->user->c_str(), bytes);
 
                 bytes = i->second->group->size();
-                ptr += sizeof(size_t) + i->second->user->size();
-                memcpy(ptr, &bytes, sizeof(size_t));
-                memcpy(ptr + sizeof(size_t), i->second->group->c_str(), bytes);
+                ptr += sizeof(uint32_t) + i->second->user->size();
+                memcpy(ptr, &bytes, sizeof(uint32_t));
+                memcpy(ptr + sizeof(uint32_t), i->second->group->c_str(), bytes);
 
-                ptr += sizeof(size_t) + i->second->group->size();
-                memcpy(ptr, &i->second->st_info.st_mode, sizeof(mode_t));
+                bytes = (uint32_t)i->second->st_info.st_mode;
+                ptr += sizeof(uint32_t) + i->second->group->size();
+                memcpy(ptr, &bytes, sizeof(uint32_t));
 
                 length = SHA_DIGEST_LENGTH +
-                    sizeof(size_t) * 2 + sizeof(mode_t) +
+                    sizeof(uint32_t) * 2 + sizeof(mode_t) +
                     i->second->user->size() + i->second->group->size();
                 WritePacket(idFileSync, argNone, NULL, length);
 
@@ -831,20 +852,21 @@ void csPluginFileSyncSessionSlave::SynchronizeFile(csPluginFileSyncFile *file)
 {
     int rc;
     ostringstream os;
-    size_t user_size, group_size;
-    uint8_t *ptr = pkt.payload + SHA_DIGEST_LENGTH + sizeof(size_t);
+    mode_t mode;
+    uint32_t user_size, group_size, uint32_mode;
+    uint8_t *ptr = pkt.payload + SHA_DIGEST_LENGTH + sizeof(uint32_t);
 
     memcpy(file->sha, pkt.payload, SHA_DIGEST_LENGTH);
-    memcpy(&user_size, pkt.payload + SHA_DIGEST_LENGTH, sizeof(size_t));
+    memcpy(&user_size, pkt.payload + SHA_DIGEST_LENGTH, sizeof(uint32_t));
     memcpy(&group_size,
-        pkt.payload + SHA_DIGEST_LENGTH + sizeof(size_t) + user_size, sizeof(size_t));
+        pkt.payload + SHA_DIGEST_LENGTH + sizeof(uint32_t) + user_size, sizeof(uint32_t));
 
     string user((const char *)ptr, user_size);
-    ptr += sizeof(size_t) + user_size;
+    ptr += sizeof(uint32_t) + user_size;
     string group((const char *)ptr, group_size);
     ptr += group_size;
-    mode_t mode;
-    memcpy(&mode, ptr, sizeof(mode_t));
+    memcpy(&uint32_mode, ptr, sizeof(uint32_t));
+    mode = (mode_t)uint32_mode;
 
     uid_t uid;
     try {
