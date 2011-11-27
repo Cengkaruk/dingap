@@ -236,20 +236,21 @@ csSocketConnect::csSocketConnect(
     sa.sin_addr.s_addr = sa_result->sin_addr.s_addr;
 
     freeaddrinfo(result);
-    gettimeofday(&tv_active, NULL);
-
-    state = Connecting;
 }
 
 void csSocketConnect::Close(void)
 {
+    state = Init;
     csSocket::Close();
-    gettimeofday(&tv_active, NULL);
-    state = Connecting;
 }
 
 void csSocketConnect::Connect(void)
 {
+    if (state == Init) {
+        gettimeofday(&tv_active, NULL);
+        state = Connecting;
+    }
+
     while (state == Connecting) {
         struct timeval tv;
         gettimeofday(&tv, NULL);
