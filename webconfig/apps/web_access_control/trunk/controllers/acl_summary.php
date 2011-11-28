@@ -104,8 +104,11 @@ class Acl_Summary extends ClearOS_Controller
 
         if ($confirm != NULL) {
             $this->squid->delete_time_acl($name);
+            $this->squid->reset(TRUE);
+
             redirect('/web_access_control');
         }
+
         $items = array($name);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);

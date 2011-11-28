@@ -126,6 +126,8 @@ class Web_Access_Control extends ClearOS_Controller
                     ($name == NULL ? FALSE : TRUE)
                 );
 
+                $this->squid->reset(TRUE);
+
                 $this->page->set_status_added();
                 redirect('/web_access_control');
             } catch (Exception $e) {
@@ -223,6 +225,8 @@ class Web_Access_Control extends ClearOS_Controller
                     ($name == NULL ? FALSE : TRUE)
                 );
 
+                $this->squid->reset(TRUE);
+
                 $this->page->set_status_added();
                 redirect('/web_access_control');
             } catch (Exception $e) {
@@ -279,6 +283,8 @@ class Web_Access_Control extends ClearOS_Controller
 
         try {
             $this->squid->bump_time_acl_priority($name, $priority);
+            $this->squid->reset(TRUE);
+
             $this->page->set_status_updated();
         } catch (Exception $e) {
             $this->page->view_exception($e);
