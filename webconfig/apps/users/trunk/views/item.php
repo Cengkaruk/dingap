@@ -142,7 +142,7 @@ if (! empty($plugins)) {
 
     foreach ($plugins as $plugin => $details) {
         $name = "user_info[plugins][$plugin][state]";
-        $value = (isset($user_info['plugins'][$plugin]) && $user_info['plugins'][$plugin]) ? TRUE : $user_info['plugins'][$plugin];
+        $value = (!isset($user_info['plugins'][$plugin]) || $user_info['plugins'][$plugin]) ? TRUE : $user_info['plugins'][$plugin];
         echo field_toggle_enable_disable($name, $value, $details['nickname'], $read_only);
     }
 
