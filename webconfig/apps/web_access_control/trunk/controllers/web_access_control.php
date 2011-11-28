@@ -226,7 +226,7 @@ class Web_Access_Control extends ClearOS_Controller
                 $this->page->set_status_added();
                 redirect('/web_access_control');
             } catch (Exception $e) {
-                $this->page->set_message(clearos_exception_message($e));
+                $this->page->view_exception($e);
             }
         }
 
@@ -274,15 +274,14 @@ class Web_Access_Control extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('web_proxy/Squid');
         $this->lang->load('web_access_control');
-        $this->lang->load('base');
+        $this->load->library('web_proxy/Squid');
 
         try {
             $this->squid->bump_time_acl_priority($name, $priority);
-            $this->page->set_message(lang('web_access_control_priority_updated'), 'info');
+            $this->page->set_status_updated();
         } catch (Exception $e) {
-            $this->page->set_message(clearos_exception_message($e));
+            $this->page->view_exception($e);
         }
 
         redirect('/web_access_control');

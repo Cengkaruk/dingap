@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('web_access_control_summary');
-$app['description'] = lang('web_access_control_page_intro');
+$app['description'] = lang('web_access_control_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('web_access_control_web_access_control');
+$app['name'] = lang('web_access_control_app_name');
 $app['category'] = lang('base_category_gateway');
 $app['subcategory'] = lang('base_subcategory_content_filter_and_proxy');
 
@@ -27,5 +26,9 @@ $app['subcategory'] = lang('base_subcategory_content_filter_and_proxy');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['core_requires'] = array(
+    'app-web-proxy-core'
+);
+
+$app['requires'] = array(
     'app-web-proxy'
 );
