@@ -29,6 +29,7 @@ Requires: app-network-core
 Requires: app-openldap-directory-core
 Requires: samba-client >= 3.6.1
 Requires: samba-winbind >= 3.6.1
+Requires: tdb-tools >= 1.2.9
 
 %description core
 Translation missing (samba_app_long_description)
