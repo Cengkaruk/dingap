@@ -1,5 +1,8 @@
 <?php
 
+$lang['web_proxy_clearing_the_cache'] = 'Clearing the cache.';
+$lang['web_proxy_ready'] = 'Ready';
+
 $lang['web_proxy_app_description'] = 'Web proxy description...'; // FIXME
 $lang['web_proxy_app_name'] = 'Web Proxy';
 $lang['web_proxy_transparent_mode'] = 'Transparent Mode';
@@ -61,3 +64,4 @@ $lang['web_proxy_write_error'] = 'Network write error occurred';
 $lang['web_proxy_zero_size_object'] = 'No data was received for your request - web server might be overloaded';
 $lang['web_proxy_invalid_size'] = 'Invalid size.';
 $lang['web_proxy_invalid_time_end_later_start'] = 'End time must occur after start time.';
+$lang['web_proxy_reset_cache'] = 'Reset Cache';

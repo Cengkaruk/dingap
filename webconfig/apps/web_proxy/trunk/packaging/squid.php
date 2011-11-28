@@ -18,10 +18,10 @@ clearos_load_language('web_proxy');
 ///////////////////////////////////////////////////////////////////////////////
 
 $configlet = array(
-	'title' => lang('web_proxy_app_name'),
-	'package' => 'squid',
-	'process_name' => 'squid',
-        'pid_file' => '/var/run/squid.pid',
-	'reloadable' => FALSE,
-	'url' => '/app/web_proxy'
+    'title' => lang('web_proxy_app_name'),
+    'package' => 'squid',
+    'process_name' => 'squid',
+    'pid_file' => '/var/run/squid.pid',
+    'reloadable' => TRUE,
+    'url' => '/app/web_proxy'
 );

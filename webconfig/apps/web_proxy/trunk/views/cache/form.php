@@ -48,8 +48,9 @@ if ($form_type === 'edit') {
 } else {
     $read_only = TRUE;
     $buttons = array(
-        anchor_edit('/app/web_proxy/cache/edit')
+        anchor_edit('/app/web_proxy/cache/edit'),
     );
+//        anchor_javascript('reset_cache', lang('web_proxy_reset_cache'), 'high')
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,6 +67,7 @@ echo form_header(lang('web_proxy_cache'));
 echo field_dropdown('cache', $cache_options, $cache, lang('web_proxy_maximum_cache_size'), $read_only);
 echo field_dropdown('object', $object_options, $object, lang('web_proxy_maximum_object_size'), $read_only);
 echo field_dropdown('download', $download_options, $download, lang('web_proxy_maximum_file_download_size'), $read_only);
+// echo field_view(lang('web_proxy_cache'), lang('web_proxy_ready'), 'cache_status');
 echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////

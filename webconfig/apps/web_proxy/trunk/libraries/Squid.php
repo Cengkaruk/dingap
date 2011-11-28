@@ -55,7 +55,6 @@ clearos_load_language('web_proxy');
 // Classes
 //--------
 
-use \clearos\apps\users\User_Factory as User_Factory;
 use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
@@ -63,9 +62,9 @@ use \clearos\apps\base\Product as Product;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\network\Network as Network;
 use \clearos\apps\network\Network_Utils as Network_Utils;
+use \clearos\apps\users\User_Factory as User_Factory;
 use \clearos\apps\web_proxy\Squid as Squid;
 
-clearos_load_library('users/User_Factory');
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
@@ -73,11 +72,13 @@ clearos_load_library('base/Product');
 clearos_load_library('base/Shell');
 clearos_load_library('network/Network');
 clearos_load_library('network/Network_Utils');
+clearos_load_library('users/User_Factory');
 clearos_load_library('web_proxy/Squid');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
@@ -372,44 +373,49 @@ class Squid extends Daemon
         $file = new File(self::FILE_CONFIG, TRUE);
 
         foreach ($this->config['http_access']['line'] as $line => $acl) {
-            if (!ereg("^(deny|allow) cleargroup-.*$", $acl))
+            if (!preg_match("/^(deny|allow) cleargroup-.*$/", $acl))
                 continue;
+
             $temp = array();
             $parts = explode(' ', $acl);
             $temp['type'] = $parts[0];
             $temp['name'] = substr($parts[1], 11, strlen($parts[1]));
             $temp['logic'] = !preg_match("/^!/", $parts[2]);
-            list($dow, $tod) = split(' ', $file->lookup_value("/^acl " . preg_replace("/^!/", "", $parts[2]) . " time/"));
+            list($dow, $tod) = preg_split('/ /', $file->lookup_value("/^acl " . preg_replace("/^!/", "", $parts[2]) . " time/"));
             $temp['time'] = preg_replace("/.*cleartime-/", "", $parts[2]);
             $temp['dow'] = $dow;
             $temp['tod'] = $tod;
             $temp['users'] = '';
+
             try {
                 $temp['users'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " proxy_auth/"));
                 $temp['ident'] = 'proxy_auth';
             } catch (File_No_Match_Exception $e) {
                 $temp['users'] = '';
             }
+
             try {
                 $temp['ips'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " src/"));
                 $temp['ident'] = 'src';
             } catch (File_No_Match_Exception $e) {
                 $temp['ips'] = '';
             }
+
             try {
                 $temp['macs'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " arp/"));
                 $temp['ident'] = 'arp';
             } catch (File_No_Match_Exception $e) {
                 $temp['macs'] = '';
             }
+
             $list[] = $temp;
         }
+
         return $list;
     }
 
     /**
      * Returns all time-based ACL definitions.
-     *
      *
      * @return array a list of time-based ACL definitions.
      * @throws Engine_Exception
@@ -425,21 +431,25 @@ class Squid extends Daemon
             $this->_load_config();
 
         foreach ($this->config['acl']['line'] as $line => $acl) {
-            if (!ereg("^cleartime-.*$", $acl))
+            if (!preg_match("/^cleartime-.*$/", $acl))
                 continue;
+
             $temp = array();
             $parts = explode(' ', $acl);
             $temp['name'] = substr($parts[0], 10, strlen($parts[0]));
             $temp['dow'] = str_split($parts[2]);
             list($temp['start'], $temp['end']) = explode('-', $parts[3]);
+
             $list[] = $temp;
         }
+
         return $list;
     }
 
     /**
      * Returns method of identification mapping.
-     * $return array a mapping of ID types
+     *
+     * @return array a mapping of ID types
      */
 
     public function get_identification_type_array()
@@ -449,12 +459,14 @@ class Squid extends Daemon
             'src' => lang('web_proxy_ip'),
             'arp' => lang('web_proxy_mac')
         );
+
         return $type;
     }
 
     /**
      * Returns allow/deny mapping.
-     * $return array a mapping of access types
+     *
+     * @return array a mapping of access types
      */
 
     public function get_access_type_array()
@@ -463,12 +475,14 @@ class Squid extends Daemon
             'allow' => lang('web_proxy_allow'),
             'deny' => lang('web_proxy_deny')
         );
+
         return $type;
     }
 
     /**
      * Returns weekday mapping.
-     * $return array a mapping of Squid days of weeks and human readable days
+     *
+     * @return array a mapping of Squid days of weeks and human readable days
      */
 
     public function get_day_of_week_array()
@@ -482,42 +496,36 @@ class Squid extends Daemon
             'F' => LOCALE_LANG_FRIDAY,
             'A' => LOCALE_LANG_SATURDAY
         );
+
         return $dow;
     }
 
     /**
      * Deletes the proxy cache.
      *
-     *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function reset_cache()
+    public function clear_cache()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $wasrunning = $this->get_running_state();
-            $this->SetRunningState(FALSE);
+        $was_running = $this->get_running_state();
 
-            $options['background'] = TRUE;
+        if ($was_running)
+            $this->set_running_state(FALSE);
 
-            $shell = new Shell();
-            $retval = $shell->Execute("/bin/mv", "/var/spool/squid /var/spool/squid.delete", TRUE);
-            $retval = $shell->Execute("/bin/rm", "-rf /var/spool/squid.delete", TRUE, $options);
+        $shell = new Shell();
+        $shell->execute('/bin/mv', '/var/spool/squid /var/spool/squid.delete', TRUE);
 
-            if ($retval != 0)
-                throw new Engine_Exception($shell->GetLastOutputLine(), CLEAROS_ERROR);
+        $folder = new Folder(self::PATH_SPOOL);
+        $folder->create('squid', 'squid', '0750');
 
-            $folder = new Folder(self::PATH_SPOOL);
-            $folder->Create("squid", "squid", "0750");
+        if ($was_running)
+            $this->set_running_state(TRUE);
 
-            if ($wasrunning)
-                $this->SetRunningState(TRUE);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $shell->execute('/bin/rm', '-rf /var/spool/squid.delete', TRUE);
     }
 
     /**
@@ -536,7 +544,8 @@ class Squid extends Daemon
         if (! is_bool($state))
             throw new Validation_Exception(lang('web_proxy_user_authentication') . " - " . lang('base_invalid'));
 
-        $this->UpgradeConfiguration();
+        // FIXME: what's with this hack? :-)
+        $this->upgrade_configuration();
 
         if ($state) {
             $this->_set_parameter("http_access allow webconfig_lan", "password", self::CONSTANT_NO_OFFSET, "");
@@ -549,6 +558,7 @@ class Squid extends Daemon
         // KLUDGE: DansGuardian does not like having authorization plugins 
         // enabled if Squid is not configured with authentication.  
 
+        // FIXME
         if (file_exists(COMMON_CORE_DIR . "/api/DansGuardianAv.class.php")) {
             require_once('DansGuardianAv.class.php');
             $plugins = ($state) ? array("dummy_data_for_now") : array();
@@ -561,7 +571,6 @@ class Squid extends Daemon
     /**
      * Sets basic authentication default values.
      *
-     *
      * @return void
      * @throws Engine_Exception
      */
@@ -570,7 +579,8 @@ class Squid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-/*
+        /*
+        // FIXME
         try {
             if (file_exists(COMMON_CORE_DIR . "/api/Product.class.php")) {
                 require_once(COMMON_CORE_DIR . "/api/Product.class.php");
@@ -594,7 +604,7 @@ class Squid extends Daemon
             $file->create("root", "squid", "0640");
             $file->add_lines("$bindpw\n");
         } catch (Exception $e) {
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         $children = '25';
@@ -615,7 +625,7 @@ class Squid extends Daemon
         $this->_set_parameter("auth_param basic credentialsttl", "2 hours", self::CONSTANT_NO_OFFSET, "");
         $this->_set_parameter("auth_param basic program", $program, self::CONSTANT_NO_OFFSET, "");
         $this->_set_parameter("acl password proxy_auth", "REQUIRED", self::CONSTANT_NO_OFFSET, "");
-*/
+        */
     }
 
     /**
@@ -681,6 +691,7 @@ class Squid extends Daemon
     /**
      * Sets Adzapper state.
      *
+     * @param boolean $state state
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -702,14 +713,14 @@ class Squid extends Daemon
     /**
      * Adds (or updates) a time-based ACL.
      *
-     * @param String $name ACL name
-     * @param String $type ACL type (allow or deny)
-     * @param String $time a time definition
-     * @param Boolean $time_logic TRUE if within time definition, FALSE if NOT within
-     * @param String[] $addusers an array containing users to apply ACL
-     * @param String[] $addips an array containing IP addresses or network notation to apply ACL
-     * @param String[] $addmacs an array containing MAC addresses to apply ACL
-     * @param Boolean $update TRUE if we are updating an existing entry
+     * @param string  $name       ACL name
+     * @param string  $type       ACL type (allow or deny)
+     * @param string  $time       time definition
+     * @param boolean $time_logic TRUE if within time definition, FALSE if NOT within
+     * @param array   $addusers   array containing users to apply ACL
+     * @param array   $addips     array containing IP addresses or network notation to apply ACL
+     * @param array   $addmacs    array containing MAC addresses to apply ACL
+     * @param boolean $update     TRUE if we are updating an existing entry
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -725,7 +736,7 @@ class Squid extends Daemon
 
         Validation_Exception::is_valid($this->validate_name($name));
 
-        # Check for existing
+        // Check for existing
         if (!$update) {
             $acls = $this->get_acl_list();
             foreach ($acls as $acl) {
@@ -751,7 +762,7 @@ class Squid extends Daemon
             throw new Validation_Exception(lang('web_proxy_invalid_time_definition'));
 
         try {
-            # Populate users list on invalid data
+            // Populate users list on invalid data
             foreach ($addusers as $user) {
 
                 $user_factory = new User_Factory($user);
@@ -776,7 +787,7 @@ class Squid extends Daemon
                 $users .= ' ' . $user;
             }
         } catch (Exception $e) {
-            throw new Validation_Exception($clearos_exception_message($e));
+            throw new Validation_Exception(clearos_exception_message($e));
         }
 
         $network = new Network();
@@ -786,7 +797,7 @@ class Squid extends Daemon
                 continue;
             $ip = trim($ip);
 
-            if (eregi("^(.*)-(.*)$", trim($ip), $match)) {
+            if (preg_match("/^(.*)-(.*)$/i", trim($ip), $match)) {
                 if (! Network_Utils::is_valid_ip(trim($match[1])))
                     throw new Validation_Exception(lang('web_proxy_invalid_ip') . ' - ' . trim($match[1]));
                 if (! Network_Utils::is_valid_ip(trim($match[2])))
@@ -821,34 +832,34 @@ class Squid extends Daemon
                 $this->_load_config();
 
             if (strlen($users) > 0) {
-                # Usersname based
+                // Usersname based
                 $replacement = "acl cleargroup-$name proxy_auth " . trim($users) . "\n";
                 $match = $file->replace_lines("/acl cleargroup-$name proxy_auth.*$/", $replacement);
 
                 if (! $match)
                     $file->add_lines_after($replacement, Squid::REGEX_ACL_DELIMITER);
-                # Force reload
+                // Force reload
                 $this->is_loaded = FALSE;
                 $this->config = array();
             } else if (strlen($ips) > 0) {
-                # IP based
+                // IP based
                 $replacement = "acl cleargroup-$name src " . trim($ips) . "\n";
                 $match = $file->replace_lines("/acl cleargroup-$name src .*$/", $replacement);
 
                 if (! $match)
                     $file->add_lines_after($replacement, Squid::REGEX_ACL_DELIMITER);
             } else if (strlen($macs) > 0) {
-                # IP based
+                // IP based
                 $replacement = "acl cleargroup-$name arp " . trim($macs) . "\n";
                 $match = $file->replace_lines("/acl cleargroup-$name arp .*$/", $replacement);
                 if (! $match)
                     $file->add_lines_after($replacement, Squid::REGEX_ACL_DELIMITER);
             } else {
-                throw new Engine_Exception(lang('web_proxy_empty_id_array'), CLEAROS_ERROR);
+                throw new Engine_Exception(lang('web_proxy_empty_id_array'));
             }
 
         } catch (Exception $e) {
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         $this->is_loaded = FALSE;
@@ -860,14 +871,15 @@ class Squid extends Daemon
             $match = $file->replace_lines("/http_access (allow|deny) cleargroup-$name .*$/", $replacement);
 
             if (! $match) {
-                # TODO - Arbitrarily add after n-3 occurence of http_access directive - very lame
+                // TODO - Arbitrarily add after n-3 occurence of http_access directive - very lame
                 $file->add_lines_after(
-                    "http_access $type cleargroup-$name " . ($time_logic ? "" : "!") . "cleartime-$time\n", "/http_access " .
+                    "http_access $type cleargroup-$name " . ($time_logic ? "" : "!") . 
+                    "cleartime-$time\n", "/http_access " .
                     $this->config['http_access']['line'][$this->config['http_access']['count'] - 3] . "/i"
                 );
             }
 
-            # Check for follow_x_forwarded_for directives
+            // Check for follow_x_forwarded_for directives
             if (strlen($ips) > 0) {
                 try {
                     $file->lookup_line("/^follow_x_forwarded_for allow localhost$/");
@@ -875,10 +887,10 @@ class Squid extends Daemon
                     $lines = "follow_x_forwarded_for allow localhost\nfollow_x_forwarded_for deny localhost\n";
                     $file->add_lines_before($lines, "/http_access " . str_replace("/", "\\/", $this->config['http_access']['line'][1]) . "/i");
                 } catch (Exception $e) {
-                    throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+                    throw new Engine_Exception(clearos_exception_message($e));
                 }
 
-                # Check for DG config
+                // Check for DG config
                 // FIXME
                 /*try {
                     if (file_exists(COMMON_CORE_DIR . "/api/DansGuardian.class.php")) {
@@ -893,7 +905,7 @@ class Squid extends Daemon
                                     $dg->restart();
                                 }
                             } catch (Exception $e) {
-                                # Ignore
+                                // Ignore
                             }
                         }
                     }
@@ -910,17 +922,17 @@ class Squid extends Daemon
                                     $dgav->restart();
                                 }
                             } catch (Exception $e) {
-                                # Ignore
+                                // Ignore
                             }
                         }
                     }
                 } catch (Exception $e) {
-                    # Ignore
+                    // Ignore
                 }
                 */
             }
         } catch (Exception $e) {
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         $this->is_loaded = FALSE;
@@ -930,11 +942,11 @@ class Squid extends Daemon
     /**
      * Adds (or updates) a time definition for use with an ACL.
      *
-     * @param String   $name   time name
-     * @param String[] $dow    an array of days of week
-     * @param String   $start  start hour/min
-     * @param String   $end    end hour/min
-     * @param Boolean  $update TRUE if we are updating an existing entry
+     * @param string  $name   time name
+     * @param array   $dow    an array of days of week
+     * @param string  $start  start hour/min
+     * @param string  $end    end hour/min
+     * @param boolean $update TRUE if we are updating an existing entry
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -944,10 +956,10 @@ class Squid extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
  
-        # Validate
-        # --------
+        // Validate
+        // --------
         Validation_Exception::is_valid($this->validate_name($name));
-        # Check for existing
+        // Check for existing
         if (!$update) {
             $times = $this->get_time_definition_list();
             foreach ($times as $time) {
@@ -980,7 +992,7 @@ class Squid extends Daemon
                 $file->add_lines_after($replacement, Squid::REGEX_ACL_DELIMITER);
             }
         } catch (Exception $e) {
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
         $this->is_loaded = FALSE;
         $this->config = array();
@@ -990,7 +1002,7 @@ class Squid extends Daemon
     /**
      * Deletes an ACL.
      *
-     * @param String $name acl name
+     * @param string $name acl name
      *
      * @return void
      * @throws Engine_Exception
@@ -1004,12 +1016,14 @@ class Squid extends Daemon
             $this->_load_config();
 
         $type = 'allow';
+
         foreach ($this->config['http_access']['line'] as $acl) {
-            if (ereg("^(deny|allow) cleargroup-$name .*$", $acl, $match)) {
+            if (preg_match("/^(deny|allow) cleargroup-$name .*$/", $acl, $match)) {
                 $type = $match[1];
                 break;
             }
         }
+
         $this->_delete_parameter("acl cleargroup-$name (proxy_auth|src|arp)");
         $this->_delete_parameter("http_access $type cleargroup-$name");
     }
@@ -1017,7 +1031,7 @@ class Squid extends Daemon
     /**
      * Deletes a time definition.
      *
-     * @param String $name time name
+     * @param string $name time name
      *
      * @return void
      * @throws Engine_Exception
@@ -1030,41 +1044,45 @@ class Squid extends Daemon
         if (! $this->is_loaded)
             $this->_load_config();
 
-        # Delete any ACL's using this time definition
+        //  Delete any ACL's using this time definition
         foreach ($this->config['http_access']['line'] as $acl) {
-            if (ereg("^(deny|allow) cleargroup-(.*) (cleartime-$name|!cleartime-$name).*$", $acl, $match)) {
+            if (preg_match("/^(deny|allow) cleargroup-(.*) (cleartime-$name|!cleartime-$name).*$/", $acl, $match)) {
                 $type = $match[1];
                 $aclname = $match[2];
                 $this->_delete_parameter("http_access $type cleargroup-$aclname");
-                # User
+
+                // User
                 try {
                     $this->_delete_parameter("acl cleargroup-$aclname proxy_auth");
                 } catch (Exception $e) {
-                    # Ignore
+                    // Ignore
                 }
-                # IP
+
+                // IP
                 try {
                     $this->_delete_parameter("acl cleargroup-$aclname src");
                 } catch (Exception $e) {
-                    # Ignore
+                    // Ignore
                 }
-                # MAC
+
+                // MAC
                 try {
                     $this->_delete_parameter("acl cleargroup-$aclname arp");
                 } catch (Exception $e) {
-                    # Ignore
+                    // Ignore
                 }
             }
         }
-        # Delete time definition
+
+        // Delete time definition
         $this->_delete_parameter("acl cleartime-$name time");
     }
 
     /**
      * Bumps the priority of an ACL.
      *
-     * @param String $name time name
-     * @param int    $priority use value greater than zero to bump up
+     * @param string  $name     time name
+     * @param integer $priority use value greater than zero to bump up
      *
      * @return void
      * @throws Engine_Exception
@@ -1081,34 +1099,40 @@ class Squid extends Daemon
 
         try {
             $file = new File(self::FILE_CONFIG, TRUE);
-            # Determine number of custom entries
-            #foreach ($this->config['http_access']['line'] as $acl) {
-            #    if (ereg("^(deny|allow) cleargroup-.*$", $acl))
-            #}
+            // Determine number of custom entries
+            // foreach ($this->config['http_access']['line'] as $acl) {
+            //     if (ereg("^(deny|allow) cleargroup-.*$", $acl))
+            // }
             $counter = 1;
+
             foreach ($this->config['http_access']['line'] as $acl) {
-                if (!ereg("^(deny|allow) cleargroup-.*$", $acl)) {
+                if (!preg_match("/^(deny|allow) cleargroup-/", $acl)) {
                     $counter++;
                     continue;
                 }
-                if (ereg("^(deny|allow) cleargroup-$name .*$", $acl)) {
-                    #Found ACL
+
+                if (preg_match("/^(deny|allow) cleargroup-$name\s+/", $acl)) {
+echo "asdasdfasdf ($name, $priority) - $acl<br>";
+                    // Found ACL
                     $file->delete_lines("/^http_access $acl$/");
+
                     if ($priority > 0)
                         $file->add_lines_before('http_access ' . $acl . "\n", "/^" . $last . "$/");
                     else
                         $file->add_lines_after('http_access ' . $acl . "\n", "/^http_access " . $this->config['http_access']['line'][$counter + 1] . "$/");
+
                     $this->is_loaded = FALSE;
                     $this->config = array();
                     break;
                 }
+
                 $last = 'http_access ' . $acl;
                 $counter++;
             }
         } catch (Exception $e) {
             $this->is_loaded = FALSE;
             $this->config = array();
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
     }
 
@@ -1178,7 +1202,7 @@ class Squid extends Daemon
                     "http_access allow webconfig_lan\nhttp_access deny all\n"
                 );
             } catch (Exception $e) {
-                throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+                throw new Engine_Exception(clearos_exception_message($e));
             }
         }
 
@@ -1193,7 +1217,7 @@ class Squid extends Daemon
                     "http_access deny manager\nhttp_access allow webconfig_to_lan\n"
                 );
             } catch (Exception $e) {
-                throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+                throw new Engine_Exception(clearos_exception_message($e));
             }
         }
 
@@ -1216,7 +1240,7 @@ class Squid extends Daemon
                 "# webconfig: acl_end\n"
             );
         } catch (Exception $e) {
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
 
         // Implant: http_port 192.168.2.2:3128
@@ -1228,7 +1252,7 @@ class Squid extends Daemon
         } catch (File_No_Match_Exception $e) {
             $file->add_lines("# webconfig: http_port_start\n# webconfig: http_port_end");
         } catch (Exception $e) {
-            throw new Engine_Exception($clearos_exception_message($e), CLEAROS_ERROR);
+            throw new Engine_Exception(clearos_exception_message($e));
         }
     }
 
@@ -1447,7 +1471,7 @@ class Squid extends Daemon
      *
      * @param string $name name
      *
-     * @returns boolean
+     * @return boolean
      */
 
     public function validate_name($name)
@@ -1463,7 +1487,7 @@ class Squid extends Daemon
      *
      * @param string $dow name
      *
-     * @returns  boolean
+     * @return boolean
      */
 
     public function validate_dow($dow)
@@ -1476,7 +1500,7 @@ class Squid extends Daemon
      *
      * @param int $time time index
      *
-     * @returns  boolean
+     * @return boolean
      */
 
     public function validate_time_acl($time)
