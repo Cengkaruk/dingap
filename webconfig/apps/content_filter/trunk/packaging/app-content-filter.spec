@@ -23,6 +23,7 @@ License: LGPLv3
 Requires: app-base-core
 Requires: app-network-core
 Requires: app-firewall-core
+Requires: dansguardian-av >= 2.10.1.1
 Requires: squid >= 3.1.10
 
 %description core

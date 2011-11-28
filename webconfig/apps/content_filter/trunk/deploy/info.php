@@ -38,6 +38,7 @@ $app['requires'] = array(
 $app['core_requires'] = array(
     'app-network-core',
     'app-firewall-core',
+    'dansguardian-av >= 2.10.1.1',
     'squid >= 3.1.10',
 );
 
