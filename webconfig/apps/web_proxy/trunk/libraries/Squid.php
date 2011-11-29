@@ -146,6 +146,246 @@ class Squid extends Daemon
     }
 
     /**
+     * Bumps the priority of an ACL.
+     *
+     * @param string  $name     time name
+     * @param integer $priority use value greater than zero to bump up
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function bump_time_acl_priority($name, $priority)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        $last = '';
+
+        try {
+            $file = new File(self::FILE_CONFIG, TRUE);
+            // Determine number of custom entries
+            // foreach ($this->config['http_access']['line'] as $acl) {
+            //     if (ereg("^(deny|allow) cleargroup-.*$", $acl))
+            // }
+            $counter = 1;
+
+            foreach ($this->config['http_access']['line'] as $acl) {
+                if (!preg_match("/^(deny|allow) cleargroup-/", $acl)) {
+                    $counter++;
+                    continue;
+                }
+
+                if (preg_match("/^(deny|allow) cleargroup-$name\s+/", $acl)) {
+                    // Found ACL
+                    $file->delete_lines("/^http_access $acl$/");
+
+                    if ($priority > 0)
+                        $file->add_lines_before('http_access ' . $acl . "\n", "/^" . $last . "$/");
+                    else
+                        $file->add_lines_after('http_access ' . $acl . "\n", "/^http_access " . $this->config['http_access']['line'][$counter + 1] . "$/");
+
+                    $this->is_loaded = FALSE;
+                    $this->config = array();
+                    break;
+                }
+
+                $last = 'http_access ' . $acl;
+                $counter++;
+            }
+        } catch (Exception $e) {
+            $this->is_loaded = FALSE;
+            $this->config = array();
+            throw new Engine_Exception(clearos_exception_message($e));
+        }
+    }
+
+    /**
+     * Deletes the proxy cache.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function clear_cache()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $was_running = $this->get_running_state();
+
+        if ($was_running)
+            $this->set_running_state(FALSE);
+
+        $shell = new Shell();
+        $shell->execute('/bin/mv', '/var/spool/squid /var/spool/squid.delete', TRUE);
+
+        $folder = new Folder(self::PATH_SPOOL);
+        $folder->create('squid', 'squid', '0750');
+
+        if ($was_running)
+            $this->set_running_state(TRUE);
+
+        $shell->execute('/bin/rm', '-rf /var/spool/squid.delete', TRUE);
+    }
+
+    /**
+     * Deletes an ACL.
+     *
+     * @param string $name acl name
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function delete_time_acl($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        $type = 'allow';
+
+        foreach ($this->config['http_access']['line'] as $acl) {
+            if (preg_match("/^(deny|allow) cleargroup-$name .*$/", $acl, $match)) {
+                $type = $match[1];
+                break;
+            }
+        }
+
+        $this->_delete_parameter("acl cleargroup-$name (proxy_auth|src|arp)");
+        $this->_delete_parameter("http_access $type cleargroup-$name");
+    }
+
+    /**
+     * Deletes a time definition.
+     *
+     * @param string $name time name
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function delete_time_definition($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        //  Delete any ACL's using this time definition
+        foreach ($this->config['http_access']['line'] as $acl) {
+            if (preg_match("/^(deny|allow) cleargroup-(.*) (cleartime-$name|!cleartime-$name).*$/", $acl, $match)) {
+                $type = $match[1];
+                $aclname = $match[2];
+                $this->_delete_parameter("http_access $type cleargroup-$aclname");
+
+                // User
+                try {
+                    $this->_delete_parameter("acl cleargroup-$aclname proxy_auth");
+                } catch (Exception $e) {
+                    // Ignore
+                }
+
+                // IP
+                try {
+                    $this->_delete_parameter("acl cleargroup-$aclname src");
+                } catch (Exception $e) {
+                    // Ignore
+                }
+
+                // MAC
+                try {
+                    $this->_delete_parameter("acl cleargroup-$aclname arp");
+                } catch (Exception $e) {
+                    // Ignore
+                }
+            }
+        }
+
+        // Delete time definition
+        $this->_delete_parameter("acl cleartime-$name time");
+    }
+
+    /**
+     * Returns allow/deny mapping.
+     *
+     * @return array a mapping of access types
+     */
+
+    public function get_access_type_array()
+    {
+        $type = array(
+            'allow' => lang('web_proxy_allow'),
+            'deny' => lang('web_proxy_deny')
+        );
+
+        return $type;
+    }
+
+    /**
+     * Returns all defined ACL rules.
+     *
+     * @return array a list of time-based ACL rules.
+     * @throws Engine_Exception
+     */
+
+    public function get_acl_list()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $list = array();
+
+        if (! $this->is_loaded)
+            $this->_load_config();
+
+        $file = new File(self::FILE_CONFIG, TRUE);
+
+        foreach ($this->config['http_access']['line'] as $line => $acl) {
+            if (!preg_match("/^(deny|allow) cleargroup-.*$/", $acl))
+                continue;
+
+            $temp = array();
+            $parts = explode(' ', $acl);
+            $temp['type'] = $parts[0];
+            $temp['name'] = substr($parts[1], 11, strlen($parts[1]));
+            $temp['logic'] = !preg_match("/^!/", $parts[2]);
+            list($dow, $tod) = preg_split('/ /', $file->lookup_value("/^acl " . preg_replace("/^!/", "", $parts[2]) . " time/"));
+            $temp['time'] = preg_replace("/.*cleartime-/", "", $parts[2]);
+            $temp['dow'] = $dow;
+            $temp['tod'] = $tod;
+            $temp['users'] = '';
+
+            try {
+                $temp['users'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " proxy_auth/"));
+                $temp['ident'] = 'proxy_auth';
+            } catch (File_No_Match_Exception $e) {
+                $temp['users'] = '';
+            }
+
+            try {
+                $temp['ips'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " src/"));
+                $temp['ident'] = 'src';
+            } catch (File_No_Match_Exception $e) {
+                $temp['ips'] = '';
+            }
+
+            try {
+                $temp['macs'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " arp/"));
+                $temp['ident'] = 'arp';
+            } catch (File_No_Match_Exception $e) {
+                $temp['macs'] = '';
+            }
+
+            $list[] = $temp;
+        }
+
+        return $list;
+    }
+
+    /**
      * Returns state of Adzapper filter.
      *
      * @return boolean TRUE if Adzapper is enabled.
@@ -163,30 +403,6 @@ class Squid extends Daemon
             return TRUE;
         else
             return FALSE;
-    }
-
-    /**
-     * Returns state of user authentication.
-     *
-     * @return boolean TRUE if user authentication is enabled.
-     * @throws Engine_Exception
-     */
-
-    public function get_user_authentication_state()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        if (isset($this->config['http_access'])) {
-            foreach ($this->config['http_access']['line'] as $line) {
-                if (preg_match('/^allow\s+webconfig_lan\s+password$/', $line))
-                    return TRUE;
-            }
-        }
-
-        return FALSE;
     }
 
     /**
@@ -265,6 +481,66 @@ class Squid extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         return TRUE;
+    }
+
+    /**
+     * Returns weekday mapping.
+     *
+     * @return array a mapping of Squid days of weeks and human readable days
+     */
+
+    public function get_day_of_week_array()
+    {
+        $dow = array(
+            'S' => LOCALE_LANG_SUNDAY,
+            'M' => LOCALE_LANG_MONDAY,
+            'T' => LOCALE_LANG_TUESDAY,
+            'W' => LOCALE_LANG_WEDNESDAY,
+            'H' => LOCALE_LANG_THURSDAY,
+            'F' => LOCALE_LANG_FRIDAY,
+            'A' => LOCALE_LANG_SATURDAY
+        );
+
+        return $dow;
+    }
+
+    /**
+     * Returns the days of the week options.
+     *
+     * @return array 
+     */
+
+    public function get_day_of_week_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $dow = array(
+            'M' => lang('base_monday'),
+            'T' => lang('base_tuesday'),
+            'W' => lang('base_wednesday'),
+            'H' => lang('base_thursday'),
+            'F' => lang('base_friday'),
+            'A' => lang('base_saturday'),
+            'S' => lang('base_sunday')
+        );
+        return $dow;
+    }
+
+    /**
+     * Returns method of identification mapping.
+     *
+     * @return array a mapping of ID types
+     */
+
+    public function get_identification_type_array()
+    {
+        $type = array(
+            'proxy_auth' => lang('web_proxy_user'),
+            'src' => lang('web_proxy_ip'),
+            'arp' => lang('web_proxy_mac')
+        );
+
+        return $type;
     }
 
     /**
@@ -355,66 +631,6 @@ class Squid extends Daemon
     }
 
     /**
-     * Returns all defined ACL rules.
-     *
-     * @return array a list of time-based ACL rules.
-     * @throws Engine_Exception
-     */
-
-    public function get_acl_list()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $list = array();
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        $file = new File(self::FILE_CONFIG, TRUE);
-
-        foreach ($this->config['http_access']['line'] as $line => $acl) {
-            if (!preg_match("/^(deny|allow) cleargroup-.*$/", $acl))
-                continue;
-
-            $temp = array();
-            $parts = explode(' ', $acl);
-            $temp['type'] = $parts[0];
-            $temp['name'] = substr($parts[1], 11, strlen($parts[1]));
-            $temp['logic'] = !preg_match("/^!/", $parts[2]);
-            list($dow, $tod) = preg_split('/ /', $file->lookup_value("/^acl " . preg_replace("/^!/", "", $parts[2]) . " time/"));
-            $temp['time'] = preg_replace("/.*cleartime-/", "", $parts[2]);
-            $temp['dow'] = $dow;
-            $temp['tod'] = $tod;
-            $temp['users'] = '';
-
-            try {
-                $temp['users'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " proxy_auth/"));
-                $temp['ident'] = 'proxy_auth';
-            } catch (File_No_Match_Exception $e) {
-                $temp['users'] = '';
-            }
-
-            try {
-                $temp['ips'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " src/"));
-                $temp['ident'] = 'src';
-            } catch (File_No_Match_Exception $e) {
-                $temp['ips'] = '';
-            }
-
-            try {
-                $temp['macs'] = trim($file->lookup_value("/^acl cleargroup-" . $temp['name'] . " arp/"));
-                $temp['ident'] = 'arp';
-            } catch (File_No_Match_Exception $e) {
-                $temp['macs'] = '';
-            }
-
-            $list[] = $temp;
-        }
-
-        return $list;
-    }
-
-    /**
      * Returns all time-based ACL definitions.
      *
      * @return array a list of time-based ACL definitions.
@@ -447,85 +663,49 @@ class Squid extends Daemon
     }
 
     /**
-     * Returns method of identification mapping.
+     * Returns state of user authentication.
      *
-     * @return array a mapping of ID types
-     */
-
-    public function get_identification_type_array()
-    {
-        $type = array(
-            'proxy_auth' => lang('web_proxy_user'),
-            'src' => lang('web_proxy_ip'),
-            'arp' => lang('web_proxy_mac')
-        );
-
-        return $type;
-    }
-
-    /**
-     * Returns allow/deny mapping.
-     *
-     * @return array a mapping of access types
-     */
-
-    public function get_access_type_array()
-    {
-        $type = array(
-            'allow' => lang('web_proxy_allow'),
-            'deny' => lang('web_proxy_deny')
-        );
-
-        return $type;
-    }
-
-    /**
-     * Returns weekday mapping.
-     *
-     * @return array a mapping of Squid days of weeks and human readable days
-     */
-
-    public function get_day_of_week_array()
-    {
-        $dow = array(
-            'S' => LOCALE_LANG_SUNDAY,
-            'M' => LOCALE_LANG_MONDAY,
-            'T' => LOCALE_LANG_TUESDAY,
-            'W' => LOCALE_LANG_WEDNESDAY,
-            'H' => LOCALE_LANG_THURSDAY,
-            'F' => LOCALE_LANG_FRIDAY,
-            'A' => LOCALE_LANG_SATURDAY
-        );
-
-        return $dow;
-    }
-
-    /**
-     * Deletes the proxy cache.
-     *
-     * @return void
+     * @return boolean TRUE if user authentication is enabled.
      * @throws Engine_Exception
      */
 
-    public function clear_cache()
+    public function get_user_authentication_state()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $was_running = $this->get_running_state();
+        if (! $this->is_loaded)
+            $this->_load_config();
 
-        if ($was_running)
-            $this->set_running_state(FALSE);
+        if (isset($this->config['http_access'])) {
+            foreach ($this->config['http_access']['line'] as $line) {
+                if (preg_match('/^allow\s+webconfig_lan\s+password$/', $line))
+                    return TRUE;
+            }
+        }
 
-        $shell = new Shell();
-        $shell->execute('/bin/mv', '/var/spool/squid /var/spool/squid.delete', TRUE);
+        return FALSE;
+    }
 
-        $folder = new Folder(self::PATH_SPOOL);
-        $folder->create('squid', 'squid', '0750');
+    /**
+     * Sets Adzapper state.
+     *
+     * @param boolean $state state
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
 
-        if ($was_running)
-            $this->set_running_state(TRUE);
+    public function set_adzapper_state($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
 
-        $shell->execute('/bin/rm', '-rf /var/spool/squid.delete', TRUE);
+        if (! is_bool($state))
+            throw new Validation_Exception(lang('web_proxy_banner_and_popup_filter') . " - " . lang('base_invalid'));
+
+        if ($state)
+            $this->_set_parameter("redirect_program", self::FILE_ADZAPPER, self::CONSTANT_NO_OFFSET, "");
+        else
+            $this->_delete_parameter("redirect_program");
     }
 
     /**
@@ -686,28 +866,6 @@ class Squid extends Daemon
 
         $size = round($size / 1024); // KB to be consistent with squid.conf
         $this->_set_parameter('maximum_object_size', $size . ' KB', self::CONSTANT_NO_OFFSET, '');
-    }
-
-    /**
-     * Sets Adzapper state.
-     *
-     * @param boolean $state state
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-     */
-
-    public function set_adzapper_state($state)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! is_bool($state))
-            throw new Validation_Exception(lang('web_proxy_banner_and_popup_filter') . " - " . lang('base_invalid'));
-
-        if ($state)
-            $this->_set_parameter("redirect_program", self::FILE_ADZAPPER, self::CONSTANT_NO_OFFSET, "");
-        else
-            $this->_delete_parameter("redirect_program");
     }
 
     /**
@@ -968,7 +1126,7 @@ class Squid extends Daemon
             }
         }
 
-        Validation_Exception::is_valid($this->validate_dow($dow));
+        Validation_Exception::is_valid($this->validate_day_of_week($dow));
 
         $formatted_dow = implode('', array_values($dow));
 
@@ -997,165 +1155,6 @@ class Squid extends Daemon
         $this->is_loaded = FALSE;
         $this->config = array();
         
-    }
-
-    /**
-     * Deletes an ACL.
-     *
-     * @param string $name acl name
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function delete_time_acl($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        $type = 'allow';
-
-        foreach ($this->config['http_access']['line'] as $acl) {
-            if (preg_match("/^(deny|allow) cleargroup-$name .*$/", $acl, $match)) {
-                $type = $match[1];
-                break;
-            }
-        }
-
-        $this->_delete_parameter("acl cleargroup-$name (proxy_auth|src|arp)");
-        $this->_delete_parameter("http_access $type cleargroup-$name");
-    }
-
-    /**
-     * Deletes a time definition.
-     *
-     * @param string $name time name
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function delete_time_definition($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        //  Delete any ACL's using this time definition
-        foreach ($this->config['http_access']['line'] as $acl) {
-            if (preg_match("/^(deny|allow) cleargroup-(.*) (cleartime-$name|!cleartime-$name).*$/", $acl, $match)) {
-                $type = $match[1];
-                $aclname = $match[2];
-                $this->_delete_parameter("http_access $type cleargroup-$aclname");
-
-                // User
-                try {
-                    $this->_delete_parameter("acl cleargroup-$aclname proxy_auth");
-                } catch (Exception $e) {
-                    // Ignore
-                }
-
-                // IP
-                try {
-                    $this->_delete_parameter("acl cleargroup-$aclname src");
-                } catch (Exception $e) {
-                    // Ignore
-                }
-
-                // MAC
-                try {
-                    $this->_delete_parameter("acl cleargroup-$aclname arp");
-                } catch (Exception $e) {
-                    // Ignore
-                }
-            }
-        }
-
-        // Delete time definition
-        $this->_delete_parameter("acl cleartime-$name time");
-    }
-
-    /**
-     * Bumps the priority of an ACL.
-     *
-     * @param string  $name     time name
-     * @param integer $priority use value greater than zero to bump up
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function bump_time_acl_priority($name, $priority)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        $last = '';
-
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            // Determine number of custom entries
-            // foreach ($this->config['http_access']['line'] as $acl) {
-            //     if (ereg("^(deny|allow) cleargroup-.*$", $acl))
-            // }
-            $counter = 1;
-
-            foreach ($this->config['http_access']['line'] as $acl) {
-                if (!preg_match("/^(deny|allow) cleargroup-/", $acl)) {
-                    $counter++;
-                    continue;
-                }
-
-                if (preg_match("/^(deny|allow) cleargroup-$name\s+/", $acl)) {
-echo "asdasdfasdf ($name, $priority) - $acl<br>";
-                    // Found ACL
-                    $file->delete_lines("/^http_access $acl$/");
-
-                    if ($priority > 0)
-                        $file->add_lines_before('http_access ' . $acl . "\n", "/^" . $last . "$/");
-                    else
-                        $file->add_lines_after('http_access ' . $acl . "\n", "/^http_access " . $this->config['http_access']['line'][$counter + 1] . "$/");
-
-                    $this->is_loaded = FALSE;
-                    $this->config = array();
-                    break;
-                }
-
-                $last = 'http_access ' . $acl;
-                $counter++;
-            }
-        } catch (Exception $e) {
-            $this->is_loaded = FALSE;
-            $this->config = array();
-            throw new Engine_Exception(clearos_exception_message($e));
-        }
-    }
-
-    /**
-     * Returns the days of the week options.
-     *
-     * @return array 
-     */
-
-    public function get_day_of_week_options()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $dow = array(
-            'M' => lang('base_monday'),
-            'T' => lang('base_tuesday'),
-            'W' => lang('base_wednesday'),
-            'H' => lang('base_thursday'),
-            'F' => lang('base_friday'),
-            'A' => lang('base_saturday'),
-            'S' => lang('base_sunday')
-        );
-        return $dow;
     }
 
     /**
@@ -1261,34 +1260,27 @@ echo "asdasdfasdf ($name, $priority) - $acl<br>";
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Returns the size in bytes.
+     * Deletes a parameter.
      *
-     * @param integer $size  size
-     * @param string  $units units
+     * @param string $key parameter
      *
      * @access private
-     * @return integer size in bytes
-     * @throws Engine_Exception, Validation_Exception
+     * @return void
+     * @throws Engine_Exception
      */
 
-    protected function _size_in_bytes($size, $units)
+    protected function _delete_parameter($key)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match('/^\d+$/', $size))
-            throw new Validation_Exception(lang('web_proxy_size_invalid'));
+        if (! $this->is_loaded)
+            $this->_load_config();
 
-        if ($units == '') {
-            return $size;
-        } else if ($units == 'KB') {
-            return $size * 1024;
-        } else if ($units == 'MB') {
-            return $size * 1024*1024;
-        } else if ($units == 'GB') {
-            return $size * 1024*1024*1024;
-        } else {
-            throw new Validation_Exception(lang('web_proxy_size_invalid'));
-        }
+        $this->is_loaded = FALSE;
+        $this->config = array();
+
+        $file = new File(self::FILE_CONFIG, TRUE);
+        $match = $file->delete_lines("/^$key\s+/i");
     }
 
     /**
@@ -1328,30 +1320,6 @@ echo "asdasdfasdf ($name, $priority) - $acl<br>";
         }
 
         $this->is_loaded = TRUE;
-    }
-
-    /**
-     * Deletes a parameter.
-     *
-     * @param string $key parameter
-     *
-     * @access private
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _delete_parameter($key)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->_load_config();
-
-        $this->is_loaded = FALSE;
-        $this->config = array();
-
-        $file = new File(self::FILE_CONFIG, TRUE);
-        $match = $file->delete_lines("/^$key\s+/i");
     }
 
     /**
@@ -1411,6 +1379,37 @@ echo "asdasdfasdf ($name, $priority) - $acl<br>";
         }
     }
 
+    /**
+     * Returns the size in bytes.
+     *
+     * @param integer $size  size
+     * @param string  $units units
+     *
+     * @access private
+     * @return integer size in bytes
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    protected function _size_in_bytes($size, $units)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! preg_match('/^\d+$/', $size))
+            throw new Validation_Exception(lang('web_proxy_size_invalid'));
+
+        if ($units == '') {
+            return $size;
+        } else if ($units == 'KB') {
+            return $size * 1024;
+        } else if ($units == 'MB') {
+            return $size * 1024*1024;
+        } else if ($units == 'GB') {
+            return $size * 1024*1024*1024;
+        } else {
+            throw new Validation_Exception(lang('web_proxy_size_invalid'));
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S
     ///////////////////////////////////////////////////////////////////////////////
@@ -1431,6 +1430,19 @@ echo "asdasdfasdf ($name, $priority) - $acl<br>";
             return lang('web_proxy_cache_size_invalid');
     }
 
+    /**
+     * Validation routine for day of week.
+     *
+     * @param string $dow name
+     *
+     * @return boolean
+     */
+
+    public function validate_day_of_week($dow)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
+ 
     /**
      * Validation routine for maximum file download size.
      *
@@ -1482,19 +1494,6 @@ echo "asdasdfasdf ($name, $priority) - $acl<br>";
             return lang('web_proxy_invalid_name');
     }
 
-    /**
-     * Validation routine for day of week.
-     *
-     * @param string $dow name
-     *
-     * @return boolean
-     */
-
-    public function validate_dow($dow)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-    }
- 
     /**
      * Validation routine for time acl definition.
      *
