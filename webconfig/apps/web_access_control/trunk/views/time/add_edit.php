@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Web Access Control time summary.
+ * Web Access Control overview.
  *
  * @category   Apps
  * @package    Web_Access_Control
@@ -37,61 +37,44 @@ $this->lang->load('base');
 $this->lang->load('web_access_control');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Headers
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-$headers = array(
-    lang('web_access_control_name'),
-    lang('web_access_control_day_of_week'),
-    lang('web_access_control_start_time'),
-    lang('web_access_control_end_time')
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Anchors 
-///////////////////////////////////////////////////////////////////////////////
-
-$anchors = array(anchor_add('/app/web_access_control/add_edit_time'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Rules
-///////////////////////////////////////////////////////////////////////////////
-
-foreach ($time_definitions as $time) {
-    $item['title'] = $time['name'];
-    $item['action'] = '/app/web_access_control/time_summary/delete/' . $time['name'];
-    $item['anchors'] = button_set(
-        array(
-            anchor_edit('/app/web_access_control/add_edit_time/' . $time['name']),
-            anchor_delete('/app/web_access_control/time_summary/delete/' . $time['name'])
-        )
+if ($form_type === 'add') {
+    $action = 'web_access_control/time/add';
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_add('update'),
+        anchor_cancel('/app/web_access_control')
     );
-    $dow = '';
-    foreach ($day_of_week_options as $key => $day) {
-        if (in_array($key, $time['dow']))
-            $dow .= substr($day, 0, 1);
-        else
-            $dow .= '-';
-    }
-    $item['details'] = array(
-        $time['name'],
-        $dow,
-        $time['start'],
-        $time['end']
+} else {
+    $action = 'web_access_control/time/edit/' . $name;
+    $read_only = TRUE;
+    $buttons = array(
+        form_submit_update('update'),
+        anchor_cancel('/app/web_access_control')
     );
-
-    $items[] = $item;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Summary table
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
-sort($items);
+echo form_open($action);
+echo form_header(lang('web_access_control_add_time'));
 
-echo summary_table(
-    lang('web_access_control_time_definitions'),
-    $anchors,
-    $headers,
-    $items
+echo field_input('name', $name, lang('web_access_control_name'), $read_only);
+echo field_simple_dropdown('start_time', $time_options, $start_time, lang('web_access_control_start_time'));
+echo field_simple_dropdown('end_time', $time_options, $end_time, lang('web_access_control_end_time'));
+echo field_multiselect_dropdown(
+    'dow[]',
+    $day_of_week_options,
+    $days,
+    lang('web_access_control_day_of_week') . ' ' . lang('web_access_control_ctrl_click'),
+    FALSE
 );
+
+echo field_button_set($buttons);
+
+echo form_footer();
+echo form_close();

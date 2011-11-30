@@ -43,30 +43,26 @@ header('Content-Type: application/x-javascript');
 
 echo "
 
-
 $(document).ready(function() {
   // Initialize some inputboxes
   change_id_selector();
   $('#ident').change(function(e) {
     change_id_selector();
   });
-  $('#time').change(function(e) {
-    if ($('#time').val() == -1)
-      window.location = '/app/web_access_control/add_edit_time';
-  });
 });
 
 function change_id_selector() {
   // Hide all rows
-  $('#byuser_field').hide();
-  $('#byip_field').hide();
-  $('#bymac_field').hide();
-  if ($('#ident').val() == 'proxy_auth') {
-    $('#byuser_field').show();
+  $('#ident_group_field').hide();
+  $('#ident_ip_field').hide();
+  $('#ident_mac_field').hide();
+
+  if ($('#ident').val() == 'system_group') {
+    $('#ident_group_field').show();
   } else if ($('#ident').val() == 'src') {
-    $('#byip_field').show();
+    $('#ident_ip_field').show();
   } else if ($('#ident').val() == 'arp') {
-    $('#bymac_field').show();
+    $('#ident_mac_field').show();
   }
 }
 ";

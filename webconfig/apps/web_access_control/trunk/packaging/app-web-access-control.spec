@@ -11,6 +11,7 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-web-proxy
 
 %description
 Time-based Access Control allows an administer to enforce time-of-day web access to users or computers (IP or MAC address) using the web proxy.
@@ -20,7 +21,7 @@ Summary: Web Access Control - APIs and install
 Group: ClearOS/Libraries
 License: LGPLv3
 Requires: app-base-core
-Requires: app-web-proxy
+Requires: app-web-proxy-core
 
 %description core
 Time-based Access Control allows an administer to enforce time-of-day web access to users or computers (IP or MAC address) using the web proxy.

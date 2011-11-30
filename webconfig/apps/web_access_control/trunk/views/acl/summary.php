@@ -51,7 +51,7 @@ $headers = array(
 // Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array(anchor_add('/app/web_access_control/add_edit'));
+$anchors = array(anchor_add('/app/web_access_control/acl/add'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Rules
@@ -60,18 +60,18 @@ $anchors = array(anchor_add('/app/web_access_control/add_edit'));
 $counter = 0;
 foreach ($acls as $acl) {
     $item['title'] = $acl['name'];
-    $item['action'] = '/app/web_access_control/acl_summary/delete/' . $acl['name'];
+    $item['action'] = '/app/web_access_control/acl/delete/' . $acl['name'];
     $item['anchors'] = button_set(
         array(
-            anchor_edit('/app/web_access_control/add_edit/' . $acl['name']),
-            anchor_delete('/app/web_access_control/acl_summary/delete/' . $acl['name'])
+            anchor_edit('/app/web_access_control/acl/edit/' . $acl['name']),
+            anchor_delete('/app/web_access_control/acl/delete/' . $acl['name'])
         )
     );
     $priority_buttons = array();
     if ($counter > 0)
-        $priority_buttons[] = anchor_custom('/app/web_access_control/priority/' . $acl['name'] . '/1', '+');
+        $priority_buttons[] = anchor_custom('/app/web_access_control/acl/priority/' . $acl['name'] . '/1', '+');
     if ($counter < count($acls) - 1)
-        $priority_buttons[] = anchor_custom('/app/web_access_control/priority/' . $acl['name'] . '/0', '-');
+        $priority_buttons[] = anchor_custom('/app/web_access_control/acl/priority/' . $acl['name'] . '/0', '-');
 
     if (empty($priority_buttons))
         $priority = '---';
