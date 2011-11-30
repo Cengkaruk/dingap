@@ -81,7 +81,7 @@ class Overview extends ClearOS_Controller
         //---------------
 
         try {
-            $vendor_info = $this->snort->get_vendor_information('gpl');
+            $vendor_info = $this->snort->get_vendor_information('gpl', 'snort-gpl-rules');
 
             $data['last_update'] = $vendor_info['last_update'];
             $data['total_rules'] = $vendor_info['total_rules'];

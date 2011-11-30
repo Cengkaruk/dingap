@@ -189,12 +189,13 @@ class Snort extends Daemon
      * Returns vendor information.
      *
      * @param string $vendor vendor
+     * @param string $rpm    RPM base name
      *
      * @return array vendor information
      * @throws Engine_Exception
      */
 
-    public function get_vendor_information($vendor)
+    public function get_vendor_information($vendor, $rpm)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -215,7 +216,7 @@ class Snort extends Daemon
             $total_rule_sets++;
         }
 
-        $software = new Software('snort-' . $vendor . '-rules');
+        $software = new Software($rpm);
 
         $info['last_update'] = $software->get_build_time();
         $info['total_rules'] = $total_rules;
