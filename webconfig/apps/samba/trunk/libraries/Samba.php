@@ -172,6 +172,7 @@ class Samba extends Software
     const CONSTANT_DOMAIN_SID_CACHE_TIME = 120;
 
     // Default configuration values
+    const DEFAULT_IDMAP_BACKEND = 'tdb';
     const DEFAULT_PASSWORD_CHAT = '*password:* %n\n *password:* %n\n *successfully.*';
     const DEFAULT_PASSWORD_PROGRAM = '/usr/sbin/userpasswd %u';
     const DEFAULT_ADD_MACHINE_SCRIPT = '/usr/sbin/samba-add-machine "%u"';
@@ -204,6 +205,11 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct('samba-common');
+
+        $this->idmap_backends = array(
+            'ldap' => 'LDAP',
+            'tdb' => 'TDB'
+        );
 
         $this->modes = array(
             self::MODE_PDC => lang('samba_pdc'),
@@ -332,6 +338,26 @@ class Samba extends Software
         $file->add_lines("$sid\n");
 
         return $sid;
+    }
+
+    /**
+     * Returns default IDMAP backend.
+     *
+     * @return string IDMAP backend
+     * @throws Engine_Exception
+     */
+
+    public function get_default_idmap_backend()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->loaded)
+            $this->_load();
+
+        if (isset($this->shares['global']['idmap config * : backend']['value']))
+            return $this->shares['global']['idmap config * : backend']['value'];
+        else
+            return self::DEFAULT_IDMAP_BACKEND;
     }
 
     /**
@@ -1203,6 +1229,24 @@ class Samba extends Software
     }
 
     /**
+     * Sets default IDMAP backend.
+     *
+     * @param string $backend backend
+     *
+     * @return void
+     * @throws Validation_Exception, Engine_Exception
+     */
+
+    public function set_default_idmap_backend($backend)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_idmap_backend($backend));
+
+        $this->_set_share_info('global', 'idmap config * : backend', $backend);
+    }
+
+    /**
      * Sets domain logons.
      *
      * @param boolean $state state of domain logons
@@ -1423,6 +1467,7 @@ class Samba extends Software
             $this->set_share_availability('netlogon', TRUE);
             $this->set_unix_password_sync_state(TRUE);
             $this->set_security(Samba::SECURITY_USER);
+            $this->set_default_idmap_backend('ldap');
             $this->_set_ldap_includes(TRUE);
         } else if ($mode == self::MODE_BDC) {
             $this->set_domain_logons(FALSE);
@@ -1433,6 +1478,7 @@ class Samba extends Software
             $this->set_roaming_profiles_state(FALSE);
             $this->set_unix_password_sync_state(FALSE);
             $this->set_security(Samba::SECURITY_DOMAIN);
+            $this->set_default_idmap_backend('ldap');
             $this->_set_ldap_includes(TRUE);
         } else if ($mode == self::MODE_SIMPLE_SERVER) {
             $this->set_domain_logons(TRUE);
@@ -1443,19 +1489,19 @@ class Samba extends Software
             $this->set_roaming_profiles_state(FALSE);
             $this->set_unix_password_sync_state(TRUE);
             $this->set_security(Samba::SECURITY_USER);
+            $this->set_default_idmap_backend('ldap');
             $this->_set_ldap_includes(TRUE);
         } else if ($mode == self::MODE_MEMBER) {
             // FIXME: David review
             $this->set_domain_logons(FALSE);
             $this->set_domain_master(FALSE);
             $this->set_preferred_master(FALSE);
-/*
             $this->set_share_availability('netlogon', FALSE);
             $this->set_share_availability('profiles', FALSE);
             $this->set_roaming_profiles_state(FALSE);
-*/
             $this->set_unix_password_sync_state(FALSE);
             $this->set_security(Samba::SECURITY_ADS);
+            $this->set_default_idmap_backend('tdb');
             $this->_set_ldap_includes(FALSE);
         }
     }
@@ -1861,6 +1907,22 @@ class Samba extends Software
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validation routine IDMAP backend.
+     *
+     * @param string $backend backend
+     *
+     * @return string error message if backend is invalid
+     */
+
+    public function validate_idmap_backend($backend)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!array_key_exists($backend, $this->idmap_backends))
+            return lang('samba_idmap_backend_invalid');
+    }
+
+    /**
      * Validation routine for domain logons.
      *
      * @param boolean $state domain logons state
@@ -2256,7 +2318,7 @@ class Samba extends Software
                 $share = trim($match[1]);
                 $this->shares[$share]['line'] = $linecount;
             } else if (!preg_match('/^\s*[;#]+.*$/', $line)) {
-                if (preg_match('/^\s*([a-z0-9\s]+)\s*=\s*(.*$)/', $line, $match)) {
+                if (preg_match('/^\s*([a-z0-9\s:\*]+)\s*=\s*(.*$)/', $line, $match)) {
                     $key = trim($match[1]);
                     $this->shares[$share][$key]['line'] = $linecount;
 
@@ -2424,7 +2486,8 @@ class Samba extends Software
                     $prefix = ($share == "global") ? "" : "\t";
                     // TODO: weird double backslash behavior
                     $newvalue = preg_replace("/^\\\\/", "\\\\\\\\", $value['value']);
-                    $this->raw_lines[$value['line']] = preg_replace("/^\s*$key\s*=.*/", "$prefix$key = " . $newvalue, $this->raw_lines[$value['line']]);
+                    $search_key = preg_quote($key);
+                    $this->raw_lines[$value['line']] = preg_replace("/^\s*$search_key\s*=.*/", "$prefix$key = " . $newvalue, $this->raw_lines[$value['line']]);
                 }
             }
         }
@@ -2437,12 +2500,12 @@ class Samba extends Software
                 $filedata .= $this->raw_lines[$i] . "\n";
 
             foreach ($this->shares as $share => $keys) {
-                # Continue if we are at the end of this particular share
+                // Continue if we are at the end of this particular share
                 if ($keys['line'] != $i)
                     continue;
 
-                # Look for key/value pairs without a line number
-                # Weird... the "line" constant is used for blank lines?
+                // Look for key/value pairs without a line number
+                // Weird... the "line" constant is used for blank lines?
                 foreach ($keys as $key => $value) {
                     if (!$value['line'] && ($value['value'] != self::CONSTANT_NULL_LINE) && ($key != 'line')) {
                         $prefix = ($share == "global") ? "" : "\t";
@@ -2562,8 +2625,8 @@ class Samba extends Software
                 $file->replace_lines('/#.*include.*smb.ldap.conf/', "include = /etc/samba/smb.ldap.conf\n");
                 $file->replace_lines('/#.*include.*smb.winbind.conf/', "include = /etc/samba/smb.winbind.conf\n");
             } else {
-                $file->prepend_lines('/^include.*smb.ldap.conf/', '# ');
-                $file->prepend_lines('/^include.*smb.winbind.conf/', '# ');
+                $file->prefix_lines('/^include.*smb.ldap.conf/', '# ');
+                $file->prefix_lines('/^include.*smb.winbind.conf/', '# ');
             }
         } catch (File_No_Match_Exception $e) {
             // Not fatal

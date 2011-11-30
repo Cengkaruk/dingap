@@ -1,4 +1,5 @@
 <?php
+$lang['samba_idmap_backend_invalid'] = 'IDMAP backend is invalid.';
 $lang['samba_netbios_server'] = 'Samba NetBIOS Services';
 $lang['samba_file_server'] = 'Samba File Server';
 $lang['samba_winbind_server'] = 'Samba Winbind';

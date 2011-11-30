@@ -370,6 +370,7 @@ class OpenLDAP_Driver extends Engine
         $samba->set_realm('');
         $samba->set_mode(Samba::MODE_PDC);
         $samba->set_wins_server_and_support('', TRUE);
+        $samba->set_default_idmap_backend('ldap');
 
         // Bootstrap the domain SID
         $domainsid = $this->_initialize_domain_sid();

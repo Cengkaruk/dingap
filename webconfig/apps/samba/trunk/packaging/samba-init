@@ -106,6 +106,8 @@ else if ($mode === Mode_Engine::MODE_STANDALONE)
 
 // FIXME
 $samba = new Samba();
+$samba->set_mode(Samba::MODE_PDC);
+$samba->set_default_idmap_backend('ldap');
 $samba->_clean_secrets_file();
 
 $winbind = new Winbind();
