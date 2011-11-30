@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ -e /var/clearos/disk_usage/ps.db ]; then
+    logger -p local6.notice -t installer "app-disk-usage-core - removing data file"
+    rm -f /var/clearos/disk_usage/ps.db
+fi
+

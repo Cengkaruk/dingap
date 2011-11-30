@@ -1,0 +1,3 @@
+#!/bin/sh
+
+/usr/sbin/addsudo /usr/sbin/philesight-updatedb app-disk-usage-core

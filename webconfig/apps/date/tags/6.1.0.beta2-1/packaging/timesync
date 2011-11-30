@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# Just a simple wrapper to run ntpdate and hwclock
+
+SERVER=`grep ^ntp_server /etc/clearos/date.conf 2>/dev/null | sed 's/.*=[[:space:]]*//'`
+if [ -z "$SERVER" ]; then
+	SERVER="time-a.nist.gov"
+fi
+
+logger -p local6.notice -t ntpdate "Synchronizing time with $SERVER"
+RESULT=`/usr/sbin/ntpdate -s -u $SERVER 2>&1`
+RETVAL=$?
+
+if [ $RETVAL == 0 ]; then
+	logger -p local6.notice -t ntpdate "Setting hardware clock"
+	/sbin/hwclock --directisa --systohc >/dev/null 2>&1
+else
+	logger -p local6.notice -t ntpdate "Failed to synchronize: $RESULT"
+fi

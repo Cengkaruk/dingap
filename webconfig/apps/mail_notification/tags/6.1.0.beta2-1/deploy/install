@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-mail-notification-core - enabling outbound mail system"
+chkconfig postfix on
+
+logger -p local6.notice -t installer "app-mail-notification-core - starting outbound mail system"
+service postfix start

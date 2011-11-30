@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Add sudo entry
+/usr/sbin/addsudo /usr/sbin/dhcptest app-dhcp-core

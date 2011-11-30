@@ -1,0 +1,70 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Create random file for certs
+#-----------------------------
+
+if [ ! -e /etc/raddb/clearos-certs/random ]; then
+	logger -p local6.notice -t installer "app-radius-core - creating certificate helper random_file"
+	dd if=/dev/urandom of=/etc/raddb/clearos-certs/random bs=100 count=1 >/dev/null 2>&1
+	chown root.radiusd /etc/raddb/clearos-certs/random
+	chmod 640 /etc/raddb/clearos-certs/random
+fi
+
+# Use ClearOS configlets file instead of the default
+#---------------------------------------------------
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*eap.conf" /etc/raddb/radiusd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-radius-core - adding clearos-eap.conf configlet"
+	cp -a /etc/raddb/radiusd.conf /usr/clearos/apps/radius/deploy/radius.conf.$TIMESTAMP
+	sed -i -e 's/^[[:space:]]*\$INCLUDE[[:space:]]*eap.conf/\t\$INCLUDE clearos-eap.conf/' /etc/raddb/radiusd.conf
+fi
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*clients.conf" /etc/raddb/radiusd.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-radius-core - adding clearos-clients.conf configlet"
+	cp -a /etc/raddb/radiusd.conf /usr/clearos/apps/radius/deploy/radius.conf.$TIMESTAMP
+	sed -i -e 's/^[[:space:]]*\$INCLUDE[[:space:]]*clients.conf/$INCLUDE clearos-clients.conf/' /etc/raddb/radiusd.conf
+fi
+
+CHECK=`grep "^[[:space:]]*.INCLUDE[[:space:]]*clearos-users" /etc/raddb/users 2>/dev/null`
+if [ -z "$CHECK" ]; then
+	logger -p local6.notice -t installer "app-radius-core - adding clearos-users configlet"
+	cp -a /etc/raddb/users /usr/clearos/apps/radius/deploy/users.$TIMESTAMP
+	echo "\$INCLUDE clearos-users" > /etc/raddb/users
+fi
+
+# Create inner tunnel link
+#-------------------------
+
+if [ ! -h /etc/raddb/sites-enabled/clearos-inner-tunnel ]; then
+	logger -p local6.notice -t installer "app-radius-core - enabling clearos-inner-tunnel"
+    ln -s /etc/raddb/sites-available/clearos-inner-tunnel /etc/raddb/sites-enabled/clearos-inner-tunnel
+fi
+
+# Create default certificates (from bootstrap in /etc/raddb/certs/)
+#------------------------------------------------------------------
+
+# FIXME: this should be part of radius start?  Key generation gets stuck in installer mode (not enough entropy)
+
+SSL_CONF="/etc/raddb/certs/ca.cnf"
+SSL_PATH="/etc/raddb/clearos-certs"
+
+umask 77
+
+cd $SSL_PATH
+openssl dhparam -out dh1024.pem 1024 2>/dev/null
+openssl req -new  -out server.csr -keyout key-encrypted.pem -config $SSL_CONF 2>/dev/null
+openssl req -new -x509 -keyout ca.key -out ca.pem -days `grep default_days $SSL_CONF | sed 's/.*=//;s/^ *//'` -config $SSL_CONF 2>/dev/null
+touch index.txt
+echo '01' > serial
+openssl ca -batch -keyfile ca.key -cert ca.pem -in server.csr -key `grep output_password $SSL_CONF | sed 's/.*=//;s/^ *//'` -out server.crt -config $SSL_CONF 2>/dev/null
+mv 01.pem cert.pem
+openssl rsa -passin pass:`grep output_password $SSL_CONF | sed 's/.*=//;s/^ *//'` -in key-encrypted.pem -out key.pem 2>/dev/null
+
+# Fix file permissions and cleanup
+chown root.radiusd *.pem
+chmod 640 *.pem
+rm server.* serial* key-encrypted.pem index.* ca.key -f

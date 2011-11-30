@@ -1,0 +1,33 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Upgrade PPP configuration
+#--------------------------
+
+CHECK=`grep enable-session /etc/ppp/options.pptpd 2>/dev/null`
+
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-pptpd-core - upgrading default configuration"
+
+    if [ -e /etc/ppp/options.pptpd ]; then
+        cp /etc/ppp/options.pptpd /var/clearos/pptpd/backup/options.pptpd.$TIMESTAMP
+    fi
+
+    cp /usr/clearos/apps/pptpd/deploy/options.pptpd /etc/ppp/options.pptpd
+fi
+
+# Upgrade PAM configuration
+#--------------------------
+
+CHECK=`grep "/etc/clearos/pptpd.d/authorize" /etc/pam.d/ppp 2>/dev/null`
+
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-pptpd-core - upgrading default PAM configuration"
+
+    if [ -e /etc/pam.d/ppp ]; then
+        cp /etc/pam.d/ppp /var/clearos/pptpd/backup/ppp.$TIMESTAMP
+    fi
+
+    cp /usr/clearos/apps/pptpd/deploy/ppp-pam /etc/pam.d/ppp
+fi

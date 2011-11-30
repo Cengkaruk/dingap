@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# Enable hardware clock synchronization
+logger -p local6.notice -t installer "app-date-core - enabling hardware time synchronization"
+sed -i -e 's/SYNC_HWCLOCK=.*/SYNC_HWCLOCK=yes/' /etc/sysconfig/ntpdate
+
+# Configure synchronization servers
+logger -p local6.notice -t installer "app-date-core - configurating time synchronization servers"
+install -m 0644 /usr/clearos/apps/date/deploy/step-tickers /etc/ntp/
