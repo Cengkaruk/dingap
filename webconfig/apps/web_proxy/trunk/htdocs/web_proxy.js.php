@@ -55,6 +55,9 @@ lang_resetting = '<?php echo lang("web_proxy_clearing_the_cache"); ?>';
 lang_ready = '<?php echo lang("web_proxy_ready"); ?>';
 
 $(document).ready(function() {
+    // Cache Reset
+    //------------
+
     $("#result_box").hide();
 
 	$("#reset_cache").click(function(){
@@ -69,20 +72,50 @@ $(document).ready(function() {
             },
 			error: function (XMLHttpRequest, textStatus, errorThrown) {
 			}
-
 		});
 	});
 
-	function showData(payload) {
-        if (payload.error_message) {
-            $("#result").html(payload.error_message);
-        } else {
-            $("#result").html(payload.diff);
-            $("#date").html(payload.date);
-            $("#time").html(payload.time);
-            $("#result_box").show();
+    // Proxy warning
+    //--------------
+
+    if ($("#warning_text").html()) {
+        if ($("#ip_text").html().length != 0)
+            $("#ip_field").show();
+        else
+            $("#ip_field").hide();
+
+        if ($("#warning_text").html().length != 0) {
+            $.ajax({
+                url: '/app/web_proxy/warning/get_status',
+                method: 'GET',
+                dataType: 'json',
+                success : function(payload) {
+                    var status_class = '';
+
+                    if (payload.status_code == 'online')
+                        status_class = 'ok'; 
+                    else
+                        status_class = 'alert'; 
+
+                    // FIXME: need a class to highlight bad/good state
+                    $("#status_text").html('<span class="' + status_class + '">' + payload.status_message + '</span>');
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                }
+            });
         }
-	}
+    }
 });
+
+function showData(payload) {
+    if (payload.error_message) {
+        $("#result").html(payload.error_message);
+    } else {
+        $("#result").html(payload.diff);
+        $("#date").html(payload.date);
+        $("#time").html(payload.time);
+        $("#result_box").show();
+    }
+}
 
 // vim: ts=4 syntax=javascript

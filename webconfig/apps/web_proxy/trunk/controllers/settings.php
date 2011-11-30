@@ -82,29 +82,21 @@ class Settings extends ClearOS_Controller
         // Load dependencies
         //------------------
 
-        $this->load->library('web_proxy/Squid');
         $this->lang->load('web_proxy');
-
-        // Set validation rules
-        //---------------------
-
-        $this->form_validation->set_policy('domain', 'web_proxy/Squid', 'validate_domain', TRUE);
-        $this->form_validation->set_policy('authoritative', 'web_proxy/Squid', 'validate_authoritative_state', TRUE);
-        $form_ok = $this->form_validation->run();
+        $this->load->library('web_proxy/Squid');
+        $this->load->library('web_proxy/Squid_Firewall');
 
         // Handle form submit
         //-------------------
 
-        if ($this->input->post('submit') && ($form_ok)) {
+        if ($this->input->post('submit')) {
             try {
-                // Update
-                $this->dnsmasq->set_domain_name($this->input->post('domain'));
-                $this->dnsmasq->set_authoritative_state((bool)$this->input->post('authoritative'));
-                $this->dnsmasq->reset(TRUE);
+                $this->squid_firewall->set_proxy_transparent_state($this->input->post('transparent'));
+                $this->squid->set_authentication_state($this->input->post('user_authentication'));
+                // clearsync handles reload
 
-                // Redirect to main page
-                 $this->page->set_status_updated();
-                redirect('/web_proxy/');
+                $this->page->set_status_updated();
+                redirect('/web_proxy/settings');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -117,9 +109,8 @@ class Settings extends ClearOS_Controller
         try {
             $data['form_type'] = $form_type;
 
-            $data['transparent'] = $this->squid->get_transparent_mode_state();
+            $data['transparent'] = $this->squid_firewall->get_proxy_transparent_state();
             $data['adzapper'] = $this->squid->get_adzapper_state();
-            $data['filter'] = $this->squid->get_content_filter_state();
             $data['user_authentication'] = $this->squid->get_user_authentication_state();
         } catch (Exception $e) {
             $this->page->view_exception($e);

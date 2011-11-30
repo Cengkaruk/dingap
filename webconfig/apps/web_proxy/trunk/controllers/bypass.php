@@ -101,11 +101,10 @@ class Bypass extends ClearOS_Controller
                 // Update
                 $this->dnsmasq->set_domain_name($this->input->post('domain'));
                 $this->dnsmasq->set_authoritative_state((bool)$this->input->post('authoritative'));
-                $this->dnsmasq->reset(TRUE);
 
-                // Redirect to main page
-                 $this->page->set_status_updated();
-                redirect('/web_proxy/');
+                // clearsync handles reload
+                $this->page->set_status_updated();
+                redirect('/web_proxy/bypass');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;

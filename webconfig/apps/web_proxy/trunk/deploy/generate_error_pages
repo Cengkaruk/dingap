@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Pull in network definitions
+. /etc/rc.d/init.d/functions-automagic
+
+ERRORFILES=`/bin/ls /usr/clearos/apps/web_proxy/deploy/redirect/ERR_*template 2>/dev/null`
+LANIP=`/bin/echo $AUTOMAGIC_LANIPS | /bin/cut -d ' ' -f 1`
+
+if [ -n "$LANIP" ]; then
+    for ERRORFILE in $ERRORFILES; do
+        TARGET=`/bin/echo $ERRORFILE | sed 's/\.template$//' | sed 's/.*\///' `
+        sed -e "s/PCN_LAN_IP/$LANIP/" $ERRORFILE > "/var/clearos/web_proxy/errors/$TARGET"
+    done
+fi
+

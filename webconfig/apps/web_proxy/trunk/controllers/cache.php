@@ -95,11 +95,10 @@ class Cache extends ClearOS_Controller
                 $this->squid->set_cache_size($this->input->post('cache'));
                 $this->squid->set_maximum_file_download_size($this->input->post('download'));
                 $this->squid->set_maximum_object_size($this->input->post('object'));
-                $this->squid->reset(TRUE);
+                // clearsync handles reload
 
-                // Redirect to main page
-                 $this->page->set_status_updated();
-                redirect('/web_proxy/');
+                $this->page->set_status_updated();
+                redirect('/web_proxy/cache');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;

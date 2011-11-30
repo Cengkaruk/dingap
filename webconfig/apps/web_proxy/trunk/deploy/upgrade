@@ -1,4 +1,20 @@
 #!/bin/sh
 
-# Add sudo entry
-# FIXME/usr/sbin/addsudo /usr/sbin/dhcptest app-dhcp-core
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+CHECK=`grep clearos/web_proxy.d /etc/pam.d/squid`
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-web-proxy-core - applying PAM configuration"
+    [ -e /etc/pam.d/squid ] && cp /etc/pam.d/squid /var/clearos/web_proxy/backup/squid.pam.$TIMESTAMP
+    cp /usr/clearos/apps/web_proxy/deploy/squid.pam /etc/pam.d/squid
+fi
+
+# FIXME: move this to clearsync
+LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
+CHECK=`echo $LINE, | grep /usr/sbin/syncaction,`
+if [ -z "$CHECK" ]; then
+    ESCAPE=`echo /usr/sbin/syncaction | sed 's/\//\\\\\//g'`
+    sed -i -e "s/Cmnd_Alias CLEARSYNC.*=/Cmnd_Alias CLEARSYNC = $ESCAPE,/i" /etc/sudoers
+    sed -i -e "s/[[:space:]]*,[[:space:]]*$//i" /etc/sudoers
+    chmod 440 /etc/sudoers
+fi

@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Web proxy settings view.
+ * Configuration warning view.
  *
- * @category   Apps
+ * @category   ClearOS
  * @package    Web_Proxy
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/web_proxy/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/base/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,43 +34,27 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('web_proxy');
+$this->lang->load('network');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form handler
+// Form 
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/web_proxy')
-    );
-} else {
-    $read_only = TRUE;
-    $buttons = array(
-        anchor_edit('/app/web_proxy/settings/edit')
-    );
-}
+// FIXME: this looks like crap
 
-///////////////////////////////////////////////////////////////////////////////
-// Form open
-///////////////////////////////////////////////////////////////////////////////
+echo infobox_warning(lang('base_warning'), lang('web_proxy_configuration_settings_warning:') . 
+    "<br><br>" .
+    lang('network_ip') . ' - ' . $ip . '<br>' .
+    lang('network_port') . ' - ' . $port . '<br>'
+);
 
-echo form_open('web_proxy/settings/edit'); 
-echo form_header(lang('base_settings'));
+/*
+echo form_open('web_proxy/warning');
+echo form_header(lang('web_proxy_web_proxy'));
 
-///////////////////////////////////////////////////////////////////////////////
-// Form fields
-///////////////////////////////////////////////////////////////////////////////
+echo field_view(lang('network_ip'), $ip, 'ip');
+echo field_view(lang('network_port'), $port, 'port');
 
-echo field_toggle_enable_disable('transparent', $transparent, lang('web_proxy_transparent_mode'), $read_only);
-// echo field_toggle_enable_disable('adzapper', $adzapper, lang('web_proxy_banner_and_popop_blocker'), $read_only);
-echo field_toggle_enable_disable('user_authentication', $user_authentication, lang('web_proxy_user_authentication'), $read_only);
-echo field_button_set($buttons);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_footer(); 
+echo form_footer();
 echo form_close();
+*/
