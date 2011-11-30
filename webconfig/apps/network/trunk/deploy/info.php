@@ -37,15 +37,18 @@ $app['controllers']['settings']['title'] = lang('base_settings');
 $app['core_requires'] = array(
     'avahi',
     'bind-utils',
-    'bridge-utils',
     'dhclient',
     'ethtool',
     'net-tools',
     'ppp',
     'rp-pppoe',
     'syswatch',
-    'wireless-tools',
 );
+// FIXME - re-add
+/*
+    'bridge-utils',
+    'wireless-tools',
+*/
 
 $app['core_directory_manifest'] = array(
     '/var/clearos/network' => array(),
