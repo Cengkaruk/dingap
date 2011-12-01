@@ -138,7 +138,7 @@ fi
 %dir /etc/rbs
 %dir /etc/rbs/config.d
 %config(noreplace) /etc/cron.d/app-remote-backup
-%attr(0750, suva,webconfig) /var/lib/rbs
+%attr(0770, suva,webconfig) /var/lib/rbs
 %attr(0755, root,root) /var/webconfig/scripts/rbs-client.php
 %attr(0755, root,root) /var/webconfig/scripts/rbs-schedule.php
 %attr(0755, root,root) /usr/share/system/modules/rbs/rbs-upgrade.php
