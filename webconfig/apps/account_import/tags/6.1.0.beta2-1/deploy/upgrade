@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Add sudoers entries
+#--------------------
+
+/usr/sbin/addsudo /usr/sbin/account-import app-account-import

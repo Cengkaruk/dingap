@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Add sudoers entries
+#--------------------
+
+/usr/sbin/addsudo /usr/bin/jnettop app-network-visualiser

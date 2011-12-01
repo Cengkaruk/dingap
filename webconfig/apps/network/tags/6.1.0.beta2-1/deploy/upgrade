@@ -1,0 +1,73 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Add sudoers entries
+#--------------------
+
+/usr/sbin/addsudo /bin/hostname app-network-core
+/usr/sbin/addsudo /sbin/ethtool app-network-core
+/usr/sbin/addsudo /sbin/ifconfig app-network-core
+/usr/sbin/addsudo /sbin/ifdown app-network-core
+/usr/sbin/addsudo /sbin/ifup app-network-core
+/usr/sbin/addsudo /sbin/ip app-network-core
+/usr/sbin/addsudo /sbin/iwconfig app-network-core
+
+# Migrate /etc/firewall
+#----------------------
+
+PARAMS="MODE EXTIF LANIF DMZIF HOTIF"
+
+for PARAM in $PARAMS; do
+    CHECK=`grep ^$PARAM= /etc/firewall 2>/dev/null`
+    if [ -n "$CHECK" ]; then
+        EXISTS=`grep ^$PARAM= /etc/clearos/network.conf 2>/dev/null`
+        if [ -n "$EXISTS" ]; then
+            logger -p local6.notice -t installer "app-network-core - migrating /etc/firewall parameter $PARAM"
+            sed -i -e "s/^$PARAM=.*/$CHECK/" /etc/clearos/network.conf
+        else
+            logger -p local6.notice -t installer "app-network-core - moving /etc/firewall parameter $PARAM"
+            echo $CHECK >> /etc/clearos/network.conf
+        fi
+
+        sed -i -e "s/^$PARAM=.*/# $PARAM migrated to \/etc\/clearos\/network.conf/" /etc/firewall
+    fi
+done
+
+# Fix quotation marks
+#--------------------
+
+CONFIGS=`ls /etc/sysconfig/network-scripts/ifcfg-*`
+
+for CONFIG in $CONFIGS; do
+    CHECK=`grep DEVICE=\" $CONFIG 2>/dev/null`
+    if [ -n "$CHECK" ]; then
+        logger -p local6.notice -t installer "app-network - fixing quotations in $CONFIG"
+        sed -i -e "s/DEVICE=\"\(.*\)\"/DEVICE=\1/" $CONFIG
+    fi
+done
+
+# Re-enable when API is ready
+#----------------------------
+/usr/clearos/apps/network/deploy/upgrade-api
+
+# ip-up.local changes
+#--------------------
+
+CHECK=`grep '/usr/share/system/scripts/firewall-up' /etc/ppp/ip-up.local 2>/dev/null`
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-network-core - removing old PPP firewall extras"
+    mv /etc/ppp/ip-up.local /var/clearos/network/backup/ip-up.local.$TIMESTAMP
+fi
+
+# PPPoE configuration file changes
+#---------------------------------
+
+if [ -e /etc/sysconfig/network-scripts/ifcfg-ppp0 ]; then
+    . /etc/sysconfig/network-scripts/ifcfg-ppp0
+    if [ "$TYPE" != "xDSL" ]; then
+        logger -p local6.notice -t installer "app-network-core - converting old xDSL type in configuration"
+        sed -e 's/TYPE=.*/TYPE=xDSL/' /etc/sysconfig/network-scripts/ifcfg-ppp0 > /tmp/ifcfg.ppp0.new
+        mv /tmp/ifcfg.ppp0.new /etc/sysconfig/network-scripts/ifcfg-ppp0
+    fi
+fi

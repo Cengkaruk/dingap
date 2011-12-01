@@ -1,0 +1,224 @@
+#!/usr/clearos/sandbox/usr/bin/php
+<?php
+
+/**
+ * ClearOS Account Import script.
+ *
+ * @category   Apps
+ * @package    Account_Import
+ * @subpackage Scripts
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/account_import/
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+clearos_load_language('account_import');
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Classes
+//--------
+
+use \clearos\apps\account_import\Account_Import as Account_Import;
+use \clearos\apps\base\File as File;
+use \clearos\apps\users\User_Factory as User_Factory;
+
+clearos_load_library('account_import/Account_Import');
+clearos_load_library('base/File');
+clearos_load_library('users/User_Factory');
+
+// Exceptions
+//-----------
+
+use \Exception as Exception;
+
+///////////////////////////////////////////////////////////////////////////////
+// M A I N
+///////////////////////////////////////////////////////////////////////////////
+
+//--------------------------------------------------------------------
+// Command line options
+//--------------------------------------------------------------------
+
+$short_options  = '';
+
+// Common
+$short_options .= 'f::'; // Filename
+$short_options .= 'o::'; // Output
+$short_options .= 'h';   // Help
+
+$helpopts  = '
+  Common Options
+  --------------
+
+  -f=filename (optional)
+  -o=output (json [default] or stdout)
+  -h: help
+
+';
+
+// Handle command line options
+//----------------------------
+
+$options = getopt($short_options);
+
+$account_import = new Account_Import();
+
+$filename = isset($options['f']) ? $options['f'] : Account_Import::FOLDER_ACCOUNT_IMPORT . '/' . Account_Import::FILE_CSV;
+$output = isset($options['o']) ? $options['o'] : 'json';
+$help = isset($options['h']) ? TRUE : FALSE;
+
+if ($help) {
+    echo "usage: " . $argv[0] . " [options]\n";
+    echo $helpopts;
+    exit(0);
+}
+
+try {
+    // Initialize status
+    $status = new File(CLEAROS_TEMP_DIR . "/" . Account_Import::FILE_STATUS, FALSE);
+
+    $in_progress = $account_import->is_import_in_progress();
+
+    if ($in_progress && $output == 'stdout') {
+        update_status(0, 0, lang('account_import_already_in_progress'));
+        exit(0);
+    } else if (!$in_progress) {
+        if ($status->exists())
+            $status->delete();
+        $status->create('webconfig', 'webconfig', 644);
+    }
+
+    import();
+} catch (Exception $e) {
+    update_status(-1, 0, clearos_exception_message($e));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F U N C T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Import.
+ *
+ * @return void
+ */
+
+function import()
+{
+    global $account_import;
+    global $status;
+    global $output;
+    global $filename;
+
+    // Grab CSV file to see how many users we're adding
+    $total = count(file($filename)) - 1;
+
+    if ($total <= 0) {
+        update_status(-1, 0, lang('account_import_no_entries'));
+        return;
+    }
+
+    if (($handle = fopen($filename, "r")) !== FALSE) {
+        $is_header = TRUE;
+        $header = array();
+        $user_no = 0;
+
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            $user_info = array();
+
+            if ($is_header) {
+                $is_header = FALSE;
+                $header = $data;
+                continue;
+            }
+
+            for ($counter = 0; $counter < count($data); $counter++) {
+                $user_fields = explode(".", $header[$counter]);
+                if (count($user_fields) == 2)
+                    $user_info[$user_fields[0]][$user_fields[1]] = $data[$counter];
+                else
+                    $user_info[$user_fields[0]][$user_fields[1]][$user_fields[2]] = $data[$counter];
+            }
+
+            $msg = lang('account_import_currently_importing') . ' ' . $user_info['core']['username'] . '.';
+            update_status(0, $user_no / $total * 100, $msg);
+            $user = User_Factory::create($user_info['core']['username']);
+
+            try {
+                $user->add($user_info, $user_info['core']['password']);
+                $user_no++;
+            } catch (Exception $e) {
+                // Remove period and add some info about user
+                $msg = preg_replace("/\\.$/", "", clearos_exception_message($e)) . ' (' . $user_info['core']['username'] . ').';
+                $user_no++;
+                update_status(1, $user_no / $total * 100, $msg);
+            }
+        }
+    }
+
+    update_status(100, 100, lang('account_import_complete'));
+    fclose($handle);
+}
+
+/**
+ * Update status.
+ *
+ * @param string $code     status code
+ * @param string $progress progress
+ * @param string $msg      status message
+ *
+ * @return void
+ */
+
+function update_status($code, $progress, $msg)
+{
+    global $status;
+    global $output;
+
+    if ($output == 'stdout') {
+        echo $msg . "\n";
+    } else {
+        $info = array (
+            'code' => $code,
+            'timestamp' => time(),
+            'progress' => $progress,
+            'msg' => $msg
+        );
+        $status->add_lines(json_encode($info) . "\n"); 
+    }
+}
+
+// vim: syntax=php
