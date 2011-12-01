@@ -57,7 +57,7 @@ function change_id_selector() {
   $('#ident_ip_field').hide();
   $('#ident_mac_field').hide();
 
-  if ($('#ident').val() == 'system_group') {
+  if ($('#ident').val() == 'group') {
     $('#ident_group_field').show();
   } else if ($('#ident').val() == 'src') {
     $('#ident_ip_field').show();

@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-web-proxy
 
 %description
-Time-based Access Control allows an administer to enforce time-of-day web access to users or computers (IP or MAC address) using the web proxy.
+Time-based Access Control allows an administer to enforce time-of-day web access to groups or computers (IP or MAC address) using the web proxy.
 
 %package core
 Summary: Web Access Control - APIs and install
@@ -24,7 +24,7 @@ Requires: app-base-core
 Requires: app-web-proxy-core
 
 %description core
-Time-based Access Control allows an administer to enforce time-of-day web access to users or computers (IP or MAC address) using the web proxy.
+Time-based Access Control allows an administer to enforce time-of-day web access to groups or computers (IP or MAC address) using the web proxy.
 
 This package provides the core API and libraries.
 
