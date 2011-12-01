@@ -35,15 +35,6 @@ define('RBS_DEFAULT_ATTEMPTS', 3);
 
 set_time_limit(0);
 
-// Set our time zone
-$tz = 'UTC';
-$ph = popen('/bin/date \'+%Z\'', 'r');
-if (is_resource($ph)) {
-	$buffer = chop(fgets($ph, 4096));
-	if (pclose($ph) == 0) $tz = $buffer;
-}
-date_default_timezone_set($tz);
-
 // Create an RBS client
 $rbs = new RemoteBackupService(basename($_SERVER['argv'][0]), false, false, false);
 
@@ -164,6 +155,23 @@ try {
 		break;
 	}
 	exit($rc);
+} catch (ScriptException $e) {
+	if ($e->getCode() == ScriptException::CODE_INSTANCE) {
+		$rbs->LogMessage('A backup session is already in progress.', LOG_ERR);
+		unset($rbs);
+		exit(1);
+	}
+	if (isset($rbs)) {
+		$rbs->LogMessage(sprintf('[%s] %s',
+			$e->getCode(), $e->getMessage()), LOG_ERR);
+		unset($rbs);
+	}
+	$body = WEB_LANG_EMAIL_BODY_ERROR .
+		".\n\nException occured:";
+	$body .= sprintf("\nCode: %s, Message: %s",
+		$e->getCode(), $e->getMessage());
+	SendEmailOnError($body);
+	exit(1);
 } catch (Exception $e) {
 	if (isset($rbs)) {
 		$rbs->LogMessage(sprintf('[%s] %s',

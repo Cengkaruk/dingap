@@ -69,8 +69,8 @@ class RemoteBackup extends Engine
 	const CLIENT_MODE0 = 0;
 	const CLIENT_MODE1 = 1;
 	const CMD_SCHEDULE = 'rbs-schedule.php';
-	const FILE_CUSTOM_BACKUP_SELECTION = '/tmp/rbs-custom-backup.dat';
-	const FILE_CUSTOM_RESTORE_SELECTION = '/tmp/rbs-custom-restore.dat';
+	const FILE_CUSTOM_BACKUP_SELECTION = '/var/lib/rbs/rbs-custom-backup.dat';
+	const FILE_CUSTOM_RESTORE_SELECTION = '/var/lib/rbs/rbs-custom-restore.dat';
 	const FILE_CUSTOM = '%s/rbs_custom-%s-%s.ini';
 	const FILE_HISTORY = '/var/lib/rbs/session-history.data';
 
@@ -365,6 +365,20 @@ class RemoteBackup extends Engine
 		}
 	}
 
+	final public function SetBandwidthLimit($kbps)
+	{
+		$file = new File(RemoteBackupService::FILE_CONF, true);
+		try {
+			if (!$file->Exists())
+				$file->Create('root', 'root', '0600');
+			$this->ReplaceValue($file,
+				'/^[[:space:]]*rsync-bwlimit[[:space:]]*=.*$/',
+				sprintf("rsync-bwlimit = %d\n", $kbps));
+		} catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
 	final public function ResetKey($key)
 	{
 		$this->SetKey($key);
@@ -379,6 +393,19 @@ class RemoteBackup extends Engine
 		$file = new File(RemoteBackupService::FILE_CONF, true);
 		try {
 			return $file->LookupValue('/^[[:space:]]*key[[:space:]]*=[[:space:]]*/');
+		} catch (FileNoMatchException $e) {
+			return null;
+		}
+		catch (Exception $e) {
+			throw new EngineException($e->getMessage(), COMMON_ERROR);
+		}
+	}
+
+	final public function GetBandwidthLimit()
+	{
+		$file = new File(RemoteBackupService::FILE_CONF, true);
+		try {
+			return $file->LookupValue('/^[[:space:]]*rsync-bwlimit[[:space:]]*=[[:space:]]*/');
 		} catch (FileNoMatchException $e) {
 			return null;
 		}

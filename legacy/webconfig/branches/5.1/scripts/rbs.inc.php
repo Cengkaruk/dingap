@@ -510,6 +510,12 @@ class RemoteBackupService extends WebconfigScript
 	// Maximum control socket command/reply length
 	const MAX_CMD_LENGTH = 8192;
 
+	// Maximum rsync retries
+	const MAX_RSYNC_RETRIES = 30;
+
+	// Default rsync I/O timeout (10 minutes)
+	const RSYNC_TIMEOUT = 600;
+
 	// Suva/2 socket path
 	const PATH_RBSDATA = '/var/lib/rbs';
 
@@ -547,11 +553,14 @@ class RemoteBackupService extends WebconfigScript
 	const ISCSI_MAX_RECV_SEGMENT_LENGTH = 16384; // Default: 65536
 	const ISCSI_FIRST_BURST_LENGTH = 65536; // Default: 262144
 
+	// iSCSI sysfs session path
+	const ISCSI_SYSFS_SESSION = '/sys/class/iscsi_session';
+
 	// I/O scheduler format
 	const FORMAT_IO_SCHEDULER = '/sys/block/%s/queue/scheduler';
 
 	// Check file-system with automatic repair
-	const FORMAT_FSCK = '/sbin/fsck -f -t %s -y /dev/mapper/%s';
+	const FORMAT_FSCK = '/sbin/fsck -t %s -y /dev/mapper/%s';
 
 	// iSCSI device name
 	const FORMAT_ISCSI = '/dev/%s';
@@ -641,7 +650,7 @@ class RemoteBackupService extends WebconfigScript
 	const RSYNC_URI = 'rsync://127.0.0.1:3250/rbs';
 
 	// Rsync backup format
-	const FORMAT_RSYNC_BACKUP = '%s -a%s --exclude-from=%s -r --files-from=%s --delete --numeric-ids --stats %s %s';
+	const FORMAT_RSYNC_BACKUP = '%s -a%s --exclude-from=%s -r --files-from=%s --delete-during --numeric-ids --stats %s %s';
 
 	// Rsync restore format
 	const FORMAT_RSYNC_RESTORE = '%s -a%s --exclude-from=%s -r --files-from=%s --numeric-ids --stats %s %s';
@@ -958,6 +967,12 @@ class RemoteBackupService extends WebconfigScript
 	// Session timestamp
 	private $session_timestamp = null;
 
+	// Rsync timeout
+	private $rsync_timeout = self::RSYNC_TIMEOUT;
+
+	// Rsync bandwidth limit (in KBytes/s)
+	private $rsync_bwlimit = 0;
+
 	public function __construct($name, $is_server = false)
 	{
 		parent::__construct($name);
@@ -1042,6 +1057,12 @@ class RemoteBackupService extends WebconfigScript
 		if (!count($this->config))
 			throw new ServiceException(ServiceException::CODE_CONFIG_INVALID);
 		$this->LoadConfigurationNodes();
+
+		if (array_key_exists('rsync-timeout', $this->config))
+			$this->rsync_timeout = $this->config['rsync-timeout'];
+		if (array_key_exists('rsync-bwlimit', $this->config))
+			$this->rsync_bwlimit = $this->config['rsync-bwlimit'];
+
 		return $this->config;
 	}
 
@@ -1169,25 +1190,17 @@ class RemoteBackupService extends WebconfigScript
 	{
 		$loop_id = -1;
 
-		try {
-			for ($id = 0; $id < self::MAX_LOOP_DEV; $id++) {
-				if ($this->ExecProcess('loop status', sprintf(self::FORMAT_LOOP_STATUS, $id)) == 0)
-					continue;
-				$loop_id = $id;
-				break;
-			}
-		} catch (Exception $e) {
-			throw new ServiceException(ServiceException::CODE_LOOP_STATUS);
+		for ($id = 0; $id < self::MAX_LOOP_DEV; $id++) {
+			if ($this->ExecProcess('loop status', sprintf(self::FORMAT_LOOP_STATUS, $id)) == 0)
+				continue;
+			if ($this->ExecProcess('loop attach', sprintf(self::FORMAT_LOOP_ATTACH, $id, $device)) != 0)
+				continue;
+			$loop_id = $id;
+			break;
 		}
 
 		if ($loop_id == -1)
 			throw new ServiceException(ServiceException::CODE_NO_FREE_LOOP_DEVICE);
-
-		try {
-			$this->ExecProcess('loop attach', sprintf(self::FORMAT_LOOP_ATTACH, $loop_id, $device));
-		} catch (Exception $e) {
-			throw new ServiceException(ServiceException::CODE_LOOP_ATTACH);
-		}
 
 		$this->loop_id = $loop_id;
 		return $loop_id;
@@ -1363,12 +1376,16 @@ class RemoteBackupService extends WebconfigScript
 	// Rsync data
 	public final function RsyncData($src, $dst = self::VOLUME_MOUNT_POINT, $link_dest = null, $status = self::STATUS_RSYNC)
 	{
+		$retries = 0;
 		$exitcode = 0;
 
 		try {
 			$this->SetStatusCode($status);
 
-			$additional_flags = null;
+			// Set global rsync flags
+			$additional_flags = ' --timeout=' . $this->rsync_timeout;
+			if ($this->rsync_bwlimit > 0)
+				$additional_flags .= ' --bwlimit=' . $this->rsync_bwlimit;
 
 			// Set-up rsync environment
 			$env = null;
@@ -1385,10 +1402,21 @@ class RemoteBackupService extends WebconfigScript
 			}
 
 			$additional_flags .= ($this->debug ? ' -v' : ' -q');
-			$exitcode = $this->ExecProcess('rsync',
-				sprintf($this->IsRestoreMode() ? self::FORMAT_RSYNC_RESTORE : self::FORMAT_RSYNC_BACKUP,
-				self::PATH_RSYNC, $additional_flags,
-				self::PATH_RSYNC_EXCLUDE, self::PATH_RSYNC_INCLUDE, $src, $dst), $env, true);
+
+			while (true) {
+				$exitcode = $this->ExecProcess('rsync',
+					sprintf($this->IsRestoreMode() ?
+						self::FORMAT_RSYNC_RESTORE : self::FORMAT_RSYNC_BACKUP,
+					self::PATH_RSYNC, $additional_flags,
+					self::PATH_RSYNC_EXCLUDE, self::PATH_RSYNC_INCLUDE, $src, $dst), $env, true);
+
+				if ($exitcode != 12 && $exitcode != 30) break;
+				$this->LogMessage("Data sync failed with error code: " .
+					"$exitcode, retries: $retries", LOG_WARNING);
+				if ($retries++ >= self::MAX_RSYNC_RETRIES) break;
+				sleep(60);
+			}
+
 		} catch (ServiceException $e) {
 			throw new ServiceException($e->getCode());
 		} catch (Exception $e) {
@@ -1398,12 +1426,16 @@ class RemoteBackupService extends WebconfigScript
 		// Throw an exception if rsync failed
 		switch ($exitcode) {
 		case 0:
+		// XXX: Partial transfer (23) are not considered fatal.
+		case 23:
+			$this->SyncFilesystem(true);
+			break;
 		// XXX: Vanished files (24) are not considered fatal.
 		case 24:
 			$this->SyncFilesystem(true);
 			break;
 		case 12:
-		// XXX: Data stream protocol error (12) really means filesystem full.
+		// XXX: Data stream protocol error (12) is returned if the filesystem is full.
 			throw new ServiceException(ServiceException::CODE_VOLUME_FULL, $exitcode);
 		default:
 			throw new ServiceException(ServiceException::CODE_RSYNC, $exitcode);
@@ -1707,7 +1739,7 @@ class RemoteBackupService extends WebconfigScript
 			if ($config['type'] != RBS_TYPE_FILEDIR) continue;
 			if (array_key_exists('exclude', $config) && $config['exclude'])
 				fwrite($fh_exclude, $config['path'] . "\n");
-			else if (!file_exists($config['path'])) {
+			else if ($this->IsBackupMode() && !file_exists($config['path'])) {
 				$this->LogMessage('No such file or directory: ' . $config['path'], LOG_WARNING);
 				continue;
 			}
@@ -1890,6 +1922,85 @@ class RemoteBackupService extends WebconfigScript
 		}
 	}
 
+	// Find iSCSI block device
+	private final function iScsiFindDevice($target)
+	{
+		$session_id = array();
+		$dh = opendir(self::ISCSI_SYSFS_SESSION);
+		if (!is_resource($dh)) return null;
+		while (($entry = readdir($dh)) !== false) {
+			if (!preg_match('/^session(\d+)/', $entry, $match)) continue;
+			$session_id[] = $match[1];
+			$this->LogMessage("Found session: {$match[1]}", LOG_DEBUG);
+		}
+		closedir($dh);
+
+		$sid_match = null;
+		foreach ($session_id as $sid) {
+			$fh = fopen(
+				self::ISCSI_SYSFS_SESSION . "/session$sid/targetname", 'r');
+			if (!is_resource($fh)) continue;
+			$contents = trim(stream_get_contents($fh));
+			fclose($fh);
+			if ($contents === false) continue;
+			if (!preg_match("/^$target$$/", $contents)) continue;
+			$this->LogMessage("Found target match: $contents", LOG_DEBUG);
+			$sid_match = $sid;
+			break;
+		}
+
+		if ($match == null) return null;
+
+		$target_id = array();
+		$dh = opendir(
+			self::ISCSI_SYSFS_SESSION . "/session$sid_match/device");
+		if (!is_resource($dh)) return null;
+		while (($entry = readdir($dh)) !== false) {
+			if (!preg_match('/^target(\d+:\d+:\d+)/', $entry, $match)) continue;
+			$target_id[] = $match[1];
+			$this->LogMessage("Found target device: {$match[1]}", LOG_DEBUG);
+			// XXX: At this point you can only be connected to one RBS target,
+			// so we'll break here after the first match.
+			break;
+		}
+		closedir($dh);
+
+		if (!count($target_id)) return null;
+
+		$lun_id = array();
+		$dh = opendir(
+			self::ISCSI_SYSFS_SESSION .
+			"/session$sid_match/device/target{$target_id[0]}");
+		if (!is_resource($dh)) return null;
+		while (($entry = readdir($dh)) !== false) {
+			if (!preg_match('/^(\d+:\d+:\d+:\d+)/', $entry, $match)) continue;
+			$lun_id[] = $match[1];
+			$this->LogMessage("Found target LUN: {$match[1]}", LOG_DEBUG);
+			// XXX: At this point you can only be connected to one RBS target,
+			// so again, we'll break here after the first match.
+			break;
+		}
+		closedir($dh);
+
+		if (!count($lun_id)) return null;
+
+		$block_id = array();
+		$dh = opendir(
+			self::ISCSI_SYSFS_SESSION .
+			"/session$sid_match/device/target{$target_id[0]}/{$lun_id[0]}");
+		if (!is_resource($dh)) return null;
+		while (($entry = readdir($dh)) !== false) {
+			if (!preg_match('/^block:(\w+)/', $entry, $match)) continue;
+			$block_id[] = $match[1];
+			// XXX: At this point you can only be connected to one RBS target,
+			// so yet again, we'll break here after the first match.
+			break;
+		}
+		closedir($dh);
+
+		return "/dev/{$block_id[0]}";
+	}
+
 	// iSCSI login
 	public final function iScsiLogin()
 	{
@@ -1985,26 +2096,11 @@ class RemoteBackupService extends WebconfigScript
 		// Retrieve iSCSI block device name
 		for ($i = 0; $i < self::TIMEOUT_ISCSI_DEVICE && $this->iscsi_device == null; $i++) {
 			sleep(1);
-			$ph = popen(self::FORMAT_ISCSI_SESSIONS . ' --print 3', 'r');
-			if (!is_resource($ph)) {
-				$this->LogMessage('Error running: ' . self::FORMAT_ISCSI_SESSIONS, LOG_DEBUG);
-				throw new ServiceException(ServiceException::CODE_ISCSI_SESSIONS);
-			}
-			while (!feof($ph)) {
-				// \t\t\tAttached scsi disk sdb
-				if (!preg_match('/^\t\t\tAttached scsi disk (sd[a-z]{1}).*$/',
-					fgets($ph, 4096), $parts)) continue;
-				$this->iscsi_device = sprintf(self::FORMAT_ISCSI, $parts[1]);
-				break;
-			}
-			if (pclose($ph) != 0) {
-				$this->LogMessage('Error code returned: ' . self::FORMAT_ISCSI_SESSIONS, LOG_DEBUG);
-				throw new ServiceException(ServiceException::CODE_ISCSI_SESSIONS);
-			}
+			$this->iscsi_device = $this->iScsiFindDevice($this->iscsi_target);
 		}
 		if ($this->iscsi_device == null) {
 			$this->LogMessage('ISCSI device null.', LOG_DEBUG);
-			throw new ServiceException(ServiceException::CODE_ISCSI_SESSIONS);
+			throw new ServiceException(ServiceException::CODE_ISCSI_DEVICE_NOT_FOUND);
 		}
 
 		for ($i = 0; $i < self::TIMEOUT_ISCSI_DEVICE; $i++) {
