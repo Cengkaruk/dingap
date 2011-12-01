@@ -99,7 +99,6 @@ class Settings extends ClearOS_Controller
             else
                 $this->ldap_driver->set_base_internet_domain($this->input->post('domain'));
 
-            $this->ldap_driver->reset(FALSE);
             echo json_encode(array('code' => 0));
         } catch (Exception $e) {
             echo json_encode(array('code' => clearos_exception_code($e), 'error_message' => clearos_exception_message($e)));

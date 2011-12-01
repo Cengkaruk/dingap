@@ -457,17 +457,6 @@ class OpenLDAP extends Engine
             $this->_initialize_authconfig();
             $this->_remove_overlaps();
             $this->_initialize_caching();
-
-            // FIXME: add Samba here for now
-            if (clearos_load_library('samba/OpenLDAP_Driver')) {
-                $samba_driver = new \clearos\apps\samba\OpenLDAP_Driver();
-                $samba_driver->initialize_master_system('CLEARSYSTEM', NULL, $force);
-
-                clearos_load_library('samba/Winbind');
-                $winbind = new \clearos\apps\samba\Winbind();
-                $winbind->set_boot_state(TRUE);
-                $winbind->set_running_state(TRUE);
-            }
         } catch (Exception $e) {
             $file->delete();
             throw new Engine_Exception(clearos_exception_message($e));
