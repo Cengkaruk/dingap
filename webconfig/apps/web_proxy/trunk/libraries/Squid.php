@@ -116,6 +116,7 @@ class Squid extends Daemon
 
     const FILE_CONFIG = '/etc/squid/squid.conf';
     const FILE_ACLS_CONFIG = '/etc/squid/squid_acls.conf';
+    const FILE_AUTH_CONFIG = '/etc/squid/squid_auth.conf';
     const FILE_HTTP_ACCESS_CONFIG = '/etc/squid/squid_http_access.conf';
     const FILE_ADZAPPER = '/usr/sbin/adzapper';
     const PATH_SPOOL = '/var/spool/squid';
@@ -139,6 +140,8 @@ class Squid extends Daemon
 
     protected $is_loaded = FALSE;
     protected $config = array();
+    protected $file_pam_auth = NULL;
+    protected $file_squid_unix_group = NULL;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -153,6 +156,11 @@ class Squid extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         parent::__construct('squid');
+
+        $lib = (file_exists('/usr/lib64/squid')) ? 'lib64' : 'lib';
+
+        $this->file_pam_auth = "/usr/$lib/squid/pam_auth";
+        $this->file_squid_unix_group = "/usr/$lib/squid/squid_unix_group";
     }
 
     /**
@@ -723,7 +731,7 @@ class Squid extends Daemon
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_authentication_state($state)
+    public function set_user_authentication_state($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -765,7 +773,7 @@ class Squid extends Daemon
         $name = $product->get_name();
         $realm = $name . ' - ' . lang('web_proxy_web_proxy');
 
-        $children = '25';
+        $children = '15';
 
         try {
             $stats = new Stats();
@@ -777,11 +785,28 @@ class Squid extends Daemon
             // not fatal
         }
 
-        $this->_set_parameter('auth_param basic children', $children, self::CONSTANT_NO_OFFSET, '');
-        $this->_set_parameter('auth_param basic realm', $realm, self::CONSTANT_NO_OFFSET, '');
-        $this->_set_parameter('auth_param basic credentialsttl', '2 hours', self::CONSTANT_NO_OFFSET, '');
-        $this->_set_parameter('auth_param basic program', '/usr/lib/squid/pam_auth', self::CONSTANT_NO_OFFSET, '');
-        $this->_set_parameter('acl password proxy_auth', 'REQUIRED', self::CONSTANT_NO_OFFSET, '');
+        $file = new File(self::FILE_AUTH_CONFIG);
+
+        $lines = "# This file is managed by the ClearOS API.  Use squid.conf for customization.\n";
+        $lines .= "auth_param basic children $children\n";
+        $lines .= "auth_param basic realm $realm\n";
+        $lines .= "auth_param basic credentialsttl 2 hours\n";
+        $lines .= "auth_param basic program $this->file_pam_auth\n";
+        $lines .= "external_acl_type system_group %LOGIN $this->file_squid_unix_group -p\n";
+        $lines .= "\n";
+
+        // FIXME - review
+        /*
+        $lines .= "auth_param ntlm program /usr/bin/ntlm_auth --helper-protocol=squid-2.5-ntlmssp --require-membership-of=web_proxy_plugin\n";
+        $lines .= "auth_param ntlm children $children\n";
+        $lines .= "auth_param ntlm keep_alive on\n";
+        */
+
+        if ($file->exists()) 
+            $file->delete();
+
+        $file->create('root', 'root', '0644');
+        $file->add_lines($lines);
     }
 
     /**

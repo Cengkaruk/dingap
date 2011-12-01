@@ -69,6 +69,11 @@ $app['core_file_manifest'] = array(
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
+    'squid_auth.conf' => array(
+        'target' => '/etc/squid/squid_auth.conf',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
     'squid_http_access.conf' => array(
         'target' => '/etc/squid/squid_http_access.conf',
         'config' => TRUE,

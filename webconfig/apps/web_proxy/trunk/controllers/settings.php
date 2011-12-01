@@ -92,7 +92,7 @@ class Settings extends ClearOS_Controller
         if ($this->input->post('submit')) {
             try {
                 $this->squid_firewall->set_proxy_transparent_state($this->input->post('transparent'));
-                $this->squid->set_authentication_state($this->input->post('user_authentication'));
+                $this->squid->set_user_authentication_state($this->input->post('user_authentication'));
                 // clearsync handles reload
 
                 $this->page->set_status_updated();

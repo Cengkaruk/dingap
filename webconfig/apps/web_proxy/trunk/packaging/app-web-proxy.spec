@@ -49,6 +49,7 @@ install -D -m 0644 packaging/filewatch-web-proxy-configuration.conf %{buildroot}
 install -D -m 0644 packaging/filewatch-web-proxy-network.conf %{buildroot}/etc/clearsync.d/filewatch-web-proxy-network.conf
 install -D -m 0644 packaging/squid.php %{buildroot}/var/clearos/base/daemon/squid.php
 install -D -m 0644 packaging/squid_acls.conf %{buildroot}/etc/squid/squid_acls.conf
+install -D -m 0644 packaging/squid_auth.conf %{buildroot}/etc/squid/squid_auth.conf
 install -D -m 0644 packaging/squid_http_access.conf %{buildroot}/etc/squid/squid_http_access.conf
 install -D -m 0644 packaging/squid_http_port.conf %{buildroot}/etc/squid/squid_http_port.conf
 install -D -m 0644 packaging/squid_lans.conf %{buildroot}/etc/squid/squid_lans.conf
@@ -104,6 +105,7 @@ exit 0
 /etc/clearsync.d/filewatch-web-proxy-network.conf
 /var/clearos/base/daemon/squid.php
 %config(noreplace) /etc/squid/squid_acls.conf
+%config(noreplace) /etc/squid/squid_auth.conf
 %config(noreplace) /etc/squid/squid_http_access.conf
 %config(noreplace) /etc/squid/squid_http_port.conf
 %config(noreplace) /etc/squid/squid_lans.conf

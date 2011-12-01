@@ -60,7 +60,7 @@ $(document).ready(function() {
 
     $("#result_box").hide();
 
-	$("#reset_cache").click(function(){
+	$("#reset_cache").click(function() {
 		$("#cache_status_text").html('<div class="theme-loading-normal">' + lang_resetting + '</div>');
 
 		$.ajax({
@@ -74,6 +74,13 @@ $(document).ready(function() {
 			}
 		});
 	});
+
+    // Transparent/User Auth handling
+    //-------------------------------
+
+	$("#user_authentication").click(function() {
+    //    if ($("#user_authentication").val())
+    });
 
     // Proxy warning
     //--------------

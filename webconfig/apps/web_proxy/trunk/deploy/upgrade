@@ -2,12 +2,38 @@
 
 TIMESTAMP=`date "+%b-%d-%Y-%T"`
 
+# PAM check
+#--------------------------------------------------------------------------
+
 CHECK=`grep clearos/web_proxy.d /etc/pam.d/squid`
 if [ -z "$CHECK" ]; then
     logger -p local6.notice -t installer "app-web-proxy-core - applying PAM configuration"
     [ -e /etc/pam.d/squid ] && cp /etc/pam.d/squid /var/clearos/web_proxy/backup/squid.pam.$TIMESTAMP
     cp /usr/clearos/apps/web_proxy/deploy/squid.pam /etc/pam.d/squid
 fi
+
+# There are /usr/libX references in the configuration files.  
+#--------------------------------------------------------------------------
+
+SYS_ARCH=`uname -m`
+
+if [ "$SYS_ARCH" == "x86_64" ]; then
+    WRONG_LIB="lib"
+    CORRECT_LIB="lib64"
+    LOG_LIB="64-bit"
+else
+    WRONG_LIB="lib64"
+    CORRECT_LIB="lib"
+    LOG_LIB="32-bit"
+fi
+
+CHECK=`grep "/usr/$WRONG_LIB/" /etc/squid/squid_auth.conf 2>/dev/null`
+
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-web-proxy-core - updating architecture to $LOG_LIB"
+    sed -i -e "s/\/usr\/$WRONG_LIB/\/usr\/$CORRECT_LIB/" /etc/squid/squid_auth.conf
+fi
+
 
 # FIXME: move this to clearsync
 LINE=`grep "^Cmnd_Alias CLEARSYNC" /etc/sudoers 2>/dev/null`
