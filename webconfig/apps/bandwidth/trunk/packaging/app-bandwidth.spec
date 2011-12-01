@@ -39,6 +39,7 @@ cp -r * %{buildroot}/usr/clearos/apps/bandwidth/
 
 install -d -m 0755 %{buildroot}/var/clearos/bandwidth
 install -d -m 0755 %{buildroot}/var/clearos/bandwidth/backup/
+install -D -m 0644 packaging/bandwidth.conf %{buildroot}/etc/clearos/bandwidth.conf
 
 %post
 logger -p local6.notice -t installer 'app-bandwidth - installing'
@@ -83,3 +84,4 @@ exit 0
 /usr/clearos/apps/bandwidth/deploy
 /usr/clearos/apps/bandwidth/language
 /usr/clearos/apps/bandwidth/libraries
+/etc/clearos/bandwidth.conf

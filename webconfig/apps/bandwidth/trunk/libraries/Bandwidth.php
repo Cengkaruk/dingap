@@ -542,7 +542,7 @@ class Bandwidth extends Firewall
                 $info['direction'] = -1;
             }
 
-            $info['direction_text'] = $this->directions[$info['direction']];
+            $info['direction_text'] = $this->basic_directions[$info['direction']];
 
             if ($info['upstream'] == $info['upstream_ceil'])
                 $info['mode'] = self::MODE_LIMIT;

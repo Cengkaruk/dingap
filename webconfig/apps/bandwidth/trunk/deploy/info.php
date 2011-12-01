@@ -47,3 +47,8 @@ $app['core_directory_manifest'] = array(
     '/var/clearos/bandwidth' => array(),
     '/var/clearos/bandwidth/backup/' => array(),
 );
+
+$app['core_file_manifest'] = array(
+    'bandwidth.conf'=> array('target' => '/etc/clearos/bandwidth.conf'),
+);
+
