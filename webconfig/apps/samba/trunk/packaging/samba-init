@@ -76,25 +76,10 @@ $force = isset($options['f']) ? TRUE : FALSE;
 // Initialization
 //--------------------------------------------------------------------
 
-$ldap = LDAP_Factory::create();
 $sysmode = Mode_Factory::create();
-$accounts_ldap = new OpenLDAP();
 $samba_driver = new OpenLDAP_Driver();
 
 $mode = $sysmode->get_mode();
-
-// Initialize base LDAP
-//---------------------
-
-if ($mode === Mode_Engine::MODE_MASTER)
-    $ldap->initialize_master('system.lan', NULL, $force);
-else if ($mode === Mode_Engine::MODE_STANDALONE)
-    $ldap->initialize_standalone('system.lan', NULL, $force);
-
-// Initialize user/group LDAP containers (accounts)
-//-------------------------------------------------
-
-$accounts_ldap->initialize(OpenLDAP::DEFAULT_DOMAIN, $force);
 
 // Initialize Samba for users/groups
 //----------------------------------
@@ -105,11 +90,18 @@ else if ($mode === Mode_Engine::MODE_STANDALONE)
     $samba_driver->initialize_master_system('CLEARSYSTEM', NULL, $force);
 
 // FIXME
-$samba = new Samba();
-$samba->set_mode(Samba::MODE_PDC);
-$samba->set_default_idmap_backend('ldap');
-$samba->_clean_secrets_file();
+try {
+    $samba = new Samba();
+    $samba->set_mode(Samba::MODE_PDC);
+    $samba->_clean_secrets_file();
+} catch (\Exception $e) {
+    // Not fatal
+}
 
-$winbind = new Winbind();
-$winbind->set_boot_state(TRUE);
-$winbind->set_running_state(TRUE);
+try {
+    $winbind = new Winbind();
+    $winbind->set_boot_state(TRUE);
+    $winbind->set_running_state(TRUE);
+} catch (\Exception $e) {
+    // Not fatal
+}
