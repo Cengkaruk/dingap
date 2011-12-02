@@ -295,24 +295,26 @@ function get_marketplace_data(basename) {
             }
             if (json.complementary_apps != undefined && json.complementary_apps.length > 0) {
                 comp_apps = '<h3>' + lang_marketplace_recommended_apps + '</h3>' +
-                    '<p>' + lang_marketplace_sidebar_recommended_apps.replace('APP_NAME', '<b>' + json.name + '</b>') + ':</p><ul>';
+                    '<div>' + lang_marketplace_sidebar_recommended_apps.replace('APP_NAME', '<b>' + json.name + '</b>') + ':</div>';
+		comp_apps += '<table border=\'0\' width=\'100%\'>';
                 for (index = 0 ; index < json.complementary_apps.length; index++) {
-                    comp_apps += '<li><a href=\'/app/marketplace/view/' +
+                    comp_apps += '<tr><td width=\'5\' valign=\'top\'>&#8226;</td><td width=\'60%\'><a href=\'/app/marketplace/view/' +
                         json.complementary_apps[index].basename + '\'>' +
-                        json.complementary_apps[index].name + '</a><div>\n';
+                        json.complementary_apps[index].name + '</a></td><td width=\'35%\' valign=\'top\'>\n';
                     for (var counter = 5 ; counter > json.complementary_apps[index].rating; counter--)
                         comp_apps += '<div class=\'star_off\' />';
                     for (var counter = 0 ; counter < json.complementary_apps[index].rating; counter++)
                         comp_apps += '<div class=\'star_on\' />';
-                    comp_apps += '</div></li>';
+                    comp_apps += '</td></tr>';
                 }
-                comp_apps += '</ul>';
+                comp_apps += '</table>';
                 $('#sidebar-recommended-apps').html(comp_apps);
             }
         },
         error: function (xhr, text_status, error_thrown) {
             // FIXME: Firebug issue?
-            // $('#sidebar_additional_info').html(xhr.responseText.toString());
+            //if (xhr['abort'] == undefined)
+            //    $('#sidebar_additional_info').html(xhr.responseText.toString());
         }
     });
 }
