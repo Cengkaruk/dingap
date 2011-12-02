@@ -1,0 +1,30 @@
+<?php
+
+$lang['accounts_account_information_is_offline'] = 'Account system is offline.';
+$lang['accounts_account_information_is_online'] = 'Accounts system is online.';
+$lang['accounts_account_information_is_unavailable'] = 'Account information is unavailable.';
+$lang['accounts_account_manager_configuration'] = 'Account Manager Configuration';
+$lang['accounts_account_manager_status'] = 'Account Manager Status';
+$lang['accounts_accounts_caching_server'] = 'Accounts Caching Server';
+$lang['accounts_accounts_driver_is_invalid'] = 'Accounts driver is invalid';
+$lang['accounts_account_system_driver_not_set'] = 'Accounts system driver has not been set.';
+$lang['accounts_account_system_is_initializing'] = 'Account system is initializing, please be patient.';
+$lang['accounts_account_system_is_not_initialized'] = 'Account system is not initialized.'; 
+$lang['accounts_app_description'] = 'Account manager - wordsmith'; // FIXME
+$lang['accounts_app_name'] = 'Account Manager'; // FIXME
+$lang['accounts_configure_active_directory_connector'] = 'Configure Active Directory Connector';
+$lang['accounts_configure_builtin_directory'] = 'Configure Built-in Directory';
+$lang['accounts_connector'] = 'Connector';
+$lang['accounts_extension'] = 'Extension';
+$lang['accounts_extensions'] = 'Extensions';
+$lang['accounts_home_directory'] = 'Home Directory';
+$lang['accounts_home_directory_storage_plugin'] = 'Home Directory Plugin';
+$lang['accounts_home_directory_storage_plugin_description'] = 'The home directory storage plugin is used to map the /home folder to storage.';
+$lang['accounts_initialize_builtin_directory'] = 'Initialize Built-in Directory';
+$lang['accounts_install_active_directory_connector'] = 'Install Active Directory Connector';
+$lang['accounts_install_builtin_directory'] = 'Install Built-in Directory';
+$lang['accounts_master'] = 'Master';
+$lang['accounts_plugin'] = 'Plugin';
+$lang['accounts_plugins'] = 'Plugins';
+$lang['accounts_slave'] = 'Slave';
+$lang['accounts_standalone'] = 'Standalone';

@@ -1,0 +1,21 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# Deploy default configuration files
+#-----------------------------------
+
+logger -p local6.notice -t installer "app-web-proxy-core - installing default configuration"
+
+if [ -e /etc/squid/squid.conf ]; then
+    cp -a /etc/squid/squid.conf /var/clearos/web_proxy/backup/squid.conf.$TIMESTAMP
+fi
+
+cp /usr/clearos/apps/web_proxy/deploy/squid.conf /etc/squid/squid.conf
+chmod 640 /etc/squid/squid.conf
+
+# Set boot policy
+#----------------
+
+logger -p local6.notice -t installer "app-web-proxy-core - enabling web proxy server"
+/sbin/chkconfig squid on

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Initialize LDAP
+[ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize >/dev/null 2>&1

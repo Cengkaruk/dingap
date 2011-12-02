@@ -1,0 +1,335 @@
+#!/usr/clearos/sandbox/usr/bin/php
+<?php
+
+/**
+ * ClearOS LDAP manager script.
+ *
+ * @category   Apps
+ * @package    LDAP
+ * @subpackage Scripts
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2008-2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/ldap/
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// TODO: this is incomplete/broken.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('base');
+clearos_load_language('ldap');
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Classes
+//--------
+
+use \clearos\apps\active_directory\Active_Directory as Active_Directory;
+use \clearos\apps\ldap\LDAP_Factory as LDAP_Factory;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+
+clearos_load_library('ldap/LDAP_Factory');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('mode/Mode_Factory');
+clearos_load_library('openldap_directory/OpenLDAP');
+
+///////////////////////////////////////////////////////////////////////////////
+// M A I N
+///////////////////////////////////////////////////////////////////////////////
+
+//--------------------------------------------------------------------
+// Command line options
+//--------------------------------------------------------------------
+
+$short_options  = '';
+
+// Common
+$short_options .= 'm:'; // Mode
+$short_options .= 'f';  // Force
+$short_options .= 'h';  // Help
+$short_options .= 'p:'; // Password
+
+// Master
+$short_options .= 'b:'; // Base domain
+
+// Slave
+$short_options .= 's:'; // Master hostname
+
+// Active directory
+$short_options .= 'r:'; // Realm
+$short_options .= 'w:'; // Windows domain
+$short_options .= 'c:'; // Domain controller
+$short_options .= 'a:'; // Administrator account name
+
+$helpopts  = '
+  Common Options
+  --------------
+
+  -m: directory mode
+  -f: force
+  -h: help
+  -p: password
+
+  OpenLDAP Master/Standalone Mode
+  -------------------------------
+
+  -b: base domain (e.g. example.com)
+
+  OpenLDAP Slave Mode
+  -------------------
+
+  -s: master hostname
+  -a: administrator account
+
+  Active Directory Mode
+  ---------------------
+
+  -w: windows domain - e.g. DIRECTORY
+  -r: realm - e.g. DIRECTORY.CLEARCENTER.COM
+  -c: domain controller - e.g. toronto.directory.clearcenter.com
+  -a: administrator account
+';
+
+// Handle command line options
+//----------------------------
+
+$options = getopt($short_options);
+
+$force = isset($options['f']) ? TRUE : FALSE;
+$help = isset($options['h']) ? TRUE : FALSE;
+$mode = isset($options['m']) ? $options['m'] : '';
+
+//--------------------------------------------------------------------
+// Usage issues
+//--------------------------------------------------------------------
+
+$ldap = LDAP_Factory::create();
+$sysmode = Mode_Factory::create();
+$openldap_directory = new OpenLDAP();
+
+if ($help) {
+    echo "usage: " . $argv[0] . " [options]\n";
+    echo $helpopts;
+    exit(0);
+}
+
+/*
+try {
+    if (!$force && $directory->IsInitialized()) {
+        echo "LDAP is already initialized, use -f to force\n";
+        exit(0);
+    }
+} catch (Exception $e) {
+    echo "error: " . $e->GetMessage() . "\n";
+}
+*/
+
+//--------------------------------------------------------------------
+// Handle mode setting and dispatch
+//--------------------------------------------------------------------
+
+$modes = $ldap->get_modes();
+
+while ($ldap->validate_mode($mode)) {
+    echo "\nAvailable modes:\n\n";
+
+    foreach ($modes as $mode => $mode_text)
+        echo "  [$mode]  - $mode_text\n";
+
+    echo "\nWhat is the mode of this server? ";
+    $mode = trim(fgets(STDIN));
+}
+
+// Initialize directory
+//---------------------
+
+if (($mode === Mode_Engine::MODE_MASTER) || ($mode === Mode_Engine::MODE_STANDALONE)) {
+    initialize_master_or_standalone($mode, $options);
+    $openldap_directory->initialize();
+    $sysmode->set_mode($mode);
+} else {
+    echo "This tool does not support this mode... sorry.\n";
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// F U N C T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+function initialize_master_or_standalone($mode, $options)
+{
+    global $ldap;
+
+    // Handle command line options
+    //--------------------------------------------------------------------
+
+    $force = isset($options['f']) ? TRUE : FALSE;
+    $domain = isset($options['b']) ? $options['b'] : '';
+    $password = isset($options['p']) ? $options['p'] : '';
+
+    while ($ldap->validate_domain($domain)) {
+        echo "Please specify the base domain (e.g. example.com): ";
+        $domain = trim(fgets(STDIN));
+    }
+
+    while ($ldap->validate_password($password)) {
+        ttyecho(FALSE); // Disable echo to terminal
+        echo "Please specify the directory password: ";
+        $password = trim(fgets(STDIN));
+        ttyecho(TRUE); // Re-enable echo to terminal
+    }
+
+    echo "\nThe following settings will be used to initialize the directory:\n\n";
+    printf("%25s - %s\n", lang('mode_mode'), $mode);
+    printf("%25s - %s\n", lang('ldap_base_domain'), $domain);
+    printf("%25s - %s\n", lang('base_password'), str_repeat("*", strlen($password)));
+    echo "\nThis can take a few seconds, please be patient...\n\n";
+
+    // Initialize the directory
+    //-------------------------
+
+    try {
+        if ($mode === Mode_Engine::MODE_MASTER)
+            $ldap->initialize_master($domain, $password, $force);
+        else
+            $ldap->initialize_standalone($domain, $password, $force);
+
+        echo "Success!\n";
+    } catch (Exception $e) {
+        echo lang('base_error') . " - " . clearos_exception_message($e) . "\n";
+        exit(1);
+    }
+}
+
+function initialize_slave()
+{
+    $master_hostname = isset($options['m']) ? $options['m'] : "";
+}
+
+/**
+ * Initializes Active Directory mode.
+ * 
+ * @param array $options command line options
+ *
+ * @return void
+ */
+
+function initialize_active_directory($options)
+{
+    // TODO: if ! installed.
+
+    clearos_load_library('active_directory/Active_Directory');
+
+    $ad = new Active_Directory();
+
+    // Handle command line options
+    //----------------------------
+
+    $domain = isset($options['w']) ? strtoupper($options['w']) : '';
+    $realm = isset($options['r']) ? strtoupper($options['r']) : '';
+    $dc = isset($options['c']) ? strtolower($options['c']) : '';
+    $administrator = isset($options['a']) ? $options['a'] : '';
+    $password = isset($options['p']) ? $options['p'] : '';
+
+    while ($ad->validate_domain($domain)) {
+        echo "Please specify the Windows domain (e.g. DIRECTORY)?: ";
+        $domain = strtoupper(trim(fgets(STDIN)));
+    }
+
+    while ($ad->validate_realm($realm)) {
+        echo "Please specify the realm (e.g. DIRECTORY.CLEARCENTER.COM): ";
+        $realm = strtoupper(trim(fgets(STDIN)));
+    }
+
+    while ($ad->validate_domain_controller($dc)) {
+        echo "Please specify the domain controller (e.g. toronto.directory.clearcenter.com): ";
+        $dc = strtolower(trim(fgets(STDIN)));
+    }
+
+    while ($ad->validate_administrator($administrator)) {
+        echo "Please specify an administrator account (e.g. Administrator): ";
+        $administrator = trim(fgets(STDIN));
+    }
+
+    while ($ad->validate_password($password)) {
+        ttyecho(FALSE); // Disable echo to terminal
+        echo "Please specify the administrator's password: ";
+        $password = trim(fgets(STDIN));
+        ttyecho(TRUE); // Re-enable echo to terminal
+    }
+
+    echo "\nThe following settings will be used to initialize the directory:\n\n";
+    printf("%25s - %s\n", lang('directory_manager_mode'), lang('active_directory_active_directory'));
+    printf("%25s - %s\n", lang('active_directory_windows_domain'), $domain);
+    printf("%25s - %s\n", lang('active_directory_realm'), $realm);
+    printf("%25s - %s\n", lang('active_directory_domain_controller'), $dc);
+    printf("%25s - %s\n", lang('active_directory_administrator_account'), $administrator);
+    printf("%25s - %s\n", lang('base_password'), str_repeat("*", strlen($password)));
+    echo "\nThis can take a few seconds, please be patient...\n\n";
+
+    // Initialize the directory
+    //-------------------------
+
+    try {
+        $ad->initialize($administrator, $password, $domain, $realm, array($dc));
+        echo "Success!\n";
+    } catch (Exception $e) {
+        echo lang('base_error') . " - " . clearos_exception_message($e) . "\n";
+        exit(1);
+    }
+}
+
+/**
+ * Function to read a password from standard in without echoing password.
+ * 
+ * @param boolean $on flag to enable/disable echo to terminal
+ *
+ * @return tty
+ */
+
+function ttyecho($on)
+{
+    global $ttyecho;
+
+    if ($on) {
+        if (isset($ttyecho))
+            exec("stty $ttyecho");
+    } else {
+        $ttyecho = exec("stty -g");
+        exec("stty -echo");
+    }
+}
+
+// vim: syntax=php
