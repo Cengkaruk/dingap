@@ -106,7 +106,7 @@ void *csSignalHandler::Entry(void)
             return NULL;
 
         case SIGHUP:
-            EventDispatch(new csEvent(csEVENT_RELOAD), parent);
+            EventBroadcast(new csEvent(csEVENT_RELOAD));
             break;
 
         case SIGCHLD:
@@ -556,7 +556,7 @@ void csMain::Run(void)
             return;
 
         case csEVENT_RELOAD:
-            conf->Reload();
+            //conf->Reload();
             break;
 
         case csEVENT_PLUGIN:
