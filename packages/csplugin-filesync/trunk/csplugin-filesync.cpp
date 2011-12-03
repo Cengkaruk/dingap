@@ -757,6 +757,8 @@ void *csPluginFileSyncSessionSlave::Entry(void)
     csSocketConnect *skt = static_cast<csSocketConnect *>(config->GetSocket());
     skt->SetTimeout(30);
 
+    timer->SetValue(1);
+    timer->SetInterval(tv_interval);
     timer->Start();
 
     bool run = true;
@@ -769,6 +771,7 @@ void *csPluginFileSyncSessionSlave::Entry(void)
             break;
 
         case csEVENT_TIMER:
+        case csEVENT_RELOAD:
             timer->Stop();
 
             try {
