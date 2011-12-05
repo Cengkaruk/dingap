@@ -658,14 +658,22 @@ function theme_field_textarea($name, $value, $label, $error, $input_id, $options
 
 function theme_field_progress_bar($label, $id, $options = array())
 {
-    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
-    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $id . '_label';
+    $value = (isset($options['value'])) ? $options['value'] : 0;
 
     return "
         <tr id='$field_id_html' class='theme-field-progress-bar'>
-            <td >
+            <td class='left-field-content'>
                 <label for='$id' id='$label_id_html'>$label</label>
+            </td>
+            <td class='right-field-content'>
                 <div id='$id' class='theme-progress-bar'> </div>
+                <script type='text/javascript'>
+                    $('#$id').progressbar({
+                      value: $value
+                    });
+                </script>
             </td>
         </tr>
     ";
@@ -919,6 +927,8 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     // Header parsing
     //---------------
 
+    $first_column_fixed_sort = "[ 0, 'asc' ]";
+
     // Tabs are just for clean indentation HTML output
     $header_html = '';
     $empty_row = '';
@@ -991,6 +1001,10 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
     $sort = TRUE;
     if (isset($options['sort']) && !$options['sort'])
         $sort = FALSE;
+    $sorting_cols = '"bSortable": false, "aTargets": [ ' . ($action_col ? '-1' : '') . ' ]';
+
+    if (is_array($options['sort']))
+		$sorting_cols = '"bSortable": false, "aTargets": [ ' . implode(',', $options['sort']) . ' ]';
 
     // Sorting type option
     // This is a pretty big hack job...pretty tough to expose all the functionality datatables have
@@ -1004,6 +1018,14 @@ function theme_summary_table($title, $anchors, $headers, $items, $options = NULL
                 $sorting_type .= "              {\"sType\": \"" . $s_type . "\"},\n";
         }
         $sorting_type .= "          ],";
+    }
+
+    // Default sort
+    if (isset($options['sort-default-col'])) {
+        if (isset($options['sort-default-dir']))
+            $first_column_fixed_sort = "[ " . $options['sort-default-col'] . ", '" . $options['sort-default-dir'] . "' ]";
+        else
+            $first_column_fixed_sort = "[ " . $options['sort-default-col'] . ", 'asc' ]";
     }
 
     // Summary table
@@ -1028,8 +1050,8 @@ $item_html
 </div>
 <script type='text/javascript'>
 	var table_" . $dom_id . " = $('#" . $dom_id . "').dataTable({
-		\"aoColumnDefs\": [{ 
-			\"bSortable\": false, \"aTargets\": [ " . ($action_col ? "-1" : "") . " ] 
+		\"aoColumnDefs\": [{\n" .
+            $sorting_cols . "\n
 		}],
 		\"bJQueryUI\": true,
         \"bInfo\": false,
@@ -1037,7 +1059,8 @@ $item_html
 		\"bFilter\": " . ($filter ? 'true' : 'false') . ",
 		\"bSort\": " . ($sort ? 'true' : 'false') . ",
         " . $sorting_type . "
-		\"sPaginationType\": \"full_numbers\"
+		\"sPaginationType\": \"full_numbers\",
+		\"aaSorting\": [ $first_column_fixed_sort ]
     });
 </script>
     ";

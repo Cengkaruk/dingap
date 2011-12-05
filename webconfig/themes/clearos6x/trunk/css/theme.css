@@ -966,6 +966,10 @@ color: white;
 .datatables_length { margin-left: 1px; }
 .datatables_paginate { position: relative; }
 
+table.display td.right {
+    text-align:right;
+}
+
 /* ========================================================================= */
 /* T H E M E  */
 /* ========================================================================= */
@@ -1361,22 +1365,13 @@ color: white;
 .theme-field-password input {float: right; margin-right: 15px; }
 
 .theme-field-progress-bar {
-  width: 97.5%;
-  float: left;
-  font-weight: bold;
-  padding-top: 10px;
-}
-
-
-
-.theme-progress-bar {
-  margin-top: 5px;	
+    float: left;
+    height: 30px;
 }
 
 td div.theme-progress-bar {
-	width: 466px;
-	margin-left: 15px;
-	margin-bottom: 10px;
+	width: 200px;
+	height: 15px;
 }
 
 /* ------------------------------------------------------------------------- */
