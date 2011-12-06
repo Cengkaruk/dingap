@@ -592,7 +592,7 @@ border-radius: 9px;
 }
 
 .theme-field-toggle select {
-	float: right;
+	float: left;
 	margin-right: 15px;
 	line-height: 20px;
 	margin-top: 2px\9;
@@ -627,6 +627,12 @@ border-radius: 9px;
 
 .theme-form-footer {
  
+}
+.theme-checkbox-enabled {
+  background: transparent url(../images/icon-checkbox-enabled.png) no-repeat 0 0;
+  background-position: -5 3;
+  width: 16px;
+  height: 16px;
 }
 
 /* ------------------------------------------------------------------------- */

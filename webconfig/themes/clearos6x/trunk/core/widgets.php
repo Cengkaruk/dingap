@@ -308,6 +308,12 @@ function theme_field_view($label, $text, $name = NULL, $value = NULL, $input_id 
     if (is_null($value))
         $value = '';
 
+    if (is_bool($text)) {
+        if ($text)
+            $text = "<div class='theme-checkbox-enabled'></div>";
+        else
+            $text = '-';
+    }
     $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $input_id . '_field';
     $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $input_id . '_label';
     $text_id_html = (isset($options['text_id'])) ? $options['text_id'] : $input_id . '_text';
