@@ -57,6 +57,7 @@ sizelimit 10000
 moduleload accesslog.la
 moduleload ppolicy.la
 moduleload syncprov.la
+moduleload memberof.la
 
 
 # Monitor database
@@ -127,6 +128,9 @@ index  kolabDeleteflag pres,eq
 
 # password policies 
 overlay ppolicy
+
+# memberOf
+overlay memberof
 
 # syncrepl provider for primary database
 overlay syncprov
