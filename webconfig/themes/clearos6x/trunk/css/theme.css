@@ -1380,6 +1380,30 @@ td div.theme-progress-bar {
 	height: 15px;
 }
 
+.theme-file-browser-file {
+  background-image: url(../images/icon-file.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  width: 16px;
+  height: 16px;
+}
+
+.theme-file-browser-folder {
+  background-image: url(../images/icon-folder.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  width: 16px;
+  height: 16px;
+}
+
+.theme-file-browser-parent {
+  background-image: url(../images/icon-parent.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  width: 16px;
+  height: 16px;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Info Boxes */
 /* ------------------------------------------------------------------------- */
