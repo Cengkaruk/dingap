@@ -158,14 +158,16 @@ function theme_form_submit($name, $text, $importance, $class, $options)
 /**
  * Field set header.
  *
- * @param string $title title
+ * @param string $title   title
+ * @param array  $options options
  *
  * @return string HTML
  */
 
-function theme_fieldset_header($title)
+function theme_fieldset_header($title, $options)
 {
-    return "<tr><td  class='theme-fieldset-header' colspan='2'>$title</td></tr>";
+    $id = isset($options['id']) ? ' id=' . $options['id'] : '';
+    return "<tr$id><td class='theme-fieldset-header' colspan='2'>$title</td></tr>";
 }
 
 /**

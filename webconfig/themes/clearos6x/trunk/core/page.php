@@ -723,8 +723,14 @@ function _get_menu($menu_data)
 
         $activeClass = (isset($highlight['page']) && ($url == $highlight['page'])) ? 'menu-item-active' : '';
 
-        $top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
-        $left_menu .= "\t\t\t\t<li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>{$page['title']}</a></li>\n";
+        // Newly installed app
+        //--------------------
+        $new_app = '';
+        if ($page['new'])
+            $new_app = "<span class='theme-menu-new-install'></span>";
+
+        $top_menu .= "\t\t\t\t<li><a class='{$activeClass}' href='{$url}'>$new_app{$page['title']}</a></li>\n";
+        $left_menu .= "\t\t\t\t<li class='theme-left-menu-item'><a class='{$activeClass}' href='{$url}'>$new_app{$page['title']}</a></li>\n";
     }
 
     // Close out open HTML tags

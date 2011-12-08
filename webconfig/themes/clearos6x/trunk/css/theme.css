@@ -1546,6 +1546,16 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
 /* Left Menu */
 /* ------------------------------------------------------------------------- */
 
+.theme-menu-new-install {
+  background-image: url(../images/icon-new-install.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  margin-left: 0px;
+  padding-left: 16px;
+  width: 16px;
+  height: 16px;
+}
+
 #theme-left-menu-container {
   background-image: url(../images/left-menu-bg.png);
   background-repeat: repeat-y;
