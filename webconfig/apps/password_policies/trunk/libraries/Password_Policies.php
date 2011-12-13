@@ -52,10 +52,14 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
+use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\password_policies\OpenLDAP_Policy as OpenLDAP_Policy;
+
 clearos_load_library('base/Engine');
-clearos_load_library('directory/ClearDirectory');
-clearos_load_library('FIXME/LdapPasswordPolicy');
-clearos_load_library('FIXME/SambaPasswordPolicy');
+clearos_load_library('password_policies/OpenLDAP_Policy');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -84,8 +88,6 @@ class Password_Policies extends Engine
     const CONSTANT_NO_HISTORY = 0;
     const CONSTANT_NO_EXPIRE = 0;
 
-    protected $ldaph = NULL;
-
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -93,21 +95,16 @@ class Password_Policies extends Engine
     /**
      * Password policy engine constructor.
      *
-     *
      * @return void
      */
 
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        parent::__construct();
-
     }
 
     /**
      * Returns default password policy information.
-     *
      *
      * @return array default password policy information
      * @throws Engine_Exception
@@ -117,15 +114,14 @@ class Password_Policies extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $policy = new LdapPasswordPolicy();
-        $info = $policy->GetDefaultPolicy();
+        $policy = new OpenLDAP_Policy();
+        $info = $policy->get_default_policy();
 
         return $info;
     }
 
     /**
      * Initializes password policy system.
-     *
      *
      * @return void
      * @throws Engine_Exception
@@ -135,8 +131,8 @@ class Password_Policies extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $policy = new LdapPasswordPolicy();
-        $policy->Initialize();
+        $policy = new OpenLDAP_Policy();
+        $policy->initialize();
     }
 
     /**
@@ -159,18 +155,20 @@ class Password_Policies extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // Update global policy (LDAP) 
-        $policy = new LdapPasswordPolicy();
-        $policy->SetDefaultPolicy($settings);
+        $policy = new OpenLDAP_Policy();
+        $policy->set_default_policy($settings);
 
         // Update Samba policy
+/*
+FIXME
         $samba_policy = new SambaPasswordPolicy();
         $samba_settings = $this->_ConvertPolicyToSamba($settings);
         $samba_policy->SetDefaultPolicy($samba_settings);
+*/
     }
 
     /**
      * Applies default policy to all users.
-     *
      *
      * @return void
      * @throws Engine_Exception
@@ -181,8 +179,8 @@ class Password_Policies extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // Apply global policy (LDAP) 
-        $policy = new LdapPasswordPolicy();
-        $policy->ApplyDefaultPolicy();
+        $policy = new OpenLDAP_Policy();
+        $policy->apply_default_policy();
 
         // Samba policy is automatically enforced
     }
@@ -204,17 +202,17 @@ class Password_Policies extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($settings['historySize'] == PasswordPolicy::CONSTANT_NO_HISTORY)
+        if ($settings['historySize'] == self::CONSTANT_NO_HISTORY)
             $samba_settings['sambaPwdHistoryLength'] = SambaPasswordPolicy::CONSTANT_NO_HISTORY;
         else    
             $samba_settings['sambaPwdHistoryLength'] = $settings['historySize'];
 
-        if ($settings['maximumAge'] == PasswordPolicy::CONSTANT_NO_EXPIRE)
+        if ($settings['maximumAge'] == self::CONSTANT_NO_EXPIRE)
             $samba_settings['sambaMaxPwdAge'] = SambaPasswordPolicy::CONSTANT_NO_EXPIRE;
         else
             $samba_settings['sambaMaxPwdAge'] = $settings['maximumAge'];
 
-        if ($settings['minimumAge'] == PasswordPolicy::CONSTANT_MODIFY_ANY_TIME)
+        if ($settings['minimumAge'] == self::CONSTANT_MODIFY_ANY_TIME)
             $samba_settings['sambaMinPwdAge'] = SambaPasswordPolicy::CONSTANT_MODIFY_ANY_TIME;
         else
             $samba_settings['sambaMinPwdAge'] = $settings['minimumAge'];
@@ -223,16 +221,4 @@ class Password_Policies extends Engine
 
         return $samba_settings;
     }
-
-    /**
-     * @access private
-     */
-
-    public function __destruct()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        parent::__destruct();
-    }
 }
-
