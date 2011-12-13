@@ -26,6 +26,7 @@ $app['subcategory'] = lang('base_subcategory_content_filter_and_proxy');
 /////////////////////////////////////////////////////////////////////////////
 
 $app['controllers']['content_filter']['title'] = lang('content_filter_app_name');
+$app['controllers']['policy']['title'] = lang('content_filter_policy');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

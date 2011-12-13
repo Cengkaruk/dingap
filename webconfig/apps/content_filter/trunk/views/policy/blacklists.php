@@ -41,7 +41,7 @@ $this->lang->load('content_filter');
 ///////////////////////////////////////////////////////////////////////////////
 
 $buttons = array(
-    anchor_cancel('/app/content_filter/policy/edit/' . $policy),
+    anchor_cancel('/app/content_filter/policy/configure/' . $policy),
     form_submit_update('submit', 'high')
 );
 
@@ -68,6 +68,15 @@ foreach ($all_blacklists as $blacklist) {
     );
 
     $items[] = $item;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Warning
+///////////////////////////////////////////////////////////////////////////////
+
+if (count($all_blacklists) == 0) {
+    echo infobox_warning('', 'Blacklists');
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -30,6 +30,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\content_filter\DansGuardian as DansGuardian;
+use \Exception as Exception;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -79,14 +86,18 @@ class General extends ClearOS_Controller
 
         if ($this->input->post('submit')) {
             try {
-                $this->dansguardian->set_blacklists(
-                    array_keys($this->input->post('blacklist')),
-                    $policy
-                );
+                $this->dansguardian->set_naughtyness_limit($this->input->post('naughtyness_limit'), $policy);
+                $this->dansguardian->set_filter_mode($this->input->post('group_mode'), $policy);
+                $this->dansguardian->set_reporting_level($this->input->post('reporting_level'), $policy);
+                $this->dansguardian->set_content_scan($this->input->post('content_scan'), $policy);
+                $this->dansguardian->set_deep_url_analysis($this->input->post('deep_url_analysis'), $policy);
+                $this->dansguardian->set_download_block($this->input->post('block_downloads'), $policy);
+                $this->dansguardian->set_blanket_block($this->input->post('blanket_block'), $policy);
+                $this->dansguardian->set_block_ip_domains($this->input->post('block_ip_domains'), $policy);
                 $this->dansguardian->reset(TRUE);
 
                 $this->page->set_status_updated();
-                redirect('/content_filter/policy/edit/' . $policy);
+                redirect('/content_filter/policy/configure/' . $policy);
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -106,9 +117,9 @@ class General extends ClearOS_Controller
             $data['reporting_levels'] = $this->dansguardian->get_possible_reporting_levels();
             $data['naughtyness_limits'] = $this->dansguardian->get_possible_naughtyness_limits();
 
-            $configuration = $this->dansguardian->get_filter_group_configuration($policy);
+            $configuration = $this->dansguardian->get_policy_configuration($policy);
             $data['group_mode'] = $configuration['groupmode'];
-            $data['disable_content_scan'] = $configuration['disablecontentscan'];
+            $data['content_scan'] = ($configuration['disablecontentscan']) ? FALSE : TRUE;
             $data['deep_url_analysis'] = $configuration['deepurlanalysis'];
             $data['block_downloads'] = $configuration['blockdownloads'];
             $data['naughtyness_limit'] = $configuration['naughtynesslimit'];
@@ -118,6 +129,10 @@ class General extends ClearOS_Controller
             return;
         }
 
+        // Remove custom reporting level
+        if ($data['reporting_level'] != DansGuardian::REPORTING_LEVEL_CUSTOM)
+            unset($data['reporting_levels'][DansGuardian::REPORTING_LEVEL_CUSTOM]);
+            
         // Load views
         //-----------
 

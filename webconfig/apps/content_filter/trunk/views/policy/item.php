@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter phrase lists view.
+ * Content filter policy controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -37,50 +37,43 @@ $this->lang->load('base');
 $this->lang->load('content_filter');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Buttons
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-$buttons = array(
-    anchor_cancel('/app/content_filter/policy/configure/' . $policy),
-    form_submit_update('submit', 'high')
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Headers
-///////////////////////////////////////////////////////////////////////////////
-
-$headers = array(
-    lang('content_filter_phrase_lists'),
-    lang('base_description'),
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Items
-///////////////////////////////////////////////////////////////////////////////
-
-foreach ($all_phrase_lists as $phrase_list) {
-    $item['title'] = $phrase_list['name'];
-    $item['name'] = 'phrase_lists[' . $phrase_list['name'] . ']';
-    $item['state'] = in_array($phrase_list['name'], $active_phrase_lists) ? TRUE : FALSE;
-    $item['details'] = array(
-        $phrase_list['name'],
-        $phrase_list['description'],
+if ($form_type === 'edit') {
+    $form = 'content_filter/policy/edit/' . $policy;
+    $buttons = array(
+        form_submit_update('submit'),
+        anchor_cancel('/app/content_filter')
     );
+} else {
+    $form = 'content_filter/policy/add';
+    $buttons = array(
+        form_submit_add('submit'),
+        anchor_cancel('/app/content_filter')
+    );
+}
 
-    $items[] = $item;
+if (count($groups) == 0) {
+    // TODO: review widget 
+    echo infobox_warning(lang('base_warning'), 
+        lang('content_filter_no_system_groups_warning') . '<br><br>' . 
+        anchor_custom('/app/content_filter', lang('base_back')) . ' ' .
+        anchor_custom('/app/groups', lang('content_filter_add_system_group'))
+    );
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// List table
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('content_filter/phrase_lists/edit/' . $policy);
+echo form_open($form);
+echo form_header(lang('content_filter_policy'));
 
-echo list_table(
-    lang('content_filter_phrase_lists'),
-    $buttons,
-    $headers,
-    $items
-);
+echo field_input('policy_name', $policy_name, lang('content_filter_policy_name'));
+echo field_simple_dropdown('group', $groups, $group, lang('base_group'), $read_only);
+echo field_button_set($buttons);
 
+echo form_footer();
 echo form_close();

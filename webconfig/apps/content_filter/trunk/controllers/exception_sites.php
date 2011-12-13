@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter banned sites controller.
+ * Content filter exception sites controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Content filter banned sites controller.
+ * Content filter exception sites controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -45,10 +45,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/content_filter/
  */
 
-class Banned_Sites extends ClearOS_Controller
+class Exception_Sites extends ClearOS_Controller
 {
     /**
-     * Content filter banned sites management default controller.
+     * Content filter exception sites management default controller.
      *
      * @param integer $policy policy ID
      *
@@ -61,7 +61,7 @@ class Banned_Sites extends ClearOS_Controller
     }
 
     /**
-     * Banned site add view.
+     * Exception site add view.
      *
      * @param integer $policy policy ID
      *
@@ -87,11 +87,11 @@ class Banned_Sites extends ClearOS_Controller
 
         if ($this->input->post('submit') && $form_ok) {
             try {
-                $this->dansguardian->add_banned_site_and_url($this->input->post('site'), $policy);
+                $this->dansguardian->add_exception_site_and_url($this->input->post('site'), $policy);
                 $this->dansguardian->reset(TRUE);
 
                 $this->page->set_status_updated();
-                redirect('/content_filter/banned_sites/edit/' . $policy);
+                redirect('/content_filter/exception_sites/edit/' . $policy);
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -101,17 +101,17 @@ class Banned_Sites extends ClearOS_Controller
         // Load view data
         //---------------
 
-        $data['type'] = 'banned';
+        $data['type'] = 'exception';
         $data['policy'] = $policy;
     
         // Load views
         //-----------
 
-        $this->page->view_form('content_filter/policy/site', $data, lang('content_filter_banned_sites'));
+        $this->page->view_form('content_filter/policy/site', $data, lang('content_filter_exception_sites'));
     }
 
     /**
-     * Banned sites edit.
+     * Exception sites edit.
      *
      * @param integer $policy policy ID
      *
@@ -130,9 +130,9 @@ class Banned_Sites extends ClearOS_Controller
         //---------------
 
         try {
-            $data['type'] = 'banned';
+            $data['type'] = 'exception';
             $data['policy'] = $policy;
-            $data['sites'] = $this->dansguardian->get_banned_sites_and_urls($policy);
+            $data['sites'] = $this->dansguardian->get_exception_sites_and_urls($policy);
         } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -141,32 +141,32 @@ class Banned_Sites extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('content_filter/policy/sites', $data, lang('content_filter_banned_sites'));
+        $this->page->view_form('content_filter/policy/sites', $data, lang('content_filter_exception_sites'));
     }
 
     /**
-     * Delete banned site entry view.
+     * Delete exception site entry view.
      *
      * @param integer $policy policy ID
-     * @param string  $site   banned site
+     * @param string  $site   exception site
      *
      * @return view
      */
 
     function delete($policy, $site)
     {
-        $confirm_uri = '/app/content_filter/banned_sites/destroy/' . $policy . '/' . $site;
-        $cancel_uri = '/app/content_filter/banned_sites/index/' . $policy;
+        $confirm_uri = '/app/content_filter/exception_sites/destroy/' . $policy . '/' . $site;
+        $cancel_uri = '/app/content_filter/exception_sites/index/' . $policy;
         $items = array($site);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
 
     /**
-     * Destroys banned site view.
+     * Destroys exception site view.
      *
      * @param integer $policy policy ID
-     * @param string  $site   banned site
+     * @param string  $site   exception site
      *
      * @return view
      */
@@ -182,11 +182,11 @@ class Banned_Sites extends ClearOS_Controller
         //--------------
 
         try {
-            $this->dansguardian->delete_banned_site_and_url($site, $policy);
+            $this->dansguardian->delete_exception_site_and_url($site, $policy);
             $this->dansguardian->reset(TRUE);
 
             $this->page->set_status_deleted();
-            redirect('/content_filter/banned_sites/edit/' . $policy);
+            redirect('/content_filter/exception_sites/edit/' . $policy);
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

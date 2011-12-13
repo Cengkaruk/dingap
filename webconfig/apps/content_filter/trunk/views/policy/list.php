@@ -58,21 +58,20 @@ $anchors = array(anchor_add('/app/content_filter/policy/add'));
 foreach ($groups as $id => $details) {
     if ($id === 1) {
         $detail_buttons = button_set(
-            array(anchor_edit('/app/content_filter/policy/edit/' . $id))
+            array(anchor_custom('/app/content_filter/policy/configure/' . $id, 'Configure Policy'))
         );
-        $group = '';
+        $group = '-';
     } else {
         $detail_buttons = button_set(
+            // FIXME: translate (base_configure_policy)
             array(
+                anchor_custom('/app/content_filter/policy/configure/' . $id, 'Configure Policy'),
                 anchor_edit('/app/content_filter/policy/edit/' . $id),
                 anchor_delete('/app/content_filter/policy/delete/' . $id)
             )
         );
-        $group = 'FIXME';
+        $group = $details['systemgroup'];
     }
-
-    // print_r($details);
-
 
     $item['title'] = $details['groupname'];
     $item['action'] = '/app/content_filter/policy/configure/' . $id;
@@ -89,9 +88,12 @@ foreach ($groups as $id => $details) {
 // Summary table
 ///////////////////////////////////////////////////////////////////////////////
 
+$options =  array('sort' => FALSE);
+
 echo summary_table(
     lang('content_filter_group_policies'),
     $anchors,
     $headers,
-    $items
+    $items,
+    $options
 );

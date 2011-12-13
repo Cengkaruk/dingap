@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter phrase lists view.
+ * Content filter grey sites view.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -33,7 +33,6 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
 $this->lang->load('content_filter');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,7 +41,7 @@ $this->lang->load('content_filter');
 
 $buttons = array(
     anchor_cancel('/app/content_filter/policy/configure/' . $policy),
-    form_submit_update('submit', 'high')
+    anchor_add('/app/content_filter/grey_sites/add/' . $policy),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,21 +49,25 @@ $buttons = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('content_filter_phrase_lists'),
-    lang('base_description'),
+    lang('content_filter_site'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($all_phrase_lists as $phrase_list) {
-    $item['title'] = $phrase_list['name'];
-    $item['name'] = 'phrase_lists[' . $phrase_list['name'] . ']';
-    $item['state'] = in_array($phrase_list['name'], $active_phrase_lists) ? TRUE : FALSE;
+foreach ($sites as $banned_site) {
+    $banned_site_route = preg_replace('/\//', 'X', $banned_site);
+
+    $item['title'] = $banned_site;
+    $item['action'] = '/app/content_filter/banned_sites/delete/' . $policy . '/' . $banned_site_route;
+    $item['anchors'] = button_set(
+        array(
+            anchor_delete('/app/content_filter/banned_sites/delete/' . $policy . '/' . $banned_site_route, 'high')
+        )
+    );
     $item['details'] = array(
-        $phrase_list['name'],
-        $phrase_list['description'],
+        $banned_site
     );
 
     $items[] = $item;
@@ -74,10 +77,10 @@ foreach ($all_phrase_lists as $phrase_list) {
 // List table
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('content_filter/phrase_lists/edit/' . $policy);
+echo form_open('content_filter/banned_sites/edit/' . $policy);
 
-echo list_table(
-    lang('content_filter_phrase_lists'),
+echo summary_table(
+    lang('content_filter_banned_sites'),
     $buttons,
     $headers,
     $items

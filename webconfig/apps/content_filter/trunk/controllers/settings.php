@@ -66,8 +66,8 @@ class Settings extends ClearOS_Controller
          
         $this->form_validation->set_policy('reverse', 'content_filter/DansGuardian', 'validate_reverse_lookups');
         $form_ok = $this->form_validation->run();
-/*
 
+        /*
         // Handle form submit
         //-------------------
 
@@ -86,8 +86,8 @@ class Settings extends ClearOS_Controller
                 return;
             }
         }
+        */
 
-*/
         // Load view data
         //---------------
 

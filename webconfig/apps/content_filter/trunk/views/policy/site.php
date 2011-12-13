@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter phrase lists view.
+ * Content filter site controller.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -37,50 +37,36 @@ $this->lang->load('base');
 $this->lang->load('content_filter');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Buttons
+// Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-$buttons = array(
-    anchor_cancel('/app/content_filter/policy/configure/' . $policy),
-    form_submit_update('submit', 'high')
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Headers
-///////////////////////////////////////////////////////////////////////////////
-
-$headers = array(
-    lang('content_filter_phrase_lists'),
-    lang('base_description'),
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Items
-///////////////////////////////////////////////////////////////////////////////
-
-foreach ($all_phrase_lists as $phrase_list) {
-    $item['title'] = $phrase_list['name'];
-    $item['name'] = 'phrase_lists[' . $phrase_list['name'] . ']';
-    $item['state'] = in_array($phrase_list['name'], $active_phrase_lists) ? TRUE : FALSE;
-    $item['details'] = array(
-        $phrase_list['name'],
-        $phrase_list['description'],
-    );
-
-    $items[] = $item;
+if ($type === 'banned') {
+    $basename = 'banned_sites';
+    $title = lang('content_filter_banned_site');
+} else if ($type === 'gray') {
+    $basename = 'gray_sites';
+    $title = lang('content_filter_gray_site');
+} else if ($type === 'exception') {
+    $basename = 'exception_sites';
+    $title = lang('content_filter_exception_site');
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// List table
-///////////////////////////////////////////////////////////////////////////////
+$form = "content_filter/$basename/add/$policy";
 
-echo form_open('content_filter/phrase_lists/edit/' . $policy);
-
-echo list_table(
-    lang('content_filter_phrase_lists'),
-    $buttons,
-    $headers,
-    $items
+$buttons = array(
+    form_submit_add('submit'),
+    anchor_cancel("/app/content_filter/$basename/edit/$policy")
 );
 
+///////////////////////////////////////////////////////////////////////////////
+// Form
+///////////////////////////////////////////////////////////////////////////////
+
+echo form_open($form);
+echo form_header($title);
+
+echo field_input('site', $site, lang('content_filter_site'));
+echo field_button_set($buttons);
+
+echo form_footer();
 echo form_close();

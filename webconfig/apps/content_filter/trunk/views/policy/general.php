@@ -38,20 +38,20 @@ $this->lang->load('content_filter');
 
 $buttons = array(
     form_submit_update('submit'),
-    anchor_cancel('/app/content_filter/policy/edit/' . $policy)
+    anchor_cancel('/app/content_filter/policy/configure/' . $policy)
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('/app/content_filter/settings/edit');
+echo form_open('content_filter/general/edit/' . $policy);
 echo form_header(lang('base_settings'));
 
 echo field_dropdown('group_mode', $group_modes, $group_mode, lang('content_filter_filter_mode'));
 echo field_dropdown('naughtyness_limit', $naughtyness_limits, $naughtyness_limit, lang('content_filter_dynamic_scan_sensitivity'));
 echo field_dropdown('reporting_level', $reporting_levels, $reporting_level, lang('content_filter_reporting_level'));
-echo field_toggle_enable_disable('disable_content_scan', $disable_content_scan, lang('content_filter_virus_scan'));
+echo field_toggle_enable_disable('content_scan', $content_scan, lang('content_filter_virus_scan'));
 echo field_toggle_enable_disable('deep_url_analysis', $deep_url_analysis, lang('content_filter_deep_url_analysis'));
 echo field_toggle_enable_disable('block_downloads', $block_downloads, lang('content_filter_block_downloads'));
 echo field_toggle_enable_disable('blanket_block', $blanket_block, lang('content_filter_blanket_block'));

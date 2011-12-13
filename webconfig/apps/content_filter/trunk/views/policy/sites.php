@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter banned sites view.
+ * Content filter grey/banned/exempt sites view.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -33,16 +33,30 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
 $this->lang->load('content_filter');
+
+///////////////////////////////////////////////////////////////////////////////
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
+if ($type === 'banned') {
+    $title = lang('content_filter_banned_sites');
+    $basename = 'banned_sites';
+} else if ($type === 'gray') {
+    $title = lang('content_filter_gray_sites');
+    $basename = 'gray_sites';
+} else if ($type === 'exception') {
+    $title = lang('content_filter_exception_sites');
+    $basename = 'exception_sites';
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Buttons
 ///////////////////////////////////////////////////////////////////////////////
 
 $buttons = array(
-    anchor_cancel('/app/content_filter/policy/edit/' . $policy),
-    anchor_add('/app/content_filter/policy/banned_sites/add/' . $policy),
+    anchor_cancel("/app/content_filter/policy/configure/$policy"),
+    anchor_add("/app/content_filter/$basename/add/$policy"),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,25 +64,23 @@ $buttons = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('content_filter_banned_site'),
+    lang('content_filter_site'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($banned_sites as $banned_site) {
-    $banned_site_route = preg_replace('/\//', 'X', $banned_site);
+foreach ($sites as $site) {
+    $site_route = preg_replace('/\//', 'X', $site);
 
-    $item['title'] = $banned_site;
-    $item['action'] = '/app/content_filter/banned_sites/delete/' . $policy_id . '/' . $banned_site_route;
+    $item['title'] = $site;
+    $item['action'] = "/app/content_filter/$basename/delete/$policy/$site_route";
     $item['anchors'] = button_set(
-        array(
-            anchor_delete('/app/content_filter/banned_sites/delete/' . $policy_id . '/' . $banned_site_route, 'high')
-        )
+        array( anchor_delete($item['action'], 'high'))
     );
     $item['details'] = array(
-        $banned_site
+        $site
     );
 
     $items[] = $item;
@@ -78,10 +90,10 @@ foreach ($banned_sites as $banned_site) {
 // List table
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('content_filter/banned_sites/edit/' . $policy);
+echo form_open("content_filter/$basename/edit/$policy");
 
 echo summary_table(
-    lang('content_filter_banned_sites'),
+    $title,
     $buttons,
     $headers,
     $items

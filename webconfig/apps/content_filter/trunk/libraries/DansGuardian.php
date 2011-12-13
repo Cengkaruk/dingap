@@ -52,6 +52,13 @@ clearos_load_language('content_filter');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Factories
+//----------
+
+use \clearos\apps\groups\Group_Manager_Factory as Group_Manager;
+
+clearos_load_library('groups/Group_Manager_Factory');
+
 // Classes
 //--------
 
@@ -59,17 +66,15 @@ use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\File_Types as File_Types;
 use \clearos\apps\base\Folder as Folder;
-use \clearos\apps\content_filter\File_Group as File_Group;
-use \clearos\apps\content_filter\File_Group_Manager as File_Group_Manager;
-use \clearos\apps\network\Network as Network;
+use \clearos\apps\groups\Group_Manager_Factory as Group_Manager_Factory;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/File_Types');
 clearos_load_library('base/Folder');
-clearos_load_library('content_filter/File_Group');
-clearos_load_library('content_filter/File_Group_Manager');
-clearos_load_library('network/Network');
+clearos_load_library('groups/Group_Manager_Factory');
+clearos_load_library('network/Network_Utils');
 
 // Exceptions
 //-----------
@@ -78,12 +83,10 @@ use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
-use \clearos\apps\content_filter\Filter_Group_Not_Found_Exception as Filter_Group_Not_Found_Exception;
 
 clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/Validation_Exception');
-clearos_load_library('content_filter/Filter_Group_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -92,8 +95,6 @@ clearos_load_library('content_filter/Filter_Group_Not_Found_Exception');
 /**
  * DansGuardian content filter class.
  *
- * @category   Apps
- * @package    Content_Filter
  * @category   Apps
  * @package    Content_Filter
  * @subpackage Libraries
@@ -119,14 +120,21 @@ class DansGuardian extends Daemon
     const FILE_EXTENSIONS_LIST = '/etc/dansguardian-av/lists/bannedextensionlist';
     const FILE_MIME_LIST = '/etc/dansguardian-av/lists/bannedmimetypelist';
     const FILE_PHRASE_LIST = '/etc/dansguardian-av/lists/weightedphraselist';
-    const FILE_GROUPS = '/etc/dansguardian-av/groups';
+    const FILE_SYSTEM_GROUPS = '/etc/dansguardian-av/lists/filtergroupslist';
+
+    const REPORTING_LEVEL_STEALTH = -1;
+    const REPORTING_LEVEL_SHORT = 1;
+    const REPORTING_LEVEL_FULL = 2;
+    const REPORTING_LEVEL_CUSTOM = 3;
+
     const MAX_FILTER_GROUPS = 9;
+    const MAX_NAUGHTYNESS_LIMIT = 99999;
 
     ///////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////
 
-    var $group_keys;
+    var $policy_keys;
     var $locales;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -143,8 +151,9 @@ class DansGuardian extends Daemon
 
         parent::__construct('dansguardian-av');
 
-        $this->group_keys = array(
+        $this->policy_keys = array(
             'groupmode', 
+            'groupname', 
             'bypass',
             'disablecontentscan',
             'bannedextensionlist',
@@ -200,30 +209,15 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Adds a group to the banned IP list.
-     *
-     * @param string $groupname name of group
-     *
-     * @return void
-     */
-
-    public function add_banned_ip_group($groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->_add_group_by_key('bannediplist', $groupname);
-    }
-
-    /**
      * Adds web site or URL to banned list.
      *
      * @param string  $siteurl website or URL
-     * @param integer $group   group number
+     * @param integer $policy  policy ID
      *
      * @return void
      */
 
-    public function add_banned_site_and_url($siteurl, $group = 1)
+    public function add_banned_site_and_url($siteurl, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -233,10 +227,10 @@ class DansGuardian extends Daemon
         $this->_split_sites_and_urls($siteurl, $sites, $urls);
 
         if (count($sites) > 0)
-            $this->_add_items_by_key('bannedsitelist', $sites, $group);
+            $this->_add_items_by_key('bannedsitelist', $sites, $policy);
 
         if (count($urls) > 0)
-            $this->_add_items_by_key('bannedurllist', $urls, $group);
+            $this->_add_items_by_key('bannedurllist', $urls, $policy);
     }
 
     /**
@@ -255,30 +249,15 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Adds a group to the exception list.
-     *
-     * @param string $groupname name of group
-     *
-     * @return void
-     */
-
-    public function add_exception_ip_group($groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->_add_group_by_key('exceptioniplist', $groupname);
-    }
-
-    /**
      * Adds web site or URL to exception list.
      *
      * @param string  $siteurl site or URL
-     * @param integer $group group ID
+     * @param integer $policy  policy ID
      *
      * @return void
      */
 
-    public function add_exception_site_and_url($siteurl, $group = 1)
+    public function add_exception_site_and_url($siteurl, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -287,32 +266,56 @@ class DansGuardian extends Daemon
 
         $this->_split_sites_and_urls($siteurl, $sites, $urls);
 
-        // Add to list
-        //------------
-
         if (count($sites) > 0)
-            $this->_add_items_by_key('exceptionsitelist', $sites, $group);
+            $this->_add_items_by_key('exceptionsitelist', $sites, $policy);
 
         if (count($urls) > 0)
-            $this->_add_items_by_key('exceptionurllist', $urls, $group);
+            $this->_add_items_by_key('exceptionurllist', $urls, $policy);
     }
 
     /**
-     * Adds a new filter group.
+     * Adds web site or URL to gray list.
      *
-     * @param string $name filter group name
+     * @param string  $siteurl site or URL
+     * @param integer $policy  policy ID
      *
-     * @return integer new filter group ID
+     * @return void
      */
 
-    public function add_filter_group($name)
+    public function add_gray_site_and_url($siteurl, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($name));
+        $sites = array();
+        $urls = array();
 
-        if ($this->exists_filter_group($name))
-            throw new Engine_Exception(lang('content_filter_group_already_exists'));
+        $this->_split_sites_and_urls($siteurl, $sites, $urls);
+
+        if (count($sites) > 0)
+            $this->_add_items_by_key('greysitelist', $sites, $policy);
+
+        if (count($urls) > 0)
+            $this->_add_items_by_key('greyurllist', $urls, $policy);
+    }
+
+    /**
+     * Adds a new filter policy.
+     *
+     * @param string $name  policy name
+     * @param string $group system group
+     *
+     * @return integer new filter policy ID
+     */
+
+    public function add_policy($name, $group)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_policy_name($name));
+        Validation_Exception::is_valid($this->validate_group($group));
+
+        if ($this->exists_policy_name($name))
+            throw new Engine_Exception(lang('content_filter_policy_already_exists'));
 
         $folder = new Folder(self::BASE_PATH);
         $files = $folder->get_listing();
@@ -330,13 +333,13 @@ class DansGuardian extends Daemon
         }
 
         if (count($ids) == self::MAX_FILTER_GROUPS) {
-            throw new Engine_Exception(lang('content_filter_maximum_groups_already_configured'));
+            throw new Engine_Exception(lang('content_filter_maximum_policies_already_configured'));
         } else if (count($ids)) {
             sort($ids);
             $id = end($ids) + 1;
         }
 
-        // Create new filter group by copying the default
+        // Create new filter policy by copying the default
         //-----------------------------------------------
 
         $file = new File(self::BASE_PATH . '/dansguardianf1.conf', TRUE);
@@ -351,7 +354,7 @@ class DansGuardian extends Daemon
         // Default the group mode to "filtered"
         $file->replace_lines('/^groupmode\s*=.*/', "groupmode = 1\n", 1);
 
-        foreach ($this->group_keys as $key) {
+        foreach ($this->policy_keys as $key) {
             if (strstr($key, 'list') === FALSE)
                 continue; 
 
@@ -377,103 +380,15 @@ class DansGuardian extends Daemon
             }
         }
 
-        // Resequence filter group IDs and set filter group count
-        //-------------------------------------------------------
+        // Add system group to filtergroupslist
+        //-------------------------------------
 
-        $this->_sequence_filter_groups();
+        $file = new File(self::FILE_SYSTEM_GROUPS);
+        $file->add_lines("$group\n");
 
         return $id;
     }
 
-    /**
-     * Adds web site or URL to grey list.
-     *
-     * @param string  $siteurl site or URL
-     * @param integer $group   group number
-     *
-     * @return void
-     */
-
-    public function add_grey_site_and_url($siteurl, $group = 1)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $sites = array();
-        $urls = array();
-
-        $this->_split_sites_and_urls($siteurl, $sites, $urls);
-
-        if (count($sites) > 0)
-            $this->_add_items_by_key('greysitelist', $sites, $group);
-
-        if (count($urls) > 0)
-            $this->_add_items_by_key('greyurllist', $urls, $group);
-    }
-
-    /**
-     * Adds group definition.
-     *
-     * @param string $groupname group name
-     *
-     * @return void
-     */
-
-    public function add_group($groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $group = new File_Group($groupname, self::FILE_GROUPS);
-
-        $group->add('');
-    }
-
-    /**
-     * Adds group member to given group. 
-     *
-     * This will cascade all the entries to the configuration files that use the group feature.
-     *
-     * @param string $groupname group name
-     * @param string $member    member
-     *
-     * @return void
-     */
-
-    public function add_group_entry($groupname, $member)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $network = new Network();
-
-        if (!$network->IsValidIp($member))
-            return;
-
-        // Add member to banned IP list
-        //-----------------------------
-
-        $bannedipfile = $this->_get_filename_by_key('bannediplist');
-
-        $bannedgroup = new File_Group($groupname, $bannedipfile);
-
-        if ($bannedgroup->exists())
-            $bannedgroup->AddEntry($member);
-
-        // Add member to exception IP list
-        //--------------------------------
-
-        $exceptionipfile = $this->_get_filename_by_key('exceptioniplist');
-
-        $exceptiongroup = new File_Group($groupname, $exceptionipfile);
-
-        if ($exceptiongroup->exists())
-            $exceptiongroup->AddEntry($member);
-
-        // Add to group file
-        //------------------
-
-        $group = new File_Group($groupname, self::FILE_GROUPS);
-
-        $group->AddEntry($member);
-    }
 
     /** 
      * Removes unavailable blacklists from configuration files.
@@ -579,30 +494,15 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Deletes group from the banned IP list.
-     *
-     * @param string $groupname group name
-     *
-     * @return void
-     */
-
-    public function delete_banned_ip_group($groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->DeleteGroupByKey('bannediplist', $groupname);
-    }
-
-    /**
      * Deletes item from banned sites and URLs.
      *
-     * @param string $siteurl site or URL
-     * @param integer $group group ID
+     * @param string  $siteurl site or URL
+     * @param integer $policy  policy ID
      *
      * @return void
      */
 
-    public function delete_banned_site_and_url($siteurl, $group)
+    public function delete_banned_site_and_url($siteurl, $policy)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -611,14 +511,11 @@ class DansGuardian extends Daemon
 
         $this->_split_sites_and_urls($siteurl, $sites, $urls);
 
-        // Delete from list
-        //-----------------
-
         if (count($sites) > 0)
-            $this->_delete_items_by_key('bannedsitelist', $sites, $group);
+            $this->_delete_items_by_key('bannedsitelist', $sites, $policy);
 
         if (count($urls) > 0)
-            $this->_delete_items_by_key('bannedurllist', $urls, $group);
+            $this->_delete_items_by_key('bannedurllist', $urls, $policy);
     }
 
     /**
@@ -637,30 +534,15 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Deletes group from the exception list.
-     *
-     * @param string $groupname group name
-     *
-     * @return void
-     */
-
-    public function delete_exception_ip_group($groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->DeleteGroupByKey('exceptioniplist', $groupname);
-    }
-
-    /**
      * Deletes site or URL from the exception list.
      *
-     * @param string $siteurl site or URL
-     * @param integer $group group ID
+     * @param string  $siteurl site or URL
+     * @param integer $policy  policy ID
      *
      * @return void
      */
 
-    public function delete_exception_site_and_url($siteurl, $group = 1)
+    public function delete_exception_site_and_url($siteurl, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -669,26 +551,23 @@ class DansGuardian extends Daemon
 
         $this->_split_sites_and_urls($siteurl, $sites, $urls);
 
-        // Delete from list
-        //-----------------
-
         if (count($sites) > 0)
-            $this->_delete_items_by_key('exceptionsitelist', $sites, $group);
+            $this->_delete_items_by_key('exceptionsitelist', $sites, $policy);
 
         if (count($urls) > 0)
-            $this->_delete_items_by_key('exceptionurllist', $urls, $group);
+            $this->_delete_items_by_key('exceptionurllist', $urls, $policy);
     }
 
     /**
-     * Deletes site or URL from the grey list.
+     * Deletes site or URL from the gray list.
      *
-     * @param string $siteurl site or URL
-     * @param integer $group group ID
+     * @param string  $siteurl site or URL
+     * @param integer $policy  policy ID
      *
      * @return void
      */
 
-    public function delete_grey_site_and_url($siteurl, $group = 1)
+    public function delete_gray_site_and_url($siteurl, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -697,135 +576,93 @@ class DansGuardian extends Daemon
 
         $this->_split_sites_and_urls($siteurl, $sites, $urls);
 
-        // Delete from list
-        //-----------------
-
         if (count($sites) > 0)
-            $this->_delete_items_by_key('greysitelist', $sites, $group);
+            $this->_delete_items_by_key('greysitelist', $sites, $policy);
 
         if (count($urls) > 0)
-            $this->_delete_items_by_key('greyurllist', $urls, $group);
+            $this->_delete_items_by_key('greyurllist', $urls, $policy);
     }
 
     /**
-     * Deletes group definition.
+     * Deletes a policy.
      *
-     * This will also delete all the entries from configuration files that use the group feature.
-     *
-     * @param string $groupname group name
+     * @param integer $policy policy ID
      *
      * @return void
      */
 
-    public function delete_group($groupname)
+    public function delete_policy($policy)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $bannedipfile = $this->_get_filename_by_key('bannediplist');
-        $exceptionipfile = $this->_get_filename_by_key('exceptioniplist');
+        // Delete policy configuration files
+        //----------------------------------
 
-        // Delete group items from banned IP list
-        //---------------------------------------
+        $policy_config = new File(sprintf(self::FILE_CONFIG_FILTER_GROUP, $policy), TRUE);
 
-        $bannedgroup = new File_Group($groupname, $bannedipfile);
+        foreach ($this->policy_keys as $key) {
+            if (strstr($key, 'list') === FALSE)
+                continue;
 
-        if ($bannedgroup->exists())
-            $bannedgroup->Delete();
+            $value = str_replace(array('\'', '"'), '', $policy_config->lookup_value("/^$key\s*=\s*/"));
+            $fglist = new File($value);
 
-        // Delete group items from exception IP list
-        //------------------------------------------
+            if ($fglist->exists())
+                $fglist->delete();
+        }
 
-        $exceptiongroup = new File_Group($groupname, $exceptionipfile);
+        $policy_config->delete();
 
-        if ($exceptiongroup->exists())
-            $exceptiongroup->Delete();
+        // Delete system group entry
+        //-------------------------
 
-        // Delete group
-        //-------------
+        $groups = new File(self::FILE_SYSTEM_GROUPS);
+        $lines = $groups->get_contents_as_array();
 
-        $group = new File_Group($groupname, self::FILE_GROUPS);
+        $new_list = '';
+        $count = 0;
 
-        $group->Delete();
+        foreach ($lines as $line) {
+            if (preg_match('/^#/', $line))
+                continue;
+
+            $count++;
+
+            if ($count != $policy)
+                $new_list .= "$line\n";
+        }
+
+        $groups->delete();
+        $groups->create('root', 'root', '0644');
+        $groups->add_lines($new_list);
+
+        // Fix gaps in the sequence IDs
+        //-----------------------------
+
+        $this->_sequence_policies();
     }
 
     /**
-     * Deletes group member to given group.
+     * Checks existence of a policy name.
      *
-     * This will cascade all the entries to the configuration files that use the group feature.
+     * @param string $name policy name
      *
-     * @param string $groupname group name
-     * @param string $member member
-     *
-     * @return void
-     */
-
-    public function delete_group_entry($groupname, $member)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $network = new Network();
-
-        if (!$network->IsValidIp($member))
-            throw new Engine_Exception(NETWORK_LANG_IP . ' - ' . LOCALE_LANG_INVALID, COMMON_WARNING);
-
-        // Delete member to banned IP list
-        //--------------------------------
-
-        $bannedipfile = $this->_get_filename_by_key('bannediplist');
-
-        $bannedgroup = new File_Group($groupname, $bannedipfile);
-
-        if ($bannedgroup->exists())
-            $bannedgroup->delete_entry($member);
-
-        // Delete member to exception IP list
-        //-----------------------------------
-
-        $exceptionipfile = $this->_get_filename_by_key('exceptioniplist');
-
-        $exceptiongroup = new File_Group($groupname, $exceptionipfile);
-
-        try {
-            if ($exceptiongroup->exists())
-                $exceptiongroup->delete_entry($member);
-        } catch (Exception $e) {
-            // XXX: keep going
-        }
-
-        // Delete in group file
-        //---------------------
-
-        $group = new File_Group($groupname, self::FILE_GROUPS);
-
-        try {
-            $group->delete_entry($member);
-        } catch (Exception $e) {
-            // XXX: keep going
-        }
-    }
-
-    /**
-     * Checks existence of a group.
-     *
-     * @param string $name group name
-     *
-     * @return boolean TRUE if group name exists
+     * @return boolean TRUE if policy name exists
      * @throws Engine_Exception
      */
 
-    public function exists_filter_group($name)
+    public function exists_policy_name($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        try {
-            $cfg = $this->get_filter_group_configuration(0, $name);
-        } catch (Filter_Group_Not_Found_Exception $e) {
-            return FALSE;
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e));
+        $policies = $this->get_policies();
+
+        foreach ($policies as $id => $details) {
+            if ($details['groupname'] === $name)
+                return TRUE;
         }
 
-        return TRUE;
+        return FALSE;
     }
 
     /**
@@ -844,34 +681,41 @@ class DansGuardian extends Daemon
     /**
      * Returns the banned extension list.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return array list of banned extensions
      */
 
-    public function get_banned_file_extensions($group = 1)
+    public function get_banned_file_extensions($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_data_by_key('bannedextensionlist', FALSE, $group);
+        return $this->_get_configuration_data_by_key('bannedextensionlist', $policy);
     }
 
     /**
      * Returns the list of banned URLs and sites.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return array list of banned URLs and sites
      */
 
-    public function get_banned_sites_and_urls($group_id = 1)
+    public function get_banned_sites_and_urls($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $site_list = $this->_get_configuration_data_by_key('bannedsitelist', FALSE, $group_id);
-        $url_list = $this->_get_configuration_data_by_key('bannedurllist', FALSE, $group_id);
+        $raw_list = $this->_get_banned_sites_and_urls($policy);
 
-        return array_merge($url_list, $site_list);
+        $ban_list = array();
+
+        // Skip blanket block, IP block
+        foreach ($raw_list as $site) {
+            if (($site != '**') && ($site != '*ip'))
+                $ban_list[] = $site;
+        }
+
+        return $ban_list;
     }
 
     /**
@@ -884,47 +728,33 @@ class DansGuardian extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_data_by_key('bannediplist', FALSE);
-    }
-
-    /**
-     * Returns the list of banned IP groups.
-     *
-     * @return array list of banned IP groups
-     */
-
-    public function get_banned_ips_groups()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // FIXME: this is the same as banned_ips?
-        return $this->_get_configuration_data_by_key('bannediplist', TRUE);
+        return $this->_get_configuration_data_by_key('bannediplist');
     }
 
     /**
      * Returns the banned MIME list.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return array list of banned MIMEs
      */
 
-    public function get_banned_mime_types($group = 1)
+    public function get_banned_mime_types($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_data_by_key('bannedmimetypelist', FALSE, $group);
+        return $this->_get_configuration_data_by_key('bannedmimetypelist', $policy);
     }
 
     /**
      * Returns activated blacklists.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return array list of activated blacklists
      */
 
-    public function get_blacklists($group = 1)
+    public function get_blacklists($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -935,7 +765,7 @@ class DansGuardian extends Daemon
         $active = array();
 
         foreach ($bannedtypes as $type) {
-            $bannedfile = $this->_get_filename_by_key($type, $group);
+            $bannedfile = $this->_get_filename_by_key($type, $policy);
 
             $file = new File($bannedfile);
 
@@ -963,16 +793,16 @@ class DansGuardian extends Daemon
     /**
      * Returns blanket block policy.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return boolean TRUE if blanket block policy is enabled.
      */
 
-    public function get_blanket_block($group = 1)
+    public function get_blanket_block($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ban_list = $this->get_banned_sites_and_urls($group);
+        $ban_list = $this->_get_banned_sites_and_urls($policy);
 
         if (in_array('**', $ban_list))
             return TRUE;
@@ -981,20 +811,18 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Returns list of available blacklists.
-    /**
      * Returns block IP domains policy.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return boolean TRUE if block IP domains policy is enabled.
      */
 
-    public function get_block_ip_domains($group = 1)
+    public function get_block_ip_domains($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ban_list = $this->get_banned_sites_and_urls($group);
+        $ban_list = $this->_get_banned_sites_and_urls($policy);
 
         if (in_array('*ip', $ban_list))
             return TRUE;
@@ -1012,31 +840,18 @@ class DansGuardian extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_data_by_key('exceptioniplist', FALSE);
-    }
-
-    /**
-     * Returns the list of groups the exception list.
-     *
-     * @return array list of groups that bypass the filter
-     */
-
-    public function get_exception_ips_groups()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return $this->_get_configuration_data_by_key('exceptioniplist', TRUE);
+        return $this->_get_configuration_data_by_key('exceptioniplist');
     }
 
     /**
      * Returns the sites and URLs in the exception list.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return array list of urls and sites in the exception list
      */
 
-    public function get_exception_sites_and_urls($group = 1)
+    public function get_exception_sites_and_urls($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1044,13 +859,8 @@ class DansGuardian extends Daemon
         $urllist = array();
         $list = array();
 
-        try {
-            $sitelist = $this->_get_configuration_data_by_key('exceptionsitelist', FALSE, $group);
-        } catch (Exception $e) { }
-
-        try {
-            $urllist = $this->_get_configuration_data_by_key('exceptionurllist', FALSE, $group);
-        } catch (Exception $e) { }
+        $sitelist = $this->_get_configuration_data_by_key('exceptionsitelist', $policy);
+        $urllist = $this->_get_configuration_data_by_key('exceptionurllist', $policy);
 
         $list = array_merge($urllist, $sitelist);
 
@@ -1058,14 +868,14 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Returns the sites and URLs in the grey list.
+     * Returns the sites and URLs in the gray list.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
-     * @return array list of urls and sites in the grey list
+     * @return array list of urls and sites in the gray list
      */
 
-    public function get_grey_sites_and_urls($group = 1)
+    public function get_gray_sites_and_urls($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1073,13 +883,8 @@ class DansGuardian extends Daemon
         $urllist = array();
         $list = array();
 
-        try {
-            $sitelist = $this->_get_configuration_data_by_key('greysitelist', FALSE, $group);
-        } catch (Exception $e) { }
-
-        try {
-            $urllist = $this->_get_configuration_data_by_key('greyurllist', FALSE, $group);
-        } catch (Exception $e) { }
+        $sitelist = $this->_get_configuration_data_by_key('greysitelist', $policy);
+        $urllist = $this->_get_configuration_data_by_key('greyurllist', $policy);
 
         $list = array_merge($urllist, $sitelist);
 
@@ -1089,7 +894,6 @@ class DansGuardian extends Daemon
     /**
      * Returns the filter port (default 8080).
      *
-     *
      * @return integer filter port number
      */
 
@@ -1097,67 +901,22 @@ class DansGuardian extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $port = $this->_get_configuration_value('filterport');
-
-        return $port;
-    }
-
-    /**
-     * Returns available groups.
-     *
-     * @return array list of available groups
-     */
-
-    public function get_groups()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $group_manager = new File_Group_Manager(self::FILE_GROUPS);
-
-        return $group_manager->get_groups();
-    }
-
-    /**
-     * Returns available groups in a specific config file.
-     *
-     * @return array list of groups configured in config file
-     */
-
-    public function get_groups_by_key($key)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $groupmanager = new File_Group_Manager($key);
-
-        return $groupmanager->get_groups();
-    }
-
-    /**
-     * Returns group entries.
-     *
-     * @return array list of entries in a group
-     */
-
-    public function get_group_entries($groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $group = new File_Group($groupname, self::FILE_GROUPS);
-
-        return $group->get_entries();
+        return $this->_get_configuration_value('filterport');
     }
 
     /**
      * Returns locale.
      *
+     * @param integer $policy policy ID
+     *
      * @return integer the current locale
      */
 
-    public function get_locale($group = 1)
+    public function get_locale($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $locale = $this->_get_configuration_value('language', $group);
+        $locale = $this->_get_configuration_value('language', $policy);
 
         if ($this->locales[$locale])
             return $this->locales[$locale];
@@ -1168,30 +927,32 @@ class DansGuardian extends Daemon
     /**
      * Returns naughtyness level.
      *
-     * @return integer  the current naughtyness limit
+     * @param integer $policy policy ID
+     *
+     * @return integer current naughtyness limit
      */
 
-    public function get_naughtyness_limit($group = 1)
+    public function get_naughtyness_limit($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_value('naughtynesslimit', $group);
+        return $this->_get_configuration_value('naughtynesslimit', $policy);
     }
 
     /**
      * Returns the weight phrase list.
      *
-     * @param integer $group group ID
+     * @param integer $policy  policy ID
      * @param boolean $details flag get full list including languagues
      *
      * @return array a list of the weight phrases
      */
 
-    public function get_phrase_lists($group = 1, $details = FALSE)
+    public function get_phrase_lists($policy = 1, $details = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $rawlines = $this->_get_configuration_data_by_key('weightedphraselist', FALSE, $group);
+        $rawlines = $this->_get_configuration_data_by_key('weightedphraselist', $policy);
         $list = array();
 
         foreach ($rawlines as $line) {
@@ -1213,29 +974,148 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Sets the access denied page.
+     * Return an array of all policies.
      *
-     * @return void
+     * @return array policy information.
+     * @throws Engine_Exception
      */
 
-    public function set_access_denied_url($url)
+    public function get_policies()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->set_configuration_value('accessdeniedaddress', $url);
+        $policies = array();
+        $folder = new Folder(self::BASE_PATH);
+
+        $files = $folder->get_listing();
+
+        $ids = array();
+
+        foreach ($files as $file) {
+            if (sscanf($file, 'dansguardianf%d.conf', $id) != 1)
+                continue;
+            $ids[] = $id;
+        }
+
+        $system_groups = $this->get_system_groups();
+
+        foreach ($ids as $id) {
+            $policies[$id] = $this->get_policy_configuration($id);
+            $policies[$id]['systemgroup'] = $system_groups[$id];
+        }
+
+        return $policies;
+    }
+
+    /**
+     * Return the configuration array for the specified policy.
+     *
+     * @param integer $policy policy ID
+     *
+     * @return array policy configuration
+     */
+
+    public function get_policy_configuration($policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
+
+        if ($policy >= 1) {
+            $cfg = $this->_get_configuration_by_filename(sprintf(self::FILE_CONFIG_FILTER_GROUP, $policy));
+
+            if ($cfg == NULL)
+                throw new Validation_Exception('content_filter_policy_not_found');
+        }
+
+        $policy = array();
+
+        if ($policy == 1)
+            $policy['groupname'] = lang('content_filter_default');
+
+        foreach ($cfg as $line) {
+            list($key, $value) = explode('=', str_replace(array('\'', '"'), '', $line), 2);
+
+            if ($policy == 1 && $key == 'groupname')
+                continue;
+
+            $value = trim($value);
+
+            if (preg_match('/off/i', $value))
+                $value = FALSE;
+            else if (preg_match('/on/i', $value))
+                $value = TRUE;
+
+            $policy[trim($key)] = trim($value);
+        }
+
+        ksort($policy);
+
+        return $policy;
+    }
+
+    /**
+     * Returns the policy system group.
+     *
+     * @param integer $policy policy ID
+     *
+     * @return string system group
+     */
+
+    public function get_policy_system_group($policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
+
+        $file = new File(self::FILE_SYSTEM_GROUPS);
+
+        $lines = $file->get_contents_as_array();
+        $count = 1;
+
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*#/', $line))
+                continue;
+
+            if ($count == $policy)
+                return $line;
+
+            $count++;
+        }
+    }
+
+    /**
+     * Returns the policy name.
+     *
+     * @param integer $policy policy ID
+     *
+     * @return string policy name
+     */
+
+    public function get_policy_name($policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
+
+        $configuration = $this->get_policy_configuration($policy);
+
+        return $configuration['groupname'];
     }
 
     /**
      * Returns the PICS level.
      *
+     * @param integer $policy policy ID
+     *
      * @return string current PICS level
      */
 
-    public function get_pics($group = 1)
+    public function get_pics($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $pics = $this->_get_configuration_value('picsfile', $group);
+        $pics = $this->_get_configuration_value('picsfile', $policy);
         $pics = preg_replace("/.*pics./i", "", $pics);
 
         return $pics;
@@ -1485,11 +1365,44 @@ class DansGuardian extends Daemon
         clearos_profile(__METHOD__, __LINE__);
 
         return array(
-            '-1' => lang('content_filter_stealth_mode'),
-            '1' => lang('content_filter_short_report'),
-            '2' => lang('content_filter_full_report'),
-            '3' => lang('content_filter_custom_report'),
+            self::REPORTING_LEVEL_STEALTH => lang('content_filter_stealth_mode'),
+            self::REPORTING_LEVEL_SHORT => lang('content_filter_short_report'),
+            self::REPORTING_LEVEL_FULL => lang('content_filter_full_report'),
+            self::REPORTING_LEVEL_CUSTOM => lang('content_filter_custom_report'),
         );
+    }
+
+    /**
+     * Returns possible systems groups.
+     *
+     * @param string $add_group add group to possible list
+     *
+     * @return array list of possible system groups
+     */
+
+    public function get_possible_system_groups($add_group = NULL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $group_manager = Group_Manager::create();
+
+        $possible_groups = array();
+        $configured_groups = array();
+        $all_groups = $group_manager->get_list();
+        $policies = $this->get_policies();
+
+        foreach ($policies as $policy)
+            $configured_groups[] = $policy['systemgroup'];
+
+        foreach ($all_groups as $group) {
+            if (! in_array($group, $configured_groups))
+                $possible_groups[] = $group;
+        }
+
+        if (($add_group) && (!in_array($add_group, $possible_groups)))
+            array_unshift($possible_groups, $add_group);
+
+        return $possible_groups;
     }
 
     /**
@@ -1508,7 +1421,6 @@ class DansGuardian extends Daemon
     /**
      * Returns the proxy port (default 3128).
      *
-     *
      * @return integer the current proxy port
      */
 
@@ -1522,16 +1434,16 @@ class DansGuardian extends Daemon
     /**
      * Returns the reporting level.
      *
-     * @param integer $group group ID
+     * @param integer $policy policy ID
      *
      * @return integer current reporting level
      */
 
-    public function get_reporting_level($group = 1)
+    public function get_reporting_level($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_value('reportinglevel', $group);
+        return $this->_get_configuration_value('reportinglevel', $policy);
     }
 
     /**
@@ -1544,7 +1456,49 @@ class DansGuardian extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_configuration_value('reverseaddresslookups', -1);
+        return $this->_get_configuration_value('reverseaddresslookups');
+    }
+
+    /**
+     * Return list of system groups.
+     *
+     * @return array $groups list of system groups.
+     */
+
+    public function get_system_groups()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_SYSTEM_GROUPS);
+
+        $lines = $file->get_contents_as_array();
+        $system_groups = array();
+
+        // Might as well keep the array indexes the same as DansGuardian internals
+        $system_groups[] = 'not used';
+
+        foreach ($lines as $line) {
+            if (! preg_match('/^#/', $line))
+                $system_groups[] = $line;
+        }
+
+        return $system_groups;
+    }
+
+    /**
+     * Sets the access denied page.
+     *
+     * @param string $url access denied URL
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function set_access_denied_url($url)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->_set_configuration_value('accessdeniedaddress', $url);
     }
 
     /**
@@ -1553,6 +1507,7 @@ class DansGuardian extends Daemon
      * @param array $plugins list of authorization plugins
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
     public function set_authorization_plugins($plugins)
@@ -1568,25 +1523,20 @@ class DansGuardian extends Daemon
         // Note: if we detect someone has configured IP-based authorization
         // then just leave everything alone.
 
-
         $file = new File(self::FILE_CONFIG);
 
         try {
-            $ipcheck = $file->LookupLine("/^authplugin.*ip.conf/");
+            $ipcheck = $file->lookup_line("/^authplugin.*ip.conf/");
             if (! empty($ipcheck))
                 return;
         } catch (File_No_Match_Exception $e) {
         }
 
-        try {
-            if (empty($plugins)) {
-                $file->PrependLines("/^authplugin\s+/", "#");
-            } else {
-                $file->replace_lines("/^#\s*authplugin\s+.*proxy-ntlm.conf/", "authplugin = '/etc/dansguardian-av/authplugins/proxy-ntlm.conf'\n");
-                $file->replace_lines("/^#\s*authplugin\s+.*proxy-basic.conf/", "authplugin = '/etc/dansguardian-av/authplugins/proxy-basic.conf'\n");
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
+        if (empty($plugins)) {
+            $file->PrependLines("/^authplugin\s+/", "#");
+        } else {
+            $file->replace_lines("/^#\s*authplugin\s+.*proxy-ntlm.conf/", "authplugin = '/etc/dansguardian-av/authplugins/proxy-ntlm.conf'\n");
+            $file->replace_lines("/^#\s*authplugin\s+.*proxy-basic.conf/", "authplugin = '/etc/dansguardian-av/authplugins/proxy-basic.conf'\n");
         }
     }
 
@@ -1594,52 +1544,53 @@ class DansGuardian extends Daemon
      * Sets the list of banned file extensions.
      *
      * @param array   $extensions list of file extensions
-     * @param integer $group_id   group ID
+     * @param integer $policy     policy_id
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_banned_file_extensions($extensions, $group_id = 1)
+    public function set_banned_file_extensions($extensions, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_file_extensions($extensions));
-        Validation_Exception::is_valid($this->validate_group_id($group_id));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
-        $this->_set_configuration_by_key('bannedextensionlist', $extensions, $group_id);
+        $this->_set_configuration_by_key('bannedextensionlist', $extensions, $policy);
     }
 
     /**
      * Sets the list of banned MIME types.
      *
      * @param array   $mime_types list of MIME types
-     * @param integer $group_id   group ID
+     * @param integer $policy     policy ID
      *
      * @return void
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_banned_mime_types($mime_types, $group_id = 1)
+    public function set_banned_mime_types($mime_types, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_mime_types($mime_types));
-        Validation_Exception::is_valid($this->validate_group_id($group_id));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
-        $this->_set_configuration_by_key('bannedmimetypelist', $mime_types, $group_id);
+        $this->_set_configuration_by_key('bannedmimetypelist', $mime_types, $policy);
     }
 
     /**
      * Sets blacklist state.
      *
-     * @param array   $list  list of enabled blacklists
-     * @param integer $group group ID
+     * @param array   $list   list of enabled blacklists
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_blacklists($list, $group = 1)
+    public function set_blacklists($list, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1671,7 +1622,7 @@ class DansGuardian extends Daemon
         // Update config file - domains/sites
         //-----------------------------------
 
-        $bannedsitepath = $this->_get_filename_by_key('bannedsitelist', $group);
+        $bannedsitepath = $this->_get_filename_by_key('bannedsitelist', $policy);
 
         $file = new File($bannedsitepath);
 
@@ -1684,7 +1635,7 @@ class DansGuardian extends Daemon
         // Update config file - URLs
         //--------------------------
 
-        $bannedurlpath = $this->_get_filename_by_key('bannedurllist', $group);
+        $bannedurlpath = $this->_get_filename_by_key('bannedurllist', $policy);
 
         $file = new File($bannedurlpath);
 
@@ -1696,24 +1647,68 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Sets reverse DNS look-ups.
+     * Sets blanket block.
      *
+     * @param boolean $state  state of blanket block
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_reverse_lookups($enable)
+    public function set_blanket_block($state, $policy)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->set_configuration_value('reverseaddresslookups', $enable);
+        if ($state)
+            $this->add_banned_site_and_url('**', $policy);
+        else
+            $this->delete_banned_site_and_url('**', $policy);
+    }
+
+    /**
+     * Sets block IP domains.
+     *
+     * @param boolean $state  state of block IP domains
+     * @param integer $policy policy ID
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function set_block_ip_domains($state, $policy)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($state)
+            $this->add_banned_site_and_url('*ip', $policy);
+        else
+            $this->delete_banned_site_and_url('*ip', $policy);
+    }
+
+    /**
+     * Sets reverse DNS look-ups.
+     *
+     * @param boolean $state reverse lookups state
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function set_reverse_lookups($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $this->_set_configuration_value('reverseaddresslookups', $state);
     }
 
     /**
      * Sets locale.
      *
+     * @param string $locale locale
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
     public function set_locale($locale)
@@ -1723,185 +1718,231 @@ class DansGuardian extends Daemon
         if (! $this->IsValidLocale($locale))
             throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_LOCALE_INVALID, COMMON_ERROR);
 
-        $this->set_configuration_value('language', $this->locales[$locale]);
+        $this->_set_configuration_value('language', $this->locales[$locale]);
     }
 
     /**
-     * Sets group name.
+     * Sets the policy information for given ID.
      *
+     * @param integer $policy policy ID
+     * @param string  $name   policy name
+     * @param string  $group  system group
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_group_name($name, $group = 1)
+    public function set_policy($policy, $name, $group)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate
-        //---------
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
-        try {
-            $groups = $this->GetFilterGroups();
-            foreach ($groups as $id => $record) {
-                if ($id != $group && $name == $record['groupname'])
-                    throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_GROUP_EXISTS, COMMON_ERROR);
+        $this->_set_configuration_value('groupname', $name, $policy);
+        
+// pete
+        $file = new File(self::FILE_SYSTEM_GROUPS);
+
+        $lines = $file->get_contents_as_array();
+        $count = 1;
+
+        foreach ($lines as $line) {
+            if (preg_match('/^\s*#/', $line))
+                continue;
+
+            if ($count == $policy) {
+                $old_group = $line;
+                break;
             }
-        } catch (Exception $e) {
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_GROUP_EXISTS, COMMON_ERROR);
+
+            $count++;
         }
 
-        $file = new File(sprintf(self::FILE_CONFIG_FILTER_GROUP, $group), TRUE);
-
-        try {
-            if ($file->replace_lines('/^groupname.*$/', "groupname = '$name'\n", 1) != 1)
-                $file->add_lines_after("groupname = '$name'\n", '/^#groupname.*$/');
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
+        if ($group !== $old_group)
+            $file->replace_lines("/^$old_group$/", "$group\n");
     }
 
     /**
-     * Sets naughtyness level.
+     * Sets naughtyness limit.
      *
+     * @param integer $limit  naughtyness limit.
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_naughtyness_limit($limit, $group = 1)
+    public function set_naughtyness_limit($limit, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidNaughtynessLimit($limit))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_NAUGHTYNESS_INVALID, COMMON_ERROR);
+        Validation_Exception::is_valid($this->validate_naughtyness_limit($limit));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
-        $this->set_configuration_value('naughtynesslimit', $limit, $group);
+        $this->_set_configuration_value('naughtynesslimit', $limit, $policy);
     }
 
     /**
      * Sets filter mode.
      *
+     * @param string  $mode   mode
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_filter_mode($mode, $group = 1)
+    public function set_filter_mode($mode, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidFilterMode($mode))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_FILTER_MODE . " - " . LOCALE_LANG_INVALID, COMMON_ERROR);
+        Validation_Exception::is_valid($this->validate_filter_mode($mode));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
-        $this->set_configuration_value('groupmode', $mode, $group);
+        $this->_set_configuration_value('groupmode', $mode, $policy);
     }
 
     /**
      * Sets bypass link.
      *
+     * @param string  $bypass bypass URL
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_bypass_link($bypass, $group = 1)
+    public function set_bypass_link($bypass, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->set_configuration_value('bypass', $bypass, $group);
+        $this->_set_configuration_value('bypass', $bypass, $policy);
     }
 
     /**
      * Sets content scan.
      *
+     * @param boolean $state  content scan flag
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_content_scan($scan, $group = 1)
+    public function set_content_scan($state, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->set_configuration_value('disablecontentscan', $scan, $group);
+        Validation_Exception::is_valid($this->validate_content_scan($state));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
+
+        // Parameter name is negative
+        $state = ($state) ? 'off' : 'on';
+
+        $this->_set_configuration_value('disablecontentscan', $state, $policy);
     }
 
     /**
      * Sets deep URL analysis.
      *
+     * @param boolean $state  deep URL scan flag
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_deep_url_analysis($deepurl, $group = 1)
+    public function set_deep_url_analysis($state, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->set_configuration_value('deepurlanalysis', $deepurl, $group);
+        Validation_Exception::is_valid($this->validate_deep_url_analysis($state));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
+
+        $state = ($state) ? 'on' : 'off';
+
+        $this->_set_configuration_value('deepurlanalysis', $state, $policy);
     }
 
     /**
      * Sets download block.
      *
+     * @param boolean $state  download block flag
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_download_block($block, $group = 1)
+    public function set_download_block($state, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->set_configuration_value('blockdownloads', $block, $group);
+        Validation_Exception::is_valid($this->validate_download_block($state));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
+
+        $state = ($state) ? 'on' : 'off';
+
+        $this->_set_configuration_value('blockdownloads', $state, $policy);
     }
 
     /**
      * Sets the PICS level
      *
-     * @param   port    the PICS level
+     * @param string  $pics   PICS level
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_pics($pics, $group = 1)
+    public function set_pics($pics, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidPICS($pics))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_PICS_INVALID, COMMON_ERROR);
-
-        $this->set_configuration_value('picsfile', self::BASE_PATH . "/pics.$pics", $group);
+        $this->_set_configuration_value('picsfile', self::BASE_PATH . "/pics.$pics", $policy);
     }
 
     /**
      * Sets the reporting level.
      *
+     * @param string  $level  reporting level
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_reporting_level($level, $group = 1)
+    public function set_reporting_level($level, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidReportingLevel($level))
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_REPORTINGLEVEL_INVALID, COMMON_ERROR);
+        Validation_Exception::is_valid($this->validate_reporting_level($level));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
-        $this->set_configuration_value('reportinglevel', $level, $group);
+        $this->_set_configuration_value('reportinglevel', $level, $policy);
     }
 
     /**
      * Sets the weight phrase list.
      *
+     * @param string  $lists  phrase lists
+     * @param integer $policy policy ID
      *
      * @return void
+     * @throws Engine_Exception, Validation_Exception
      */
 
-    public function set_phrase_lists($phrase_lists, $group = 1)
+    public function set_phrase_lists($lists, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_phrase_lists($phrase_lists));
-        Validation_Exception::is_valid($this->validate_group_id($group));
+        Validation_Exception::is_valid($this->validate_phrase_lists($lists));
+        Validation_Exception::is_valid($this->validate_policy_id($policy));
 
         $lines = array();
 
-        foreach ($phrase_lists as $phrase_list) {
+        foreach ($lists as $phrase_list) {
             $subfolder = new Folder(self::BASE_PATH. "/lists/phraselists/$phrase_list");
             $listnames = $subfolder->get_listing();
 
@@ -1911,309 +1952,7 @@ class DansGuardian extends Daemon
             }
         }
 
-        $this->_set_configuration_by_key('weightedphraselist', $lines, $group);
-    }
-
-    /**
-     * Add a new Filter Group
-     *
-     * @param string $name New Filter Group Name
-     *
-     * @return int $id New Filter Group Id
-     */
-
-    public function delete_filter_group($id)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        try {
-            $this->GetFilterGroupConfiguration($id);
-            $file = new File(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id), TRUE);
-            foreach ($this->group_keys as $key) {
-                if (strstr($key, 'list') === FALSE) continue;
-                $value = str_replace(array('\'', '"'), '',
-                    $file->lookup_value("/^$key\s*=\s*/"));
-                $fglist = new File($value);
-                if ($fglist->exists()) $fglist->Delete();
-            }
-            $file->Delete();
-            $file = new File(self::FILE_CONFIG, TRUE);
-            try {
-                $fglist = str_replace(array('\'', '"'), '',
-                    $file->lookup_value('/^filtergroupslist\s*=\s*/'));
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-            }
-            $file = new File($fglist);
-            try {
-                $file->delete_lines("/.*=filter$id.*/");
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-            }
-            $this->_sequence_filter_groups();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Return the configuration array for the specified Filter Group if found.
-     *
-     * @param integer $id   filter group ID
-     * @param string  $name option filter group name
-     *
-     * @return array $cfg Filter Group configuration
-     */
-
-    public function get_filter_group_configuration($id, $name = NULL)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $cfg = array();
-
-        if ($id <= 0 && $name == NULL) {
-            throw new Filter_Group_Not_Found_Exception();
-        } else if ($id >= 1) {
-            $cfg = $this->_get_configuration_by_filename(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id), FALSE);
-
-            if ($cfg == NULL)
-                throw new Filter_Group_Not_Found_Exception();
-        } else {
-            $folder = new Folder(self::BASE_PATH);
-
-            $files = $folder->get_listing();
-
-            $ids = array();
-
-            foreach ($files as $file) {
-                if (sscanf($file, 'dansguardianf%d.conf', $id) != 1)
-                    continue;
-                $ids[] = $id;
-            }
-
-            $found = FALSE;
-
-            foreach ($ids as $id) {
-                $cfg = $this->_get_configuration_by_filename(sprintf(self::FILE_CONFIG_FILTER_GROUP, $id),
-                    FALSE);
-
-                foreach ($cfg as $line) {
-                    if (!preg_match("/^groupname\s*=\s*'$name'.*/", $line)) continue;
-                    $found = TRUE;
-                    break;
-                }
-
-                if ($found) break;
-            }
-
-            if (!$found)
-                throw new Filter_Group_Not_Found_Exception();
-        }
-
-        $group = array();
-
-        if ($id == 1)
-            $group['groupname'] = lang('content_filter_default');
-
-        foreach ($cfg as $line) {
-            list($key, $value) = explode('=', str_replace(array('\'', '"'), '', $line), 2);
-
-            if ($id == 1 && $key == 'groupname')
-                continue;
-
-            $group[trim($key)] = trim($value);
-        }
-
-        ksort($group);
-
-        return $group;
-    }
-
-    /**
-     * Return users of a given filter group.
-     *
-     * @param int $id Filter Group Id
-     *
-     * @return array $users Filter Group users
-     */
-
-    public function get_filter_group_users($id)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        $users = array();
-
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            try {
-                $fglist = str_replace(array('\'', '"'), '',
-                    $file->lookup_value('/^filtergroupslist\s*=\s*/'));
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-            }
-            $lines = array();
-            $file = new File($fglist);
-            try {
-                $lines = $file->get_contentsAsArray();
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-            }
-            foreach ($lines as $line) {
-                if (!preg_match("/^.*=filter$id.*$/", $line)) continue;
-                # Ignore commented lines
-                if (preg_match("/^[[:space:]]*#.*$/", $line)) continue;
-                $users[] = preg_replace("/^(.*)=filter$id.*$/", '\1', $line);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-        return $users;
-    }
-
-    /**
-     * Add a user to a given filter group.
-     *
-     * @param int $id Filter Group Id
-     * @param string $user User to add
-     *
-     * @return void
-     */
-
-    public function add_filter_group_user($id, $user)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $groups = 0;
-
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            $groups = $file->lookup_value('/^filtergroups\s*=\s*/');
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-        try {
-            for ($i = 0; $i < $groups; $i++) {
-                $users = $this->GetFilterGroupUsers($i + 1);
-                if (!in_array($user, $users)) continue;
-                # Already exists in group?  If so, bail.
-                if ($id == $i + 1)
-                    return;
-                $cfg = $this->GetFilterGroupConfiguration($i + 1);
-                throw new Engine_Exception(DANSGUARDIAN_LANG_ERR_USER_EXISTS
-                    . ' - ' . $user . ' - ' . $cfg['groupname'] . " (#$id)", COMMON_ERROR);
-            }
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-        $fglist = NULL;
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            $fglist = str_replace(array('\'', '"'), '',
-                $file->lookup_value('/^filtergroupslist\s*=\s*/'));
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-        try {
-            $file = new File($fglist);
-            $file->add_lines("$user=filter$id\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Delete a user from a given filter group.
-     *
-     * @param int $id Filter Group Id
-     * @param string $user User to delete
-     *
-     * @return void
-     */
-
-    public function delete_filter_group_user($id, $user)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        $groups = 0;
-
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            $groups = $file->lookup_value('/^filtergroups\s*=\s*/');
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-
-        $fglist = NULL;
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            $fglist = str_replace(array('\'', '"'), '',
-                $file->lookup_value('/^filtergroupslist\s*=\s*/'));
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-        try {
-            $file = new File($fglist);
-            $file->delete_lines("/^$user=filter$id.*$/");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Deletes all users from a given filter group.
-     *
-     * @param int $id Filter Group Id
-     *
-     * @return void
-     */
-
-    public function delete_filter_group_users($id)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $fglist = NULL;
-        try {
-            $file = new File(self::FILE_CONFIG, TRUE);
-            $fglist = str_replace(array('\'', '"'), '',
-                $file->lookup_value('/^filtergroupslist\s*=\s*/'));
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-        try {
-            $file = new File($fglist);
-            $file->delete_lines("/^.*=filter$id.*$/");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
-    }
-
-    /**
-     * Return an array of all filter groups
-     *
-     *
-     * @return array $groups Array of filter groups.
-     */
-
-    public function get_filter_groups()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $groups = array();
-        $folder = new Folder(self::BASE_PATH);
-
-        $files = $folder->get_listing();
-
-        $ids = array();
-
-        foreach ($files as $file) {
-            if (sscanf($file, 'dansguardianf%d.conf', $id) != 1)
-                continue;
-            $ids[] = $id;
-        }
-
-        foreach ($ids as $id)
-            $groups[$id] = $this->get_filter_group_configuration($id);
-
-        return $groups;
+        $this->_set_configuration_by_key('weightedphraselist', $lines, $policy);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -2221,35 +1960,69 @@ class DansGuardian extends Daemon
     ///////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validates group ID.
+     * Validation routine for content scan.
      *
-     * @param integer $id group ID
+     * @param boolean $state content scan
      *
-     * @return string error message if group ID is invalid
+     * @return string error message if flag is invalid
      */
 
-    public function validate_group_id($id)
+    public function validate_content_scan($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!is_numeric($id) || ($id < 0) || ($id > self::MAX_FILTER_GROUPS))
-            return lang('content_filter_group_id_invalid');
+        if (! clearos_is_valid_boolean($state))
+            return lang('content_filter_content_scan_invalid');
     }
 
     /**
-     * Validates group name.
+     * Validation routine for deep URL analysis.
      *
-     * @param string $name group name
+     * @param boolean $state deep URL analysis flag
      *
-     * @return string error message if group name is invalid
+     * @return string error message if flag is invalid
      */
 
-    public function validate_group_name($name)
+    public function validate_deep_url_analysis($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!preg_match('/^[a-z0-9_\-]+$/', $name))
-            return lang('content_filter_group_name_invalid');
+        if (! clearos_is_valid_boolean($state))
+            return lang('content_filter_deep_url_analysis_invalid');
+    }
+
+    /**
+     * Validation routine for download block flag.
+     *
+     * @param boolean $state download block flag
+     *
+     * @return string error message if flag is invalid
+     */
+
+    public function validate_download_block($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! clearos_is_valid_boolean($state))
+            return lang('content_filter_download_block_invalid');
+    }
+
+    /**
+     * Validates filter mode.
+     *
+     * @param integer $mode filter mode
+     *
+     * @return string error message if filter mode is invalid
+     */
+
+    public function validate_filter_mode($mode)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $modes = $this->get_possible_filter_modes();
+
+        if (! array_key_exists($mode, $modes))
+            return lang('content_filter_filter_mode_invalid');
     }
 
     /**
@@ -2283,33 +2056,22 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Validation routine for phrase lists.
+     * Validates system group.
      *
-     * @param array $phrase_lists an array of phrase lists
+     * @param string $group system group name
      *
-     * @return string error message if phrase list is invalid
+     * @return string error message if system group name is invalid
      */
 
-    public function validate_phrase_lists($phrase_lists)
+    public function validate_group($group)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_array($phrase_lists))
-            return lang('content_filter_phrase_list_invalid');
+        $group_manager = Group_Manager_Factory::create();
+        $all_groups = $group_manager->get_list();
 
-        $valid_lists = $this->get_possible_phrase_lists();
-
-        foreach ($phrase_lists as $phrase_list) {
-            $is_valid = FALSE;
-
-            foreach ($valid_lists as $valid_list) {
-                if ($phrase_list == $valid_list['name'])
-                    $is_valid = TRUE;
-            }
-
-            if (! $is_valid)
-                return lang('content_filter_phrase_list_invalid');
-        }
+        if (! in_array($group, $all_groups))
+            return lang('content_filter_group_invalid');
     }
 
     /**
@@ -2342,37 +2104,79 @@ class DansGuardian extends Daemon
     /**
      * Validation routine for naughtyness limit.
      *
-     * @param integer $limit naughtyness level
+     * @param integer $limit naughtyness limit
      *
-     * @return boolean TRUE if naughtyness level is valid
+     * @return string error message if limit is invalid
      */
 
-    public function is_valid_naughtyness_limit($limit)
+    public function validate_naughtyness_limit($limit)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_numeric($limit))
-            return TRUE;
-
-        return FALSE;
+        if (!(preg_match('/^[0-9]+$/', $limit) && ($limit > 0) && ($limit <= self::MAX_NAUGHTYNESS_LIMIT)))
+            return lang('content_filter_dynamic_scan_sensitivity_invalid');
     }
 
     /**
-     * Validation routine for filter group mode.
+     * Validation routine for phrase lists.
      *
-     * @param integer $mode filter group mode
+     * @param array $phrase_lists an array of phrase lists
      *
-     * @return boolean TRUE if filter group mode is valid
+     * @return string error message if phrase list is invalid
      */
 
-    public function is_valid_filter_mode($mode)
+    public function validate_phrase_lists($phrase_lists)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_numeric($mode))
-            return TRUE;
+        if (! is_array($phrase_lists))
+            return lang('content_filter_phrase_list_invalid');
 
-        return FALSE;
+        $valid_lists = $this->get_possible_phrase_lists();
+
+        foreach ($phrase_lists as $phrase_list) {
+            $is_valid = FALSE;
+
+            foreach ($valid_lists as $valid_list) {
+                if ($phrase_list == $valid_list['name'])
+                    $is_valid = TRUE;
+            }
+
+            if (! $is_valid)
+                return lang('content_filter_phrase_list_invalid');
+        }
+    }
+
+    /**
+     * Validates policy ID.
+     *
+     * @param integer $id policy ID
+     *
+     * @return string error message if policy ID is invalid
+     */
+
+    public function validate_policy_id($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!is_numeric($id) || ($id < 0) || ($id > self::MAX_FILTER_GROUPS))
+            return lang('content_filter_policy_id_invalid');
+    }
+
+    /**
+     * Validates policy name.
+     *
+     * @param string $name policy name
+     *
+     * @return string error message if policy name is invalid
+     */
+
+    public function validate_policy_name($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!preg_match('/^[a-z0-9_\-]+$/', $name))
+            return lang('content_filter_policy_name_invalid');
     }
 
     /**
@@ -2380,17 +2184,15 @@ class DansGuardian extends Daemon
      *
      * @param integer $level reporting level
      *
-     * @return boolean TRUE if reporting level is valid
+     * @return string error message if reporting level is invalid
      */
 
-    public function is_valid_reporting_level($level)
+    public function validate_reporting_level($level)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (is_numeric($level) && ($level<=3) && ($level >= -1))
-            return TRUE;
-
-        return FALSE;
+        if (!(is_numeric($level) && ($level <= 3) && ($level >= -1)))
+            return lang('content_filter_reporting_level_invalid');
     }
 
     /**
@@ -2398,17 +2200,15 @@ class DansGuardian extends Daemon
      *
      * @param integer $port filter port number
      *
-     * @return boolean TRUE if filter port number is valid
+     * @return string error message if filter port is invalid
      */
 
-    public function is_valid_filter_port($port)
+    public function validate_filter_port($port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^\d+$/", $port))
-            return TRUE;
-
-        return FALSE;
+        if (!preg_match("/^\d+$/", $port))
+            return lang('content_filter_filter_port_invalid');
     }
 
     /**
@@ -2416,17 +2216,15 @@ class DansGuardian extends Daemon
      *
      * @param string $ip IP address
      *
-     * @return boolean TRUE if IP address is valid
+     * @return string error message if proxy IP is invalid
      */
 
-    public function is_valid_proxy_ip($ip)
+    public function validate_proxy_ip($ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^([0-9\.\-]*)$/", $ip))
-            return TRUE;
-
-        return FALSE;
+        if (!preg_match("/^([0-9\.\-]*)$/", $ip))
+            return lang('content_filter_proxy_ip_invalid');
     }
 
     /**
@@ -2434,17 +2232,15 @@ class DansGuardian extends Daemon
      *
      * @param integer $port proxy port number
      *
-     * @return boolean TRUE if proxy port number is valid
+     * @return string error message if proxy port is invalid
      */
 
-    public function is_valid_proxy_port($port)
+    public function validate_proxy_port($port)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^\d+$/", $port))
-            return TRUE;
-
-        return FALSE;
+        if (! Network_Utils::is_valid_port($port))
+            return lang('content_filter_proxy_port_invalid');
     }
 
     /**
@@ -2452,17 +2248,15 @@ class DansGuardian extends Daemon
      *
      * @param string $pics PICS value
      *
-     * @return boolean if PICS value is valid
+     * @return string error message if PICS value is invalid
      */
 
-    public function is_valid_p_i_c_s($pics)
+    public function validate_pics($pics)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^[". implode("|", $this->GetPossiblePics()) ."]/", $pics))
-            return TRUE;
-
-        return FALSE;
+        if (!preg_match("/^[". implode("|", $this->get_possible_pics()) ."]/", $pics))
+            return lang('content_filter_pics_invalid');
     }
 
     /**
@@ -2470,17 +2264,15 @@ class DansGuardian extends Daemon
      *
      * @param string $site web site
      *
-     * @return boolean TRUE if web site is valid
+     * @return error message if site is invalid
      */
 
-    public function is_valid_site($site)
+    public function validate_site($site)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^[\w\_\.\-]+$|^\*ip$|^\*ips$|^\*\*$|^\*\*s$/", $site))
-            return TRUE;
-
-        return FALSE;
+        if (! (preg_match("/^[\w\_\.\-]+\.[\w\_\.\-]+$|^\*ip$|^\*ips$|^\*\*$|^\*\*s$/", $site)))
+            return lang('content_filter_site_invalid');
     }
 
     /**
@@ -2488,72 +2280,34 @@ class DansGuardian extends Daemon
      *
      * @param string $url URL
      *
-     * @return boolean TRUE if URL is valid
+     * @return error message if URL is invalid
      */
 
-    public function is_valid_url($url)
+    public function validate_url($url)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (preg_match("/^([\w\._\-\/]+)$/", $url))
-            return TRUE;
-
-        return FALSE;
-    }
-
-    /**
-     * Validation routine for file extensions.
-     *
-     * @param string $extension file extension
-     *
-     * @return boolean TRUE if file extension is valid
-     */
-
-    public function is_valid_extension($extension)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/^([\w\-\.]+)$/", $extension))
-            return TRUE;
-
-        return FALSE;
-    }
-
-    /**
-     * Validation routine for MIME.
-     *
-     * @param string $mime MIME type
-     *
-     * @return boolean TRUE if MIME type is valid
-     */
-
-    public function is_valid_m_i_m_e($extension)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/^([\w\/\-]*)$/", $extension))
-            return TRUE;
-
-        return FALSE;
+        if (! (preg_match("/^([\w\._\-\/]+)$/", $url)))
+            return lang('content_filter_url_invalid');
     }
 
     /**
      * Validation routine for IPs.
      *
+     * DansGuardian also accepts asterisks and *ip
+     *
      * @param string $ip IP address
      *
-     * @return boolean TRUE if IP address is valid
+     * @return error message if IP is invalid.
      */
 
-    public function is_valid_ip_format($ip)
+    public function validate_ip($ip)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // This is for a 'DansGuardian' IP (asterisks and other funny chars are allowed)
-        if (preg_match("/^([0-9\.\-]*)$/", $ip))
-            return TRUE;
-
-        return FALSE;
+        // TODO: tighten this up
+        if (!(preg_match("/^([0-9\.\-]*)$/", $ip)))
+            return lang('content_filter_ip_invalid');
     }
 
     /**
@@ -2561,17 +2315,15 @@ class DansGuardian extends Daemon
      *
      * @param string $locale locale
      *
-     * @return boolean TRUE if locale is valid
+     * @return string error message if locale is invalid
      */
 
-    public function is_valid_locale($locale)
+    public function validate_locale($locale)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (in_array($locale, $this->locales))
-            return TRUE;
-        else
-            return FALSE;
+        if (!in_array($locale, $this->locales))
+            return lang('content_filter_locale_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -2579,56 +2331,22 @@ class DansGuardian extends Daemon
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Add group to file designated by the key in the configuration file.
+     * Adds items to file designated by the key in the configuration file.
      *
-     * @param string $key key in the configuration file
-     * @param string $groupname group name
-     *
-     * @access private
-     * @return void
-     */
-
-    protected function _add_group_by_key($key, $groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        // Validate
-        //---------
-
-        $cfgfile = $this->_get_filename_by_key($key);
-
-        $group = new File_Group($groupname, $cfgfile);
-
-        $groupexists = $group->exists();
-
-        if ($groupexists)
-            throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_GROUP_EXISTS, COMMON_ERROR);
-
-        // Grab information from master group file
-        //----------------------------------------
-
-        $groupitems = array();
-
-        $mastergroup = new File_Group($groupname, self::FILE_GROUPS);
-
-        $groupitems = $mastergroup->get_entries();
-
-        $group->Add($groupitems);
-    }
-
-    /**
-     * Add items to file designated by the key in the configuration file.
-     *
-     * @param   key           key in the configuration file
-     * @param   items         array of items
+     * @param string  $key    key in the configuration file
+     * @param array   $items  array of items
+     * @param integer $policy policy ID
      *
      * @access private
      * @return void
+     * @throws Engine_Exception
      */
 
-    protected function _add_items_by_key($key, $items, $group = 1)
+    protected function _add_items_by_key($key, $items, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
-        $filename = $this->_get_configuration_value($key, $group);
+
+        $filename = $this->_get_configuration_value($key, $policy);
 
         // Make sure entry does not already exist
         //---------------------------------------
@@ -2636,18 +2354,16 @@ class DansGuardian extends Daemon
         $contents = array();
         $existlist = array();
         $file = new File($filename);
-        try {
-            if (!$file->exists())
-                $file->create('root', 'root', '0644');
-            else
-                $contents = $file->get_contents();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), COMMON_ERROR);
-        }
+
+        if (!$file->exists())
+            $file->create('root', 'root', '0644');
+        else
+            $contents = $file->get_contents();
 
         $lines = explode("\n", $contents);
+
         foreach ($lines as $line)
-        $existlist[] = $line;
+            $existlist[] = $line;
 
         // Add list of new items to file
         //------------------------------
@@ -2667,39 +2383,22 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Delete group from a list.
+     * Deletes items in file designated by the key in the configuration file.
      *
-     * @param   key            key
-     * @param   groupname      groupname
-     *
-     * @access private
-     * @return void
-     */
-
-    protected function _delete_group_by_key($key, $groupname)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        $cfgfile = $this->_get_filename_by_key($key);
-
-        $group = new File_Group($groupname, $cfgfile);
-
-        $group->Delete();
-    }
-
-    /**
-     * Delete items to file designated by the key in the configuration file.
-     *
-     * @param   key           key in the configuration file
-     * @param   items         array of items
+     * @param string  $key    key in the configuration file
+     * @param array   $items  array of items
+     * @param integer $policy policy ID
      *
      * @access private
      * @return void
+     * @throws Engine_Exception
      */
 
-    protected function _delete_items_by_key($key, $items, $group)
+    protected function _delete_items_by_key($key, $items, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
-        $filename = $this->_get_configuration_value($key, $group);
+
+        $filename = $this->_get_configuration_value($key, $policy);
 
         $file = new File($filename);
 
@@ -2713,26 +2412,41 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Generic parameter fetch.
+     * Returns the list of banned URLs and sites.
      *
-     * @param string $key configuration file key
-     * @param integer $group Filter group ID (default: 0)
+     * @param integer $policy policy ID
      *
-     * @access private
-     * @return string key value
+     * @return array list of banned URLs and sites
+     * @throws Engine_Exception
      */
 
-    protected function _get_configuration_value($key, $group = 1)
+    protected function _get_banned_sites_and_urls($policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // The configuration in version 2.8 was split.  This was done to
-        // group configurations (good).  For now, we simply manage this
-        // split here... feel free to redo this when group support is
-        // added.
+        $site_list = $this->_get_configuration_data_by_key('bannedsitelist', $policy);
+        $url_list = $this->_get_configuration_data_by_key('bannedurllist', $policy);
 
-        if (in_array($key, $this->group_keys) && $group > 0)
-            $filename = sprintf(self::FILE_CONFIG_FILTER_GROUP, $group);
+        return array_merge($url_list, $site_list);
+    }
+
+    /**
+     * Generic parameter fetch.
+     *
+     * @param string  $key    configuration file key
+     * @param integer $policy policy ID
+     *
+     * @access private
+     * @return string key value
+     * @throws Engine_Exception
+     */
+
+    protected function _get_configuration_value($key, $policy = NULL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (in_array($key, $this->policy_keys) && ($policy != NULL) && $policy > 0)
+            $filename = sprintf(self::FILE_CONFIG_FILTER_GROUP, $policy);
         else
             $filename = self::FILE_CONFIG;
 
@@ -2754,19 +2468,21 @@ class DansGuardian extends Daemon
     /**
      * Generic fetch of file contents specified by a key value in dansguardian.conf.
      *
-     * @access private
-     * @param   key    configuration file key
+     * @param string  $key    configuration file key
+     * @param integer $policy policy ID
      *
+     * @access private
      * @return array lines in target file
+     * @throws Engine_Exception
      */
 
-    protected function _get_configuration_data_by_key($key, $isgroup, $group = 1)
+    protected function _get_configuration_data_by_key($key, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
-        $filename = $this->_get_configuration_value($key, $group);
 
-        $lines = array();
-        $lines = $this->_get_configuration_by_filename($filename, $isgroup, $group);
+        $filename = $this->_get_configuration_value($key, $policy);
+
+        $lines = $this->_get_configuration_by_filename($filename, $policy);
 
         return $lines;
     }
@@ -2774,94 +2490,52 @@ class DansGuardian extends Daemon
     /**
      * Generic fetch of file contents.
      *
-     * @param string $filename configuration file
+     * @param string  $filename configuration file
+     * @param integer $policy   policy ID
      *
      * @access private
      * @return array lines in target file
      */
 
-    protected function _get_configuration_by_filename($filename, $isgroup, $group = 1)
+    protected function _get_configuration_by_filename($filename, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $cfgfile = new File($filename);
-        $rawdata = $cfgfile->get_contents();
-
-        // Parse all non-commented lines in the file
-        //------------------------------------------
+        $config_file = new File($filename);
+        $lines = $config_file->get_contents_as_array();
 
         $list = array();
-        $rawlines = array();
-        $rawlines = explode("\n", $rawdata);
 
-        foreach ($rawlines as $line) {
+        foreach ($lines as $line) {
             // Skip blank lines, comments, other include files
-
-            if (! (preg_match("/^#/", $line) ||
-                preg_match("/^.Include/", $line) || preg_match("/^\s*$/", $line))) {
+            if (! (preg_match("/^#/", $line) || preg_match("/^.Include/", $line) || preg_match("/^\s*$/", $line))) {
                 $list[] = $line;
                 // TODO: clean this up (part of a last minute change)
-            } else if (preg_match("/^.Include/", $line) &&
-                ($filename == self::FILE_PHRASE_LIST ||
-                    $filename == sprintf(self::FILE_PHRASE_LIST . '%d', $group))) $list[] = $line;
+            } else if (preg_match("/^.Include/", $line) 
+                && ($filename == self::FILE_PHRASE_LIST || $filename == sprintf(self::FILE_PHRASE_LIST . '%d', $policy))
+            ) {
+                $list[] = $line;
+            }
         }
 
-        //-----------------------------------------------------------
-        // Return either group information, or individual information
-        //-----------------------------------------------------------
-
-        // Grab the list of groups
-        //------------------------
-
-        $groupmanager = new File_Group_Manager($filename);
-        $grouplist = array();
-        $grouplist = $groupmanager->get_groups();
-
-        // Put all the items in every group into an array
-        //-----------------------------------------------
-
-        $groupentries = array();
-        foreach ($grouplist as $groupname) {
-            try {
-                $group = new File_Group($groupname, $filename);
-                $newentries = $group->get_entries();
-                $groupentries = array_merge($newentries, $groupentries);
-            } catch(Exception $e) { }
-        }
-
-        // Split list into groups/non-groups
-        //----------------------------------
-
-        $items = array();
-        $groupitems = array();
-
-        foreach ($list as $value) {
-            if (in_array($value, $groupentries))
-                $groupitems[] = $value;  // Just used for testing
-            else $items[] = $value;
-        }
-
-        if ($isgroup)
-            return $grouplist;
-        else
-            return $items;
+        return $list;
     }
 
     /**
      * Returns the target file name for a given dansguardian.conf key.
      *
-     * @param string $param Key to search for
-     * @param integer $group Filter group ID (default: 0)
+     * @param string  $param  key to search for
+     * @param integer $policy policy ID
      *
      * @return string full path of file
      */
 
-    protected function _get_filename_by_key($param, $group = 1)
+    protected function _get_filename_by_key($param, $policy = 1)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (in_array($param, $this->group_keys))
-            $filename = sprintf(self::FILE_CONFIG_FILTER_GROUP, $group);
+        if (in_array($param, $this->policy_keys) && ($policy != NULL))
+            $filename = sprintf(self::FILE_CONFIG_FILTER_GROUP, $policy);
         else
             $filename = self::FILE_CONFIG;
 
@@ -2873,44 +2547,15 @@ class DansGuardian extends Daemon
     }
 
     /**
-     * Returns keyed configuration by filename.
-     *
-     * @param string $filename filename
-     *
-     * @access private
-     * @return array configuration
-     */
-
-    protected function _get_keyed_configuration_by_filename($filename)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $rawlist = $this->_get_configuration_by_filename($filename, FALSE);
-
-        $list = array();
-
-        foreach ($rawlist as $line) {
-            $items = explode("|", $line);
-            $key = trim($items[0]);
-            $description = isset($items[1]) ? trim($items[1]) : "";
-            $list[$key] = $description;
-        }
-
-        ksort($list);
-
-        return $list;
-    }
-
-    /**
      * (Re)sequence filter group IDs.
      *
-     * Called automatically after adding or deleting a filter group.
+     * Called after deleting a filter group.
      *
      * @access private
      * @return void
      */
 
-    protected function _sequence_filter_groups()
+    protected function _sequence_policies()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -2933,20 +2578,9 @@ class DansGuardian extends Daemon
             if ($ids[$i]['id'] == $i + 1)
                 continue;
 
-            $file = new File(self::FILE_CONFIG, TRUE);
-
-            $fglist = str_replace(array('\'', '"'), '', $file->lookup_value('/^filtergroupslist\s*=\s*/'));
-
-            $file = new File($fglist);
-
-            $file->replace_lines_by_pattern(
-                sprintf('/^(.*)=filter%d$/', $ids[$i]['id']),
-                sprintf('$1=filter%d', $i + 1)
-            );
-
             $file = new File(self::BASE_PATH . '/' . $ids[$i]['file'], TRUE);
 
-            foreach ($this->group_keys as $key) {
+            foreach ($this->policy_keys as $key) {
 
                 if (strstr($key, 'list') === FALSE)
                     continue;
@@ -2972,26 +2606,26 @@ class DansGuardian extends Daemon
     /**
      * Generic set for a configuration value.
      *
-     * @param string  $key   configuration key
-     * @param string  $value value for the configuration key
-     * @param integer $group group ID
+     * @param string  $key    configuration key
+     * @param string  $value  value for the configuration key
+     * @param integer $policy policy ID
      *
      * @access private
      * @return void
      */
 
-    protected function _set_configuration_value($key, $value, $group = 1)
+    protected function _set_configuration_value($key, $value, $policy = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (in_array($key, $this->group_keys) && $group > 0)
-            $filename = sprintf(self::FILE_CONFIG_FILTER_GROUP, $group);
+        if (in_array($key, $this->policy_keys) && (!is_null($policy)) && ($policy > 0))
+            $filename = sprintf(self::FILE_CONFIG_FILTER_GROUP, $policy);
         else
             $filename = self::FILE_CONFIG;
 
         $file = new File($filename);
 
-        $match = $file->replace_lines("/^#*\s*$key\s=/", "$key = $value\n");
+        $match = $file->replace_lines("/^#*\s*$key\s=/", "$key = '$value'\n");
 
         if (!$match)
             $file->add_lines("$key = $value\n");
@@ -3000,22 +2634,22 @@ class DansGuardian extends Daemon
     /**
      * Generic set for a configuration file by key in configuration file.
      *
-     * @param string  $key   configuration key
-     * @param string  $lines array of lines in config file
-     * @param integer $group group ID
+     * @param string  $key    configuration key
+     * @param string  $lines  array of lines in config file
+     * @param integer $policy policy ID
      *
      * @access private
      * @return void
      */
 
-    protected function _set_configuration_by_key($key, $lines, $group = 1)
+    protected function _set_configuration_by_key($key, $lines, $policy = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (! is_array($lines))
             $lines = array($lines);
 
-        $filename = $this->_get_configuration_value($key, $group);
+        $filename = $this->_get_configuration_value($key, $policy);
         $filename = preg_replace("/'/", '', $filename);
 
         $file = new File($filename, TRUE);
@@ -3062,14 +2696,14 @@ class DansGuardian extends Daemon
         $urls = array();
 
         foreach ($sourcelist as $value) {
-            if ($this->IsValidSite($value) || $this->IsValidIpFormat($value)) {
+            if ($this->validate_site($value) || $this->validate_ip($value)) {
                 $sites[] = $value;
-            } else if ($this->IsValidUrl($value)) {
+            } else if ($this->validate_url($value)) {
                 $urls[] = $value;
             } else if (preg_match("/^\s$/", $value)) {
                 continue; // Ignore blank entries
             } else {
-                throw new Engine_Exception(DANSGUARDIAN_LANG_ERRMSG_EXCEPTIONLIST_INVALID, COMMON_ERROR);
+                throw new Validation_Exception(lang('content_filter_site_invalid'));
             }
         }
     }

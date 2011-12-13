@@ -2,6 +2,13 @@
 
 $lang['content_filter_app_name'] = 'Content Filter';
 $lang['content_filter_app_description'] = 'The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.';
+$lang['content_filter_no_system_groups_warning'] = 'All the system groups have a configured filter policy.  If you would like to add a new policy, please add more system groups.';
+$lang['content_filter_add_system_group'] = 'Add System Group';
+$lang['content_filter_global_settings'] = 'Global Settings';
+$lang['content_filter_exception_ips'] = 'Exception IPs';
+$lang['content_filter_exception_ip'] = 'Exception IP';
+$lang['content_filter_banned_ips'] = 'Banned IPs';
+$lang['content_filter_banned_ip'] = 'Banned IP';
 $lang['content_filter_reverse_address_lookups'] = 'Reverse Address Lookups';
 $lang['content_filter_group_policies'] = 'Group Policies';
 $lang['content_filter_blacklists'] = 'Blacklists';
@@ -33,6 +40,7 @@ $lang['content_filter_deep_url_analysis'] = 'Deep URL Analysis';
 $lang['content_filter_block_downloads'] = 'Block Downloads';
 $lang['content_filter_block_ip_domains'] = 'Block IP Domains';
 $lang['content_filter_blanket_block'] = 'Blanket Block';
+$lang['content_filter_site'] = 'Site';
 
 $lang['content_filter_banned_site_list'] = 'Banned Site List';
 $lang['content_filter_ban_everything'] = 'Blanket Block';

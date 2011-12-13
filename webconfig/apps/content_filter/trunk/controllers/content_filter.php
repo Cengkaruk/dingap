@@ -65,13 +65,15 @@ class Content_Filter extends ClearOS_Controller
 
         $views = array(
             'content_filter/server',
-            'content_filter/settings',
+            'content_filter/global_settings',
             'content_filter/policy',
         );
-// general settings
-// banned IP list
-// exempt IP list
-// groups
+
+        // FIXME
+        // general settings
+        // banned IP list
+        // exempt IP list
+        // groups
 
         $this->page->view_forms($views, lang('content_filter_app_name'));
     }

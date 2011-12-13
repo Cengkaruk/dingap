@@ -45,10 +45,10 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/content_filter/
  */
 
-class Policy extends ClearOS_Controller
+class Global_Settings extends ClearOS_Controller
 {
     /**
-     * Policy summary view.
+     * Global settings view.
      *
      * @return view
      */
@@ -59,68 +59,11 @@ class Policy extends ClearOS_Controller
         //---------------
 
         $this->lang->load('content_filter');
-        $this->load->library('content_filter/DansGuardian');
-
-        // Load view data
-        //---------------
-
-        try {
-            $data['groups'] = $this->dansguardian->get_policies();
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
- 
-        // Load views
-        //-----------
-
-        $this->page->view_form('content_filter/policy/list', $data, lang('content_filter_policies'));
-    }
-
-    /**
-     * Add policy view.
-     *
-     * @return view
-     */
-
-    function add()
-    {
-        $this->_item('add');
-    }
-
-    /**
-     * Edit policy view.
-     *
-     * @param string $policy policy
-     *
-     * @return view
-     */
-
-    function configure($policy)
-    {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('content_filter');
-        $this->load->library('content_filter/DansGuardian');
-
-        // Load the view data 
-        //------------------- 
-
-        try {
-            $configuration = $this->dansguardian->get_policy_configuration($policy);
-        } catch (Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
-
-        $data['policy'] = $policy;
-        $data['name'] = $configuration['groupname']; 
 
         // Load the views
         //---------------
 
-        $this->page->view_form('content_filter/policy/summary', $data, lang('content_filter_policy'));
+        $this->page->view_form('content_filter/global', $data, lang('content_filter_policy'));
     }
 
     /**
@@ -259,15 +202,12 @@ class Policy extends ClearOS_Controller
         //---------------
 
         try {
+            if ($form_type === 'edit')
+                $data['policy_name'] = $this->dansguardian->get_policy_name($policy);
+
             $data['policy'] = $policy;
             $data['form_type'] = $form_type;
-
-            if ($form_type === 'edit') {
-                $data['policy_name'] = $this->dansguardian->get_policy_name($policy);
-                $data['group'] = $this->dansguardian->get_policy_system_group($policy);
-            }
-
-            $data['groups'] = $this->dansguardian->get_possible_system_groups($data['group']);
+            $data['groups'] = $this->group_manager->get_list();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

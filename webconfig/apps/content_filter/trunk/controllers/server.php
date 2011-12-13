@@ -60,6 +60,10 @@ require clearos_app_base('base') . '/controllers/daemon.php';
 
 class Server extends Daemon
 {
+    /**
+     * DansGuardian daemon constructor.
+     */
+
     function __construct()
     {
         parent::__construct('dansguardian-av', 'content_filter');

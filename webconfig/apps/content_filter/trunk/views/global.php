@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Content filter phrase lists view.
+ * Content filter policy summary view.
  *
  * @category   Apps
  * @package    Content_Filter
@@ -33,54 +33,27 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
 $this->lang->load('content_filter');
-
-///////////////////////////////////////////////////////////////////////////////
-// Buttons
-///////////////////////////////////////////////////////////////////////////////
-
-$buttons = array(
-    anchor_cancel('/app/content_filter/policy/configure/' . $policy),
-    form_submit_update('submit', 'high')
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Headers
-///////////////////////////////////////////////////////////////////////////////
-
-$headers = array(
-    lang('content_filter_phrase_lists'),
-    lang('base_description'),
-);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($all_phrase_lists as $phrase_list) {
-    $item['title'] = $phrase_list['name'];
-    $item['name'] = 'phrase_lists[' . $phrase_list['name'] . ']';
-    $item['state'] = in_array($phrase_list['name'], $active_phrase_lists) ? TRUE : FALSE;
-    $item['details'] = array(
-        $phrase_list['name'],
-        $phrase_list['description'],
-    );
+$anchor = anchor_edit('/app/content_filter/exception_ips/edit', 'high');
+$items['exception_ips']['title'] = lang('content_filter_exception_ips');
+$items['exception_ips']['action'] = $anchor;
+$items['exception_ips']['anchors'] = array($anchor);
 
-    $items[] = $item;
-}
+$anchor = anchor_edit('/app/content_filter/banned_ips/edit', 'high');
+$items['banned_ips']['title'] = lang('content_filter_banned_ips');
+$items['banned_ips']['action'] = $anchor;
+$items['banned_ips']['anchors'] = array($anchor);
 
 ///////////////////////////////////////////////////////////////////////////////
-// List table
+// Action table
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('content_filter/phrase_lists/edit/' . $policy);
-
-echo list_table(
-    lang('content_filter_phrase_lists'),
-    $buttons,
-    $headers,
+echo action_table(
+    lang('content_filter_global_settings'),
     $items
 );
-
-echo form_close();

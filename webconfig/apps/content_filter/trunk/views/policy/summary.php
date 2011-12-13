@@ -84,6 +84,9 @@ $items['exception_sites']['anchors'] = array($anchor);
 // Action table
 ///////////////////////////////////////////////////////////////////////////////
 
+// FIXME
+echo infobox_highlight('', 'This back button will be moved below - here it is for now: ' . anchor_custom('/app/content_filter', 'Back'));
+
 echo action_table(
     lang('content_filter_policy') . ' - ' . $name,
     $items
