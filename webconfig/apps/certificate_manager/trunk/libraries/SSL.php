@@ -65,7 +65,6 @@ clearos_load_language('certificate_manager');
 // Classes
 //--------
 
-use \clearos\apps\base\Country as Country;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
@@ -74,7 +73,6 @@ use \clearos\apps\certificate_manager\SSL as SSL;
 use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\organization\Organization as Organization;
 
-clearos_load_library('base/Country');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
@@ -95,7 +93,6 @@ clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('certificate_manager/Certificate_Already_Exists_Exception');
 clearos_load_library('certificate_manager/Certificate_Not_Found_Exception');
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -343,7 +340,8 @@ class SSL extends Engine
         $this->_save_configuration($config);
 
         // Construct OpenSSL arguments
-        $args = sprintf('req -new -x509 -extensions v3_ca -days %d -out %s -batch -nodes -config %s',
+        $args = sprintf(
+            'req -new -x509 -extensions v3_ca -days %d -out %s -batch -nodes -config %s',
             $this->configuration[$ca]['default_days'],
             $this->configuration[$ca]['certificate'],
             $config
@@ -375,6 +373,8 @@ class SSL extends Engine
      * Creates a default client certificate.
      *
      * @param string $username username
+     * @param string $password password
+     * @param string $verify   verify
      *
      * @return void
      * @throws Engine_Exception
@@ -384,7 +384,7 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME validate
+        // TODO validate
 
         $organization = new Organization();
 
@@ -457,6 +457,7 @@ class SSL extends Engine
 
         $shell = new Shell();
         $tmp_file = tempnam("/var/tmp", "decrypt");
+
         try {
             $file = new File($tmp_file);
             $file->chown("webconfig", "webconfig");
@@ -465,16 +466,18 @@ class SSL extends Engine
             try {
                 $tempfile = new File($tmp_file, TRUE);
                 $tempfile->delete();
-            } catch (Engine_Exception $e) {}
+            } catch (Engine_Exception $e) {
+                // not fatal
+            }
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
-        # Execute OpenSSL
+        // Execute OpenSSL
         $folder = new Folder(SSL::PATH_SSL . "/private/");
         $private_keys = $folder->GetListing();
 
         foreach ($private_keys as $private_key) {
-            # Get public/private key pairs
+            // Get public/private key pairs
             $key = SSL::PATH_SSL . "/private/" . $private_key;
             $cert = SSL::PATH_SSL . "/" . preg_replace("/-key/i", "-cert", $private_key);
 
@@ -662,10 +665,10 @@ class SSL extends Engine
     }
 
     /**
-     * Exports PKCS#12.
+     * Exports PKCS12.
      *
      * @param string $filename certificate filename (must be unique among all certificates)
-     * @param string $password password used to encrypt PKCS#12 file
+     * @param string $password password used to encrypt PKCS12 file
      * @param string $verify   password verify
      *
      * @return void
@@ -714,17 +717,21 @@ class SSL extends Engine
             try {
                 $passfile = new File($passout, TRUE);
                 $passfile->delete();
-            } catch (Engine_Exception $e) {}
+            } catch (Engine_Exception $e) {
+                // Not fatal
+            }
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
         // Construct OpenSSL arguments
-        $args = sprintf("pkcs12 -export -in %s -inkey %s -certfile %s -name \"%s\" -passout file:%s -out %s",
+        $args = sprintf(
+            "pkcs12 -export -in %s -inkey %s -certfile %s -name \"%s\" -passout file:%s -out %s",
             "$dir/$filename",
             "$dir/private/" . preg_replace('/-cert.pem$/', "-key.pem", $filename),
             $this->configuration[$ca]["certificate"],
             preg_replace('/-cert.pem$/', ".p12", $filename), $passout,
-            "$dir/" . preg_replace('/-cert.pem$/', ".p12", $filename));
+            "$dir/" . preg_replace('/-cert.pem$/', ".p12", $filename)
+        );
 
         // Execute OpenSSL
         try {
@@ -734,14 +741,18 @@ class SSL extends Engine
             try {
                 $passfile = new File($passout, TRUE);
                 $passfile->delete();
-            } catch (Engine_Exception $e) {}
+            } catch (Engine_Exception $e) {
+                // Not fatal
+            }
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
         try {
             $passfile = new File($passout, TRUE);
             $passfile->delete();
-        } catch (Engine_xception $e) {}
+        } catch (Engine_Exception $e) {
+            // Not fatal
+        }
 
         if ($exitcode != 0) {
             $errstr = $shell->get_last_output_line();
@@ -749,7 +760,9 @@ class SSL extends Engine
             try {
                 $delfile = new File("$dir/" . preg_replace('/-cert.pem$/', ".p12", $filename), TRUE);
                 $delfile->delete();
-            } catch (Engine_Exception $e) {}
+            } catch (Engine_Exception $e) {
+                // Not fatal
+            }
 
             throw new Engine_Exception($errstr);
         }
@@ -870,10 +883,10 @@ class SSL extends Engine
     /**
      * Returns PEM contents.
      *
-     * @param  string  $filename  Certificate filename
+     * @param string $filename certificate filename
      *
-     * @return  array  contents of certificate
-     * @throws  Certificate_Not_Found_Exception, Engine_Exception
+     * @return array contents of certificate
+     * @throws Certificate_Not_Found_Exception, Engine_Exception
      */
 
     public function get_certificate_pem($filename)
@@ -895,10 +908,10 @@ class SSL extends Engine
     /**
      * Returns certificate text.
      *
-     * @param  string  $filename  Certificate filename
+     * @param string $filename certificate filename
      *
-     * @return  array  contents of certificate text
-     * @throws  Certificate_Not_Found_Exception, Engine_Exception
+     * @return array contents of certificate text
+     * @throws Certificate_Not_Found_Exception, Engine_Exception
      */
 
     public function get_certificate_text($filename)
@@ -907,7 +920,7 @@ class SSL extends Engine
 
         $filename = SSL::PATH_SSL . "/$filename";
 
-        # Make sure parsing is done in English
+        // Make sure parsing is done in English
         $options['env'] = "LANG=en_US";
 
         $file = new File($filename);
@@ -920,7 +933,8 @@ class SSL extends Engine
             $type = 'x509';
 
         $shell = new Shell();
-        # It would be nice to get this all from one call, but you can't count on fields set
+
+        // It would be nice to get this all from one call, but you can't count on fields set
         $args = "$type -in $filename -noout -text";
         if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE, $options) == 0) {
             $contents = $shell->get_output();
@@ -988,7 +1002,6 @@ class SSL extends Engine
     /**
      * Returns certificate authority attributes.
      *
-     *
      * @return array attributes of certificate authority
      * @throws Certificate_Not_Found_Exception, Engine_Exception
      */
@@ -1007,7 +1020,6 @@ class SSL extends Engine
 
     /**
      * Returns certificate authority filename.
-     *
      *
      * @return string certificate authority filename
      * @throws Certificate_Not_Found_Exception, Engine_Exception
@@ -1085,7 +1097,6 @@ class SSL extends Engine
     /**
      * Returns certificate signing options.
      *
-     *
      * @return array
      */
 
@@ -1094,8 +1105,8 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $options = array(
-            self::SIGN_SELF=>SSL_LANG_SIGN_SELF,
-            self::SIGN_3RD_PARTY=>SSL_LANG_SIGN_3RD_PARTY
+            self::SIGN_SELF => lang('certificate_manager_self_signed'),
+            self::SIGN_3RD_PARTY => lang('certificate_manager_third_party')
         );
 
         return $options;
@@ -1103,7 +1114,6 @@ class SSL extends Engine
 
     /**
      * Returns certificate term options.
-     *
      *
      * @return array
      */
@@ -1113,19 +1123,19 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $options = array(
-            self::TERM_1DAY=>"1 " . SSL_LANG_DAY,
-            self::TERM_7DAYS=>"7 " . SSL_LANG_DAYS,
-            self::TERM_1MONTH=>"1 " . SSL_LANG_MONTH,
-            self::TERM_3MONTHS=>"3 " . SSL_LANG_MONTHS,
-            self::TERM_6MONTHS=>"6 " . SSL_LANG_MONTHS,
-            self::TERM_1YEAR=>"1 " . SSL_LANG_YEAR,
-            self::TERM_2YEAR=>"2 " . SSL_LANG_YEARS,
-            self::TERM_3YEAR=>"3 " . SSL_LANG_YEARS,
-            self::TERM_5YEAR=>"5 " . SSL_LANG_YEARS,
-            self::TERM_10YEAR=>"10 " . SSL_LANG_YEARS,
-            self::TERM_15YEAR=>"15 " . SSL_LANG_YEARS,
-            self::TERM_20YEAR=>"20 " . SSL_LANG_YEARS,
-            self::TERM_25YEAR=>"25 " . SSL_LANG_YEARS
+            self::TERM_1DAY => '1 ' . lang('base_day'),
+            self::TERM_7DAYS => '7 ' . lang('base_days'),
+            self::TERM_1MONTH => '1 ' . lang('base_month'),
+            self::TERM_3MONTHS => '3 ' . lang('base_months'),
+            self::TERM_6MONTHS => '6 ' . lang('base_months'),
+            self::TERM_1YEAR => '1 ' . lang('base_year'),
+            self::TERM_2YEAR => '2 ' . lang('base_years'),
+            self::TERM_3YEAR => '3 ' . lang('base_years'),
+            self::TERM_5YEAR => '5 ' . lang('base_years'),
+            self::TERM_10YEAR => '10 ' . lang('base_years'),
+            self::TERM_15YEAR => '15 ' . lang('base_years'),
+            self::TERM_20YEAR => '20 ' . lang('base_years'),
+            self::TERM_25YEAR => '25 ' . lang('base_years')
         );
 
         return $options;
@@ -1147,12 +1157,13 @@ class SSL extends Engine
     /**
      * Initializes the default certificate authority and system certificate.
      *
-     * @param string $domain domain
-     * @param string $orgname organization name
-     * @param string $unit organization unit
-     * @param string $city city
-     * @param string $region region
-     * @param string $country country
+     * @param string $hostname hostname
+     * @param string $domain   domain
+     * @param string $orgname  organization name
+     * @param string $unit     organization unit
+     * @param string $city     city
+     * @param string $region   region
+     * @param string $country  country
      *
      * @return void
      * @throws Certificate_Not_Found_Exception, Engine_Exception
@@ -1217,11 +1228,11 @@ class SSL extends Engine
     /**
      * Imports signed certificate.
      *
-     * @param string $filename the REQ filename
-     * @param string $cert the certificate contents
+     * @param string $filename REQ filename
+     * @param string $cert     certificate contents
      *
      * @return void
-     * @throws Certificate_Not_Found_Exception, Engine_Exception
+     * @throws Certificate_Not_Found_Exception, Engine_Exception, Validation_Exception
      */
 
     public function import_signed_certificate($filename, $cert)
@@ -1230,12 +1241,9 @@ class SSL extends Engine
 
         $cert = trim($cert);
 
-        # Validation
-        if (! $this->IsValidCertificate($cert)) {
-            throw new Validation_Exception(SSL_LANG_ERRMSG_INVALID_CERT);
-        }
-        
-        # Put cert in array for dump_contents_from_array method
+        Validation_Exception::is_valid($this->validate_certificate($cert));
+
+        // Put cert in array for dump_contents_from_array method
         $cert_in_array = array($cert);
 
         $file = new File(SSL::PATH_SSL . "/" . $filename);
@@ -1281,42 +1289,42 @@ class SSL extends Engine
     /**
      * Checks to see if certificate is signed from the resident CA.
      *
-     * @param  string  $filename  the certificate filename
+     * @param string $filename certificate filename
      *
-     * @return  boolean  TRUE if signed locally 
-     * @throws  Certificate_Not_Found_Exception, Engine_Exception
+     * @return boolean TRUE if signed locally 
+     * @throws Certificate_Not_Found_Exception, Engine_Exception
      */
 
-    public function is_signed_by_local_c_a($filename)
+    public function is_signed_by_local_ca($filename)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        # CA
+        // CA
         $ca = self::FILE_CA_CRT;
 
-        # Cert
+        // Cert
         $cert = self::PATH_SSL . "/" . $filename;
 
-        # Check that CA exists
+        // Check that CA exists
         $file = new File($ca);
         if (! $file->exists())
             throw new Certificate_Not_Found_Exception();
 
-        # Check that certificate exists
+        // Check that certificate exists
         $file = new File($cert);
         if (! $file->exists())
             throw new Certificate_Not_Found_Exception();
 
         $shell = new Shell();
-        # Get subject of CA
+        // Get subject of CA
         $args = "x509 -in $ca -noout -subject";
         if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
             $subject = trim(preg_replace('/^subject=/', '', $shell->get_last_output_line()));
-            # Now compare against issuer of certificate
+            // Now compare against issuer of certificate
             $args = "x509 -in $cert -noout -issuer ";
             if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE) == 0) {
                 $issuer = trim(preg_replace('/^issuer=/', '', $shell->get_last_output_line()));
-                # If we get here, compare the two...a match returns TRUE
+                // If we get here, compare the two...a match returns TRUE
                 if ($issuer == $subject)
                     return TRUE;
                 else
@@ -1334,52 +1342,53 @@ class SSL extends Engine
     /**
      * Renews a certificate.
      *
-     * @param  string  $filename  Certificate filename
-     * @param  int  $term  the certificate expiry term (in days)
-     * @param  string  $password  Password used to encrypt PKCS#12 file
-     * @param  string  $verify  Password verify
-     * @param  boolean  $pkcs12  Flag Password verify
+     * @param string  $filename certificate filename
+     * @param integer $term     certificate expiry term (in days)
+     * @param string  $password password used to encrypt PKCS12 file
+     * @param string  $verify   password verify
+     * @param boolean $pkcs12   PKCS12 password veify flag
      *
-     * @return  string  $filename of signed certificate
-     * @throws  Validation_Exception, Engine_Exception
+     * @return string filename of signed certificate
+     * @throws Validation_Exception, Engine_Exception
      */
 
     public function renew_certificate($filename, $term, $password = NULL, $verify = NULL, $pkcs12 = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        # Validation
-        if ($pkcs12 != NULL && !$this->IsValidPassword($password, $verify)) {
-            $errors = $this->GetValidationErrors();
-            throw new Validation_Exception($errors[0]);
-        }
-        
-        # Need attributes of exiting cert
+        Validation_Exception::is_valid($this->validate_pkcs12($pkcs12));
+        Validation_Exception::is_valid($this->validate_password_and_verify($password, $verify));
+
+        // Need attributes of exiting cert
         $cert = $this->get_certificate_attributes($filename);
-        # Set start date to now (YYMMDDHHMMSSZ)
+
+        // Set start date to now (YYMMDDHHMMSSZ)
         $timestamp = time();
         $start_date = date("ymdhis\Z", $timestamp);
-// FIXME
+
+        // FIXME
         if (isset($cert['smime']) && $cert['smime'])
             $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
         else
             $this->set_purpose(self::PURPOSE_SERVER_LOCAL);
-        # Add on existing cert's expiry
+
+        // Add on existing cert's expiry
         $timestamp = strtotime($cert['expires']) + ($term*24*60*60);
         $end_date = date("ymdhis\Z", $timestamp);
         $this->set_start_date($start_date);
         $this->set_end_date($end_date);
         $this->set_organization_name($cert['org_name']);
         $this->set_organizational_unit($cert['org_unit']);
-        # TODO - this may be blank...OK?
+
+        // TODO - this may be blank...OK?
         if ($cert['email'])
             $this->set_email_address($cert['email']);
         $this->set_locality($cert['city']);
         $this->set_state_or_province($cert['region']);
         $this->set_country_code($cert['country']);
 
-        # Force filename
-// FIXME
+        // Force filename
+        // FIXME
         $req_filename = $this->create_certificate_request($cert['common_name'], $filename);
         if (! $this->is_signed_by_local_ca($filename))
             return;
@@ -1407,7 +1416,7 @@ class SSL extends Engine
         $id = NULL;
 
         // Don't revoke a CA cert...it's not in the index
-// FIXME: now full path
+        // FIXME: now full path
         if ($filename == self::FILE_CA_CRT)
             return;
 
@@ -1425,7 +1434,7 @@ class SSL extends Engine
         // Get cert index
         $file = new File(self::FILE_INDEX);
         if (! $file->exists())
-            throw new Engine_Exception(LOCALE_LANG_ERRMSG_WEIRD);
+            throw new Engine_Exception(lang('certificate_manager_index_file_missing'));
 
         $lines = $file->get_contents_as_array();
 
@@ -1453,6 +1462,7 @@ class SSL extends Engine
      * Sets organization name.
      *
      * @param string $organization organization name
+     * @param string $default      sets default value
      *
      * @return void
      */
@@ -1478,7 +1488,8 @@ class SSL extends Engine
     /**
      * Sets organizational unit name.
      *
-     * @param string $unit organizational unit (ie. Marketing, IT etc.)
+     * @param string $unit    organizational unit (ie. Marketing, IT etc.)
+     * @param string $default sets default value
      *
      * @return void
      */
@@ -1504,10 +1515,11 @@ class SSL extends Engine
     /**
      * Sets email address.
      *
-     * @param string email e-mail address
+     * @param string $email   e-mail address
+     * @param string $default sets default value
      *
      * @return void
-     * @throws  Validation_Exception
+     * @throws Validation_Exception
      */
 
     public function set_email_address($email, $default = FALSE)
@@ -1531,7 +1543,8 @@ class SSL extends Engine
     /**
      * Sets locality.
      *
-     * @param string locality locality (city, district)
+     * @param string $locality locality (city, district)
+     * @param string $default  sets default value
      *
      * @return void
      */
@@ -1557,7 +1570,8 @@ class SSL extends Engine
     /**
      * Sets state or province
      *
-     * @param string $state state or province
+     * @param string $state   state or province
+     * @param string $default sets default value
      *
      * @return void
      */
@@ -1583,10 +1597,11 @@ class SSL extends Engine
     /**
      * Sets country code.
      *
-     * @param string code country code
+     * @param string $code    country code
+     * @param string $default sets default value
      *
      * @return void
-     * @throws  Validation_Exception, Engine_Exception
+     * @throws Validation_Exception, Engine_Exception
      */
 
     public function set_country_code($code, $default = FALSE)
@@ -1610,7 +1625,7 @@ class SSL extends Engine
     /**
      * Sets RSA key size.
      *
-     * @param string name Common name
+     * @param string $key_size key size
      *
      * @return void
      */
@@ -1765,7 +1780,7 @@ class SSL extends Engine
         $ca = $this->configuration['ca']['default_ca'];
 
         if (!preg_match('/' . self::SUFFIX_REQUEST . '$/', $filename))
-            throw new Engine_Exception(SSL_LANG_ERRMSG_NOT_A_REQ);
+            throw new Engine_Exception(lang('certificate_manager_certificate_request_invalid'));
 
         if (!$renew) {
             $file = new File("$dir/" . preg_replace('/-req.pem$/', '-cert.pem', $filename));
@@ -1787,10 +1802,12 @@ class SSL extends Engine
         $this->_save_configuration($config);
 
         // Construct OpenSSL arguments
-        $args = sprintf('ca -extensions v3_req -days %d -out %s -batch -config %s -infiles %s ',
+        $args = sprintf(
+            'ca -extensions v3_req -days %d -out %s -batch -config %s -infiles %s ',
             $this->configuration[$ca]['default_days'],
             '/dev/null', $config,
-            $dir . '/' . $filename);
+            $dir . '/' . $filename
+        );
 
         // Execute OpenSSL
         $shell = new Shell();
@@ -1846,34 +1863,32 @@ class SSL extends Engine
     /**
      * Update a certificate.
      *
-     * @param  string  $common_name Common name to use (secure.pointclark.net, jim@pointclark.com, etc)
-     * @param  string  $filename  Certificate filename
+     * @param string $common_name common name to use (secure.pointclark.net, jim@pointclark.com, etc)
+     * @param string $filename    certificate filename
      *
-     * @return  void
-     * @throws  Validation_Exception, Engine_Exception
+     * @return void
+     * @throws Validation_Exception, Engine_Exception
      */
 
     public function update_certificate($common_name, $filename)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $this->IsValidCommonName($common_name)) {
-            $errors = $this->GetValidationErrors();
-            throw new Validation_Exception($errors[0]);
-        }
+        Validation_Exception::is_valid($this->validate_common_name($common_name));
 
-        # Need expire start/stop of exiting cert
+        // Need expire start/stop of exiting cert
         $cert = $this->get_certificate_attributes($filename);
         $this->set_start_date(date("ymdhis\Z", strtotime($cert['issued'])));
         $this->set_end_date(date("ymdhis\Z", strtotime($cert['expires'])));
-        # Need purpose
-// FIXME
+
+        //  Need purpose
+        // FIXME
         if (isset($cert['smime']) && $cert['smime'])
             $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
         else
             $this->set_purpose(self::PURPOSE_SERVER_LOCAL);
 
-        # Force filename
+        // Force filename
         $req_filename = $this->create_certificate_request($common_name, $filename);
 
         if (! $this->is_signed_by_local_ca($filename))
@@ -1910,101 +1925,93 @@ class SSL extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Validation routine for certificate password.
+     * Validation routine for certificate.
      *
-     * @param  string  $password  Certificate password
-     * @param  string  $verify  Certificate password verify
+     * @param string $cert certificate contents
      *
-     * @return  boolean  TRUE if password is valid
+     * @return string error message if certificate is invalid
      */
 
-    public function is_valid_password($password, $verify)
+    public function validate_certificate($cert)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($password != $verify) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_PASSWORD_VERIFY, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
-        // Must begin w/a letter/number
-        $state = preg_match('/^([a-zA-Z0-9]+[0-9a-zA-Z\.\-\!\@\#\$\%\^\&\*\(\)_]*)$/', $password);
+        if (empty($cert))
+            return lang('certificate_manager_certificate_invalid');
 
-        if (!$state) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_PASSWORD_INVALID, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
+        if (! preg_match("/^-----BEGIN .*-----/", $cert))
+            return lang('certificate_manager_certificate_invalid');
 
-        return TRUE;
+        if (! preg_match("/-----END .*-----$/", $cert))
+            return lang('certificate_manager_certificate_invalid');
     }
 
     /**
      * Validation routine for common name.
      *
-     * @param  string  $name  Certificate's common name
+     * @param string $name common name
      *
-     * @return  boolean  TRUE if common name is valid
+     * @return string error message if common name is invalid
      */
 
-    public function is_valid_common_name($name)
+    public function validate_common_name($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $name) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_COMMON_NAME_INVALID, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
-
-        return TRUE;
+        if (empty($name))
+            return lang('certificate_manager_common_name_invalid');
     }
 
     /**
      * Validation routine for email.
      *
-     * @param  string  $email  Certificate e-mail
+     * @param string $email certificate e-mail
      *
-     * @return  boolean  TRUE if email is valid
+     * @return string error message if e-mail is invalid
      */
 
-    public function is_valid_email($email)
+    public function validate_email($email)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (!preg_match('/^[a-z0-9\._-]+@+[a-z0-9\._-]+$/', $email)) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_EMAIL_INVALID, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
-
-        return TRUE;
+        if (!preg_match('/^[a-z0-9\._-]+@+[a-z0-9\._-]+$/', $email))
+            return lang('certificate_manager_email_invalid');
     }
 
     /**
-     * Validation routine for certificate.
+     * Validation routine for certificate password and verify.
      *
-     * @param  string  $cert  certificate contents
+     * @param string $password certificate password
+     * @param string $verify   certificate password verify
      *
-     * @return  boolean  TRUE if cert is valid
+     * @return string error message if password/verify are invalid
      */
 
-    public function is_valid_certificate($cert)
+    public function validate_password_and_verify($password, $verify)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! $cert) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_CERT_INVALID, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
+        if ($password != $verify)
+            return lang('certificate_manager_password_and_verify_do_not_match');
 
-        if (! preg_match("/^-----BEGIN .*-----/", $cert)) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_EMAIL_INVALID, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
+        // Must begin w/a letter/number
+        if (!preg_match('/^([a-zA-Z0-9]+[0-9a-zA-Z\.\-\!\@\#\$\%\^\&\*\(\)_]*)$/', $password))
+            return lang('certificate_manager_password_must_begin_with_letter_or_number');
+    }
 
-        if (! preg_match("/-----END .*-----$/", $cert)) {
-            $this->AddValidationError(SSL_LANG_ERRMSG_EMAIL_INVALID, __METHOD__ ,__LINE__);
-            return FALSE;
-        }
+    /**
+     * Validation routine for PKCS12
+     *
+     * @param string $pkcs12 PKCS12
+     *
+     * @return string error message if PKCS12 is invalid
+     */
 
-        return TRUE;
+    public function validate_pkcs12($pkcs12)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // TODO
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -2019,7 +2026,10 @@ class SSL extends Engine
      * - Built-in server certificate: sys-0
      * - Custom client or server certificates: usr-X where X is sequential
      *
-     * @param string $purpose purpose of the certificate
+     * @param string $common_name common name
+     * @param string $purpose     purpose of the certificate
+     *
+     * @return string file prefix
      * @throws Engine_Exception
      */
 
@@ -2060,7 +2070,6 @@ class SSL extends Engine
      * Expands/substitutes configuration variables.
      *
      * @access private
-     *
      * @return void
      * @throws Engine_Exception
      */
@@ -2146,10 +2155,10 @@ class SSL extends Engine
      *
      * The expected array format is: [section][key] => value
      *
-     * @access private
-     * @param string $filename Configuration filename
-     * @param array $contents Configuration file content array
+     * @param string $filename configuration filename
+     * @param array  $contents configuration file content array
      *
+     * @access private
      * @return void
      * @throws Engine_Exception
      */
