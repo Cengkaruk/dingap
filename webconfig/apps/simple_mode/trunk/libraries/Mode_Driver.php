@@ -99,8 +99,6 @@ class Mode_Driver extends Mode_Engine
         parent::__construct();
 
         $this->modes = array(
-            self::MODE_SIMPLE_MASTER => lang('mode_simple_master'),
-            self::MODE_SIMPLE_SLAVE => lang('mode_simple_slave'),
             self::MODE_STANDALONE => lang('mode_standalone')
         );
     }
