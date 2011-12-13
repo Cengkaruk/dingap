@@ -673,7 +673,8 @@ class LDAP_Driver extends LDAP_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->_set_initialization_status(lang('openldap_preparing_system'));
+        if (! $this->is_initialized())
+            $this->_set_initialization_status(lang('openldap_preparing_system'));
     }
 
     /**
