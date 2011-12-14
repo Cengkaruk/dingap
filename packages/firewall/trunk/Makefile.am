@@ -3,6 +3,8 @@ AUTOMAKE_OPTIONS = foreign
 ACLOCAL_AMFLAGS = -I m4
 AM_CFLAGS = ${CFLAGS} ${extra_CFLAGS}
 
+EXTRA_DIST = ifconfig.h xshared.h
+
 firewall_SOURCES = firewall.c ifconfig.c iptables.c xshared.c
 firewall_LDFLAGS = -rdynamic
 firewall_CFLAGS = ${AM_CFLAGS}
