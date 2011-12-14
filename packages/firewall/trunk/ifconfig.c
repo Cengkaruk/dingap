@@ -319,6 +319,38 @@ int if_get_address(if_ctx *p_ctx, const char *device, char *buffer, size_t size)
 	return strlen(buffer);
 }
 
+// Is this a PPP device?
+int if_isppp(if_ctx *p_ctx, const char *device)
+{
+	struct ifreq ifr;
+	struct sockaddr_in sa;
+
+	if(!p_ctx)
+	{
+		snprintf(p_ctx->last_error, MAX_ERROR_STR,
+			"%s: Invalid context handle", __func__);
+		return -1;
+	}
+
+	if(!device)
+	{
+		snprintf(p_ctx->last_error, MAX_ERROR_STR, "%s: Invalid parameter: %s", __func__, "device");
+		return -1;
+	}
+
+	memset(&ifr, '\0', sizeof(struct ifreq));
+	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
+
+	if(ioctl(p_ctx->sd, SIOCGIFHWADDR, &ifr) == -1)
+	{
+		snprintf(p_ctx->last_error, MAX_ERROR_STR,
+			"%s: SIOCGIFHWADDR: %s", __func__, strerror(errno));
+		return -1;
+	}
+
+    return ((ifr.ifr_hwaddr.sa_family == ARPHRD_PPP));
+}
+
 // Store the string destination address of the given interface (device) in
 // buffer.  Return the length of the address string or -1 on error.
 int if_get_dst_address(if_ctx *p_ctx, const char *device, char *buffer, size_t size)

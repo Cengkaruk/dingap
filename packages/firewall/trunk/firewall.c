@@ -804,6 +804,21 @@ static int __lua_if_isup(lua_State *L)
     return 1;
 }
 
+// Return true if interface is a PPP device.
+static int __lua_if_isppp(lua_State *L)
+{
+    int ppp;
+    short flags;
+    const char *ifn = luaL_checkstring(L, 1);
+
+    if((ppp = if_isppp(IFC, ifn)) == -1)
+        return eprintf(IFC->last_error);
+
+    lua_pushnumber(L, ppp);
+
+    return 1;
+}
+
 // Clean-up upon shutdown.
 static void exit_handler(void)
 {
@@ -993,6 +1008,9 @@ int main(int argc, char *argv[])
 
     lua_pushcfunction(LUA, __lua_if_isup);
     lua_setglobal(LUA, "if_isup");
+
+    lua_pushcfunction(LUA, __lua_if_isppp);
+    lua_setglobal(LUA, "if_isppp");
 
     // Open syslog
     {
