@@ -90,6 +90,9 @@ int if_list(if_ctx *p_ctx);
 // Return the number of interfaces found or -1 on error.
 int if_list_pppoe(if_ctx *p_ctx);
 
+// Is this a PPP device?
+int if_isppp(if_ctx *p_ctx, const char *device);
+
 // Store the string address of the given interface (device) in buffer.
 // Return the length of the address string or -1 on error.
 int if_get_address(if_ctx *p_ctx, const char *device, char *buffer, size_t size);

@@ -98,6 +98,7 @@ int if_list(if_ctx *p_ctx)
 	char if_name[IFNAMSIZ];
 	struct ifconf ifc;
 	struct ifreq *p_ifr;
+    char *result = NULL;
 
 	if(!p_ctx)
 	{
@@ -170,8 +171,22 @@ int if_list(if_ctx *p_ctx)
 		return -1;
 	}
 
-	fgets(buffer, sizeof(buffer), h_file);
-	fgets(buffer, sizeof(buffer), h_file);
+	result = fgets(buffer, sizeof(buffer), h_file);
+    if (result == NULL) {
+		snprintf(p_ctx->last_error, MAX_ERROR_STR,
+			"%s: fgets(%s): Unexpected error while reading",
+            __func__, PROC_NET_DEV);
+		IF_FREE(ifc.ifc_req);
+		return -1;
+	}
+	result = fgets(buffer, sizeof(buffer), h_file);
+    if (result == NULL) {
+		snprintf(p_ctx->last_error, MAX_ERROR_STR,
+			"%s: fgets(%s): Unexpected error while reading",
+            __func__, PROC_NET_DEV);
+		IF_FREE(ifc.ifc_req);
+		return -1;
+	}
 
 	while(!feof(h_file))
 	{
@@ -179,7 +194,14 @@ int if_list(if_ctx *p_ctx)
 		short exists; exists = 0;
 
 		memset(buffer, 0, sizeof(buffer));
-		fgets(buffer, sizeof(buffer), h_file);
+		result = fgets(buffer, sizeof(buffer), h_file);
+        if (result == NULL) {
+            snprintf(p_ctx->last_error, MAX_ERROR_STR,
+                "%s: fgets(%s): Unexpected error while reading",
+                __func__, PROC_NET_DEV);
+            IF_FREE(ifc.ifc_req);
+            return -1;
+        }
 
 		for(offset = buffer; offset[0] == 0x20; offset++);
 
@@ -210,7 +232,8 @@ int if_list(if_ctx *p_ctx)
 
 			p_ctx->interfaces[if_count - 1] = IF_STRDUP(if_name);
 #ifdef IFCONFIG_TEST
-			fprintf(stderr, "%s: adding interface #%d: %s\n", __func__, if_count - 1, if_name);
+			fprintf(stderr, "%s: adding interface #%d: %s\n",
+                __func__, if_count - 1, if_name);
 #endif
 		}
 	}
@@ -282,6 +305,37 @@ int if_list_pppoe(if_ctx *p_ctx)
 	return if_count;
 }
 
+// Is this a PPP device?
+int if_isppp(if_ctx *p_ctx, const char *device)
+{
+	struct ifreq ifr;
+
+	if(!p_ctx)
+	{
+		snprintf(p_ctx->last_error, MAX_ERROR_STR,
+			"%s: Invalid context handle", __func__);
+		return -1;
+	}
+
+	if(!device)
+	{
+		snprintf(p_ctx->last_error, MAX_ERROR_STR, "%s: Invalid parameter: %s", __func__, "device");
+		return -1;
+	}
+
+	memset(&ifr, '\0', sizeof(struct ifreq));
+	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
+
+	if(ioctl(p_ctx->sd, SIOCGIFHWADDR, &ifr) == -1)
+	{
+		snprintf(p_ctx->last_error, MAX_ERROR_STR,
+			"%s: SIOCGIFHWADDR: %s", __func__, strerror(errno));
+		return -1;
+	}
+
+    return ((ifr.ifr_hwaddr.sa_family == ARPHRD_PPP));
+}
+
 // Store the string address of the given interface (device) in buffer.
 // Return the length of the address string or -1 on error.
 int if_get_address(if_ctx *p_ctx, const char *device, char *buffer, size_t size)
@@ -317,38 +371,6 @@ int if_get_address(if_ctx *p_ctx, const char *device, char *buffer, size_t size)
 	strncpy(buffer, inet_ntoa(inaddrr(ifr_addr.sa_data)), size - 1);
 
 	return strlen(buffer);
-}
-
-// Is this a PPP device?
-int if_isppp(if_ctx *p_ctx, const char *device)
-{
-	struct ifreq ifr;
-	struct sockaddr_in sa;
-
-	if(!p_ctx)
-	{
-		snprintf(p_ctx->last_error, MAX_ERROR_STR,
-			"%s: Invalid context handle", __func__);
-		return -1;
-	}
-
-	if(!device)
-	{
-		snprintf(p_ctx->last_error, MAX_ERROR_STR, "%s: Invalid parameter: %s", __func__, "device");
-		return -1;
-	}
-
-	memset(&ifr, '\0', sizeof(struct ifreq));
-	strncpy(ifr.ifr_name, device, IFNAMSIZ - 1);
-
-	if(ioctl(p_ctx->sd, SIOCGIFHWADDR, &ifr) == -1)
-	{
-		snprintf(p_ctx->last_error, MAX_ERROR_STR,
-			"%s: SIOCGIFHWADDR: %s", __func__, strerror(errno));
-		return -1;
-	}
-
-    return ((ifr.ifr_hwaddr.sa_family == ARPHRD_PPP));
 }
 
 // Store the string destination address of the given interface (device) in
@@ -481,7 +503,7 @@ int if_get_network(if_ctx *p_ctx, const char *ip, const char *netmask, char *buf
 		return -1;
 	}
 
-	snprintf(buffer, size, "%d.%d.%d.%d",
+	snprintf(buffer, size, "%lu.%lu.%lu.%lu",
 		ip_quad[0] & in.s_addr & 0x00ffffff,
 		ip_quad[1] & (in.s_addr & 0xff00ffff) >> 8,
 		ip_quad[2] & (in.s_addr & 0xffff00ff) >> 16,

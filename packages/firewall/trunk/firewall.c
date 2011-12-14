@@ -808,7 +808,6 @@ static int __lua_if_isup(lua_State *L)
 static int __lua_if_isppp(lua_State *L)
 {
     int ppp;
-    short flags;
     const char *ifn = luaL_checkstring(L, 1);
 
     if((ppp = if_isppp(IFC, ifn)) == -1)
