@@ -503,11 +503,11 @@ int if_get_network(if_ctx *p_ctx, const char *ip, const char *netmask, char *buf
 		return -1;
 	}
 
-	snprintf(buffer, size, "%lu.%lu.%lu.%lu",
-		ip_quad[0] & in.s_addr & 0x00ffffff,
-		ip_quad[1] & (in.s_addr & 0xff00ffff) >> 8,
-		ip_quad[2] & (in.s_addr & 0xffff00ff) >> 16,
-		ip_quad[3] & (in.s_addr & 0xffffff00) >> 24);
+	snprintf(buffer, size, "%u.%u.%u.%u",
+		(unsigned int)(ip_quad[0] & in.s_addr & 0x00ffffff),
+		(unsigned int)(ip_quad[1] & (in.s_addr & 0xff00ffff) >> 8),
+		(unsigned int)(ip_quad[2] & (in.s_addr & 0xffff00ff) >> 16),
+		(unsigned int)(ip_quad[3] & (in.s_addr & 0xffffff00) >> 24));
 
 	return strlen(buffer);
 }
@@ -546,7 +546,7 @@ int if_get_prefix(if_ctx *p_ctx, const char *netmask, char *buffer, size_t size)
 	for(i = 0; i < sizeof(in.s_addr) * 8; i++)
 		if((ntohl(in.s_addr) & (unsigned)pow(2, i))) break;
 
-	snprintf(buffer, size, "%d", sizeof(in.s_addr) * 8 - i);
+	snprintf(buffer, size, "%u", (unsigned int)(sizeof(in.s_addr) * 8 - i));
 
 	return strlen(buffer);
 }
