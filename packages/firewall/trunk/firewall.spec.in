@@ -1,9 +1,9 @@
 Name: @PACKAGE_NAME@
 Summary: ClearOS Firewall Engine
 Version: @PACKAGE_VERSION@
-Release: 4%{?dist}
+Release: 5%{?dist}
 Vendor: ClearFoundation
-Source: firewall-%{version}.tar.bz2
+Source: firewall-%{version}.tar.gz
 Group: System Environment/Base
 URL: http://www.clearfoundation.com/
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
