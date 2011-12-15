@@ -638,21 +638,19 @@ static int __lua_if_list(lua_State *L)
 {
     int i, count;
 
+    lua_newtable(L);
+
     if((count = if_list(IFC)) > 0)
     {
-        lua_newtable(L);
-
         for(i = 0; i < count; i++)
         {
             lua_pushnumber(L, i + 1);
             lua_pushstring(L, IFC->interfaces[i]);
             lua_settable(L, -3);
         }
-
-        return 1;
     }
 
-    return 0;
+    return 1;
 }
 
 // Return list of all PPPoE interfaces.
