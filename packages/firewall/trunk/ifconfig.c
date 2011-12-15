@@ -174,16 +174,20 @@ int if_list(if_ctx *p_ctx)
 	result = fgets(buffer, sizeof(buffer), h_file);
     if (result == NULL) {
 		snprintf(p_ctx->last_error, MAX_ERROR_STR,
-			"%s: fgets(%s): Unexpected error while reading",
-            __func__, PROC_NET_DEV);
+			"%s: fgets(%s): Unexpected error while reading: %s",
+            __func__, PROC_NET_DEV,
+            (feof(h_file)) ? "EOF" :
+                (ferror() ? strerror(errno) : "Unknown"));
 		IF_FREE(ifc.ifc_req);
 		return -1;
 	}
 	result = fgets(buffer, sizeof(buffer), h_file);
     if (result == NULL) {
 		snprintf(p_ctx->last_error, MAX_ERROR_STR,
-			"%s: fgets(%s): Unexpected error while reading",
-            __func__, PROC_NET_DEV);
+			"%s: fgets(%s): Unexpected error while reading: %s",
+            __func__, PROC_NET_DEV,
+            (feof(h_file)) ? "EOF" :
+                (ferror() ? strerror(errno) : "Unknown"));
 		IF_FREE(ifc.ifc_req);
 		return -1;
 	}
@@ -195,10 +199,11 @@ int if_list(if_ctx *p_ctx)
 
 		memset(buffer, 0, sizeof(buffer));
 		result = fgets(buffer, sizeof(buffer), h_file);
-        if (result == NULL) {
+        if (result == NULL && feof(h_file)) break;
+        else if (result == NULL) {
             snprintf(p_ctx->last_error, MAX_ERROR_STR,
-                "%s: fgets(%s): Unexpected error while reading",
-                __func__, PROC_NET_DEV);
+                "%s: fgets(%s): Unexpected error while reading: %s",
+                __func__, PROC_NET_DEV, strerror(errno));
             IF_FREE(ifc.ifc_req);
             return -1;
         }
