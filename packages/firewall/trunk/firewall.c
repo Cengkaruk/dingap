@@ -640,14 +640,13 @@ static int __lua_if_list(lua_State *L)
 
     lua_newtable(L);
 
-    if((count = if_list(IFC)) > 0)
+    count = if_list(IFC);
+    if (count < 0) eprintf(IFC->last_error);
+    for(i = 0; i < count; i++)
     {
-        for(i = 0; i < count; i++)
-        {
-            lua_pushnumber(L, i + 1);
-            lua_pushstring(L, IFC->interfaces[i]);
-            lua_settable(L, -3);
-        }
+        lua_pushnumber(L, i + 1);
+        lua_pushstring(L, IFC->interfaces[i]);
+        lua_settable(L, -3);
     }
 
     return 1;
@@ -658,21 +657,18 @@ static int __lua_if_list_pppoe(lua_State *L)
 {
     int i, count;
 
-    if((count = if_list_pppoe(IFC)) > 0)
+    lua_newtable(L);
+
+    count = if_list_pppoe(IFC);
+    if (count < 0) eprintf(IFC->last_error);
+    for(i = 0; i < count; i++)
     {
-        lua_newtable(L);
-
-        for(i = 0; i < count; i++)
-        {
-            lua_pushnumber(L, i + 1);
-            lua_pushstring(L, IFC->pppoe[i]);
-            lua_settable(L, -3);
-        }
-
-        return 1;
+        lua_pushnumber(L, i + 1);
+        lua_pushstring(L, IFC->pppoe[i]);
+        lua_settable(L, -3);
     }
 
-    return 0;
+    return 1;
 }
 
 // Return IP address of selected network interface.
