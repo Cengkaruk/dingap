@@ -11,7 +11,7 @@ $lang['network_best_practices'] = 'Best Practices';
 $lang['network_dns_automatically_configured'] = 'DNS Automatically Configured';
 $lang['network_dns_automatically_configured_message'] = 'The DNS servers for this system are automatically configured.';
 
-$lang['network_app_description'] = 'IP settings description...'; // FIXME
+$lang['network_app_description'] = 'Provides administrators with the ability to configure the most common network tasks like mode, system hostname, DNS servers and Network Interface Card (NIC) settings.';
 $lang['network_app_name'] = 'IP Settings';
 $lang['network_bandwidth'] = 'Bandwidth';
 $lang['network_boot_protocol_invalid'] = 'Boot protocol is invalid.';
