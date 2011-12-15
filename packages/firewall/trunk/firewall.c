@@ -790,10 +790,7 @@ static int __lua_if_isup(lua_State *L)
     if(if_get_flags(IFC, ifn, &flags) == -1)
         return eprintf(IFC->last_error);
 
-    if(flags & IFF_UP)
-        lua_pushnumber(L, 1);
-    else
-        lua_pushnumber(L, 0);
+    lua_pushboolean(L, (flags & IFF_UP));
 
     return 1;
 }
@@ -807,7 +804,7 @@ static int __lua_if_isppp(lua_State *L)
     if((ppp = if_isppp(IFC, ifn)) == -1)
         return eprintf(IFC->last_error);
 
-    lua_pushnumber(L, ppp);
+    lua_pushboolean(L, ppp);
 
     return 1;
 }
