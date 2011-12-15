@@ -26,50 +26,50 @@
 #ifndef IFCONFIG_H
 #define IFCONFIG_H
 
-#define IF_DEBUG				0x0001
+#define IF_DEBUG                0x0001
 
-#define IF_FREE(p)				free(p)
-#define IF_MALLOC(n)			malloc(n)
-#define IF_STRDUP(p)			strdup(p)
+#define IF_FREE(p)              free(p)
+#define IF_MALLOC(n)            malloc(n)
+#define IF_STRDUP(p)            strdup(p)
 
-#define MAX_INTERFACES			1024
-#define MAX_ERROR_STR			1024
-#define PROC_NET_DEV			"/proc/net/dev"
-#define SYSCONF_NET_SCRIPTS		"/etc/sysconfig/network-scripts"
-#define inaddrr(x)				(*(struct in_addr *) &ifr.x[sizeof(sa.sin_port)])
+#define MAX_INTERFACES          1024
+#define MAX_ERROR_STR           1024
+#define PROC_NET_DEV            "/proc/net/dev"
+#define SYSCONF_NET_SCRIPTS     "/etc/sysconfig/network-scripts"
+#define inaddrr(x)              (*(struct in_addr *) &ifr.x[sizeof(sa.sin_port)])
 
 // Context handle
 typedef struct IF_CTX_t
 {
-	int sd;
-	char *last_error;
-	unsigned short flags;
-	char *interfaces[MAX_INTERFACES];
-	char *pppoe[MAX_INTERFACES];
+    int sd;
+    char *last_error;
+    unsigned short flags;
+    char *interfaces[MAX_INTERFACES];
+    char *pppoe[MAX_INTERFACES];
 } if_ctx;
 
 // From ethtool...
 struct ethtool_value
 {
-	__uint32_t cmd;
-	__uint32_t data;
+    __uint32_t cmd;
+    __uint32_t data;
 };
 
 // From ethtool...
 struct ethtool_cmd
 {
-	__uint32_t cmd;
-	__uint32_t supported;
-	__uint32_t advertising;
-	__uint16_t speed;
-	__uint8_t duplex;
-	__uint8_t port;
-	__uint8_t phy_address;
-	__uint8_t transceiver;
-	__uint8_t autoneg;
-	__uint32_t maxtxpkt;
-	__uint32_t maxrxpkt;
-	__uint32_t reserved[4];
+    __uint32_t cmd;
+    __uint32_t supported;
+    __uint32_t advertising;
+    __uint16_t speed;
+    __uint8_t duplex;
+    __uint8_t port;
+    __uint8_t phy_address;
+    __uint8_t transceiver;
+    __uint8_t autoneg;
+    __uint32_t maxtxpkt;
+    __uint32_t maxrxpkt;
+    __uint32_t reserved[4];
 };
 
 // Create a context and socket.
