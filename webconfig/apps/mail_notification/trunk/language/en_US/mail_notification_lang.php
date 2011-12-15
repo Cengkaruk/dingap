@@ -1,7 +1,7 @@
 <?php
 
 $lang['mail_notification_app_name'] = 'Mail Notification';
-$lang['mail_notification_app_description'] = 'Mail Notification description....';
+$lang['mail_notification_app_description'] = 'Many apps and services in the Marketplace use email to notify administrators of events that may require their attention.  The mail notification app provides an MTA to relay messages sent from the server - useful if you are not running a full SMTP (mail) service on the server.';
 $lang['mail_notification_host'] = 'SMTP Hostname/IP';
 $lang['mail_notification_port'] = 'SMTP Port';
 $lang['mail_notification_encryption'] = 'Encryption';
