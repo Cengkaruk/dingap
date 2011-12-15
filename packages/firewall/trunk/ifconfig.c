@@ -177,7 +177,7 @@ int if_list(if_ctx *p_ctx)
 			"%s: fgets(%s): Unexpected error while reading: %s",
             __func__, PROC_NET_DEV,
             (feof(h_file)) ? "EOF" :
-                (ferror() ? strerror(errno) : "Unknown"));
+                (ferror(h_file) ? strerror(errno) : "Unknown"));
 		IF_FREE(ifc.ifc_req);
 		return -1;
 	}
@@ -187,7 +187,7 @@ int if_list(if_ctx *p_ctx)
 			"%s: fgets(%s): Unexpected error while reading: %s",
             __func__, PROC_NET_DEV,
             (feof(h_file)) ? "EOF" :
-                (ferror() ? strerror(errno) : "Unknown"));
+                (ferror(h_file) ? strerror(errno) : "Unknown"));
 		IF_FREE(ifc.ifc_req);
 		return -1;
 	}
