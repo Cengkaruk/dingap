@@ -45,6 +45,8 @@ function theme_clearos_dialog_box(id, title, message, options)
                     $(this).dialog('close');
                     if (options.reload_on_close)
                         window.location.reload();
+                    else if (options.redirect_on_close)
+                        window.location = options.redirect_on_close;
                 }
             }
         }
