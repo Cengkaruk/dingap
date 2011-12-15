@@ -15,7 +15,7 @@ $lang['web_proxy_configuration_settings_warning:'] = 'Please enable the proxy se
 
 
 $lang['web_proxy_warning_message'] = 'Warning Message';
-$lang['web_proxy_app_description'] = 'Web proxy description...'; // FIXME
+$lang['web_proxy_app_description'] = 'A web proxy acts as an intermediary server for web requests originating from the Local Area Network.  Implementing a proxy server is optional, however, several benefits are gained such as increasing page access times (using caching), decreasing bandwidth use, logging website visits by user and/or IP and implementing access control restrictions.';
 $lang['web_proxy_app_name'] = 'Web Proxy';
 $lang['web_proxy_transparent_mode'] = 'Transparent Mode';
 $lang['web_proxy_content_filter'] = 'Content Filter';
