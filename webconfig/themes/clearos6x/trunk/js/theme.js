@@ -1,4 +1,30 @@
 
+    
+// Credit for this function belongs to http://stackoverflow.com/questions/5047498/how-do-you-animate-the-value-for-a-jquery-ui-progressbar
+$(function() {
+    $.fn.animate_progressbar = function(value, duration, easing, complete) {
+        if (value == null)
+            value = 20;
+        if (duration == null)
+            duration = 1000;
+        if (easing == null)
+            easing = 'swing';
+        if (complete == null)
+            complete = function(){};
+        var progress = this.find('.ui-progressbar-value');
+        progress.stop(true).animate({
+            width: value + '%'
+        }, duration, easing, function(){
+            if(value>=99.5){
+                progress.addClass('ui-corner-right');
+            } else {
+                progress.removeClass('ui-corner-right');
+            }
+            complete();
+        });
+    }
+});
+    
 $(function(){
 	// Anchors
 	$(".theme-anchor").button();
