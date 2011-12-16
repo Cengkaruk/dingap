@@ -690,7 +690,6 @@ function theme_field_progress_bar($label, $id, $options = array())
 /**
  * Display a progress bar as standalone entity.
  *
- * @param string $label   form field label
  * @param string $id      HTML ID
  * @param array  $options options
  *
@@ -699,7 +698,14 @@ function theme_field_progress_bar($label, $id, $options = array())
 
 function theme_progress_bar($id, $options)
 {
-    return "<div id='$id' class='theme-progress-bar'> </div>";
+    $value = (isset($options['value'])) ? $options['value'] : 0;
+    return "<div id='$id' class='theme-progress-bar'> </div>
+            <script type='text/javascript'>
+                $('#$id').progressbar({
+                  value: $value
+                });
+            </script>
+    ";
 } 
 
 ///////////////////////////////////////////////////////////////////////////////
