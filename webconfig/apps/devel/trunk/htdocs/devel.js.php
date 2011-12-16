@@ -44,13 +44,15 @@ $(document).ready(function() {
     }
 
     function showData(info) {
-        $("#bacon_progress").progressbar({
-            value: Math.round(info.progress)
-        });
+        $("#bacon_progress").animate_progressbar(info.progress);
+        $("#bacon_progress_standalone").animate_progressbar(info.progress);
+//        $("#bacon_progress").progressbar({
+ //           value: Math.round(info.progress)
+  //      });
 
-        $("#bacon_progress_standalone").progressbar({
-            value: Math.round(info.progress_standalone)
-        });
+       // $("#bacon_progress_standalone").progressbar({
+        //    value: Math.round(info.progress_standalone)
+        //});
     }
 
 	// Tabs
