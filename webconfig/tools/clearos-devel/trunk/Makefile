@@ -12,7 +12,9 @@ RPM_DEFINES := --define "_sourcedir $(WORKDIR)" \
 
 RPM_WITH_DIRS = rpmbuild $(RPM_DEFINES)
 
-NAME_VER := $(shell rpm $(RPM_DEFINES) -q --qf "%{NAME}-%{VERSION}\n" --specfile $(SPECFILE)| head -1)
+QUERY_FORMAT := $(shell grep -i "^Source:" $(SPECFILE) | head -1 | sed 's,^Source:\s*\(.*\).tar.gz,\1,i')
+
+NAME_VER := $(shell rpm $(RPM_DEFINES) -q --qf "$(QUERY_FORMAT)\n" --specfile $(SPECFILE)| head -1)
 
 $(NAME):
 	$(error "$(NAME) directory does not contain packaging information")
@@ -24,3 +26,8 @@ source: $(NAME)
 
 srpm: source
 	$(RPM_WITH_DIRS) --nodeps -bs $(SPECFILE)
+
+test:
+	@echo "Query: $(QUERY_FORMAT)"
+	@echo "Name: $(NAME_VER)"
+
