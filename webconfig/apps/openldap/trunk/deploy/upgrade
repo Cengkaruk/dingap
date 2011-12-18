@@ -1,3 +1,16 @@
 #!/bin/sh
 
+# Sudoers
+#--------
+
 /usr/sbin/addsudo /usr/sbin/slapadd app-openldap-core
+
+# Set default sysconfig
+#----------------------
+
+CHECK=`grep ^BIND_POLICY /etc/sysconfig/ldap 2>/dev/null`
+
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-openldap-core - updating LDAP sysconfig"
+    cp /usr/clearos/apps/openldap/deploy/ldap.sysconfig /etc/sysconfig/ldap
+fi
