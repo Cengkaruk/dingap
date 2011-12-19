@@ -68,11 +68,11 @@ class Current_Archive extends ClearOS_Controller
 
         try {
             $data['stats' ] = $this->mail_archive->get_current_stats();
+            print_r($data);
         } catch (Exception $e) {
             $this->page->set_message(clearos_exception_message($e));
         }
-print_r($data);
-        $this->page->view_form('mail_archive/current/stats', $data, lang('mail_archive_current_stats'));
+        $this->page->view_form('mail_archive/stats', $data, lang('mail_archive_current_stats'));
     }
 
 }

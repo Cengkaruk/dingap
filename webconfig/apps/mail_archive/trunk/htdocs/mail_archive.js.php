@@ -57,7 +57,40 @@ $(document).ready(function() {
         else
             $('#encrypt_password').attr('disabled', false);
     });
+
+    if ($(location).attr('href').match('.*\/search(\/.*$|$)') != null) {
+        refresh_filters();
+        $('.theme-form input:text').each(function() {
+            $(this).keyup(function() {
+                refresh_filters();
+            });
+        });
+    }
 });
 
+function refresh_filters() {
+    start_hide = 2;
+    for (index = 1; index <= 5; index++) {
+        if ($('#search\\.' + index).val() == undefined || $('#search\\.' + index).val() == '') {
+            start_hide = index + 1;
+            break;
+        }
+    }
+            
+    // Never do anything with first filter...start index at 2
+    for (index = 2; index <= 5; index++) {
+        if (index >= start_hide) {
+            $('#filter_' + index).hide();
+            $('#field\\\\.' + index + '_field').hide();
+            $('#pattern\\\\.' + index + '_field').hide();
+            $('#search\\\\.' + index + '_field').hide();
+        } else {
+            $('#filter_' + index).show();
+            $('#field\\\\.' + index + '_field').show();
+            $('#pattern\\\\.' + index + '_field').show();
+            $('#search\\\\.' + index + '_field').show();
+        }
+    }
+}
 ";
 // vim: syntax=php ts=4

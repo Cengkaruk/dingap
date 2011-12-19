@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Mail Archive current controller.
+ * Mail Archive live archives controller.
  *
  * @category   Apps
  * @package    Mail_Archive
@@ -38,7 +38,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Search controller.
+ * Live archives controller.
  *
  * @category   Apps
  * @package    Mail_Archive
@@ -49,24 +49,29 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/mail_archive/
  */
 
-class Search extends ClearOS_Controller
+class Live extends ClearOS_Controller
 {
 
     /**
-     * Search Stats default controller
+     * Mail Archive live controller
      *
      * @return view
      */
 
     function index()
     {
-        
         // Load dependencies
         //------------------
 
         $this->load->library('mail_archive/Mail_Archive');
         $this->lang->load('mail_archive');
 
-        $this->page->view_form('mail_archive/search', $data, lang('mail_archive_search'));
+        try {
+            $data['stats' ] = $this->mail_archive->get_current_stats();
+        } catch (Exception $e) {
+            $this->page->set_message(clearos_exception_message($e));
+        }
+        $this->page->view_form('mail_archive/stats', $data, lang('mail_archive_current_stats'));
     }
+
 }

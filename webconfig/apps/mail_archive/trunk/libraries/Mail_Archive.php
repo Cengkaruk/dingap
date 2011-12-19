@@ -147,11 +147,11 @@ class Mail_Archive extends Engine
     const FILE_AMAVIS_OVERRIDE = '/etc/amavisd/override.conf';
     const FILE_AMAVIS_CONFIGLET = '/etc/amavisd/clear-archive.conf';
     const FILE_ARCHIVE = 'archive.php';
-    const FILE_BOOTSTRAP = '/usr/bin/archive_bootstrap';
     const FILE_RESEND = 'archive_resend.php';
     const ROOT_PATH = "/var/archive";
-    const CMD_MYSQL = "/usr/share/system-mysql/usr/bin/mysql";
-    const CMD_MYSQL_DUMP = "/usr/share/system-mysql/usr/bin/mysqldump";
+    const CMD_BOOTSTRAP = '/usr/sbin/archive_bootstrap';
+    const CMD_MYSQL = "/usr/clearos/sandbox/usr/bin/bin/mysql";
+    const CMD_MYSQL_DUMP = "/usr/clearos/sandbox/usr/bin/mysqldump";
     const CMD_TAR = "/bin/tar";
     const CMD_LN = "/bin/ln";
     const DEFAULT_DB = "archive";
@@ -196,11 +196,11 @@ class Mail_Archive extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        //if (!extension_loaded("mysql"))
-         //   dl("mysql.so");
+        if (!extension_loaded("mysql"))
+            dl("mysql.so");
 
-        //if (!extension_loaded("imap"))
-         //   dl("imap.so");
+        if (!extension_loaded("imap"))
+            dl("imap.so");
     }
 
     /**
@@ -556,7 +556,7 @@ class Mail_Archive extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
             
-        if (is_NULL($this->db))
+        if (is_null($this->db))
             $this->_load_db_config();
 
         return $this->db["archive.password"];
@@ -646,6 +646,63 @@ class Mail_Archive extends Engine
             self::ARCHIVE_SIZE10 => lang('mail_archive_auto_archive_size_10'),
             self::ARCHIVE_SIZE100 => lang('mail_archive_auto_archive_size_100'),
             self::ARCHIVE_SIZE1000 => lang('mail_archive_auto_archive_size_1000')
+        );
+        return $options;
+    }
+
+    /**
+     * Returns a list of valid match options.
+     *
+     * @return array
+     */
+
+    function get_match_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+            
+        $options = Array(
+            'OR' => lang('mail_archive_match_any'),
+            'AND' => lang('mail_archive_match_all')
+        );
+        return $options;
+    }
+
+    /**
+     * Returns a list of valid pattern options.
+     *
+     * @return array
+     */
+
+    function get_field_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+            
+        $options = Array(
+            0 => lang('mail_archive_subject'),
+            1 => lang('mail_archive_body'),
+            2 => lang('mail_archive_date'),
+            3 => lang('mail_archive_from'),
+            4 => lang('mail_archive_to'),
+            5 => lang('mail_archive_cc')
+        );
+        return $options;
+    }
+
+    /**
+     * Returns a list of valid pattern options.
+     *
+     * @return array
+     */
+
+    function get_pattern_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+            
+        $options = Array(
+            0 => lang('mail_archive_contains'),
+            1 => lang('mail_archive_equals'),
+            2 => lang('mail_archive_begins_with'),
+            3 => lang('mail_archive_ends_with')
         );
         return $options;
     }
@@ -787,7 +844,7 @@ class Mail_Archive extends Engine
         try {
             $mailer = new Mail_Notification();
             $list = '';
-            if (!is_NULL($email)) {
+            if (!is_null($email)) {
                 $addresses = preg_split("/,|;/", $email);
                 foreach ($addresses as $recipient) {
                     $parsed_email = $mailer->_parse_email_address($recipient);
@@ -1125,13 +1182,14 @@ class Mail_Archive extends Engine
         try {
             $this->_connect();
             return;
-        } catch (Exception $e) {
+        } catch (Sql_Exception $e) {
+            // Do nothing...try running bootstrap
         }
 
         try {
             $args = "";
             $shell = new Shell();
-            $retval = $shell->execute(self::FILE_BOOTSTRAP, $args, TRUE);
+            $retval = $shell->execute(self::CMD_BOOTSTRAP, $args, TRUE);
             if ($retval != 0) {
                 $errstr = $shell->get_last_output_line();
                 throw new Engine_Exception($errstr, CLEAROS_ERROR);

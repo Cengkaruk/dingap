@@ -2,7 +2,7 @@
 <?php
 
 /**
- * Mail archive settings.
+ * Mail archive search.
  *
  * @category   Apps
  * @package    Mail_Archive
@@ -41,31 +41,25 @@ $this->lang->load('mail_archive');
 // Form open
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('mail_archive/settings/edit', array('autocomplete' => 'off'));
+echo form_open('mail_archive/search', array('autocomplete' => 'off'));
 echo form_header(lang('mail_archive_settings'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form fields and buttons
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($mode === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/mail_archive')
-    );
-} else {
-    $read_only = TRUE;
-    $buttons = array(
-        anchor_edit('/app/mail_archive/settings/edit')
-    );
-}
+$buttons = array(
+    form_submit_custom('search', lang('mail_archive_search')),
+    anchor_cancel('/app/mail_archive')
+);
 
-echo field_toggle_enable_disable('archive_status', $archive_status, lang('mail_archive_mail_archive'), $read_only);
-echo field_dropdown('discard_attachments', $discard_attachments_options, $discard_attachments, lang('mail_archive_discard_attachments'), $read_only);
-echo field_dropdown('auto_archive', $auto_archive_options, $auto_archive, lang('mail_archive_auto_archive'), $read_only);
-echo field_toggle_enable_disable('encrypt', $encrypt, lang('mail_archive_encrypt'), $read_only);
-echo field_password('encrypt_password', $encrypt_password, lang('mail_archive_encrypt_password'), $read_only);
+echo field_dropdown('match', $match_options, $match, lang('mail_archive_match_options'), FALSE);
+for ($index = 1; $index <=5; $index++) {
+    echo fieldset_header(lang('mail_archive_filter') . ' #' . $index, array('id' => 'filter_' . $index));
+    echo field_dropdown('field[' . $index . ']', ${'field_options_' . $index}, ${'field_' . $index}, lang('mail_archive_field'), FALSE);
+    echo field_dropdown('pattern[' . $index . ']', ${'pattern_options_' . $index}, ${'pattern_' . $index}, lang('mail_archive_pattern'), FALSE);
+    echo field_input('search[' . $index . ']', ${'search_' . $index}, lang('mail_archive_value'), FALSE);
+}
 echo field_button_set($buttons);
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,3 +68,24 @@ echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
+
+///////////////////////////////////////////////////////////////////////////////
+// Headers
+///////////////////////////////////////////////////////////////////////////////
+
+$headers = array(
+    lang('mail_archive_subject'),
+    lang('mail_archive_from'),
+    lang('mail_archive_date')
+);
+
+///////////////////////////////////////////////////////////////////////////////
+// List table
+///////////////////////////////////////////////////////////////////////////////
+
+echo summary_table(
+    lang('mail_archive_search_results'),
+    NULL,
+    $headers,
+    NULL
+);

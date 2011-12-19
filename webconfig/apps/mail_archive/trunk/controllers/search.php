@@ -67,6 +67,21 @@ class Search extends ClearOS_Controller
         $this->load->library('mail_archive/Mail_Archive');
         $this->lang->load('mail_archive');
 
+        if ($this->input->post('search')) {
+            // Let's do some searching
+/*
+            $this->mail_archive->search(
+                'current',
+                $this->input->post(''),
+                $criteria, $regex, $logical, $max, $offset)
+*/
+        }
+        $data['match_options'] = $this->mail_archive->get_match_options();
+        for ($index = 1; $index <= 5; $index++) {
+            $data['field_options_' . $index] = $this->mail_archive->get_field_options();
+            $data['pattern_options_' . $index] = $this->mail_archive->get_pattern_options();
+        }
+
         $this->page->view_form('mail_archive/search', $data, lang('mail_archive_search'));
     }
 }

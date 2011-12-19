@@ -1,8 +1,7 @@
-
 <?php
 
 /**
- * Mail archive settings.
+ * Mail Archive search stats.
  *
  * @category   Apps
  * @package    Mail_Archive
@@ -38,39 +37,60 @@ $this->lang->load('base');
 $this->lang->load('mail_archive');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('mail_archive/settings/edit', array('autocomplete' => 'off'));
-echo form_header(lang('mail_archive_settings'));
+$headers = array(
+    lang('mail_archive_filename'),
+    lang('mail_archive_timestamp'),
+    lang('mail_archive_file_size')
+);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
+// Anchors 
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($mode === 'edit') {
-    $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/mail_archive')
+$anchors = array();
+
+///////////////////////////////////////////////////////////////////////////////
+// Rules
+///////////////////////////////////////////////////////////////////////////////
+
+foreach ($rules as $rule) {
+    $key = $rule['protocol'] . '/' . $rule['port'];
+    $state = ($rule['enabled']) ? 'disable' : 'enable';
+    $state_anchor = 'anchor_' . $state;
+
+    $item['title'] = $rule['description'];
+
+    if (empty($priority_buttons))
+        $priority = '---';
+    else
+        $priority = button_set($priority_buttons);
+
+    $item['anchors'] = button_set(
+        array(
+            $state_anchor('/app/firewall_custom/toggle/' . $rule['line']),
+            anchor_delete('/app/firewall_custom/delete/' . $rule['line'])
+        )
     );
-} else {
-    $read_only = TRUE;
-    $buttons = array(
-        anchor_edit('/app/mail_archive/settings/edit')
+    $brief = substr($rule['entry'], 0, 20);
+    $item['details'] = array(
+        $rule['description'],
+        "<a href='#' class='view_rule' id='rule_id_" . $rule['line'] . "'>" . $brief . "...</a>",
+        $priority,
     );
+
+    $items[] = $item;
 }
 
-echo field_toggle_enable_disable('archive_status', $archive_status, lang('mail_archive_mail_archive'), $read_only);
-echo field_dropdown('discard_attachments', $discard_attachments_options, $discard_attachments, lang('mail_archive_discard_attachments'), $read_only);
-echo field_dropdown('auto_archive', $auto_archive_options, $auto_archive, lang('mail_archive_auto_archive'), $read_only);
-echo field_toggle_enable_disable('encrypt', $encrypt, lang('mail_archive_encrypt'), $read_only);
-echo field_password('encrypt_password', $encrypt_password, lang('mail_archive_encrypt_password'), $read_only);
-echo field_button_set($buttons);
-
 ///////////////////////////////////////////////////////////////////////////////
-// Form close
+// Summary table
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_footer();
-echo form_close();
+echo summary_table(
+    lang('mail_archive_archives'),
+    $anchors,
+    $headers,
+    $items
+);
