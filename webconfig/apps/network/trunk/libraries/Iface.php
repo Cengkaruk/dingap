@@ -397,6 +397,7 @@ class Iface extends Engine
         }
 
         $handle = @ifconfig_init();
+        ifconfig_debug($handle, false);
 
         $info = array();
 
@@ -442,7 +443,8 @@ class Iface extends Engine
 
         try {
             $vendor_stuff = $this->get_vendor_info();
-            $info = array_merge($info, $vendor_stuff);
+            if (is_array($vendor_stuff))
+                $info = array_merge($info, $vendor_stuff);
         } catch (Exception $e) {
             // Keep going?
         }
@@ -984,6 +986,7 @@ class Iface extends Engine
         // Obtain vendor ID number
         $path = $device_link . (($is_usb) ? '/../idVendor' : '/vendor');
 
+	if (!file_exists($path)) return '';
         if (!($fh = fopen($path, 'r')))
             return '';
 
