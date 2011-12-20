@@ -37,6 +37,7 @@ $bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/c
 require_once $bootstrap . '/bootstrap.php';
 
 clearos_load_language('base');
+clearos_load_language('network_visualiser');
 
 header('Content-Type: application/x-javascript');
 
@@ -44,9 +45,16 @@ echo "
 
 var timestamp = 0;
 var display = 'totalbps';
+var report_simple = 0;
+var report_detailed = 1;
+var report_graphical = 2;
 
 $(document).ready(function() {
-    $('#report tr:last:last td').html('<div class=\"theme-loading-normal\"></div>');
+    if ($('#report_type').val() == report_simple)
+        $('#report tr:last td:eq(2)').html('<div class=\"theme-loading-normal\"></div>');
+    else if ($('#report_type').val() == report_detailed)
+        $('#report tr:last td:eq(3)').html('<div class=\"theme-loading-normal\"></div>');
+
     if ($('#report_display').val() != undefined) {
         display = $('#report_display').val();
         get_traffic_data();
@@ -65,22 +73,47 @@ function get_traffic_data() {
                 setTimeout('get_traffic_data()', 5000);
                 return;
             }
+	    if ($('#report_type').val() == report_graphical) {
+		graph_data(display, json);
+                if (timestamp != json.timestamp) {
+                    timestamp = json.timestamp;
+                    reset_scan();
+                    setTimeout('get_traffic_data()', 5000);
+                }
+                return;
+            }
             table_report.fnClearTable();
             for (var index = 0 ; index < json.data.length; index++) {
-                if (display == 'totalbps')
+                if (display == 'totalbps') {
+                    if (isNaN(json.data[index].totalbps) || json.data[index].totalbps == 0)
+                        continue;
                     field = '<span title=\"' + json.data[index].totalbps + '\"></span>' + format_number(json.data[index].totalbps);
-                else
+                } else {
+                    if (isNaN(json.data[index].totalbytes) || json.data[index].totalbytes == 0)
+                        continue;
                     field = '<span title=\"' + json.data[index].totalbytes + '\"></span>' + format_number(json.data[index].totalbytes);
-                table_report.fnAddData([
-                    json.data[index].src,
-                    json.data[index].srcport,
-                    json.data[index].proto,
-                    json.data[index].dst,
-                    json.data[index].dstport,
-                    field
-                ]);
+		}
+		if ($('#report_type').val() == report_simple) {
+			table_report.fnAddData([
+			    json.data[index].src,
+			    json.data[index].srcport,
+			    json.data[index].dst,
+			    field
+			]);
+		} else if ($('#report_type').val() == report_detailed) {
+			table_report.fnAddData([
+			    json.data[index].src,
+			    json.data[index].srcport,
+	                    json.data[index].proto,
+			    json.data[index].dst,
+	                    json.data[index].dstport,
+			    field
+			]);
+		}
             }
+
             table_report.fnAdjustColumnSizing();
+
             if (timestamp != json.timestamp) {
                 timestamp = json.timestamp;
                 reset_scan();
@@ -152,7 +185,52 @@ jQuery.fn.dataTableExt.oSort['title-numeric-desc'] = function(a,b) {
     y = parseFloat( y );
     return ((x < y) ?  1 : ((x > y) ? -1 : 0));
 };
+
+function graph_data(display, json) {
+    var datapoints = new Array();
+    for (var index = 0 ; index < json.data.length; index++) {
+	if (display == 'totalbps')
+	    total = json.data[index].totalbps; 
+        else
+	    total = json.data[index].totalbytes; 
+        if (total == undefined || isNaN(total) || total == 0)
+            continue;
+	if (datapoints[json.data[index].src] == undefined)
+	    datapoints[json.data[index].src] = parseInt(total/1024);
+	else 
+	    datapoints[json.data[index].src] += parseInt(total/1024);
+    }
+
+    var data = new Array();
+
+    counter = 0;
+    for (entry in datapoints) {
+        data[counter] = [entry,datapoints[entry]]; 
+        if (counter >= 10)
+	    break;
+	counter++;
+    }
+
+    unit = '" . lang('base_kilobytes') . "';
+    if (display == 'totalbps')
+    	unit = '" . lang('base_kilobytes_per_second') . "';
+
+    var clear_plot = jQuery.jqplot ('clear-chart', [data],
+    {
+        seriesDefaults: {
+            renderer: jQuery.jqplot.PieRenderer,
+            rendererOptions: {
+                showDataLabels: true,
+                dataLabels: 'value',
+                dataLabelFormatString: '%d ' + unit
+            }
+        },
+        title: '" . lang('network_visualiser_top_users') . "', 
+        legend: { show:true, location: 'ne' }
+    });
+    clear_plot.redraw();
+}
+
 ";
 
 // vim: ts=4 syntax=javascript
-?>

@@ -61,6 +61,8 @@ class Report extends ClearOS_Controller
 
     function index()
     {
+	clearos_profile(__METHOD__, __LINE__);
+
         // Load dependencies
         //------------------
 
@@ -77,6 +79,6 @@ class Report extends ClearOS_Controller
 
         $data['display'] = $this->network_visualiser->get_display();
 
-        $this->page->view_form('report', $data, lang('network_visualiser_app_name'),  array('type' => 'report'));
+        $this->page->view_form('report', $data, lang('network_visualiser_app_name'));
     }
 }

@@ -99,6 +99,9 @@ class Network_Visualiser
     const CMD_JNETTOP = '/usr/bin/jnettop';
     const FILE_CONFIG = '/etc/jnettop.conf';
     const FILE_DUMP = 'jnettop.dmp';
+    const REPORT_SIMPLE = 0;
+    const REPORT_DETAILED = 1;
+    const REPORT_GRAPHICAL = 2;
 
     protected $config = NULL;
     protected $is_loaded = FALSE;
@@ -189,6 +192,22 @@ class Network_Visualiser
             $this->_load_config();
 
         return $this->config['display'];
+    }
+
+    /**
+     * Get the report type.
+     *
+     * @return String
+     */
+
+    function get_report_type()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!$this->is_loaded)
+            $this->_load_config();
+
+        return $this->config['report'];
     }
 
     /**
@@ -298,6 +317,24 @@ class Network_Visualiser
     }
 
     /**
+     * Set the report type.
+     *
+     * @param int $report report type
+     *
+     * @return void
+     * @throws Validation_Exception
+     */
+
+    function set_report_type($report)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_report_type($report));
+
+        $this->_set_parameter('report', $report);
+    }
+
+    /**
      * Returns the interval options.
      *
      * @return array
@@ -313,6 +350,24 @@ class Network_Visualiser
             15 => 15,
             30 => 30,
             60 => 60
+        );
+        return $options;
+    }
+
+    /**
+     * Returns the report options.
+     *
+     * @return array
+     */
+
+    function get_report_type_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $options = array(
+            self::REPORT_SIMPLE => lang('network_visualiser_report_simple'),
+            self::REPORT_DETAILED => lang('network_visualiser_report_detailed'),
+            self::REPORT_GRAPHICAL => lang('network_visualiser_report_graphical')
         );
         return $options;
     }
@@ -528,5 +583,21 @@ class Network_Visualiser
 
         if (FALSE)
             return lang('network_visualiser_display_invalid');
+    }
+
+    /**
+     * Validation routine for report.
+     *
+     * @param int $report report
+     *
+     * @return mixed void if report is valid, errmsg otherwise
+     */
+
+    public function validate_report_type($report)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($report != self::REPORT_SIMPLE && $report != self::REPORT_DETAILED && $report != self::REPORT_GRAPHICAL)
+            return lang('network_visualiser_report_invalid');
     }
 }

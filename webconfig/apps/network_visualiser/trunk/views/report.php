@@ -16,6 +16,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\network_visualiser\Network_Visualiser as Network_Visualiser;
+
 $this->lang->load('base');
 $this->lang->load('network');
 $this->lang->load('network_visualiser');
@@ -24,20 +26,34 @@ $this->lang->load('network_visualiser');
 // Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array();
+if ($report_type == Network_Visualiser::REPORT_DETAILED)
+    $anchors = array(
+        anchor_custom('/app/network_visualiser/simple', lang('base_back'))
+    );
+else
+    $anchors = array();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-$headers = array(
-    lang('network_visualiser_source'),
-    lang('network_visualiser_source_port'),
-    lang('network_visualiser_protocol'),
-    lang('network_visualiser_destination'),
-    lang('network_visualiser_destination_port'),
-    ($display == 'totalbps' ? lang('network_bandwidth') : lang('network_visualiser_total_transfer'))
-);
+if ($report_type == Network_Visualiser::REPORT_DETAILED) {
+    $headers = array(
+        lang('network_visualiser_source'),
+        lang('network_visualiser_source_port'),
+        lang('network_visualiser_protocol'),
+        lang('network_visualiser_destination'),
+        lang('network_visualiser_destination_port'),
+        ($display == 'totalbps' ? lang('network_bandwidth') : lang('network_visualiser_total_transfer'))
+    );
+} else {
+    $headers = array(
+        lang('network_visualiser_source'),
+        lang('network_visualiser_source_port'),
+        lang('network_visualiser_destination'),
+        ($display == 'totalbps' ? lang('network_bandwidth') : lang('network_visualiser_total_transfer'))
+    );
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // List table
@@ -45,24 +61,50 @@ $headers = array(
 
 echo form_open('network_visualiser_report');
 
-echo summary_table(
-    lang('network_visualiser_traffic_summary'),
-    $anchors,
-    $headers,
-    NULL,
-    array(
-        'id' => 'report',
-        'no_action' => TRUE,
-        'sorting-type' => array(
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            NULL,
-            'title-numeric'
+if ($report_type == Network_Visualiser::REPORT_SIMPLE) {
+    echo summary_table(
+        lang('network_visualiser_traffic_summary'),
+        $anchors,
+        $headers,
+        NULL,
+        array(
+            'id' => 'report',
+            'no_action' => TRUE,
+            'sorting-type' => array(
+                NULL,
+                NULL,
+                NULL,
+                'title-numeric'
+            )
         )
-    )
-);
+    );
+} else if ($report_type == Network_Visualiser::REPORT_DETAILED) {
+    echo summary_table(
+        lang('network_visualiser_traffic_summary'),
+        $anchors,
+        $headers,
+        NULL,
+        array(
+            'id' => 'report',
+            'no_action' => TRUE,
+            'sorting-type' => array(
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                NULL,
+                'title-numeric'
+            )
+        )
+    );
+} else if ($report_type == Network_Visualiser::REPORT_GRAPHICAL) {
+    echo "<div id='clear-chart' style='height:450px; width:100%;'>";
+    echo "    <div style='margin: 30 225 0 225;' class='theme-loading-normal'>";
+    echo lang('base_loading');
+    echo "    </div>";
+    echo "</div>";
+}
 
 echo form_close();
 echo "<input id='report_display' type='hidden' value='$display'>";
+echo "<input id='report_type' type='hidden' value='$report_type'>";

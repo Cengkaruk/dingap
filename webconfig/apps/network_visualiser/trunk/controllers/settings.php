@@ -33,6 +33,7 @@
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\network_visualiser\Network_Visualiser as Network_Visualiser;
 use \Exception as Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,6 +62,8 @@ class Settings extends ClearOS_Controller
 
     function index()
     {
+	clearos_profile(__METHOD__, __LINE__);
+
         // Load dependencies
         //------------------
 
@@ -83,8 +86,12 @@ class Settings extends ClearOS_Controller
                 $this->network_visualiser->set_interval($this->input->post('interval'));
                 $this->network_visualiser->set_interface($this->input->post('interface'));
                 $this->network_visualiser->set_display($this->input->post('display'));
+                $this->network_visualiser->set_report_type($this->input->post('report_type'));
                 $this->page->set_status_updated();
-                redirect('/network_visualiser');
+		if ($this->input->post('report_type') == Network_Visualiser::REPORT_DETAILED)
+                    redirect('/network_visualiser/detailed');
+		else
+                    redirect('/network_visualiser');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -98,9 +105,11 @@ class Settings extends ClearOS_Controller
             $data['interface'] = $this->network_visualiser->get_interface();
             $data['interval'] = $this->network_visualiser->get_interval();
             $data['display'] = $this->network_visualiser->get_display();
+            $data['report_type'] = $this->network_visualiser->get_report_type();
             $data['interval_options'] = $this->network_visualiser->get_interval_options();
             $data['interface_options'] = $this->network_visualiser->get_interface_options();
             $data['display_options'] = $this->network_visualiser->get_display_options();
+            $data['report_type_options'] = $this->network_visualiser->get_report_type_options();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -109,6 +118,6 @@ class Settings extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('network_visualiser/settings', $data, lang('network_visualiser_app_name'), array('type' => 'report'));
+        $this->page->view_form('network_visualiser/settings', $data, lang('network_visualiser_app_name'));
     }
 }

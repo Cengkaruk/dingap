@@ -30,6 +30,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \clearos\apps\network_visualiser\Network_Visualiser as Net_Vis;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -55,10 +61,19 @@ class Network_Visualiser extends ClearOS_Controller
 
     function index()
     {
+	clearos_profile(__METHOD__, __LINE__);
+
         // Load libraries
         //---------------
 
+	$this->load->library('network_visualiser/Network_Visualiser');
         $this->lang->load('network_visualiser');
+
+	// Check for detailed report type to see if we load the report layout
+    	if ($this->network_visualiser->get_report_type() == Net_Vis::REPORT_DETAILED) {
+	    $this->detailed();
+            return;
+	}
 
         // Load views
         //-----------
@@ -66,5 +81,46 @@ class Network_Visualiser extends ClearOS_Controller
         $views = array('network_visualiser/settings','network_visualiser/report');
 
         $this->page->view_forms($views, lang('network_visualiser_app_name'));
+    }
+
+    /**
+     * Network Visualiser simple report view.
+     *
+     * @return view
+     */
+
+    function simple()
+    {
+	clearos_profile(__METHOD__, __LINE__);
+
+        // Load libraries
+        //---------------
+	$this->load->library('network_visualiser/Network_Visualiser');
+        $this->lang->load('network_visualiser');
+
+	$this->network_visualiser->set_report_type(Net_Vis::REPORT_SIMPLE);
+    	redirect('/network_visualiser');
+    }
+ 
+    /**
+     * Network Visualiser detailed report view.
+     *
+     * @return view
+     */
+
+    function detailed()
+    {
+	clearos_profile(__METHOD__, __LINE__);
+
+        // Load libraries
+        //---------------
+	$this->load->library('network_visualiser/Network_Visualiser');
+        $this->lang->load('network_visualiser');
+
+	$data['report_type'] = Net_Vis::REPORT_DETAILED;
+
+        // Load view
+        //----------
+	$this->page->view_form('network_visualiser/report', $data, lang('remote_backup_app_name'), array('type' => 'report'));
     }
 }
