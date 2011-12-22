@@ -85,8 +85,6 @@ function theme_clearos_is_authenticated()
 
     data_payload = 'ci_csrf_token=' + $.cookie('ci_csrf_token');
     $('#sdn_login_dialog_message_bar').html('');
-    // Password being sent - login attempt
-    // Email being sent - lost/reset password attempt
     if (auth_options.action_type == 'login') {
         if ($('#sdn_password').val() == '') {
             $('#sdn_login_dialog_message_bar').html(lang_sdn_password_invalid);
@@ -127,7 +125,6 @@ function theme_clearos_is_authenticated()
                 // Open dialog and change some look and feel
                 $('#sdn_login_dialog').dialog('open');
                 $('.ui-dialog-titlebar-close').hide();
-                $('.autofocus').focus();
 
                 // If email was submitted...reset was a success...
                 if (data.email != undefined) {
