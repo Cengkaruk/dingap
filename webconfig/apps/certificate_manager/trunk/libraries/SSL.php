@@ -2054,7 +2054,7 @@ class SSL extends Engine
             $match = array();
                     
             foreach ($files as $file) {
-                if (preg_match("/$prefix([0-9]*)cert\\.pem$/", $file, $match)) {
+                if (preg_match("/([0-9]*)cert\\.pem$/", $file, $match)) {
                     if ((int)$match[1] >= $next)
                         $next = (int)$match[1] + 1;
                 }

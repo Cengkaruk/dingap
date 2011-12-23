@@ -1,3 +1,40 @@
 #!/bin/sh
 
+# Sudoers
+#--------
+
 /usr/sbin/addsudo /usr/bin/openssl app-certificate-manager-core
+
+# Generate temporary system certificates
+#---------------------------------------
+#
+# We need to generate certificates for daemons.  An administrator may
+# later create their own CA and system certificates, but this process
+# will do in the interim.
+
+KEY=/etc/pki/CA/bootstrap.key
+CRT=/etc/pki/CA/bootstrap.crt
+SSLCONF=/etc/pki/CA/openssl.cnf
+
+if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
+    # Determine our hostname
+    if [ -f /etc/sysconfig/network ]; then
+            HOSTNAME=`grep "HOSTNAME=" /etc/sysconfig/network | sed 's/HOSTNAME=//g' | sed 's/"//g'`
+    else
+            HOSTNAME="server.lan"
+    fi
+
+    umask 77
+
+    sed -e "s/^CN .*/CN = $HOSTNAME/" $SSLCONF > /var/tmp/openssl.cnf.$$
+
+    # Generate keys
+    /usr/bin/openssl genrsa -out $KEY 1024 2>/dev/null
+    /usr/bin/openssl req -new -key $KEY -x509 -out $CRT -config /var/tmp/openssl.cnf.$$ \
+            -days 3000 -set_serial `date "+%s"` 2>/dev/null
+
+    # Fix file permissions and ownership
+    chown root.root $KEY $CRT /var/tmp/openssl.cnf.$$
+    chmod 640 $KEY $CRT
+    rm -f /var/tmp/openssl.cnf.$$
+fi

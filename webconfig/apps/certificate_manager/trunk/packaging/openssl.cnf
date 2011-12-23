@@ -50,6 +50,7 @@ commonName                     = supplied
 emailAddress                   = optional
 
 [ req ]
+prompt                         = no
 default_bits                   = 2048
 default_md                     = sha1
 default_keyfile                = /etc/pki/CA/private/cakey.pem
@@ -59,25 +60,12 @@ x509_extensions                = v3_ca
 string_mask                    = utf8only
 
 [ req_distinguished_name ]
-countryName                    = Country Name (2 letter code)
-countryName_default            = US
-countryName_min                = 2
-countryName_max                = 2
-stateOrProvinceName            = State or Province Name (full name)
-localityName                   = Locality Name (eg, city)
-localityName_default           = My City
-0.organizationName             = Organization Name (eg, company)
-0.organizationName_default     = Default Company Ltd
-organizationalUnitName         = Organizational Unit Name (eg, section)
-commonName                     = Common Name (eg, your name or your server\'s hostname)
-commonName_max                 = 64
-emailAddress                   = Email Address
-emailAddress_max               = 64
-commonName_default             = ca.example.com
-organizationName_default       = Organization
-organizationalUnitName_default = Organization
-emailAddress_default           = security@example.com
-stateOrProvinceName_default    = ON
+countryName                    = CA
+localityName                   = Toronto
+0.organizationName             = ClearOS
+organizationalUnitName         = ClearOS
+commonName                     = system.lan
+emailAddress                   = noreply@localhost
 
 [ req_attributes ]
 challengePassword              = A challenge password
