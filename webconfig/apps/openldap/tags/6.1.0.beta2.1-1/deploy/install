@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Set default start/boot
+#-----------------------
+
+logger -p local6.notice -t installer "app-openldap-core - disabling LDAP server"
+/sbin/chkconfig slapd off
