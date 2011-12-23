@@ -541,21 +541,35 @@ function spec($options)
             $core_requires .= "Requires: $require\n";
     }
 
+    // Packager and Vendor
+    //--------------------
+    // Build system manages these tags
+
+    if (($app['vendor'] == 'ClearCenter') || ($app['vendor'] == 'ClearFoundation'))
+        $vendor = '';
+    else
+	$vendor = "Vendor: {$app['vendor']}\n";
+
+    if (($app['packager'] == 'ClearCenter') || ($app['packager'] == 'ClearFoundation'))
+        $packager = '';
+    else
+	$packager = "Packager: {$app['packager']}\n";
 
     // Template for both core and base RPMS
     //-------------------------------------
+    // TODO: merge these two templates
 
     if (!isset($app['core_only']) || (!$app['core_only'])) {
 
         $spec = "
 Name: {$app['package_name']}
-Group: ClearOS/Apps
 Version: {$app['version']}
 Release: {$app['release']}%{dist}
 Summary: {$app['name']}
 License: {$app['license']}
-Packager: {$app['packager']}
-Vendor: {$app['vendor']}
+Group: ClearOS/Apps
+" . $packager . "
+" . $vendor . "
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 " . $provides . 
@@ -566,8 +580,8 @@ Buildarch: noarch
 
 %package core
 Summary: {$app['name']} - APIs and install
-Group: ClearOS/Libraries
 License: {$app['license_core']}
+Group: ClearOS/Libraries
 " . $core_provides . $core_requires . $core_obsoletes . "
 %description core
 {$app['description']}
@@ -627,29 +641,34 @@ exit 0
 $core_files_manifest";
 
 
-// Template for both core and base RPMS
-//-------------------------------------
+// Template for core RPMS
+//-----------------------
 
 } else {
 $spec = "
-Name: {$app['package_name']}-core
-Group: ClearOS/Libraries
+Name: {$app['package_name']}
 Version: {$app['version']}
 Release: {$app['release']}%{dist}
-Summary: {$app['name']} - APIs and install
+Summary: {$app['name']} - APIs and instalcl
 License: {$app['license_core']}
-Packager: {$app['packager']}
-Vendor: {$app['vendor']}
-Source: {$app['package_name']}-%{version}.tar.gz
+Group: ClearOS/Libraries
+" . $packager . $vendor . 
+"Source: {$app['package_name']}-%{version}.tar.gz
 Buildarch: noarch
-" . $core_provides . $core_requires . "
+
 %description
+{$app['description']}
+
+%package core
+Summary: {$app['name']} - APIs and install
+" . $core_provides . $core_requires . $core_obsoletes . "
+%description core
 {$app['description']}
 
 This package provides the core API and libraries.
 
 %prep
-%setup -q -n {$app['package_name']}-%{version}
+%setup -q
 %build
 
 %install
@@ -657,7 +676,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/{$app['basename']}
 cp -r * %{buildroot}/usr/clearos/apps/{$app['basename']}/
 
 $core_directories_install$core_files_install
-%post
+%post core
 logger -p local6.notice -t installer '{$app['package_name']}-core - installing'
 
 if [ $1 -eq 1 ]; then
@@ -668,7 +687,7 @@ fi
 
 exit 0
 
-%preun
+%preun core
 if [ $1 -eq 0 ]; then
     logger -p local6.notice -t installer '{$app['package_name']}-core - uninstalling'
     [ -x /usr/clearos/apps/{$app['basename']}/deploy/uninstall ] && /usr/clearos/apps/{$app['basename']}/deploy/uninstall
@@ -676,7 +695,7 @@ fi
 
 exit 0
 
-%files
+%files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/{$app['basename']}/packaging
 %exclude /usr/clearos/apps/{$app['basename']}/tests
