@@ -1,0 +1,53 @@
+#!/bin/sh
+
+TIMESTAMP=`date "+%b-%d-%Y-%T"`
+
+# CUPS configuration
+#-------------------
+
+CHECK=`grep cupsd.policy.conf /etc/cups/cupsd.conf 2>/dev/null`
+
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-cups-core - setting default configuration"
+    [ -e /etc/cups/cupsd.conf ] && mv /etc/cups/cupsd.conf /var/clearos/print_server/backup/cupsd.conf.$TIMESTAMP
+    cp /usr/clearos/apps/print_server/deploy/cupsd.conf /etc/cups/cupsd.conf
+    chown root.lp /etc/cups/cupsd.conf
+    chmod 640 /etc/cups/cupsd.conf
+fi
+
+if [ ! -e cupsd.listen.conf ]; then
+    logger -p local6.notice -t installer "app-cups-core - setting default listen configuration"
+    cp /usr/clearos/apps/print_server/deploy/cupsd.listen.conf /etc/cups/cupsd.listen.conf
+fi
+
+logger -p local6.notice -t installer "app-cups-core - setting default location configuration"
+[ -e /etc/cups/cupsd.location.conf ] && mv /etc/cups/cupsd.location.conf /var/clearos/print_server/backup/cupsd.location.conf.$TIMESTAMP
+cp /usr/clearos/apps/print_server/deploy/cupsd.location.conf /etc/cups/cupsd.location.conf
+
+logger -p local6.notice -t installer "app-cups-core - setting default policy"
+[ -e /etc/cups/cupsd.policy.conf ] && mv /etc/cups/cupsd.policy.conf /var/clearos/print_server/backup/cupsd.policy.conf.$TIMESTAMP
+cp /usr/clearos/apps/print_server/deploy/cupsd.policy.conf /etc/cups/cupsd.policy.conf
+
+
+# Grab bootstrap certificates from Certificate Manager
+#-----------------------------------------------------
+
+KEY_SOURCE=/etc/pki/CA/bootstrap.key
+KEY=/etc/cups/ssl/server.key
+
+if [ ! -s "$KEY" ]; then
+    logger -p local6.notice -t installer "app-cups-core - prepping server key"
+    cp $KEY_SOURCE $KEY
+    chown root.lp $KEY
+    chmod 640 $KEY
+fi
+
+CRT_SOURCE=/etc/pki/CA/bootstrap.crt
+CRT=/etc/cups/ssl/server.crt
+
+if [ ! -s "$CRT" ]; then
+    logger -p local6.notice -t installer "app-cups-core - prepping server certificate"
+    cp $CRT_SOURCE $CRT
+    chown root.lp $CRT
+    chmod 640 $CRT
+fi

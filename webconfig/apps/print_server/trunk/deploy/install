@@ -1,0 +1,3 @@
+#!/bin/sh
+
+[ -x /usr/clearos/apps/print_server/deploy/syncaction ] && /usr/clearos/apps/print_server/deploy/syncaction

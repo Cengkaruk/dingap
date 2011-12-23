@@ -30,7 +30,9 @@ $app['requires'] = array(
 );
 
 $app['core_requires'] = array(
-    'cups >= 1.4.2'
+    'app-certificate-manager-core',
+    'cups >= 1.4.2',
+    'csplugin-filewatch',
 );
 
 $app['core_directory_manifest'] = array(
@@ -41,6 +43,9 @@ $app['core_directory_manifest'] = array(
 
 $app['core_file_manifest'] = array(
     'cups.php'=> array('target' => '/var/clearos/base/daemon/cups.php'),
+    'filewatch-print-server.conf'=> array('target' => '/etc/clearsync.d/filewatch-print-server.conf'),
+);
+/*
     'authorize' => array(
         'target' => '/etc/clearos/print_server.d/authorize',
         'mode' => '0644',
@@ -49,4 +54,4 @@ $app['core_file_manifest'] = array(
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
-);
+*/
