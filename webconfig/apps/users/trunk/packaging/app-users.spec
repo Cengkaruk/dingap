@@ -1,12 +1,10 @@
 
 Name: app-users
-Group: ClearOS/Apps
 Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: Users
 License: GPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Apps
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
@@ -19,8 +17,8 @@ The users app allows an administrator to create, delete and modify users on the 
 
 %package core
 Summary: Users - APIs and install
-Group: ClearOS/Libraries
 License: LGPLv3
+Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-accounts-core
 Requires: system-users-driver

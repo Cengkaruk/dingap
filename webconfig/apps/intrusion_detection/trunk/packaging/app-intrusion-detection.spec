@@ -1,12 +1,10 @@
 
 Name: app-intrusion-detection
-Group: ClearOS/Apps
 Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: Intrusion Detection
 License: GPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Apps
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
@@ -18,8 +16,8 @@ The advanced Intrusion Detection system performs security scanning at the networ
 
 %package core
 Summary: Intrusion Detection - APIs and install
-Group: ClearOS/Libraries
 License: LGPLv3
+Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
 Requires: csplugin-routewatch

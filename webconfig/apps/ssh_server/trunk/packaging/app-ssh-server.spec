@@ -1,12 +1,10 @@
 
 Name: app-ssh-server
-Group: ClearOS/Apps
 Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: SSH Server
 License: GPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Apps
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
@@ -18,8 +16,8 @@ SSH is a network protocol for allowing remote access to the systems Command Line
 
 %package core
 Summary: SSH Server - APIs and install
-Group: ClearOS/Libraries
 License: LGPLv3
+Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
 Requires: openssh-server >= 5.3p1

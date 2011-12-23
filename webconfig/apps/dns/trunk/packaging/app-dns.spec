@@ -1,12 +1,10 @@
 
 Name: app-dns
-Group: ClearOS/Apps
 Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: DNS Server
 License: GPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Apps
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
@@ -18,8 +16,8 @@ The local DNS server can be used for mapping IP addresses on your network to hos
 
 %package core
 Summary: DNS Server - APIs and install
-Group: ClearOS/Libraries
 License: LGPLv3
+Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: dnsmasq >= 2.48
 Requires: net-tools

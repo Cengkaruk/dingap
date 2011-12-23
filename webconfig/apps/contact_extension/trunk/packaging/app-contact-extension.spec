@@ -1,26 +1,30 @@
 
-Name: app-contact-extension-core
-Group: ClearOS/Libraries
+Name: app-contact-extension
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Contact Extension - APIs and install
+Summary: Contact Extension - APIs and instalcl
 License: LGPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Libraries
 Source: app-contact-extension-%{version}.tar.gz
 Buildarch: noarch
+
+%description
+The Contact Extension extends the directory with user contact information such as phone number, address, and e-mail.
+
+%package core
+Summary: Contact Extension - APIs and install
 Requires: app-base-core
 Requires: app-openldap-directory-core
 Requires: app-organization
 Requires: app-users
 
-%description
+%description core
 The Contact Extension extends the directory with user contact information such as phone number, address, and e-mail.
 
 This package provides the core API and libraries.
 
 %prep
-%setup -q -n app-contact-extension-%{version}
+%setup -q
 %build
 
 %install
@@ -29,7 +33,7 @@ cp -r * %{buildroot}/usr/clearos/apps/contact_extension/
 
 install -D -m 0644 packaging/contact.php %{buildroot}/var/clearos/openldap_directory/extensions/90_contact.php
 
-%post
+%post core
 logger -p local6.notice -t installer 'app-contact-extension-core - installing'
 
 if [ $1 -eq 1 ]; then
@@ -40,7 +44,7 @@ fi
 
 exit 0
 
-%preun
+%preun core
 if [ $1 -eq 0 ]; then
     logger -p local6.notice -t installer 'app-contact-extension-core - uninstalling'
     [ -x /usr/clearos/apps/contact_extension/deploy/uninstall ] && /usr/clearos/apps/contact_extension/deploy/uninstall
@@ -48,7 +52,7 @@ fi
 
 exit 0
 
-%files
+%files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/contact_extension/packaging
 %exclude /usr/clearos/apps/contact_extension/tests
