@@ -1,7 +1,7 @@
 
 Name: app-openldap-core
 Group: ClearOS/Libraries
-Version: 6.1.0.beta2.1
+Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: OpenLDAP Driver - APIs and install
 License: LGPLv3

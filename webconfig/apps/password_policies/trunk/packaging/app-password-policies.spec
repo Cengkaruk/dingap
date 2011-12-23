@@ -1,7 +1,7 @@
 
 Name: app-password-policies
 Group: ClearOS/Apps
-Version: 5.9.9.0
+Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: Password Policies
 License: GPLv3

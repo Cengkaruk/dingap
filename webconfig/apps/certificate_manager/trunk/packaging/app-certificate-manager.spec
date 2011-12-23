@@ -1,8 +1,8 @@
 
 Name: app-certificate-manager
 Group: ClearOS/Apps
-Version: 5.9.9.3
-Release: 2.1%{dist}
+Version: 6.2.0.beta3
+Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
 Packager: ClearFoundation

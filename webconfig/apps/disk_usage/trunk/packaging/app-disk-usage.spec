@@ -1,7 +1,7 @@
 
 Name: app-disk-usage
 Group: ClearOS/Apps
-Version: 6.1.0.beta2
+Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: Disk Usage
 License: GPLv3
