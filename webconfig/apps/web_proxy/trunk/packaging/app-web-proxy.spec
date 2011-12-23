@@ -14,7 +14,7 @@ Requires: app-base
 Requires: app-network
 
 %description
-Web proxy description...
+A web proxy acts as an intermediary server for web requests originating from the Local Area Network.  Implementing a proxy server is optional, however, several benefits are gained such as increasing page access times (using caching), decreasing bandwidth use, logging website visits by user and/or IP and implementing access control restrictions.
 
 %package core
 Summary: Web Proxy - APIs and install
@@ -28,7 +28,7 @@ Requires: csplugin-filewatch
 Requires: squid >= 3.1.10
 
 %description core
-Web proxy description...
+A web proxy acts as an intermediary server for web requests originating from the Local Area Network.  Implementing a proxy server is optional, however, several benefits are gained such as increasing page access times (using caching), decreasing bandwidth use, logging website visits by user and/or IP and implementing access control restrictions.
 
 This package provides the core API and libraries.
 
