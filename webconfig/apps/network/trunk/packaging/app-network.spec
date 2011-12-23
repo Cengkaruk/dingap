@@ -2,7 +2,7 @@
 Name: app-network
 Group: ClearOS/Apps
 Version: 6.1.0.beta2
-Release: 3%{dist}
+Release: 1%{dist}
 Summary: IP Settings
 License: GPLv3
 Packager: ClearFoundation
@@ -13,7 +13,7 @@ Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
 
 %description
-IP settings description...
+Provides administrators with the ability to configure the most common network tasks like mode, system hostname, DNS servers and Network Interface Card (NIC) settings.
 
 %package core
 Summary: IP Settings - APIs and install
@@ -30,7 +30,7 @@ Requires: rp-pppoe
 Requires: syswatch
 
 %description core
-IP settings description...
+Provides administrators with the ability to configure the most common network tasks like mode, system hostname, DNS servers and Network Interface Card (NIC) settings.
 
 This package provides the core API and libraries.
 
