@@ -126,13 +126,13 @@ class OpenLDAP_Policy extends Engine
 
         $ldap_info = $ldaph->read($dn);
 
-        $info['maximumAge'] = $ldap_info['pwdMaxAge'][0];
-        $info['minimumAge'] = $ldap_info['pwdMinAge'][0];
-        $info['minimumLength'] = $ldap_info['pwdMinLength'][0];
-        $info['historySize'] = $ldap_info['pwdInHistory'][0];
-        $info['badPasswordLockout'] = ($ldap_info['pwdLockout'][0] === 'TRUE') ? TRUE : FALSE;
-        $info['badPasswordLockoutDuration'] = $ldap_info['pwdLockoutDuration'][0];
-        $info['badPasswordLockoutAttempts'] = $ldap_info['pwdMaxFailure'][0];
+        $info['maximum_age'] = $ldap_info['pwdMaxAge'][0];
+        $info['minimum_age'] = $ldap_info['pwdMinAge'][0];
+        $info['minimum_length'] = $ldap_info['pwdMinLength'][0];
+        $info['history_size'] = $ldap_info['pwdInHistory'][0];
+        $info['bad_password_lockout'] = ($ldap_info['pwdLockout'][0] === 'TRUE') ? TRUE : FALSE;
+        $info['bad_password_lockout_duration'] = $ldap_info['pwdLockoutDuration'][0];
+        $info['bad_password_lockout_attempts'] = $ldap_info['pwdMaxFailure'][0];
 
         return $info;
     }
@@ -215,10 +215,11 @@ class OpenLDAP_Policy extends Engine
         // Update default password policy object
         //--------------------------------------
 
-        $attributes['pwdMaxAge'] = $settings['maximumAge'];
-        $attributes['pwdMinAge'] = $settings['minimumAge'];
-        $attributes['pwdMinLength'] = $settings['minimumLength'];
-        $attributes['pwdInHistory'] = $settings['historySize'];
+        $attributes['pwdMaxAge'] = $settings['maximum_age'];
+        $attributes['pwdMinAge'] = $settings['minimum_age'];
+        $attributes['pwdMinLength'] = $settings['minimum_length'];
+        $attributes['pwdInHistory'] = $settings['history_size'];
+        $attributes['pwdLockout'] = ($settings['bad_password_lockout']) ? 'TRUE' : 'FALSE';
 
         $ldaph->modify($dn, $attributes);
     }

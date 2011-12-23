@@ -8,6 +8,4 @@ $lang['password_policies_minimum_password_length'] = 'Minimum Password Length';
 $lang['password_policies_modify_any_time'] = 'Modify Any Time';
 $lang['password_policies_no_expire'] = 'No Expire';
 $lang['password_policies_no_history'] = 'No History';
-$lang['password_policies_password_policy'] = 'Password Policy';
-$lang['password_policies_password_policies'] = 'Password Policies';
 $lang['password_policies_account_lockout'] = 'Account Lockout';

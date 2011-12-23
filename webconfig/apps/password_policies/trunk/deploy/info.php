@@ -11,17 +11,26 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('password_policies_app_summary');
-$app['description'] = lang('password_policies_app_long_description');
+$app['description'] = lang('password_policies_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Password Policies';
+$app['name'] = lang('password_policies_app_name');
 $app['category'] = lang('base_category_system');
-$app['subcategory'] = 'Accounts Manager';
+$app['subcategory'] = 'Accounts Manager'; // FIXME
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
+
+$app['requires'] = array(
+    'app-accounts',
+    'app-groups',
+    'app-users',
+);
+
+$app['core_requires'] = array(
+    'app-openldap-core',
+);

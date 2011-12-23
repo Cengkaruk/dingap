@@ -52,14 +52,13 @@ clearos_load_language('base');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\password_policies\OpenLDAP_Policy as OpenLDAP_Policy;
+use \clearos\apps\samba\Samba_Password_Policy as Samba_Password_Policy;
 
 clearos_load_library('base/Engine');
 clearos_load_library('password_policies/OpenLDAP_Policy');
+// Loaded dynamically: clearos_load_library('samba/Samba_Password_Policy');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -139,10 +138,10 @@ class Password_Policies extends Engine
      * Sets default policy.
      *
      * The settings object is defined as follows:
-     * - historySize (integer): the number of passwords to store in history
-     * - maximumAge (seconds): maximum password age
-     * - minimumAge (seconds): minimum password age
-     * - minimumLength (integer): minimum length of a password
+     * - history_size (integer): the number of passwords to store in history
+     * - maximum_age (seconds): maximum password age
+     * - minimum_age (seconds): minimum password age
+     * - minimum_length (integer): minimum length of a password
      *
      * @param array $settings settings object
      *
@@ -159,12 +158,12 @@ class Password_Policies extends Engine
         $policy->set_default_policy($settings);
 
         // Update Samba policy
-/*
-FIXME
-        $samba_policy = new SambaPasswordPolicy();
-        $samba_settings = $this->_ConvertPolicyToSamba($settings);
-        $samba_policy->SetDefaultPolicy($samba_settings);
-*/
+        if (clearos_library_installed('samba/Samba_Password_Policy')) {
+            clearos_load_library('samba/Samba_Password_Policy');
+            $samba_policy = new Samba_Password_Policy();
+            $samba_settings = $this->_convert_policy_to_samba($settings);
+            $samba_policy->set_default_policy($samba_settings);
+        }
     }
 
     /**
@@ -202,22 +201,22 @@ FIXME
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($settings['historySize'] == self::CONSTANT_NO_HISTORY)
-            $samba_settings['sambaPwdHistoryLength'] = SambaPasswordPolicy::CONSTANT_NO_HISTORY;
+        if ($settings['history_size'] == self::CONSTANT_NO_HISTORY)
+            $samba_settings['sambaPwdHistoryLength'] = Samba_Password_Policy::CONSTANT_NO_HISTORY;
         else    
-            $samba_settings['sambaPwdHistoryLength'] = $settings['historySize'];
+            $samba_settings['sambaPwdHistoryLength'] = $settings['history_size'];
 
-        if ($settings['maximumAge'] == self::CONSTANT_NO_EXPIRE)
-            $samba_settings['sambaMaxPwdAge'] = SambaPasswordPolicy::CONSTANT_NO_EXPIRE;
+        if ($settings['maximum_age'] == self::CONSTANT_NO_EXPIRE)
+            $samba_settings['sambaMaxPwdAge'] = Samba_Password_Policy::CONSTANT_NO_EXPIRE;
         else
-            $samba_settings['sambaMaxPwdAge'] = $settings['maximumAge'];
+            $samba_settings['sambaMaxPwdAge'] = $settings['maximum_age'];
 
-        if ($settings['minimumAge'] == self::CONSTANT_MODIFY_ANY_TIME)
-            $samba_settings['sambaMinPwdAge'] = SambaPasswordPolicy::CONSTANT_MODIFY_ANY_TIME;
+        if ($settings['minimum_age'] == self::CONSTANT_MODIFY_ANY_TIME)
+            $samba_settings['sambaMinPwdAge'] = Samba_Password_Policy::CONSTANT_MODIFY_ANY_TIME;
         else
-            $samba_settings['sambaMinPwdAge'] = $settings['minimumAge'];
+            $samba_settings['sambaMinPwdAge'] = $settings['minimum_age'];
 
-        $samba_settings['sambaMinPwdLength'] = $settings['minimumLength'];
+        $samba_settings['sambaMinPwdLength'] = $settings['minimum_length'];
 
         return $samba_settings;
     }
