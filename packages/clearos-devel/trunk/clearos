@@ -568,9 +568,8 @@ Release: {$app['release']}%{dist}
 Summary: {$app['name']}
 License: {$app['license']}
 Group: ClearOS/Apps
-" . $packager . "
-" . $vendor . "
-Source: %{name}-%{version}.tar.gz
+" . $packager . $vendor . 
+"Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 " . $provides . 
 "Requires: %{name}-core = %{version}-%{release}
