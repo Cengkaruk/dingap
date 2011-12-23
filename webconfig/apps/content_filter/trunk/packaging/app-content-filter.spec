@@ -1,6 +1,6 @@
 
 Name: app-content-filter
-Version: 6.2.0.beta3
+Version: 6.1.0.beta2
 Release: 1%{dist}
 Summary: Content Filter
 License: GPLv3
