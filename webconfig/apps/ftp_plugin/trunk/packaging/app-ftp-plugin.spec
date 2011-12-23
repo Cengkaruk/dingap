@@ -2,7 +2,7 @@
 Name: app-ftp-plugin
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: FTP Server Accounts Plugin - APIs and instalcl
+Summary: FTP Server Accounts Plugin - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-ftp-plugin-%{version}.tar.gz

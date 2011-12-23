@@ -2,7 +2,7 @@
 Name: app-web-proxy-plugin
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Web Proxy Directory Plugin - APIs and instalcl
+Summary: Web Proxy Directory Plugin - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-web-proxy-plugin-%{version}.tar.gz

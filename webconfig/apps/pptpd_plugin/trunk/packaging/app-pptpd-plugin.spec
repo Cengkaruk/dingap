@@ -2,7 +2,7 @@
 Name: app-pptpd-plugin
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: PPTP Server Directory Plugin - APIs and instalcl
+Summary: PPTP Server Directory Plugin - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-pptpd-plugin-%{version}.tar.gz

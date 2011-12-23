@@ -2,7 +2,7 @@
 Name: app-contact-extension
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Contact Extension - APIs and instalcl
+Summary: Contact Extension - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-contact-extension-%{version}.tar.gz

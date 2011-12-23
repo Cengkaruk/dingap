@@ -2,7 +2,7 @@
 Name: app-samba-extension
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Samba Extension - APIs and instalcl
+Summary: Samba Extension - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-samba-extension-%{version}.tar.gz

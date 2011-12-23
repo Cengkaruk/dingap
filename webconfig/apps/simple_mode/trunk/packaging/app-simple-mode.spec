@@ -2,7 +2,7 @@
 Name: app-simple-mode
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Translation missing (simple_mode_base_system_mode) - APIs and instalcl
+Summary: Translation missing (simple_mode_base_system_mode) - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-simple-mode-%{version}.tar.gz

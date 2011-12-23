@@ -2,7 +2,7 @@
 Name: app-ldap
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: LDAP Engine - APIs and instalcl
+Summary: LDAP Engine - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-ldap-%{version}.tar.gz

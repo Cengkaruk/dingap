@@ -2,7 +2,7 @@
 Name: app-shell-extension
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Login Shell Extension - APIs and instalcl
+Summary: Login Shell Extension - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-shell-extension-%{version}.tar.gz

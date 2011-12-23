@@ -2,7 +2,7 @@
 Name: app-tasks
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: Task Scheduler - APIs and instalcl
+Summary: Task Scheduler - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-tasks-%{version}.tar.gz

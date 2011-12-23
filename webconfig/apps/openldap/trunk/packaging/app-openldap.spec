@@ -2,7 +2,7 @@
 Name: app-openldap
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: OpenLDAP Driver - APIs and instalcl
+Summary: OpenLDAP Driver - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-openldap-%{version}.tar.gz
