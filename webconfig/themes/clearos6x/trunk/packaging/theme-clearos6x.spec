@@ -1,6 +1,6 @@
 Name: theme-clearos6x
 Group: Applications/Themes
-Version: 6.1.0.beta2
+Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: ClearOS Enterprise 6 theme
 License: Copyright 2011 ClearFoundation
