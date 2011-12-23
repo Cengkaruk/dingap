@@ -648,7 +648,7 @@ $spec = "
 Name: {$app['package_name']}
 Version: {$app['version']}
 Release: {$app['release']}%{dist}
-Summary: {$app['name']} - APIs and instalcl
+Summary: {$app['name']} - APIs and install
 License: {$app['license_core']}
 Group: ClearOS/Libraries
 " . $packager . $vendor . 
