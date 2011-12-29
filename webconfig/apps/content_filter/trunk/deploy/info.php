@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'content_filter';
-$app['version'] = '6.1.0.beta2';
+$app['version'] = '6.2.0.beta3';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -50,4 +50,5 @@ $app['core_directory_manifest'] = array(
 
 $app['core_file_manifest'] = array(
     'dansguardian-av.php'=> array('target' => '/var/clearos/base/daemon/dansguardian-av.php'),
+    'content_filter.acl'=> array('target' => '/var/clearos/base/access_control/public/content_Filter'),
 );

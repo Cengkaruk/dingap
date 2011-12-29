@@ -1,6 +1,6 @@
 
 Name: app-content-filter
-Version: 6.1.0.beta2
+Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: Content Filter
 License: GPLv3
@@ -39,6 +39,7 @@ cp -r * %{buildroot}/usr/clearos/apps/content_filter/
 
 install -d -m 0755 %{buildroot}/var/clearos/content_filter
 install -d -m 0755 %{buildroot}/var/clearos/content_filter/backup/
+install -D -m 0644 packaging/content_filter.acl %{buildroot}/var/clearos/base/access_control/public/content_Filter
 install -D -m 0644 packaging/dansguardian-av.php %{buildroot}/var/clearos/base/daemon/dansguardian-av.php
 
 %post
@@ -84,4 +85,5 @@ exit 0
 /usr/clearos/apps/content_filter/deploy
 /usr/clearos/apps/content_filter/language
 /usr/clearos/apps/content_filter/libraries
+/var/clearos/base/access_control/public/content_Filter
 /var/clearos/base/daemon/dansguardian-av.php
