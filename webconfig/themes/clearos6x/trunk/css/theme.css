@@ -1566,6 +1566,26 @@ ul#theme-top-menu-list .theme-top-menu-subcategory {
   /* margin-top: px; */ /*IE*/
 }
 
+.form-input-ok {
+  background-image: url(../images/icon-checkmark.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  margin-top: 2px;
+  height: 16px;
+  width: 16px;
+  float: right;
+}
+
+.form-input-fail {
+  background-image: url(../images/icon-xmark.png);
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  height: 16px;
+  width: 16px;
+  margin-top: 2px;
+  float: right;
+}
+
 /* ------------------------------------------------------------------------- */
 /* Left Menu */
 /* ------------------------------------------------------------------------- */
