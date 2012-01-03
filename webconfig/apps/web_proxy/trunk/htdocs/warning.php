@@ -70,21 +70,7 @@ $ftp_reply = isset($_REQUEST['ftpreply1']) ? $_REQUEST['ftpreply1'] : '';
 // Validate
 //---------
 
-/*
-// FIXME
-try {
-    if ($philesight->validate_path($real_path))
-        throw new \Exception(lang('disk_usage_path_invalid'));
-
-    if ($philesight->validate_coordinate($xcoord))
-        throw new \Exception(lang('disk_usage_coordinate_invalid'));
-
-    if ($philesight->validate_coordinate($ycoord))
-        throw new \Exception(lang('disk_usage_coordinate_invalid'));
-} catch (Engine_Exception $e) {
-    return;
-}
-*/
+// TODO
 
 $encoded_ip = strtr(base64_encode($ip),  '+/=', '-_.');
 $encoded_url = strtr(base64_encode($url),  '+/=', '-_.');

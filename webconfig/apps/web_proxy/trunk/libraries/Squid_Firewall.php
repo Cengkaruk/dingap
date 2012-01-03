@@ -89,6 +89,12 @@ clearos_load_library('base/Engine_Exception');
 class Squid_Firewall extends Firewall
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const FILTER_PORT = 8080;
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -148,7 +154,31 @@ class Squid_Firewall extends Firewall
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->get_value('SQUID_FILTER_PORT');
+        return self::FILTER_PORT;
+    }
+
+    /**
+     * Returns the state of the proxy filter.
+     *
+     * @return boolean TRUE if proxy filter is enabled
+     * @throws Engine_Exception
+     */
+
+    public function get_proxy_filter_state()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $state = FALSE;
+
+        if (clearos_library_installed('content_filter/DansGuardian')) {
+
+            clearos_load_library('content_filter/DansGuardian');
+            $dansguardian = new \clearos\apps\content_filter\DansGuardian();
+            
+            $state = $dansguardian->get_running_state();
+        }
+
+        return $state;
     }
 
     /**
@@ -211,22 +241,6 @@ class Squid_Firewall extends Firewall
         $rule->set_flags(Rule::PROXY_BYPASS);
         $rule->set_address($address);
         $this->delete_rule($rule);
-    }
-
-    /**
-     * Define a port for a parent content filter used by proxy.
-     *
-     * @param integer $port Port address of the Content Filter
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_proxy_filter_port($port)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $this->set_value($port, 'SQUID_FILTER_PORT');
     }
 
     /**

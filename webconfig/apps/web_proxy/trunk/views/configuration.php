@@ -42,11 +42,16 @@ $this->lang->load('network');
 
 // FIXME: this looks like crap
 
-echo infobox_warning(lang('base_warning'), lang('web_proxy_configuration_settings_warning:') . 
-    "<br><br>" .
-    lang('network_ip') . ' - ' . $ip . '<br>' .
-    lang('network_port') . ' - ' . $port . '<br>'
-);
+if ($port == 'disabled') {
+    // FIXME: translations
+    echo infobox_warning(lang('base_warning'), 'Please disable proxy settings in your web browser');
+} else {
+    echo infobox_warning(lang('base_warning'), lang('web_proxy_configuration_settings_warning:') . 
+        "<br><br>" .
+        lang('network_ip') . ' - ' . $ip . '<br>' .
+        lang('network_port') . ' - ' . $port . '<br>'
+    );
+}
 
 /*
 echo form_open('web_proxy/warning');

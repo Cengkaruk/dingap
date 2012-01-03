@@ -123,6 +123,7 @@ class Warning extends ClearOS_Controller
         try {
             $mode = $this->network->get_mode();
             $filter_port = $this->squid_firewall->get_proxy_filter_port();
+            $filter_running = $this->squid_firewall->get_proxy_filter_state();
             $is_transparent = $this->squid_firewall->get_proxy_transparent_state();
         } catch (Exception $e) {
             $this->page->view_exception($e);
@@ -131,21 +132,21 @@ class Warning extends ClearOS_Controller
 
         $is_standalone = ($mode == Network::MODE_STANDALONE) ? TRUE : FALSE;
         $is_trusted_standalone = ($mode == Network::MODE_TRUSTED_STANDALONE) ? TRUE : FALSE;
-        $is_filter = (empty($filter_port)) ? FALSE : TRUE;
-	// FIXME: is_filter should check to see if DG is running
 
         // This algorithm mimics how the firewall behaves.
         // Check /etc/rc.d/firewall.lua for details.
         $data['port'] = '...';
 
         if ($is_standalone || $is_trusted_standalone) {
-            if ($is_filter)
-                $data['port'] = '8080';
+            if ($filter_running)
+                $data['port'] = $filter_port;
+            else
+                $data['port'] = '3128';
         } else if ($is_transparent) {
             $data['port'] = 'disabled';
         } else {
-            if ($is_filter)
-                $data['port'] = '8080';
+            if ($filter_running)
+                $data['port'] = $filter_port;
             else
                 $data['port'] = '3128';
         }
