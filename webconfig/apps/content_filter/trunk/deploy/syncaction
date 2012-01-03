@@ -1,0 +1,24 @@
+#!/bin/sh
+
+#-------------------------------------------------------------------
+# Load configuration
+#-------------------------------------------------------------------
+
+[ -e /etc/sysconfig/dansguardian ] && source /etc/sysconfig/dansguardian
+[ -e /etc/init.d/functions-automagic ] && source /etc/init.d/functions-automagic
+
+/usr/bin/logger -p local6.notice -t content_filter "network change detected - updating configuration"
+
+#-------------------------------------------------------------------
+# Bail if automagic is disabled
+#-------------------------------------------------------------------
+
+if [ "$AUTOMAGIC" == "off" ]; then
+	exit 0
+fi
+
+#-------------------------------------------------------------------
+# Set access denied URL
+#-------------------------------------------------------------------
+
+/usr/clearos/apps/content_filter/deploy/set-access-denied-url

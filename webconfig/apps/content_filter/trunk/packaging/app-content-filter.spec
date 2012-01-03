@@ -9,7 +9,11 @@ Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
 Requires: app-base
+Requires: app-antiphishing
+Requires: app-antivirus
 Requires: app-network
+Requires: app-groups
+Requires: app-web-proxy
 
 %description
 The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.
@@ -19,10 +23,15 @@ Summary: Content Filter - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
-Requires: app-network-core
+Requires: app-antiphishing-core
+Requires: app-antivirus-core
+Requires: app-base-core >= 6.1.0-beta2.1
 Requires: app-firewall-core
-Requires: dansguardian-av >= 2.10.1.1
-Requires: squid >= 3.1.10
+Requires: app-groups-core
+Requires: app-network-core
+Requires: app-web-proxy-core
+Requires: csplugin-filewatch
+Requires: dansguardian-av >= 2.10.1.1-5
 
 %description core
 The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.
@@ -39,8 +48,10 @@ cp -r * %{buildroot}/usr/clearos/apps/content_filter/
 
 install -d -m 0755 %{buildroot}/var/clearos/content_filter
 install -d -m 0755 %{buildroot}/var/clearos/content_filter/backup/
-install -D -m 0644 packaging/content_filter.acl %{buildroot}/var/clearos/base/access_control/public/content_Filter
+install -D -m 0644 packaging/content_filter.acl %{buildroot}/var/clearos/base/access_control/public/content_filter
 install -D -m 0644 packaging/dansguardian-av.php %{buildroot}/var/clearos/base/daemon/dansguardian-av.php
+install -D -m 0644 packaging/filewatch-content-filter-daemon.conf %{buildroot}/etc/clearsync.d/filewatch-content-filter-daemon.conf
+install -D -m 0644 packaging/filewatch-content-filter-network.conf %{buildroot}/etc/clearsync.d/filewatch-content-filter-network.conf
 
 %post
 logger -p local6.notice -t installer 'app-content-filter - installing'
@@ -85,5 +96,7 @@ exit 0
 /usr/clearos/apps/content_filter/deploy
 /usr/clearos/apps/content_filter/language
 /usr/clearos/apps/content_filter/libraries
-/var/clearos/base/access_control/public/content_Filter
+/var/clearos/base/access_control/public/content_filter
 /var/clearos/base/daemon/dansguardian-av.php
+/etc/clearsync.d/filewatch-content-filter-daemon.conf
+/etc/clearsync.d/filewatch-content-filter-network.conf
