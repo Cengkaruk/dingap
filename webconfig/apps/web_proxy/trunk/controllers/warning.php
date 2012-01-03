@@ -132,6 +132,7 @@ class Warning extends ClearOS_Controller
         $is_standalone = ($mode == Network::MODE_STANDALONE) ? TRUE : FALSE;
         $is_trusted_standalone = ($mode == Network::MODE_TRUSTED_STANDALONE) ? TRUE : FALSE;
         $is_filter = (empty($filter_port)) ? FALSE : TRUE;
+	// FIXME: is_filter should check to see if DG is running
 
         // This algorithm mimics how the firewall behaves.
         // Check /etc/rc.d/firewall.lua for details.

@@ -8,6 +8,8 @@
 [ -e /etc/sysconfig/squid ] && source /etc/sysconfig/squid
 [ -e /etc/init.d/functions-automagic ] && source /etc/init.d/functions-automagic
 
+/usr/bin/logger -p local6.notice -t web_proxy "network change detected - updating configuration" 
+
 #-------------------------------------------------------------------
 # Generate error pages
 #-------------------------------------------------------------------
