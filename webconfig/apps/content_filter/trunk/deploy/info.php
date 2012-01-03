@@ -58,7 +58,7 @@ $app['core_directory_manifest'] = array(
 );
 
 $app['core_file_manifest'] = array(
-    'filewatch-content-filter-daemon.conf'=> array('target' => '/etc/clearsync.d/filewatch-content-filter-daemon.conf'),
+    'filewatch-content-filter-configuration.conf'=> array('target' => '/etc/clearsync.d/filewatch-content-filter-configuration.conf'),
     'filewatch-content-filter-network.conf'=> array('target' => '/etc/clearsync.d/filewatch-content-filter-network.conf'),
     'dansguardian-av.php'=> array('target' => '/var/clearos/base/daemon/dansguardian-av.php'),
     'content_filter.acl'=> array('target' => '/var/clearos/base/access_control/public/content_filter'),
