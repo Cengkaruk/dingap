@@ -1,6 +1,6 @@
 
 Name: app-content-filter
-Version: 6.2.0.beta3
+Version: 6.1.0.beta2.1
 Release: 1%{dist}
 Summary: Content Filter
 License: GPLv3
@@ -13,7 +13,7 @@ Requires: app-antiphishing
 Requires: app-antivirus
 Requires: app-network
 Requires: app-groups
-Requires: app-web-proxy
+Requires: app-web-proxy >= 6.1.0.beta2.1
 
 %description
 The Content Filter app allows an administrator to enforce browsing policy.  Policy can be enforced across all users or, group definitions can be created, allowing an admin to categorise users into groups - to be filtered uniquely based on the group policy/definition.
@@ -26,7 +26,7 @@ Requires: app-base-core
 Requires: app-antiphishing-core
 Requires: app-antivirus-core
 Requires: app-base-core >= 6.1.0-beta2.1
-Requires: app-firewall-core
+Requires: app-firewall-core >= 6.1.0.beta2.3
 Requires: app-groups-core
 Requires: app-network-core
 Requires: app-web-proxy-core

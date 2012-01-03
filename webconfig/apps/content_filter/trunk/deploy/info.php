@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'content_filter';
-$app['version'] = '6.2.0.beta3';
+$app['version'] = '6.1.0.beta2.1';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -32,19 +32,20 @@ $app['controllers']['policy']['title'] = lang('content_filter_policy');
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+// FIXME: remove 6.1.0.xxx version requirement
 $app['requires'] = array(
     'app-antiphishing',
     'app-antivirus',
     'app-network',
     'app-groups',
-    'app-web-proxy',
+    'app-web-proxy >= 6.1.0.beta2.1',
 );
 
 $app['core_requires'] = array(
     'app-antiphishing-core',
     'app-antivirus-core',
     'app-base-core >= 6.1.0-beta2.1',
-    'app-firewall-core',
+    'app-firewall-core >= 6.1.0.beta2.3',
     'app-groups-core',
     'app-network-core',
     'app-web-proxy-core',
