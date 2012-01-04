@@ -1514,6 +1514,8 @@ function theme_summary_box($data)
                 <td valign='top'><b>" . lang('base_additional_info') . "</b></td>
                 <td id='sidebar_additional_info'>" . theme_loading('small') . "</td>
             </tr>
+        </table>
+        <table width='100%' id='sidebar_tooltip_table'>
         $tooltip
         </table>
         <div class='marketplace-linkback'>" .
