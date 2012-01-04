@@ -708,6 +708,32 @@ function theme_progress_bar($id, $options)
     ";
 } 
 
+/**
+ * Display an info line in a form.
+ *
+ * @param string $id      HTML ID
+ * @param string $label   label
+ * @param string $text    text
+ * @param array  $options options
+ *
+ * @return string HTML output
+ */
+
+function theme_field_info($id, $label, $text, $options = NULL)
+{
+    $field_id_html = (isset($options['field_id'])) ? $options['field_id'] : $id . '_field';
+    $label_id_html = (isset($options['label_id'])) ? $options['label_id'] : $id . '_label';
+    $hide_field = (isset($options['hide_field'])) ? ' theme-hidden' : '';
+
+    // Width hack below...CSS wrt forms is crazy.
+    return "
+        <tr id='$field_id_html' class='theme-field-info" . $hide_field . "'>
+            <td class='left-field-content'><div id='$label_id_html'>$label</div></td>
+            <td class='right-field-content info' width='280'>$text</td>
+        </tr>
+    ";
+} 
+
 ///////////////////////////////////////////////////////////////////////////////
 // F O R M  H E A D E R / F O O T E R
 ///////////////////////////////////////////////////////////////////////////////

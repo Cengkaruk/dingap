@@ -1380,6 +1380,11 @@ td div.theme-progress-bar {
 	height: 15px;
 }
 
+.theme-field-info {
+    float: left;
+    height: 30px;
+}
+
 .theme-file-browser-file {
   background-image: url(../images/icon-file.png);
   background-repeat: no-repeat;
@@ -2259,3 +2264,12 @@ a.theme-button-set-middle {
 	-moz-border-radius: 0px;
 	-webkit-border-radius: 0px;
 }
+
+/* Standard links style doesn't exist?  Really? */
+a.terms_of_service {
+  color: #E1852E;
+}
+a.terms_of_service:hover {
+  color: #62799A;
+}
+
