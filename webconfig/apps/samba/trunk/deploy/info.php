@@ -11,17 +11,23 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('samba_app_summary');
-$app['description'] = lang('samba_app_long_description');
+$app['description'] = lang('samba_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'Windows Settings';
+$app['name'] = lang('samba_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_file');
-$app['menu_enabled'] = FALSE;
+
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['samba']['title'] = $app['name'];
+$app['controllers']['mode']['title'] = lang('samba_mode');
+// $app['controllers']['settings']['title'] = lang('base_settings');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
@@ -52,6 +58,10 @@ $app['core_file_manifest'] = array(
     ),
     'add-windows-group-info' => array(
         'target' => '/usr/sbin/add-windows-group-info',
+        'mode' => '0755',
+    ),
+    'samba-add-machine' => array(
+        'target' => '/usr/sbin/samba-add-machine',
         'mode' => '0755',
     ),
     'samba-init' => array(

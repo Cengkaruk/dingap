@@ -147,6 +147,11 @@ class OpenLDAP_Driver extends Engine
     /**
      * Adds a computer.
      *
+     * The required $ sign will be appended if not present.
+     *
+     * Note: this method does not add the Samba attributes since
+     * this is done by Samba when adding a machine.
+     *
      * @param string $name computer name
      *
      * @return void
@@ -157,9 +162,10 @@ class OpenLDAP_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: the "AddMachine" method does not add the Samba attributes since
-        // this is done automagically by Samba.  If this automagic is missed for
-        // some reason, then a Computer object may not have the sambaSamAccount object.
+        Validation_Exception::is_valid($this->validate_computer($name));
+
+        if (! preg_match('/\$$/', $name))
+            $name = "$name$";
 
         if ($this->ldaph == NULL)
             $this->_get_ldap_handle();
@@ -169,17 +175,15 @@ class OpenLDAP_Driver extends Engine
         $ldap_object['objectClass'] = array(
             'top',
             'account',
-            'posixAccount'
+            'posixAccount',
         );
-
-        // TODO: move get_next_uid_number to accounts_driver?
 
         $ldap_object['cn'] = $name;
         $ldap_object['uid'] = $name;
-        $ldap_object['description'] = SAMBA_LANG_COMPUTER . ' ' . preg_replace('/\$$/', '', $name);
+        $ldap_object['description'] = lang('samba_computer') . ' ' . preg_replace('/\$$/', '', $name);
         $ldap_object['uidNumber'] = $accounts->get_next_uid_number();
         $ldap_object['gidNumber'] = Samba::CONSTANT_GID_DOMAIN_COMPUTERS;
-        $ldap_object['homeDirectory'] = '/dev/NULL';
+        $ldap_object['homeDirectory'] = '/dev/null';
         $ldap_object['loginShell'] = '/sbin/nologin';
 
         $dn = 'cn=' . $this->ldaph->dn_escape($name) . ',' . OpenLDAP::get_computers_container();
@@ -593,6 +597,26 @@ class OpenLDAP_Driver extends Engine
             $this->ldaph->modify('cn=' . $attributes['cn'][0] . "," . $users_container , $newattrs);
             $entry = $this->ldaph->next_entry($entry);
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A L I D A T I O N   R O U T I N E S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validation routine for computer.
+     *
+     * @param string $computer computer
+     *
+     * @return string error message if computer is invalid
+     */
+
+    public function validate_computer($computer)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! preg_match('/^[\w\$]+$/', $computer))
+            return lang('samba_computer_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -46,6 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
+clearos_load_language('base');
 clearos_load_language('samba');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -127,10 +128,10 @@ class Samba extends Software
     const FILE_CONFIG = '/etc/samba/smb.conf';
     const FILE_DOMAIN_SID = '/etc/samba/domainsid';
     const FILE_LOCAL_SID = '/etc/samba/localsid';
-    const FILE_LOCAL_SYSTEM_INITIALIZED = '/etc/system/initialized/sambalocal';
+    const FILE_LOCAL_SYSTEM_INITIALIZED = '/var/clearos/samba/local_initialized';
     const FILE_DOMAIN_SID_CACHE = '/var/clearos/samba/domain_sid_cache';
     const PATH_STATE = '/var/lib/samba';
-    const PATH_STATE_BACKUP = '/var/clearos/samba';
+    const PATH_STATE_BACKUP = '/var/clearos/samba/backup';
 
     // Commands
     const COMMAND_NET = '/usr/bin/net';
@@ -358,6 +359,27 @@ class Samba extends Software
             return $this->shares['global']['idmap config * : backend']['value'];
         else
             return self::DEFAULT_IDMAP_BACKEND;
+    }
+
+    /**
+     * Returns state of home share.
+     *
+     * @return boolean state of home share
+     * @throws Engine_Exception
+     */
+
+    public function get_homes_state()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $share = $this->get_share_info('homes');
+            $homes = (isset($share['available']) && !$share['available']) ? FALSE : TRUE;
+        } catch (Samba_Share_Not_Found_Exception $e) {
+            $homes = FALSE;
+        }
+
+        return $homes;
     }
 
     /**
@@ -702,6 +724,47 @@ class Samba extends Software
             $info['print$'] = $this->get_share_info("print$");
 
         return $info;
+    }
+
+    /**
+     * Returns printing mode.
+     *
+     * @return string printing mode
+     */
+
+    public function get_printing_mode()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $printing_info = $this->get_printing_info();
+
+        if ($printing_info['enabled'] === FALSE)
+            $mode = self::PRINTING_DISABLED;
+        else if ($printing_info['printers']['use client driver'])
+            $mode = self::PRINTING_RAW;
+        else
+            $mode = self::PRINTING_POINT_AND_CLICK;
+
+        return $mode;
+    }
+
+    /**
+     * Returns printing modes.
+     *
+     * @return array printing options
+     */
+
+    public function get_printing_modes()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $modes =  array(
+            self::PRINTING_DISABLED => lang('base_disabled'),
+            self::PRINTING_RAW => lang('samba_raw_printing'),
+            self::PRINTING_POINT_AND_CLICK => lang('samba_point_and_click_printing')
+        );
+
+        return $modes;
     }
 
     /**
@@ -1439,6 +1502,8 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        Validation_Exception::is_valid($this->validate_logon_script($script));
+
         $this->_set_share_info('global', 'logon script', $script);
     }
 
@@ -1520,6 +1585,19 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_netbios_name($netbios_name));
+
+        // This is an expensive call, so bail if nothing has changed
+        $old_name = $this->get_netbios_name();
+
+        if ($netbios_name == $old_name)
+            return;
+
+        // Add/delete computer
+        // FIXME: verify in slave mode / referral
+        // FIXME: use net rpc join, instead
+        $ldap = new OpenLDAP_Driver();
+        $ldap->delete_computer($old_name . '$');
+        $ldap->add_computer($netbios_name . '$');
 
         // Change smb.conf
         $this->_set_share_info('global', 'netbios name', $netbios_name);
@@ -1739,8 +1817,7 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! is_bool($state))
-            throw new Validation_Exception(LOCALE_LANG_ERRMSG_PARAMETER_IS_INVALID . " - state");
+        Validation_Exception::is_valid($this->validate_roaming_profiles_state($state));
 
         if ($state) {
             $path = '\\\\%L\profiles\%U';
@@ -1838,19 +1915,18 @@ class Samba extends Software
 
         $workgroup = strtoupper($workgroup);
 
+        // This is an expensive call, so bail if nothing has changed
+        if ($workgroup == $this->get_workgroup())
+            return;
+
         // Change smb.conf
         $this->_set_share_info('global', 'workgroup', $workgroup);
 
-        // Update LDAP object
-// FIXME: handle LDAP dependency
-/*
         $ldap = new OpenLDAP_Driver();
         $ldap->set_workgroup($workgroup);
-*/
 
         // Clean up secrets file
-// FIXME: LDAP again
-//        $this->_clean_secrets_file();
+        $this->_clean_secrets_file();
     }
 
     /**
@@ -1935,7 +2011,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($state))
-            return lang('samba_domain_logons_setting_is_invalid');
+            return lang('samba_domain_logons_setting_invalid');
     }
 
     /**
@@ -1951,7 +2027,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($state))
-            return lang('samba_domain_master_setting_is_invalid');
+            return lang('samba_domain_master_setting_invalid');
     }
 
     /**
@@ -1967,7 +2043,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($state))
-            return lang('samba_local_master_setting_is_invalid');
+            return lang('samba_local_master_setting_invalid');
     }
 
     /**
@@ -1983,7 +2059,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! array_key_exists($mode, $this->modes))
-            return lang('samba_server_mode_is_invalid');
+            return lang('samba_server_mode_invalid');
     }
 
     /**
@@ -1999,7 +2075,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($state))
-            return lang('samba_preferred_master_setting_is_invalid');
+            return lang('samba_preferred_master_setting_invalid');
     }
 
     /**
@@ -2017,7 +2093,7 @@ class Samba extends Software
         $isvalid = TRUE;
 
         if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $netbios_name) && (strlen($netbios_name) <= 15)))
-            return lang('samba_server_name_is_invalid');
+            return lang('samba_server_name_invalid');
 
         $workgroup = strtoupper($this->get_workgroup());
         $netbios_name = strtoupper($netbios_name);
@@ -2039,11 +2115,25 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_domain($realm))
-            return lang('samba_realm_is_invalid');
+            return lang('samba_realm_invalid');
     }
 
     /**
-     * Validation routine for workgroup
+     * Validation routine for roaming profiles state.
+     *
+     * @param string $state state
+     *
+     * @return string error message if state is invalid
+     */
+
+    public function validate_roaming_profiles_state($state)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! clearos_is_valid_boolean($state))
+            return lang('samba_roaming_profiles_state_invalid');
+    }
+
     /**
      * Validation routine for share name
      *
@@ -2057,7 +2147,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match("/^([a-zA-Z\-$]+)$/", $name))
-            return lang('samba_share_is_invalid');
+            return lang('samba_share_invalid');
     }
 
     /**
@@ -2077,7 +2167,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! (preg_match("/^([a-zA-Z][a-zA-Z0-9\-]*)$/", $workgroup) && (strlen($workgroup) <= 15)))
-            return lang('samba_windows_domain_is_invalid');
+            return lang('samba_windows_domain_invalid');
 
         $netbios_name = $this->get_netbios_name();
 
@@ -2114,7 +2204,7 @@ class Samba extends Software
             ($type === self::SECURITY_ADS) ||
             ($type === self::SECURITY_DOMAIN)
            ))
-            return lang('samba_security_type_is_invalid');
+            return lang('samba_security_type_invalid');
     }
 
     /**
@@ -2130,7 +2220,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match("/^([a-zA-Z][\-\w ]*)$/", $server_string))
-            return lang('samba_server_comment_is_invalid');
+            return lang('samba_server_comment_invalid');
     }
 
     /**
@@ -2146,7 +2236,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match("/^([a-zA-Z0-9\-\.]*)$/", $winsserver))
-            return lang('samba_wins_server_is_invalid');
+            return lang('samba_wins_server_invalid');
     }
 
     /**
@@ -2162,7 +2252,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if (! clearos_is_valid_boolean($state))
-            return lang('samba_wins_support_setting_is_invalid');
+            return lang('samba_wins_support_setting_invalid');
     }
 
     /**
@@ -2177,8 +2267,8 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: hard-coded in current implementation
-        return TRUE;
+        if (! preg_match('/^[A-Z]+:$/', $drive))
+            return lang('samba_logon_drive_invalid' . $drive);
     }
 
     /**
@@ -2226,7 +2316,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         // TODO: tighten this up
-        return TRUE;
+        return '';
     }
 
     /**
@@ -2242,7 +2332,7 @@ class Samba extends Software
         clearos_profile(__METHOD__, __LINE__);
 
         if ($oslevel && !preg_match("/^([0-9]+)$/", $oslevel))
-            return lang('samba_os_level_setting_is_invalid');
+            return lang('samba_os_level_setting_invalid');
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -2383,6 +2473,9 @@ class Samba extends Software
     /**
      * Cleans up the secrets file.
      *
+     * The winpassword is only needed for the initialization in order
+     * to net rpc join itself to the domain. 
+     *
      * @param string $winpassword password
      *
      * @return void
@@ -2393,14 +2486,10 @@ class Samba extends Software
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: how do we want to present this in the UI without
-        // having to constantly ask for winadmin password? Or should we
-        // be asking for the password?
 
         $ldap = new OpenLDAP_Driver();
         if (! $ldap->is_directory_initialized())
             return;
-
 /*
 // FIXME
         if (!$this->is_local_system_initialized())
@@ -2447,10 +2536,23 @@ class Samba extends Software
         if ($winbind_wasrunning)
             $winbind->set_running_state(TRUE);
 
-        sleep(3); // TODO: Wait for samba ... replace this with a loop
+        if (! empty($winpassword)) {
+            $succeeded = FALSE;
 
-        if (! empty($winpassword))
-            $this->_net_rpc_join($winpassword);
+            for ($inx = 1; $inx < 5; $inx++) {
+                try {
+                    sleep(1);
+                    $this->_net_rpc_join($winpassword);
+                    $succeeded = TRUE;
+                    break;
+                } catch (Exception $e) {
+                    // Try again
+                }
+            }
+
+            // TODO: Not the end of the world.  Log it?
+            // if (! $succeeded)
+        }
     }
 
     /**
