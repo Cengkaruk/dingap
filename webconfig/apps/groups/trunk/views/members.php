@@ -43,7 +43,7 @@ $this->lang->load('users');
 if ($mode === 'view')
     $buttons = array(anchor_cancel('/app/groups'));
 else
-    $buttons = array(anchor_cancel('/app/groups'), form_submit_update('submit', 'high'));
+    $buttons = array(anchor_cancel('/app/groups', 'high'), form_submit_update('submit', 'high'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
