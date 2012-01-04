@@ -412,6 +412,7 @@ div.theme-button-set { background-image: url();  }
 
 .theme-list-table-action .ui-buttonset {
 	margin-right: 2px;
+	margin-top: 2px;
 	float: right;
 }
 
@@ -1776,11 +1777,10 @@ input.theme-form-submit-add { }
 input.theme-form-submit-delete { }
 .theme-list-table-container input.theme-form-submit-update  {
 	background: url(../images/green-button-bg.png) repeat-x;
-	border: 1px solid #648e20;
+	/*border: 1px solid #648e20;*/
 	color: #e1852e; 
 	padding-bottom: 2px;
-	margin-top: 3px;
-	padding-top: 1px;
+	padding-top: 3px;
 	font-size: 8pt;
 	float: right;
 	}
