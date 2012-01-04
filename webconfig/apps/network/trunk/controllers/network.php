@@ -116,4 +116,27 @@ class Network extends ClearOS_Controller
         header('Content-type: application/json');
         echo json_encode($network);
     }
+
+    /**
+     * Internet connection status.
+     *
+     * @return JSON network information
+     */
+
+    function get_internet_connection_status()
+    {
+        // Load libraries
+        //---------------
+
+        $this->load->library('network/Network_Status');
+
+        // Dump JSON information
+        //----------------------
+
+        $status = $this->network_status->get_connection_status();
+
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Content-type: application/json');
+        echo json_encode($status);
+    }
 }

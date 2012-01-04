@@ -100,6 +100,7 @@ $lang['network_type_unknown'] = 'Unknown';
 $lang['network_username_invalid'] = 'Username is invalid';
 $lang['network_validate_unusual_gateway_setting'] = 'Your network settings include the following unusual gateway configuration.  Click on help for more information.';
 $lang['network_vendor'] = 'Vendor';
+$lang['network_network_connection_status_offline'] = 'Network connection status is offline.';
 $lang['network_network_connection_status_unknown'] = 'Network connection status is unknown.';
 $lang['network_network_error_occurred'] = 'Network error occurred';
 $lang['network_firewall'] = 'Firewall';
