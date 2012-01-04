@@ -2266,10 +2266,10 @@ a.theme-button-set-middle {
 }
 
 /* Standard links style doesn't exist?  Really? */
-a.terms_of_service {
+a.highlight-link{
   color: #E1852E;
 }
-a.terms_of_service:hover {
+a.highlight-link:hover {
   color: #62799A;
 }
 

@@ -1510,7 +1510,7 @@ function theme_summary_box($data)
                 <td><b>" . lang('marketplace_version') . "</b></td>
                 <td>" . $data['version'] . '-' . $data['release'] . "</td>
             </tr>
-            <tr id='sidebar_additional_info_row'>
+            <tr id='sidebar_additional_info_row' class='theme-hidden'>
                 <td valign='top'><b>" . lang('base_additional_info') . "</b></td>
                 <td id='sidebar_additional_info'>" . theme_loading('small') . "</td>
             </tr>

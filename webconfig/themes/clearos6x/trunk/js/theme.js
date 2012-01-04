@@ -244,18 +244,44 @@ function theme_clearos_on_page_ready(my_location)
 }
 
 function get_marketplace_data(basename) {
+    // Let's see if we have a connection to the Internet
+    // Block on this call (async set to false)
+    $.ajax({
+        url: '/app/network/get_internet_connection_status',
+        method: 'POST',
+        dataType: 'json',
+        async: false,
+        success : function(status) {
+            if (status == 'online')
+                internet_connection = true;
+        },
+        error: function (xhr, text_status, error_thrown) {
+        }
+    });
+    // No connection to Internet...let's bail
+    if (!internet_connection) {
+        $('#sidebar_additional_info').html('<a href=\'/app/network\' class=\'highlight-link\'>' + lang_internet_down + '</a>');
+        $('#sidebar_additional_info_row').show(200);
+        return;
+    } else {
+        // Now we know we have a fighting chance to get a response...show loading whirly
+        $('#sidebar_additional_info_row').removeClass('theme-hidden');
+    }
     $.ajax({
         url: '/app/marketplace/ajax/get_app_details/' + basename,
         method: 'GET',
         dataType: 'json',
         success : function(json) {
             if (json.code != undefined && json.code != 0) {
-                // Could put real message for codes < 0, but it gets a bit technical
-                if (json.code < 0)
-                    $('#sidebar_additional_info').html(lang_marketplace_connection_failure);
-                else
-                    $('#sidebar_additional_info').html(json.errmsg);
                 $('#sidebar_additional_info').css('color', 'red');
+                $('#sidebar_additional_info_row').show(200);
+                if (json.code < 0) {
+                    // Could put real message for codes < 0, but it gets a bit technical
+                    $('#sidebar_additional_info').html(lang_marketplace_connection_failure);
+                } else {
+                    $('#sidebar_additional_info').html(json.errmsg);
+                }
+                return;
             } else {
                 // This was just a placeholder
                 $('#sidebar_additional_info_row').hide();
