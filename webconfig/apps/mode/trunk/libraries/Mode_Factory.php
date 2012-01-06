@@ -52,11 +52,23 @@ clearos_load_language('mode');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Note: factory drivers are loaded on the fly
+// Classes
+//--------
 
+use \clearos\apps\base\Configuration_File as Configuration_File;
 use \clearos\apps\base\Engine as Engine;
 
+clearos_load_library('base/Configuration_File');
 clearos_load_library('base/Engine');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
+use \clearos\apps\base\File_Not_Found_Exception as File_Not_Found_Exception;
+
+clearos_load_library('base/File_No_Match_Exception');
+clearos_load_library('base/File_Not_Found_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -77,6 +89,13 @@ clearos_load_library('base/Engine');
 class Mode_Factory extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const FILE_DRIVER = '/var/clearos/mode/driver.conf';
+    const DEFAULT_DRIVER = 'simple_mode';
+
+    ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -96,13 +115,11 @@ class Mode_Factory extends Engine
      * @throws Engine_Exception, Validation_Exception
      */
 
-    public static function create($driver = NULL)
+    public static function create()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: move this to a config file
-        if ($driver === NULL)
-            $driver = 'simple_mode';
+        $driver = self::_get_driver();
 
         clearos_load_library($driver . '/Mode_Driver');
 
@@ -126,9 +143,35 @@ class Mode_Factory extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // TODO: move this to a config file
-        $driver = 'simple_mode';
+        $driver = self::_get_driver();
 
         return $driver . '/Mode_Driver';
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // P R I V A T E  M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Returns driver.
+     *
+     * @return string driver name
+     * @throws Engine_Exception
+     */ 
+
+    protected static function _get_driver()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $file = new Configuration_File(self::FILE_DRIVER);
+            $driver = $file->lookup_value('/^driver\s=\s*/');
+        } catch (File_No_Match_Exception $e) {
+            $driver = self::DEFAULT_DRIVER;
+        } catch (File_Not_Found_Exception $e) {
+            $driver = self::DEFAULT_DRIVER;
+        }
+
+        return $driver;
     }
 }

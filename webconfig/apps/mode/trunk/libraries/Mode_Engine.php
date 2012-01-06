@@ -96,8 +96,6 @@ class Mode_Engine extends Engine
 
     const FILE_CONFIG = '/var/clearos/mode/mode.conf';
 
-    const MODE_SIMPLE_MASTER = 'simple_master';
-    const MODE_SIMPLE_SLAVE = 'simple_slave';
     const MODE_MASTER = 'master';
     const MODE_SLAVE = 'slave';
     const MODE_STANDALONE = 'standalone';
