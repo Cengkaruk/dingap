@@ -17,6 +17,5 @@ clearos_load_language('pptpd_plugin');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-$plugin['name'] = lang('pptpd_plugin_pptp_server_directory_plugin');
-$plugin['nickname'] = lang('pptpd_plugin_pptp_server');
-$plugin['description'] = 'The PPTP server directory extension ... blah blah blah.'; // FIXME: translate
+$plugin['name'] = lang('pptpd_plugin_pptp_server');
+$plugin['description'] = lang('pptpd_plugin_app_description');

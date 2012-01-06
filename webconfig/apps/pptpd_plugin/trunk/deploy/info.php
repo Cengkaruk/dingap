@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = 'PPTP Server Directory Plugin';
-$app['description'] = 'The PPTP server plugin ... blah blah blah.'; // FIXME: translate
+$app['description'] = lang('pptpd_plugin_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('pptpd_plugin_pptp_server_directory_plugin');
+$app['name'] = lang('pptpd_plugin_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
 $app['menu_enabled'] = FALSE;

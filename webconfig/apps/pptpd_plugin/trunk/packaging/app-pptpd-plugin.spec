@@ -2,23 +2,23 @@
 Name: app-pptpd-plugin
 Version: 6.2.0.beta3
 Release: 1%{dist}
-Summary: PPTP Server Directory Plugin - APIs and install
+Summary: PPTP Server Accounts - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Source: app-pptpd-plugin-%{version}.tar.gz
 Buildarch: noarch
 
 %description
-The PPTP server plugin ... blah blah blah.
+Provides PPTP Server option in the User Manager.
 
 %package core
-Summary: PPTP Server Directory Plugin - APIs and install
+Summary: PPTP Server Accounts - APIs and install
 Requires: app-base-core
 Requires: app-accounts-core
 Requires: app-pptpd-core
 
 %description core
-The PPTP server plugin ... blah blah blah.
+Provides PPTP Server option in the User Manager.
 
 This package provides the core API and libraries.
 
