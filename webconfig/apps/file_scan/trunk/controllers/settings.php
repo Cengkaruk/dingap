@@ -45,82 +45,118 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/file_scan/
  */
 
-
 class Settings extends ClearOS_Controller
 {
-	/**
-	 * File scanner configuration.
-	 */
+    /**
+     * File scanner configuration.
+     *
+     * @return view
+     */
 
-	function index()
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        $this->_common('view');
+    }
 
-		$this->load->library('file_scan/File_Scan');
-		$this->lang->load('file_scan');
+    /**
+     * Edit settings view.
+     *
+     * @return view
+     */
 
-		// Handle form submit
-		//-------------------
+    function edit()
+    {
+        $this->_common('edit');
+    }
 
-		if ($this->input->post('submit')) {
-			try {
-				$requested = $this->input->post('directories');
-				$presets = $this->file_scan->get_directory_Presets();
-				$configured = $this->file_scan->get_directories();
-				$schedule_exists = $this->file_scan->scan_schedule_exists();
+    /**
+     * View settings view.
+     *
+     * @return view
+     */
 
-				// Update directories
-				//-------------------
+    function view()
+    {
+        $this->_common('view');
+    }
 
-				foreach ($presets as $preset => $description) {
-					if (array_key_exists($preset, $requested) && (!in_array($preset, $configured)))
-						$this->file_scan->add_directory($preset);
-					else if (!array_key_exists($preset, $requested) && (in_array($preset, $configured)))
-						$this->file_scan->Remove_directory($preset);
-				}
+    /**
+     * Common form handler.
+     *
+     * @param string $form_type form type
+     *
+     * @return view
+     */
 
-				// Update shedule
-				//---------------
+    function _common($form_type)
+    {
+        // Load libraries
+        //---------------
 
-				$hour = $this->input->post('hour');
+        $this->load->library('file_scan/File_Scan');
+        $this->lang->load('file_scan');
 
-				if ($schedule_exists && $hour === 'disabled') {
-					$this->file_scan->remove_scan_schedule();
-				}  else if (!$schedule_exists && $hour !== 'disabled') {
-					$this->file_scan->set_scan_schedule('0', $hour, '*', '*', '*');
-					// FIXME: move this to scan script
-					// $this->freshclam->SetBootState(TRUE);
-					// $this->freshclam->SetRunningState(TRUE);
-				}
+        // Handle form submit
+        //-------------------
 
-				// Redirect to main page
-//				 $this->page->set_success(lang('base_system_updated'));
-//				redirect('/file_scan/');
-			} catch (Exception $e) {
-				$this->page->view_exception($e);
-				return;
-			}
-		}
+        if ($this->input->post('submit')) {
+            try {
+                $requested = $this->input->post('directories');
+                $presets = $this->file_scan->get_directory_Presets();
+                $configured = $this->file_scan->get_directories();
+                $schedule_exists = $this->file_scan->scan_schedule_exists();
 
-		// Load view data
-		//---------------
+                // Update directories
+                //-------------------
 
-		try {
-			$data['directories'] = $this->file_scan->get_directories();
-			$data['presets'] = $this->file_scan->get_directory_presets();
-			$data['schedule_exists'] = $this->file_scan->scan_schedule_exists();
+                foreach ($presets as $preset => $description) {
+                    if (array_key_exists($preset, $requested) && (!in_array($preset, $configured)))
+                        $this->file_scan->add_directory($preset);
+                    else if (!array_key_exists($preset, $requested) && (in_array($preset, $configured)))
+                        $this->file_scan->Remove_directory($preset);
+                }
 
-			$schedule = $this->file_scan->get_scan_schedule();
-			$data['hour'] = $schedule['hour'];
-		} catch (Exception $e) {
+                // Update shedule
+                //---------------
+
+                $hour = $this->input->post('hour');
+
+                if ($schedule_exists && ($hour === 'disabled')) {
+                    $this->file_scan->remove_scan_schedule();
+                } else if (!$schedule_exists && ($hour !== 'disabled')) {
+                    $this->file_scan->set_scan_schedule('0', $hour, '*', '*', '*');
+                    // FIXME: move this to scan script
+                    // $this->freshclam->SetBootState(TRUE);
+                    // $this->freshclam->SetRunningState(TRUE);
+                }
+
+                $this->page->set_status_updated();
+                redirect('/file_scan/settings');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['form_type'] = $form_type;
+            $data['directories'] = $this->file_scan->get_directories();
+            $data['presets'] = $this->file_scan->get_directory_presets();
+            $data['schedule_exists'] = $this->file_scan->scan_schedule_exists();
+
+            $schedule = $this->file_scan->get_scan_schedule();
+            $data['hour'] = $schedule['hour'];
+        } catch (Exception $e) {
             $this->page->view_exception($e);
-			return;
-		}
+            return;
+        }
  
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
         $this->page->view_form('file_scan/settings', $data, lang('base_settings'));
-	}
+    }
 }

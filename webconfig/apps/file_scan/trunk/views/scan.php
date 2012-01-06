@@ -4,12 +4,12 @@
  * File scan scanner view.
  *
  * @category   ClearOS
- * @package    Date
+ * @package    File_Scan
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/date/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/file_scan/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,18 +37,17 @@ $this->lang->load('base');
 $this->lang->load('file_scan');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
+$read_only = TRUE;
+
+///////////////////////////////////////////////////////////////////////////////
+// Form
 ///////////////////////////////////////////////////////////////////////////////
 
 echo form_open('file_scan/config'); 
 echo form_header(lang('file_scan_scanner'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-// FIXME
-$read_only = TRUE;
 
 echo field_input('state', $state, lang('base_state'), $read_only);
 echo field_input('status', $status, lang('base_status'), $read_only);
@@ -59,15 +58,11 @@ echo field_input('malware_count', $items_found, lang('file_scan_malware_items_fo
 echo field_input('last_result', $last_result, lang('file_scan_last_scan_result'), $read_only);
 
 echo field_button_set(
-	array(
-		anchor_javascript('start', lang('base_start'), 'high'),
-		anchor_javascript('stop', lang('base_stop'), 'high')
-	)
+    array(
+        anchor_javascript('start', lang('base_start'), 'high'),
+        anchor_javascript('stop', lang('base_stop'), 'high')
+    )
 );
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
 
 echo form_footer();
 echo form_close();

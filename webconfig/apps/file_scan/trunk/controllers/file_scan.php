@@ -47,22 +47,24 @@
 
 class File_Scan extends ClearOS_Controller
 {
-	/**
-	 * File scan server overview.
-	 */
+    /**
+     * File scan server overview.
+     * 
+     * @return view
+     */
 
-	function index()
-	{
-		// Load libraries
-		//---------------
+    function index()
+    {
+        // Load libraries
+        //---------------
 
-		$this->lang->load('file_scan');
+        $this->lang->load('file_scan');
 
-		// Load views
-		//-----------
+        // Load views
+        //-----------
 
         $views = array('file_scan/settings', 'file_scan/scan');
 
-		$this->page->view_forms($views, lang('file_scan_app_name'));
-	}
+        $this->page->view_forms($views, lang('file_scan_app_name'));
+    }
 }

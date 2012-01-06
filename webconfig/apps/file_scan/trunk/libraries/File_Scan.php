@@ -104,7 +104,7 @@ class File_Scan extends Engine
     const CMD_KILLALL = '/usr/bin/killall';
 
     // Antivirus scanner (wrapper)
-    const FILE_AVSCAN = 'avscan.php';
+    const FILE_AVSCAN = '/usr/sbin/file_scan';
 
     // List of directories to scan for viruses.
     const FILE_CONFIG = '/etc/avscan.conf';
@@ -777,15 +777,11 @@ class File_Scan extends Engine
 
         $cron = new Cron();
 
-        try {
-            $cron->add_configlet_by_parts(
-                'app-antivirus',
-                $minute, $hour, $dayofmonth, $month, $dayofweek,
-                'root', COMMON_CORE_DIR . '/scripts/' . self::FILE_AVSCAN . " >/dev/null 2>&1"
-            );
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $cron->add_configlet_by_parts(
+            'app-antivirus',
+            $minute, $hour, $dayofmonth, $month, $dayofweek,
+            'root', self::FILE_AVSCAN . " >/dev/null 2>&1"
+        );
     }
 
     /**
@@ -800,16 +796,12 @@ class File_Scan extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->is_scan_running())
-            throw new Engine_Exception(ANTIVIRUS_LANG_RUNNING, CLEAROS_WARNING);
+            throw new Engine_Exception(lang('file_scan_scanner_already_running'));
 
-        try {
-            $options = array();
-            $options['background'] = TRUE;
-            $shell = new Shell();
-            $shell->execute(COMMON_CORE_DIR . '/scripts/' . self::FILE_AVSCAN, '', TRUE, $options);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $options = array();
+        $options['background'] = TRUE;
+        $shell = new Shell();
+        $shell->execute(self::FILE_AVSCAN, '', TRUE, $options);
     }
 
     /**
@@ -824,16 +816,12 @@ class File_Scan extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (!$this->is_scan_running())
-            throw new Engine_Exception(ANTIVIRUS_LANG_NOT_RUNNING, CLEAROS_WARNING);
+            return;
 
-        try {
-            $options = array();
-            $options['background'] = TRUE;
-            $shell = new Shell();
-            $shell->execute(self::CMD_KILLALL, self::FILE_AVSCAN . ' ' . basename(AVSCAN_SCANNER), TRUE, $options);
-        } catch (Engine_Exception $e) {
-            throw new Engine_Exception($e->get_message(), CLEAROS_ERROR);
-        }
+        $options = array();
+        $options['background'] = TRUE;
+        $shell = new Shell();
+        $shell->execute(self::CMD_KILLALL, self::FILE_AVSCAN, TRUE, $options);
     }
 
     /**
