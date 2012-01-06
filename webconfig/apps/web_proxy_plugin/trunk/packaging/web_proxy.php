@@ -18,5 +18,4 @@ clearos_load_language('web_proxy_plugin');
 ///////////////////////////////////////////////////////////////////////////////
 
 $plugin['name'] = lang('web_proxy_plugin_web_proxy');
-$plugin['nickname'] = lang('web_proxy_plugin_web_proxy');
-$plugin['description'] = 'The web proxy directory extension ... blah blah blah.'; // FIXME: translate
+$plugin['description'] = lang('web_proxy_plugin_app_description');
