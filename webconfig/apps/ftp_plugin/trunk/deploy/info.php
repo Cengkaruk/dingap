@@ -11,14 +11,13 @@ $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
 $app['license'] = 'GPLv3';
 $app['license_core'] = 'LGPLv3';
-$app['summary'] = lang('ftp_plugin_app_summary');
-$app['description'] = lang('ftp_plugin_app_long_description');
+$app['description'] = lang('ftp_plugin_app_description');
 
 /////////////////////////////////////////////////////////////////////////////
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = lang('ftp_plugin_ftp_server_accounts_plugin');
+$app['name'] = lang('ftp_plugin_app_name');
 $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_directory');
 $app['menu_enabled'] = FALSE;
