@@ -43,6 +43,12 @@ use \clearos\apps\groups\Group_Engine as Group;
 /**
  * Groups controller.
  *
+ * The app policy system is group driven.  This controller is used by various
+ * apps to manage these group policies.  For security reasons, the group list
+ * is set explicitly in the constructor.  In other words, the "PPTP Server"
+ * will use this controller to manage the "pptpd_server_plugin" group
+ * (and *only* this app plugin group).
+ *
  * @category   Apps
  * @package    Groups
  * @subpackage Controllers
@@ -54,6 +60,27 @@ use \clearos\apps\groups\Group_Engine as Group;
 
 class Groups extends ClearOS_Controller
 {
+    protected $app_name = NULL;
+    protected $group_list = NULL;
+
+    /**
+     * Group membership constructor.
+     *
+     * @param string $app_name    app that manages the group
+     * @param string $group_list  group name
+     *
+     * @return view
+     */
+
+    function __construct($app_name, $group_list)
+    {
+        if (! empty($app_name))
+            $this->app_name = $app_name;
+
+        if (! empty($group_list))
+            $this->group_list = $group_list;
+    }
+
     /**
      * Groups server overview.
      *
@@ -72,6 +99,15 @@ class Groups extends ClearOS_Controller
             return;
         }
 
+        if (empty($this->app_name))
+            $this->index_all();
+        else
+            $this->index_policy();
+
+    }
+
+    function index_all()
+    {
         // Load libraries
         //---------------
 
@@ -98,7 +134,46 @@ class Groups extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('summary', $data, lang('groups_group_manager'));
+        $this->page->view_form('groups/summary', $data, lang('groups_group_manager'));
+    }
+
+    function index_policy()
+    {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('groups');
+        $this->load->factory('groups/Group_Manager_Factory');
+        $this->load->factory('accounts/Accounts_Factory');
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['basename'] = $this->app_name;
+            $data['groups'] = array();
+
+            $all_groups = $this->group_manager->get_details(Group::TYPE_PLUGIN);
+
+            foreach ($this->group_list as $group) {
+                if (array_key_exists($group, $all_groups))
+                $data['groups'][] = $all_groups[$group];
+            }
+
+            if ($this->accounts->get_capability() === Accounts_Engine::CAPABILITY_READ_WRITE)
+                $data['mode'] = 'edit';
+            else
+                $data['mode'] = 'view';
+
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('groups/policies', $data, lang('groups_group_manager'));
     }
 
     /**
@@ -111,8 +186,8 @@ class Groups extends ClearOS_Controller
 
     function add($group_name)
     {
-        if (!isset($group_name) && $this->input->post('group_name'))
-            $group_name = $this->input->post('group_name');
+        // if (!isset($group_name) && $this->input->post('group_name'))
+        //    $group_name = $this->input->post('group_name');
 
         $this->_handle_item('add', $group_name);
     }
@@ -236,6 +311,15 @@ class Groups extends ClearOS_Controller
         $this->load->factory('groups/Group_Factory', $group_name);
         $this->lang->load('groups');
 
+        // Check group policy
+        //-------------------
+
+        if (! empty($this->group_list) && (!in_array($group_name, $this->group_list))) {
+            throw new Exception('not allowed');
+            $this->page->view_exception($e);
+            return;
+        }
+
         // Handle form submit
         //-------------------
 
@@ -248,7 +332,12 @@ class Groups extends ClearOS_Controller
                 $this->group->set_members($users);
 
                 $this->page->set_status_updated();
-                redirect('/groups');
+
+                if (empty($this->app_name))
+                    redirect('/groups');
+                else
+                    redirect($this->app_name);
+
             } catch (Engine_Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -260,6 +349,7 @@ class Groups extends ClearOS_Controller
 
         try {
             $data['mode'] = $form_type;
+            $data['basename'] = empty($this->app_name) ? '' : $this->app_name;
             $data['group_info'] = $this->group->get_info();
             $data['users'] = $this->user_manager->get_details();
         } catch (Engine_Exception $e) {
@@ -289,6 +379,15 @@ class Groups extends ClearOS_Controller
 
         $this->load->factory('groups/Group_Factory', $group_name);
         $this->lang->load('groups');
+
+        // Check group policy
+        //-------------------
+
+        if (! empty($this->group_list)) {
+            throw new Exception('not allowed');
+            $this->page->view_exception($e);
+            return;
+        }
 
         // Set validation rules
         //---------------------
