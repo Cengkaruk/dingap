@@ -1,0 +1,67 @@
+#!/bin/sh
+
+#-------------------------------------------------------------------
+# Load configuration
+#-------------------------------------------------------------------
+
+[ -e /etc/clearos/firewall.conf ] && source /etc/clearos/firewall.conf
+[ -e /etc/sysconfig/squid ] && source /etc/sysconfig/squid
+[ -e /etc/init.d/functions-automagic ] && source /etc/init.d/functions-automagic
+
+/usr/bin/logger -p local6.notice -t web_proxy "network change detected - updating configuration" 
+
+#-------------------------------------------------------------------
+# Generate error pages
+#-------------------------------------------------------------------
+
+ERRORFILES=`/bin/ls /usr/clearos/apps/web_proxy/deploy/templates/ERR_*template 2>/dev/null`
+LANIP=`/bin/echo $AUTOMAGIC_LANIPS | /bin/cut -d ' ' -f 1`
+
+if [ -n "$LANIP" ]; then
+    for ERRORFILE in $ERRORFILES; do
+        TARGET=`/bin/echo $ERRORFILE | sed 's/\.template$//' | sed 's/.*\///' `
+        sed -e "s/PCN_LAN_IP/$LANIP/" $ERRORFILE > "/var/clearos/web_proxy/errors/$TARGET"
+    done
+fi
+
+#-------------------------------------------------------------------
+# Bail at this point if automagic is disabled
+#-------------------------------------------------------------------
+
+if [ "$AUTOMAGIC" == "off" ]; then
+	exit 0
+fi
+
+#-------------------------------------------------------------------
+# http_port configuration 
+#-------------------------------------------------------------------
+
+if [ "$SQUID_TRANSPARENT" == "on" ]; then
+	TRANSPARENT=" transparent"
+else
+	TRANSPARENT=""
+fi
+
+echo "# Created automatically based on network configuration" > /etc/squid/squid_http_port.conf
+
+echo "wtf $AUTOMAGIC_LANIPS" 
+for IP in $AUTOMAGIC_LANIPS 127.0.0.1; do
+	echo "http_port $IP:3128$TRANSPARENT" >> /etc/squid/squid_http_port.conf
+done
+
+#-------------------------------------------------------------------
+# LAN ACL definitions
+#-------------------------------------------------------------------
+
+echo "# Created automatically based on network configuration" > /etc/squid/squid_lans.conf
+
+LANNETS=""
+
+for LAN in $AUTOMAGIC_LANNETS; do
+	LANNETS="$LAN $LANNETS"
+done
+
+if [ -n "$LANNETS" ]; then
+	echo "acl webconfig_lan src $LANNETS $EXTRALANS" >> /etc/squid/squid_lans.conf
+	echo "acl webconfig_to_lan dst $LANNETS $EXTRALANS" >> /etc/squid/squid_lans.conf
+fi
