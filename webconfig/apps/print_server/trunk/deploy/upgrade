@@ -28,7 +28,6 @@ logger -p local6.notice -t installer "app-cups-core - setting default policy"
 [ -e /etc/cups/cupsd.policy.conf ] && mv /etc/cups/cupsd.policy.conf /var/clearos/print_server/backup/cupsd.policy.conf.$TIMESTAMP
 cp /usr/clearos/apps/print_server/deploy/cupsd.policy.conf /etc/cups/cupsd.policy.conf
 
-
 # Grab bootstrap certificates from Certificate Manager
 #-----------------------------------------------------
 
@@ -51,3 +50,8 @@ if [ ! -s "$CRT" ]; then
     chown root.lp $CRT
     chmod 640 $CRT
 fi
+
+# Sync action: updates configuration using clearsync hook
+#--------------------------------------------------------
+
+/usr/clearos/apps/print_server/deploy/syncaction

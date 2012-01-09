@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Print server settings view.
+ * Print server policy controller.
  *
- * @category   ClearOS
+ * @category   Apps
  * @package    Print_Server
- * @subpackage Views
+ * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -25,33 +25,47 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// Load dependencies
+// B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
-$this->lang->load('print_server');
-
-$url = 'https://' . $_SERVER['SERVER_ADDR'] . ':631/';
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Show warning if not running
+// D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-echo "<div id='server_not_running' style='display:FIXMEnone;'>";
-echo infobox_warning(lang('base_warning'), lang('print_server_management_tool_not_accessible'));
-echo "</div>";
+require clearos_app_base('groups') . '/controllers/groups.php';
 
-echo "<div id='server_running' style='display:FIXMEnone;'>";
-echo infobox_highlight(
-    lang('print_server_management_tool'),
-    lang('print_server_management_tool_help') . '<br><br>' .
-    "<p align='center'>" .  
-    anchor_custom($url, lang('print_server_go_to_management_tool'), 'high', array('target' => '_blank')) . 
-    "</p>"
-);
-echo "</div>";
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Print server policy controller.
+ *
+ * @category   Apps
+ * @package    Print_Server
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2011 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/print_server/
+ */
+
+class Policy extends Groups
+{
+    /**
+     * Print server policy constructor.
+     */
+
+    function __construct()
+    {
+        parent::__construct('print_server', array('print_server_plugin'));
+    }
+}

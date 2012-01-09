@@ -22,15 +22,28 @@ $app['category'] = lang('base_category_server');
 $app['subcategory'] = lang('base_subcategory_file');
 
 /////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['print_server']['title'] = $app['name'];
+$app['controllers']['settings']['title'] = lang('base_settings');
+$app['controllers']['policy']['title'] = lang('base_app_policy');
+
+/////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
 $app['requires'] = array(
+    'app-groups',
+    'app-users',
     'app-network', 
 );
 
 $app['core_requires'] = array(
     'app-certificate-manager-core',
+    'app-groups',
+    'app-print-server-plugin-core',
+    'app-users',
     'cups >= 1.4.2',
     'csplugin-filewatch',
 );
@@ -43,15 +56,6 @@ $app['core_directory_manifest'] = array(
 
 $app['core_file_manifest'] = array(
     'cups.php'=> array('target' => '/var/clearos/base/daemon/cups.php'),
-    'filewatch-print-server.conf'=> array('target' => '/etc/clearsync.d/filewatch-print-server.conf'),
+    'filewatch-print-server-configuration.conf'=> array('target' => '/etc/clearsync.d/filewatch-print-server-configuration.conf'),
+    'filewatch-print-server-network.conf'=> array('target' => '/etc/clearsync.d/filewatch-print-server-network.conf'),
 );
-/*
-    'authorize' => array(
-        'target' => '/etc/clearos/print_server.d/authorize',
-        'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
-        'config' => TRUE,
-        'config_params' => 'noreplace',
-    ),
-*/

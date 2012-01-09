@@ -55,5 +55,25 @@ class Settings extends ClearOS_Controller
 
     function index()
     {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('base');
+        $this->load->library('print_server/CUPS');
+
+        // Load view data
+        //---------------
+
+        try {
+            $is_running = $this->cups->get_running_state();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('print_server/settings', $data, lang('base_settings'));
     }
 }

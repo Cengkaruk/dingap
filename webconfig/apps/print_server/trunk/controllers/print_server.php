@@ -63,7 +63,7 @@ class Print_Server extends ClearOS_Controller
         // Load views
         //-----------
 
-        $views = array('print_server/server', 'print_server/settings');
+        $views = array('print_server/server', 'print_server/settings', 'print_server/policy');
 
         $this->page->view_forms($views, lang('print_server_app_name'));
     }
