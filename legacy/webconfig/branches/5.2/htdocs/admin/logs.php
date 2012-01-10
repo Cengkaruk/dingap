@@ -47,7 +47,13 @@ $filter = isset($_REQUEST['filter']) ? $_REQUEST['filter'] : ".*";
 $logfile = isset($_REQUEST['logfile']) ? $_REQUEST['logfile'] : "system";
 $allcolumns = isset($_REQUEST['allcolumns']) ? "checked" : "";
 
-DisplayVarlogs($logfile, $filter, $allcolumns);
+if (! preg_match('/^[a-zA-Z0-9_.!:#=\/\s\$\*\-]*$/', $filter)) {
+	WebDialogWarning('Invalid filter.');
+	$filter = '';
+} else {
+	DisplayVarlogs($logfile, $filter, $allcolumns);
+}
+
 WebFooter();
 
 
