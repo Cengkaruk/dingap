@@ -51,7 +51,8 @@ if (isset($_POST['UpdatePolicy'])) {
 			'maximumAge' => $_POST['maximumAge'],
 			'minimumAge' => $_POST['minimumAge'],
 			'minimumLength' => $_POST['minimumLength'],
-			'historySize' => $_POST['historySize']
+			'historySize' => $_POST['historySize'],
+			'badPasswordLockout' => $_POST['badPasswordLockout']
 		);
 
 		$policy->SetDefaultPolicy($policyobject);
@@ -161,6 +162,10 @@ function DisplayPolicy()
 		<tr>
 			<td class='mytablesubheader'>" . PASSWORDPOLICY_LANG_HISTORY_SIZE . "</td>
 			<td>" . WebDropDownHash("historySize", $info['historySize'], $history_options) . "</td>
+		</tr>
+		<tr>
+			<td class='mytablesubheader'>" . "Password Lockout" . "</td>
+			<td>" . WebDropDownEnabledDisabled("badPasswordLockout", $info['badPasswordLockout']) . "</td>
 		</tr>
 		<tr>
 			<td class='mytablesubheader'>&nbsp; </td>
