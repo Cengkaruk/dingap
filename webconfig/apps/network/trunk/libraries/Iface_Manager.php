@@ -398,6 +398,45 @@ class Iface_Manager extends Engine
     }
 
     /**
+     * Returns list of available LAN IPs.
+     *
+     * @return array list of available LAN IPs.
+     * @throws Engine_Exception
+     */
+
+    public function get_lan_ips()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $network = new Network();
+        $mode = $network->get_mode();
+
+        $ethlist = $this->get_interface_details();
+
+        $lan_ips = array();
+
+        foreach ($ethlist as $eth => $details) {
+            // Only interested in configured interfaces
+            if (! $details['configured'])
+                continue;
+
+            // Gateway mode
+            if (($details['role'] == Role::ROLE_LAN) && (! empty($details['address'])) && (! empty($details['netmask']))) {
+                $lan_ips[] = $details['address'];
+            }
+
+            // Standalone mode
+            if (($details['role'] == Role::ROLE_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask']))
+                && ($mode == Network::MODE_TRUSTED_STANDALONE) || ($mode == Network::MODE_STANDALONE)
+            ) {
+                $lan_ips[] = $details['address'];
+            }
+        }
+
+        return $lan_ips;
+    }
+
+    /**
      * Returns list of available LAN networks.
      *
      * @return array list of available LAN networks.
@@ -428,7 +467,7 @@ class Iface_Manager extends Engine
 
             // Standalone mode
             if (($details['role'] == Role::ROLE_EXTERNAL) && (! empty($details['address'])) && (! empty($details['netmask']))
-                && ($mode == Network::MODE_TRUSTEDSTANDALONE) || ($mode == Network::MODE_STANDALONE)
+                && ($mode == Network::MODE_TRUSTED_STANDALONE) || ($mode == Network::MODE_STANDALONE)
             ) {
                 $basenetwork = Network_Utils::get_network_address($details['address'], $details['netmask']);
                 $lans[] = $basenetwork . "/" . $details['netmask'];
