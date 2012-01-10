@@ -1214,6 +1214,9 @@ function WebAuthenticate()
 
 function WebAuthenticateDisplayLogin($username, $password, $warning = null)
 {
+	// Don't spit password back out to screen
+	$password = '';
+
 	if (WEBCONFIG_CONSOLE)
 		$login = "root <input type='hidden' name='reserved_username' value='root' />";
 	else
