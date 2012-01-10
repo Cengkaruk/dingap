@@ -20,12 +20,15 @@ Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: avahi
 Requires: bind-utils
+Requires: bridge-utils
 Requires: dhclient
 Requires: ethtool
 Requires: net-tools
 Requires: ppp
 Requires: rp-pppoe
 Requires: syswatch
+Requires: traceroute
+Requires: wireless-tools
 
 %description core
 Provides administrators with the ability to configure the most common network tasks like mode, system hostname, DNS servers and Network Interface Card (NIC) settings.
