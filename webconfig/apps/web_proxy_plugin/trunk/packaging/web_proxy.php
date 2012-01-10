@@ -17,5 +17,5 @@ clearos_load_language('web_proxy_plugin');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-$plugin['name'] = lang('web_proxy_plugin_web_proxy');
+$plugin['name'] = lang('web_proxy_plugin_web_proxy_users');
 $plugin['description'] = lang('web_proxy_plugin_app_description');
