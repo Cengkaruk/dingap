@@ -54,8 +54,7 @@ $customhead = CustomStyle($colors);
 $refresh = (isset($_REQUEST['refresh']) && is_numeric($_REQUEST['refresh'])) ? $_REQUEST['refresh'] : 0;
 
 if (is_numeric($refresh) && ($refresh > 0)) {
-	$customhead .= '<meta http-equiv="refresh" content="' . $refresh . ';url=' .
-		$_SERVER['PHP_SELF'] . '?cmon&amp;refresh=' . $refresh . '">';
+	$customhead .= '<meta http-equiv="refresh" content="' . $refresh . ';url=/admin/network-status.php?cmon&amp;refresh=' . $refresh . '">';
 }
 
 WebAuthenticate();
