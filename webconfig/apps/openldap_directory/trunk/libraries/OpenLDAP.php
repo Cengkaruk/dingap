@@ -462,7 +462,43 @@ class OpenLDAP extends Engine
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
+        try {
+            $this->initialize_plugin_groups();
+        } catch (Exception $e) {
+            // Not fatal
+        }
+
         $file->delete();
+    }
+
+    /**
+     * Initializes plugin groups.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function initialize_plugin_groups()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $accounts = new Accounts_Driver();
+
+        $plugins = $accounts->get_plugins();
+        $last_exception = NULL;
+
+        try {
+            foreach ($plugins as $plugin => $details) {
+                $plugin_group = $plugin . '_plugin'; // TODO: hard coded value
+                $group = new Group_Driver($plugin_group);
+                $group->add($details['name']);
+            }
+        } catch (Exception $e) {
+            $last_exception = $e;
+        }
+
+        if (! is_null($last_exception))
+            throw new Engine_Exception(clearos_exception_message($last_exception));
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -72,6 +72,12 @@ $app['core_file_manifest'] = array(
     'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
     'nslcd.conf' => array( 'target' => '/var/clearos/ldap/synchronize/nslcd.conf' ),
     'pam_ldap.conf' => array( 'target' => '/var/clearos/ldap/synchronize/pam_ldap.conf' ),
+    'initialize-plugins' => array(
+        'target' => '/usr/sbin/initialize-plugins',
+        'mode' => '0755',
+        'owner' => 'root',
+        'group' => 'root',
+    )
 );
 
 $app['core_directory_manifest'] = array(
