@@ -16,7 +16,6 @@ Requires: cups-libs >= 1.3.7
 Requires: foomatic
 Requires: ghostscript
 Requires: ghostscript-fonts
-Requires: hpijs
 Requires: app-setup = %VERSION%
 Requires: app-webconfig = %VERSION%
 Provides: cc-cups
