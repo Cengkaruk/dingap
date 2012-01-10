@@ -313,7 +313,8 @@ function WebFormOpen($action = null, $method = "post", $name = null, $dom = null
 
 	// Validate action - XSS
 	if (!preg_match('/^[a-zA-Z0-9\-\.\/]*$/', $action)) {
-		return;
+		echo "Move along...";
+		die();
 	}
 
 	if(is_null($name))
