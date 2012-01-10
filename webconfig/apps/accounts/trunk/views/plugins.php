@@ -55,11 +55,11 @@ $anchors = array();
 
 foreach ($plugins as $plugin => $details) {
 
-    $item['title'] = $details['nickname'];
+    $item['title'] = $details['name'];
     $item['action'] = '/app/accounts/plugins/view/' . $plugin;
     $item['anchors'] = ''; // FIXME: anchor_view('/app/accounts/plugins/view/' . $plugin);
     $item['details'] = array(
-        $details['nickname'],
+        $details['name'],
     );
 
     $items[] = $item;
