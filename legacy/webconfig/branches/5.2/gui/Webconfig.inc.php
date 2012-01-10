@@ -310,6 +310,12 @@ function WebFormOpen($action = null, $method = "post", $name = null, $dom = null
 		if ($parts['dirname'] != $base)
 			$action = "$base/$action";
 	}
+
+	// Validate action - XSS
+	if (!preg_match('/^[a-zA-Z0-9\-\.\/]*$/', $action)) {
+		return;
+	}
+
 	if(is_null($name))
 		$name = '';
 	else
