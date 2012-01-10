@@ -1,12 +1,10 @@
 
 Name: app-flexshare
-Group: ClearOS/Apps
-Version: 5.9.9.0
+Version: 6.2.0.beta3
 Release: 1%{dist}
 Summary: Flexshare
 License: GPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Apps
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = %{version}-%{release}
@@ -17,8 +15,8 @@ Flexshares are flexible share resources that allow an administrator to quickly a
 
 %package core
 Summary: Flexshare - APIs and install
-Group: ClearOS/Libraries
 License: LGPLv3
+Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-mode-core
 Requires: app-tasks-core
