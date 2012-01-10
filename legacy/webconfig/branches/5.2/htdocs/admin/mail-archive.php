@@ -344,7 +344,7 @@ function GetSettings()
 			<td class='mytablesubheader'>" . WEB_LANG_POLICY . "</td>
             <td>
               <select id='policy' name='policy' onChange='togglepolicy();'>$policy_options</select>
-			  <span id='config'>(<a href='" . $_SERVER['PHP_SELF'] . "?conf=1'>" . LOCALE_LANG_CONFIGURE . "</a>)</span>
+			  <span id='config'>(<a href='/admin/mail-archive.php?conf=1'>" . LOCALE_LANG_CONFIGURE . "</a>)</span>
             </td>
           </tr>
 		  <tr>
@@ -1105,14 +1105,14 @@ function DisplayMessage($mesg)
 	$navigate = "
 		<table width='60'>
 			<tr>
-				<td colspan='2' align='center'><a href='" . $_SERVER['PHP_SELF'] . "'>" . LOCALE_LANG_BACK . "</a></td>
+				<td colspan='2' align='center'><a href='/admin/mail-archive.php'>" . LOCALE_LANG_BACK . "</a></td>
 			</tr>
 			<tr>
-				<td align='left'><a href='" . $_SERVER['PHP_SELF'] . "?View[" . ($mesg['id'] - 1) . "]$search_string'>" . WEBCONFIG_ICON_PREVIOUS . "</a></td>
-				<td align='right'><a href='" . $_SERVER['PHP_SELF'] . "?View[" . ($mesg['id'] + 1) . "]$search_string'>" . WEBCONFIG_ICON_NEXT . "</a></td>
+				<td align='left'><a href='/admin/mail-archive.php?View[" . ($mesg['id'] - 1) . "]$search_string'>" . WEBCONFIG_ICON_PREVIOUS . "</a></td>
+				<td align='right'><a href='/admin/mail-archive.php?View[" . ($mesg['id'] + 1) . "]$search_string'>" . WEBCONFIG_ICON_NEXT . "</a></td>
 			</tr>
 			<tr>
-				<td colspan='2' align='center'><a href='" . $_SERVER['PHP_SELF'] . "?Search=1&NavSubmit=1$search_string'>" . WEBCONFIG_ICON_SEARCH . "</a></td>
+				<td colspan='2' align='center'><a href='/admin/mail-archive.php?Search=1&NavSubmit=1$search_string'>" . WEBCONFIG_ICON_SEARCH . "</a></td>
 			</tr>
 		</table>
 	";
