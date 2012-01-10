@@ -212,6 +212,7 @@ class LdapPasswordPolicy extends Engine
 		$attributes['pwdMinAge'] = $settings['minimumAge'];
 		$attributes['pwdMinLength'] = $settings['minimumLength'];
 		$attributes['pwdInHistory'] = $settings['historySize'];
+		$attributes['pwdLockout'] = ($settings['badPasswordLockout']) ? 'TRUE' : 'FALSE';
 
 		try {
 			$this->ldaph->Modify($policy_dn, $attributes);
