@@ -98,6 +98,16 @@ class Password_Policies extends ClearOS_Controller
 
     function _view_edit($form_mode)
     {
+        // Show account status widget if we're not in a happy state
+        //---------------------------------------------------------
+
+        $this->load->module('accounts/status');
+
+        if ($this->status->unhappy()) {
+            $this->status->widget('users');
+            return;
+        }
+
         // Load libraries
         //---------------
 
