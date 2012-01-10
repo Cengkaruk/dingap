@@ -1,7 +1,7 @@
 <?php
 
 /**
- * FTP controller.
+ * FTP server policy controller
  *
  * @category   Apps
  * @package    FTP
@@ -30,11 +30,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+require clearos_app_base('groups') . '/controllers/groups.php';
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * FTP controller.
+ * FTP server policy controller.
  *
  * @category   Apps
  * @package    FTP
@@ -45,26 +58,14 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/ftp/
  */
 
-class FTP extends ClearOS_Controller
+class Policy extends Groups
 {
     /**
-     * FTP server summary view.
-     *
-     * @return view
+     * Web Proxy policy constructor.
      */
 
-    function index()
+    function __construct()
     {
-        // Load libraries
-        //---------------
-
-        $this->lang->load('ftp');
-
-        // Load views
-        //-----------
-
-        $views = array('ftp/server', 'ftp/settings', 'ftp/policy');
-
-        $this->page->view_forms($views, lang('ftp_app_name'));
+        parent::__construct('ftp', array('ftp_plugin'));
     }
 }
