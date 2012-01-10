@@ -17,5 +17,5 @@ clearos_load_language('ftp_plugin');
 // C O N F I G
 ///////////////////////////////////////////////////////////////////////////////
 
-$plugin['name'] = lang('ftp_plugin_ftp_server');
+$plugin['name'] = lang('ftp_plugin_ftp_server_users');
 $plugin['description'] = lang('ftp_plugin_app_description');
