@@ -1,0 +1,8 @@
+[KSplash Theme: RHEL6]
+Name = RHEL6
+Description = Red Hat Enterprise Linux 6 Theme
+Version = 6.0
+Author = Red Hat, Inc.
+Homepage = http://www.redhat.com/
+
+Engine = KSplashX
